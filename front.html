@@ -1,0 +1,1320 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Golden Goal Rush Prototype</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #07100d;
+        --panel: rgba(8, 15, 14, 0.78);
+        --panel-strong: rgba(5, 9, 10, 0.92);
+        --line: rgba(255, 255, 255, 0.12);
+        --gold: #ffd66b;
+        --gold-strong: #ffb72c;
+        --green: #21f59b;
+        --green-soft: rgba(33, 245, 155, 0.22);
+        --red: #ff4d66;
+        --blue: #4cc3ff;
+        --text: #f7fff8;
+        --muted: #96aaa2;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(255, 214, 107, 0.15), transparent 34%),
+          linear-gradient(180deg, rgba(13, 28, 23, 0.88), rgba(4, 8, 9, 0.98)),
+          var(--bg);
+        color: var(--text);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(90deg, transparent 0 8%, rgba(33, 245, 155, 0.08) 8.3% 8.8%, transparent 9.2%),
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 72px);
+        mask-image: linear-gradient(180deg, transparent, #000 18%, #000 76%, transparent);
+        opacity: 0.55;
+      }
+
+      button,
+      select,
+      input {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        color: var(--text);
+        cursor: pointer;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.56;
+      }
+
+      .app {
+        position: relative;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        width: 100vw;
+        height: 100vh;
+        padding: 14px;
+        gap: 12px;
+      }
+
+      .topbar {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 12px;
+        min-height: 58px;
+        padding: 10px 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: linear-gradient(180deg, rgba(11, 22, 20, 0.92), rgba(4, 7, 8, 0.82));
+        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.35);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .crest {
+        display: grid;
+        place-items: center;
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        border: 1px solid rgba(255, 214, 107, 0.55);
+        border-radius: 8px;
+        background: radial-gradient(circle at 50% 35%, #fff1a9, #e6a81f 48%, #6b4507 100%);
+        color: #111;
+        font-weight: 1000;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(20px, 3vw, 34px);
+        line-height: 1;
+        letter-spacing: 0;
+      }
+
+      .subline {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .icon-btn {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.06);
+        font-weight: 900;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 330px;
+        gap: 12px;
+        min-height: 0;
+      }
+
+      .stage {
+        position: relative;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(33, 245, 155, 0.12), transparent 36%),
+          linear-gradient(180deg, rgba(4, 13, 13, 0.96), rgba(1, 3, 5, 0.92));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 24px 70px rgba(0, 0, 0, 0.42);
+      }
+
+      #game-host {
+        width: 100%;
+        height: 100%;
+      }
+
+      .win-toast {
+        position: absolute;
+        left: 50%;
+        top: 11%;
+        z-index: 4;
+        transform: translate(-50%, -20px) scale(0.94);
+        min-width: min(520px, calc(100% - 32px));
+        padding: 14px 22px;
+        border: 1px solid rgba(255, 214, 107, 0.58);
+        border-radius: 8px;
+        background: rgba(8, 9, 8, 0.82);
+        box-shadow: 0 0 50px rgba(255, 183, 44, 0.26);
+        text-align: center;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 160ms ease,
+          transform 160ms ease;
+      }
+
+      .win-toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
+
+      .win-toast strong {
+        display: block;
+        color: var(--gold);
+        font-size: clamp(22px, 4vw, 44px);
+        line-height: 1;
+        letter-spacing: 0;
+        text-shadow: 0 0 24px rgba(255, 214, 107, 0.46);
+      }
+
+      .win-toast span {
+        display: block;
+        margin-top: 8px;
+        color: #d8f8ea;
+        font-size: 14px;
+      }
+
+      .side-panel {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        backdrop-filter: blur(16px);
+        overflow: hidden;
+      }
+
+      .meters {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .meter {
+        min-width: 0;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .meter label {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0;
+      }
+
+      .meter strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 20px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .meter.full {
+        grid-column: 1 / -1;
+      }
+
+      .controls {
+        display: grid;
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+
+      .field label {
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0;
+      }
+
+      .stepper {
+        display: grid;
+        grid-template-columns: 42px 1fr 42px;
+        gap: 8px;
+      }
+
+      .stepper input,
+      select {
+        width: 100%;
+        min-height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.34);
+        color: var(--text);
+        text-align: center;
+        outline: none;
+      }
+
+      .stepper button,
+      .secondary,
+      .toggle {
+        min-height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .primary-spin {
+        min-height: 74px;
+        border-radius: 8px;
+        background: radial-gradient(circle at 50% 20%, #fff8bf, var(--gold-strong) 42%, #895808 100%);
+        color: #130f04;
+        font-size: 24px;
+        font-weight: 1000;
+        letter-spacing: 0;
+        box-shadow: 0 0 38px rgba(255, 183, 44, 0.24);
+      }
+
+      .quick-row,
+      .modal-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .toggle.active {
+        border-color: rgba(33, 245, 155, 0.75);
+        background: var(--green-soft);
+        color: #dffff1;
+      }
+
+      .buy-panel {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+        border-top: 1px solid var(--line);
+        overflow: auto;
+      }
+
+      .buy-panel h2 {
+        margin: 0 0 2px;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0;
+      }
+
+      .buy-option {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.22);
+        text-align: left;
+      }
+
+      .buy-option span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .buy-option b {
+        color: var(--gold);
+      }
+
+      dialog {
+        width: min(760px, calc(100vw - 24px));
+        max-height: min(760px, calc(100vh - 24px));
+        border: 1px solid rgba(255, 214, 107, 0.34);
+        border-radius: 8px;
+        background: var(--panel-strong);
+        color: var(--text);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
+      }
+
+      dialog::backdrop {
+        background: rgba(0, 0, 0, 0.62);
+        backdrop-filter: blur(5px);
+      }
+
+      .dialog-body {
+        display: grid;
+        gap: 14px;
+        padding: 18px;
+      }
+
+      .dialog-body h2 {
+        margin: 0;
+      }
+
+      .dialog-body p,
+      .dialog-body li {
+        color: #c7d8d2;
+        line-height: 1.45;
+      }
+
+      .pay-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 8px;
+      }
+
+      .pay-card {
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .pay-card b {
+        display: block;
+        color: var(--gold);
+      }
+
+      .confetti {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 8;
+      }
+
+      .confetti i {
+        position: absolute;
+        top: -18px;
+        width: 8px;
+        height: 14px;
+        border-radius: 2px;
+        animation: fall 900ms linear forwards;
+      }
+
+      @keyframes fall {
+        to {
+          transform: translateY(110vh) rotate(520deg);
+          opacity: 0;
+        }
+      }
+
+      @media (max-width: 900px) {
+        body {
+          overflow: auto;
+        }
+
+        .app {
+          min-height: 100vh;
+          height: auto;
+          padding: 8px;
+        }
+
+        .topbar {
+          grid-template-columns: 1fr;
+        }
+
+        .header-actions {
+          justify-content: space-between;
+        }
+
+        .layout {
+          grid-template-columns: 1fr;
+          grid-template-rows: minmax(460px, 62vh) auto;
+        }
+
+        .side-panel {
+          min-height: auto;
+        }
+
+        .buy-panel {
+          max-height: none;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .app {
+          gap: 8px;
+        }
+
+        .topbar {
+          padding: 10px;
+        }
+
+        .layout {
+          grid-template-rows: minmax(410px, 58vh) auto;
+        }
+
+        .meters {
+          grid-template-columns: 1fr 1fr;
+          padding: 8px;
+        }
+
+        .controls,
+        .buy-panel {
+          padding: 8px;
+        }
+
+        .primary-spin {
+          min-height: 64px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="crest" aria-hidden="true">GG</div>
+          <div>
+            <h1>Golden Goal Rush</h1>
+            <div class="subline">6x5 cluster pays · demo credits only · original prototype</div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn" id="soundBtn" title="Toggle sound" type="button">S</button>
+          <button class="icon-btn" id="paytableBtn" title="Paytable" type="button">P</button>
+          <button class="icon-btn" id="rulesBtn" title="Rules" type="button">R</button>
+          <button class="icon-btn" id="fullscreenBtn" title="Fullscreen" type="button">F</button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="stage" aria-label="Game stage">
+          <div id="game-host"></div>
+          <div class="win-toast" id="winToast">
+            <strong id="toastTitle">Nice Goal</strong>
+            <span id="toastAmount">0.00</span>
+          </div>
+        </section>
+
+        <aside class="side-panel" aria-label="Game controls">
+          <div class="meters">
+            <div class="meter">
+              <label>Balance</label>
+              <strong id="balanceValue">5000.00</strong>
+            </div>
+            <div class="meter">
+              <label>Last Win</label>
+              <strong id="winValue">0.00</strong>
+            </div>
+            <div class="meter">
+              <label>Bet</label>
+              <strong id="betValue">1.00</strong>
+            </div>
+            <div class="meter">
+              <label>Mode</label>
+              <strong id="modeValue">Base</strong>
+            </div>
+            <div class="meter full">
+              <label>Status</label>
+              <strong id="statusValue">Ready</strong>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button class="primary-spin" id="spinBtn" type="button">SPIN</button>
+
+            <div class="field">
+              <label for="betInput">Demo Bet</label>
+              <div class="stepper">
+                <button id="betDown" type="button">-</button>
+                <input id="betInput" inputmode="decimal" value="1.00" aria-label="Bet amount" />
+                <button id="betUp" type="button">+</button>
+              </div>
+            </div>
+
+            <div class="quick-row">
+              <button class="toggle" id="turboBtn" type="button">Turbo</button>
+              <button class="toggle" id="autoBtn" type="button">Auto</button>
+            </div>
+
+            <div class="field">
+              <label for="rtpSelect">RTP Profile</label>
+              <select id="rtpSelect">
+                <option value="96">96%</option>
+                <option value="94">94%</option>
+                <option value="92">92%</option>
+                <option value="88">88%</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="buy-panel">
+            <h2>Demo Bonus Buy</h2>
+            <button class="buy-option" data-buy="featureSpins" type="button">
+              <span>Feature Spins<br />5x higher bonus chance</span>
+              <b>3x</b>
+            </button>
+            <button class="buy-option" data-buy="lightsSpin" type="button">
+              <span>Stadium Lights Spin<br />Guaranteed activator</span>
+              <b>50x</b>
+            </button>
+            <button class="buy-option" data-buy="extraTime" type="button">
+              <span>Extra Time Bonus<br />8 free spins</span>
+              <b>100x</b>
+            </button>
+            <button class="buy-option" data-buy="penaltyShootout" type="button">
+              <span>Penalty Shootout<br />12 free spins</span>
+              <b>250x</b>
+            </button>
+            <button class="buy-option" disabled type="button">
+              <span>World Final Bonus<br />Not purchasable</span>
+              <b>Locked</b>
+            </button>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <div class="confetti" id="confetti"></div>
+
+    <dialog id="infoDialog">
+      <div class="dialog-body">
+        <h2 id="dialogTitle">Paytable</h2>
+        <div id="dialogContent"></div>
+        <div class="modal-row">
+          <button class="secondary" id="closeDialog" type="button">Close</button>
+          <button class="secondary" id="resetSeed" type="button">New Seed</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script type="module">
+      import {
+        COLS,
+        ROWS,
+        SlotMath,
+        SYMBOL_META,
+        defaultSeed,
+        roundCurrency,
+      } from "./math.ts";
+
+      const PhaserRef = window.Phaser;
+      const MIN_BET = 0.1;
+      const MAX_BET = 100;
+      const START_BALANCE = 5000;
+      const REGULAR_SYMBOLS = ["10", "J", "Q", "K", "A", "FOOTBALL", "BOOT", "GLOVE", "TICKET", "ARMBAND", "TROPHY"];
+
+      const els = {
+        balance: document.querySelector("#balanceValue"),
+        win: document.querySelector("#winValue"),
+        bet: document.querySelector("#betValue"),
+        mode: document.querySelector("#modeValue"),
+        status: document.querySelector("#statusValue"),
+        spin: document.querySelector("#spinBtn"),
+        betInput: document.querySelector("#betInput"),
+        betDown: document.querySelector("#betDown"),
+        betUp: document.querySelector("#betUp"),
+        turbo: document.querySelector("#turboBtn"),
+        auto: document.querySelector("#autoBtn"),
+        rtp: document.querySelector("#rtpSelect"),
+        sound: document.querySelector("#soundBtn"),
+        paytable: document.querySelector("#paytableBtn"),
+        rules: document.querySelector("#rulesBtn"),
+        fullscreen: document.querySelector("#fullscreenBtn"),
+        dialog: document.querySelector("#infoDialog"),
+        dialogTitle: document.querySelector("#dialogTitle"),
+        dialogContent: document.querySelector("#dialogContent"),
+        closeDialog: document.querySelector("#closeDialog"),
+        resetSeed: document.querySelector("#resetSeed"),
+        toast: document.querySelector("#winToast"),
+        toastTitle: document.querySelector("#toastTitle"),
+        toastAmount: document.querySelector("#toastAmount"),
+        confetti: document.querySelector("#confetti"),
+      };
+
+      const state = {
+        balance: START_BALANCE,
+        bet: 1,
+        lastWin: 0,
+        spinning: false,
+        turbo: false,
+        auto: false,
+        sound: true,
+        seed: defaultSeed(),
+        bonusMode: null,
+        freeSpins: 0,
+        persistentZones: [],
+        lastVisibleZones: [],
+      };
+
+      let math = new SlotMath(state.seed, { rtp: Number(els.rtp.value), volatility: "medium-high" });
+      let scene;
+      let autoTimer;
+      let audioContext;
+
+      class GoldenGoalScene extends PhaserRef.Scene {
+        constructor() {
+          super("GoldenGoalScene");
+          this.currentGrid = makeOpeningGrid();
+          this.currentZones = new Set();
+          this.flashCells = new Set();
+          this.revealCells = new Set();
+          this.gridBounds = { x: 0, y: 0, cell: 72, gap: 8 };
+        }
+
+        create() {
+          scene = this;
+          this.bg = this.add.graphics();
+          this.gridLayer = this.add.container(0, 0);
+          this.fxLayer = this.add.container(0, 0);
+          this.scale.on("resize", () => this.render());
+          this.render();
+        }
+
+        setGrid(grid, zones = [], flash = [], reveals = []) {
+          this.currentGrid = grid;
+          this.currentZones = new Set(zones);
+          this.flashCells = new Set(flash.map(posKey));
+          this.revealCells = new Set(reveals.map((reveal) => posKey(reveal.position)));
+          this.render();
+        }
+
+        async pulseCells(cells) {
+          this.flashCells = new Set(cells.map(posKey));
+          this.render();
+          await wait(state.turbo ? 85 : 180);
+          this.flashCells.clear();
+          this.render();
+        }
+
+        render() {
+          const width = this.scale.width;
+          const height = this.scale.height;
+          this.bg.clear();
+          this.gridLayer.removeAll(true);
+          this.fxLayer.removeAll(true);
+          drawStadium(this.bg, width, height);
+
+          const gap = Math.max(5, Math.min(10, width * 0.008));
+          const safeWidth = width - 28;
+          const safeHeight = height - 70;
+          const cell = Math.floor(Math.min((safeWidth - gap * (COLS - 1)) / COLS, (safeHeight - gap * (ROWS - 1)) / ROWS));
+          const gridWidth = cell * COLS + gap * (COLS - 1);
+          const gridHeight = cell * ROWS + gap * (ROWS - 1);
+          const x = (width - gridWidth) / 2;
+          const y = Math.max(50, (height - gridHeight) / 2 + 12);
+          this.gridBounds = { x, y, cell, gap };
+
+          const frame = this.add.graphics();
+          frame.fillStyle(0x020706, 0.72);
+          frame.lineStyle(2, 0xffd66b, 0.2);
+          frame.fillRoundedRect(x - 12, y - 12, gridWidth + 24, gridHeight + 24, 8);
+          frame.strokeRoundedRect(x - 12, y - 12, gridWidth + 24, gridHeight + 24, 8);
+          this.gridLayer.add(frame);
+
+          for (let row = 0; row < ROWS; row += 1) {
+            for (let col = 0; col < COLS; col += 1) {
+              const cellData = this.currentGrid[row][col];
+              const cx = x + col * (cell + gap);
+              const cy = y + row * (cell + gap);
+              this.gridLayer.add(drawCell(this, cellData, cx, cy, cell, {
+                golden: this.currentZones.has(`${col},${row}`),
+                flash: this.flashCells.has(`${col},${row}`),
+                reveal: this.revealCells.has(`${col},${row}`),
+              }));
+            }
+          }
+
+          const title = this.add.text(width / 2, 20, "STADIUM NIGHT FINAL", {
+            fontFamily: "Inter, Arial",
+            fontSize: `${Math.max(11, Math.min(16, width / 56))}px`,
+            color: "#9cffd0",
+            fontStyle: "700",
+          });
+          title.setOrigin(0.5, 0);
+          this.gridLayer.add(title);
+        }
+
+        burst(cells, color = 0xffd66b) {
+          const { x, y, cell, gap } = this.gridBounds;
+          for (const position of cells) {
+            const px = x + position.col * (cell + gap) + cell / 2;
+            const py = y + position.row * (cell + gap) + cell / 2;
+            for (let i = 0; i < 9; i += 1) {
+              const dot = this.add.circle(px, py, Math.max(2, cell * 0.035), color, 0.92);
+              this.fxLayer.add(dot);
+              this.tweens.add({
+                targets: dot,
+                x: px + PhaserRef.Math.Between(-cell, cell),
+                y: py + PhaserRef.Math.Between(-cell, cell),
+                alpha: 0,
+                scale: 0.25,
+                duration: state.turbo ? 180 : 360,
+                ease: "Quad.easeOut",
+                onComplete: () => dot.destroy(),
+              });
+            }
+          }
+        }
+      }
+
+      const game = new PhaserRef.Game({
+        type: PhaserRef.AUTO,
+        parent: "game-host",
+        backgroundColor: "#030706",
+        scale: {
+          mode: PhaserRef.Scale.RESIZE,
+          width: "100%",
+          height: "100%",
+        },
+        render: {
+          antialias: true,
+          powerPreference: "high-performance",
+        },
+        scene: [GoldenGoalScene],
+      });
+
+      els.spin.addEventListener("click", () => spin());
+      els.betDown.addEventListener("click", () => setBet(state.bet / 2));
+      els.betUp.addEventListener("click", () => setBet(state.bet * 2));
+      els.betInput.addEventListener("change", () => setBet(Number(els.betInput.value)));
+      els.turbo.addEventListener("click", () => {
+        state.turbo = !state.turbo;
+        els.turbo.classList.toggle("active", state.turbo);
+      });
+      els.auto.addEventListener("click", toggleAuto);
+      els.sound.addEventListener("click", () => {
+        state.sound = !state.sound;
+        els.sound.classList.toggle("active", state.sound);
+      });
+      els.rtp.addEventListener("change", () => {
+        math.setConfig({ rtp: Number(els.rtp.value) });
+        setStatus(`RTP profile set to ${els.rtp.value}%`);
+      });
+      els.fullscreen.addEventListener("click", () => {
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+      });
+      els.paytable.addEventListener("click", () => openInfo("paytable"));
+      els.rules.addEventListener("click", () => openInfo("rules"));
+      els.closeDialog.addEventListener("click", () => els.dialog.close());
+      els.resetSeed.addEventListener("click", () => {
+        state.seed = `golden-goal-${Date.now()}`;
+        math = new SlotMath(state.seed, { rtp: Number(els.rtp.value), volatility: "medium-high" });
+        setStatus("New deterministic seed loaded");
+      });
+      document.querySelectorAll("[data-buy]").forEach((button) => {
+        button.addEventListener("click", () => buyBonus(button.dataset.buy));
+      });
+
+      updateUi();
+
+      async function spin(extraRequest = {}) {
+        if (state.spinning) return;
+        if (!scene) return;
+
+        const inBonus = state.bonusMode !== null;
+        const spinCost = inBonus ? 0 : state.bet;
+        if (state.balance < spinCost) {
+          setStatus("Demo balance is too low");
+          stopAuto();
+          return;
+        }
+
+        state.spinning = true;
+        state.balance = roundCurrency(state.balance - spinCost);
+        if (inBonus) state.freeSpins -= 1;
+        updateUi();
+        setStatus(inBonus ? `${formatMode(state.bonusMode)} free spin` : "Kickoff");
+        playSound("spin");
+
+        const result = math.spin({
+          bet: state.bet,
+          mode: state.bonusMode ?? "base",
+          persistentGoldenZones: inBonus ? state.persistentZones : [],
+          forceActivator: state.bonusMode === "worldFinal",
+          ...extraRequest,
+        });
+
+        await playResult(result);
+
+        state.lastWin = result.totalWin;
+        state.balance = roundCurrency(state.balance + result.totalWin);
+        state.lastVisibleZones = result.goldenZones;
+
+        if (inBonus) {
+          state.persistentZones = result.goldenZones;
+          if (result.triggeredBonus?.upgraded) {
+            state.bonusMode = "worldFinal";
+            state.freeSpins = Math.max(state.freeSpins, 12);
+            setStatus("World Final upgrade");
+          } else if (result.retriggerSpins > 0) {
+            state.freeSpins += result.retriggerSpins;
+            setStatus(`Retrigger +${result.retriggerSpins} free spins`);
+          }
+          if (state.freeSpins <= 0) {
+            state.bonusMode = null;
+            state.persistentZones = [];
+            setStatus("Bonus complete");
+          }
+        } else {
+          state.persistentZones = [];
+          if (result.triggeredBonus) {
+            state.bonusMode = result.triggeredBonus.mode;
+            state.freeSpins = result.triggeredBonus.spins;
+            state.persistentZones = result.goldenZones;
+            setStatus(`${formatMode(result.triggeredBonus.mode)} triggered`);
+          } else if (result.totalWin <= 0) {
+            setStatus("Ready");
+          }
+        }
+
+        state.spinning = false;
+        updateUi();
+
+        if (state.auto && state.balance >= state.bet) {
+          autoTimer = window.setTimeout(() => spin(), state.turbo ? 220 : 720);
+        }
+      }
+
+      async function playResult(result) {
+        let liveZones = new Set(result.mode === "base" ? [] : state.persistentZones);
+        scene.setGrid(result.initialGrid, Array.from(liveZones));
+        await wait(state.turbo ? 80 : 220);
+
+        for (const step of result.cascades) {
+          scene.setGrid(step.gridBefore, Array.from(liveZones), step.removed);
+          scene.burst(step.removed);
+          setStatus(`Cascade ${step.index + 1} · ${step.cascadeMultiplier}x`);
+          playSound("hit");
+          await scene.pulseCells(step.removed);
+          for (const added of step.goldenAdded) liveZones.add(posKey(added));
+          scene.setGrid(step.gridAfter, Array.from(liveZones));
+          await wait(state.turbo ? 80 : 190);
+        }
+
+        if (result.activatorLanded && result.goldenReveals.length > 0) {
+          setStatus("Stadium Lights activate Golden Pitch Zones");
+          scene.cameras.main.shake(state.turbo ? 90 : 160, 0.004);
+          playSound("feature");
+          await wait(state.turbo ? 120 : 280);
+        }
+
+        scene.setGrid(result.finalGrid, result.goldenZones, [], result.goldenReveals);
+
+        if (result.captainEvents.length > 0 || result.collectorEvents.length > 0) {
+          playSound("collect");
+          await wait(state.turbo ? 160 : 360);
+        }
+
+        if (result.totalWinMultiplier > 0) {
+          showWin(result.totalWinMultiplier, result.totalWin);
+          if (result.totalWinMultiplier >= 20) {
+            scene.cameras.main.shake(240, Math.min(0.012, result.totalWinMultiplier / 9000));
+            launchConfetti(result.totalWinMultiplier);
+          }
+        }
+      }
+
+      async function buyBonus(type) {
+        if (state.spinning) return;
+        const buy = math.bonusBuy(type, state.bet);
+        if (state.balance < buy.cost) {
+          setStatus("Demo balance is too low for that buy");
+          return;
+        }
+
+        state.balance = roundCurrency(state.balance - buy.cost);
+        updateUi();
+        playSound("feature");
+
+        if (buy.startsBonus) {
+          state.bonusMode = buy.startsBonus.mode;
+          state.freeSpins = buy.startsBonus.spins;
+          state.persistentZones = [];
+          setStatus(`${formatMode(buy.startsBonus.mode)} bought`);
+          updateUi();
+          return;
+        }
+
+        await spin(buy.request ?? {});
+      }
+
+      function toggleAuto() {
+        state.auto = !state.auto;
+        els.auto.classList.toggle("active", state.auto);
+        if (state.auto) spin();
+        else stopAuto();
+      }
+
+      function stopAuto() {
+        state.auto = false;
+        els.auto.classList.remove("active");
+        if (autoTimer) window.clearTimeout(autoTimer);
+      }
+
+      function setBet(value) {
+        const normalized = Math.min(MAX_BET, Math.max(MIN_BET, Number.isFinite(value) ? value : state.bet));
+        state.bet = roundCurrency(normalized);
+        updateUi();
+      }
+
+      function updateUi() {
+        els.balance.textContent = money(state.balance);
+        els.win.textContent = money(state.lastWin);
+        els.bet.textContent = money(state.bet);
+        els.betInput.value = state.bet.toFixed(2);
+        els.mode.textContent = state.bonusMode ? `${formatMode(state.bonusMode)} (${state.freeSpins})` : "Base";
+        els.spin.textContent = state.bonusMode ? `FREE SPIN ${state.freeSpins}` : "SPIN";
+        els.spin.disabled = state.spinning;
+        document.querySelectorAll(".buy-option[data-buy]").forEach((button) => {
+          button.disabled = state.spinning || state.bonusMode !== null;
+        });
+      }
+
+      function setStatus(text) {
+        els.status.textContent = text;
+      }
+
+      function showWin(multiplier, amount) {
+        const title = celebrationName(multiplier);
+        els.toastTitle.textContent = title;
+        els.toastAmount.textContent = `${multiplier.toFixed(2)}x · ${money(amount)}`;
+        els.toast.classList.add("show");
+        playSound(multiplier >= 20 ? "big" : "hit");
+        window.setTimeout(() => els.toast.classList.remove("show"), state.turbo ? 700 : 1300);
+      }
+
+      function celebrationName(multiplier) {
+        if (multiplier >= 1000) return "World Final Win";
+        if (multiplier >= 250) return "Champion Win";
+        if (multiplier >= 100) return "Super Goal";
+        if (multiplier >= 35) return "Mega Goal";
+        if (multiplier >= 10) return "Big Goal";
+        return "Nice Goal";
+      }
+
+      function openInfo(kind) {
+        if (kind === "paytable") {
+          els.dialogTitle.textContent = "Paytable";
+          els.dialogContent.innerHTML = `
+            <div class="pay-grid">
+              ${REGULAR_SYMBOLS.map(
+                (id) => `<div class="pay-card"><b>${SYMBOL_META[id].name}</b><span>5+ cluster pays. Larger clusters scale upward with cascade multipliers.</span></div>`,
+              ).join("")}
+              <div class="pay-card"><b>Bronze Ball</b><span>0.2x, 0.5x, 1x, 2x, 3x, 4x</span></div>
+              <div class="pay-card"><b>Silver Ball</b><span>5x, 10x, 15x, 20x</span></div>
+              <div class="pay-card"><b>Gold Ball</b><span>25x, 50x, 100x, 250x, 500x</span></div>
+              <div class="pay-card"><b>Captain Star</b><span>Adjacent coin and collector values multiply by 2x to 10x.</span></div>
+              <div class="pay-card"><b>Trophy Collector</b><span>Collectors collect visible coin values, then later collectors can collect earlier collectors.</span></div>
+            </div>
+          `;
+        } else {
+          els.dialogTitle.textContent = "Rules";
+          els.dialogContent.innerHTML = `
+            <p>Golden Goal Rush is a demo-credit prototype with no real-money wallet. The grid is 6 reels by 5 rows. Clusters require 5 or more matching connected regular symbols.</p>
+            <ul>
+              <li>Goal Rush Cascades remove winning clusters and all matching symbols visible on the grid.</li>
+              <li>Winning cells become Golden Pitch Zones. Stadium Lights activate those zones.</li>
+              <li>3 Whistles trigger Extra Time, 4 trigger Penalty Shootout, 5 trigger World Final.</li>
+              <li>Extra Time starts with 8 free spins. Penalty Shootout and World Final start with 12.</li>
+              <li>Max win cap is 10,000x bet. RTP profiles are configurable for prototype tuning.</li>
+            </ul>
+            <p>Current deterministic seed: <b>${state.seed}</b></p>
+          `;
+        }
+        els.dialog.showModal();
+      }
+
+      function makeOpeningGrid() {
+        return Array.from({ length: ROWS }, (_, row) =>
+          Array.from({ length: COLS }, (_, col) => ({ id: REGULAR_SYMBOLS[(row * COLS + col) % REGULAR_SYMBOLS.length] })),
+        );
+      }
+
+      function drawStadium(g, width, height) {
+        g.fillStyle(0x020706, 1);
+        g.fillRect(0, 0, width, height);
+        g.fillGradientStyle(0x12362a, 0x12362a, 0x020706, 0x020706, 0.85, 0.85, 1, 1);
+        g.fillRect(0, 0, width, height);
+
+        g.fillStyle(0x0d2119, 0.9);
+        g.fillEllipse(width / 2, height * 0.82, width * 1.28, height * 0.44);
+        g.lineStyle(2, 0x21f59b, 0.2);
+        for (let i = 0; i < 6; i += 1) {
+          const x = (width / 6) * i;
+          g.lineBetween(x, height * 0.62, width / 2, height * 0.98);
+        }
+        g.lineStyle(2, 0xffffff, 0.08);
+        g.strokeEllipse(width / 2, height * 0.83, width * 0.46, height * 0.12);
+
+        for (const side of [-1, 1]) {
+          const lx = width / 2 + side * width * 0.38;
+          g.fillStyle(0xffffff, 0.8);
+          g.fillCircle(lx, 46, 6);
+          g.fillCircle(lx + side * 22, 58, 5);
+          g.fillStyle(0x21f59b, 0.08);
+          g.fillTriangle(lx, 48, width / 2, height * 0.46, lx + side * 150, 76);
+        }
+      }
+
+      function drawCell(sceneRef, cell, x, y, size, stateFlags) {
+        const box = sceneRef.add.container(x, y);
+        const g = sceneRef.add.graphics();
+        const isSpecial = !SYMBOL_META[cell.id]?.regular;
+        const fill = stateFlags.reveal ? 0x201400 : isSpecial ? 0x081717 : 0x0d1515;
+        const stroke = stateFlags.flash ? 0xffffff : stateFlags.golden ? 0xffd66b : isSpecial ? 0x21f59b : 0x31443e;
+        const alpha = stateFlags.flash ? 0.94 : 0.72;
+
+        g.fillStyle(fill, alpha);
+        g.lineStyle(stateFlags.golden || stateFlags.flash ? 3 : 1.5, stroke, stateFlags.golden || stateFlags.flash ? 0.9 : 0.45);
+        g.fillRoundedRect(0, 0, size, size, 8);
+        g.strokeRoundedRect(0, 0, size, size, 8);
+
+        if (stateFlags.golden) {
+          g.lineStyle(2, 0xffd66b, 0.32);
+          g.strokeRoundedRect(4, 4, size - 8, size - 8, 6);
+        }
+
+        box.add(g);
+        drawSymbol(sceneRef, box, cell, size);
+        return box;
+      }
+
+      function drawSymbol(sceneRef, box, cell, size) {
+        const g = sceneRef.add.graphics();
+        const cx = size / 2;
+        const cy = size / 2;
+        const scale = size / 88;
+        const textSize = Math.max(13, Math.floor(size * 0.24));
+
+        if (["10", "J", "Q", "K", "A"].includes(cell.id)) {
+          const color = cell.id === "A" || cell.id === "K" ? "#ffd66b" : "#d9fff0";
+          const text = sceneRef.add.text(cx, cy, cell.id, {
+            fontFamily: "Georgia, serif",
+            fontSize: `${Math.floor(size * 0.42)}px`,
+            fontStyle: "900",
+            color,
+          });
+          text.setOrigin(0.5);
+          box.add(text);
+          return;
+        }
+
+        if (cell.id === "FOOTBALL") {
+          g.fillStyle(0xeafdf4, 1);
+          g.fillCircle(cx, cy, 24 * scale);
+          g.lineStyle(3 * scale, 0x081210, 0.9);
+          g.strokeCircle(cx, cy, 24 * scale);
+          g.lineBetween(cx - 16 * scale, cy, cx + 16 * scale, cy);
+          g.lineBetween(cx, cy - 18 * scale, cx, cy + 18 * scale);
+          g.strokePoints(
+            [
+              new PhaserRef.Geom.Point(cx, cy - 12 * scale),
+              new PhaserRef.Geom.Point(cx + 11 * scale, cy),
+              new PhaserRef.Geom.Point(cx, cy + 12 * scale),
+              new PhaserRef.Geom.Point(cx - 11 * scale, cy),
+            ],
+            true,
+          );
+        } else if (cell.id === "BOOT") {
+          g.fillStyle(0xf7bd28, 1);
+          g.fillPoints(
+            [
+              { x: cx - 24 * scale, y: cy - 2 * scale },
+              { x: cx + 4 * scale, y: cy - 16 * scale },
+              { x: cx + 18 * scale, y: cy + 3 * scale },
+              { x: cx + 27 * scale, y: cy + 12 * scale },
+              { x: cx - 18 * scale, y: cy + 16 * scale },
+            ],
+            true,
+          );
+          g.fillStyle(0x111111, 0.8);
+          g.fillRect(cx - 12 * scale, cy + 12 * scale, 38 * scale, 5 * scale);
+        } else if (cell.id === "GLOVE") {
+          g.fillStyle(0x4cc3ff, 1);
+          for (let i = 0; i < 4; i += 1) g.fillRoundedRect(cx - 22 * scale + i * 10 * scale, cy - 24 * scale, 8 * scale, 28 * scale, 4 * scale);
+          g.fillRoundedRect(cx - 22 * scale, cy - 4 * scale, 42 * scale, 28 * scale, 10 * scale);
+          g.lineStyle(2 * scale, 0xffffff, 0.8);
+          g.lineBetween(cx - 12 * scale, cy + 6 * scale, cx + 12 * scale, cy + 14 * scale);
+        } else if (cell.id === "TICKET") {
+          g.fillStyle(0xff4d66, 1);
+          g.fillRoundedRect(cx - 27 * scale, cy - 18 * scale, 54 * scale, 36 * scale, 6 * scale);
+          g.fillStyle(0x07100d, 1);
+          g.fillCircle(cx - 27 * scale, cy, 7 * scale);
+          g.fillCircle(cx + 27 * scale, cy, 7 * scale);
+          g.lineStyle(2 * scale, 0xffffff, 0.55);
+          g.lineBetween(cx - 10 * scale, cy - 12 * scale, cx - 10 * scale, cy + 12 * scale);
+        } else if (cell.id === "ARMBAND") {
+          g.fillStyle(0x21f59b, 1);
+          g.fillRoundedRect(cx - 28 * scale, cy - 14 * scale, 56 * scale, 28 * scale, 6 * scale);
+          g.fillStyle(0x07100d, 0.82);
+          g.fillRect(cx - 6 * scale, cy - 14 * scale, 12 * scale, 28 * scale);
+          addSmallLabel(sceneRef, box, "C", cx, cy, size * 0.24, "#07100d");
+        } else if (cell.id === "TROPHY" || cell.id === "WILD_TROPHY") {
+          drawTrophy(g, cx, cy, scale, cell.id === "WILD_TROPHY" ? 0x21f59b : 0xffd66b);
+        } else if (cell.id === "LIGHTS") {
+          g.fillStyle(0xf5fff9, 0.95);
+          g.fillCircle(cx - 12 * scale, cy - 12 * scale, 8 * scale);
+          g.fillCircle(cx + 12 * scale, cy - 12 * scale, 8 * scale);
+          g.lineStyle(5 * scale, 0x21f59b, 0.7);
+          g.lineBetween(cx, cy - 4 * scale, cx, cy + 24 * scale);
+          g.fillStyle(0x21f59b, 0.15);
+          g.fillTriangle(cx - 30 * scale, cy + 28 * scale, cx - 12 * scale, cy - 4 * scale, cx + 8 * scale, cy + 28 * scale);
+          g.fillTriangle(cx + 30 * scale, cy + 28 * scale, cx + 12 * scale, cy - 4 * scale, cx - 8 * scale, cy + 28 * scale);
+        } else if (cell.id === "WHISTLE") {
+          g.fillStyle(0xeafdf4, 1);
+          g.fillRoundedRect(cx - 22 * scale, cy - 8 * scale, 34 * scale, 20 * scale, 8 * scale);
+          g.fillCircle(cx + 15 * scale, cy + 2 * scale, 13 * scale);
+          g.fillStyle(0x07100d, 1);
+          g.fillCircle(cx + 15 * scale, cy + 2 * scale, 5 * scale);
+        } else if (cell.id === "VAR_SCREEN") {
+          g.fillStyle(0x0f1c22, 1);
+          g.lineStyle(3 * scale, 0x4cc3ff, 0.9);
+          g.fillRoundedRect(cx - 28 * scale, cy - 20 * scale, 56 * scale, 38 * scale, 5 * scale);
+          g.strokeRoundedRect(cx - 28 * scale, cy - 20 * scale, 56 * scale, 38 * scale, 5 * scale);
+          addSmallLabel(sceneRef, box, "VAR", cx, cy, textSize, "#4cc3ff");
+        } else if (cell.id === "GOLDEN_BALL") {
+          const color = cell.coinTier === "gold" ? 0xffd66b : cell.coinTier === "silver" ? 0xdce8ef : 0xcd8755;
+          g.fillStyle(color, 1);
+          g.fillCircle(cx, cy - 4 * scale, 24 * scale);
+          g.lineStyle(2 * scale, 0x111111, 0.45);
+          g.strokeCircle(cx, cy - 4 * scale, 24 * scale);
+          addSmallLabel(sceneRef, box, cell.label ?? `${cell.value ?? 0}x`, cx, cy + size * 0.27, Math.max(11, size * 0.18), "#ffffff");
+        } else if (cell.id === "CAPTAIN_STAR") {
+          drawStar(g, cx, cy - 3 * scale, 26 * scale, 0xffd66b);
+          addSmallLabel(sceneRef, box, cell.label ?? "STAR", cx, cy + size * 0.28, Math.max(11, size * 0.18), "#ffffff");
+        } else if (cell.id === "COLLECTOR") {
+          drawTrophy(g, cx, cy - 5 * scale, scale * 0.86, 0xffd66b);
+          addSmallLabel(sceneRef, box, cell.label ?? "COLLECT", cx, cy + size * 0.29, Math.max(10, size * 0.15), "#ffffff");
+        }
+
+        box.add(g);
+        if (!["VAR_SCREEN", "GOLDEN_BALL", "CAPTAIN_STAR", "COLLECTOR", "ARMBAND"].includes(cell.id)) {
+          addSmallLabel(sceneRef, box, SYMBOL_META[cell.id]?.short ?? cell.id, cx, size - 12 * scale, Math.max(9, size * 0.13), "#dffdee");
+        }
+      }
+
+      function drawTrophy(g, cx, cy, scale, color) {
+        g.fillStyle(color, 1);
+        g.fillRoundedRect(cx - 15 * scale, cy - 22 * scale, 30 * scale, 28 * scale, 6 * scale);
+        g.fillRect(cx - 6 * scale, cy + 6 * scale, 12 * scale, 18 * scale);
+        g.fillRoundedRect(cx - 22 * scale, cy + 21 * scale, 44 * scale, 8 * scale, 3 * scale);
+        g.lineStyle(4 * scale, color, 0.85);
+        g.strokeCircle(cx - 20 * scale, cy - 8 * scale, 11 * scale);
+        g.strokeCircle(cx + 20 * scale, cy - 8 * scale, 11 * scale);
+        g.fillStyle(0xffffff, 0.28);
+        g.fillRect(cx - 7 * scale, cy - 18 * scale, 5 * scale, 19 * scale);
+      }
+
+      function drawStar(g, cx, cy, radius, color) {
+        const points = [];
+        for (let i = 0; i < 10; i += 1) {
+          const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+          const r = i % 2 === 0 ? radius : radius * 0.42;
+          points.push({ x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
+        }
+        g.fillStyle(color, 1);
+        g.fillPoints(points, true);
+        g.lineStyle(2, 0xffffff, 0.55);
+        g.strokePoints(points, true);
+      }
+
+      function addSmallLabel(sceneRef, box, label, x, y, size, color) {
+        const text = sceneRef.add.text(x, y, label, {
+          fontFamily: "Inter, Arial",
+          fontSize: `${Math.floor(size)}px`,
+          fontStyle: "900",
+          color,
+          align: "center",
+        });
+        text.setOrigin(0.5);
+        box.add(text);
+      }
+
+      function launchConfetti(multiplier) {
+        const count = Math.min(90, Math.max(18, Math.floor(multiplier / 4)));
+        els.confetti.innerHTML = "";
+        for (let i = 0; i < count; i += 1) {
+          const piece = document.createElement("i");
+          piece.style.left = `${Math.random() * 100}%`;
+          piece.style.background = ["#ffd66b", "#21f59b", "#4cc3ff", "#ff4d66"][i % 4];
+          piece.style.animationDelay = `${Math.random() * 180}ms`;
+          piece.style.animationDuration = `${700 + Math.random() * 700}ms`;
+          els.confetti.appendChild(piece);
+        }
+        window.setTimeout(() => (els.confetti.innerHTML = ""), 1600);
+      }
+
+      function playSound(kind) {
+        if (!state.sound) return;
+        audioContext ??= new AudioContext();
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const now = audioContext.currentTime;
+        const frequencies = { spin: 130, hit: 360, feature: 520, collect: 680, big: 880 };
+        osc.frequency.setValueAtTime(frequencies[kind] ?? 240, now);
+        osc.frequency.exponentialRampToValueAtTime((frequencies[kind] ?? 240) * 1.42, now + 0.08);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(kind === "big" ? 0.08 : 0.035, now + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + (kind === "big" ? 0.28 : 0.13));
+        osc.connect(gain).connect(audioContext.destination);
+        osc.start(now);
+        osc.stop(now + 0.32);
+      }
+
+      function money(value) {
+        return roundCurrency(value).toFixed(2);
+      }
+
+      function formatMode(mode) {
+        return {
+          base: "Base",
+          extraTime: "Extra Time",
+          penaltyShootout: "Penalty Shootout",
+          worldFinal: "World Final",
+        }[mode];
+      }
+
+      function posKey(position) {
+        return `${position.col},${position.row}`;
+      }
+
+      function wait(ms) {
+        return new Promise((resolve) => window.setTimeout(resolve, ms));
+      }
+    </script>
+  </body>
+</html>
