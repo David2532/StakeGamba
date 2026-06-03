@@ -31,7 +31,9 @@
       body {
         margin: 0;
         min-height: 100vh;
+        min-height: 100dvh;
         overflow: hidden;
+        overflow-x: hidden;
         background:
           radial-gradient(circle at 50% 0%, rgba(255, 214, 107, 0.15), transparent 34%),
           linear-gradient(180deg, rgba(13, 28, 23, 0.88), rgba(4, 8, 9, 0.98)),
@@ -72,8 +74,10 @@
         position: relative;
         display: grid;
         grid-template-rows: auto 1fr;
-        width: 100vw;
+        width: 100%;
+        max-width: 100dvw;
         height: 100vh;
+        height: 100dvh;
         padding: 14px;
         gap: 12px;
       }
@@ -155,6 +159,7 @@
 
       .stage {
         position: relative;
+        grid-column: 1;
         min-width: 0;
         min-height: 0;
         overflow: hidden;
@@ -213,6 +218,7 @@
       }
 
       .side-panel {
+        grid-column: 2;
         display: flex;
         flex-direction: column;
         min-height: 0;
@@ -367,8 +373,8 @@
       }
 
       dialog {
-        width: min(760px, calc(100vw - 24px));
-        max-height: min(760px, calc(100vh - 24px));
+        width: min(760px, calc(100dvw - 24px));
+        max-height: min(760px, calc(100dvh - 24px));
         border: 1px solid rgba(255, 214, 107, 0.34);
         border-radius: 8px;
         background: var(--panel-strong);
@@ -434,7 +440,7 @@
 
       @keyframes fall {
         to {
-          transform: translateY(110vh) rotate(520deg);
+          transform: translateY(110dvh) rotate(520deg);
           opacity: 0;
         }
       }
@@ -442,10 +448,12 @@
       @media (max-width: 900px) {
         body {
           overflow: auto;
+          overflow-x: hidden;
         }
 
         .app {
           min-height: 100vh;
+          min-height: 100dvh;
           height: auto;
           padding: 8px;
         }
@@ -463,7 +471,17 @@
           grid-template-rows: minmax(460px, 62vh) auto;
         }
 
+        .stage,
         .side-panel {
+          grid-column: 1;
+        }
+
+        .stage {
+          grid-row: 1;
+        }
+
+        .side-panel {
+          grid-row: 2;
           min-height: auto;
         }
 
@@ -699,6 +717,28 @@
       input[type="range"] {
         width: 100%;
         accent-color: var(--gold);
+        height: 6px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--gold), rgba(255, 255, 255, 0.18));
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        width: 18px;
+        height: 18px;
+        border: 2px solid #fff5c4;
+        border-radius: 50%;
+        background: var(--gold);
+        box-shadow: 0 0 18px rgba(245, 200, 75, 0.42);
+        appearance: none;
+      }
+
+      select {
+        appearance: none;
+        background:
+          linear-gradient(45deg, transparent 50%, var(--gold) 50%) calc(100% - 18px) 52% / 7px 7px no-repeat,
+          linear-gradient(135deg, var(--gold) 50%, transparent 50%) calc(100% - 13px) 52% / 7px 7px no-repeat,
+          rgba(0, 0, 0, 0.34);
+        padding: 0 34px 0 12px;
       }
 
       .cascade-badge {
@@ -976,11 +1016,22 @@
 
       @media (max-width: 900px) {
         .side-panel {
-          position: sticky;
-          bottom: 0;
+          position: static;
           z-index: 12;
           max-height: none;
           border-color: rgba(255, 214, 107, 0.28);
+        }
+
+        .controls {
+          order: -1;
+        }
+
+        .meters {
+          order: 0;
+        }
+
+        .buy-panel {
+          order: 1;
         }
 
         .meters {
@@ -989,6 +1040,17 @@
 
         [data-tooltip]::after {
           display: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: 1ms !important;
         }
       }
     </style>
@@ -1147,6 +1209,17 @@
       </div>
     </dialog>
 
+    <dialog id="confirmDialog">
+      <div class="dialog-body">
+        <h2 id="confirmTitle">Confirm Demo Feature</h2>
+        <div id="confirmContent"></div>
+        <div class="modal-row">
+          <button class="secondary" id="cancelBuy" type="button">Cancel</button>
+          <button class="secondary" id="confirmBuy" type="button">Use Demo Credits</button>
+        </div>
+      </div>
+    </dialog>
+
     <script type="module">
       import {
         COLS,
@@ -1157,17 +1230,21 @@
         roundCurrency,
       } from "./math.ts";
       import { AudioManager } from "./src/audio/AudioManager.ts";
+      import { applyDesignTokens } from "./src/design/tokens.ts";
+      import { REEL_TIMING, durationFor, reelStopDelay } from "./src/animation/ReelAnimator.ts";
+      import { CASCADE_TIMING, cascadeIntensity, cascadeLabel } from "./src/animation/CascadeAnimator.ts";
+      import { GOLDEN_PITCH_TIMING, collectorBeamAlpha } from "./src/animation/GoldenPitchAnimator.ts";
+      import { getWinTier } from "./src/animation/BigWinAnimator.ts";
+      import { countUp } from "./src/animation/CountUpAnimator.ts";
+      import { clearElementLater, confettiCount } from "./src/animation/ParticleSystem.ts";
+      import { formatSessionTime, statusToneForState } from "./src/ui/Hud.ts";
 
       const PhaserRef = window.Phaser;
       const MIN_BET = 0.1;
       const MAX_BET = 100;
       const START_BALANCE = 5000;
       const REALITY_CHECK_SPINS = 25;
-      const ANIMATION_TIMING = {
-        reelDrop: { normal: 860, turbo: 360 },
-        cascadeDrop: { normal: 520, turbo: 260 },
-        featureReveal: { normal: 520, turbo: 210 },
-      };
+      applyDesignTokens(document.documentElement);
       const REGULAR_SYMBOLS = ["10", "J", "Q", "K", "A", "FOOTBALL", "BOOT", "GLOVE", "TICKET", "ARMBAND", "TROPHY"];
 
       const els = {
@@ -1206,6 +1283,11 @@
         dialogContent: document.querySelector("#dialogContent"),
         closeDialog: document.querySelector("#closeDialog"),
         resetSeed: document.querySelector("#resetSeed"),
+        confirmDialog: document.querySelector("#confirmDialog"),
+        confirmTitle: document.querySelector("#confirmTitle"),
+        confirmContent: document.querySelector("#confirmContent"),
+        cancelBuy: document.querySelector("#cancelBuy"),
+        confirmBuy: document.querySelector("#confirmBuy"),
         toast: document.querySelector("#winToast"),
         toastTitle: document.querySelector("#toastTitle"),
         toastAmount: document.querySelector("#toastAmount"),
@@ -1276,13 +1358,13 @@
 
         async animateSpinToGrid(grid, zones = []) {
           this.setGrid(grid, zones, [], [], { drop: true, blur: true });
-          await wait(state.turbo ? ANIMATION_TIMING.reelDrop.turbo : ANIMATION_TIMING.reelDrop.normal);
+          await wait(durationFor(REEL_TIMING.reelDrop, state.turbo));
           this.setGrid(grid, zones);
         }
 
         async animateCascadeDrop(grid, zones = []) {
           this.setGrid(grid, zones, [], [], { drop: true, cascade: true });
-          await wait(state.turbo ? ANIMATION_TIMING.cascadeDrop.turbo : ANIMATION_TIMING.cascadeDrop.normal);
+          await wait(durationFor(CASCADE_TIMING.drop, state.turbo));
           this.setGrid(grid, zones);
         }
 
@@ -1327,7 +1409,7 @@
                 const finalY = cellNode.y;
                 const finalX = cellNode.x;
                 const speed = state.turbo ? 0.48 : 1;
-                const delay = (col * 95 + row * 22) * speed;
+                const delay = reelStopDelay(col, state.turbo) + row * 18 * speed;
                 cellNode.y = finalY - (this.scale.height * 0.34 + (ROWS - row) * cell * 0.28);
                 cellNode.x = finalX + PhaserRef.Math.Between(-7, 7);
                 cellNode.angle = PhaserRef.Math.Between(-3, 3);
@@ -1467,6 +1549,14 @@
       els.paytable.addEventListener("click", () => openInfo("paytable"));
       els.rules.addEventListener("click", () => openInfo("rules"));
       els.closeDialog.addEventListener("click", () => els.dialog.close());
+      els.cancelBuy.addEventListener("click", () => {
+        els.confirmDialog.returnValue = "cancel";
+        els.confirmDialog.close("cancel");
+      });
+      els.confirmBuy.addEventListener("click", () => {
+        els.confirmDialog.returnValue = "confirm";
+        els.confirmDialog.close("confirm");
+      });
       els.resetSeed.addEventListener("click", () => {
         state.seed = `golden-goal-${Date.now()}`;
         math = new SlotMath(state.seed, { rtp: Number(els.rtp.value), volatility: "medium-high" });
@@ -1515,7 +1605,7 @@
         state.balance = roundCurrency(state.balance - spinCost);
         if (inBonus) state.freeSpins -= 1;
         updateUi();
-        setStatus(inBonus ? `${formatMode(state.bonusMode)} free spin` : "Spinning", inBonus ? "bonus" : "spinning");
+        setGameState(inBonus ? "bonus" : "spinning", inBonus ? `${formatMode(state.bonusMode)} free spin` : "Spinning");
         playSound("spin");
 
         const result = math.spin({
@@ -1580,30 +1670,31 @@
       async function playResult(result) {
         let liveZones = new Set(result.mode === "base" ? [] : state.persistentZones);
         await scene.animateSpinToGrid(result.initialGrid, Array.from(liveZones));
-        setStatus("Evaluating", "spinning");
+        setGameState("evaluating", "Evaluating");
         await wait(state.turbo ? 60 : 130);
 
         for (const step of result.cascades) {
           scene.setGrid(step.gridBefore, Array.from(liveZones), step.removed);
-          showCascadeBadge(`Cascade x${step.cascadeMultiplier}`);
+          showCascadeBadge(cascadeLabel(step.index, step.cascadeMultiplier));
           scene.spotlight(step.removed);
-          setStatus(`Cascading - ${step.index + 1} (${step.cascadeMultiplier}x)`, "spinning");
+          setGameState("cascading", `Cascading - ${cascadeLabel(step.index, step.cascadeMultiplier)}`);
           playSound("cascade");
           await scene.pulseCells(step.removed);
           for (const added of step.goldenAdded) liveZones.add(posKey(added));
           if (step.goldenAdded.length > 0) playSound("golden");
-          playSound(step.index > 1 ? "crowd" : "hit");
+          const intensity = cascadeIntensity(step.index);
+          playSound(intensity === "high" ? "crowd" : intensity === "medium" ? "hit" : "reel");
           await scene.animateCascadeDrop(step.gridAfter, Array.from(liveZones));
           await wait(state.turbo ? 55 : 130);
         }
         hideCascadeBadge();
 
         if (result.activatorLanded && result.goldenReveals.length > 0) {
-          setStatus("Stadium Lights activate Golden Pitch Zones", "bonus");
+          setGameState("feature", "Stadium Lights activate Golden Pitch Zones");
           triggerLightSweep();
           scene.cameras.main.shake(state.turbo ? 90 : 160, 0.004);
           playSound("feature");
-          await wait(state.turbo ? 210 : 520);
+          await wait(durationFor(GOLDEN_PITCH_TIMING.lightSweep, state.turbo));
         }
 
         scene.setGrid(result.finalGrid, result.goldenZones, [], result.goldenReveals);
@@ -1639,6 +1730,12 @@
           return;
         }
 
+        const confirmed = await confirmBonusBuy(type, buy.cost);
+        if (!confirmed) {
+          setGameState("idle", "Ready");
+          return;
+        }
+
         state.balance = roundCurrency(state.balance - buy.cost);
         updateUi();
         playSound("feature");
@@ -1668,6 +1765,7 @@
         state.auto = false;
         els.auto.classList.remove("active");
         if (autoTimer) window.clearTimeout(autoTimer);
+        updateUi();
       }
 
       function setBet(value) {
@@ -1703,10 +1801,15 @@
         }
       }
 
+      function setGameState(stateName, label) {
+        setStatus(label, statusToneForState(stateName));
+      }
+
       async function showWin(multiplier, amount) {
-        const title = celebrationName(multiplier);
+        const tier = getWinTier(multiplier);
+        const title = tier.title;
         if (multiplier >= 5) {
-          await showBigWin(title, multiplier, amount);
+          await showBigWin(tier, multiplier, amount);
           return;
         }
         els.toastTitle.textContent = title;
@@ -1717,42 +1820,22 @@
         els.toast.classList.remove("show");
       }
 
-      function celebrationName(multiplier) {
-        if (multiplier >= 500) return "World Final Win";
-        if (multiplier >= 250) return "Champion Win";
-        if (multiplier >= 100) return "Super Goal";
-        if (multiplier >= 50) return "Mega Goal";
-        if (multiplier >= 20) return "Big Goal";
-        return "Nice Goal";
-      }
-
-      async function showBigWin(title, multiplier, amount) {
-        els.bigWinTitle.textContent = title;
+      async function showBigWin(tier, multiplier, amount) {
+        els.bigWinTitle.textContent = tier.title;
         els.bigWinAmount.textContent = money(0);
         els.bigWinSub.textContent = `${multiplier.toFixed(2)}x bet`;
         els.bigWinBar.style.width = "0%";
         els.bigWinOverlay.classList.add("show");
         els.bigWinOverlay.setAttribute("aria-hidden", "false");
-        playSound(multiplier >= 20 ? "big" : "hit");
-        launchConfetti(multiplier);
+        playSound(tier.sound);
+        launchConfetti(multiplier, tier.confettiScale);
 
-        const duration = state.turbo ? 720 : Math.min(3200, 900 + multiplier * 8);
-        const start = performance.now();
-        let lastTick = 0;
-        await new Promise((resolve) => {
-          const tick = (now) => {
-            const t = Math.min(1, (now - start) / duration);
-            const eased = 1 - Math.pow(1 - t, 3);
-            els.bigWinAmount.textContent = money(amount * eased);
-            els.bigWinBar.style.width = `${Math.min(100, eased * 100)}%`;
-            if (now - lastTick > 120 && t < 1) {
-              lastTick = now;
-              playSound("tick");
-            }
-            if (t < 1) requestAnimationFrame(tick);
-            else resolve();
-          };
-          requestAnimationFrame(tick);
+        const duration = state.turbo ? 720 : tier.duration;
+        await countUp(duration, (eased) => {
+          els.bigWinAmount.textContent = money(amount * eased);
+          els.bigWinBar.style.width = `${Math.min(100, eased * 100)}%`;
+        }, () => {
+          playSound("tick");
         });
 
         await wait(state.turbo ? 260 : 820);
@@ -1770,6 +1853,28 @@
         await wait(state.turbo ? 520 : 1150);
         els.bonusTransition.classList.remove("show");
         els.bonusTransition.setAttribute("aria-hidden", "true");
+      }
+
+      function confirmBonusBuy(type, cost) {
+        const labels = {
+          featureSpins: "Feature Spins",
+          lightsSpin: "Stadium Lights Spin",
+          extraTime: "Extra Time Bonus",
+          penaltyShootout: "Penalty Shootout",
+        };
+        els.confirmTitle.textContent = labels[type] ?? "Demo Feature";
+        els.confirmContent.innerHTML = `
+          <p>This uses <b>${money(cost)}</b> demo credits only.</p>
+          <p>No real money, wallet, deposit, or cash-out is connected to this prototype.</p>
+        `;
+        els.confirmDialog.showModal();
+        return new Promise((resolve) => {
+          const done = () => {
+            els.confirmDialog.removeEventListener("close", done);
+            resolve(els.confirmDialog.returnValue === "confirm");
+          };
+          els.confirmDialog.addEventListener("close", done);
+        });
       }
 
       function showCascadeBadge(text) {
@@ -1810,10 +1915,7 @@
       }
 
       function updateSessionClock() {
-        const elapsed = Math.floor((Date.now() - state.sessionStartedAt) / 1000);
-        const minutes = String(Math.floor(elapsed / 60)).padStart(2, "0");
-        const seconds = String(elapsed % 60).padStart(2, "0");
-        els.session.textContent = `${minutes}:${seconds}`;
+        els.session.textContent = formatSessionTime(state.sessionStartedAt);
       }
 
       async function maybeShowRealityCheck() {
@@ -2143,8 +2245,8 @@
         box.add(text);
       }
 
-      function launchConfetti(multiplier) {
-        const count = Math.min(90, Math.max(18, Math.floor(multiplier / 4)));
+      function launchConfetti(multiplier, scale = 1) {
+        const count = confettiCount(multiplier, scale);
         els.confetti.innerHTML = "";
         for (let i = 0; i < count; i += 1) {
           const piece = document.createElement("i");
@@ -2154,7 +2256,7 @@
           piece.style.animationDuration = `${700 + Math.random() * 700}ms`;
           els.confetti.appendChild(piece);
         }
-        window.setTimeout(() => (els.confetti.innerHTML = ""), 1600);
+        clearElementLater(els.confetti, 1600);
       }
 
       function playSound(kind) {
@@ -2180,6 +2282,52 @@
 
       function wait(ms) {
         return new Promise((resolve) => window.setTimeout(resolve, ms));
+      }
+
+      window.goldenGoalQa = {
+        forceBigWin: async () => {
+          document.body.dataset.qaBigWin = "showing";
+          await showBigWin(getWinTier(100), 100, state.bet * 100);
+          document.body.dataset.qaBigWin = "complete";
+        },
+        forceGoldenFeature: async () => {
+          document.body.dataset.qaGoldenFeature = "revealing";
+          const zones = ["1,1", "2,1", "3,2", "4,2", "2,3"];
+          const grid = makeOpeningGrid();
+          const reveals = zones.map((key, index) => {
+            const [col, row] = key.split(",").map(Number);
+            return {
+              position: { col, row },
+              id: "GOLDEN_BALL",
+              coinTier: index > 2 ? "silver" : "bronze",
+              value: index > 2 ? 10 : 2,
+              label: index > 2 ? "10x" : "2x",
+            };
+          });
+          scene.setGrid(grid, zones);
+          triggerLightSweep();
+          playSound("feature");
+          await wait(durationFor(GOLDEN_PITCH_TIMING.lightSweep, state.turbo));
+          for (const reveal of reveals) grid[reveal.position.row][reveal.position.col] = reveal;
+          scene.setGrid(grid, zones, [], reveals);
+          scene.spotlight(reveals.map((reveal) => reveal.position));
+          playSound("reveal");
+          document.body.dataset.qaGoldenFeature = "revealed";
+        },
+      };
+      document.body.dataset.qaHook = "ready";
+      if (new URLSearchParams(window.location.search).has("qa")) {
+        const qaPanel = document.createElement("div");
+        qaPanel.setAttribute("aria-hidden", "true");
+        qaPanel.style.cssText =
+          "position:fixed;right:8px;bottom:8px;z-index:9999;display:flex;gap:4px;opacity:.04;";
+        qaPanel.innerHTML = `
+          <button id="qaForceBigWin" type="button">QA Big Win</button>
+          <button id="qaForceGoldenFeature" type="button">QA Golden Feature</button>
+        `;
+        document.body.appendChild(qaPanel);
+        qaPanel.querySelector("#qaForceBigWin").addEventListener("click", () => window.goldenGoalQa.forceBigWin());
+        qaPanel.querySelector("#qaForceGoldenFeature").addEventListener("click", () => window.goldenGoalQa.forceGoldenFeature());
       }
     </script>
   </body>
