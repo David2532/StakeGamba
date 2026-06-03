@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite . --host 127.0.0.1 --port 5173",
-    "typecheck": "tsc --noEmit --target ES2020 --module ESNext math.ts"
+    "typecheck": "tsc --noEmit --target ES2020 --module ESNext --moduleResolution Bundler --lib ES2020,DOM math.ts src/audio/AudioManager.ts"
   },
   "devDependencies": {
     "typescript": "^5.9.3",

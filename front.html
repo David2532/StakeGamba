@@ -618,6 +618,10 @@
         text-shadow: 0 0 18px rgba(255, 214, 107, 0.36);
       }
 
+      #statusValue[data-state="complete"] {
+        color: #e9fff5;
+      }
+
       #statusValue[data-state="error"] {
         color: var(--red);
       }
@@ -869,6 +873,124 @@
           transform: translateX(120%);
         }
       }
+
+      .demo-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 7px;
+      }
+
+      .demo-badges span {
+        padding: 3px 7px;
+        border: 1px solid rgba(33, 245, 155, 0.3);
+        border-radius: 999px;
+        background: rgba(33, 245, 155, 0.08);
+        color: #dfffee;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      [data-tooltip] {
+        position: relative;
+      }
+
+      [data-tooltip]::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% + 8px);
+        z-index: 30;
+        width: max-content;
+        max-width: 220px;
+        padding: 6px 8px;
+        border: 1px solid rgba(255, 214, 107, 0.28);
+        border-radius: 6px;
+        background: rgba(4, 8, 8, 0.94);
+        color: #e9fff5;
+        font-size: 11px;
+        line-height: 1.2;
+        text-align: center;
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, 4px);
+        transition: opacity 120ms ease, transform 120ms ease;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+      }
+
+      [data-tooltip]:hover::after,
+      [data-tooltip]:focus-visible::after {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      .buy-option[data-tooltip]::after {
+        left: auto;
+        right: 10px;
+        bottom: calc(100% + 6px);
+        transform: translateY(4px);
+      }
+
+      .buy-option[data-tooltip]:hover::after,
+      .buy-option[data-tooltip]:focus-visible::after {
+        transform: translateY(0);
+      }
+
+      .meter:nth-child(5) label::before {
+        content: "#";
+      }
+
+      .meter:nth-child(6) label::before {
+        content: "t";
+      }
+
+      .primary-spin.auto-running {
+        background:
+          radial-gradient(circle at 50% 18%, #eaffd9 0 12%, #21f59b 36%, #0a9f6a 72%, #063226 100%);
+      }
+
+      .status-complete {
+        color: #dfffee;
+      }
+
+      .error-shake {
+        animation: errorShake 220ms ease-in-out;
+      }
+
+      @keyframes errorShake {
+        20% {
+          transform: translateX(-4px);
+        }
+        40% {
+          transform: translateX(4px);
+        }
+        60% {
+          transform: translateX(-3px);
+        }
+        80% {
+          transform: translateX(3px);
+        }
+      }
+
+      @media (max-width: 900px) {
+        .side-panel {
+          position: sticky;
+          bottom: 0;
+          z-index: 12;
+          max-height: none;
+          border-color: rgba(255, 214, 107, 0.28);
+        }
+
+        .meters {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        [data-tooltip]::after {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -878,14 +1000,18 @@
           <div class="crest" aria-hidden="true">GG</div>
           <div>
             <h1>Golden Goal Rush</h1>
-            <div class="subline">6x5 cluster pays · demo credits only · original prototype</div>
+            <div class="subline">6x5 cluster pays - demo credits only - no real money</div>
+            <div class="demo-badges" aria-label="Responsible gaming information">
+              <span>Demo Credits Only</span>
+              <span>No Real Money</span>
+            </div>
           </div>
         </div>
         <div class="header-actions">
-          <button class="icon-btn" id="soundBtn" title="Toggle sound" type="button">S</button>
-          <button class="icon-btn" id="paytableBtn" title="Paytable" type="button">P</button>
-          <button class="icon-btn" id="rulesBtn" title="Rules" type="button">R</button>
-          <button class="icon-btn" id="fullscreenBtn" title="Fullscreen" type="button">F</button>
+          <button class="icon-btn" id="soundBtn" title="Toggle sound" data-tooltip="Sound on/off" type="button">S</button>
+          <button class="icon-btn" id="paytableBtn" title="Paytable" data-tooltip="Open paytable" type="button">P</button>
+          <button class="icon-btn" id="rulesBtn" title="Rules" data-tooltip="Open rules" type="button">R</button>
+          <button class="icon-btn" id="fullscreenBtn" title="Fullscreen" data-tooltip="Fullscreen" type="button">F</button>
         </div>
       </header>
 
@@ -918,6 +1044,14 @@
               <label>Mode</label>
               <strong id="modeValue">Base</strong>
             </div>
+            <div class="meter">
+              <label>Spins</label>
+              <strong id="spinCountValue">0</strong>
+            </div>
+            <div class="meter">
+              <label>Session</label>
+              <strong id="sessionValue">00:00</strong>
+            </div>
             <div class="meter full">
               <label>Status</label>
               <strong id="statusValue">Ready</strong>
@@ -925,25 +1059,25 @@
           </div>
 
           <div class="controls">
-            <button class="primary-spin" id="spinBtn" type="button">SPIN</button>
+            <button class="primary-spin" id="spinBtn" data-tooltip="Start one demo spin" type="button">SPIN</button>
 
             <div class="field">
               <label for="betInput">Demo Bet</label>
               <div class="stepper">
-                <button id="betDown" type="button">-</button>
+                <button id="betDown" title="Lower demo bet" data-tooltip="Lower demo bet" type="button">-</button>
                 <input id="betInput" inputmode="decimal" value="1.00" aria-label="Bet amount" />
-                <button id="betUp" type="button">+</button>
+                <button id="betUp" title="Raise demo bet" data-tooltip="Raise demo bet" type="button">+</button>
               </div>
             </div>
 
             <div class="quick-row">
-              <button class="toggle" id="turboBtn" type="button">Turbo</button>
-              <button class="toggle" id="autoBtn" type="button">Auto</button>
+              <button class="toggle" id="turboBtn" data-tooltip="Shorter animations, same math result" type="button">Turbo</button>
+              <button class="toggle" id="autoBtn" data-tooltip="Start or stop autoplay" type="button">Auto</button>
             </div>
 
             <div class="field">
               <label for="rtpSelect">RTP Profile</label>
-              <select id="rtpSelect">
+              <select id="rtpSelect" title="Demo RTP profile for math tuning">
                 <option value="96">96%</option>
                 <option value="94">94%</option>
                 <option value="92">92%</option>
@@ -959,23 +1093,23 @@
 
           <div class="buy-panel">
             <h2>Demo Bonus Buy</h2>
-            <button class="buy-option" data-buy="featureSpins" type="button">
+            <button class="buy-option" data-buy="featureSpins" data-tooltip="Demo feature spin purchase, costs demo credits" type="button">
               <span>Feature Spins<br />5x higher bonus chance</span>
               <b>3x</b>
             </button>
-            <button class="buy-option" data-buy="lightsSpin" type="button">
+            <button class="buy-option" data-buy="lightsSpin" data-tooltip="Guaranteed activator spin using demo credits" type="button">
               <span>Stadium Lights Spin<br />Guaranteed activator</span>
               <b>50x</b>
             </button>
-            <button class="buy-option" data-buy="extraTime" type="button">
+            <button class="buy-option" data-buy="extraTime" data-tooltip="Starts the Extra Time free spins demo" type="button">
               <span>Extra Time Bonus<br />8 free spins</span>
               <b>100x</b>
             </button>
-            <button class="buy-option" data-buy="penaltyShootout" type="button">
+            <button class="buy-option" data-buy="penaltyShootout" data-tooltip="Starts the Penalty Shootout free spins demo" type="button">
               <span>Penalty Shootout<br />12 free spins</span>
               <b>250x</b>
             </button>
-            <button class="buy-option locked" id="worldFinalLocked" type="button">
+            <button class="buy-option locked" id="worldFinalLocked" data-tooltip="World Final triggers only from scatters" type="button">
               <span>World Final Bonus<br />Not purchasable</span>
               <b>Locked</b>
             </button>
@@ -1022,11 +1156,18 @@
         defaultSeed,
         roundCurrency,
       } from "./math.ts";
+      import { AudioManager } from "./src/audio/AudioManager.ts";
 
       const PhaserRef = window.Phaser;
       const MIN_BET = 0.1;
       const MAX_BET = 100;
       const START_BALANCE = 5000;
+      const REALITY_CHECK_SPINS = 25;
+      const ANIMATION_TIMING = {
+        reelDrop: { normal: 860, turbo: 360 },
+        cascadeDrop: { normal: 520, turbo: 260 },
+        featureReveal: { normal: 520, turbo: 210 },
+      };
       const REGULAR_SYMBOLS = ["10", "J", "Q", "K", "A", "FOOTBALL", "BOOT", "GLOVE", "TICKET", "ARMBAND", "TROPHY"];
 
       const els = {
@@ -1034,6 +1175,8 @@
         win: document.querySelector("#winValue"),
         bet: document.querySelector("#betValue"),
         mode: document.querySelector("#modeValue"),
+        spinCount: document.querySelector("#spinCountValue"),
+        session: document.querySelector("#sessionValue"),
         status: document.querySelector("#statusValue"),
         spin: document.querySelector("#spinBtn"),
         betInput: document.querySelector("#betInput"),
@@ -1069,125 +1212,6 @@
         confetti: document.querySelector("#confetti"),
       };
 
-      class AudioManager {
-        constructor() {
-          this.context = null;
-          this.master = null;
-          this.enabled = true;
-          this.volume = 0.34;
-        }
-
-        async unlock() {
-          if (!this.context) {
-            this.context = new AudioContext();
-            this.master = this.context.createGain();
-            this.master.gain.value = this.volume;
-            this.master.connect(this.context.destination);
-          }
-          if (this.context.state === "suspended") await this.context.resume();
-        }
-
-        setEnabled(enabled) {
-          this.enabled = enabled;
-        }
-
-        setVolume(value) {
-          this.volume = Math.max(0, Math.min(1, value));
-          if (this.master) this.master.gain.setTargetAtTime(this.volume, this.context.currentTime, 0.02);
-        }
-
-        play(kind) {
-          if (!this.enabled) return;
-          this.unlock().then(() => {
-            if (!this.context || !this.master) return;
-            const now = this.context.currentTime;
-            const map = {
-              button: () => this.tone(220, 0.05, "triangle", 0.04, 1.6),
-              spin: () => {
-                this.tone(110, 0.2, "sawtooth", 0.035, 2.4);
-                this.noise(0.2, 0.025, "lowpass", 900);
-              },
-              reel: () => this.tone(180 + Math.random() * 90, 0.065, "square", 0.035, 1.22),
-              land: () => this.tone(310 + Math.random() * 80, 0.055, "triangle", 0.024, 0.86),
-              hit: () => {
-                this.tone(420, 0.1, "triangle", 0.04, 1.4);
-                this.tone(640, 0.08, "sine", 0.025, 1.18);
-              },
-              cascade: () => {
-                this.noise(0.16, 0.04, "bandpass", 1400);
-                this.tone(260, 0.08, "triangle", 0.032, 1.7);
-              },
-              feature: () => {
-                this.tone(380, 0.18, "sine", 0.04, 1.8);
-                this.tone(720, 0.22, "triangle", 0.035, 1.25, 0.08);
-              },
-              reveal: () => {
-                this.tone(840, 0.1, "sine", 0.035, 1.18);
-                this.tone(1260, 0.09, "triangle", 0.02, 0.92, 0.04);
-              },
-              collect: () => {
-                this.tone(520, 0.07, "triangle", 0.03, 1.35);
-                this.tone(700, 0.07, "triangle", 0.026, 1.35, 0.05);
-                this.tone(940, 0.09, "sine", 0.024, 1.1, 0.1);
-              },
-              bonus: () => {
-                this.tone(580, 0.16, "triangle", 0.04, 1.35);
-                this.tone(760, 0.2, "triangle", 0.034, 1.28, 0.08);
-                this.crowd(0.7, 0.04);
-              },
-              big: () => {
-                this.tone(520, 0.24, "triangle", 0.045, 1.6);
-                this.tone(780, 0.28, "sine", 0.04, 1.4, 0.09);
-                this.tone(1040, 0.32, "sine", 0.035, 1.2, 0.18);
-                this.crowd(1.05, 0.055);
-              },
-              crowd: () => this.crowd(0.55, 0.032),
-              error: () => this.tone(130, 0.16, "sawtooth", 0.035, 0.62),
-            };
-            (map[kind] ?? map.button)();
-          });
-        }
-
-        tone(frequency, duration, type, level, slide = 1, delay = 0) {
-          const now = this.context.currentTime + delay;
-          const osc = this.context.createOscillator();
-          const gain = this.context.createGain();
-          osc.type = type;
-          osc.frequency.setValueAtTime(frequency, now);
-          osc.frequency.exponentialRampToValueAtTime(Math.max(20, frequency * slide), now + duration);
-          gain.gain.setValueAtTime(0.0001, now);
-          gain.gain.exponentialRampToValueAtTime(level, now + 0.012);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-          osc.connect(gain).connect(this.master);
-          osc.start(now);
-          osc.stop(now + duration + 0.02);
-        }
-
-        noise(duration, level, filterType, filterFrequency) {
-          const sampleRate = this.context.sampleRate;
-          const buffer = this.context.createBuffer(1, Math.max(1, Math.floor(sampleRate * duration)), sampleRate);
-          const data = buffer.getChannelData(0);
-          for (let index = 0; index < data.length; index += 1) data[index] = Math.random() * 2 - 1;
-          const source = this.context.createBufferSource();
-          const filter = this.context.createBiquadFilter();
-          const gain = this.context.createGain();
-          const now = this.context.currentTime;
-          filter.type = filterType;
-          filter.frequency.value = filterFrequency;
-          gain.gain.setValueAtTime(level, now);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-          source.buffer = buffer;
-          source.connect(filter).connect(gain).connect(this.master);
-          source.start(now);
-          source.stop(now + duration);
-        }
-
-        crowd(duration, level) {
-          this.noise(duration, level, "bandpass", 520);
-          this.noise(duration * 0.72, level * 0.72, "lowpass", 1200);
-        }
-      }
-
       const state = {
         balance: START_BALANCE,
         bet: 1,
@@ -1201,6 +1225,9 @@
         freeSpins: 0,
         persistentZones: [],
         lastVisibleZones: [],
+        spinCount: 0,
+        sessionStartedAt: Date.now(),
+        lastRealityCheckAt: 0,
       };
 
       let math = new SlotMath(state.seed, { rtp: Number(els.rtp.value), volatility: "medium-high" });
@@ -1249,13 +1276,13 @@
 
         async animateSpinToGrid(grid, zones = []) {
           this.setGrid(grid, zones, [], [], { drop: true, blur: true });
-          await wait(state.turbo ? 360 : 860);
+          await wait(state.turbo ? ANIMATION_TIMING.reelDrop.turbo : ANIMATION_TIMING.reelDrop.normal);
           this.setGrid(grid, zones);
         }
 
         async animateCascadeDrop(grid, zones = []) {
           this.setGrid(grid, zones, [], [], { drop: true, cascade: true });
-          await wait(state.turbo ? 260 : 520);
+          await wait(state.turbo ? ANIMATION_TIMING.cascadeDrop.turbo : ANIMATION_TIMING.cascadeDrop.normal);
           this.setGrid(grid, zones);
         }
 
@@ -1303,12 +1330,14 @@
                 const delay = (col * 95 + row * 22) * speed;
                 cellNode.y = finalY - (this.scale.height * 0.34 + (ROWS - row) * cell * 0.28);
                 cellNode.x = finalX + PhaserRef.Math.Between(-7, 7);
+                cellNode.angle = PhaserRef.Math.Between(-3, 3);
                 cellNode.alpha = 0.16;
                 cellNode.scaleY = 0.72;
                 this.tweens.add({
                   targets: cellNode,
                   x: finalX,
                   y: finalY,
+                  angle: 0,
                   alpha: 1,
                   scaleY: 1,
                   duration: (this.renderOptions.cascade ? 250 : 430) * speed,
@@ -1460,6 +1489,8 @@
       audio.setVolume(Number(els.volume.value) / 100);
       els.sound.classList.toggle("active", state.sound);
       setStatus("Ready", "ready");
+      window.setInterval(updateSessionClock, 1000);
+      updateSessionClock();
       updateUi();
 
       async function spin(extraRequest = {}) {
@@ -1480,6 +1511,7 @@
 
         state.spinning = true;
         els.spin.classList.add("is-spinning");
+        state.spinCount += 1;
         state.balance = roundCurrency(state.balance - spinCost);
         if (inBonus) state.freeSpins -= 1;
         updateUi();
@@ -1525,33 +1557,41 @@
             await showBonusTransition(formatMode(result.triggeredBonus.mode), `${result.triggeredBonus.spins} free spins`);
             setStatus(`${formatMode(result.triggeredBonus.mode)} triggered`, "bonus");
           } else if (result.totalWin <= 0) {
-            setStatus("Ready", "ready");
+            setStatus("Complete", "complete");
           }
         }
 
         state.spinning = false;
         els.spin.classList.remove("is-spinning");
+        if (!state.bonusMode && result.totalWin > 0) setStatus("Complete", "complete");
         updateUi();
+
+        await maybeShowRealityCheck();
 
         if (state.auto && state.balance >= state.bet) {
           autoTimer = window.setTimeout(() => spin(), state.turbo ? 220 : 720);
+        } else if (!state.bonusMode && result.totalWin <= 0) {
+          window.setTimeout(() => {
+            if (!state.spinning) setStatus("Ready", "ready");
+          }, state.turbo ? 260 : 650);
         }
       }
 
       async function playResult(result) {
         let liveZones = new Set(result.mode === "base" ? [] : state.persistentZones);
         await scene.animateSpinToGrid(result.initialGrid, Array.from(liveZones));
+        setStatus("Evaluating", "spinning");
         await wait(state.turbo ? 60 : 130);
 
         for (const step of result.cascades) {
           scene.setGrid(step.gridBefore, Array.from(liveZones), step.removed);
           showCascadeBadge(`Cascade x${step.cascadeMultiplier}`);
           scene.spotlight(step.removed);
-          setStatus(`Cascade ${step.index + 1} · ${step.cascadeMultiplier}x`);
-          setStatus(`Cascade ${step.index + 1} - ${step.cascadeMultiplier}x`, "spinning");
+          setStatus(`Cascading - ${step.index + 1} (${step.cascadeMultiplier}x)`, "spinning");
           playSound("cascade");
           await scene.pulseCells(step.removed);
           for (const added of step.goldenAdded) liveZones.add(posKey(added));
+          if (step.goldenAdded.length > 0) playSound("golden");
           playSound(step.index > 1 ? "crowd" : "hit");
           await scene.animateCascadeDrop(step.gridAfter, Array.from(liveZones));
           await wait(state.turbo ? 55 : 130);
@@ -1640,11 +1680,14 @@
         animateNumber(els.balance, state.balance);
         animateNumber(els.win, state.lastWin);
         els.bet.textContent = money(state.bet);
+        els.spinCount.textContent = String(state.spinCount);
         els.betInput.value = state.bet.toFixed(2);
         els.mode.textContent = state.bonusMode ? `${formatMode(state.bonusMode)} (${state.freeSpins})` : "Base";
         els.spin.textContent = state.bonusMode ? `FREE SPIN ${state.freeSpins}` : "SPIN";
         els.spin.disabled = state.spinning;
         els.spin.classList.toggle("is-spinning", state.spinning);
+        els.spin.classList.toggle("auto-running", state.auto);
+        els.auto.textContent = state.auto ? "Stop Auto" : "Auto";
         document.querySelectorAll(".buy-option[data-buy]").forEach((button) => {
           button.disabled = state.spinning || state.bonusMode !== null;
         });
@@ -1653,6 +1696,11 @@
       function setStatus(text, tone = "ready") {
         els.status.textContent = text;
         els.status.dataset.state = tone;
+        if (tone === "error") {
+          els.status.closest(".meter").classList.remove("error-shake");
+          void els.status.closest(".meter").offsetWidth;
+          els.status.closest(".meter").classList.add("error-shake");
+        }
       }
 
       async function showWin(multiplier, amount) {
@@ -1690,12 +1738,17 @@
 
         const duration = state.turbo ? 720 : Math.min(3200, 900 + multiplier * 8);
         const start = performance.now();
+        let lastTick = 0;
         await new Promise((resolve) => {
           const tick = (now) => {
             const t = Math.min(1, (now - start) / duration);
             const eased = 1 - Math.pow(1 - t, 3);
             els.bigWinAmount.textContent = money(amount * eased);
             els.bigWinBar.style.width = `${Math.min(100, eased * 100)}%`;
+            if (now - lastTick > 120 && t < 1) {
+              lastTick = now;
+              playSound("tick");
+            }
             if (t < 1) requestAnimationFrame(tick);
             else resolve();
           };
@@ -1756,6 +1809,30 @@
         requestAnimationFrame(tick);
       }
 
+      function updateSessionClock() {
+        const elapsed = Math.floor((Date.now() - state.sessionStartedAt) / 1000);
+        const minutes = String(Math.floor(elapsed / 60)).padStart(2, "0");
+        const seconds = String(elapsed % 60).padStart(2, "0");
+        els.session.textContent = `${minutes}:${seconds}`;
+      }
+
+      async function maybeShowRealityCheck() {
+        if (state.spinCount === 0) return;
+        if (state.spinCount % REALITY_CHECK_SPINS !== 0) return;
+        if (state.lastRealityCheckAt === state.spinCount) return;
+
+        state.lastRealityCheckAt = state.spinCount;
+        if (state.auto) stopAuto();
+        await wait(state.turbo ? 80 : 180);
+        els.dialogTitle.textContent = "Reality Check";
+        els.dialogContent.innerHTML = `
+          <p>You have played <b>${state.spinCount}</b> demo spins in this session.</p>
+          <p>This prototype uses demo credits only. There is no real-money wallet, deposit, crypto, or cash-out flow.</p>
+          <p>RTP profile: <b>${els.rtp.value}%</b>. Max win cap: <b>10,000x bet</b>.</p>
+        `;
+        els.dialog.showModal();
+      }
+
       function openInfo(kind) {
         if (kind === "paytable") {
           els.dialogTitle.textContent = "Paytable";
@@ -1780,8 +1857,11 @@
               <li>Winning cells become Golden Pitch Zones. Stadium Lights activate those zones.</li>
               <li>3 Whistles trigger Extra Time, 4 trigger Penalty Shootout, 5 trigger World Final.</li>
               <li>Extra Time starts with 8 free spins. Penalty Shootout and World Final start with 12.</li>
-              <li>Max win cap is 10,000x bet. RTP profiles are configurable for prototype tuning.</li>
+              <li>Max win cap is 10,000x bet. Current demo RTP profile: ${els.rtp.value}%.</li>
+              <li>No deposits, wallet, crypto, cash-out, or real-money value exists in this prototype.</li>
+              <li>Animations show the deterministic engine result; they do not create near-miss or false bonus states.</li>
             </ul>
+            <p>Session: <b>${state.spinCount}</b> demo spins, <b>${els.session.textContent}</b> elapsed.</p>
             <p>Current deterministic seed: <b>${state.seed}</b></p>
           `;
         }
@@ -1853,6 +1933,10 @@
           g.strokeRoundedRect(4, 4, size - 8, size - 8, 6);
           g.lineStyle(1, 0xffffff, 0.42);
           g.strokeRoundedRect(9, 9, size - 18, size - 18, 5);
+          g.fillStyle(0xffd66b, 0.46);
+          for (let dot = 0; dot < 5; dot += 1) {
+            g.fillCircle(10 + dot * (size - 20) / 4, 8 + ((dot * 11) % Math.max(10, size - 18)), Math.max(1.4, size * 0.018));
+          }
           sceneRef.tweens.add({
             targets: box,
             alpha: { from: 0.88, to: 1 },
@@ -1865,7 +1949,31 @@
 
         box.add(g);
         drawSymbol(sceneRef, box, cell, size);
-        if (stateFlags.flash || stateFlags.reveal) {
+        if (stateFlags.blur) {
+          const blur = sceneRef.add.graphics();
+          blur.fillStyle(0xffffff, 0.08);
+          blur.fillRoundedRect(size * 0.12, size * 0.1, size * 0.76, size * 0.8, 8);
+          box.add(blur);
+        }
+        if (isSpecial && !stateFlags.reveal) {
+          sceneRef.tweens.add({
+            targets: box,
+            scale: { from: 0.985, to: 1.018 },
+            duration: 760,
+            yoyo: true,
+            repeat: 1,
+            ease: "Sine.easeInOut",
+          });
+        }
+        if (stateFlags.reveal) {
+          box.scaleX = 0.18;
+          sceneRef.tweens.add({
+            targets: box,
+            scaleX: 1,
+            duration: state.turbo ? 150 : 280,
+            ease: "Back.easeOut",
+          });
+        } else if (stateFlags.flash) {
           sceneRef.tweens.add({
             targets: box,
             scale: { from: 1.06, to: 1 },

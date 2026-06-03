@@ -126,6 +126,16 @@ export interface SpinResult {
   capped: boolean;
 }
 
+export interface SimulationSummary {
+  spins: number;
+  totalBet: number;
+  totalWin: number;
+  rtp: number;
+  hitRate: number;
+  maxWinMultiplier: number;
+  bonusTriggers: Record<Exclude<BonusMode, "base">, number>;
+}
+
 export const SYMBOL_META: Record<SymbolId, { name: string; short: string; regular: boolean; premium: number }> = {
   "10": { name: "Ten", short: "10", regular: true, premium: 1 },
   J: { name: "Jack", short: "J", regular: true, premium: 1 },
@@ -633,6 +643,42 @@ export class SlotMath {
 
 export function defaultSeed(): string {
   return `golden-goal-${new Date().toISOString().slice(0, 10)}`;
+}
+
+export function simulateRtp(
+  spins: number,
+  seed: string | number = "golden-goal-simulation",
+  config: Partial<SlotConfig> = {},
+  bet = 1,
+): SimulationSummary {
+  const engine = new SlotMath(seed, config);
+  const summary: SimulationSummary = {
+    spins,
+    totalBet: 0,
+    totalWin: 0,
+    rtp: 0,
+    hitRate: 0,
+    maxWinMultiplier: 0,
+    bonusTriggers: {
+      extraTime: 0,
+      penaltyShootout: 0,
+      worldFinal: 0,
+    },
+  };
+  let hits = 0;
+
+  for (let index = 0; index < spins; index += 1) {
+    const result = engine.spin({ bet, mode: "base" });
+    summary.totalBet = roundCurrency(summary.totalBet + bet);
+    summary.totalWin = roundCurrency(summary.totalWin + result.totalWin);
+    summary.maxWinMultiplier = Math.max(summary.maxWinMultiplier, result.totalWinMultiplier);
+    if (result.totalWin > 0) hits += 1;
+    if (result.triggeredBonus) summary.bonusTriggers[result.triggeredBonus.mode] += 1;
+  }
+
+  summary.rtp = summary.totalBet > 0 ? roundCurrency((summary.totalWin / summary.totalBet) * 100) : 0;
+  summary.hitRate = spins > 0 ? roundCurrency((hits / spins) * 100) : 0;
+  return summary;
 }
 
 export function positionKey(position: Position): string {
