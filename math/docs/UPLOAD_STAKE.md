@@ -11,11 +11,14 @@ Upload-Ordner fuer Stake Math:
 - `math/library/publish_files/golden_goal_rush/`
 
 Dieser Ordner soll mindestens enthalten:
-- `math.js`
 - `index.json`
+- `lookUpTable_base_0.csv`
+- `books_base.jsonl.zst`
 
-Kompatibilitaetshalber liegt dort auch `game.json`.
+Zusaetzlich liegt dort:
+- `math.js` fuer lokalen Import und interne Validierung
+- `game.json` als zusaetzliches Kompatibilitaets-Manifest
 
 Manifest-Pfade:
-- im Publish-Ordner zeigen `index.json` und `game.json` auf `math.js`
-- auf Repository-Ebene zeigt `math/index.json` auf `library/publish_files/golden_goal_rush/math.js`
+- im Publish-Ordner referenziert `index.json` die Dateien `books_base.jsonl.zst` und `lookUpTable_base_0.csv`
+- auf Repository-Ebene referenzieren `math/index.json` und `math/game.json` dieselben Dateien mit Pfadpraefix `library/publish_files/golden_goal_rush/`

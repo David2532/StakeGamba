@@ -1,9 +1,10 @@
 {
-  "name": "Golden Goal Rush",
-  "slug": "golden-goal-rush",
-  "version": "0.1.0",
-  "provider": "David2532",
-  "entry": "library/publish_files/golden_goal_rush/math.js",
-  "rtp": 96,
-  "maxWinMultiplier": 10000
+  "modes": [
+    {
+      "name": "base",
+      "cost": 1,
+      "events": "library/publish_files/golden_goal_rush/books_base.jsonl.zst",
+      "weights": "library/publish_files/golden_goal_rush/lookUpTable_base_0.csv"
+    }
+  ]
 }
