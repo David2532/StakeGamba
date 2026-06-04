@@ -1,0 +1,17 @@
+{
+  "gameId": "golden_goal_rush",
+  "workingName": "Golden Goal Rush",
+  "sampleCount": 4096,
+  "payoutScale": 100,
+  "modes": [
+    {
+      "name": "base",
+      "cost": 1,
+      "events": "books_base.jsonl.zst",
+      "weights": "lookUpTable_base_0.csv",
+      "rtp": 96,
+      "volatility": "medium-high",
+      "maxWin": 10000
+    }
+  ]
+}

@@ -16,6 +16,9 @@ Alternative interne Quelle:
 `stake-math/` enthaelt genau die Dateien fuer den ACP-Upload:
 - `index.json`
 - `game.json`
+- `config.json`
+- `config_fe.json`
+- `config_math.json`
 - `lookUpTable_base_0.csv`
 - `books_base.jsonl.zst`
 

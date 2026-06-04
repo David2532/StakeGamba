@@ -27,8 +27,14 @@ const inlinedHtml = indexHtml.replace(
   scriptTag,
   `<script type="module">\n${scriptBody}\n</script>`,
 );
+const versionManifest = {
+  version: 1,
+  changed: false,
+};
 
 await writeFile(distIndexPath, inlinedHtml, "utf8");
+await writeFile(join(distDir, "version.json"), JSON.stringify(versionManifest, null, 2) + "\n", "utf8");
 await rm(join(distDir, "assets"), { recursive: true, force: true });
 await mkdir(stakeFrontDir, { recursive: true });
 await copyFile(distIndexPath, join(stakeFrontDir, "index.html"));
+await copyFile(join(distDir, "version.json"), join(stakeFrontDir, "version.json"));

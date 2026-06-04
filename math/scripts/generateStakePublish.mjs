@@ -1,6 +1,7 @@
-import { copyFile, mkdir, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { createHash } from "node:crypto";
 import { zstdCompressSync } from "node:zlib";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -10,6 +11,8 @@ const rootMathDir = resolve(repoRoot, "math");
 const stakeMathDir = resolve(repoRoot, "stake-math");
 const sampleCount = 4096;
 const payoutScale = 100;
+const gameId = "golden_goal_rush";
+const gameName = "Golden Goal Rush";
 const modeConfigs = [
   {
     name: "base",
@@ -19,6 +22,10 @@ const modeConfigs = [
     spinRequest: { bet: 1 },
   },
 ];
+
+function sha256(buffer) {
+  return createHash("sha256").update(buffer).digest("hex");
+}
 
 function toBoard(grid) {
   return grid.map((row) => row.map((cell) => ({
@@ -167,6 +174,90 @@ async function main() {
   await writeFile(join(rootMathDir, "index.json"), JSON.stringify(rootIndex, null, 2) + "\n", "utf8");
   await writeFile(join(rootMathDir, "game.json"), JSON.stringify(rootIndex, null, 2) + "\n", "utf8");
 
+  const publishedFiles = [
+    "index.json",
+    "game.json",
+    ...modeConfigs.flatMap((mode) => [mode.eventsFile, mode.weightsFile]),
+  ];
+  const fileHashes = {};
+  for (const file of publishedFiles) {
+    fileHashes[file] = sha256(await readFile(join(publishDir, file)));
+  }
+
+  const backendConfig = {
+    version: 1,
+    changed: false,
+    gameId,
+    workingName: gameName,
+    files: fileHashes,
+    modes: modeConfigs.map((mode) => ({
+      name: mode.name,
+      cost: mode.cost,
+      events: mode.eventsFile,
+      weights: mode.weightsFile,
+      rtp: 96,
+      maxWin: 10000,
+      autoCloseDisabled: false,
+      isFeature: false,
+      isBuyBonus: false,
+    })),
+  };
+
+  const frontendConfig = {
+    gameId,
+    workingName: gameName,
+    providerNumber: 0,
+    board: {
+      reels: 6,
+      rows: 5,
+    },
+    symbols: [
+      { id: "10", name: "Ten", type: "low" },
+      { id: "J", name: "Jack", type: "low" },
+      { id: "Q", name: "Queen", type: "low" },
+      { id: "K", name: "King", type: "low" },
+      { id: "A", name: "Ace", type: "low" },
+      { id: "FOOTBALL", name: "Football", type: "high" },
+      { id: "BOOT", name: "Golden Boot", type: "high" },
+      { id: "GLOVE", name: "Goalkeeper Glove", type: "high" },
+      { id: "TICKET", name: "Stadium Ticket", type: "high" },
+      { id: "ARMBAND", name: "Captain Armband", type: "high" },
+      { id: "TROPHY", name: "Trophy", type: "high" },
+      { id: "LIGHTS", name: "Stadium Lights", type: "special" },
+      { id: "WHISTLE", name: "Whistle", type: "special" },
+      { id: "GOLDEN_BALL", name: "Golden Ball", type: "special" },
+      { id: "CAPTAIN_STAR", name: "Captain Star", type: "special" },
+      { id: "COLLECTOR", name: "Trophy Collector", type: "special" },
+      { id: "VAR_SCREEN", name: "VAR Screen", type: "special" },
+      { id: "WILD_TROPHY", name: "Wild Trophy", type: "special" },
+    ],
+    betModes: modeConfigs.map((mode) => ({
+      name: mode.name,
+      cost: mode.cost,
+      maxWin: 10000,
+      rtp: 96,
+      isFeature: false,
+      isBuyBonus: false,
+    })),
+    betLevels: [100000, 200000, 500000, 1000000, 2000000, 5000000, 10000000, 20000000, 50000000, 100000000],
+  };
+
+  const mathConfig = {
+    gameId,
+    workingName: gameName,
+    sampleCount,
+    payoutScale,
+    modes: modeConfigs.map((mode) => ({
+      name: mode.name,
+      cost: mode.cost,
+      events: mode.eventsFile,
+      weights: mode.weightsFile,
+      rtp: 96,
+      volatility: "medium-high",
+      maxWin: 10000,
+    })),
+  };
+
   await rm(stakeMathDir, { recursive: true, force: true });
   await mkdir(stakeMathDir, { recursive: true });
   await copyFile(join(publishDir, "index.json"), join(stakeMathDir, "index.json"));
@@ -175,6 +266,9 @@ async function main() {
     await copyFile(join(publishDir, modeConfig.eventsFile), join(stakeMathDir, modeConfig.eventsFile));
     await copyFile(join(publishDir, modeConfig.weightsFile), join(stakeMathDir, modeConfig.weightsFile));
   }
+  await writeFile(join(stakeMathDir, "config.json"), JSON.stringify(backendConfig, null, 2) + "\n", "utf8");
+  await writeFile(join(stakeMathDir, "config_fe.json"), JSON.stringify(frontendConfig, null, 2) + "\n", "utf8");
+  await writeFile(join(stakeMathDir, "config_math.json"), JSON.stringify(mathConfig, null, 2) + "\n", "utf8");
 }
 
 await main();
