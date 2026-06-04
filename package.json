@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite . --host 0.0.0.0 --port 5173",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "build:ts": "tsc math.ts --outDir front --module ES2020 --target ES2020 --lib DOM,ES2020 --skipLibCheck",
+    "prepare-package": "npm run build:ts"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
