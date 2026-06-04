@@ -3,2332 +3,1006 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Golden Goal Rush Prototype</title>
+    <title>Golden Goal Rush</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
     <style>
       :root {
         color-scheme: dark;
-        --bg: #07100d;
-        --panel: rgba(8, 15, 14, 0.78);
-        --panel-strong: rgba(5, 9, 10, 0.92);
-        --line: rgba(255, 255, 255, 0.12);
-        --gold: #ffd66b;
-        --gold-strong: #ffb72c;
-        --green: #21f59b;
-        --green-soft: rgba(33, 245, 155, 0.22);
-        --red: #ff4d66;
-        --blue: #4cc3ff;
-        --text: #f7fff8;
-        --muted: #96aaa2;
-        font-family:
-          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --ink: #050706;
+        --black: #070908;
+        --deep: #0a1016;
+        --panel: rgba(8, 8, 7, 0.88);
+        --panel-strong: rgba(2, 3, 3, 0.95);
+        --gold: #f8cf5a;
+        --gold-2: #ffae22;
+        --bronze: #8d5a15;
+        --cream: #fff3c1;
+        --green: #24f196;
+        --red: #e23c2e;
+        --blue: #2da8ff;
+        --purple: #b55cff;
+        --line: rgba(255, 219, 102, 0.28);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+        font-family: Impact, Haettenschweiler, "Arial Narrow Bold", "Segoe UI", system-ui, sans-serif;
       }
 
-      * {
-        box-sizing: border-box;
-      }
-
+      * { box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; margin: 0; }
       body {
-        margin: 0;
-        min-height: 100vh;
-        min-height: 100dvh;
         overflow: hidden;
-        overflow-x: hidden;
-        background:
-          radial-gradient(circle at 50% 0%, rgba(255, 214, 107, 0.15), transparent 34%),
-          linear-gradient(180deg, rgba(13, 28, 23, 0.88), rgba(4, 8, 9, 0.98)),
-          var(--bg);
-        color: var(--text);
+        background: #07111a;
+        color: var(--cream);
+        user-select: none;
       }
+      button, select { font: inherit; }
+      button { border: 0; cursor: pointer; color: inherit; }
+      button:disabled { cursor: wait; opacity: 0.55; }
 
-      body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        background:
-          linear-gradient(90deg, transparent 0 8%, rgba(33, 245, 155, 0.08) 8.3% 8.8%, transparent 9.2%),
-          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 72px);
-        mask-image: linear-gradient(180deg, transparent, #000 18%, #000 76%, transparent);
-        opacity: 0.55;
-      }
-
-      button,
-      select,
-      input {
-        font: inherit;
-      }
-
-      button {
-        border: 0;
-        color: var(--text);
-        cursor: pointer;
-      }
-
-      button:disabled {
-        cursor: wait;
-        opacity: 0.56;
-      }
-
-      .app {
+      .slot-app {
         position: relative;
-        display: grid;
-        grid-template-rows: auto 1fr;
-        width: 100%;
-        max-width: 100dvw;
-        height: 100vh;
+        width: 100vw;
         height: 100dvh;
-        padding: 14px;
-        gap: 12px;
-      }
-
-      .topbar {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        align-items: center;
-        gap: 12px;
-        min-height: 58px;
-        padding: 10px 14px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: linear-gradient(180deg, rgba(11, 22, 20, 0.92), rgba(4, 7, 8, 0.82));
-        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.35);
-      }
-
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-width: 0;
-      }
-
-      .crest {
-        display: grid;
-        place-items: center;
-        flex: 0 0 38px;
-        width: 38px;
-        height: 38px;
-        border: 1px solid rgba(255, 214, 107, 0.55);
-        border-radius: 8px;
-        background: radial-gradient(circle at 50% 35%, #fff1a9, #e6a81f 48%, #6b4507 100%);
-        color: #111;
-        font-weight: 1000;
-        letter-spacing: 0;
-      }
-
-      h1 {
-        margin: 0;
-        font-size: clamp(20px, 3vw, 34px);
-        line-height: 1;
-        letter-spacing: 0;
-      }
-
-      .subline {
-        margin-top: 5px;
-        color: var(--muted);
-        font-size: 12px;
-        letter-spacing: 0;
-        white-space: nowrap;
+        min-height: 600px;
         overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .header-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .icon-btn {
-        display: grid;
-        place-items: center;
-        width: 38px;
-        height: 38px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.06);
-        font-weight: 900;
-      }
-
-      .layout {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 330px;
-        gap: 12px;
-        min-height: 0;
-      }
-
-      .stage {
-        position: relative;
-        grid-column: 1;
-        min-width: 0;
-        min-height: 0;
-        overflow: hidden;
-        border: 1px solid var(--line);
-        border-radius: 8px;
         background:
-          radial-gradient(circle at 50% 0%, rgba(33, 245, 155, 0.12), transparent 36%),
-          linear-gradient(180deg, rgba(4, 13, 13, 0.96), rgba(1, 3, 5, 0.92));
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 24px 70px rgba(0, 0, 0, 0.42);
+          radial-gradient(circle at 50% 8%, rgba(0, 132, 255, 0.18), transparent 34%),
+          linear-gradient(180deg, #081424 0%, #061018 52%, #030504 100%);
       }
 
-      #game-host {
-        width: 100%;
-        height: 100%;
-      }
-
-      .win-toast {
+      .stadium-bg, .stadium-bg::before, .stadium-bg::after {
         position: absolute;
-        left: 50%;
-        top: 11%;
-        z-index: 4;
-        transform: translate(-50%, -20px) scale(0.94);
-        min-width: min(520px, calc(100% - 32px));
-        padding: 14px 22px;
-        border: 1px solid rgba(255, 214, 107, 0.58);
-        border-radius: 8px;
-        background: rgba(8, 9, 8, 0.82);
-        box-shadow: 0 0 50px rgba(255, 183, 44, 0.26);
-        text-align: center;
-        opacity: 0;
-        pointer-events: none;
-        transition:
-          opacity 160ms ease,
-          transform 160ms ease;
-      }
-
-      .win-toast.show {
-        opacity: 1;
-        transform: translate(-50%, 0) scale(1);
-      }
-
-      .win-toast strong {
-        display: block;
-        color: var(--gold);
-        font-size: clamp(22px, 4vw, 44px);
-        line-height: 1;
-        letter-spacing: 0;
-        text-shadow: 0 0 24px rgba(255, 214, 107, 0.46);
-      }
-
-      .win-toast span {
-        display: block;
-        margin-top: 8px;
-        color: #d8f8ea;
-        font-size: 14px;
-      }
-
-      .side-panel {
-        grid-column: 2;
-        display: flex;
-        flex-direction: column;
-        min-height: 0;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--panel);
-        backdrop-filter: blur(16px);
-        overflow: hidden;
-      }
-
-      .meters {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        padding: 12px;
-        border-bottom: 1px solid var(--line);
-      }
-
-      .meter {
-        min-width: 0;
-        padding: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.045);
-      }
-
-      .meter label {
-        display: block;
-        color: var(--muted);
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0;
-      }
-
-      .meter strong {
-        display: block;
-        margin-top: 4px;
-        font-size: 20px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .meter.full {
-        grid-column: 1 / -1;
-      }
-
-      .controls {
-        display: grid;
-        gap: 10px;
-        padding: 12px;
-      }
-
-      .field {
-        display: grid;
-        gap: 6px;
-      }
-
-      .field label {
-        color: var(--muted);
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0;
-      }
-
-      .stepper {
-        display: grid;
-        grid-template-columns: 42px 1fr 42px;
-        gap: 8px;
-      }
-
-      .stepper input,
-      select {
-        width: 100%;
-        min-height: 42px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(0, 0, 0, 0.34);
-        color: var(--text);
-        text-align: center;
-        outline: none;
-      }
-
-      .stepper button,
-      .secondary,
-      .toggle {
-        min-height: 42px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.06);
-      }
-
-      .primary-spin {
-        min-height: 74px;
-        border-radius: 8px;
-        background: radial-gradient(circle at 50% 20%, #fff8bf, var(--gold-strong) 42%, #895808 100%);
-        color: #130f04;
-        font-size: 24px;
-        font-weight: 1000;
-        letter-spacing: 0;
-        box-shadow: 0 0 38px rgba(255, 183, 44, 0.24);
-      }
-
-      .quick-row,
-      .modal-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-
-      .toggle.active {
-        border-color: rgba(33, 245, 155, 0.75);
-        background: var(--green-soft);
-        color: #dffff1;
-      }
-
-      .buy-panel {
-        display: grid;
-        gap: 8px;
-        padding: 12px;
-        border-top: 1px solid var(--line);
-        overflow: auto;
-      }
-
-      .buy-panel h2 {
-        margin: 0 0 2px;
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 0;
-      }
-
-      .buy-option {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        align-items: center;
-        gap: 8px;
-        width: 100%;
-        padding: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 8px;
-        background: rgba(0, 0, 0, 0.22);
-        text-align: left;
-      }
-
-      .buy-option span {
-        color: var(--muted);
-        font-size: 12px;
-      }
-
-      .buy-option b {
-        color: var(--gold);
-      }
-
-      dialog {
-        width: min(760px, calc(100dvw - 24px));
-        max-height: min(760px, calc(100dvh - 24px));
-        border: 1px solid rgba(255, 214, 107, 0.34);
-        border-radius: 8px;
-        background: var(--panel-strong);
-        color: var(--text);
-        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
-      }
-
-      dialog::backdrop {
-        background: rgba(0, 0, 0, 0.62);
-        backdrop-filter: blur(5px);
-      }
-
-      .dialog-body {
-        display: grid;
-        gap: 14px;
-        padding: 18px;
-      }
-
-      .dialog-body h2 {
-        margin: 0;
-      }
-
-      .dialog-body p,
-      .dialog-body li {
-        color: #c7d8d2;
-        line-height: 1.45;
-      }
-
-      .pay-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 8px;
-      }
-
-      .pay-card {
-        padding: 10px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.04);
-      }
-
-      .pay-card b {
-        display: block;
-        color: var(--gold);
-      }
-
-      .confetti {
-        position: fixed;
         inset: 0;
         pointer-events: none;
+      }
+      .stadium-bg {
         overflow: hidden;
-        z-index: 8;
+        background:
+          radial-gradient(circle at 8% 15%, rgba(255, 255, 255, 0.52) 0 2%, rgba(109, 186, 255, 0.25) 4%, transparent 11%),
+          radial-gradient(circle at 92% 15%, rgba(255, 255, 255, 0.52) 0 2%, rgba(109, 186, 255, 0.25) 4%, transparent 11%),
+          linear-gradient(180deg, rgba(5, 14, 29, 0.8), transparent 55%),
+          radial-gradient(ellipse at 50% 100%, rgba(20, 128, 53, 0.72), rgba(7, 47, 30, 0.4) 44%, transparent 76%);
       }
-
-      .confetti i {
-        position: absolute;
-        top: -18px;
-        width: 8px;
-        height: 14px;
-        border-radius: 2px;
-        animation: fall 900ms linear forwards;
-      }
-
-      @keyframes fall {
-        to {
-          transform: translateY(110dvh) rotate(520deg);
-          opacity: 0;
-        }
-      }
-
-      @media (max-width: 900px) {
-        body {
-          overflow: auto;
-          overflow-x: hidden;
-        }
-
-        .app {
-          min-height: 100vh;
-          min-height: 100dvh;
-          height: auto;
-          padding: 8px;
-        }
-
-        .topbar {
-          grid-template-columns: 1fr;
-        }
-
-        .header-actions {
-          justify-content: space-between;
-        }
-
-        .layout {
-          grid-template-columns: 1fr;
-          grid-template-rows: minmax(460px, 62vh) auto;
-        }
-
-        .stage,
-        .side-panel {
-          grid-column: 1;
-        }
-
-        .stage {
-          grid-row: 1;
-        }
-
-        .side-panel {
-          grid-row: 2;
-          min-height: auto;
-        }
-
-        .buy-panel {
-          max-height: none;
-        }
-      }
-
-      @media (max-width: 520px) {
-        .app {
-          gap: 8px;
-        }
-
-        .topbar {
-          padding: 10px;
-        }
-
-        .layout {
-          grid-template-rows: minmax(410px, 58vh) auto;
-        }
-
-        .meters {
-          grid-template-columns: 1fr 1fr;
-          padding: 8px;
-        }
-
-        .controls,
-        .buy-panel {
-          padding: 8px;
-        }
-
-        .primary-spin {
-          min-height: 64px;
-        }
-      }
-
-      .stage::before,
-      .stage::after {
+      .stadium-bg::before {
         content: "";
+        background:
+          conic-gradient(from 20deg at 7% 15%, rgba(255,255,255,0.52), transparent 13%, transparent 100%),
+          conic-gradient(from 145deg at 93% 15%, rgba(255,255,255,0.52), transparent 13%, transparent 100%),
+          repeating-linear-gradient(90deg, transparent 0 94px, rgba(255,255,255,0.08) 96px 98px, transparent 100px),
+          linear-gradient(0deg, rgba(34,93,32,0.5) 0 14%, transparent 14%),
+          linear-gradient(170deg, transparent 0 58%, rgba(255,255,255,0.15) 58.2% 58.7%, transparent 59%),
+          linear-gradient(10deg, transparent 0 64%, rgba(255,255,255,0.13) 64.2% 64.7%, transparent 65%);
+        opacity: 0.68;
+      }
+      .stadium-bg::after {
+        content: "";
+        background:
+          linear-gradient(90deg, transparent 0 8%, rgba(255, 214, 80, 0.4) 8.2% 8.5%, transparent 8.8%),
+          linear-gradient(90deg, transparent 91%, rgba(255, 214, 80, 0.4) 91.2% 91.5%, transparent 91.8%),
+          repeating-linear-gradient(90deg, rgba(255,214,80,0.16) 0 15px, transparent 15px 36px),
+          linear-gradient(180deg, transparent 0 54%, rgba(255, 255, 255, 0.08) 55%, transparent 56%);
+        mask-image: linear-gradient(180deg, transparent 0 12%, #000 22% 78%, transparent 100%);
+        opacity: 0.7;
+      }
+
+      .bg-city {
         position: absolute;
-        inset: 0;
+        left: 0; right: 0; bottom: 22%; height: 22%;
         pointer-events: none;
-        z-index: 1;
-      }
-
-      .stage::before {
+        opacity: 0.52;
         background:
-          conic-gradient(from 212deg at 10% 8%, rgba(255, 255, 255, 0.24), transparent 11%, transparent 100%),
-          conic-gradient(from 148deg at 90% 8%, rgba(255, 255, 255, 0.22), transparent 12%, transparent 100%),
-          linear-gradient(90deg, transparent, rgba(33, 245, 155, 0.08), transparent);
-        mix-blend-mode: screen;
-        opacity: 0.58;
-        animation: stadiumSweep 7.5s ease-in-out infinite alternate;
+          linear-gradient(90deg, #101923 0 5%, transparent 5% 7%, #132033 7% 13%, transparent 13% 16%, #0d1727 16% 22%, transparent 22% 28%, #152236 28% 36%, transparent 36% 40%, #0d1727 40% 46%, transparent 46% 54%, #162338 54% 62%, transparent 62% 66%, #0d1727 66% 74%, transparent 74% 82%, #152236 82% 90%, transparent 90%),
+          repeating-linear-gradient(90deg, rgba(255,204,69,0.35) 0 2px, transparent 2px 28px);
+        clip-path: polygon(0 40%, 4% 28%, 8% 44%, 12% 25%, 18% 38%, 24% 18%, 30% 42%, 37% 24%, 44% 45%, 50% 32%, 56% 43%, 62% 20%, 70% 38%, 77% 28%, 82% 46%, 88% 21%, 94% 40%, 100% 30%, 100% 100%, 0 100%);
       }
 
-      .stage::after {
+      .pitch-lines {
+        position: absolute;
+        left: -10%; right: -10%; bottom: -5%; height: 34%;
+        pointer-events: none;
         background:
-          radial-gradient(circle at 18% 20%, rgba(255, 214, 107, 0.2), transparent 4%),
-          radial-gradient(circle at 72% 16%, rgba(33, 245, 155, 0.16), transparent 5%),
-          repeating-linear-gradient(180deg, transparent 0 46px, rgba(255, 214, 107, 0.06) 47px 49px, transparent 50px);
-        opacity: 0.42;
-        animation: ledPulse 2.8s ease-in-out infinite;
+          radial-gradient(ellipse at 50% 70%, transparent 0 28%, rgba(255,255,255,0.24) 28.4% 29%, transparent 29.4%),
+          linear-gradient(90deg, transparent 0 49.7%, rgba(255,255,255,0.24) 50%, transparent 50.3%),
+          linear-gradient(180deg, transparent 0 38%, rgba(255,255,255,0.22) 38.5%, transparent 39%),
+          repeating-linear-gradient(90deg, rgba(15,88,37,0.55) 0 90px, rgba(21,117,48,0.55) 90px 180px);
+        transform: perspective(480px) rotateX(62deg);
+        transform-origin: bottom;
+        opacity: 0.72;
       }
 
-      #game-host {
-        position: relative;
+      .slot-machine {
+        position: absolute;
+        inset: 0 0 calc(112px + var(--safe-bottom)) 0;
+        display: grid;
+        grid-template-columns: minmax(116px, 0.52fr) minmax(620px, 7fr) minmax(116px, 0.76fr);
+        gap: clamp(8px, 1vw, 18px);
+        align-items: center;
+        padding: clamp(8px, 1.7vw, 28px) clamp(18px, 3vw, 54px) 8px;
         z-index: 2;
       }
 
-      .topbar,
-      .side-panel,
-      .stage {
-        border-color: rgba(255, 214, 107, 0.18);
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.08),
-          0 22px 80px rgba(0, 0, 0, 0.54),
-          0 0 34px rgba(33, 245, 155, 0.06);
-      }
-
-      .topbar {
-        background:
-          linear-gradient(180deg, rgba(17, 31, 28, 0.9), rgba(3, 7, 8, 0.86)),
-          linear-gradient(90deg, rgba(255, 214, 107, 0.1), transparent 38%, rgba(33, 245, 155, 0.08));
-      }
-
-      h1 {
-        color: #fff9d8;
-        text-shadow: 0 0 22px rgba(255, 214, 107, 0.28), 0 2px 0 #2a1c05;
-      }
-
-      .side-panel {
-        background:
-          linear-gradient(180deg, rgba(13, 24, 22, 0.82), rgba(3, 8, 9, 0.94)),
-          radial-gradient(circle at 50% 0%, rgba(255, 214, 107, 0.14), transparent 36%);
-      }
-
-      .meter {
+      .reel-frame {
         position: relative;
-        overflow: hidden;
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
-          radial-gradient(circle at 100% 0%, rgba(33, 245, 155, 0.1), transparent 38%);
-        transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
-      }
-
-      .meter::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(110deg, transparent 0 34%, rgba(255, 255, 255, 0.07) 46%, transparent 60%);
-        transform: translateX(-110%);
-        animation: panelSheen 6s ease-in-out infinite;
-      }
-
-      .meter label::before {
-        display: inline-block;
-        width: 18px;
-        margin-right: 4px;
-        color: var(--gold);
-      }
-
-      .meter:nth-child(1) label::before {
-        content: "$";
-      }
-
-      .meter:nth-child(2) label::before {
-        content: "*";
-      }
-
-      .meter:nth-child(3) label::before {
-        content: "x";
-      }
-
-      .meter:nth-child(4) label::before {
-        content: ">";
-      }
-
-      .meter.full label::before {
-        content: ".";
-      }
-
-      #statusValue[data-state="ready"] {
-        color: var(--green);
-      }
-
-      #statusValue[data-state="spinning"] {
-        color: var(--gold);
-      }
-
-      #statusValue[data-state="bonus"] {
-        color: #ffe9a6;
-        text-shadow: 0 0 18px rgba(255, 214, 107, 0.36);
-      }
-
-      #statusValue[data-state="complete"] {
-        color: #e9fff5;
-      }
-
-      #statusValue[data-state="error"] {
-        color: var(--red);
-      }
-
-      .primary-spin {
-        position: relative;
-        overflow: hidden;
-        border: 1px solid rgba(255, 244, 186, 0.42);
-        background:
-          radial-gradient(circle at 50% 18%, #fff6c3 0 12%, #ffd66b 35%, #e28d15 68%, #663905 100%);
-        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.42);
-        transition: transform 120ms ease, filter 150ms ease, box-shadow 150ms ease;
-        animation: spinReadyPulse 1.7s ease-in-out infinite;
-      }
-
-      .primary-spin::before {
-        content: "";
-        position: absolute;
-        inset: -40%;
-        background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.32), transparent 32%);
-        animation: buttonSweep 2.5s linear infinite;
-      }
-
-      .primary-spin:hover {
-        filter: brightness(1.08);
-        box-shadow: 0 0 44px rgba(255, 183, 44, 0.36), 0 12px 34px rgba(0, 0, 0, 0.38);
-      }
-
-      .primary-spin:active {
-        transform: scale(0.98);
-      }
-
-      .primary-spin.is-spinning {
-        animation: spinLoading 0.8s linear infinite;
-        color: rgba(19, 15, 4, 0.74);
-      }
-
-      .buy-option {
-        position: relative;
-        overflow: hidden;
-        min-height: 66px;
-        border-color: rgba(255, 214, 107, 0.12);
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
-          radial-gradient(circle at 0% 0%, rgba(33, 245, 155, 0.1), transparent 42%);
-        transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
-      }
-
-      .buy-option::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(100deg, transparent 20%, rgba(255, 214, 107, 0.08), transparent 72%);
-        transform: translateX(-120%);
-        transition: transform 320ms ease;
-      }
-
-      .buy-option:not(:disabled):hover {
-        transform: translateY(-1px);
-        border-color: rgba(255, 214, 107, 0.44);
-        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32), 0 0 24px rgba(33, 245, 155, 0.08);
-      }
-
-      .buy-option:not(:disabled):hover::after {
-        transform: translateX(90%);
-      }
-
-      .buy-option.locked {
-        border-color: rgba(255, 214, 107, 0.26);
-        background:
-          linear-gradient(180deg, rgba(64, 46, 9, 0.42), rgba(10, 9, 7, 0.32)),
-          repeating-linear-gradient(135deg, rgba(255, 214, 107, 0.06) 0 8px, transparent 8px 16px);
-      }
-
-      input[type="range"] {
-        width: 100%;
-        accent-color: var(--gold);
-        height: 6px;
-        border-radius: 999px;
-        background: linear-gradient(90deg, var(--gold), rgba(255, 255, 255, 0.18));
-      }
-
-      input[type="range"]::-webkit-slider-thumb {
-        width: 18px;
-        height: 18px;
-        border: 2px solid #fff5c4;
-        border-radius: 50%;
-        background: var(--gold);
-        box-shadow: 0 0 18px rgba(245, 200, 75, 0.42);
-        appearance: none;
-      }
-
-      select {
-        appearance: none;
-        background:
-          linear-gradient(45deg, transparent 50%, var(--gold) 50%) calc(100% - 18px) 52% / 7px 7px no-repeat,
-          linear-gradient(135deg, var(--gold) 50%, transparent 50%) calc(100% - 13px) 52% / 7px 7px no-repeat,
-          rgba(0, 0, 0, 0.34);
-        padding: 0 34px 0 12px;
-      }
-
-      .cascade-badge {
-        position: absolute;
-        left: 50%;
-        top: 78px;
-        z-index: 5;
-        transform: translate(-50%, -12px) scale(0.92);
-        padding: 8px 16px;
-        border: 1px solid rgba(33, 245, 155, 0.52);
-        border-radius: 999px;
-        background: rgba(4, 10, 9, 0.84);
-        color: #ceffe8;
-        font-weight: 900;
-        letter-spacing: 0;
-        opacity: 0;
-        pointer-events: none;
-        box-shadow: 0 0 28px rgba(33, 245, 155, 0.22);
-        transition: opacity 160ms ease, transform 160ms ease;
-      }
-
-      .cascade-badge.show {
-        opacity: 1;
-        transform: translate(-50%, 0) scale(1);
-      }
-
-      .big-win-overlay,
-      .bonus-transition {
-        position: fixed;
-        inset: 0;
-        z-index: 20;
-        display: grid;
-        place-items: center;
-        padding: 24px;
-        background:
-          radial-gradient(circle at 50% 38%, rgba(255, 214, 107, 0.2), transparent 30%),
-          rgba(0, 0, 0, 0.66);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 180ms ease;
-      }
-
-      .big-win-overlay.show,
-      .bonus-transition.show {
-        opacity: 1;
-        pointer-events: auto;
-      }
-
-      .big-win-card,
-      .bonus-card {
-        width: min(680px, 92vw);
-        border: 1px solid rgba(255, 214, 107, 0.5);
+        align-self: center;
+        justify-self: center;
+        width: min(76vw, 1160px);
+        aspect-ratio: 1.82 / 1;
+        padding: clamp(40px, 5.8vw, 82px) clamp(16px, 1.55vw, 26px) clamp(12px, 1.2vw, 18px);
+        border: 4px solid #120a03;
         border-radius: 8px;
-        padding: clamp(22px, 5vw, 46px);
         background:
-          linear-gradient(180deg, rgba(19, 20, 13, 0.92), rgba(4, 7, 7, 0.96)),
-          radial-gradient(circle at 50% 0%, rgba(255, 214, 107, 0.24), transparent 40%);
-        box-shadow: 0 0 70px rgba(255, 183, 44, 0.22), 0 34px 90px rgba(0, 0, 0, 0.72);
-        text-align: center;
+          linear-gradient(180deg, rgba(255,238,148,0.16), transparent 13%),
+          linear-gradient(90deg, #2a1605, #c68a26 2%, #4d2b08 4%, #100b07 7%, #100b07 93%, #4d2b08 96%, #c68a26 98%, #2a1605),
+          linear-gradient(180deg, #1f1308, #090806 42%, #030303);
+        box-shadow:
+          0 0 0 3px rgba(255, 215, 93, 0.45),
+          0 0 0 8px rgba(0, 0, 0, 0.72),
+          0 24px 80px rgba(0, 0, 0, 0.7),
+          0 0 55px rgba(255, 182, 38, 0.18);
       }
-
-      .big-win-title,
-      .bonus-title {
-        margin: 0;
-        color: var(--gold);
-        font-size: clamp(34px, 9vw, 82px);
-        line-height: 0.95;
-        letter-spacing: 0;
-        text-shadow: 0 0 26px rgba(255, 214, 107, 0.42), 0 4px 0 #442904;
-      }
-
-      .big-win-amount {
-        margin-top: 16px;
-        color: #ffffff;
-        font-size: clamp(26px, 6vw, 54px);
-        font-weight: 1000;
-        text-shadow: 0 0 20px rgba(33, 245, 155, 0.32);
-      }
-
-      .big-win-sub,
-      .bonus-sub {
-        margin-top: 12px;
-        color: #c9f5e3;
-      }
-
-      .big-win-bar {
-        height: 6px;
-        margin-top: 22px;
-        overflow: hidden;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.1);
-      }
-
-      .big-win-bar span {
-        display: block;
-        width: 0%;
-        height: 100%;
-        background: linear-gradient(90deg, var(--green), var(--gold));
-        box-shadow: 0 0 18px rgba(255, 214, 107, 0.5);
-      }
-
-      .light-sweep {
+      .reel-frame::before, .reel-frame::after {
+        content: "";
         position: absolute;
-        inset: 0;
-        z-index: 6;
-        pointer-events: none;
-        background: linear-gradient(100deg, transparent 0 36%, rgba(255, 255, 255, 0.46) 48%, rgba(255, 214, 107, 0.34) 52%, transparent 66%);
-        transform: translateX(-120%);
-        opacity: 0;
+        top: 7px; bottom: 7px; width: 20px;
+        border-radius: 4px;
+        background:
+          radial-gradient(circle, #ffe899 0 28%, #a66d18 31% 48%, #130a02 52% 63%, transparent 66%) 50% 7% / 20px 20px no-repeat,
+          radial-gradient(circle, #ffe899 0 28%, #a66d18 31% 48%, #130a02 52% 63%, transparent 66%) 50% 93% / 20px 20px no-repeat,
+          linear-gradient(180deg, #e7b64f, #543007 46%, #f8d36f);
+        box-shadow: inset 0 0 0 2px #180c03;
+      }
+      .reel-frame::before { left: -16px; }
+      .reel-frame::after { right: -16px; }
+
+      .slot-logo {
+        position: absolute;
+        left: 50%; top: clamp(-12px, -1.2vw, -4px);
+        transform: translateX(-50%);
+        z-index: 5;
+        width: min(58%, 620px);
+        min-width: 430px;
+        padding: 0 18px 8px;
+        text-align: center;
+        line-height: 0.82;
+        filter: drop-shadow(0 12px 0 rgba(0,0,0,0.55)) drop-shadow(0 0 24px rgba(255,203,65,0.22));
+      }
+      .slot-logo::before {
+        content: "";
+        position: absolute;
+        left: 0; right: 0; top: 22%; bottom: 5%;
+        z-index: -1;
+        background: linear-gradient(90deg, transparent, #3d2209 10%, #f7c74b 18%, #4b2a0a 28%, #4b2a0a 72%, #f7c74b 82%, #3d2209 90%, transparent);
+        clip-path: polygon(0 52%, 11% 30%, 34% 30%, 39% 0, 61% 0, 66% 30%, 89% 30%, 100% 52%, 89% 75%, 11% 75%);
+      }
+      .slot-logo span {
+        display: block;
+        letter-spacing: 2px;
+        -webkit-text-stroke: 2px #1a1004;
+        text-transform: uppercase;
+        font-weight: 1000;
+      }
+      .slot-logo span:first-child {
+        font-size: clamp(36px, 5.2vw, 88px);
+        color: #f8c83b;
+        text-shadow: 0 3px 0 #fff4a7, 0 6px 0 #774508, 0 10px 0 #180b02;
+      }
+      .slot-logo span:last-child {
+        font-size: clamp(32px, 4.4vw, 74px);
+        color: #fff4ce;
+        text-shadow: 0 3px 0 #a16b1b, 0 7px 0 #1c1004;
+      }
+      .slot-logo .ball-o {
+        display: inline-grid;
+        place-items: center;
+        width: 0.82em; height: 0.82em;
+        margin: 0 -0.02em;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #fff, #ddd 46%, #111 47% 54%, #fff 55%);
+        box-shadow: inset 0 0 0 3px #111;
+        vertical-align: -0.04em;
       }
 
-      .light-sweep.show {
-        animation: gridLightSweep 720ms ease-out forwards;
+      .reel-inner {
+        position: relative;
+        width: 100%; height: 100%;
+        overflow: hidden;
+        border: 2px solid rgba(255,220,92,0.55);
+        border-radius: 4px;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(255,214,76,0.08), transparent 35%),
+          linear-gradient(180deg, #101310, #060706 80%);
+        box-shadow:
+          inset 0 0 0 2px rgba(0,0,0,0.95),
+          inset 0 0 50px rgba(0,0,0,0.9),
+          0 0 24px rgba(255,214,76,0.15);
       }
+      #game-host { width: 100%; height: 100%; }
+      #game-host canvas { display: block; width: 100% !important; height: 100% !important; }
 
-      @keyframes stadiumSweep {
-        from {
-          transform: translateX(-1%) scale(1);
-          opacity: 0.44;
-        }
-        to {
-          transform: translateX(1%) scale(1.02);
-          opacity: 0.72;
-        }
+      .left-feature-stack, .right-feature-stack {
+        position: relative;
+        z-index: 3;
+        display: grid;
+        gap: clamp(8px, 1.3vw, 18px);
+        align-content: center;
+        justify-items: center;
       }
-
-      @keyframes ledPulse {
-        50% {
-          opacity: 0.64;
-        }
-      }
-
-      @keyframes panelSheen {
-        0%,
-        68% {
-          transform: translateX(-120%);
-        }
-        100% {
-          transform: translateX(130%);
-        }
-      }
-
-      @keyframes spinReadyPulse {
-        50% {
-          box-shadow: 0 0 42px rgba(255, 183, 44, 0.32);
-        }
-      }
-
-      @keyframes buttonSweep {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      @keyframes spinLoading {
-        to {
-          filter: hue-rotate(18deg) brightness(1.08);
-        }
-      }
-
-      @keyframes gridLightSweep {
-        0% {
-          opacity: 0;
-          transform: translateX(-120%);
-        }
-        18%,
-        70% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 0;
-          transform: translateX(120%);
-        }
-      }
-
-      .demo-badges {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 7px;
-      }
-
-      .demo-badges span {
-        padding: 3px 7px;
-        border: 1px solid rgba(33, 245, 155, 0.3);
-        border-radius: 999px;
-        background: rgba(33, 245, 155, 0.08);
-        color: #dfffee;
-        font-size: 10px;
-        font-weight: 800;
-        letter-spacing: 0;
+      .feature-plaque {
+        position: relative;
+        min-width: clamp(110px, 10vw, 166px);
+        padding: 14px 12px;
+        border: 3px solid #140b03;
+        border-radius: 5px;
+        background:
+          linear-gradient(180deg, rgba(255,229,128,0.12), transparent 20%),
+          linear-gradient(180deg, #2a210d, #0b0b08 42%, #050505);
+        box-shadow: 0 0 0 3px rgba(255, 210, 78, 0.28), 0 12px 32px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(255,255,255,0.08);
+        text-align: center;
         text-transform: uppercase;
       }
+      .feature-plaque::before, .feature-plaque::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        width: 12px; height: 12px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #fff4b2, #bc7e19 48%, #100802 52%);
+        transform: translateY(-50%);
+      }
+      .feature-plaque::before { left: -8px; }
+      .feature-plaque::after { right: -8px; }
+      .feature-plaque span { display: block; color: var(--cream); font-size: clamp(14px, 1.55vw, 28px); letter-spacing: 1px; text-shadow: 0 2px 0 #000; }
+      .feature-plaque strong { display: block; margin-top: 4px; color: #f8d063; font-size: clamp(28px, 3vw, 54px); text-shadow: 0 3px 0 #000; }
+      .unlock-panel span { font-size: clamp(13px, 1.35vw, 24px); }
+      .unlock-progress {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        margin-top: 10px; padding: 5px 8px; border-radius: 12px;
+        background: #050505; border: 1px solid rgba(255, 214, 76, 0.5);
+      }
+      .ball-icon { width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff, #d9d9d9 48%, #111 49% 55%, #fff 56%); box-shadow: inset 0 0 0 2px #111; }
+      .unlock-progress strong { margin: 0; font-size: clamp(22px, 2vw, 32px); color: #e7ffb3; }
+      .free-spin-panel { min-width: clamp(112px, 11vw, 178px); padding-block: 18px; }
+      .free-spin-panel b { display: block; margin-top: 8px; color: var(--cream); font-size: clamp(18px, 2vw, 32px); text-shadow: 0 2px 0 #000; }
 
-      [data-tooltip] {
+      .graffiti-note, .dream-banner, .gold-ball-statue {
+        position: absolute; pointer-events: none; z-index: 1;
+        opacity: 0.92;
+      }
+      .graffiti-note {
+        left: 2.5%; bottom: 28%; transform: rotate(-7deg);
+        color: #d8f28d; font-size: clamp(22px, 3vw, 54px); line-height: .82;
+        -webkit-text-stroke: 2px #071007; text-shadow: 4px 5px 0 rgba(0,0,0,.55);
+      }
+      .dream-banner {
+        right: 4%; bottom: 34%; width: clamp(110px, 12vw, 190px); padding: 12px;
+        transform: rotate(-9deg);
+        background: #c59d4b; color: #191004; border: 3px solid #2b1b04;
+        font-size: clamp(16px, 1.8vw, 28px); text-align: center;
+        box-shadow: 0 7px 0 rgba(0,0,0,.35);
+      }
+      .gold-ball-statue {
+        right: 8%; bottom: 18%; width: clamp(60px, 7vw, 118px); height: clamp(60px, 7vw, 118px); border-radius: 50%;
+        background: radial-gradient(circle at 35% 28%, #fff0a8, #ffd028 36%, #ba7012 72%, #5a2b04);
+        box-shadow: 0 0 28px rgba(255,194,50,.45), 0 18px 0 -5px #1d1608, 0 29px 0 -12px #060606;
+      }
+      .gold-ball-statue::before { content:""; position:absolute; inset:18%; border:2px solid rgba(102,57,0,.6); border-radius:45% 55% 40% 60%; transform:rotate(25deg); }
+
+      .slot-bottom-bar {
+        position: fixed;
+        left: clamp(20px, 3vw, 56px);
+        right: clamp(20px, 3vw, 56px);
+        bottom: calc(26px + var(--safe-bottom));
+        z-index: 10;
+        height: 92px;
+        display: grid;
+        grid-template-columns: 82px minmax(132px, 1fr) minmax(116px, .9fr) minmax(218px, 1.25fr) 112px 126px 126px 128px;
+        align-items: center;
+        gap: 0;
+        border: 3px solid #161007;
+        border-radius: 6px;
+        background:
+          linear-gradient(180deg, rgba(255,222,111,0.14), transparent 20%),
+          linear-gradient(90deg, #080807, #151512 38%, #050505);
+        box-shadow: 0 -2px 0 rgba(255, 207, 79, .55), 0 0 0 2px rgba(255, 207, 79, .18), 0 18px 45px rgba(0,0,0,.72);
+      }
+      .slot-bottom-bar::before {
+        content: "";
+        position: absolute; inset: 0; pointer-events: none;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.07), transparent 36%);
+      }
+      .menu-button, .hud-button, .bet-control button {
+        min-height: 56px;
+        border: 2px solid rgba(255, 215, 92, 0.28);
+        background: linear-gradient(180deg, #171713, #050505);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 5px 0 rgba(0,0,0,.45);
+        transition: transform 120ms ease, filter 150ms ease, box-shadow 150ms ease;
+      }
+      .menu-button { width: 62px; height: 62px; margin: auto; border-radius: 8px; font-size: 34px; line-height: 1; }
+      .hud-button { height: 62px; margin: 0 6px; border-radius: 8px; color: var(--cream); font-size: 22px; letter-spacing: 1px; text-shadow: 0 2px 0 #000; }
+      .hud-button.active { border-color: rgba(36, 241, 150, .75); box-shadow: 0 0 24px rgba(36, 241, 150, .25), inset 0 0 18px rgba(36, 241, 150, .12); color: #caffdf; }
+      .bonus-buy { color: #ffd868; }
+      .menu-button:hover, .hud-button:hover, .bet-control button:hover { filter: brightness(1.15); }
+      .menu-button:active, .hud-button:active, .bet-control button:active { transform: translateY(3px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 0 rgba(0,0,0,.5); }
+
+      .hud-stat {
+        position: relative;
+        height: 100%; padding: 14px 20px;
+        display: grid; align-content: center; justify-items: start;
+        border-left: 1px solid rgba(255,215,92,.15);
+        border-right: 1px solid rgba(255,215,92,.12);
+      }
+      .hud-stat span, .bet-control span { color: #d8c89c; font-family: Arial, sans-serif; font-size: 13px; font-weight: 900; letter-spacing: 1px; }
+      .hud-stat strong, .bet-control strong { color: #fff4cf; font-family: "Arial Black", Impact, sans-serif; font-size: clamp(22px, 1.8vw, 34px); font-weight: 1000; text-shadow: 0 2px 0 #000; }
+      .hud-stat small { color: #8b866d; font: 11px Arial, sans-serif; letter-spacing: 1px; }
+      .bet-control { height: 100%; display: grid; grid-template-columns: 62px 1fr 62px; align-items: center; gap: 12px; padding: 0 12px; text-align: center; }
+      .bet-control button { width: 58px; height: 58px; border-radius: 50%; font-size: 42px; color: #ffe07b; }
+      .bet-control div { display: grid; gap: 2px; }
+
+      .spin-orb-button {
+        position: relative;
+        right: -3px;
+        width: 118px; height: 118px;
+        border-radius: 50%;
+        border: 5px solid #251504;
+        background:
+          radial-gradient(circle at 50% 42%, #303026 0 38%, #0a0a08 39% 64%, #c78619 65% 76%, #fff0a8 77% 81%, #734008 82%);
+        box-shadow: 0 0 0 4px rgba(255,205,73,.28), 0 0 34px rgba(255,184,38,.28), 0 14px 0 rgba(0,0,0,.52), inset 0 0 18px rgba(255,255,255,.12);
+      }
+      .spin-orb-button::before {
+        content: "";
+        position: absolute; inset: 11px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #33332b, #0b0b09 68%);
+        box-shadow: inset 0 0 0 2px rgba(255,255,255,.08);
+      }
+      .spin-arrow { position: relative; z-index: 2; display: inline-block; color: #fff; font-size: 70px; font-family: Arial, sans-serif; font-weight: 900; line-height: 1; text-shadow: 0 0 18px rgba(255,255,255,.35); }
+      /* Pulse and glow the ready spin button for more impact */
+      .spin-orb-button.ready {
+        animation: spinReady 1.8s ease-in-out infinite;
+        box-shadow:
+          0 0 0 4px rgba(248, 207, 90, 0.28),
+          0 0 26px rgba(248, 207, 90, 0.35),
+          0 12px 0 rgba(0, 0, 0, 0.5);
+        transition: transform 0.12s ease-out;
+      }
+      .spin-orb-button.ready:hover:not(:disabled) {
+        transform: scale(1.06);
+      }
+      .spin-orb-button.spinning .spin-arrow { animation: rotateArrow .7s linear infinite; }
+      .spin-orb-button.auto-running { box-shadow: 0 0 0 4px rgba(36,241,150,.35), 0 0 42px rgba(36,241,150,.34), 0 14px 0 rgba(0,0,0,.52); }
+      .spin-orb-button.free-spin { box-shadow: 0 0 0 4px rgba(255,255,255,.35), 0 0 54px rgba(255,216,85,.45), 0 14px 0 rgba(0,0,0,.52); }
+      @keyframes spinReady { 50% { filter: brightness(1.15); box-shadow: 0 0 0 4px rgba(255,205,73,.38), 0 0 48px rgba(255,184,38,.4), 0 14px 0 rgba(0,0,0,.52); } }
+      @keyframes rotateArrow { to { transform: rotate(360deg); } }
+
+      .slot-footer-line {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 9;
+        height: calc(24px + var(--safe-bottom)); padding: 3px 24px var(--safe-bottom);
+        display: flex; align-items: center; justify-content: space-between;
+        border-top: 1px solid rgba(255, 215, 91, 0.45);
+        background: #020302; color: #bdbdbd;
+        font: 13px/1 Arial, sans-serif; letter-spacing: 1px;
+      }
+      .slot-footer-line span:last-child { color: #f8cc46; }
+
+      dialog {
+        border: 2px solid rgba(255,214,82,.52); border-radius: 10px;
+        background: linear-gradient(180deg, #17130b, #050505); color: var(--cream);
+        box-shadow: 0 28px 90px rgba(0,0,0,.82), 0 0 45px rgba(255,197,49,.12);
+      }
+      dialog::backdrop { background: rgba(0,0,0,.72); backdrop-filter: blur(4px); }
+      .dialog-card { width: min(860px, 92vw); padding: 20px; }
+      .dialog-head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:14px; }
+      .dialog-head h2 { margin: 0; font-size: 38px; color: var(--gold); text-shadow: 0 3px 0 #000; }
+      .close-btn { width: 42px; height: 42px; border-radius: 50%; background:#111; border:1px solid var(--line); font-size:24px; }
+      .buy-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .buy-card { position: relative; display:grid; grid-template-columns: 64px 1fr auto; gap:12px; align-items:center; min-height:92px; padding:12px; border:1px solid rgba(255,214,82,.25); border-radius:10px; background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.015)); text-align:left; }
+      .buy-card:hover { border-color: rgba(255,214,82,.72); box-shadow: 0 0 26px rgba(255,196,45,.12); }
+      .buy-icon { width:56px;height:56px;border-radius:12px;display:grid;place-items:center;background: radial-gradient(circle,#f6cc4c,#66400a); color:#120a02; font-size:28px; text-shadow:0 1px 0 rgba(255,255,255,.45); }
+      .buy-card h3 { margin:0; font-size:22px; color:#ffe082; }
+      .buy-card p { margin:3px 0 0; color:#d6caa9; font: 13px Arial, sans-serif; }
+      .buy-card b { display:block; font-size:24px; color:#fff; margin-bottom:8px; }
+      .buy-card button { padding:10px 14px; border-radius:8px; background:linear-gradient(180deg,#ffe18a,#c27a14); color:#160b02; font-weight:1000; }
+      .buy-card.locked { opacity:.55; filter: grayscale(.35); }
+      .buy-card.locked button { background:#222; color:#888; }
+
+      /* Simple tooltips for HUD buttons and controls */
+      .hud-button[data-tip],
+      .bet-control button[data-tip],
+      .menu-button[data-tip],
+      .spin-orb-button[data-tip] {
         position: relative;
       }
-
-      [data-tooltip]::after {
-        content: attr(data-tooltip);
+      .hud-button[data-tip]::after,
+      .bet-control button[data-tip]::after,
+      .menu-button[data-tip]::after,
+      .spin-orb-button[data-tip]::after {
+        content: attr(data-tip);
         position: absolute;
+        bottom: 120%;
         left: 50%;
-        bottom: calc(100% + 8px);
-        z-index: 30;
-        width: max-content;
-        max-width: 220px;
-        padding: 6px 8px;
-        border: 1px solid rgba(255, 214, 107, 0.28);
-        border-radius: 6px;
-        background: rgba(4, 8, 8, 0.94);
-        color: #e9fff5;
-        font-size: 11px;
-        line-height: 1.2;
-        text-align: center;
-        opacity: 0;
+        transform: translateX(-50%);
+        z-index: 99;
+        white-space: nowrap;
+        font: 600 12px/1 Arial, sans-serif;
+        padding: 4px 6px;
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #ffe082;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
         pointer-events: none;
-        transform: translate(-50%, 4px);
-        transition: opacity 120ms ease, transform 120ms ease;
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        transition: opacity 0.15s ease-out;
       }
-
-      [data-tooltip]:hover::after,
-      [data-tooltip]:focus-visible::after {
+      .hud-button[data-tip]:hover::after,
+      .bet-control button[data-tip]:hover::after,
+      .menu-button[data-tip]:hover::after,
+      .spin-orb-button[data-tip]:hover::after {
         opacity: 1;
-        transform: translate(-50%, 0);
       }
 
-      .buy-option[data-tooltip]::after {
-        left: auto;
-        right: 10px;
-        bottom: calc(100% + 6px);
-        transform: translateY(4px);
+      .win-toast {
+        position: fixed; left: 50%; top: 18%; z-index: 30;
+        transform: translate(-50%, -12px) scale(.92);
+        min-width: min(540px, 88vw); padding: 14px 24px;
+        border: 2px solid rgba(255,214,82,.65); border-radius: 12px;
+        background: rgba(3,3,3,.84); box-shadow: 0 0 55px rgba(255,196,45,.28);
+        text-align:center; opacity:0; pointer-events:none; transition: 160ms ease;
+      }
+      .win-toast.show { opacity:1; transform: translate(-50%, 0) scale(1); }
+      .win-toast strong { display:block; color:var(--gold); font-size: clamp(32px, 5vw, 72px); line-height:.95; text-shadow:0 4px 0 #000; }
+      .win-toast span { display:block; margin-top:5px; font: 20px Arial, sans-serif; color:#fff; }
+
+      .big-win-overlay {
+        position: fixed; inset: 0; z-index: 40; display:grid; place-items:center; padding:24px;
+        background: radial-gradient(circle at 50% 42%, rgba(255,213,80,.25), transparent 34%), rgba(0,0,0,.62);
+        opacity:0; pointer-events:none; transition: opacity 180ms ease;
+      }
+      .big-win-overlay.show { opacity:1; pointer-events:auto; }
+      .big-win-card { width:min(760px,92vw); padding:clamp(24px,5vw,48px); border:2px solid rgba(255,214,82,.72); border-radius:14px; background:linear-gradient(180deg,#211609,#050505); text-align:center; box-shadow:0 0 70px rgba(255,196,45,.32); }
+      .big-win-card h2 { margin:0; color:var(--gold); font-size:clamp(48px,9vw,112px); line-height:.9; text-shadow:0 5px 0 #000, 0 0 36px rgba(255,214,82,.38); }
+      .big-win-card strong { display:block; margin-top:14px; font-size:clamp(34px,6vw,76px); color:#fff; text-shadow:0 0 25px rgba(36,241,150,.35); }
+      .big-win-card span { display:block; margin-top:8px; font:18px Arial,sans-serif; color:#dcffe9; }
+      .continue-btn { margin-top:22px; padding:12px 24px; border-radius:999px; background:linear-gradient(180deg,#ffe18a,#c27a14); color:#150a02; font-size:20px; }
+
+      .confetti { position: fixed; inset:0; pointer-events:none; overflow:hidden; z-index:41; }
+      .confetti i { position:absolute; top:-20px; width:8px; height:14px; background: var(--gold); border-radius:2px; animation: confettiFall 1000ms linear forwards; }
+      @keyframes confettiFall { to { transform: translateY(110vh) rotate(700deg); opacity:0; } }
+      .screen-shake { animation: shake 280ms ease-in-out; }
+      @keyframes shake { 20%{transform:translateX(-8px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(4px)} }
+
+      .rotate-hint {
+        position: fixed; inset: 0; z-index: 80; display:none; place-items:center; padding:24px;
+        background: rgba(0,0,0,.72); backdrop-filter: blur(8px); text-align:center;
+      }
+      .rotate-hint div { max-width:440px; padding:28px; border:1px solid var(--line); border-radius:16px; background:#080808; }
+      .rotate-hint strong { display:block; color:var(--gold); font-size:36px; }
+      .rotate-hint p { margin:10px 0 0; color:#ddd; font:16px Arial,sans-serif; }
+
+      @media (max-width: 1180px) {
+        .slot-machine { grid-template-columns: 118px minmax(560px, 1fr) 118px; padding-inline: 18px; }
+        .reel-frame { width: min(76vw, 920px); }
+        .slot-bottom-bar { left: 8px; right: 8px; height: 88px; grid-template-columns: 64px 1fr .85fr 190px 94px 98px 98px 108px; }
+        .hud-button { font-size: 18px; margin-inline: 3px; }
+        .spin-orb-button { width: 104px; height: 104px; }
+        .spin-arrow { font-size: 62px; }
       }
 
-      .buy-option[data-tooltip]:hover::after,
-      .buy-option[data-tooltip]:focus-visible::after {
-        transform: translateY(0);
+      @media (orientation: portrait) and (min-width: 700px) {
+        .rotate-hint { display: grid; }
       }
 
-      .meter:nth-child(5) label::before {
-        content: "#";
-      }
-
-      .meter:nth-child(6) label::before {
-        content: "t";
-      }
-
-      .primary-spin.auto-running {
-        background:
-          radial-gradient(circle at 50% 18%, #eaffd9 0 12%, #21f59b 36%, #0a9f6a 72%, #063226 100%);
-      }
-
-      .status-complete {
-        color: #dfffee;
-      }
-
-      .error-shake {
-        animation: errorShake 220ms ease-in-out;
-      }
-
-      @keyframes errorShake {
-        20% {
-          transform: translateX(-4px);
-        }
-        40% {
-          transform: translateX(4px);
-        }
-        60% {
-          transform: translateX(-3px);
-        }
-        80% {
-          transform: translateX(3px);
-        }
-      }
-
-      @media (max-width: 900px) {
-        .side-panel {
-          position: static;
-          z-index: 12;
-          max-height: none;
-          border-color: rgba(255, 214, 107, 0.28);
-        }
-
-        .controls {
-          order: -1;
-        }
-
-        .meters {
-          order: 0;
-        }
-
-        .buy-panel {
-          order: 1;
-        }
-
-        .meters {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        [data-tooltip]::after {
-          display: none;
-        }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        *,
-        *::before,
-        *::after {
-          animation-duration: 1ms !important;
-          animation-iteration-count: 1 !important;
-          scroll-behavior: auto !important;
-          transition-duration: 1ms !important;
-        }
+      @media (max-width: 760px) {
+        .slot-app { min-height: 700px; overflow:auto; }
+        .slot-machine { position:relative; inset:auto; min-height: 560px; grid-template-columns: 1fr; padding: 14px 8px 160px; }
+        .left-feature-stack, .right-feature-stack { display:none; }
+        .reel-frame { width: min(96vw, 620px); min-width:0; padding-top:64px; }
+        .slot-logo { min-width: 270px; width: 84%; }
+        .slot-bottom-bar { height: 132px; grid-template-columns: 54px 1fr 1fr 166px 92px; grid-template-rows: 1fr 1fr; bottom: calc(24px + var(--safe-bottom)); }
+        .hud-stat { padding: 8px 10px; }
+        .hud-button { min-height: 42px; height: 44px; font-size: 14px; }
+        #autoBtn, #turboBtn { grid-row:2; }
+        .bet-control { grid-column: 2 / 4; grid-row: 2; grid-template-columns: 44px 1fr 44px; gap:6px; padding:0 4px; }
+        .bet-control button { width:42px;height:42px;font-size:28px; }
+        .spin-orb-button { grid-column:5; grid-row:1 / 3; width:86px;height:86px; }
+        .spin-arrow { font-size:50px; }
+        .slot-footer-line { font-size:10px; padding-inline:8px; }
+        .buy-grid { grid-template-columns: 1fr; }
+        dialog { width: 100vw; max-width: 100vw; margin: auto 0 0; border-radius: 18px 18px 0 0; }
+        .dialog-card { width: 100%; }
       }
     </style>
   </head>
   <body>
-    <div class="app">
-      <header class="topbar">
-        <div class="brand">
-          <div class="crest" aria-hidden="true">GG</div>
-          <div>
-            <h1>Golden Goal Rush</h1>
-            <div class="subline">6x5 cluster pays - demo credits only - no real money</div>
-            <div class="demo-badges" aria-label="Responsible gaming information">
-              <span>Demo Credits Only</span>
-              <span>No Real Money</span>
-            </div>
-          </div>
-        </div>
-        <div class="header-actions">
-          <button class="icon-btn" id="soundBtn" title="Toggle sound" data-tooltip="Sound on/off" type="button">S</button>
-          <button class="icon-btn" id="paytableBtn" title="Paytable" data-tooltip="Open paytable" type="button">P</button>
-          <button class="icon-btn" id="rulesBtn" title="Rules" data-tooltip="Open rules" type="button">R</button>
-          <button class="icon-btn" id="fullscreenBtn" title="Fullscreen" data-tooltip="Fullscreen" type="button">F</button>
-        </div>
-      </header>
+    <div class="slot-app" id="slotApp">
+      <div class="stadium-bg"></div>
+      <div class="bg-city"></div>
+      <div class="pitch-lines"></div>
+      <div class="graffiti-note">FOOTBALL<br />IS LIFE</div>
+      <div class="dream-banner">ONE TEAM<br />ONE DREAM</div>
+      <div class="gold-ball-statue"></div>
 
-      <main class="layout">
-        <section class="stage" aria-label="Game stage">
-          <div id="game-host"></div>
-          <div class="light-sweep" id="lightSweep"></div>
-          <div class="cascade-badge" id="cascadeBadge">Cascade x1</div>
-          <div class="win-toast" id="winToast">
-            <strong id="toastTitle">Nice Goal</strong>
-            <span id="toastAmount">0.00</span>
+      <main class="slot-machine">
+        <section class="left-feature-stack">
+          <div class="feature-plaque ways-panel"><span>Ways</span><strong>46656</strong></div>
+          <div class="feature-plaque unlock-panel">
+            <span>Play To</span><span>Unlock</span><span>Extra</span><span>Free Spins</span>
+            <div class="unlock-progress"><span class="ball-icon"></span><strong id="unlockProgress">0/6</strong></div>
           </div>
         </section>
 
-        <aside class="side-panel" aria-label="Game controls">
-          <div class="meters">
-            <div class="meter">
-              <label>Balance</label>
-              <strong id="balanceValue">5000.00</strong>
-            </div>
-            <div class="meter">
-              <label>Last Win</label>
-              <strong id="winValue">0.00</strong>
-            </div>
-            <div class="meter">
-              <label>Bet</label>
-              <strong id="betValue">1.00</strong>
-            </div>
-            <div class="meter">
-              <label>Mode</label>
-              <strong id="modeValue">Base</strong>
-            </div>
-            <div class="meter">
-              <label>Spins</label>
-              <strong id="spinCountValue">0</strong>
-            </div>
-            <div class="meter">
-              <label>Session</label>
-              <strong id="sessionValue">00:00</strong>
-            </div>
-            <div class="meter full">
-              <label>Status</label>
-              <strong id="statusValue">Ready</strong>
-            </div>
-          </div>
+        <section class="reel-frame" id="reelFrame">
+          <div class="slot-logo"><span>GOLDEN</span><span>G<span class="ball-o"></span>AL RUSH</span></div>
+          <div class="reel-inner"><div id="game-host"></div></div>
+        </section>
 
-          <div class="controls">
-            <button class="primary-spin" id="spinBtn" data-tooltip="Start one demo spin" type="button">SPIN</button>
-
-            <div class="field">
-              <label for="betInput">Demo Bet</label>
-              <div class="stepper">
-                <button id="betDown" title="Lower demo bet" data-tooltip="Lower demo bet" type="button">-</button>
-                <input id="betInput" inputmode="decimal" value="1.00" aria-label="Bet amount" />
-                <button id="betUp" title="Raise demo bet" data-tooltip="Raise demo bet" type="button">+</button>
-              </div>
-            </div>
-
-            <div class="quick-row">
-              <button class="toggle" id="turboBtn" data-tooltip="Shorter animations, same math result" type="button">Turbo</button>
-              <button class="toggle" id="autoBtn" data-tooltip="Start or stop autoplay" type="button">Auto</button>
-            </div>
-
-            <div class="field">
-              <label for="rtpSelect">RTP Profile</label>
-              <select id="rtpSelect" title="Demo RTP profile for math tuning">
-                <option value="96">96%</option>
-                <option value="94">94%</option>
-                <option value="92">92%</option>
-                <option value="88">88%</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="volumeInput">Volume</label>
-              <input id="volumeInput" type="range" min="0" max="100" value="34" aria-label="Volume" />
-            </div>
-          </div>
-
-          <div class="buy-panel">
-            <h2>Demo Bonus Buy</h2>
-            <button class="buy-option" data-buy="featureSpins" data-tooltip="Demo feature spin purchase, costs demo credits" type="button">
-              <span>Feature Spins<br />5x higher bonus chance</span>
-              <b>3x</b>
-            </button>
-            <button class="buy-option" data-buy="lightsSpin" data-tooltip="Guaranteed activator spin using demo credits" type="button">
-              <span>Stadium Lights Spin<br />Guaranteed activator</span>
-              <b>50x</b>
-            </button>
-            <button class="buy-option" data-buy="extraTime" data-tooltip="Starts the Extra Time free spins demo" type="button">
-              <span>Extra Time Bonus<br />8 free spins</span>
-              <b>100x</b>
-            </button>
-            <button class="buy-option" data-buy="penaltyShootout" data-tooltip="Starts the Penalty Shootout free spins demo" type="button">
-              <span>Penalty Shootout<br />12 free spins</span>
-              <b>250x</b>
-            </button>
-            <button class="buy-option locked" id="worldFinalLocked" data-tooltip="World Final triggers only from scatters" type="button">
-              <span>World Final Bonus<br />Not purchasable</span>
-              <b>Locked</b>
-            </button>
-          </div>
-        </aside>
+        <section class="right-feature-stack">
+          <div class="feature-plaque free-spin-panel"><span>Free Spins</span><strong id="freeSpinsValue">0</strong><span>Total Win</span><b id="bonusTotalValue">€0.00</b></div>
+        </section>
       </main>
-    </div>
 
-    <div class="confetti" id="confetti"></div>
-
-    <div class="big-win-overlay" id="bigWinOverlay" aria-hidden="true">
-      <div class="big-win-card">
-        <h2 class="big-win-title" id="bigWinTitle">Big Goal</h2>
-        <div class="big-win-amount" id="bigWinAmount">0.00</div>
-        <div class="big-win-sub" id="bigWinSub">0.00x bet</div>
-        <div class="big-win-bar"><span id="bigWinBar"></span></div>
-      </div>
-    </div>
-
-    <div class="bonus-transition" id="bonusTransition" aria-hidden="true">
-      <div class="bonus-card">
-        <h2 class="bonus-title" id="bonusTitle">Extra Time Bonus</h2>
-        <div class="bonus-sub" id="bonusSub">Free spins ready</div>
-      </div>
-    </div>
-
-    <dialog id="infoDialog">
-      <div class="dialog-body">
-        <h2 id="dialogTitle">Paytable</h2>
-        <div id="dialogContent"></div>
-        <div class="modal-row">
-          <button class="secondary" id="closeDialog" type="button">Close</button>
-          <button class="secondary" id="resetSeed" type="button">New Seed</button>
+      <footer class="slot-bottom-bar">
+        <button id="menuBtn" class="menu-button" type="button" aria-label="Menu" data-tip="Menu">☰</button>
+        <div class="hud-stat"><span>BALANCE</span><strong id="balanceValue">€5,000.00</strong><small>DEMO</small></div>
+        <div class="hud-stat"><span>WIN</span><strong id="winValue">€0.00</strong></div>
+        <div class="bet-control">
+          <button id="betDown" type="button" data-tip="Decrease Bet">−</button>
+          <div><span>BET</span><strong id="betValue">€10.00</strong></div>
+          <button id="betUp" type="button" data-tip="Increase Bet">+</button>
         </div>
-      </div>
-    </dialog>
+        <button id="bonusBuyBtn" class="hud-button bonus-buy" type="button" data-tip="Buy Bonus">BONUS<br />BUY</button>
+        <button id="autoBtn" class="hud-button" type="button" data-tip="Auto Spins">↻ AUTO</button>
+        <button id="turboBtn" class="hud-button" type="button" data-tip="Turbo Mode">⚡ TURBO</button>
+        <button id="spinBtn" class="spin-orb-button ready" type="button" aria-label="Spin" data-tip="Spin"><span class="spin-arrow">↻</span></button>
+      </footer>
 
-    <dialog id="confirmDialog">
-      <div class="dialog-body">
-        <h2 id="confirmTitle">Confirm Demo Feature</h2>
-        <div id="confirmContent"></div>
-        <div class="modal-row">
-          <button class="secondary" id="cancelBuy" type="button">Cancel</button>
-          <button class="secondary" id="confirmBuy" type="button">Use Demo Credits</button>
+      <div class="slot-footer-line"><span>GOLDEN GOAL RUSH™</span><span>DEMO PLAY</span><span>VOLATILITY ⚡⚡⚡⚡⚡</span></div>
+
+      <dialog id="bonusBuyDialog">
+        <div class="dialog-card">
+          <div class="dialog-head"><h2>Bonus Buy</h2><button class="close-btn" id="closeBonusBuy" type="button">×</button></div>
+          <div class="buy-grid" id="buyGrid"></div>
         </div>
-      </div>
-    </dialog>
+      </dialog>
+
+      <dialog id="infoDialog">
+        <div class="dialog-card">
+          <div class="dialog-head"><h2>Golden Goal Rush</h2><button class="close-btn" id="closeInfo" type="button">×</button></div>
+          <p style="font:16px Arial,sans-serif;color:#e0d6b6;line-height:1.5;margin:0">Demo slot prototype. Cluster pays from 5+ matching regular symbols. Cascades create Golden Zones. Stadium Lights activate Golden Ball features. Whistles trigger free spins. Demo credits only.</p>
+        </div>
+      </dialog>
+
+      <div class="win-toast" id="winToast"><strong id="toastTitle">Nice Hit</strong><span id="toastAmount">€0.00</span></div>
+      <div class="big-win-overlay" id="bigWinOverlay"><div class="big-win-card"><h2 id="bigWinTitle">Big Hit</h2><strong id="bigWinAmount">€0.00</strong><span id="bigWinSub">0.00x bet</span><button class="continue-btn" id="continueBigWin" type="button">Continue</button></div></div>
+      <div class="confetti" id="confetti"></div>
+      <div class="rotate-hint"><div><strong>Rotate Device</strong><p>Rotate your device for the best slot experience.</p></div></div>
+    </div>
 
     <script type="module">
-      import {
-        COLS,
-        ROWS,
-        SlotMath,
-        SYMBOL_META,
-        defaultSeed,
-        roundCurrency,
-      } from "./math.ts";
-      import { AudioManager } from "./src/audio/AudioManager.ts";
-      import { applyDesignTokens } from "./src/design/tokens.ts";
-      import { REEL_TIMING, durationFor, reelStopDelay } from "./src/animation/ReelAnimator.ts";
-      import { CASCADE_TIMING, cascadeIntensity, cascadeLabel } from "./src/animation/CascadeAnimator.ts";
-      import { GOLDEN_PITCH_TIMING, collectorBeamAlpha } from "./src/animation/GoldenPitchAnimator.ts";
-      import { getWinTier } from "./src/animation/BigWinAnimator.ts";
-      import { countUp } from "./src/animation/CountUpAnimator.ts";
-      import { clearElementLater, confettiCount } from "./src/animation/ParticleSystem.ts";
-      import { formatSessionTime, statusToneForState } from "./src/ui/Hud.ts";
+      import { COLS, ROWS, SlotMath, SYMBOL_META, defaultSeed, roundCurrency } from "./math.ts";
 
       const PhaserRef = window.Phaser;
-      const MIN_BET = 0.1;
-      const MAX_BET = 100;
+      const BETS = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100];
       const START_BALANCE = 5000;
-      const REALITY_CHECK_SPINS = 25;
-      applyDesignTokens(document.documentElement);
-      const REGULAR_SYMBOLS = ["10", "J", "Q", "K", "A", "FOOTBALL", "BOOT", "GLOVE", "TICKET", "ARMBAND", "TROPHY"];
-
-      const els = {
-        balance: document.querySelector("#balanceValue"),
-        win: document.querySelector("#winValue"),
-        bet: document.querySelector("#betValue"),
-        mode: document.querySelector("#modeValue"),
-        spinCount: document.querySelector("#spinCountValue"),
-        session: document.querySelector("#sessionValue"),
-        status: document.querySelector("#statusValue"),
-        spin: document.querySelector("#spinBtn"),
-        betInput: document.querySelector("#betInput"),
-        betDown: document.querySelector("#betDown"),
-        betUp: document.querySelector("#betUp"),
-        turbo: document.querySelector("#turboBtn"),
-        auto: document.querySelector("#autoBtn"),
-        rtp: document.querySelector("#rtpSelect"),
-        volume: document.querySelector("#volumeInput"),
-        sound: document.querySelector("#soundBtn"),
-        paytable: document.querySelector("#paytableBtn"),
-        rules: document.querySelector("#rulesBtn"),
-        fullscreen: document.querySelector("#fullscreenBtn"),
-        lightSweep: document.querySelector("#lightSweep"),
-        cascadeBadge: document.querySelector("#cascadeBadge"),
-        worldFinalLocked: document.querySelector("#worldFinalLocked"),
-        bigWinOverlay: document.querySelector("#bigWinOverlay"),
-        bigWinTitle: document.querySelector("#bigWinTitle"),
-        bigWinAmount: document.querySelector("#bigWinAmount"),
-        bigWinSub: document.querySelector("#bigWinSub"),
-        bigWinBar: document.querySelector("#bigWinBar"),
-        bonusTransition: document.querySelector("#bonusTransition"),
-        bonusTitle: document.querySelector("#bonusTitle"),
-        bonusSub: document.querySelector("#bonusSub"),
-        dialog: document.querySelector("#infoDialog"),
-        dialogTitle: document.querySelector("#dialogTitle"),
-        dialogContent: document.querySelector("#dialogContent"),
-        closeDialog: document.querySelector("#closeDialog"),
-        resetSeed: document.querySelector("#resetSeed"),
-        confirmDialog: document.querySelector("#confirmDialog"),
-        confirmTitle: document.querySelector("#confirmTitle"),
-        confirmContent: document.querySelector("#confirmContent"),
-        cancelBuy: document.querySelector("#cancelBuy"),
-        confirmBuy: document.querySelector("#confirmBuy"),
-        toast: document.querySelector("#winToast"),
-        toastTitle: document.querySelector("#toastTitle"),
-        toastAmount: document.querySelector("#toastAmount"),
-        confetti: document.querySelector("#confetti"),
-      };
-
       const state = {
         balance: START_BALANCE,
-        bet: 1,
+        betIndex: 6,
         lastWin: 0,
-        spinning: false,
+        spinCount: 0,
+        isSpinning: false,
         turbo: false,
         auto: false,
-        sound: true,
-        seed: defaultSeed(),
-        bonusMode: null,
         freeSpins: 0,
-        persistentZones: [],
-        lastVisibleZones: [],
-        spinCount: 0,
-        sessionStartedAt: Date.now(),
-        lastRealityCheckAt: 0,
+        bonusTotal: 0,
+        mode: "base",
+        persistentGoldenZones: [],
+        math: new SlotMath(defaultSeed(), { rtp: 96, volatility: "medium-high" }),
       };
 
-      let math = new SlotMath(state.seed, { rtp: Number(els.rtp.value), volatility: "medium-high" });
-      let scene;
-      let autoTimer;
-      const audio = new AudioManager();
+      const $ = (id) => document.getElementById(id);
+      const el = {
+        app: $("slotApp"), host: $("game-host"), frame: $("reelFrame"), spin: $("spinBtn"), auto: $("autoBtn"), turbo: $("turboBtn"),
+        balance: $("balanceValue"), win: $("winValue"), bet: $("betValue"), freeSpins: $("freeSpinsValue"), bonusTotal: $("bonusTotalValue"), unlock: $("unlockProgress"),
+        bonusDialog: $("bonusBuyDialog"), infoDialog: $("infoDialog"), buyGrid: $("buyGrid"), toast: $("winToast"), toastTitle: $("toastTitle"), toastAmount: $("toastAmount"),
+        bigWin: $("bigWinOverlay"), bigWinTitle: $("bigWinTitle"), bigWinAmount: $("bigWinAmount"), bigWinSub: $("bigWinSub"), confetti: $("confetti"),
+      };
 
-      class GoldenGoalScene extends PhaserRef.Scene {
+      function money(value) { return `€${roundCurrency(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; }
+      function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+      function currentBet() { return BETS[state.betIndex]; }
+
+      class SlotScene extends PhaserRef.Scene {
         constructor() {
-          super("GoldenGoalScene");
-          this.currentGrid = makeOpeningGrid();
-          this.currentZones = new Set();
-          this.flashCells = new Set();
-          this.revealCells = new Set();
-          this.gridBounds = { x: 0, y: 0, cell: 72, gap: 8 };
-          this.renderOptions = {};
+          super("SlotScene");
+          this.symbols = [];
+          this.currentGrid = null;
+          this.grid = { x: 0, y: 0, w: 100, h: 100, cellW: 100, cellH: 100 };
         }
 
         create() {
-          scene = this;
-          this.bg = this.add.graphics();
-          this.gridLayer = this.add.container(0, 0);
-          this.fxLayer = this.add.container(0, 0);
-          this.scale.on("resize", () => this.render());
-          this.render();
+          this.resizeScene();
+          this.renderGrid(this.randomPreviewGrid(), false);
+          this.scale.on("resize", () => this.resizeScene());
         }
 
-        setGrid(grid, zones = [], flash = [], reveals = [], options = {}) {
-          this.currentGrid = grid;
-          this.currentZones = new Set(zones);
-          this.flashCells = new Set(flash.map(posKey));
-          this.revealCells = new Set(reveals.map((reveal) => posKey(reveal.position)));
-          this.renderOptions = options;
-          this.render();
+        randomPreviewGrid() {
+          const ids = Object.keys(SYMBOL_META).filter((id) => !["GOLDEN_BALL", "CAPTAIN_STAR", "COLLECTOR", "VAR_SCREEN"].includes(id));
+          return Array.from({ length: ROWS }, () => Array.from({ length: COLS }, () => ({ id: ids[Math.floor(Math.random() * ids.length)] })));
         }
 
-        async pulseCells(cells) {
-          this.flashCells = new Set(cells.map(posKey));
-          this.render();
-          this.burst(cells, 0xffd66b, state.turbo ? 12 : 18);
-          this.cameras.main.shake(state.turbo ? 70 : 120, 0.0028);
-          await wait(state.turbo ? 115 : 260);
-          this.flashCells.clear();
-          this.render();
-        }
-
-        async animateSpinToGrid(grid, zones = []) {
-          this.setGrid(grid, zones, [], [], { drop: true, blur: true });
-          await wait(durationFor(REEL_TIMING.reelDrop, state.turbo));
-          this.setGrid(grid, zones);
-        }
-
-        async animateCascadeDrop(grid, zones = []) {
-          this.setGrid(grid, zones, [], [], { drop: true, cascade: true });
-          await wait(durationFor(CASCADE_TIMING.drop, state.turbo));
-          this.setGrid(grid, zones);
-        }
-
-        render() {
+        resizeScene() {
           const width = this.scale.width;
           const height = this.scale.height;
-          this.bg.clear();
-          this.gridLayer.removeAll(true);
-          this.fxLayer.removeAll(true);
-          drawStadium(this.bg, width, height);
+          this.cameras.main.setBackgroundColor("rgba(0,0,0,0)");
+          const pad = Math.max(8, Math.min(width, height) * 0.018);
+          this.grid.w = width - pad * 2;
+          this.grid.h = height - pad * 2;
+          this.grid.x = pad;
+          this.grid.y = pad;
+          this.grid.cellW = this.grid.w / COLS;
+          this.grid.cellH = this.grid.h / ROWS;
+          this.drawReelBackground();
+          if (this.currentGrid) this.renderGrid(this.currentGrid, false);
+        }
 
-          const gap = Math.max(5, Math.min(10, width * 0.008));
-          const safeWidth = width - 28;
-          const safeHeight = height - 70;
-          const cell = Math.floor(Math.min((safeWidth - gap * (COLS - 1)) / COLS, (safeHeight - gap * (ROWS - 1)) / ROWS));
-          const gridWidth = cell * COLS + gap * (COLS - 1);
-          const gridHeight = cell * ROWS + gap * (ROWS - 1);
-          const x = (width - gridWidth) / 2;
-          const y = Math.max(50, (height - gridHeight) / 2 + 12);
-          this.gridBounds = { x, y, cell, gap };
+        drawReelBackground() {
+          if (this.bg) this.bg.destroy();
+          this.bg = this.add.graphics();
+          const g = this.bg;
+          g.fillStyle(0x070806, 1);
+          g.fillRect(this.grid.x, this.grid.y, this.grid.w, this.grid.h);
+          for (let row = 0; row < ROWS; row++) {
+            for (let col = 0; col < COLS; col++) {
+              const x = this.grid.x + col * this.grid.cellW;
+              const y = this.grid.y + row * this.grid.cellH;
+              g.fillStyle((row + col) % 2 ? 0x11120f : 0x0b0c0a, 1);
+              g.fillRect(x + 1, y + 1, this.grid.cellW - 2, this.grid.cellH - 2);
+              g.lineStyle(1, 0x5c3c0d, 0.55);
+              g.strokeRect(x, y, this.grid.cellW, this.grid.cellH);
+            }
+          }
+          g.lineStyle(3, 0xf3c44d, 0.5);
+          g.strokeRect(this.grid.x, this.grid.y, this.grid.w, this.grid.h);
+          this.bg.setDepth(-5);
+        }
 
-          const frame = this.add.graphics();
-          frame.fillStyle(0x020706, 0.72);
-          frame.lineStyle(2, 0xffd66b, 0.2);
-          frame.fillRoundedRect(x - 12, y - 12, gridWidth + 24, gridHeight + 24, 8);
-          frame.strokeRoundedRect(x - 12, y - 12, gridWidth + 24, gridHeight + 24, 8);
-          this.gridLayer.add(frame);
+        clearSymbols() {
+          for (const container of this.symbols) container.destroy();
+          this.symbols = [];
+        }
 
-          for (let row = 0; row < ROWS; row += 1) {
-            for (let col = 0; col < COLS; col += 1) {
-              const cellData = this.currentGrid[row][col];
-              const cx = x + col * (cell + gap);
-              const cy = y + row * (cell + gap);
-              const cellNode = drawCell(this, cellData, cx, cy, cell, {
-                golden: this.currentZones.has(`${col},${row}`),
-                flash: this.flashCells.has(`${col},${row}`),
-                reveal: this.revealCells.has(`${col},${row}`),
-                blur: this.renderOptions.blur,
-              });
-
-              if (this.renderOptions.drop) {
-                const finalY = cellNode.y;
-                const finalX = cellNode.x;
-                const speed = state.turbo ? 0.48 : 1;
-                const delay = reelStopDelay(col, state.turbo) + row * 18 * speed;
-                cellNode.y = finalY - (this.scale.height * 0.34 + (ROWS - row) * cell * 0.28);
-                cellNode.x = finalX + PhaserRef.Math.Between(-7, 7);
-                cellNode.angle = PhaserRef.Math.Between(-3, 3);
-                cellNode.alpha = 0.16;
-                cellNode.scaleY = 0.72;
-                this.tweens.add({
-                  targets: cellNode,
-                  x: finalX,
-                  y: finalY,
-                  angle: 0,
-                  alpha: 1,
-                  scaleY: 1,
-                  duration: (this.renderOptions.cascade ? 250 : 430) * speed,
-                  delay,
-                  ease: "Back.easeOut",
-                  onStart: () => {
-                    if (row === 0) playSound("land");
-                  },
-                  onComplete: () => {
-                    if (row === ROWS - 1) playSound("reel");
-                  },
-                });
+        renderGrid(grid, animate = true) {
+          this.currentGrid = grid;
+          this.clearSymbols();
+          for (let row = 0; row < ROWS; row++) {
+            for (let col = 0; col < COLS; col++) {
+              const container = this.drawSymbol(grid[row][col], col, row);
+              if (animate) {
+                container.y -= this.grid.h * 0.75 + row * 30;
+                container.alpha = 0;
+                this.tweens.add({ targets: container, y: this.cellCenter(col, row).y, alpha: 1, duration: state.turbo ? 160 : 450, delay: col * (state.turbo ? 18 : 55) + row * 18, ease: "Back.Out" });
               }
-
-              this.gridLayer.add(cellNode);
-            }
-          }
-
-          const title = this.add.text(width / 2, 20, "STADIUM NIGHT FINAL", {
-            fontFamily: "Inter, Arial",
-            fontSize: `${Math.max(11, Math.min(16, width / 56))}px`,
-            color: "#9cffd0",
-            fontStyle: "700",
-          });
-          title.setOrigin(0.5, 0);
-          this.gridLayer.add(title);
-        }
-
-        burst(cells, color = 0xffd66b, count = 9) {
-          const { x, y, cell, gap } = this.gridBounds;
-          for (const position of cells) {
-            const px = x + position.col * (cell + gap) + cell / 2;
-            const py = y + position.row * (cell + gap) + cell / 2;
-            for (let i = 0; i < count; i += 1) {
-              const dot = this.add.circle(px, py, Math.max(2, cell * 0.035), color, 0.92);
-              this.fxLayer.add(dot);
-              this.tweens.add({
-                targets: dot,
-                x: px + PhaserRef.Math.Between(-cell, cell),
-                y: py + PhaserRef.Math.Between(-cell, cell),
-                alpha: 0,
-                scale: 0.25,
-                duration: state.turbo ? 180 : 360,
-                ease: "Quad.easeOut",
-                onComplete: () => dot.destroy(),
-              });
+              this.symbols.push(container);
             }
           }
         }
 
-        spotlight(cells) {
-          const { x, y, cell, gap } = this.gridBounds;
-          for (const position of cells) {
-            const px = x + position.col * (cell + gap) + cell / 2;
-            const py = y + position.row * (cell + gap) + cell / 2;
-            const ring = this.add.circle(px, py, cell * 0.18, 0xffd66b, 0);
-            ring.setStrokeStyle(3, 0xffd66b, 0.9);
-            this.fxLayer.add(ring);
-            this.tweens.add({
-              targets: ring,
-              scale: 2.2,
-              alpha: 0,
-              duration: state.turbo ? 320 : 620,
-              ease: "Quad.easeOut",
-              onComplete: () => ring.destroy(),
-            });
+        async playResult(result) {
+          this.renderGrid(result.initialGrid, true);
+          await sleep(state.turbo ? 230 : 760);
+          for (const step of result.cascades) {
+            await this.highlightPositions(step.removed, 0xffd34d);
+            await sleep(state.turbo ? 90 : 230);
+            this.renderGrid(step.gridAfter, true);
+            await sleep(state.turbo ? 230 : 520);
           }
-        }
-      }
-
-      const game = new PhaserRef.Game({
-        type: PhaserRef.AUTO,
-        parent: "game-host",
-        backgroundColor: "#030706",
-        scale: {
-          mode: PhaserRef.Scale.RESIZE,
-          width: "100%",
-          height: "100%",
-        },
-        render: {
-          antialias: true,
-          powerPreference: "high-performance",
-        },
-        scene: [GoldenGoalScene],
-      });
-
-      els.spin.addEventListener("click", () => {
-        audio.unlock();
-        playSound("button");
-        spin();
-      });
-      els.betDown.addEventListener("click", () => {
-        playSound("button");
-        setBet(state.bet / 2);
-      });
-      els.betUp.addEventListener("click", () => {
-        playSound("button");
-        setBet(state.bet * 2);
-      });
-      els.betInput.addEventListener("change", () => setBet(Number(els.betInput.value)));
-      els.turbo.addEventListener("click", () => {
-        playSound("button");
-        state.turbo = !state.turbo;
-        els.turbo.classList.toggle("active", state.turbo);
-      });
-      els.auto.addEventListener("click", toggleAuto);
-      els.sound.addEventListener("click", () => {
-        audio.unlock();
-        state.sound = !state.sound;
-        audio.setEnabled(state.sound);
-        els.sound.classList.toggle("active", state.sound);
-        if (state.sound) playSound("button");
-      });
-      els.volume.addEventListener("input", () => {
-        audio.setVolume(Number(els.volume.value) / 100);
-      });
-      els.rtp.addEventListener("change", () => {
-        playSound("button");
-        math.setConfig({ rtp: Number(els.rtp.value) });
-        setStatus(`RTP profile set to ${els.rtp.value}%`, "ready");
-      });
-      els.fullscreen.addEventListener("click", () => {
-        playSound("button");
-        if (document.fullscreenElement) document.exitFullscreen();
-        else document.documentElement.requestFullscreen();
-      });
-      els.paytable.addEventListener("click", () => openInfo("paytable"));
-      els.rules.addEventListener("click", () => openInfo("rules"));
-      els.closeDialog.addEventListener("click", () => els.dialog.close());
-      els.cancelBuy.addEventListener("click", () => {
-        els.confirmDialog.returnValue = "cancel";
-        els.confirmDialog.close("cancel");
-      });
-      els.confirmBuy.addEventListener("click", () => {
-        els.confirmDialog.returnValue = "confirm";
-        els.confirmDialog.close("confirm");
-      });
-      els.resetSeed.addEventListener("click", () => {
-        state.seed = `golden-goal-${Date.now()}`;
-        math = new SlotMath(state.seed, { rtp: Number(els.rtp.value), volatility: "medium-high" });
-        setStatus("New deterministic seed loaded");
-      });
-      document.querySelectorAll("[data-buy]").forEach((button) => {
-        button.addEventListener("click", () => {
-          audio.unlock();
-          playSound("button");
-          buyBonus(button.dataset.buy);
-        });
-      });
-      els.worldFinalLocked.addEventListener("click", async () => {
-        audio.unlock();
-        playSound("error");
-        await showBonusTransition("World Final Locked", "Triggered only by 5 Whistles in the base game", true);
-        setStatus("World Final cannot be bought", "error");
-      });
-
-      audio.setVolume(Number(els.volume.value) / 100);
-      els.sound.classList.toggle("active", state.sound);
-      setStatus("Ready", "ready");
-      window.setInterval(updateSessionClock, 1000);
-      updateSessionClock();
-      updateUi();
-
-      async function spin(extraRequest = {}) {
-        if (state.spinning) {
-          playSound("error");
-          return;
-        }
-        if (!scene) return;
-
-        const inBonus = state.bonusMode !== null;
-        const spinCost = inBonus ? 0 : state.bet;
-        if (state.balance < spinCost) {
-          setStatus("Demo balance is too low", "error");
-          playSound("error");
-          stopAuto();
-          return;
-        }
-
-        state.spinning = true;
-        els.spin.classList.add("is-spinning");
-        state.spinCount += 1;
-        state.balance = roundCurrency(state.balance - spinCost);
-        if (inBonus) state.freeSpins -= 1;
-        updateUi();
-        setGameState(inBonus ? "bonus" : "spinning", inBonus ? `${formatMode(state.bonusMode)} free spin` : "Spinning");
-        playSound("spin");
-
-        const result = math.spin({
-          bet: state.bet,
-          mode: state.bonusMode ?? "base",
-          persistentGoldenZones: inBonus ? state.persistentZones : [],
-          forceActivator: state.bonusMode === "worldFinal",
-          ...extraRequest,
-        });
-
-        await playResult(result);
-
-        state.lastWin = result.totalWin;
-        state.balance = roundCurrency(state.balance + result.totalWin);
-        state.lastVisibleZones = result.goldenZones;
-
-        if (inBonus) {
-          state.persistentZones = result.goldenZones;
-          if (result.triggeredBonus?.upgraded) {
-            state.bonusMode = "worldFinal";
-            state.freeSpins = Math.max(state.freeSpins, 12);
-            await showBonusTransition("World Final Bonus", "Upgrade unlocked by Whistles");
-            setStatus("World Final upgrade", "bonus");
-          } else if (result.retriggerSpins > 0) {
-            state.freeSpins += result.retriggerSpins;
-            setStatus(`Retrigger +${result.retriggerSpins} free spins`, "bonus");
-          }
-          if (state.freeSpins <= 0) {
-            state.bonusMode = null;
-            state.persistentZones = [];
-            setStatus("Bonus complete", "ready");
-          }
-        } else {
-          state.persistentZones = [];
-          if (result.triggeredBonus) {
-            state.bonusMode = result.triggeredBonus.mode;
-            state.freeSpins = result.triggeredBonus.spins;
-            state.persistentZones = result.goldenZones;
-            await showBonusTransition(formatMode(result.triggeredBonus.mode), `${result.triggeredBonus.spins} free spins`);
-            setStatus(`${formatMode(result.triggeredBonus.mode)} triggered`, "bonus");
-          } else if (result.totalWin <= 0) {
-            setStatus("Complete", "complete");
+          if (result.goldenReveals.length) {
+            this.renderGrid(result.finalGrid, false);
+            await this.highlightPositions(result.goldenReveals.map((r) => r.position), 0x28f69b, true);
+          } else {
+            this.renderGrid(result.finalGrid, false);
           }
         }
 
-        state.spinning = false;
-        els.spin.classList.remove("is-spinning");
-        if (!state.bonusMode && result.totalWin > 0) setStatus("Complete", "complete");
-        updateUi();
-
-        await maybeShowRealityCheck();
-
-        if (state.auto && state.balance >= state.bet) {
-          autoTimer = window.setTimeout(() => spin(), state.turbo ? 220 : 720);
-        } else if (!state.bonusMode && result.totalWin <= 0) {
-          window.setTimeout(() => {
-            if (!state.spinning) setStatus("Ready", "ready");
-          }, state.turbo ? 260 : 650);
-        }
-      }
-
-      async function playResult(result) {
-        let liveZones = new Set(result.mode === "base" ? [] : state.persistentZones);
-        await scene.animateSpinToGrid(result.initialGrid, Array.from(liveZones));
-        setGameState("evaluating", "Evaluating");
-        await wait(state.turbo ? 60 : 130);
-
-        for (const step of result.cascades) {
-          scene.setGrid(step.gridBefore, Array.from(liveZones), step.removed);
-          showCascadeBadge(cascadeLabel(step.index, step.cascadeMultiplier));
-          scene.spotlight(step.removed);
-          setGameState("cascading", `Cascading - ${cascadeLabel(step.index, step.cascadeMultiplier)}`);
-          playSound("cascade");
-          await scene.pulseCells(step.removed);
-          for (const added of step.goldenAdded) liveZones.add(posKey(added));
-          if (step.goldenAdded.length > 0) playSound("golden");
-          const intensity = cascadeIntensity(step.index);
-          playSound(intensity === "high" ? "crowd" : intensity === "medium" ? "hit" : "reel");
-          await scene.animateCascadeDrop(step.gridAfter, Array.from(liveZones));
-          await wait(state.turbo ? 55 : 130);
-        }
-        hideCascadeBadge();
-
-        if (result.activatorLanded && result.goldenReveals.length > 0) {
-          setGameState("feature", "Stadium Lights activate Golden Pitch Zones");
-          triggerLightSweep();
-          scene.cameras.main.shake(state.turbo ? 90 : 160, 0.004);
-          playSound("feature");
-          await wait(durationFor(GOLDEN_PITCH_TIMING.lightSweep, state.turbo));
-        }
-
-        scene.setGrid(result.finalGrid, result.goldenZones, [], result.goldenReveals);
-        if (result.goldenReveals.length > 0) {
-          scene.spotlight(result.goldenReveals.map((reveal) => reveal.position));
-          playSound("reveal");
-          await wait(state.turbo ? 160 : 360);
-        }
-
-        if (result.captainEvents.length > 0 || result.collectorEvents.length > 0) {
-          playSound("collect");
-          await wait(state.turbo ? 210 : 500);
-        }
-
-        if (result.totalWinMultiplier > 0) {
-          await showWin(result.totalWinMultiplier, result.totalWin);
-          if (result.totalWinMultiplier >= 20) {
-            scene.cameras.main.shake(240, Math.min(0.012, result.totalWinMultiplier / 9000));
-            launchConfetti(result.totalWinMultiplier);
+        async highlightPositions(positions, color, pulse = false) {
+          const overlays = [];
+          for (const pos of positions) {
+            const { x, y } = this.cellOrigin(pos.col, pos.row);
+            const rect = this.add.rectangle(x + this.grid.cellW / 2, y + this.grid.cellH / 2, this.grid.cellW - 6, this.grid.cellH - 6, color, 0.18).setStrokeStyle(4, color, 0.9).setDepth(50);
+            overlays.push(rect);
+            this.tweens.add({ targets: rect, scaleX: pulse ? 1.12 : 1.04, scaleY: pulse ? 1.12 : 1.04, alpha: 0.95, duration: 150, yoyo: true, repeat: pulse ? 2 : 0 });
           }
+          await sleep(state.turbo ? 140 : 360);
+          overlays.forEach((o) => o.destroy());
+        }
+
+        cellOrigin(col, row) { return { x: this.grid.x + col * this.grid.cellW, y: this.grid.y + row * this.grid.cellH }; }
+        cellCenter(col, row) { return { x: this.grid.x + col * this.grid.cellW + this.grid.cellW / 2, y: this.grid.y + row * this.grid.cellH + this.grid.cellH / 2 }; }
+
+        drawSymbol(cell, col, row) {
+          const c = this.cellCenter(col, row);
+          const size = Math.min(this.grid.cellW, this.grid.cellH);
+          const group = this.add.container(c.x, c.y);
+          group.setSize(this.grid.cellW, this.grid.cellH);
+          this.drawTile(group, size);
+          if (["A", "K", "Q", "J", "10"].includes(cell.id)) this.drawLetter(group, cell.id, size);
+          else if (cell.id === "FOOTBALL") this.drawFootball(group, size);
+          else if (cell.id === "BOOT") this.drawBoot(group, size);
+          else if (cell.id === "GLOVE") this.drawGlove(group, size);
+          else if (cell.id === "TICKET") this.drawTicket(group, size);
+          else if (cell.id === "ARMBAND") this.drawArmband(group, size);
+          else if (cell.id === "TROPHY") this.drawTrophy(group, size, false);
+          else if (cell.id === "WILD_TROPHY") this.drawTrophy(group, size, true);
+          else if (cell.id === "WHISTLE") this.drawWhistle(group, size);
+          else if (cell.id === "LIGHTS") this.drawLights(group, size);
+          else if (cell.id === "GOLDEN_BALL") this.drawCoin(group, size, cell.label || `${cell.value || 2}x`);
+          else if (cell.id === "CAPTAIN_STAR") this.drawStar(group, size, cell.label || `${cell.value || 2}x`);
+          else if (cell.id === "COLLECTOR") this.drawCollector(group, size, cell.label || `${cell.value || 2}x`);
+          else if (cell.id === "VAR_SCREEN") this.drawVar(group, size);
+          return group;
+        }
+
+        drawTile(group, size) {
+          const g = this.add.graphics();
+          g.fillStyle(0x0b0d0b, 0.18);
+          g.fillRoundedRect(-size * 0.45, -size * 0.42, size * 0.9, size * 0.84, 8);
+          g.lineStyle(1, 0x73501a, 0.25);
+          g.strokeRoundedRect(-size * 0.45, -size * 0.42, size * 0.9, size * 0.84, 8);
+          group.add(g);
+        }
+
+        addText(group, text, y, fontSize, color, stroke = "#160b02", strokeThickness = 5) {
+          const t = this.add.text(0, y, text, { fontFamily: "Impact, Arial Black", fontSize: `${fontSize}px`, color, stroke, strokeThickness, align: "center" }).setOrigin(0.5);
+          t.setShadow(0, 4, "#000", 4, true, true);
+          group.add(t);
+          return t;
+        }
+
+        drawLetter(group, id, size) {
+          const colors = { A: "#e93527", K: "#2da8ff", Q: "#b65cff", J: "#29c957", "10": "#ffd24a" };
+          this.addText(group, id, 0, size * (id === "10" ? 0.46 : 0.58), colors[id] || "#fff1a0", "#171006", 6);
+        }
+
+        drawFootball(group, size) {
+          const g = this.add.graphics();
+          g.fillStyle(0xf2f2e8, 1); g.fillCircle(0, 0, size * 0.29);
+          g.lineStyle(3, 0x111111, 1); g.strokeCircle(0, 0, size * 0.29);
+          g.fillStyle(0x111111, 1); g.fillRegularPolygon(0, 0, size * 0.09, 5, Math.PI / 5);
+          for (let i = 0; i < 5; i++) { const a = i * Math.PI * 2 / 5 - Math.PI / 2; g.lineStyle(2, 0x111111, .8); g.lineBetween(Math.cos(a) * size * .1, Math.sin(a) * size * .1, Math.cos(a) * size * .24, Math.sin(a) * size * .24); }
+          group.add(g);
+        }
+
+        drawBoot(group, size) {
+          const g = this.add.graphics();
+          g.fillStyle(0xf3bd22, 1); g.fillRoundedRect(-size*.28, -size*.03, size*.5, size*.2, 8); g.fillTriangle(-size*.08, -size*.04, size*.05, -size*.35, size*.2, -size*.02);
+          g.fillStyle(0x805106, 1); g.fillRect(-size*.1, size*.13, size*.34, size*.04); g.lineStyle(3, 0xffe48d, .9); g.strokeRoundedRect(-size*.28, -size*.03, size*.5, size*.2, 8);
+          group.add(g); this.addText(group, "BOOT", size*.28, size*.16, "#fff0b2", "#120902", 3);
+        }
+
+        drawGlove(group, size) {
+          const g = this.add.graphics();
+          g.fillStyle(0xf6f6ea, 1); g.fillRoundedRect(-size*.26, -size*.18, size*.14, size*.42, 8); g.fillRoundedRect(-size*.1, -size*.27, size*.14, size*.5, 8); g.fillRoundedRect(size*.06, -size*.18, size*.14, size*.42, 8); g.fillRoundedRect(size*.2, -size*.05, size*.11, size*.28, 8);
+          g.fillStyle(0x2d8ee8, 1); g.fillRoundedRect(-size*.25, size*.1, size*.5, size*.17, 6); g.lineStyle(3, 0x111111, .8); g.strokeRoundedRect(-size*.3, -size*.28, size*.62, size*.58, 10);
+          group.add(g);
+        }
+
+        drawTicket(group, size) {
+          const g = this.add.graphics();
+          g.fillStyle(0xf2c341, 1); g.fillRoundedRect(-size*.34, -size*.2, size*.68, size*.4, 8); g.lineStyle(3, 0x2b1603, .9); g.strokeRoundedRect(-size*.34, -size*.2, size*.68, size*.4, 8);
+          group.add(g); this.addText(group, "STADIUM", -size*.06, size*.14, "#3b2106", "#f2c341", 1); this.addText(group, "PASS", size*.11, size*.18, "#3b2106", "#f2c341", 1);
+        }
+
+        drawArmband(group, size) {
+          const g = this.add.graphics();
+          g.fillStyle(0x1d8dd8, 1); g.fillRoundedRect(-size*.34, -size*.18, size*.68, size*.36, 16); g.fillStyle(0xffffff, 1); g.fillRect(-size*.09, -size*.18, size*.18, size*.36); g.lineStyle(3, 0x071822, .9); g.strokeRoundedRect(-size*.34, -size*.18, size*.68, size*.36, 16);
+          group.add(g); this.addText(group, "C", 0, size*.26, "#151515", "#ffffff", 2);
+        }
+
+        drawTrophy(group, size, wild) {
+          const g = this.add.graphics();
+          const glow = wild ? 0.25 : 0.08;
+          g.fillStyle(0xffb51d, glow); g.fillCircle(0, 0, size*.42);
+          g.fillStyle(0xf8c843, 1); g.fillRoundedRect(-size*.18, -size*.25, size*.36, size*.32, 8); g.fillRect(-size*.07, size*.06, size*.14, size*.18); g.fillRoundedRect(-size*.22, size*.24, size*.44, size*.09, 4);
+          g.lineStyle(4, 0x5c3003, 1); g.strokeRoundedRect(-size*.18, -size*.25, size*.36, size*.32, 8); g.strokeCircle(-size*.26, -size*.12, size*.13); g.strokeCircle(size*.26, -size*.12, size*.13);
+          group.add(g);
+          if (wild) { this.addText(group, "WILD", size*.23, size*.24, "#fff3c2", "#7d1704", 5); }
+        }
+
+        drawWhistle(group, size) {
+          const g = this.add.graphics();
+          g.fillStyle(0xcfd7df, 1); g.fillRoundedRect(-size*.25, -size*.08, size*.42, size*.22, 8); g.fillCircle(size*.17, size*.03, size*.11); g.fillStyle(0x232323, 1); g.fillCircle(size*.17, size*.03, size*.055); g.lineStyle(3, 0xffffff, .6); g.strokeRoundedRect(-size*.25, -size*.08, size*.42, size*.22, 8);
+          group.add(g); this.addText(group, "SCATTER", size*.27, size*.16, "#ffffff", "#111111", 4);
+        }
+
+        drawLights(group, size) {
+          const g = this.add.graphics();
+          g.lineStyle(4, 0x5d5d5d, 1); g.lineBetween(-size*.24, size*.3, size*.08, -size*.2);
+          for (let r=0;r<2;r++) for (let c=0;c<3;c++) { g.fillStyle(0xfff2a1, 1); g.fillCircle(-size*.14 + c*size*.14, -size*.2 + r*size*.14, size*.055); g.fillStyle(0xffe36b, .18); g.fillCircle(-size*.14 + c*size*.14, -size*.2 + r*size*.14, size*.13); }
+          group.add(g);
+        }
+
+        drawCoin(group, size, label) {
+          const g = this.add.graphics();
+          g.fillStyle(0xffcc2d, 1); g.fillCircle(0, 0, size*.31); g.lineStyle(5, 0x8f5205, 1); g.strokeCircle(0, 0, size*.31); g.lineStyle(2, 0xffef9a, .8); g.strokeCircle(0, 0, size*.23);
+          group.add(g); this.addText(group, label, 0, size*.3, "#fff4c5", "#7a4304", 5);
+        }
+
+        drawStar(group, size, label) {
+          const g = this.add.graphics();
+          g.fillStyle(0xfecb36, 1); g.fillCircle(0,0,size*.32); g.lineStyle(4, 0x7c4203,1); g.strokeCircle(0,0,size*.32); g.fillStyle(0xde421e,1); g.fillStar(0, -size*.02, 5, size*.13, size*.28); group.add(g); this.addText(group, label, size*.26, size*.14, "#fff4c5", "#7a4304", 4);
+        }
+
+        drawCollector(group, size, label) {
+          const g = this.add.graphics();
+          g.fillStyle(0x18202b,1); g.fillRoundedRect(-size*.32,-size*.31,size*.64,size*.62,8); g.lineStyle(3,0xf2c341,1); g.strokeRoundedRect(-size*.32,-size*.31,size*.64,size*.62,8); g.fillStyle(0xf0ba65,1); g.fillCircle(0,-size*.1,size*.12); g.fillStyle(0x1f93d0,1); g.fillRoundedRect(-size*.19,size*.03,size*.38,size*.18,8); g.fillStyle(0xf8c843,1); g.fillRoundedRect(-size*.31,-size*.25,size*.18,size*.24,4); group.add(g); this.addText(group, "COLLECT", size*.23, size*.13, "#fff4c5", "#0b0b0b", 4); this.addText(group, label, -size*.31, size*.12, "#ffe06b", "#0b0b0b", 3);
+        }
+
+        drawVar(group, size) {
+          const g = this.add.graphics(); g.fillStyle(0x222b36,1); g.fillRoundedRect(-size*.28,-size*.18,size*.56,size*.36,8); g.lineStyle(3,0x8fd6ff,1); g.strokeRoundedRect(-size*.28,-size*.18,size*.56,size*.36,8); group.add(g); this.addText(group,"VAR",0,0,size*.22,"#e9fbff","#061018",4);
         }
       }
 
-      async function buyBonus(type) {
-        if (state.spinning) {
-          playSound("error");
-          return;
-        }
-        const buy = math.bonusBuy(type, state.bet);
-        if (state.balance < buy.cost) {
-          setStatus("Demo balance is too low for that buy", "error");
-          playSound("error");
-          return;
-        }
+      const scene = new SlotScene();
+      const game = new PhaserRef.Game({ type: PhaserRef.AUTO, parent: "game-host", transparent: true, width: 900, height: 500, scene, scale: { mode: PhaserRef.Scale.RESIZE, autoCenter: PhaserRef.Scale.CENTER_BOTH } });
 
-        const confirmed = await confirmBonusBuy(type, buy.cost);
-        if (!confirmed) {
-          setGameState("idle", "Ready");
-          return;
-        }
+      const bonusOptions = [
+        { type: "featureSpins", icon: "★", title: "Feature Spins", desc: "5x higher bonus chance", cost: 3 },
+        { type: "lightsSpin", icon: "◉", title: "Stadium Lights Spin", desc: "Guaranteed activator spin", cost: 50 },
+        { type: "extraTime", icon: "+", title: "Extra Time Bonus", desc: "Starts 8 free spins", cost: 100 },
+        { type: "penaltyShootout", icon: "⚑", title: "Penalty Shootout", desc: "Starts 12 free spins", cost: 250 },
+        { type: "locked", icon: "★", title: "World Final Bonus", desc: "Triggers from scatters only", cost: "Locked", locked: true },
+      ];
 
-        state.balance = roundCurrency(state.balance - buy.cost);
-        updateUi();
-        playSound("feature");
-
-        if (buy.startsBonus) {
-          await showBonusTransition(formatMode(buy.startsBonus.mode), `${buy.startsBonus.spins} free spins ready`);
-          state.bonusMode = buy.startsBonus.mode;
-          state.freeSpins = buy.startsBonus.spins;
-          state.persistentZones = [];
-          setStatus(`${formatMode(buy.startsBonus.mode)} bought`, "bonus");
-          updateUi();
-          return;
-        }
-
-        await spin(buy.request ?? {});
-      }
-
-      function toggleAuto() {
-        playSound("button");
-        state.auto = !state.auto;
-        els.auto.classList.toggle("active", state.auto);
-        if (state.auto) spin();
-        else stopAuto();
-      }
-
-      function stopAuto() {
-        state.auto = false;
-        els.auto.classList.remove("active");
-        if (autoTimer) window.clearTimeout(autoTimer);
-        updateUi();
-      }
-
-      function setBet(value) {
-        const normalized = Math.min(MAX_BET, Math.max(MIN_BET, Number.isFinite(value) ? value : state.bet));
-        state.bet = roundCurrency(normalized);
-        updateUi();
+      function renderBonusBuy() {
+        el.buyGrid.innerHTML = bonusOptions.map((option) => `
+          <div class="buy-card ${option.locked ? "locked" : ""}">
+            <div class="buy-icon">${option.icon}</div>
+            <div><h3>${option.title}</h3><p>${option.desc}</p></div>
+            <div><b>${option.locked ? "Locked" : `${option.cost}x`}</b><button data-buy="${option.type}" ${option.locked ? "disabled" : ""}>Buy</button></div>
+          </div>`).join("");
+        el.buyGrid.querySelectorAll("[data-buy]").forEach((button) => button.addEventListener("click", () => buyBonus(button.dataset.buy)));
       }
 
       function updateUi() {
-        animateNumber(els.balance, state.balance);
-        animateNumber(els.win, state.lastWin);
-        els.bet.textContent = money(state.bet);
-        els.spinCount.textContent = String(state.spinCount);
-        els.betInput.value = state.bet.toFixed(2);
-        els.mode.textContent = state.bonusMode ? `${formatMode(state.bonusMode)} (${state.freeSpins})` : "Base";
-        els.spin.textContent = state.bonusMode ? `FREE SPIN ${state.freeSpins}` : "SPIN";
-        els.spin.disabled = state.spinning;
-        els.spin.classList.toggle("is-spinning", state.spinning);
-        els.spin.classList.toggle("auto-running", state.auto);
-        els.auto.textContent = state.auto ? "Stop Auto" : "Auto";
-        document.querySelectorAll(".buy-option[data-buy]").forEach((button) => {
-          button.disabled = state.spinning || state.bonusMode !== null;
-        });
+        el.balance.textContent = money(state.balance);
+        el.win.textContent = money(state.lastWin);
+        el.bet.textContent = money(currentBet());
+        el.freeSpins.textContent = String(state.freeSpins);
+        el.bonusTotal.textContent = money(state.bonusTotal);
+        el.unlock.textContent = `${Math.min(6, state.persistentGoldenZones.length)}/6`;
+        el.turbo.classList.toggle("active", state.turbo);
+        el.auto.classList.toggle("active", state.auto);
+        el.spin.classList.toggle("spinning", state.isSpinning);
+        el.spin.classList.toggle("auto-running", state.auto);
+        el.spin.classList.toggle("free-spin", state.freeSpins > 0);
+        el.spin.disabled = state.isSpinning;
       }
 
-      function setStatus(text, tone = "ready") {
-        els.status.textContent = text;
-        els.status.dataset.state = tone;
-        if (tone === "error") {
-          els.status.closest(".meter").classList.remove("error-shake");
-          void els.status.closest(".meter").offsetWidth;
-          els.status.closest(".meter").classList.add("error-shake");
+      async function spin(extraRequest = {}) {
+        if (state.isSpinning) return;
+        const bet = currentBet();
+        const isFree = state.freeSpins > 0;
+        if (!isFree && state.balance < bet) { showToast("No Demo Credits", "Lower bet or reload demo"); return; }
+        state.isSpinning = true; updateUi();
+        if (!isFree) state.balance = roundCurrency(state.balance - bet);
+        else state.freeSpins -= 1;
+        state.spinCount += 1;
+
+        const request = { bet, mode: state.mode, persistentGoldenZones: state.persistentGoldenZones, ...extraRequest };
+        const result = state.math.spin(request);
+        state.persistentGoldenZones = result.goldenZones;
+        await scene.playResult(result);
+        state.lastWin = result.totalWin;
+        state.balance = roundCurrency(state.balance + result.totalWin);
+        if (isFree || state.mode !== "base") state.bonusTotal = roundCurrency(state.bonusTotal + result.totalWin);
+
+        if (result.triggeredBonus) {
+          state.mode = result.triggeredBonus.mode;
+          state.freeSpins += result.triggeredBonus.spins;
+          state.bonusTotal = 0;
+          showToast(result.triggeredBonus.mode === "worldFinal" ? "World Final!" : "Free Spins!", `${result.triggeredBonus.spins} spins awarded`);
         }
-      }
-
-      function setGameState(stateName, label) {
-        setStatus(label, statusToneForState(stateName));
-      }
-
-      async function showWin(multiplier, amount) {
-        const tier = getWinTier(multiplier);
-        const title = tier.title;
-        if (multiplier >= 5) {
-          await showBigWin(tier, multiplier, amount);
-          return;
-        }
-        els.toastTitle.textContent = title;
-        els.toastAmount.textContent = `${multiplier.toFixed(2)}x - ${money(amount)}`;
-        els.toast.classList.add("show");
-        playSound(multiplier >= 20 ? "big" : "hit");
-        await wait(state.turbo ? 700 : 1300);
-        els.toast.classList.remove("show");
-      }
-
-      async function showBigWin(tier, multiplier, amount) {
-        els.bigWinTitle.textContent = tier.title;
-        els.bigWinAmount.textContent = money(0);
-        els.bigWinSub.textContent = `${multiplier.toFixed(2)}x bet`;
-        els.bigWinBar.style.width = "0%";
-        els.bigWinOverlay.classList.add("show");
-        els.bigWinOverlay.setAttribute("aria-hidden", "false");
-        playSound(tier.sound);
-        launchConfetti(multiplier, tier.confettiScale);
-
-        const duration = state.turbo ? 720 : tier.duration;
-        await countUp(duration, (eased) => {
-          els.bigWinAmount.textContent = money(amount * eased);
-          els.bigWinBar.style.width = `${Math.min(100, eased * 100)}%`;
-        }, () => {
-          playSound("tick");
-        });
-
-        await wait(state.turbo ? 260 : 820);
-        els.bigWinOverlay.classList.remove("show");
-        els.bigWinOverlay.setAttribute("aria-hidden", "true");
-      }
-
-      async function showBonusTransition(title, subtitle, locked = false) {
-        els.bonusTitle.textContent = title;
-        els.bonusSub.textContent = subtitle;
-        els.bonusTransition.classList.add("show");
-        els.bonusTransition.setAttribute("aria-hidden", "false");
-        triggerLightSweep();
-        playSound(locked ? "error" : "bonus");
-        await wait(state.turbo ? 520 : 1150);
-        els.bonusTransition.classList.remove("show");
-        els.bonusTransition.setAttribute("aria-hidden", "true");
-      }
-
-      function confirmBonusBuy(type, cost) {
-        const labels = {
-          featureSpins: "Feature Spins",
-          lightsSpin: "Stadium Lights Spin",
-          extraTime: "Extra Time Bonus",
-          penaltyShootout: "Penalty Shootout",
-        };
-        els.confirmTitle.textContent = labels[type] ?? "Demo Feature";
-        els.confirmContent.innerHTML = `
-          <p>This uses <b>${money(cost)}</b> demo credits only.</p>
-          <p>No real money, wallet, deposit, or cash-out is connected to this prototype.</p>
-        `;
-        els.confirmDialog.showModal();
-        return new Promise((resolve) => {
-          const done = () => {
-            els.confirmDialog.removeEventListener("close", done);
-            resolve(els.confirmDialog.returnValue === "confirm");
-          };
-          els.confirmDialog.addEventListener("close", done);
-        });
-      }
-
-      function showCascadeBadge(text) {
-        els.cascadeBadge.textContent = text;
-        els.cascadeBadge.classList.add("show");
-      }
-
-      function hideCascadeBadge() {
-        els.cascadeBadge.classList.remove("show");
-      }
-
-      function triggerLightSweep() {
-        els.lightSweep.classList.remove("show");
-        void els.lightSweep.offsetWidth;
-        els.lightSweep.classList.add("show");
-        window.setTimeout(() => els.lightSweep.classList.remove("show"), 820);
-      }
-
-      function animateNumber(element, value) {
-        const current = Number(element.dataset.value ?? element.textContent ?? 0);
-        const target = roundCurrency(value);
-        element.dataset.value = String(target);
-        if (!Number.isFinite(current) || Math.abs(current - target) < 0.01) {
-          element.textContent = money(target);
-          return;
+        if (result.retriggerSpins) state.freeSpins += result.retriggerSpins;
+        if (state.freeSpins <= 0 && state.mode !== "base") {
+          state.mode = "base";
+          state.persistentGoldenZones = [];
         }
 
+        presentWin(result);
+        state.isSpinning = false; updateUi();
+        if (state.auto && (state.balance >= bet || state.freeSpins > 0)) setTimeout(() => spin(), state.turbo ? 360 : 850);
+      }
+
+      function presentWin(result) {
+        if (result.totalWinMultiplier >= 10) showBigWin(result);
+        else if (result.totalWinMultiplier >= 3) showToast("Nice Hit", `${money(result.totalWin)} • ${result.totalWinMultiplier.toFixed(2)}x`);
+        else if (result.totalWin > 0) showToast("Goal!", money(result.totalWin));
+      }
+
+      function winTier(multiplier) {
+        if (multiplier >= 10000) return "MAX WIN";
+        if (multiplier >= 250) return "Stadium Jackpot";
+        if (multiplier >= 100) return "Monster Hit";
+        if (multiplier >= 50) return "Super Hit";
+        if (multiplier >= 25) return "Mega Hit";
+        if (multiplier >= 10) return "Big Hit";
+        return "Nice Hit";
+      }
+
+      /**
+       * Animate a number increasing from `from` to `to` over `duration` milliseconds.
+       * Updates the provided DOM element's textContent using the money() formatter.
+       */
+      function animateCountUp(element, from, to, duration) {
         const start = performance.now();
-        const duration = state.turbo ? 140 : 320;
-        const tick = (now) => {
-          const t = Math.min(1, (now - start) / duration);
-          const eased = 1 - Math.pow(1 - t, 3);
-          element.textContent = money(current + (target - current) * eased);
-          if (t < 1) requestAnimationFrame(tick);
-          else element.textContent = money(target);
+        const updater = (now) => {
+          const progress = Math.min((now - start) / duration, 1);
+          const value = from + (to - from) * progress;
+          element.textContent = money(value);
+          if (progress < 1) requestAnimationFrame(updater);
         };
-        requestAnimationFrame(tick);
+        requestAnimationFrame(updater);
       }
 
-      function updateSessionClock() {
-        els.session.textContent = formatSessionTime(state.sessionStartedAt);
+      function showToast(title, amount) {
+        el.toastTitle.textContent = title;
+        el.toastAmount.textContent = amount;
+        el.toast.classList.add("show");
+        setTimeout(() => el.toast.classList.remove("show"), 1300);
       }
 
-      async function maybeShowRealityCheck() {
-        if (state.spinCount === 0) return;
-        if (state.spinCount % REALITY_CHECK_SPINS !== 0) return;
-        if (state.lastRealityCheckAt === state.spinCount) return;
-
-        state.lastRealityCheckAt = state.spinCount;
-        if (state.auto) stopAuto();
-        await wait(state.turbo ? 80 : 180);
-        els.dialogTitle.textContent = "Reality Check";
-        els.dialogContent.innerHTML = `
-          <p>You have played <b>${state.spinCount}</b> demo spins in this session.</p>
-          <p>This prototype uses demo credits only. There is no real-money wallet, deposit, crypto, or cash-out flow.</p>
-          <p>RTP profile: <b>${els.rtp.value}%</b>. Max win cap: <b>10,000x bet</b>.</p>
-        `;
-        els.dialog.showModal();
+      function showBigWin(result) {
+        el.bigWinTitle.textContent = winTier(result.totalWinMultiplier);
+        el.bigWinSub.textContent = `${result.totalWinMultiplier.toFixed(2)}x bet`;
+        animateCountUp(el.bigWinAmount, 0, result.totalWin, 1400);
+        el.bigWin.classList.add("show");
+        el.app.classList.add("screen-shake");
+        burstConfetti(result.totalWinMultiplier >= 25 ? 80 : 36);
+        setTimeout(() => el.app.classList.remove("screen-shake"), 300);
+        setTimeout(() => el.bigWin.classList.remove("show"), result.totalWinMultiplier >= 50 ? 2800 : 2000);
       }
 
-      function openInfo(kind) {
-        if (kind === "paytable") {
-          els.dialogTitle.textContent = "Paytable";
-          els.dialogContent.innerHTML = `
-            <div class="pay-grid">
-              ${REGULAR_SYMBOLS.map(
-                (id) => `<div class="pay-card"><b>${SYMBOL_META[id].name}</b><span>5+ cluster pays. Larger clusters scale upward with cascade multipliers.</span></div>`,
-              ).join("")}
-              <div class="pay-card"><b>Bronze Ball</b><span>0.2x, 0.5x, 1x, 2x, 3x, 4x</span></div>
-              <div class="pay-card"><b>Silver Ball</b><span>5x, 10x, 15x, 20x</span></div>
-              <div class="pay-card"><b>Gold Ball</b><span>25x, 50x, 100x, 250x, 500x</span></div>
-              <div class="pay-card"><b>Captain Star</b><span>Adjacent coin and collector values multiply by 2x to 10x.</span></div>
-              <div class="pay-card"><b>Trophy Collector</b><span>Collectors collect visible coin values, then later collectors can collect earlier collectors.</span></div>
-            </div>
-          `;
-        } else {
-          els.dialogTitle.textContent = "Rules";
-          els.dialogContent.innerHTML = `
-            <p>Golden Goal Rush is a demo-credit prototype with no real-money wallet. The grid is 6 reels by 5 rows. Clusters require 5 or more matching connected regular symbols.</p>
-            <ul>
-              <li>Goal Rush Cascades remove winning clusters and all matching symbols visible on the grid.</li>
-              <li>Winning cells become Golden Pitch Zones. Stadium Lights activate those zones.</li>
-              <li>3 Whistles trigger Extra Time, 4 trigger Penalty Shootout, 5 trigger World Final.</li>
-              <li>Extra Time starts with 8 free spins. Penalty Shootout and World Final start with 12.</li>
-              <li>Max win cap is 10,000x bet. Current demo RTP profile: ${els.rtp.value}%.</li>
-              <li>No deposits, wallet, crypto, cash-out, or real-money value exists in this prototype.</li>
-              <li>Animations show the deterministic engine result; they do not create near-miss or false bonus states.</li>
-            </ul>
-            <p>Session: <b>${state.spinCount}</b> demo spins, <b>${els.session.textContent}</b> elapsed.</p>
-            <p>Current deterministic seed: <b>${state.seed}</b></p>
-          `;
-        }
-        els.dialog.showModal();
-      }
-
-      function makeOpeningGrid() {
-        return Array.from({ length: ROWS }, (_, row) =>
-          Array.from({ length: COLS }, (_, col) => ({ id: REGULAR_SYMBOLS[(row * COLS + col) % REGULAR_SYMBOLS.length] })),
-        );
-      }
-
-      function drawStadium(g, width, height) {
-        g.fillStyle(0x020706, 1);
-        g.fillRect(0, 0, width, height);
-        g.fillGradientStyle(0x184032, 0x0c2824, 0x020706, 0x010303, 0.92, 0.84, 1, 1);
-        g.fillRect(0, 0, width, height);
-
-        g.fillStyle(0x07110f, 0.72);
-        for (let row = 0; row < 5; row += 1) {
-          g.fillRect(0, 72 + row * 22, width, 7);
-        }
-
-        g.fillStyle(0x0d2119, 0.96);
-        g.fillEllipse(width / 2, height * 0.82, width * 1.28, height * 0.44);
-        g.lineStyle(2, 0x21f59b, 0.22);
-        for (let i = 0; i < 6; i += 1) {
-          const x = (width / 6) * i;
-          g.lineBetween(x, height * 0.62, width / 2, height * 0.98);
-        }
-        for (let stripe = 0; stripe < 9; stripe += 1) {
-          g.fillStyle(stripe % 2 ? 0x14392c : 0x0f2b23, 0.2);
-          g.fillRect((width / 9) * stripe, height * 0.61, width / 9, height * 0.37);
-        }
-        g.lineStyle(2, 0xffffff, 0.08);
-        g.strokeEllipse(width / 2, height * 0.83, width * 0.46, height * 0.12);
-
-        for (const side of [-1, 1]) {
-          const lx = width / 2 + side * width * 0.38;
-          g.fillStyle(0xffffff, 0.8);
-          g.fillCircle(lx, 46, 6);
-          g.fillCircle(lx + side * 22, 58, 5);
-          g.fillStyle(0x21f59b, 0.08);
-          g.fillTriangle(lx, 48, width / 2, height * 0.46, lx + side * 150, 76);
-        }
-      }
-
-      function drawCell(sceneRef, cell, x, y, size, stateFlags) {
-        const box = sceneRef.add.container(x, y);
-        const g = sceneRef.add.graphics();
-        const isSpecial = !SYMBOL_META[cell.id]?.regular;
-        const fill = stateFlags.reveal ? 0x2b1a03 : isSpecial ? 0x071d1a : 0x0b1414;
-        const stroke = stateFlags.flash ? 0xffffff : stateFlags.golden ? 0xffd66b : isSpecial ? 0x21f59b : 0x31443e;
-        const alpha = stateFlags.flash ? 0.94 : 0.72;
-
-        g.fillStyle(0x000000, 0.38);
-        g.fillRoundedRect(3, 5, size, size, 8);
-        g.fillGradientStyle(0x20302c, fill, 0x050909, 0x020404, alpha, alpha, 0.92, 0.98);
-        g.lineStyle(stateFlags.golden || stateFlags.flash ? 3 : 1.5, stroke, stateFlags.golden || stateFlags.flash ? 0.9 : 0.45);
-        g.fillRoundedRect(0, 0, size, size, 8);
-        g.strokeRoundedRect(0, 0, size, size, 8);
-        g.lineStyle(1, 0xffffff, 0.12);
-        g.strokeRoundedRect(3, 3, size - 6, size - 6, 6);
-        g.fillGradientStyle(0xffffff, 0xffffff, 0xffffff, 0xffffff, 0.12, 0.02, 0, 0);
-        g.fillRoundedRect(5, 5, size - 10, size * 0.34, 6);
-
-        if (stateFlags.golden) {
-          g.lineStyle(3, 0xffd66b, 0.72);
-          g.strokeRoundedRect(4, 4, size - 8, size - 8, 6);
-          g.lineStyle(1, 0xffffff, 0.42);
-          g.strokeRoundedRect(9, 9, size - 18, size - 18, 5);
-          g.fillStyle(0xffd66b, 0.46);
-          for (let dot = 0; dot < 5; dot += 1) {
-            g.fillCircle(10 + dot * (size - 20) / 4, 8 + ((dot * 11) % Math.max(10, size - 18)), Math.max(1.4, size * 0.018));
-          }
-          sceneRef.tweens.add({
-            targets: box,
-            alpha: { from: 0.88, to: 1 },
-            duration: 520,
-            yoyo: true,
-            repeat: 1,
-            ease: "Sine.easeInOut",
-          });
-        }
-
-        box.add(g);
-        drawSymbol(sceneRef, box, cell, size);
-        if (stateFlags.blur) {
-          const blur = sceneRef.add.graphics();
-          blur.fillStyle(0xffffff, 0.08);
-          blur.fillRoundedRect(size * 0.12, size * 0.1, size * 0.76, size * 0.8, 8);
-          box.add(blur);
-        }
-        if (isSpecial && !stateFlags.reveal) {
-          sceneRef.tweens.add({
-            targets: box,
-            scale: { from: 0.985, to: 1.018 },
-            duration: 760,
-            yoyo: true,
-            repeat: 1,
-            ease: "Sine.easeInOut",
-          });
-        }
-        if (stateFlags.reveal) {
-          box.scaleX = 0.18;
-          sceneRef.tweens.add({
-            targets: box,
-            scaleX: 1,
-            duration: state.turbo ? 150 : 280,
-            ease: "Back.easeOut",
-          });
-        } else if (stateFlags.flash) {
-          sceneRef.tweens.add({
-            targets: box,
-            scale: { from: 1.06, to: 1 },
-            duration: state.turbo ? 120 : 220,
-            ease: "Back.easeOut",
-          });
-        }
-        box.setSize(size, size);
-        box.setInteractive(new PhaserRef.Geom.Rectangle(0, 0, size, size), PhaserRef.Geom.Rectangle.Contains);
-        box.on("pointerover", () => sceneRef.tweens.add({ targets: box, scale: 1.035, duration: 110, ease: "Quad.easeOut" }));
-        box.on("pointerout", () => sceneRef.tweens.add({ targets: box, scale: 1, duration: 130, ease: "Quad.easeOut" }));
-        return box;
-      }
-
-      function drawSymbol(sceneRef, box, cell, size) {
-        const g = sceneRef.add.graphics();
-        const cx = size / 2;
-        const cy = size / 2;
-        const scale = size / 88;
-        const textSize = Math.max(13, Math.floor(size * 0.24));
-
-        if (["10", "J", "Q", "K", "A"].includes(cell.id)) {
-          const color = cell.id === "A" || cell.id === "K" ? "#ffd66b" : "#d9fff0";
-          const text = sceneRef.add.text(cx, cy, cell.id, {
-            fontFamily: "Georgia, serif",
-            fontSize: `${Math.floor(size * 0.48)}px`,
-            fontStyle: "900",
-            color,
-            stroke: "#2a1a04",
-            strokeThickness: Math.max(2, size * 0.035),
-          });
-          text.setOrigin(0.5);
-          text.setShadow(0, 4, "rgba(0,0,0,0.72)", 8, true, true);
-          box.add(text);
-          return;
-        }
-
-        if (cell.id === "FOOTBALL") {
-          g.fillStyle(0xeafdf4, 1);
-          g.fillCircle(cx, cy, 24 * scale);
-          g.lineStyle(3 * scale, 0x081210, 0.9);
-          g.strokeCircle(cx, cy, 24 * scale);
-          g.lineBetween(cx - 16 * scale, cy, cx + 16 * scale, cy);
-          g.lineBetween(cx, cy - 18 * scale, cx, cy + 18 * scale);
-          g.strokePoints(
-            [
-              new PhaserRef.Geom.Point(cx, cy - 12 * scale),
-              new PhaserRef.Geom.Point(cx + 11 * scale, cy),
-              new PhaserRef.Geom.Point(cx, cy + 12 * scale),
-              new PhaserRef.Geom.Point(cx - 11 * scale, cy),
-            ],
-            true,
-          );
-        } else if (cell.id === "BOOT") {
-          g.fillStyle(0xf7bd28, 1);
-          g.fillPoints(
-            [
-              { x: cx - 24 * scale, y: cy - 2 * scale },
-              { x: cx + 4 * scale, y: cy - 16 * scale },
-              { x: cx + 18 * scale, y: cy + 3 * scale },
-              { x: cx + 27 * scale, y: cy + 12 * scale },
-              { x: cx - 18 * scale, y: cy + 16 * scale },
-            ],
-            true,
-          );
-          g.fillStyle(0x111111, 0.8);
-          g.fillRect(cx - 12 * scale, cy + 12 * scale, 38 * scale, 5 * scale);
-        } else if (cell.id === "GLOVE") {
-          g.fillStyle(0x4cc3ff, 1);
-          for (let i = 0; i < 4; i += 1) g.fillRoundedRect(cx - 22 * scale + i * 10 * scale, cy - 24 * scale, 8 * scale, 28 * scale, 4 * scale);
-          g.fillRoundedRect(cx - 22 * scale, cy - 4 * scale, 42 * scale, 28 * scale, 10 * scale);
-          g.lineStyle(2 * scale, 0xffffff, 0.8);
-          g.lineBetween(cx - 12 * scale, cy + 6 * scale, cx + 12 * scale, cy + 14 * scale);
-        } else if (cell.id === "TICKET") {
-          g.fillStyle(0xff4d66, 1);
-          g.fillRoundedRect(cx - 27 * scale, cy - 18 * scale, 54 * scale, 36 * scale, 6 * scale);
-          g.fillStyle(0x07100d, 1);
-          g.fillCircle(cx - 27 * scale, cy, 7 * scale);
-          g.fillCircle(cx + 27 * scale, cy, 7 * scale);
-          g.lineStyle(2 * scale, 0xffffff, 0.55);
-          g.lineBetween(cx - 10 * scale, cy - 12 * scale, cx - 10 * scale, cy + 12 * scale);
-        } else if (cell.id === "ARMBAND") {
-          g.fillStyle(0x21f59b, 1);
-          g.fillRoundedRect(cx - 28 * scale, cy - 14 * scale, 56 * scale, 28 * scale, 6 * scale);
-          g.fillStyle(0x07100d, 0.82);
-          g.fillRect(cx - 6 * scale, cy - 14 * scale, 12 * scale, 28 * scale);
-          addSmallLabel(sceneRef, box, "C", cx, cy, size * 0.24, "#07100d");
-        } else if (cell.id === "TROPHY" || cell.id === "WILD_TROPHY") {
-          drawTrophy(g, cx, cy, scale, cell.id === "WILD_TROPHY" ? 0x21f59b : 0xffd66b);
-        } else if (cell.id === "LIGHTS") {
-          g.fillStyle(0xf5fff9, 0.95);
-          g.fillCircle(cx - 12 * scale, cy - 12 * scale, 8 * scale);
-          g.fillCircle(cx + 12 * scale, cy - 12 * scale, 8 * scale);
-          g.lineStyle(5 * scale, 0x21f59b, 0.7);
-          g.lineBetween(cx, cy - 4 * scale, cx, cy + 24 * scale);
-          g.fillStyle(0x21f59b, 0.15);
-          g.fillTriangle(cx - 30 * scale, cy + 28 * scale, cx - 12 * scale, cy - 4 * scale, cx + 8 * scale, cy + 28 * scale);
-          g.fillTriangle(cx + 30 * scale, cy + 28 * scale, cx + 12 * scale, cy - 4 * scale, cx - 8 * scale, cy + 28 * scale);
-        } else if (cell.id === "WHISTLE") {
-          g.fillStyle(0xeafdf4, 1);
-          g.fillRoundedRect(cx - 22 * scale, cy - 8 * scale, 34 * scale, 20 * scale, 8 * scale);
-          g.fillCircle(cx + 15 * scale, cy + 2 * scale, 13 * scale);
-          g.fillStyle(0x07100d, 1);
-          g.fillCircle(cx + 15 * scale, cy + 2 * scale, 5 * scale);
-        } else if (cell.id === "VAR_SCREEN") {
-          g.fillStyle(0x0f1c22, 1);
-          g.lineStyle(3 * scale, 0x4cc3ff, 0.9);
-          g.fillRoundedRect(cx - 28 * scale, cy - 20 * scale, 56 * scale, 38 * scale, 5 * scale);
-          g.strokeRoundedRect(cx - 28 * scale, cy - 20 * scale, 56 * scale, 38 * scale, 5 * scale);
-          addSmallLabel(sceneRef, box, "VAR", cx, cy, textSize, "#4cc3ff");
-        } else if (cell.id === "GOLDEN_BALL") {
-          const color = cell.coinTier === "gold" ? 0xffd66b : cell.coinTier === "silver" ? 0xdce8ef : 0xcd8755;
-          g.fillStyle(color, 1);
-          g.fillCircle(cx, cy - 4 * scale, 24 * scale);
-          g.lineStyle(2 * scale, 0x111111, 0.45);
-          g.strokeCircle(cx, cy - 4 * scale, 24 * scale);
-          addSmallLabel(sceneRef, box, cell.label ?? `${cell.value ?? 0}x`, cx, cy + size * 0.27, Math.max(11, size * 0.18), "#ffffff");
-        } else if (cell.id === "CAPTAIN_STAR") {
-          drawStar(g, cx, cy - 3 * scale, 26 * scale, 0xffd66b);
-          addSmallLabel(sceneRef, box, cell.label ?? "STAR", cx, cy + size * 0.28, Math.max(11, size * 0.18), "#ffffff");
-        } else if (cell.id === "COLLECTOR") {
-          drawTrophy(g, cx, cy - 5 * scale, scale * 0.86, 0xffd66b);
-          addSmallLabel(sceneRef, box, cell.label ?? "COLLECT", cx, cy + size * 0.29, Math.max(10, size * 0.15), "#ffffff");
-        }
-
-        box.add(g);
-        if (!["VAR_SCREEN", "GOLDEN_BALL", "CAPTAIN_STAR", "COLLECTOR", "ARMBAND"].includes(cell.id)) {
-          addSmallLabel(sceneRef, box, SYMBOL_META[cell.id]?.short ?? cell.id, cx, size - 12 * scale, Math.max(9, size * 0.13), "#dffdee");
-        }
-      }
-
-      function drawTrophy(g, cx, cy, scale, color) {
-        g.fillStyle(color, 1);
-        g.fillRoundedRect(cx - 15 * scale, cy - 22 * scale, 30 * scale, 28 * scale, 6 * scale);
-        g.fillRect(cx - 6 * scale, cy + 6 * scale, 12 * scale, 18 * scale);
-        g.fillRoundedRect(cx - 22 * scale, cy + 21 * scale, 44 * scale, 8 * scale, 3 * scale);
-        g.lineStyle(4 * scale, color, 0.85);
-        g.strokeCircle(cx - 20 * scale, cy - 8 * scale, 11 * scale);
-        g.strokeCircle(cx + 20 * scale, cy - 8 * scale, 11 * scale);
-        g.fillStyle(0xffffff, 0.28);
-        g.fillRect(cx - 7 * scale, cy - 18 * scale, 5 * scale, 19 * scale);
-      }
-
-      function drawStar(g, cx, cy, radius, color) {
-        const points = [];
-        for (let i = 0; i < 10; i += 1) {
-          const angle = -Math.PI / 2 + (i * Math.PI) / 5;
-          const r = i % 2 === 0 ? radius : radius * 0.42;
-          points.push({ x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
-        }
-        g.fillStyle(color, 1);
-        g.fillPoints(points, true);
-        g.lineStyle(2, 0xffffff, 0.55);
-        g.strokePoints(points, true);
-      }
-
-      function addSmallLabel(sceneRef, box, label, x, y, size, color) {
-        const text = sceneRef.add.text(x, y, label, {
-          fontFamily: "Inter, Arial",
-          fontSize: `${Math.floor(size)}px`,
-          fontStyle: "900",
-          color,
-          align: "center",
-        });
-        text.setOrigin(0.5);
-        text.setShadow(0, 2, "rgba(0,0,0,0.75)", 5, true, true);
-        box.add(text);
-      }
-
-      function launchConfetti(multiplier, scale = 1) {
-        const count = confettiCount(multiplier, scale);
-        els.confetti.innerHTML = "";
-        for (let i = 0; i < count; i += 1) {
+      function burstConfetti(count) {
+        el.confetti.innerHTML = "";
+        for (let i = 0; i < count; i++) {
           const piece = document.createElement("i");
           piece.style.left = `${Math.random() * 100}%`;
-          piece.style.background = ["#ffd66b", "#21f59b", "#4cc3ff", "#ff4d66"][i % 4];
-          piece.style.animationDelay = `${Math.random() * 180}ms`;
-          piece.style.animationDuration = `${700 + Math.random() * 700}ms`;
-          els.confetti.appendChild(piece);
+          piece.style.background = ["#f8cf5a", "#ffffff", "#24f196", "#ff7338"][i % 4];
+          piece.style.animationDelay = `${Math.random() * 220}ms`;
+          piece.style.transform = `rotate(${Math.random() * 180}deg)`;
+          el.confetti.appendChild(piece);
         }
-        clearElementLater(els.confetti, 1600);
+        setTimeout(() => { el.confetti.innerHTML = ""; }, 1300);
       }
 
-      function playSound(kind) {
-        audio.play(kind);
+      function buyBonus(type) {
+        const offer = state.math.bonusBuy(type, currentBet());
+        if (!offer || state.balance < offer.cost) { showToast("Not Enough", "Demo credits"); return; }
+        state.balance = roundCurrency(state.balance - offer.cost);
+        el.bonusDialog.close();
+        updateUi();
+        if (offer.startsBonus) {
+          state.mode = offer.startsBonus.mode;
+          state.freeSpins += offer.startsBonus.spins;
+          state.bonusTotal = 0;
+          showToast("Bonus Started", `${offer.startsBonus.spins} free spins`);
+          setTimeout(() => spin(), 500);
+        } else {
+          spin(offer.request || {});
+        }
       }
 
-      function money(value) {
-        return roundCurrency(value).toFixed(2);
-      }
+      $("spinBtn").addEventListener("click", () => spin());
+      $("betDown").addEventListener("click", () => { if (!state.isSpinning) { state.betIndex = Math.max(0, state.betIndex - 1); updateUi(); } });
+      $("betUp").addEventListener("click", () => { if (!state.isSpinning) { state.betIndex = Math.min(BETS.length - 1, state.betIndex + 1); updateUi(); } });
+      $("autoBtn").addEventListener("click", () => { state.auto = !state.auto; updateUi(); if (state.auto && !state.isSpinning) spin(); });
+      $("turboBtn").addEventListener("click", () => { state.turbo = !state.turbo; updateUi(); });
+      $("bonusBuyBtn").addEventListener("click", () => { renderBonusBuy(); el.bonusDialog.showModal(); });
+      $("closeBonusBuy").addEventListener("click", () => el.bonusDialog.close());
+      $("menuBtn").addEventListener("click", () => el.infoDialog.showModal());
+      $("closeInfo").addEventListener("click", () => el.infoDialog.close());
+      $("continueBigWin").addEventListener("click", () => el.bigWin.classList.remove("show"));
 
-      function formatMode(mode) {
-        return {
-          base: "Base",
-          extraTime: "Extra Time",
-          penaltyShootout: "Penalty Shootout",
-          worldFinal: "World Final",
-        }[mode];
-      }
-
-      function posKey(position) {
-        return `${position.col},${position.row}`;
-      }
-
-      function wait(ms) {
-        return new Promise((resolve) => window.setTimeout(resolve, ms));
-      }
-
-      window.goldenGoalQa = {
-        forceBigWin: async () => {
-          document.body.dataset.qaBigWin = "showing";
-          await showBigWin(getWinTier(100), 100, state.bet * 100);
-          document.body.dataset.qaBigWin = "complete";
-        },
-        forceGoldenFeature: async () => {
-          document.body.dataset.qaGoldenFeature = "revealing";
-          const zones = ["1,1", "2,1", "3,2", "4,2", "2,3"];
-          const grid = makeOpeningGrid();
-          const reveals = zones.map((key, index) => {
-            const [col, row] = key.split(",").map(Number);
-            return {
-              position: { col, row },
-              id: "GOLDEN_BALL",
-              coinTier: index > 2 ? "silver" : "bronze",
-              value: index > 2 ? 10 : 2,
-              label: index > 2 ? "10x" : "2x",
-            };
-          });
-          scene.setGrid(grid, zones);
-          triggerLightSweep();
-          playSound("feature");
-          await wait(durationFor(GOLDEN_PITCH_TIMING.lightSweep, state.turbo));
-          for (const reveal of reveals) grid[reveal.position.row][reveal.position.col] = reveal;
-          scene.setGrid(grid, zones, [], reveals);
-          scene.spotlight(reveals.map((reveal) => reveal.position));
-          playSound("reveal");
-          document.body.dataset.qaGoldenFeature = "revealed";
-        },
-      };
-      document.body.dataset.qaHook = "ready";
-      if (new URLSearchParams(window.location.search).has("qa")) {
-        const qaPanel = document.createElement("div");
-        qaPanel.setAttribute("aria-hidden", "true");
-        qaPanel.style.cssText =
-          "position:fixed;right:8px;bottom:8px;z-index:9999;display:flex;gap:4px;opacity:.04;";
-        qaPanel.innerHTML = `
-          <button id="qaForceBigWin" type="button">QA Big Win</button>
-          <button id="qaForceGoldenFeature" type="button">QA Golden Feature</button>
-        `;
-        document.body.appendChild(qaPanel);
-        qaPanel.querySelector("#qaForceBigWin").addEventListener("click", () => window.goldenGoalQa.forceBigWin());
-        qaPanel.querySelector("#qaForceGoldenFeature").addEventListener("click", () => window.goldenGoalQa.forceGoldenFeature());
-      }
+      renderBonusBuy();
+      updateUi();
     </script>
   </body>
 </html>
