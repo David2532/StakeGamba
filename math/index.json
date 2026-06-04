@@ -1,0 +1,9 @@
+{
+  "name": "Golden Goal Rush",
+  "slug": "golden-goal-rush",
+  "version": "0.1.0",
+  "provider": "David2532",
+  "entry": "library/publish_files/golden_goal_rush/math.js",
+  "rtp": 96,
+  "maxWinMultiplier": 10000
+}
