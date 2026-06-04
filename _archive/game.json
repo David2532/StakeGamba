@@ -1,0 +1,16 @@
+{
+  "name": "Golden Goal Rush",
+  "slug": "golden-goal-rush",
+  "version": "0.1.0",
+  "provider": "David2532",
+  "entry": "frontend/index.html",
+  "backend": {
+    "math": "backend/engine.js"
+  },
+  "rtp": 96,
+  "maxWinMultiplier": 10000,
+  "assets": [
+    "frontend/index.html"
+  ],
+  "notes": "Archived original manifest"
+}

@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite . --host 0.0.0.0 --port 5173",
     "typecheck": "tsc -p tsconfig.json",
-    "build:ts": "tsc math.ts --outDir front --module ES2020 --target ES2020 --lib DOM,ES2020 --skipLibCheck",
-    "prepare-package": "npm run build:ts"
+    "build:math": "tsc math.ts --outDir math/library/publish_files/golden_goal_rush --module ES2020 --target ES2020 --lib DOM,ES2020 --skipLibCheck",
+    "build:frontend": "vite build --config frontend/vite.config.ts",
+    "build": "npm run build:frontend",
+    "prepare-package": "npm run build:math"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
@@ -20,7 +22,6 @@
     "fdir": "^6.5.0",
     "lightningcss": "^1.32.0",
     "lightningcss-linux-x64-gnu": "^1.32.0",
-    
     "nanoid": "^3.3.12",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.4",
@@ -28,16 +29,5 @@
     "rolldown": "^1.0.3",
     "source-map-js": "^1.2.1",
     "tinyglobby": "^0.2.17"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/David2532/StakeGamba.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/David2532/StakeGamba/issues"
-  },
-  "homepage": "https://github.com/David2532/StakeGamba#readme"
+  }
 }
