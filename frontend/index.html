@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Golden Goal Rush Prototype</title>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
     <style>
       :root {
         color-scheme: dark;
@@ -1221,6 +1220,7 @@
     </dialog>
 
     <script type="module">
+      import * as Phaser from "./node_modules/phaser/dist/phaser.esm.js";
       import {
         COLS,
         ROWS,
@@ -1229,6 +1229,12 @@
         defaultSeed,
         roundCurrency,
       } from "./src/integrations/localMathAdapter.ts";
+      import {
+        createStakeSessionClient,
+        creditsToStakeUnits,
+        readStakeUrlContext,
+        stakeUnitsToCredits,
+      } from "./src/integrations/stakeAdapter.ts";
       import { AudioManager } from "./src/audio/AudioManager.ts";
       import { applyDesignTokens } from "./src/design/tokens.ts";
       import { REEL_TIMING, durationFor, reelStopDelay } from "./src/animation/ReelAnimator.ts";
@@ -1239,11 +1245,12 @@
       import { clearElementLater, confettiCount } from "./src/animation/ParticleSystem.ts";
       import { formatSessionTime, statusToneForState } from "./src/ui/Hud.ts";
 
-      const PhaserRef = window.Phaser;
+      const PhaserRef = Phaser;
       const MIN_BET = 0.1;
       const MAX_BET = 100;
       const START_BALANCE = 5000;
       const REALITY_CHECK_SPINS = 25;
+      const STAKE_MODE_NAME = "base";
       applyDesignTokens(document.documentElement);
       const REGULAR_SYMBOLS = ["10", "J", "Q", "K", "A", "FOOTBALL", "BOOT", "GLOVE", "TICKET", "ARMBAND", "TROPHY"];
 
@@ -1297,6 +1304,7 @@
       const state = {
         balance: START_BALANCE,
         bet: 1,
+        betLevels: [],
         lastWin: 0,
         spinning: false,
         turbo: false,
@@ -1310,12 +1318,17 @@
         spinCount: 0,
         sessionStartedAt: Date.now(),
         lastRealityCheckAt: 0,
+        stakeConnected: false,
+        currency: "USD",
+        replayMode: false,
       };
 
       let math = new SlotMath(state.seed, { rtp: Number(els.rtp.value), volatility: "medium-high" });
       let scene;
       let autoTimer;
       const audio = new AudioManager();
+      const stakeContext = readStakeUrlContext();
+      const stakeClient = createStakeSessionClient(stakeContext);
 
       class GoldenGoalScene extends PhaserRef.Scene {
         constructor() {
@@ -1506,6 +1519,139 @@
         scene: [GoldenGoalScene],
       });
 
+      function toLocalCell(cell) {
+        return {
+          id: cell.id,
+          label: cell.label ?? undefined,
+          value: cell.value ?? undefined,
+          coinTier: cell.coinTier ?? undefined,
+        };
+      }
+
+      function toLocalGrid(board) {
+        return board.map((row) => row.map(toLocalCell));
+      }
+
+      function toLocalPosition(position) {
+        return { col: Number(position[0]), row: Number(position[1]) };
+      }
+
+      function mapStakeRoundToSpinResult(round, bet) {
+        const events = Array.isArray(round?.events) ? round.events : [];
+        if (events.length === 0) throw new Error("Stake round returned no events");
+
+        const reveal = events.find((event) => event?.type === "reveal");
+        const roundEnd = events.find((event) => event?.type === "roundEnd");
+        if (!reveal || !roundEnd) {
+          throw new Error("Stake round is missing reveal or roundEnd events");
+        }
+
+        const cascades = events
+          .filter((event) => event?.type === "cascade")
+          .map((event, index, source) => {
+            const previous = index === 0 ? reveal : source[index - 1];
+            return {
+              index: event.cascadeIndex ?? index + 1,
+              gridBefore: toLocalGrid(previous.board),
+              gridAfter: toLocalGrid(event.board),
+              removed: (event.removed ?? []).map(toLocalPosition),
+              goldenAdded: (event.goldenAdded ?? []).map(toLocalPosition),
+              clusters: (event.wins ?? []).map((win) => ({
+                symbol: win.symbol,
+                size: win.size,
+                baseMultiplier: win.baseMultiplier,
+                cascadeMultiplier: win.cascadeMultiplier,
+                winMultiplier: win.winMultiplier,
+                cells: (win.positions ?? []).map(toLocalPosition),
+              })),
+              cascadeWinMultiplier: (event.wins ?? []).reduce((sum, win) => sum + Number(win.winMultiplier ?? 0), 0),
+              cascadeMultiplier: Number(event.cascadeMultiplier ?? 1),
+            };
+          });
+
+        const feature = events.find((event) => event?.type === "feature");
+        const totalWinMultiplier = Number(roundEnd.totalWinMultiplier ?? Number(round?.payoutMultiplier ?? 0) / 100);
+        const totalWin = roundCurrency(totalWinMultiplier * bet);
+
+        return {
+          seedState: 0,
+          mode: String(reveal.mode ?? round?.mode ?? STAKE_MODE_NAME),
+          bet,
+          initialGrid: toLocalGrid(reveal.board),
+          finalGrid: toLocalGrid(roundEnd.finalBoard ?? reveal.board),
+          cascades,
+          goldenZones: Array.isArray(roundEnd.goldenZones)
+            ? roundEnd.goldenZones
+            : Array.isArray(reveal.goldenZones)
+              ? reveal.goldenZones
+              : [],
+          activatorLanded: Boolean(reveal.activatorLanded),
+          scatterCount: Number(reveal.scatterCount ?? 0),
+          triggeredBonus: null,
+          retriggerSpins: 0,
+          goldenReveals: (feature?.reveals ?? []).map((item) => ({
+            position: toLocalPosition(item.position),
+            id: item.id,
+            coinTier: item.coinTier ?? undefined,
+            baseValue: Number(item.baseValue ?? 0),
+            value: Number(item.value ?? 0),
+            multiplier: item.multiplier == null ? undefined : Number(item.multiplier),
+            label: item.label ?? "",
+          })),
+          captainEvents: (feature?.captains ?? []).map((item) => ({
+            position: toLocalPosition(item.position),
+            multiplier: Number(item.multiplier ?? 1),
+            targets: (item.targets ?? []).map(toLocalPosition),
+          })),
+          collectorEvents: (feature?.collectors ?? []).map((item) => ({
+            position: toLocalPosition(item.position),
+            collected: Number(item.collected ?? 0),
+            sources: (item.sources ?? []).map(toLocalPosition),
+          })),
+          clusterWinMultiplier: cascades.reduce((sum, step) => sum + Number(step.cascadeWinMultiplier ?? 0), 0),
+          featureWinMultiplier: Math.max(0, totalWinMultiplier - cascades.reduce((sum, step) => sum + Number(step.cascadeWinMultiplier ?? 0), 0)),
+          totalWinMultiplier,
+          totalWin,
+          capped: Boolean(roundEnd.capped),
+        };
+      }
+
+      async function initialiseStakeSession() {
+        if (!stakeClient) return;
+        const auth = await stakeClient.authenticate();
+        state.stakeConnected = true;
+        state.currency = auth.balance?.currency ?? "USD";
+        state.balance = roundCurrency(stakeUnitsToCredits(auth.balance?.amount ?? 0));
+        state.betLevels = (auth.config?.betLevels ?? [])
+          .map((amount) => roundCurrency(stakeUnitsToCredits(amount)))
+          .filter((amount, index, source) => Number.isFinite(amount) && amount > 0 && source.indexOf(amount) === index)
+          .sort((a, b) => a - b);
+
+        const fallbackBet = roundCurrency(stakeUnitsToCredits(auth.config?.defaultBetLevel ?? auth.config?.minBet ?? creditsToStakeUnits(state.bet)));
+        state.bet = state.betLevels.includes(fallbackBet) ? fallbackBet : fallbackBet || state.betLevels[0] || state.bet;
+        els.rtp.disabled = true;
+        els.rtp.title = "RTP is defined by the uploaded Stake math package";
+        document.querySelectorAll(".buy-option[data-buy]").forEach((button) => {
+          button.disabled = true;
+          button.title = "Bonus buy is disabled in the current Stake-published base mode";
+        });
+        if (auth.config?.jurisdiction?.disabledTurbo) {
+          state.turbo = false;
+          els.turbo.classList.remove("active");
+          els.turbo.disabled = true;
+        }
+        if (auth.config?.jurisdiction?.disabledFullscreen) {
+          els.fullscreen.disabled = true;
+        }
+        if (stakeContext?.replay) {
+          state.replayMode = true;
+          stopAuto();
+          els.auto.disabled = true;
+          els.spin.textContent = "REPLAY";
+        }
+        setStatus("Stake session authenticated", "ready");
+      }
+
       els.spin.addEventListener("click", () => {
         audio.unlock();
         playSound("button");
@@ -1576,15 +1722,32 @@
         setStatus("World Final cannot be bought", "error");
       });
 
-      audio.setVolume(Number(els.volume.value) / 100);
-      els.sound.classList.toggle("active", state.sound);
-      setStatus("Ready", "ready");
-      window.setInterval(updateSessionClock, 1000);
-      updateSessionClock();
-      updateUi();
+      async function initialiseRuntime() {
+        audio.setVolume(Number(els.volume.value) / 100);
+        els.sound.classList.toggle("active", state.sound);
+        setStatus(stakeClient ? "Connecting to Stake session" : "Ready", "ready");
+        window.setInterval(updateSessionClock, 1000);
+        updateSessionClock();
+        updateUi();
+
+        if (stakeClient) {
+          try {
+            await initialiseStakeSession();
+          } catch (error) {
+            stopAuto();
+            setStatus(error instanceof Error ? error.message : "Stake session failed", "error");
+          }
+          updateUi();
+        }
+      }
 
       async function spin(extraRequest = {}) {
         if (state.spinning) {
+          playSound("error");
+          return;
+        }
+        if (state.replayMode) {
+          setStatus("Replay mode is not implemented in this build", "error");
           playSound("error");
           return;
         }
@@ -1602,68 +1765,95 @@
         state.spinning = true;
         els.spin.classList.add("is-spinning");
         state.spinCount += 1;
-        state.balance = roundCurrency(state.balance - spinCost);
+        if (!stakeClient) state.balance = roundCurrency(state.balance - spinCost);
         if (inBonus) state.freeSpins -= 1;
         updateUi();
         setGameState(inBonus ? "bonus" : "spinning", inBonus ? `${formatMode(state.bonusMode)} free spin` : "Spinning");
         playSound("spin");
 
-        const result = math.spin({
-          bet: state.bet,
-          mode: state.bonusMode ?? "base",
-          persistentGoldenZones: inBonus ? state.persistentZones : [],
-          forceActivator: state.bonusMode === "worldFinal",
-          ...extraRequest,
-        });
-
-        await playResult(result);
-
-        state.lastWin = result.totalWin;
-        state.balance = roundCurrency(state.balance + result.totalWin);
-        state.lastVisibleZones = result.goldenZones;
-
-        if (inBonus) {
-          state.persistentZones = result.goldenZones;
-          if (result.triggeredBonus?.upgraded) {
-            state.bonusMode = "worldFinal";
-            state.freeSpins = Math.max(state.freeSpins, 12);
-            await showBonusTransition("World Final Bonus", "Upgrade unlocked by Whistles");
-            setStatus("World Final upgrade", "bonus");
-          } else if (result.retriggerSpins > 0) {
-            state.freeSpins += result.retriggerSpins;
-            setStatus(`Retrigger +${result.retriggerSpins} free spins`, "bonus");
+        let result;
+        try {
+          if (stakeClient) {
+            const playResponse = await stakeClient.play({
+              amount: creditsToStakeUnits(state.bet),
+              mode: STAKE_MODE_NAME,
+            });
+            state.balance = roundCurrency(stakeUnitsToCredits(playResponse.balance?.amount ?? 0));
+            updateUi();
+            result = mapStakeRoundToSpinResult(playResponse.round, state.bet);
+          } else {
+            result = math.spin({
+              bet: state.bet,
+              mode: state.bonusMode ?? "base",
+              persistentGoldenZones: inBonus ? state.persistentZones : [],
+              forceActivator: state.bonusMode === "worldFinal",
+              ...extraRequest,
+            });
           }
-          if (state.freeSpins <= 0) {
-            state.bonusMode = null;
+
+          await playResult(result);
+
+          state.lastWin = result.totalWin;
+          state.lastVisibleZones = result.goldenZones;
+
+          if (stakeClient) {
+            const endResponse = await stakeClient.endRound();
+            state.balance = roundCurrency(stakeUnitsToCredits(endResponse.balance?.amount ?? 0));
             state.persistentZones = [];
-            setStatus("Bonus complete", "ready");
-          }
-        } else {
-          state.persistentZones = [];
-          if (result.triggeredBonus) {
-            state.bonusMode = result.triggeredBonus.mode;
-            state.freeSpins = result.triggeredBonus.spins;
-            state.persistentZones = result.goldenZones;
-            await showBonusTransition(formatMode(result.triggeredBonus.mode), `${result.triggeredBonus.spins} free spins`);
-            setStatus(`${formatMode(result.triggeredBonus.mode)} triggered`, "bonus");
+            if (result.totalWin <= 0) setStatus("Complete", "complete");
           } else if (result.totalWin <= 0) {
-            setStatus("Complete", "complete");
+            state.balance = roundCurrency(state.balance + result.totalWin);
+            if (inBonus) {
+              state.persistentZones = result.goldenZones;
+              if (result.triggeredBonus?.upgraded) {
+                state.bonusMode = "worldFinal";
+                state.freeSpins = Math.max(state.freeSpins, 12);
+                await showBonusTransition("World Final Bonus", "Upgrade unlocked by Whistles");
+                setStatus("World Final upgrade", "bonus");
+              } else if (result.retriggerSpins > 0) {
+                state.freeSpins += result.retriggerSpins;
+                setStatus(`Retrigger +${result.retriggerSpins} free spins`, "bonus");
+              }
+              if (state.freeSpins <= 0) {
+                state.bonusMode = null;
+                state.persistentZones = [];
+                setStatus("Bonus complete", "ready");
+              }
+            } else {
+              state.persistentZones = [];
+              if (result.triggeredBonus) {
+                state.bonusMode = result.triggeredBonus.mode;
+                state.freeSpins = result.triggeredBonus.spins;
+                state.persistentZones = result.goldenZones;
+                await showBonusTransition(formatMode(result.triggeredBonus.mode), `${result.triggeredBonus.spins} free spins`);
+                setStatus(`${formatMode(result.triggeredBonus.mode)} triggered`, "bonus");
+              } else if (result.totalWin <= 0) {
+                setStatus("Complete", "complete");
+              }
+            }
           }
-        }
 
-        state.spinning = false;
-        els.spin.classList.remove("is-spinning");
-        if (!state.bonusMode && result.totalWin > 0) setStatus("Complete", "complete");
-        updateUi();
+          state.spinning = false;
+          els.spin.classList.remove("is-spinning");
+          if (!state.bonusMode && result.totalWin > 0) setStatus("Complete", "complete");
+          updateUi();
 
-        await maybeShowRealityCheck();
+          await maybeShowRealityCheck();
 
-        if (state.auto && state.balance >= state.bet) {
-          autoTimer = window.setTimeout(() => spin(), state.turbo ? 220 : 720);
-        } else if (!state.bonusMode && result.totalWin <= 0) {
-          window.setTimeout(() => {
-            if (!state.spinning) setStatus("Ready", "ready");
-          }, state.turbo ? 260 : 650);
+          if (state.auto && state.balance >= state.bet && !state.replayMode) {
+            autoTimer = window.setTimeout(() => spin(), state.turbo ? 220 : 720);
+          } else if (!state.bonusMode && result.totalWin <= 0) {
+            window.setTimeout(() => {
+              if (!state.spinning) setStatus("Ready", "ready");
+            }, state.turbo ? 260 : 650);
+          }
+        } catch (error) {
+          state.spinning = false;
+          els.spin.classList.remove("is-spinning");
+          updateUi();
+          stopAuto();
+          setStatus(error instanceof Error ? error.message : "Spin failed", "error");
+          playSound("error");
         }
       }
 
@@ -1719,6 +1909,11 @@
       }
 
       async function buyBonus(type) {
+        if (stakeClient) {
+          setStatus("Bonus buy is disabled in the current Stake-published mode", "error");
+          playSound("error");
+          return;
+        }
         if (state.spinning) {
           playSound("error");
           return;
@@ -1754,6 +1949,11 @@
       }
 
       function toggleAuto() {
+        if (stakeClient || state.replayMode) {
+          setStatus("Autoplay is disabled in this Stake session", "error");
+          playSound("error");
+          return;
+        }
         playSound("button");
         state.auto = !state.auto;
         els.auto.classList.toggle("active", state.auto);
@@ -1769,8 +1969,16 @@
       }
 
       function setBet(value) {
-        const normalized = Math.min(MAX_BET, Math.max(MIN_BET, Number.isFinite(value) ? value : state.bet));
-        state.bet = roundCurrency(normalized);
+        if (state.betLevels.length > 0) {
+          const target = Number.isFinite(value) ? value : state.bet;
+          const next = state.betLevels.reduce((closest, current) =>
+            Math.abs(current - target) < Math.abs(closest - target) ? current : closest,
+          state.betLevels[0]);
+          state.bet = roundCurrency(next);
+        } else {
+          const normalized = Math.min(MAX_BET, Math.max(MIN_BET, Number.isFinite(value) ? value : state.bet));
+          state.bet = roundCurrency(normalized);
+        }
         updateUi();
       }
 
@@ -1782,12 +1990,17 @@
         els.betInput.value = state.bet.toFixed(2);
         els.mode.textContent = state.bonusMode ? `${formatMode(state.bonusMode)} (${state.freeSpins})` : "Base";
         els.spin.textContent = state.bonusMode ? `FREE SPIN ${state.freeSpins}` : "SPIN";
+        if (state.replayMode) els.spin.textContent = "REPLAY";
         els.spin.disabled = state.spinning;
         els.spin.classList.toggle("is-spinning", state.spinning);
         els.spin.classList.toggle("auto-running", state.auto);
         els.auto.textContent = state.auto ? "Stop Auto" : "Auto";
+        els.betDown.disabled = state.spinning || state.replayMode;
+        els.betUp.disabled = state.spinning || state.replayMode;
+        els.betInput.disabled = state.spinning || state.replayMode;
+        els.auto.disabled = state.replayMode || state.stakeConnected;
         document.querySelectorAll(".buy-option[data-buy]").forEach((button) => {
-          button.disabled = state.spinning || state.bonusMode !== null;
+          button.disabled = state.stakeConnected || state.spinning || state.bonusMode !== null;
         });
       }
 
@@ -2315,6 +2528,7 @@
           document.body.dataset.qaGoldenFeature = "revealed";
         },
       };
+      await initialiseRuntime();
       document.body.dataset.qaHook = "ready";
       if (new URLSearchParams(window.location.search).has("qa")) {
         const qaPanel = document.createElement("div");
