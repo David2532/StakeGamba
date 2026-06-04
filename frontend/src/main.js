@@ -1,4 +1,4 @@
-import { COLS, ROWS, SlotMath, SYMBOL_META, defaultSeed, roundCurrency } from './lib/math.js';
+import { COLS, ROWS, SlotMath, SYMBOL_META, defaultSeed, roundCurrency } from './integrations/localMathAdapter.ts';
 
 const PhaserRef = window.Phaser;
 const BETS = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100];

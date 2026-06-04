@@ -8,5 +8,6 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["math.ts", "src/**/*.ts"]
+  "include": ["frontend/src/**/*.ts", "math/**/*.ts"],
+  "exclude": ["node_modules", "frontend/dist", "math/library", "_archive", "backend"]
 }

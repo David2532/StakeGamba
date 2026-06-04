@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5173",
     "typecheck": "tsc -p ../tsconfig.json",
-    "build:math": "tsc ../math/math.ts --outDir ../math/library/publish_files/golden_goal_rush --module ES2020 --target ES2020 --lib DOM,ES2020 --skipLibCheck",
+    "build:math": "tsc ../math/src/math.ts --outDir ../math/library/publish_files/golden_goal_rush --module ES2020 --target ES2020 --lib DOM,ES2020 --skipLibCheck",
     "build": "vite build",
     "prepare-package": "npm run build:math"
   },
