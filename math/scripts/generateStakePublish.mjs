@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { zstdCompressSync } from "node:zlib";
@@ -7,6 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..", "..");
 const publishDir = resolve(repoRoot, "math", "library", "publish_files", "golden_goal_rush");
 const rootMathDir = resolve(repoRoot, "math");
+const stakeMathDir = resolve(repoRoot, "stake-math");
 const sampleCount = 4096;
 const payoutScale = 100;
 const modeConfigs = [
@@ -165,6 +166,15 @@ async function main() {
   await writeFile(join(publishDir, "game.json"), JSON.stringify(publishIndex, null, 2) + "\n", "utf8");
   await writeFile(join(rootMathDir, "index.json"), JSON.stringify(rootIndex, null, 2) + "\n", "utf8");
   await writeFile(join(rootMathDir, "game.json"), JSON.stringify(rootIndex, null, 2) + "\n", "utf8");
+
+  await rm(stakeMathDir, { recursive: true, force: true });
+  await mkdir(stakeMathDir, { recursive: true });
+  await copyFile(join(publishDir, "index.json"), join(stakeMathDir, "index.json"));
+  await copyFile(join(publishDir, "game.json"), join(stakeMathDir, "game.json"));
+  for (const modeConfig of modeConfigs) {
+    await copyFile(join(publishDir, modeConfig.eventsFile), join(stakeMathDir, modeConfig.eventsFile));
+    await copyFile(join(publishDir, modeConfig.weightsFile), join(stakeMathDir, modeConfig.weightsFile));
+  }
 }
 
 await main();
