@@ -138,13 +138,18 @@
         display: grid;
         grid-template-rows: auto auto;
         place-items: center;
-        gap: 2px;
+        gap: 3px;
         min-width: 58px;
         min-height: 54px;
-        padding: 6px 10px;
-        border: 1px solid var(--line);
+        padding: 7px 10px;
+        border: 1px solid rgba(180, 140, 40, 0.55);
         border-radius: 12px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+        background:
+          linear-gradient(180deg, rgba(40, 34, 20, 0.92) 0%, rgba(16, 13, 6, 0.97) 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 220, 100, 0.12),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+          0 4px 14px rgba(0, 0, 0, 0.45);
         color: var(--text);
         transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease;
       }
@@ -153,6 +158,7 @@
         font-size: 18px;
         line-height: 1;
         color: var(--gold-soft);
+        filter: drop-shadow(0 0 4px rgba(216, 169, 67, 0.5));
       }
 
       .util-btn .cap {
@@ -160,23 +166,31 @@
         font-weight: 800;
         letter-spacing: 1px;
         text-transform: uppercase;
-        color: var(--muted);
+        color: rgba(200, 175, 110, 0.85);
       }
 
       .util-btn:hover {
-        border-color: var(--green-line);
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4), 0 0 16px rgba(72, 255, 106, 0.12);
+        border-color: rgba(255, 207, 82, 0.8);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 220, 100, 0.2),
+          0 8px 22px rgba(0, 0, 0, 0.5),
+          0 0 18px rgba(216, 169, 67, 0.22);
         transform: translateY(-1px);
       }
 
       .util-btn.active {
         border-color: var(--green-line);
-        background: var(--green-soft);
+        background:
+          linear-gradient(180deg, rgba(20, 50, 30, 0.95) 0%, rgba(8, 22, 12, 0.97) 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(72, 255, 106, 0.14),
+          0 0 16px rgba(72, 255, 106, 0.18);
       }
 
       .util-btn.active .ico,
       .util-btn.active .cap {
         color: var(--green);
+        filter: drop-shadow(0 0 5px rgba(72, 255, 106, 0.55));
       }
 
       /* ============ TITLE LOCKUP ============ */
@@ -462,15 +476,18 @@
         width: clamp(132px, 13vw, 188px);
         aspect-ratio: 1;
         border-radius: 50%;
-        border: 2px solid rgba(72, 255, 106, 0.5);
+        border: 3px solid rgba(180, 140, 40, 0.7);
         background:
-          radial-gradient(circle at 50% 32%, rgba(72, 255, 106, 0.34), transparent 60%),
-          radial-gradient(circle at 50% 50%, rgba(10, 30, 22, 0.95), rgba(3, 10, 8, 0.98));
+          radial-gradient(circle at 50% 28%, rgba(72, 255, 106, 0.42), transparent 55%),
+          radial-gradient(circle at 50% 50%, #0d2518, #040e0a);
         color: #eafff0;
         box-shadow:
-          0 0 0 6px rgba(72, 255, 106, 0.08),
-          0 0 48px rgba(72, 255, 106, 0.4),
-          inset 0 2px 12px rgba(255, 255, 255, 0.14);
+          0 0 0 5px rgba(72, 255, 106, 0.10),
+          0 0 0 9px rgba(180, 140, 40, 0.18),
+          0 0 52px rgba(72, 255, 106, 0.45),
+          0 0 30px rgba(216, 169, 67, 0.20),
+          inset 0 2px 14px rgba(255, 255, 255, 0.16),
+          inset 0 -4px 12px rgba(0, 0, 0, 0.5);
         transition: transform 0.12s ease, box-shadow 0.18s ease, filter 0.16s ease;
         animation: spinReadyPulse 2.5s ease-in-out infinite;
       }
@@ -478,12 +495,22 @@
       .primary-spin::before {
         content: "";
         position: absolute;
-        inset: -3px;
+        inset: -5px;
         border-radius: 50%;
         border: 2px solid transparent;
-        border-top-color: rgba(72, 255, 106, 0.85);
-        border-right-color: rgba(72, 255, 106, 0.4);
-        opacity: 0.9;
+        border-top-color: rgba(72, 255, 106, 0.9);
+        border-right-color: rgba(72, 255, 106, 0.45);
+        border-bottom-color: rgba(180, 140, 40, 0.4);
+        opacity: 1;
+      }
+
+      .primary-spin::after {
+        content: "";
+        position: absolute;
+        inset: 6px;
+        border-radius: 50%;
+        border: 1px solid rgba(72, 255, 106, 0.15);
+        pointer-events: none;
       }
 
       .primary-spin .spin-label {
@@ -491,7 +518,9 @@
         font-weight: 1000;
         letter-spacing: 1px;
         z-index: 1;
-        text-shadow: 0 0 18px rgba(72, 255, 106, 0.6);
+        text-shadow:
+          0 0 18px rgba(72, 255, 106, 0.7),
+          0 2px 4px rgba(0, 0, 0, 0.8);
       }
 
       .primary-spin .spin-sub {
@@ -504,12 +533,17 @@
       }
 
       .primary-spin:hover:not(:disabled) {
-        filter: brightness(1.08);
-        box-shadow: 0 0 0 6px rgba(72, 255, 106, 0.12), 0 0 64px rgba(72, 255, 106, 0.55), inset 0 2px 12px rgba(255, 255, 255, 0.18);
+        filter: brightness(1.1);
+        box-shadow:
+          0 0 0 5px rgba(72, 255, 106, 0.16),
+          0 0 0 10px rgba(180, 140, 40, 0.22),
+          0 0 70px rgba(72, 255, 106, 0.6),
+          0 0 40px rgba(216, 169, 67, 0.3),
+          inset 0 2px 14px rgba(255, 255, 255, 0.22);
       }
 
       .primary-spin:active:not(:disabled) {
-        transform: scale(0.97);
+        transform: scale(0.96);
       }
 
       .primary-spin.is-spinning::before {
@@ -517,8 +551,11 @@
       }
 
       .primary-spin.auto-running {
-        border-color: rgba(216, 169, 67, 0.7);
-        box-shadow: 0 0 0 6px rgba(216, 169, 67, 0.12), 0 0 56px rgba(216, 169, 67, 0.5), inset 0 2px 12px rgba(255, 255, 255, 0.16);
+        border-color: rgba(255, 207, 82, 0.8);
+        box-shadow:
+          0 0 0 5px rgba(216, 169, 67, 0.14),
+          0 0 56px rgba(216, 169, 67, 0.55),
+          inset 0 2px 12px rgba(255, 255, 255, 0.16);
       }
 
       .spin-secondary {
@@ -634,12 +671,15 @@
         gap: 2px;
         min-width: 132px;
         padding: 8px 16px;
-        border: 1px solid rgba(216, 169, 67, 0.5);
+        border: 1.5px solid rgba(216, 169, 67, 0.7);
         border-radius: 14px;
         background:
-          radial-gradient(80% 80% at 50% 0%, rgba(216, 169, 67, 0.26), transparent 70%),
-          linear-gradient(180deg, rgba(40, 30, 8, 0.7), rgba(12, 10, 6, 0.7));
-        box-shadow: var(--gold-glow);
+          radial-gradient(80% 60% at 50% 0%, rgba(255, 200, 60, 0.22), transparent 70%),
+          linear-gradient(180deg, #1c1506 0%, #0a0902 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 220, 100, 0.18),
+          0 0 28px rgba(216, 169, 67, 0.3),
+          0 4px 18px rgba(0, 0, 0, 0.5);
         transition: transform 0.12s ease, box-shadow 0.18s ease, filter 0.16s ease;
       }
 
@@ -683,18 +723,25 @@
         place-items: center;
         width: 42px;
         height: 42px;
-        border: 1px solid var(--line);
+        border: 1.5px solid rgba(180, 140, 40, 0.65);
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.06);
+        background:
+          radial-gradient(circle at 50% 30%, rgba(255, 220, 100, 0.12), transparent 60%),
+          linear-gradient(180deg, #1a1508, #0a0903);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 220, 100, 0.15),
+          0 3px 10px rgba(0, 0, 0, 0.5);
         font-size: 22px;
         font-weight: 900;
         color: var(--gold-soft);
-        transition: border-color 0.16s ease, transform 0.12s ease, background 0.16s ease;
+        transition: border-color 0.16s ease, transform 0.12s ease, box-shadow 0.16s ease;
       }
 
       .step-btn:hover:not(:disabled) {
-        border-color: var(--green-line);
-        background: var(--green-soft);
+        border-color: rgba(255, 207, 82, 0.9);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 220, 100, 0.22),
+          0 0 14px rgba(216, 169, 67, 0.3);
       }
 
       .step-btn:active:not(:disabled) {
@@ -705,14 +752,21 @@
         align-self: center;
         min-width: 96px;
         padding: 12px 16px;
-        border: 1px solid var(--green-line);
+        border: 1.5px solid rgba(72, 255, 106, 0.75);
         border-radius: 14px;
-        background: var(--green-soft);
+        background:
+          radial-gradient(80% 60% at 50% 0%, rgba(72, 255, 106, 0.28), transparent 70%),
+          linear-gradient(180deg, #0d2016 0%, #050f09 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(72, 255, 106, 0.2),
+          0 0 22px rgba(72, 255, 106, 0.28),
+          0 4px 14px rgba(0, 0, 0, 0.5);
         font-size: 14px;
         font-weight: 1000;
         letter-spacing: 1px;
         text-transform: uppercase;
         color: var(--green);
+        text-shadow: 0 0 12px rgba(72, 255, 106, 0.5);
         transition: filter 0.16s ease, transform 0.12s ease;
       }
 
@@ -1327,6 +1381,7 @@
       import { clearElementLater, confettiCount } from "./src/animation/ParticleSystem.ts";
       import { formatSessionTime, statusToneForState } from "./src/ui/Hud.ts";
       import { loadGameConfig, DEFAULT_GAME_CONFIG, DEFAULT_BET_STEPS } from "./src/config/loadGameConfig.ts";
+      import { SYMBOL_IMAGES, getSymbolImage } from "./src/Symbols/symbolMap.ts";
 
       const PhaserRef = Phaser;
       const MIN_BET = 0.1;
@@ -1448,6 +1503,15 @@
           this.renderOptions = {};
         }
 
+        preload() {
+          /* Load the real symbol artwork; texture key = math symbol ID. */
+          for (const [key, url] of Object.entries(SYMBOL_IMAGES)) {
+            if (!this.textures.exists("sym_" + key)) {
+              this.load.image("sym_" + key, url);
+            }
+          }
+        }
+
         create() {
           scene = this;
           this.bg = this.add.graphics();
@@ -1507,10 +1571,21 @@
           this.gridBounds = { x, y, cell, gap };
 
           const frame = this.add.graphics();
-          frame.fillStyle(0x020706, 0.72);
-          frame.lineStyle(2, 0xffd66b, 0.2);
-          frame.fillRoundedRect(x - 12, y - 12, gridWidth + 24, gridHeight + 24, 8);
-          frame.strokeRoundedRect(x - 12, y - 12, gridWidth + 24, gridHeight + 24, 8);
+          /* Outer gold-border frame */
+          frame.lineStyle(3, 0xd8a943, 0.85);
+          frame.fillStyle(0x010503, 0.88);
+          frame.fillRoundedRect(x - 14, y - 14, gridWidth + 28, gridHeight + 28, 10);
+          frame.strokeRoundedRect(x - 14, y - 14, gridWidth + 28, gridHeight + 28, 10);
+          /* Inner subtle highlight */
+          frame.lineStyle(1, 0xffcf52, 0.3);
+          frame.strokeRoundedRect(x - 10, y - 10, gridWidth + 20, gridHeight + 20, 8);
+          /* Corner accent dots */
+          const corners = [
+            [x - 14, y - 14], [x + gridWidth + 14, y - 14],
+            [x - 14, y + gridHeight + 14], [x + gridWidth + 14, y + gridHeight + 14],
+          ];
+          frame.fillStyle(0xffcf52, 0.8);
+          for (const [cx2, cy2] of corners) frame.fillCircle(cx2, cy2, 4);
           this.gridLayer.add(frame);
 
           for (let row = 0; row < ROWS; row += 1) {
@@ -2550,9 +2625,33 @@
       }
 
       function drawSymbol(sceneRef, box, cell, size) {
-        const g = sceneRef.add.graphics();
         const cx = size / 2;
         const cy = size / 2;
+        const texKey = "sym_" + cell.id;
+
+        /* Emit a single clear console warning if this ID has no mapped image. */
+        getSymbolImage(cell.id);
+
+        /* Render the real symbol image, contain-fit & centered (no distortion). */
+        if (sceneRef.textures.exists(texKey)) {
+          const img = sceneRef.add.image(cx, cy, texKey);
+          const src = img.texture.getSourceImage();
+          const tw = (src && src.width) || size;
+          const th = (src && src.height) || size;
+          const fit = Math.min(size / tw, size / th) * 0.94;
+          img.setScale(fit);
+          box.add(img);
+          /* Overlay label for coin/collect values */
+          if (cell.id === "GOLDEN_BALL" && (cell.label || cell.value != null)) {
+            addSmallLabel(sceneRef, box, cell.label ?? `${cell.value}x`, cx, cy + size * 0.22, Math.max(11, size * 0.18), "#ffd66b");
+          } else if ((cell.id === "CAPTAIN_STAR" || cell.id === "COLLECTOR") && (cell.label || cell.value != null)) {
+            addSmallLabel(sceneRef, box, cell.label ?? (cell.value != null ? `${cell.value}x` : ""), cx, cy + size * 0.25, Math.max(10, size * 0.16), "#ffd66b");
+          }
+          return;
+        }
+
+        /* Fallback vector rendering (should not normally be reached) */
+        const g = sceneRef.add.graphics();
         const scale = size / 88;
         const textSize = Math.max(13, Math.floor(size * 0.24));
 
@@ -2569,83 +2668,11 @@
           text.setOrigin(0.5);
           text.setShadow(0, 4, "rgba(0,0,0,0.72)", 8, true, true);
           box.add(text);
+          box.add(g);
           return;
         }
 
-        if (cell.id === "FOOTBALL") {
-          g.fillStyle(0xeafdf4, 1);
-          g.fillCircle(cx, cy, 24 * scale);
-          g.lineStyle(3 * scale, 0x081210, 0.9);
-          g.strokeCircle(cx, cy, 24 * scale);
-          g.lineBetween(cx - 16 * scale, cy, cx + 16 * scale, cy);
-          g.lineBetween(cx, cy - 18 * scale, cx, cy + 18 * scale);
-          g.strokePoints(
-            [
-              new PhaserRef.Geom.Point(cx, cy - 12 * scale),
-              new PhaserRef.Geom.Point(cx + 11 * scale, cy),
-              new PhaserRef.Geom.Point(cx, cy + 12 * scale),
-              new PhaserRef.Geom.Point(cx - 11 * scale, cy),
-            ],
-            true,
-          );
-        } else if (cell.id === "BOOT") {
-          g.fillStyle(0xf7bd28, 1);
-          g.fillPoints(
-            [
-              { x: cx - 24 * scale, y: cy - 2 * scale },
-              { x: cx + 4 * scale, y: cy - 16 * scale },
-              { x: cx + 18 * scale, y: cy + 3 * scale },
-              { x: cx + 27 * scale, y: cy + 12 * scale },
-              { x: cx - 18 * scale, y: cy + 16 * scale },
-            ],
-            true,
-          );
-          g.fillStyle(0x111111, 0.8);
-          g.fillRect(cx - 12 * scale, cy + 12 * scale, 38 * scale, 5 * scale);
-        } else if (cell.id === "GLOVE") {
-          g.fillStyle(0x4cc3ff, 1);
-          for (let i = 0; i < 4; i += 1) g.fillRoundedRect(cx - 22 * scale + i * 10 * scale, cy - 24 * scale, 8 * scale, 28 * scale, 4 * scale);
-          g.fillRoundedRect(cx - 22 * scale, cy - 4 * scale, 42 * scale, 28 * scale, 10 * scale);
-          g.lineStyle(2 * scale, 0xffffff, 0.8);
-          g.lineBetween(cx - 12 * scale, cy + 6 * scale, cx + 12 * scale, cy + 14 * scale);
-        } else if (cell.id === "TICKET") {
-          g.fillStyle(0xff4d66, 1);
-          g.fillRoundedRect(cx - 27 * scale, cy - 18 * scale, 54 * scale, 36 * scale, 6 * scale);
-          g.fillStyle(0x07100d, 1);
-          g.fillCircle(cx - 27 * scale, cy, 7 * scale);
-          g.fillCircle(cx + 27 * scale, cy, 7 * scale);
-          g.lineStyle(2 * scale, 0xffffff, 0.55);
-          g.lineBetween(cx - 10 * scale, cy - 12 * scale, cx - 10 * scale, cy + 12 * scale);
-        } else if (cell.id === "ARMBAND") {
-          g.fillStyle(0x21f59b, 1);
-          g.fillRoundedRect(cx - 28 * scale, cy - 14 * scale, 56 * scale, 28 * scale, 6 * scale);
-          g.fillStyle(0x07100d, 0.82);
-          g.fillRect(cx - 6 * scale, cy - 14 * scale, 12 * scale, 28 * scale);
-          addSmallLabel(sceneRef, box, "C", cx, cy, size * 0.24, "#07100d");
-        } else if (cell.id === "TROPHY" || cell.id === "WILD_TROPHY") {
-          drawTrophy(g, cx, cy, scale, cell.id === "WILD_TROPHY" ? 0x21f59b : 0xffd66b);
-        } else if (cell.id === "LIGHTS") {
-          g.fillStyle(0xf5fff9, 0.95);
-          g.fillCircle(cx - 12 * scale, cy - 12 * scale, 8 * scale);
-          g.fillCircle(cx + 12 * scale, cy - 12 * scale, 8 * scale);
-          g.lineStyle(5 * scale, 0x21f59b, 0.7);
-          g.lineBetween(cx, cy - 4 * scale, cx, cy + 24 * scale);
-          g.fillStyle(0x21f59b, 0.15);
-          g.fillTriangle(cx - 30 * scale, cy + 28 * scale, cx - 12 * scale, cy - 4 * scale, cx + 8 * scale, cy + 28 * scale);
-          g.fillTriangle(cx + 30 * scale, cy + 28 * scale, cx + 12 * scale, cy - 4 * scale, cx - 8 * scale, cy + 28 * scale);
-        } else if (cell.id === "WHISTLE") {
-          g.fillStyle(0xeafdf4, 1);
-          g.fillRoundedRect(cx - 22 * scale, cy - 8 * scale, 34 * scale, 20 * scale, 8 * scale);
-          g.fillCircle(cx + 15 * scale, cy + 2 * scale, 13 * scale);
-          g.fillStyle(0x07100d, 1);
-          g.fillCircle(cx + 15 * scale, cy + 2 * scale, 5 * scale);
-        } else if (cell.id === "VAR_SCREEN") {
-          g.fillStyle(0x0f1c22, 1);
-          g.lineStyle(3 * scale, 0x4cc3ff, 0.9);
-          g.fillRoundedRect(cx - 28 * scale, cy - 20 * scale, 56 * scale, 38 * scale, 5 * scale);
-          g.strokeRoundedRect(cx - 28 * scale, cy - 20 * scale, 56 * scale, 38 * scale, 5 * scale);
-          addSmallLabel(sceneRef, box, "VAR", cx, cy, textSize, "#4cc3ff");
-        } else if (cell.id === "GOLDEN_BALL") {
+        if (cell.id === "GOLDEN_BALL") {
           const color = cell.coinTier === "gold" ? 0xffd66b : cell.coinTier === "silver" ? 0xdce8ef : 0xcd8755;
           g.fillStyle(color, 1);
           g.fillCircle(cx, cy - 4 * scale, 24 * scale);
@@ -2658,12 +2685,17 @@
         } else if (cell.id === "COLLECTOR") {
           drawTrophy(g, cx, cy - 5 * scale, scale * 0.86, 0xffd66b);
           addSmallLabel(sceneRef, box, cell.label ?? "COLLECT", cx, cy + size * 0.29, Math.max(10, size * 0.15), "#ffffff");
-        }
-
-        box.add(g);
-        if (!["VAR_SCREEN", "GOLDEN_BALL", "CAPTAIN_STAR", "COLLECTOR", "ARMBAND"].includes(cell.id)) {
+        } else if (cell.id === "VAR_SCREEN") {
+          g.fillStyle(0x0f1c22, 1);
+          g.lineStyle(3 * scale, 0x4cc3ff, 0.9);
+          g.fillRoundedRect(cx - 28 * scale, cy - 20 * scale, 56 * scale, 38 * scale, 5 * scale);
+          g.strokeRoundedRect(cx - 28 * scale, cy - 20 * scale, 56 * scale, 38 * scale, 5 * scale);
+          addSmallLabel(sceneRef, box, "VAR", cx, cy, textSize, "#4cc3ff");
+        } else {
+          drawTrophy(g, cx, cy, scale, 0xffd66b);
           addSmallLabel(sceneRef, box, SYMBOL_META[cell.id]?.short ?? cell.id, cx, size - 12 * scale, Math.max(9, size * 0.13), "#dffdee");
         }
+        box.add(g);
       }
 
       function drawTrophy(g, cx, cy, scale, color) {
