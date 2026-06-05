@@ -1,55 +1,86 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Golden Goal Rush Prototype</title>
+    <title>World Goal Rush — Championship Edition</title>
     <style>
       :root {
         color-scheme: dark;
-        --bg: #07100d;
-        --panel: rgba(8, 15, 14, 0.78);
-        --panel-strong: rgba(5, 9, 10, 0.92);
-        --line: rgba(255, 255, 255, 0.12);
-        --gold: #ffd66b;
-        --gold-strong: #ffb72c;
-        --green: #21f59b;
-        --green-soft: rgba(33, 245, 155, 0.22);
-        --red: #ff4d66;
-        --blue: #4cc3ff;
-        --text: #f7fff8;
-        --muted: #96aaa2;
-        font-family:
-          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        /* Spec Anhang A — design tokens */
+        --bg: #07101d;
+        --bg-deep: #030911;
+        --panel: rgba(16, 19, 26, 0.82);
+        --panel-strong: rgba(8, 11, 18, 0.94);
+        --line: rgba(255, 255, 255, 0.1);
+        --gold: #d8a943;
+        --gold-soft: #f6d77a;
+        --gold-strong: #ffcf52;
+        --green: #48ff6a;
+        --green-soft: rgba(72, 255, 106, 0.18);
+        --green-line: rgba(72, 255, 106, 0.55);
+        --red: #d93434;
+        --blue: #80d7ff;
+        --purple: #9a37ff;
+        --text: #f4f7ff;
+        --muted: #9fb0c4;
+        --radius: 14px;
+        --radius-lg: 18px;
+        --shadow-glow: 0 0 24px rgba(72, 255, 106, 0.35);
+        --gold-glow: 0 0 28px rgba(216, 169, 67, 0.4);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
       * {
         box-sizing: border-box;
       }
 
+      html,
       body {
         margin: 0;
+        height: 100%;
+      }
+
+      body {
         min-height: 100vh;
         min-height: 100dvh;
         overflow: hidden;
-        overflow-x: hidden;
-        background:
-          radial-gradient(circle at 50% 0%, rgba(255, 214, 107, 0.15), transparent 34%),
-          linear-gradient(180deg, rgba(13, 28, 23, 0.88), rgba(4, 8, 9, 0.98)),
-          var(--bg);
         color: var(--text);
+        background:
+          radial-gradient(120% 80% at 50% -10%, rgba(72, 255, 106, 0.12), transparent 42%),
+          radial-gradient(140% 90% at 50% 4%, rgba(216, 169, 67, 0.12), transparent 46%),
+          linear-gradient(180deg, #0a1626 0%, #06101c 46%, var(--bg-deep) 100%);
       }
 
+      /* Stadium ambience: floodlights + crowd glow + drifting particles */
       body::before {
         content: "";
         position: fixed;
         inset: 0;
+        z-index: 0;
         pointer-events: none;
         background:
-          linear-gradient(90deg, transparent 0 8%, rgba(33, 245, 155, 0.08) 8.3% 8.8%, transparent 9.2%),
-          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 72px);
-        mask-image: linear-gradient(180deg, transparent, #000 18%, #000 76%, transparent);
-        opacity: 0.55;
+          radial-gradient(40% 30% at 12% 0%, rgba(180, 220, 255, 0.18), transparent 70%),
+          radial-gradient(40% 30% at 88% 0%, rgba(180, 220, 255, 0.18), transparent 70%),
+          radial-gradient(60% 40% at 50% 0%, rgba(120, 180, 255, 0.1), transparent 70%);
+        opacity: 0.8;
+        animation: floodFlicker 6.5s ease-in-out infinite alternate;
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image:
+          radial-gradient(2px 2px at 20% 30%, rgba(246, 215, 122, 0.5), transparent),
+          radial-gradient(2px 2px at 70% 20%, rgba(72, 255, 106, 0.4), transparent),
+          radial-gradient(1.5px 1.5px at 40% 60%, rgba(255, 255, 255, 0.35), transparent),
+          radial-gradient(1.5px 1.5px at 85% 70%, rgba(246, 215, 122, 0.35), transparent),
+          radial-gradient(1.5px 1.5px at 10% 80%, rgba(72, 255, 106, 0.3), transparent);
+        opacity: 0.45;
+        animation: particleDrift 16s linear infinite;
       }
 
       button,
@@ -65,134 +96,332 @@
       }
 
       button:disabled {
-        cursor: wait;
-        opacity: 0.56;
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--green);
+        outline-offset: 2px;
       }
 
       .app {
         position: relative;
+        z-index: 1;
         display: grid;
-        grid-template-rows: auto 1fr;
+        grid-template-rows: auto minmax(0, 1fr) auto auto;
         width: 100%;
-        max-width: 100dvw;
         height: 100vh;
         height: 100dvh;
-        padding: 14px;
-        gap: 12px;
+        max-width: 1760px;
+        margin: 0 auto;
+        padding: clamp(8px, 1.4vw, 18px);
+        gap: clamp(8px, 1.1vw, 14px);
       }
 
+      /* ============ TOP BAR ============ */
       .topbar {
         display: grid;
-        grid-template-columns: 1fr auto;
+        grid-template-columns: 1fr auto 1fr;
         align-items: center;
         gap: 12px;
-        min-height: 58px;
-        padding: 10px 14px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: linear-gradient(180deg, rgba(11, 22, 20, 0.92), rgba(4, 7, 8, 0.82));
-        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.35);
       }
 
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-width: 0;
-      }
-
-      .crest {
-        display: grid;
-        place-items: center;
-        flex: 0 0 38px;
-        width: 38px;
-        height: 38px;
-        border: 1px solid rgba(255, 214, 107, 0.55);
-        border-radius: 8px;
-        background: radial-gradient(circle at 50% 35%, #fff1a9, #e6a81f 48%, #6b4507 100%);
-        color: #111;
-        font-weight: 1000;
-        letter-spacing: 0;
-      }
-
-      h1 {
-        margin: 0;
-        font-size: clamp(20px, 3vw, 34px);
-        line-height: 1;
-        letter-spacing: 0;
-      }
-
-      .subline {
-        margin-top: 5px;
-        color: var(--muted);
-        font-size: 12px;
-        letter-spacing: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .header-actions {
+      .util-bar {
         display: flex;
         align-items: center;
         gap: 8px;
+        justify-self: start;
       }
 
-      .icon-btn {
+      .util-btn {
         display: grid;
+        grid-template-rows: auto auto;
         place-items: center;
-        width: 38px;
-        height: 38px;
+        gap: 2px;
+        min-width: 58px;
+        min-height: 54px;
+        padding: 6px 10px;
         border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.06);
-        font-weight: 900;
+        border-radius: 12px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+        color: var(--text);
+        transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease;
       }
 
-      .layout {
+      .util-btn .ico {
+        font-size: 18px;
+        line-height: 1;
+        color: var(--gold-soft);
+      }
+
+      .util-btn .cap {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .util-btn:hover {
+        border-color: var(--green-line);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4), 0 0 16px rgba(72, 255, 106, 0.12);
+        transform: translateY(-1px);
+      }
+
+      .util-btn.active {
+        border-color: var(--green-line);
+        background: var(--green-soft);
+      }
+
+      .util-btn.active .ico,
+      .util-btn.active .cap {
+        color: var(--green);
+      }
+
+      /* ============ TITLE LOCKUP ============ */
+      .title-lockup {
+        justify-self: center;
+        text-align: center;
+        line-height: 0.9;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      .title-lockup .t-top {
+        display: block;
+        font-size: clamp(14px, 1.9vw, 24px);
+        font-weight: 900;
+        letter-spacing: 6px;
+        color: #dfe8f5;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+      }
+
+      .title-lockup .t-main {
+        display: block;
+        margin-top: 2px;
+        font-size: clamp(26px, 4.4vw, 56px);
+        font-weight: 1000;
+        letter-spacing: 2px;
+        background: linear-gradient(180deg, #fff6d8 0%, var(--gold-soft) 38%, var(--gold) 70%, #8a5e10 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 3px 0 #3a2606) drop-shadow(0 0 22px rgba(216, 169, 67, 0.45));
+      }
+
+      .title-lockup .t-sub {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 3px 14px;
+        border: 1px solid rgba(216, 169, 67, 0.5);
+        border-radius: 999px;
+        font-size: clamp(8px, 1vw, 11px);
+        font-weight: 800;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: var(--gold-soft);
+        background: rgba(216, 169, 67, 0.08);
+      }
+
+      /* ============ JACKPOT BADGE ============ */
+      .jackpot {
+        justify-self: end;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 330px;
-        gap: 12px;
+        justify-items: center;
+        gap: 2px;
+        min-width: 190px;
+        padding: 10px 18px;
+        border: 1px solid rgba(216, 169, 67, 0.5);
+        border-radius: var(--radius-lg);
+        background:
+          radial-gradient(80% 60% at 50% 0%, rgba(216, 169, 67, 0.22), transparent 70%),
+          linear-gradient(180deg, rgba(20, 24, 33, 0.95), rgba(8, 11, 18, 0.95));
+        box-shadow: var(--gold-glow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      }
+
+      .jackpot .jp-crest {
+        font-size: 20px;
+      }
+
+      .jackpot .jp-title {
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 3px;
+        color: var(--gold-soft);
+        text-transform: uppercase;
+      }
+
+      .jackpot .jp-sub {
+        font-size: 8px;
+        font-weight: 800;
+        letter-spacing: 3px;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+
+      .jackpot .jp-value {
+        font-size: clamp(20px, 2.4vw, 30px);
+        font-weight: 1000;
+        letter-spacing: 1px;
+        color: #fff;
+        text-shadow: 0 0 18px rgba(216, 169, 67, 0.6);
+      }
+
+      /* ============ PLAY AREA ============ */
+      .play-area {
+        display: grid;
+        grid-template-columns: clamp(150px, 14vw, 210px) minmax(0, 1fr) clamp(170px, 16vw, 250px);
+        gap: clamp(8px, 1vw, 16px);
         min-height: 0;
       }
 
+      .feature-stack {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(8px, 1.2vh, 16px);
+        justify-content: center;
+        min-width: 0;
+      }
+
+      .feature-panel {
+        position: relative;
+        display: grid;
+        justify-items: center;
+        gap: 4px;
+        padding: 14px 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background:
+          radial-gradient(90% 60% at 50% 0%, rgba(72, 255, 106, 0.08), transparent 70%),
+          linear-gradient(180deg, rgba(20, 24, 33, 0.9), rgba(8, 11, 18, 0.86));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 16px 40px rgba(0, 0, 0, 0.4);
+        overflow: hidden;
+      }
+
+      .feature-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        border: 1px solid rgba(216, 169, 67, 0.12);
+        pointer-events: none;
+      }
+
+      .feature-panel .fp-label {
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--green);
+        text-align: center;
+      }
+
+      .feature-panel .fp-icon {
+        font-size: 24px;
+        line-height: 1;
+        filter: drop-shadow(0 0 10px rgba(216, 169, 67, 0.5));
+      }
+
+      .feature-panel .fp-value {
+        font-size: clamp(24px, 2.8vw, 38px);
+        font-weight: 1000;
+        color: #fff;
+        line-height: 1;
+      }
+
+      .feature-panel .fp-value.small {
+        font-size: clamp(13px, 1.3vw, 16px);
+        text-align: center;
+        color: var(--gold-soft);
+      }
+
+      .feature-panel .fp-foot {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      /* ============ STAGE / GRID ============ */
       .stage {
         position: relative;
-        grid-column: 1;
         min-width: 0;
         min-height: 0;
+        border: 1px solid rgba(216, 169, 67, 0.28);
+        border-radius: var(--radius-lg);
         overflow: hidden;
-        border: 1px solid var(--line);
-        border-radius: 8px;
         background:
-          radial-gradient(circle at 50% 0%, rgba(33, 245, 155, 0.12), transparent 36%),
-          linear-gradient(180deg, rgba(4, 13, 13, 0.96), rgba(1, 3, 5, 0.92));
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 24px 70px rgba(0, 0, 0, 0.42);
+          radial-gradient(80% 50% at 50% 0%, rgba(72, 255, 106, 0.1), transparent 55%),
+          linear-gradient(180deg, rgba(6, 16, 26, 0.96), rgba(2, 6, 12, 0.94));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.06),
+          0 26px 80px rgba(0, 0, 0, 0.55),
+          var(--gold-glow);
       }
 
       #game-host {
+        position: relative;
+        z-index: 2;
         width: 100%;
         height: 100%;
+      }
+
+      .light-sweep {
+        position: absolute;
+        inset: 0;
+        z-index: 6;
+        pointer-events: none;
+        background: linear-gradient(100deg, transparent 0 36%, rgba(255, 255, 255, 0.46) 48%, rgba(216, 169, 67, 0.34) 52%, transparent 66%);
+        transform: translateX(-120%);
+        opacity: 0;
+      }
+
+      .light-sweep.show {
+        animation: gridLightSweep 720ms ease-out forwards;
+      }
+
+      .cascade-badge {
+        position: absolute;
+        left: 50%;
+        top: 18px;
+        z-index: 5;
+        transform: translate(-50%, -12px) scale(0.92);
+        padding: 8px 18px;
+        border: 1px solid var(--green-line);
+        border-radius: 999px;
+        background: rgba(4, 10, 9, 0.84);
+        color: #ceffe8;
+        font-weight: 900;
+        letter-spacing: 1px;
+        opacity: 0;
+        pointer-events: none;
+        box-shadow: 0 0 28px rgba(72, 255, 106, 0.22);
+        transition: opacity 160ms ease, transform 160ms ease;
+      }
+
+      .cascade-badge.show {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
       }
 
       .win-toast {
         position: absolute;
         left: 50%;
-        top: 11%;
-        z-index: 4;
+        top: 12%;
+        z-index: 7;
         transform: translate(-50%, -20px) scale(0.94);
-        min-width: min(520px, calc(100% - 32px));
+        min-width: min(420px, calc(100% - 32px));
         padding: 14px 22px;
-        border: 1px solid rgba(255, 214, 107, 0.58);
-        border-radius: 8px;
+        border: 1px solid rgba(216, 169, 67, 0.58);
+        border-radius: var(--radius);
         background: rgba(8, 9, 8, 0.82);
-        box-shadow: 0 0 50px rgba(255, 183, 44, 0.26);
+        box-shadow: 0 0 50px rgba(216, 169, 67, 0.28);
         text-align: center;
         opacity: 0;
         pointer-events: none;
-        transition:
-          opacity 160ms ease,
-          transform 160ms ease;
+        transition: opacity 160ms ease, transform 160ms ease;
       }
 
       .win-toast.show {
@@ -202,11 +431,10 @@
 
       .win-toast strong {
         display: block;
-        color: var(--gold);
-        font-size: clamp(22px, 4vw, 44px);
+        color: var(--gold-soft);
+        font-size: clamp(22px, 3.4vw, 40px);
         line-height: 1;
-        letter-spacing: 0;
-        text-shadow: 0 0 24px rgba(255, 214, 107, 0.46);
+        text-shadow: 0 0 24px rgba(216, 169, 67, 0.5);
       }
 
       .win-toast span {
@@ -216,208 +444,473 @@
         font-size: 14px;
       }
 
-      .side-panel {
-        grid-column: 2;
+      /* ============ SPIN AREA ============ */
+      .spin-area {
         display: flex;
         flex-direction: column;
-        min-height: 0;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--panel);
-        backdrop-filter: blur(16px);
-        overflow: hidden;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(10px, 1.6vh, 18px);
+        min-width: 0;
       }
 
-      .meters {
+      .primary-spin {
+        position: relative;
+        display: grid;
+        place-items: center;
+        gap: 2px;
+        width: clamp(132px, 13vw, 188px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        border: 2px solid rgba(72, 255, 106, 0.5);
+        background:
+          radial-gradient(circle at 50% 32%, rgba(72, 255, 106, 0.34), transparent 60%),
+          radial-gradient(circle at 50% 50%, rgba(10, 30, 22, 0.95), rgba(3, 10, 8, 0.98));
+        color: #eafff0;
+        box-shadow:
+          0 0 0 6px rgba(72, 255, 106, 0.08),
+          0 0 48px rgba(72, 255, 106, 0.4),
+          inset 0 2px 12px rgba(255, 255, 255, 0.14);
+        transition: transform 0.12s ease, box-shadow 0.18s ease, filter 0.16s ease;
+        animation: spinReadyPulse 2.5s ease-in-out infinite;
+      }
+
+      .primary-spin::before {
+        content: "";
+        position: absolute;
+        inset: -3px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        border-top-color: rgba(72, 255, 106, 0.85);
+        border-right-color: rgba(72, 255, 106, 0.4);
+        opacity: 0.9;
+      }
+
+      .primary-spin .spin-label {
+        font-size: clamp(22px, 2.4vw, 32px);
+        font-weight: 1000;
+        letter-spacing: 1px;
+        z-index: 1;
+        text-shadow: 0 0 18px rgba(72, 255, 106, 0.6);
+      }
+
+      .primary-spin .spin-sub {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: rgba(206, 255, 232, 0.8);
+        z-index: 1;
+      }
+
+      .primary-spin:hover:not(:disabled) {
+        filter: brightness(1.08);
+        box-shadow: 0 0 0 6px rgba(72, 255, 106, 0.12), 0 0 64px rgba(72, 255, 106, 0.55), inset 0 2px 12px rgba(255, 255, 255, 0.18);
+      }
+
+      .primary-spin:active:not(:disabled) {
+        transform: scale(0.97);
+      }
+
+      .primary-spin.is-spinning::before {
+        animation: spinRing 0.8s linear infinite;
+      }
+
+      .primary-spin.auto-running {
+        border-color: rgba(216, 169, 67, 0.7);
+        box-shadow: 0 0 0 6px rgba(216, 169, 67, 0.12), 0 0 56px rgba(216, 169, 67, 0.5), inset 0 2px 12px rgba(255, 255, 255, 0.16);
+      }
+
+      .spin-secondary {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        padding: 12px;
-        border-bottom: 1px solid var(--line);
+        gap: 10px;
+        width: 100%;
+        max-width: 220px;
       }
 
-      .meter {
-        min-width: 0;
-        padding: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.045);
+      .ctrl-btn {
+        display: grid;
+        grid-template-rows: auto auto;
+        place-items: center;
+        gap: 2px;
+        min-height: 56px;
+        padding: 8px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+        transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease, background 0.16s ease;
       }
 
-      .meter label {
-        display: block;
-        color: var(--muted);
-        font-size: 11px;
+      .ctrl-btn .ico {
+        font-size: 18px;
+        line-height: 1;
+        color: var(--gold-soft);
+      }
+
+      .ctrl-btn .cap {
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 2px;
         text-transform: uppercase;
-        letter-spacing: 0;
+        color: var(--muted);
       }
 
-      .meter strong {
-        display: block;
-        margin-top: 4px;
-        font-size: 20px;
+      .ctrl-btn:hover:not(:disabled) {
+        border-color: var(--green-line);
+        transform: translateY(-1px);
+      }
+
+      .ctrl-btn.active {
+        border-color: var(--green-line);
+        background: var(--green-soft);
+        box-shadow: var(--shadow-glow);
+      }
+
+      .ctrl-btn.active .ico,
+      .ctrl-btn.active .cap {
+        color: var(--green);
+      }
+
+      /* ============ BOTTOM HUD ============ */
+      .bottom-hud {
+        display: grid;
+        grid-template-columns: auto 1fr auto 1fr auto auto;
+        align-items: stretch;
+        gap: clamp(6px, 0.9vw, 14px);
+        padding: clamp(8px, 1vw, 14px);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background:
+          linear-gradient(180deg, rgba(18, 22, 31, 0.92), rgba(6, 10, 17, 0.92));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 -8px 40px rgba(0, 0, 0, 0.4);
+      }
+
+      .hud-cell {
+        display: grid;
+        align-content: center;
+        gap: 3px;
+        min-width: 0;
+        padding: 6px 12px;
+        border-radius: 12px;
+      }
+
+      .hud-cell.bordered {
+        border: 1px solid var(--line);
+        background: rgba(0, 0, 0, 0.28);
+      }
+
+      .hud-cell .hc-label {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .hud-cell .hc-value {
+        font-size: clamp(16px, 1.7vw, 22px);
+        font-weight: 1000;
+        color: #fff;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
-      .meter.full {
-        grid-column: 1 / -1;
+      .hud-cell .hc-value.win {
+        color: var(--green);
+        text-shadow: 0 0 16px rgba(72, 255, 106, 0.4);
       }
 
-      .controls {
-        display: grid;
-        gap: 10px;
-        padding: 12px;
-      }
-
-      .field {
-        display: grid;
-        gap: 6px;
-      }
-
-      .field label {
+      .hud-cell .hc-unit {
+        font-size: 10px;
+        font-weight: 700;
         color: var(--muted);
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0;
       }
 
-      .stepper {
+      .buy-feature {
         display: grid;
-        grid-template-columns: 42px 1fr 42px;
-        gap: 8px;
+        place-items: center;
+        gap: 2px;
+        min-width: 132px;
+        padding: 8px 16px;
+        border: 1px solid rgba(216, 169, 67, 0.5);
+        border-radius: 14px;
+        background:
+          radial-gradient(80% 80% at 50% 0%, rgba(216, 169, 67, 0.26), transparent 70%),
+          linear-gradient(180deg, rgba(40, 30, 8, 0.7), rgba(12, 10, 6, 0.7));
+        box-shadow: var(--gold-glow);
+        transition: transform 0.12s ease, box-shadow 0.18s ease, filter 0.16s ease;
       }
 
-      .stepper input,
-      select {
-        width: 100%;
-        min-height: 42px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(0, 0, 0, 0.34);
-        color: var(--text);
-        text-align: center;
-        outline: none;
-      }
-
-      .stepper button,
-      .secondary,
-      .toggle {
-        min-height: 42px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.06);
-      }
-
-      .primary-spin {
-        min-height: 74px;
-        border-radius: 8px;
-        background: radial-gradient(circle at 50% 20%, #fff8bf, var(--gold-strong) 42%, #895808 100%);
-        color: #130f04;
-        font-size: 24px;
+      .buy-feature .bf-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
         font-weight: 1000;
-        letter-spacing: 0;
-        box-shadow: 0 0 38px rgba(255, 183, 44, 0.24);
-      }
-
-      .quick-row,
-      .modal-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-
-      .toggle.active {
-        border-color: rgba(33, 245, 155, 0.75);
-        background: var(--green-soft);
-        color: #dffff1;
-      }
-
-      .buy-panel {
-        display: grid;
-        gap: 8px;
-        padding: 12px;
-        border-top: 1px solid var(--line);
-        overflow: auto;
-      }
-
-      .buy-panel h2 {
-        margin: 0 0 2px;
-        font-size: 14px;
+        letter-spacing: 1px;
         text-transform: uppercase;
-        letter-spacing: 0;
+        color: var(--gold-soft);
       }
 
-      .buy-option {
+      .buy-feature .bf-value {
+        font-size: 18px;
+        font-weight: 1000;
+        color: #fff;
+      }
+
+      .buy-feature:hover:not(:disabled) {
+        filter: brightness(1.08);
+        transform: translateY(-1px);
+      }
+
+      .bet-group {
         display: grid;
-        grid-template-columns: 1fr auto;
+        grid-template-columns: auto 1fr auto;
         align-items: center;
         gap: 8px;
-        width: 100%;
-        padding: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 8px;
-        background: rgba(0, 0, 0, 0.22);
-        text-align: left;
+        text-align: center;
       }
 
-      .buy-option span {
+      .bet-display {
+        display: grid;
+        gap: 2px;
+      }
+
+      .step-btn {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.06);
+        font-size: 22px;
+        font-weight: 900;
+        color: var(--gold-soft);
+        transition: border-color 0.16s ease, transform 0.12s ease, background 0.16s ease;
+      }
+
+      .step-btn:hover:not(:disabled) {
+        border-color: var(--green-line);
+        background: var(--green-soft);
+      }
+
+      .step-btn:active:not(:disabled) {
+        transform: scale(0.92);
+      }
+
+      .bet-max {
+        align-self: center;
+        min-width: 96px;
+        padding: 12px 16px;
+        border: 1px solid var(--green-line);
+        border-radius: 14px;
+        background: var(--green-soft);
+        font-size: 14px;
+        font-weight: 1000;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--green);
+        transition: filter 0.16s ease, transform 0.12s ease;
+      }
+
+      .bet-max:hover:not(:disabled) {
+        filter: brightness(1.12);
+        transform: translateY(-1px);
+      }
+
+      .hidden-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* ============ STATUS STRIP ============ */
+      .status-strip {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 10px;
+        padding: 4px clamp(8px, 1vw, 16px);
+        font-size: 11px;
+        letter-spacing: 1px;
         color: var(--muted);
-        font-size: 12px;
       }
 
-      .buy-option b {
+      .status-strip .ss-left {
+        justify-self: start;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .status-strip .ss-center {
+        justify-self: center;
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--gold-soft);
+      }
+
+      .status-strip .ss-right {
+        justify-self: end;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+
+      .status-strip b {
+        color: var(--text);
+        font-weight: 900;
+      }
+
+      .status-strip .volatility {
+        color: var(--gold-soft);
+        letter-spacing: 2px;
+      }
+
+      #statusValue[data-state="ready"] {
+        color: var(--green);
+      }
+      #statusValue[data-state="spinning"],
+      #statusValue[data-state="cascading"],
+      #statusValue[data-state="evaluating"] {
+        color: var(--gold-soft);
+      }
+      #statusValue[data-state="bonus"],
+      #statusValue[data-state="feature"] {
         color: var(--gold);
+        text-shadow: 0 0 14px rgba(216, 169, 67, 0.4);
+      }
+      #statusValue[data-state="complete"] {
+        color: #e9fff5;
+      }
+      #statusValue[data-state="error"] {
+        color: var(--red);
       }
 
+      .error-shake {
+        animation: errorShake 220ms ease-in-out;
+      }
+
+      /* ============ DIALOGS / OVERLAYS ============ */
       dialog {
         width: min(760px, calc(100dvw - 24px));
-        max-height: min(760px, calc(100dvh - 24px));
-        border: 1px solid rgba(255, 214, 107, 0.34);
-        border-radius: 8px;
+        max-height: min(80dvh, 760px);
+        border: 1px solid rgba(216, 169, 67, 0.34);
+        border-radius: var(--radius-lg);
         background: var(--panel-strong);
         color: var(--text);
         box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
       }
 
       dialog::backdrop {
-        background: rgba(0, 0, 0, 0.62);
+        background: rgba(0, 0, 0, 0.64);
         backdrop-filter: blur(5px);
       }
 
       .dialog-body {
         display: grid;
         gap: 14px;
-        padding: 18px;
+        padding: 22px;
+        animation: dialogIn 200ms var(--ease-out, ease);
       }
 
       .dialog-body h2 {
         margin: 0;
+        color: var(--gold-soft);
+        letter-spacing: 1px;
       }
 
       .dialog-body p,
       .dialog-body li {
         color: #c7d8d2;
-        line-height: 1.45;
+        line-height: 1.5;
+      }
+
+      .menu-settings {
+        display: grid;
+        gap: 8px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.26);
+      }
+
+      .menu-settings label {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .muted-note {
+        font-size: 12px;
+        color: var(--muted) !important;
       }
 
       .pay-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 8px;
       }
 
       .pay-card {
         padding: 10px;
         border: 1px solid var(--line);
-        border-radius: 8px;
+        border-radius: 12px;
         background: rgba(255, 255, 255, 0.04);
       }
 
       .pay-card b {
         display: block;
-        color: var(--gold);
+        color: var(--gold-soft);
+      }
+
+      .pay-card span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .modal-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .secondary {
+        min-height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.06);
+        font-weight: 800;
+        transition: border-color 0.16s ease, background 0.16s ease;
+      }
+
+      .secondary:hover {
+        border-color: var(--green-line);
+        background: var(--green-soft);
+      }
+
+      select#rtpSelect,
+      input#volumeInput {
+        width: 100%;
+        min-height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.34);
+        color: var(--text);
+        padding: 0 12px;
+      }
+
+      input#volumeInput {
+        accent-color: var(--green);
       }
 
       .confetti {
@@ -425,7 +918,7 @@
         inset: 0;
         pointer-events: none;
         overflow: hidden;
-        z-index: 8;
+        z-index: 30;
       }
 
       .confetti i {
@@ -437,344 +930,17 @@
         animation: fall 900ms linear forwards;
       }
 
-      @keyframes fall {
-        to {
-          transform: translateY(110dvh) rotate(520deg);
-          opacity: 0;
-        }
-      }
-
-      @media (max-width: 900px) {
-        body {
-          overflow: auto;
-          overflow-x: hidden;
-        }
-
-        .app {
-          min-height: 100vh;
-          min-height: 100dvh;
-          height: auto;
-          padding: 8px;
-        }
-
-        .topbar {
-          grid-template-columns: 1fr;
-        }
-
-        .header-actions {
-          justify-content: space-between;
-        }
-
-        .layout {
-          grid-template-columns: 1fr;
-          grid-template-rows: minmax(460px, 62vh) auto;
-        }
-
-        .stage,
-        .side-panel {
-          grid-column: 1;
-        }
-
-        .stage {
-          grid-row: 1;
-        }
-
-        .side-panel {
-          grid-row: 2;
-          min-height: auto;
-        }
-
-        .buy-panel {
-          max-height: none;
-        }
-      }
-
-      @media (max-width: 520px) {
-        .app {
-          gap: 8px;
-        }
-
-        .topbar {
-          padding: 10px;
-        }
-
-        .layout {
-          grid-template-rows: minmax(410px, 58vh) auto;
-        }
-
-        .meters {
-          grid-template-columns: 1fr 1fr;
-          padding: 8px;
-        }
-
-        .controls,
-        .buy-panel {
-          padding: 8px;
-        }
-
-        .primary-spin {
-          min-height: 64px;
-        }
-      }
-
-      .stage::before,
-      .stage::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        z-index: 1;
-      }
-
-      .stage::before {
-        background:
-          conic-gradient(from 212deg at 10% 8%, rgba(255, 255, 255, 0.24), transparent 11%, transparent 100%),
-          conic-gradient(from 148deg at 90% 8%, rgba(255, 255, 255, 0.22), transparent 12%, transparent 100%),
-          linear-gradient(90deg, transparent, rgba(33, 245, 155, 0.08), transparent);
-        mix-blend-mode: screen;
-        opacity: 0.58;
-        animation: stadiumSweep 7.5s ease-in-out infinite alternate;
-      }
-
-      .stage::after {
-        background:
-          radial-gradient(circle at 18% 20%, rgba(255, 214, 107, 0.2), transparent 4%),
-          radial-gradient(circle at 72% 16%, rgba(33, 245, 155, 0.16), transparent 5%),
-          repeating-linear-gradient(180deg, transparent 0 46px, rgba(255, 214, 107, 0.06) 47px 49px, transparent 50px);
-        opacity: 0.42;
-        animation: ledPulse 2.8s ease-in-out infinite;
-      }
-
-      #game-host {
-        position: relative;
-        z-index: 2;
-      }
-
-      .topbar,
-      .side-panel,
-      .stage {
-        border-color: rgba(255, 214, 107, 0.18);
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.08),
-          0 22px 80px rgba(0, 0, 0, 0.54),
-          0 0 34px rgba(33, 245, 155, 0.06);
-      }
-
-      .topbar {
-        background:
-          linear-gradient(180deg, rgba(17, 31, 28, 0.9), rgba(3, 7, 8, 0.86)),
-          linear-gradient(90deg, rgba(255, 214, 107, 0.1), transparent 38%, rgba(33, 245, 155, 0.08));
-      }
-
-      h1 {
-        color: #fff9d8;
-        text-shadow: 0 0 22px rgba(255, 214, 107, 0.28), 0 2px 0 #2a1c05;
-      }
-
-      .side-panel {
-        background:
-          linear-gradient(180deg, rgba(13, 24, 22, 0.82), rgba(3, 8, 9, 0.94)),
-          radial-gradient(circle at 50% 0%, rgba(255, 214, 107, 0.14), transparent 36%);
-      }
-
-      .meter {
-        position: relative;
-        overflow: hidden;
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
-          radial-gradient(circle at 100% 0%, rgba(33, 245, 155, 0.1), transparent 38%);
-        transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
-      }
-
-      .meter::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(110deg, transparent 0 34%, rgba(255, 255, 255, 0.07) 46%, transparent 60%);
-        transform: translateX(-110%);
-        animation: panelSheen 6s ease-in-out infinite;
-      }
-
-      .meter label::before {
-        display: inline-block;
-        width: 18px;
-        margin-right: 4px;
-        color: var(--gold);
-      }
-
-      .meter:nth-child(1) label::before {
-        content: "$";
-      }
-
-      .meter:nth-child(2) label::before {
-        content: "*";
-      }
-
-      .meter:nth-child(3) label::before {
-        content: "x";
-      }
-
-      .meter:nth-child(4) label::before {
-        content: ">";
-      }
-
-      .meter.full label::before {
-        content: ".";
-      }
-
-      #statusValue[data-state="ready"] {
-        color: var(--green);
-      }
-
-      #statusValue[data-state="spinning"] {
-        color: var(--gold);
-      }
-
-      #statusValue[data-state="bonus"] {
-        color: #ffe9a6;
-        text-shadow: 0 0 18px rgba(255, 214, 107, 0.36);
-      }
-
-      #statusValue[data-state="complete"] {
-        color: #e9fff5;
-      }
-
-      #statusValue[data-state="error"] {
-        color: var(--red);
-      }
-
-      .primary-spin {
-        position: relative;
-        overflow: hidden;
-        border: 1px solid rgba(255, 244, 186, 0.42);
-        background:
-          radial-gradient(circle at 50% 18%, #fff6c3 0 12%, #ffd66b 35%, #e28d15 68%, #663905 100%);
-        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.42);
-        transition: transform 120ms ease, filter 150ms ease, box-shadow 150ms ease;
-        animation: spinReadyPulse 1.7s ease-in-out infinite;
-      }
-
-      .primary-spin::before {
-        content: "";
-        position: absolute;
-        inset: -40%;
-        background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.32), transparent 32%);
-        animation: buttonSweep 2.5s linear infinite;
-      }
-
-      .primary-spin:hover {
-        filter: brightness(1.08);
-        box-shadow: 0 0 44px rgba(255, 183, 44, 0.36), 0 12px 34px rgba(0, 0, 0, 0.38);
-      }
-
-      .primary-spin:active {
-        transform: scale(0.98);
-      }
-
-      .primary-spin.is-spinning {
-        animation: spinLoading 0.8s linear infinite;
-        color: rgba(19, 15, 4, 0.74);
-      }
-
-      .buy-option {
-        position: relative;
-        overflow: hidden;
-        min-height: 66px;
-        border-color: rgba(255, 214, 107, 0.12);
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
-          radial-gradient(circle at 0% 0%, rgba(33, 245, 155, 0.1), transparent 42%);
-        transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
-      }
-
-      .buy-option::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(100deg, transparent 20%, rgba(255, 214, 107, 0.08), transparent 72%);
-        transform: translateX(-120%);
-        transition: transform 320ms ease;
-      }
-
-      .buy-option:not(:disabled):hover {
-        transform: translateY(-1px);
-        border-color: rgba(255, 214, 107, 0.44);
-        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32), 0 0 24px rgba(33, 245, 155, 0.08);
-      }
-
-      .buy-option:not(:disabled):hover::after {
-        transform: translateX(90%);
-      }
-
-      .buy-option.locked {
-        border-color: rgba(255, 214, 107, 0.26);
-        background:
-          linear-gradient(180deg, rgba(64, 46, 9, 0.42), rgba(10, 9, 7, 0.32)),
-          repeating-linear-gradient(135deg, rgba(255, 214, 107, 0.06) 0 8px, transparent 8px 16px);
-      }
-
-      input[type="range"] {
-        width: 100%;
-        accent-color: var(--gold);
-        height: 6px;
-        border-radius: 999px;
-        background: linear-gradient(90deg, var(--gold), rgba(255, 255, 255, 0.18));
-      }
-
-      input[type="range"]::-webkit-slider-thumb {
-        width: 18px;
-        height: 18px;
-        border: 2px solid #fff5c4;
-        border-radius: 50%;
-        background: var(--gold);
-        box-shadow: 0 0 18px rgba(245, 200, 75, 0.42);
-        appearance: none;
-      }
-
-      select {
-        appearance: none;
-        background:
-          linear-gradient(45deg, transparent 50%, var(--gold) 50%) calc(100% - 18px) 52% / 7px 7px no-repeat,
-          linear-gradient(135deg, var(--gold) 50%, transparent 50%) calc(100% - 13px) 52% / 7px 7px no-repeat,
-          rgba(0, 0, 0, 0.34);
-        padding: 0 34px 0 12px;
-      }
-
-      .cascade-badge {
-        position: absolute;
-        left: 50%;
-        top: 78px;
-        z-index: 5;
-        transform: translate(-50%, -12px) scale(0.92);
-        padding: 8px 16px;
-        border: 1px solid rgba(33, 245, 155, 0.52);
-        border-radius: 999px;
-        background: rgba(4, 10, 9, 0.84);
-        color: #ceffe8;
-        font-weight: 900;
-        letter-spacing: 0;
-        opacity: 0;
-        pointer-events: none;
-        box-shadow: 0 0 28px rgba(33, 245, 155, 0.22);
-        transition: opacity 160ms ease, transform 160ms ease;
-      }
-
-      .cascade-badge.show {
-        opacity: 1;
-        transform: translate(-50%, 0) scale(1);
-      }
-
       .big-win-overlay,
       .bonus-transition {
         position: fixed;
         inset: 0;
-        z-index: 20;
+        z-index: 40;
         display: grid;
         place-items: center;
         padding: 24px;
         background:
-          radial-gradient(circle at 50% 38%, rgba(255, 214, 107, 0.2), transparent 30%),
-          rgba(0, 0, 0, 0.66);
+          radial-gradient(circle at 50% 38%, rgba(216, 169, 67, 0.22), transparent 30%),
+          rgba(0, 0, 0, 0.68);
         opacity: 0;
         pointer-events: none;
         transition: opacity 180ms ease;
@@ -789,32 +955,31 @@
       .big-win-card,
       .bonus-card {
         width: min(680px, 92vw);
-        border: 1px solid rgba(255, 214, 107, 0.5);
-        border-radius: 8px;
+        border: 1px solid rgba(216, 169, 67, 0.5);
+        border-radius: var(--radius-lg);
         padding: clamp(22px, 5vw, 46px);
         background:
-          linear-gradient(180deg, rgba(19, 20, 13, 0.92), rgba(4, 7, 7, 0.96)),
-          radial-gradient(circle at 50% 0%, rgba(255, 214, 107, 0.24), transparent 40%);
-        box-shadow: 0 0 70px rgba(255, 183, 44, 0.22), 0 34px 90px rgba(0, 0, 0, 0.72);
+          linear-gradient(180deg, rgba(19, 20, 13, 0.94), rgba(4, 7, 7, 0.96)),
+          radial-gradient(circle at 50% 0%, rgba(216, 169, 67, 0.24), transparent 40%);
+        box-shadow: 0 0 70px rgba(216, 169, 67, 0.24), 0 34px 90px rgba(0, 0, 0, 0.72);
         text-align: center;
       }
 
       .big-win-title,
       .bonus-title {
         margin: 0;
-        color: var(--gold);
+        color: var(--gold-soft);
         font-size: clamp(34px, 9vw, 82px);
         line-height: 0.95;
-        letter-spacing: 0;
-        text-shadow: 0 0 26px rgba(255, 214, 107, 0.42), 0 4px 0 #442904;
+        text-shadow: 0 0 26px rgba(216, 169, 67, 0.45), 0 4px 0 #442904;
       }
 
       .big-win-amount {
         margin-top: 16px;
-        color: #ffffff;
+        color: #fff;
         font-size: clamp(26px, 6vw, 54px);
         font-weight: 1000;
-        text-shadow: 0 0 20px rgba(33, 245, 155, 0.32);
+        text-shadow: 0 0 20px rgba(72, 255, 106, 0.34);
       }
 
       .big-win-sub,
@@ -836,210 +1001,101 @@
         width: 0%;
         height: 100%;
         background: linear-gradient(90deg, var(--green), var(--gold));
-        box-shadow: 0 0 18px rgba(255, 214, 107, 0.5);
+        box-shadow: 0 0 18px rgba(216, 169, 67, 0.5);
       }
 
-      .light-sweep {
+      /* Hidden host that keeps relocatable settings controls alive */
+      #settingsHost {
         position: absolute;
-        inset: 0;
-        z-index: 6;
-        pointer-events: none;
-        background: linear-gradient(100deg, transparent 0 36%, rgba(255, 255, 255, 0.46) 48%, rgba(255, 214, 107, 0.34) 52%, transparent 66%);
-        transform: translateX(-120%);
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
         opacity: 0;
+        pointer-events: none;
       }
 
-      .light-sweep.show {
-        animation: gridLightSweep 720ms ease-out forwards;
+      /* ============ KEYFRAMES ============ */
+      @keyframes floodFlicker {
+        0%, 100% { opacity: 0.7; }
+        50% { opacity: 0.92; }
       }
 
-      @keyframes stadiumSweep {
-        from {
-          transform: translateX(-1%) scale(1);
-          opacity: 0.44;
-        }
-        to {
-          transform: translateX(1%) scale(1.02);
-          opacity: 0.72;
-        }
-      }
-
-      @keyframes ledPulse {
-        50% {
-          opacity: 0.64;
-        }
-      }
-
-      @keyframes panelSheen {
-        0%,
-        68% {
-          transform: translateX(-120%);
-        }
-        100% {
-          transform: translateX(130%);
-        }
+      @keyframes particleDrift {
+        from { transform: translateY(0); }
+        to { transform: translateY(-30px); }
       }
 
       @keyframes spinReadyPulse {
-        50% {
-          box-shadow: 0 0 42px rgba(255, 183, 44, 0.32);
-        }
+        50% { box-shadow: 0 0 0 6px rgba(72, 255, 106, 0.12), 0 0 64px rgba(72, 255, 106, 0.5), inset 0 2px 12px rgba(255, 255, 255, 0.16); }
       }
 
-      @keyframes buttonSweep {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      @keyframes spinLoading {
-        to {
-          filter: hue-rotate(18deg) brightness(1.08);
-        }
+      @keyframes spinRing {
+        to { transform: rotate(360deg); }
       }
 
       @keyframes gridLightSweep {
-        0% {
-          opacity: 0;
-          transform: translateX(-120%);
-        }
-        18%,
-        70% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 0;
-          transform: translateX(120%);
-        }
+        0% { opacity: 0; transform: translateX(-120%); }
+        18%, 70% { opacity: 1; }
+        100% { opacity: 0; transform: translateX(120%); }
       }
 
-      .demo-badges {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 7px;
-      }
-
-      .demo-badges span {
-        padding: 3px 7px;
-        border: 1px solid rgba(33, 245, 155, 0.3);
-        border-radius: 999px;
-        background: rgba(33, 245, 155, 0.08);
-        color: #dfffee;
-        font-size: 10px;
-        font-weight: 800;
-        letter-spacing: 0;
-        text-transform: uppercase;
-      }
-
-      [data-tooltip] {
-        position: relative;
-      }
-
-      [data-tooltip]::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        left: 50%;
-        bottom: calc(100% + 8px);
-        z-index: 30;
-        width: max-content;
-        max-width: 220px;
-        padding: 6px 8px;
-        border: 1px solid rgba(255, 214, 107, 0.28);
-        border-radius: 6px;
-        background: rgba(4, 8, 8, 0.94);
-        color: #e9fff5;
-        font-size: 11px;
-        line-height: 1.2;
-        text-align: center;
-        opacity: 0;
-        pointer-events: none;
-        transform: translate(-50%, 4px);
-        transition: opacity 120ms ease, transform 120ms ease;
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
-      }
-
-      [data-tooltip]:hover::after,
-      [data-tooltip]:focus-visible::after {
-        opacity: 1;
-        transform: translate(-50%, 0);
-      }
-
-      .buy-option[data-tooltip]::after {
-        left: auto;
-        right: 10px;
-        bottom: calc(100% + 6px);
-        transform: translateY(4px);
-      }
-
-      .buy-option[data-tooltip]:hover::after,
-      .buy-option[data-tooltip]:focus-visible::after {
-        transform: translateY(0);
-      }
-
-      .meter:nth-child(5) label::before {
-        content: "#";
-      }
-
-      .meter:nth-child(6) label::before {
-        content: "t";
-      }
-
-      .primary-spin.auto-running {
-        background:
-          radial-gradient(circle at 50% 18%, #eaffd9 0 12%, #21f59b 36%, #0a9f6a 72%, #063226 100%);
-      }
-
-      .status-complete {
-        color: #dfffee;
-      }
-
-      .error-shake {
-        animation: errorShake 220ms ease-in-out;
+      @keyframes fall {
+        to { transform: translateY(110dvh) rotate(520deg); opacity: 0; }
       }
 
       @keyframes errorShake {
-        20% {
-          transform: translateX(-4px);
+        20% { transform: translateX(-4px); }
+        40% { transform: translateX(4px); }
+        60% { transform: translateX(-3px); }
+        80% { transform: translateX(3px); }
+      }
+
+      @keyframes dialogIn {
+        from { opacity: 0; transform: scale(0.96); }
+        to { opacity: 1; transform: scale(1); }
+      }
+
+      /* ============ RESPONSIVE ============ */
+      @media (max-width: 1180px) {
+        .play-area {
+          grid-template-columns: clamp(130px, 16vw, 180px) minmax(0, 1fr) clamp(150px, 18vw, 210px);
         }
-        40% {
-          transform: translateX(4px);
+        .title-lockup .t-top { letter-spacing: 4px; }
+        .jackpot { min-width: 150px; }
+      }
+
+      @media (max-width: 920px) {
+        .app {
+          height: auto;
+          min-height: 100dvh;
+          grid-template-rows: auto auto auto auto;
         }
-        60% {
-          transform: translateX(-3px);
+        body { overflow: auto; }
+        .topbar {
+          grid-template-columns: 1fr 1fr;
+          grid-template-areas: "util jackpot" "title title";
+          row-gap: 10px;
         }
-        80% {
-          transform: translateX(3px);
+        .util-bar { grid-area: util; }
+        .jackpot { grid-area: jackpot; }
+        .title-lockup { grid-area: title; }
+        .play-area {
+          grid-template-columns: 1fr;
+          grid-template-areas: "stage" "features" "spin";
+        }
+        .stage { grid-area: stage; min-height: 52vh; }
+        .feature-stack { grid-area: features; flex-direction: row; }
+        .feature-panel { flex: 1; }
+        .spin-area { grid-area: spin; flex-direction: row; }
+        .bottom-hud {
+          grid-template-columns: 1fr 1fr;
         }
       }
 
-      @media (max-width: 900px) {
-        .side-panel {
-          position: static;
-          z-index: 12;
-          max-height: none;
-          border-color: rgba(255, 214, 107, 0.28);
-        }
-
-        .controls {
-          order: -1;
-        }
-
-        .meters {
-          order: 0;
-        }
-
-        .buy-panel {
-          order: 1;
-        }
-
-        .meters {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        [data-tooltip]::after {
-          display: none;
-        }
+      @media (max-width: 560px) {
+        .bottom-hud { grid-template-columns: 1fr; }
+        .util-btn { min-width: 48px; }
+        .feature-stack { flex-wrap: wrap; }
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -1048,7 +1104,6 @@
         *::after {
           animation-duration: 1ms !important;
           animation-iteration-count: 1 !important;
-          scroll-behavior: auto !important;
           transition-duration: 1ms !important;
         }
       }
@@ -1056,27 +1111,59 @@
   </head>
   <body>
     <div class="app">
+      <!-- ============ TOP BAR (1 utility / 2 title / 5 jackpot) ============ -->
       <header class="topbar">
-        <div class="brand">
-          <div class="crest" aria-hidden="true">GG</div>
-          <div>
-            <h1>Golden Goal Rush</h1>
-            <div class="subline">6x5 cluster pays - demo credits only - no real money</div>
-            <div class="demo-badges" aria-label="Responsible gaming information">
-              <span>Demo Credits Only</span>
-              <span>No Real Money</span>
-            </div>
-          </div>
+        <nav class="util-bar" aria-label="System controls">
+          <button class="util-btn" id="menuBtn" type="button" title="Menu" aria-label="Open menu">
+            <span class="ico" aria-hidden="true">≡</span><span class="cap">Menu</span>
+          </button>
+          <button class="util-btn" id="infoBtn" type="button" title="Info & rules" aria-label="Open info and rules">
+            <span class="ico" aria-hidden="true">ⓘ</span><span class="cap">Info</span>
+          </button>
+          <button class="util-btn" id="paysBtn" type="button" title="Paytable" aria-label="Open paytable">
+            <span class="ico" aria-hidden="true">🏆</span><span class="cap">Pays</span>
+          </button>
+          <button class="util-btn active" id="soundBtn" type="button" title="Toggle sound" aria-label="Toggle sound" aria-pressed="true">
+            <span class="ico" aria-hidden="true">🔊</span><span class="cap">Sound</span>
+          </button>
+        </nav>
+
+        <div class="title-lockup">
+          <span class="t-top">WORLD</span>
+          <span class="t-main">GOAL RUSH</span>
+          <span class="t-sub">★ Championship Edition ★</span>
         </div>
-        <div class="header-actions">
-          <button class="icon-btn" id="soundBtn" title="Toggle sound" data-tooltip="Sound on/off" type="button">S</button>
-          <button class="icon-btn" id="paytableBtn" title="Paytable" data-tooltip="Open paytable" type="button">P</button>
-          <button class="icon-btn" id="rulesBtn" title="Rules" data-tooltip="Open rules" type="button">R</button>
-          <button class="icon-btn" id="fullscreenBtn" title="Fullscreen" data-tooltip="Fullscreen" type="button">F</button>
+
+        <div class="jackpot" aria-label="Road to Glory jackpot">
+          <span class="jp-crest" aria-hidden="true">🏆</span>
+          <span class="jp-title">Road to Glory</span>
+          <span class="jp-sub">Jackpot</span>
+          <span class="jp-value" id="jackpotValue">2,500.00</span>
         </div>
       </header>
 
-      <main class="layout">
+      <!-- ============ PLAY AREA (4 features / 3 grid / 6 spin) ============ -->
+      <main class="play-area">
+        <aside class="feature-stack" aria-label="Feature status">
+          <div class="feature-panel">
+            <span class="fp-label">Free Spins</span>
+            <span class="fp-icon" aria-hidden="true">🏆</span>
+            <span class="fp-value" id="freeSpinsValue">10</span>
+            <span class="fp-foot">Remaining</span>
+          </div>
+          <div class="feature-panel">
+            <span class="fp-label">Multiplier</span>
+            <span class="fp-icon" aria-hidden="true">🏆</span>
+            <span class="fp-value" id="multiplierValue">x5</span>
+            <span class="fp-foot">Current</span>
+          </div>
+          <div class="feature-panel">
+            <span class="fp-label">Next Reward</span>
+            <span class="fp-icon" aria-hidden="true">⚽</span>
+            <span class="fp-value small" id="nextRewardValue">15 FREE SPINS AT x10</span>
+          </div>
+        </aside>
+
         <section class="stage" aria-label="Game stage">
           <div id="game-host"></div>
           <div class="light-sweep" id="lightSweep"></div>
@@ -1087,96 +1174,91 @@
           </div>
         </section>
 
-        <aside class="side-panel" aria-label="Game controls">
-          <div class="meters">
-            <div class="meter">
-              <label>Balance</label>
-              <strong id="balanceValue">5000.00</strong>
-            </div>
-            <div class="meter">
-              <label>Last Win</label>
-              <strong id="winValue">0.00</strong>
-            </div>
-            <div class="meter">
-              <label>Bet</label>
-              <strong id="betValue">1.00</strong>
-            </div>
-            <div class="meter">
-              <label>Mode</label>
-              <strong id="modeValue">Base</strong>
-            </div>
-            <div class="meter">
-              <label>Spins</label>
-              <strong id="spinCountValue">0</strong>
-            </div>
-            <div class="meter">
-              <label>Session</label>
-              <strong id="sessionValue">00:00</strong>
-            </div>
-            <div class="meter full">
-              <label>Status</label>
-              <strong id="statusValue">Ready</strong>
-            </div>
-          </div>
-
-          <div class="controls">
-            <button class="primary-spin" id="spinBtn" data-tooltip="Start one demo spin" type="button">SPIN</button>
-
-            <div class="field">
-              <label for="betInput">Demo Bet</label>
-              <div class="stepper">
-                <button id="betDown" title="Lower demo bet" data-tooltip="Lower demo bet" type="button">-</button>
-                <input id="betInput" inputmode="decimal" value="1.00" aria-label="Bet amount" />
-                <button id="betUp" title="Raise demo bet" data-tooltip="Raise demo bet" type="button">+</button>
-              </div>
-            </div>
-
-            <div class="quick-row">
-              <button class="toggle" id="turboBtn" data-tooltip="Shorter animations, same math result" type="button">Turbo</button>
-              <button class="toggle" id="autoBtn" data-tooltip="Start or stop autoplay" type="button">Auto</button>
-            </div>
-
-            <div class="field">
-              <label for="rtpSelect">RTP Profile</label>
-              <select id="rtpSelect" title="Demo RTP profile for math tuning">
-                <option value="96">96%</option>
-                <option value="94">94%</option>
-                <option value="92">92%</option>
-                <option value="88">88%</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="volumeInput">Volume</label>
-              <input id="volumeInput" type="range" min="0" max="100" value="34" aria-label="Volume" />
-            </div>
-          </div>
-
-          <div class="buy-panel">
-            <h2>Demo Bonus Buy</h2>
-            <button class="buy-option" data-buy="featureSpins" data-tooltip="Demo feature spin purchase, costs demo credits" type="button">
-              <span>Feature Spins<br />5x higher bonus chance</span>
-              <b>3x</b>
+        <aside class="spin-area" aria-label="Spin controls">
+          <button class="primary-spin" id="spinBtn" type="button" title="Spin (hold for turbo)">
+            <span class="spin-label" id="spinLabel">SPIN</span>
+            <span class="spin-sub">Hold for Turbo</span>
+          </button>
+          <div class="spin-secondary">
+            <button class="ctrl-btn" id="autoBtn" type="button" title="Toggle autoplay">
+              <span class="ico" aria-hidden="true">↻</span><span class="cap" data-label="AUTO">Auto</span>
             </button>
-            <button class="buy-option" data-buy="lightsSpin" data-tooltip="Guaranteed activator spin using demo credits" type="button">
-              <span>Stadium Lights Spin<br />Guaranteed activator</span>
-              <b>50x</b>
-            </button>
-            <button class="buy-option" data-buy="extraTime" data-tooltip="Starts the Extra Time free spins demo" type="button">
-              <span>Extra Time Bonus<br />8 free spins</span>
-              <b>100x</b>
-            </button>
-            <button class="buy-option" data-buy="penaltyShootout" data-tooltip="Starts the Penalty Shootout free spins demo" type="button">
-              <span>Penalty Shootout<br />12 free spins</span>
-              <b>250x</b>
-            </button>
-            <button class="buy-option locked" id="worldFinalLocked" data-tooltip="World Final triggers only from scatters" type="button">
-              <span>World Final Bonus<br />Not purchasable</span>
-              <b>Locked</b>
+            <button class="ctrl-btn" id="turboBtn" type="button" title="Toggle turbo">
+              <span class="ico" aria-hidden="true">⚡</span><span class="cap">Turbo</span>
             </button>
           </div>
         </aside>
       </main>
+
+      <!-- ============ BOTTOM HUD (7) ============ -->
+      <footer class="bottom-hud" aria-label="Wallet and bet controls">
+        <button class="buy-feature" id="buyFeatureBtn" type="button" title="Buy feature (demo)">
+          <span class="bf-title"><span aria-hidden="true">🏆</span> Buy Feature</span>
+          <span class="bf-value">200.00</span>
+        </button>
+
+        <div class="hud-cell bordered">
+          <span class="hc-label">Balance</span>
+          <span class="hc-value"><span id="balanceValue">2425.50</span> <span class="hc-unit">USDT</span></span>
+        </div>
+
+        <div class="hud-cell bordered bet-group">
+          <button class="step-btn" id="betDown" type="button" title="Lower bet" aria-label="Lower bet">−</button>
+          <span class="bet-display">
+            <span class="hc-label">Bet</span>
+            <span class="hc-value"><span id="betValue">20.00</span> <span class="hc-unit">USDT</span></span>
+          </span>
+          <button class="step-btn" id="betUp" type="button" title="Raise bet" aria-label="Raise bet">+</button>
+        </div>
+
+        <div class="hud-cell bordered">
+          <span class="hc-label">Win</span>
+          <span class="hc-value win"><span id="winValue">150.00</span> <span class="hc-unit">USDT</span></span>
+        </div>
+
+        <button class="bet-max" id="betMaxBtn" type="button" title="Set maximum bet">Bet Max</button>
+
+        <div class="hud-cell bordered">
+          <span class="hc-label">Coin Value</span>
+          <span class="hc-value"><span id="coinValue">0.20</span> <span class="hc-unit">USDT</span></span>
+        </div>
+      </footer>
+
+      <!-- ============ STATUS STRIP ============ -->
+      <div class="status-strip" data-shake>
+        <div class="ss-left">
+          <span><b id="waysValue">4096 WAYS</b></span>
+          <span>Volatility <span class="volatility" id="volatilityValue">⚡⚡⚡⚡</span></span>
+          <span>Mode <b id="modeValue">Base</b></span>
+        </div>
+        <div class="ss-center">WORLD GOAL RUSH™</div>
+        <div class="ss-right">
+          <span>Status <b id="statusValue" data-state="ready">Ready</b></span>
+          <span>Spins <b id="spinCountValue">0</b></span>
+          <span><b id="sessionValue">00:00</b></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden host keeps relocatable demo settings controls (RTP, volume) alive -->
+    <div id="settingsHost" aria-hidden="true">
+      <select id="rtpSelect" title="Demo RTP profile for math tuning">
+        <option value="96">96%</option>
+        <option value="94">94%</option>
+        <option value="92">92%</option>
+        <option value="88">88%</option>
+      </select>
+      <input id="volumeInput" type="range" min="0" max="100" value="34" aria-label="Volume" />
+      <button id="fullscreenBtn" type="button">Fullscreen</button>
+    </div>
+
+    <!-- Hidden bonus-buy controls (demo only) used by the Buy Feature / bonus flow -->
+    <div id="bonusBuyHost" style="position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;">
+      <button class="buy-option" data-buy="featureSpins" type="button">Feature Spins</button>
+      <button class="buy-option" data-buy="lightsSpin" type="button">Stadium Lights Spin</button>
+      <button class="buy-option" data-buy="extraTime" type="button">Extra Time Bonus</button>
+      <button class="buy-option" data-buy="penaltyShootout" type="button">Penalty Shootout</button>
+      <button class="buy-option locked" id="worldFinalLocked" type="button">World Final</button>
     </div>
 
     <div class="confetti" id="confetti"></div>
@@ -1244,11 +1326,13 @@
       import { countUp } from "./src/animation/CountUpAnimator.ts";
       import { clearElementLater, confettiCount } from "./src/animation/ParticleSystem.ts";
       import { formatSessionTime, statusToneForState } from "./src/ui/Hud.ts";
+      import { loadGameConfig, DEFAULT_GAME_CONFIG, DEFAULT_BET_STEPS } from "./src/config/loadGameConfig.ts";
 
       const PhaserRef = Phaser;
       const MIN_BET = 0.1;
       const MAX_BET = 100;
-      const START_BALANCE = 5000;
+      const BET_STEPS = DEFAULT_BET_STEPS;
+      const START_BALANCE = 2425.5;
       const REALITY_CHECK_SPINS = 25;
       const STAKE_MODE_NAME = "base";
       applyDesignTokens(document.documentElement);
@@ -1263,17 +1347,29 @@
         session: document.querySelector("#sessionValue"),
         status: document.querySelector("#statusValue"),
         spin: document.querySelector("#spinBtn"),
+        spinLabel: document.querySelector("#spinLabel"),
         betInput: document.querySelector("#betInput"),
         betDown: document.querySelector("#betDown"),
         betUp: document.querySelector("#betUp"),
+        betMax: document.querySelector("#betMaxBtn"),
+        coinValue: document.querySelector("#coinValue"),
         turbo: document.querySelector("#turboBtn"),
         auto: document.querySelector("#autoBtn"),
         rtp: document.querySelector("#rtpSelect"),
         volume: document.querySelector("#volumeInput"),
+        settingsHost: document.querySelector("#settingsHost"),
         sound: document.querySelector("#soundBtn"),
-        paytable: document.querySelector("#paytableBtn"),
-        rules: document.querySelector("#rulesBtn"),
+        menu: document.querySelector("#menuBtn"),
+        paytable: document.querySelector("#paysBtn"),
+        rules: document.querySelector("#infoBtn"),
         fullscreen: document.querySelector("#fullscreenBtn"),
+        buyFeature: document.querySelector("#buyFeatureBtn"),
+        jackpot: document.querySelector("#jackpotValue"),
+        freeSpins: document.querySelector("#freeSpinsValue"),
+        multiplier: document.querySelector("#multiplierValue"),
+        nextReward: document.querySelector("#nextRewardValue"),
+        ways: document.querySelector("#waysValue"),
+        volatility: document.querySelector("#volatilityValue"),
         lightSweep: document.querySelector("#lightSweep"),
         cascadeBadge: document.querySelector("#cascadeBadge"),
         worldFinalLocked: document.querySelector("#worldFinalLocked"),
@@ -1303,9 +1399,11 @@
 
       const state = {
         balance: START_BALANCE,
-        bet: 1,
+        bet: DEFAULT_GAME_CONFIG.defaultBet,
         betLevels: [],
-        lastWin: 0,
+        betSteps: BET_STEPS,
+        coinDivisor: DEFAULT_GAME_CONFIG.coinValueDivisor,
+        lastWin: 150,
         spinning: false,
         turbo: false,
         auto: false,
@@ -1313,6 +1411,15 @@
         seed: defaultSeed(),
         bonusMode: null,
         freeSpins: 0,
+        // Feature-panel showcase values (mock defaults per MVP spec, updated live during play).
+        freeSpinsShowcase: 10,
+        multiplier: 5,
+        nextRewardSpins: 15,
+        nextRewardMult: 10,
+        jackpot: DEFAULT_GAME_CONFIG.jackpot,
+        ways: DEFAULT_GAME_CONFIG.ways,
+        volatility: DEFAULT_GAME_CONFIG.volatility,
+        currencyLabel: "USDT",
         persistentZones: [],
         lastVisibleZones: [],
         spinCount: 0,
@@ -1647,29 +1754,59 @@
           state.replayMode = true;
           stopAuto();
           els.auto.disabled = true;
-          els.spin.textContent = "REPLAY";
+          if (els.spinLabel) els.spinLabel.textContent = "REPLAY";
         }
         setStatus("Stake session authenticated", "ready");
       }
 
+      // Hold-for-turbo: a quick tap spins once; pressing and holding the SPIN
+      // button enables Turbo for snappier spins (matches the CTA sublabel).
+      let spinHoldTimer = null;
+      function clearSpinHold() {
+        if (spinHoldTimer) {
+          window.clearTimeout(spinHoldTimer);
+          spinHoldTimer = null;
+        }
+      }
+      els.spin.addEventListener("pointerdown", () => {
+        if (state.spinning || state.replayMode) return;
+        clearSpinHold();
+        spinHoldTimer = window.setTimeout(() => {
+          if (!state.turbo) {
+            state.turbo = true;
+            playSound("button");
+            setStatus("Turbo enabled", "ready");
+            updateUi();
+          }
+        }, 420);
+      });
+      els.spin.addEventListener("pointerup", clearSpinHold);
+      els.spin.addEventListener("pointerleave", clearSpinHold);
       els.spin.addEventListener("click", () => {
+        clearSpinHold();
         audio.unlock();
         playSound("button");
         spin();
       });
       els.betDown.addEventListener("click", () => {
         playSound("button");
-        setBet(state.bet / 2);
+        stepBet(-1);
       });
       els.betUp.addEventListener("click", () => {
         playSound("button");
-        setBet(state.bet * 2);
+        stepBet(1);
       });
-      els.betInput.addEventListener("change", () => setBet(Number(els.betInput.value)));
+      if (els.betMax) {
+        els.betMax.addEventListener("click", () => {
+          playSound("button");
+          setBetMax();
+        });
+      }
+      if (els.betInput) els.betInput.addEventListener("change", () => setBet(Number(els.betInput.value)));
       els.turbo.addEventListener("click", () => {
         playSound("button");
         state.turbo = !state.turbo;
-        els.turbo.classList.toggle("active", state.turbo);
+        updateUi();
       });
       els.auto.addEventListener("click", toggleAuto);
       els.sound.addEventListener("click", () => {
@@ -1677,8 +1814,17 @@
         state.sound = !state.sound;
         audio.setEnabled(state.sound);
         els.sound.classList.toggle("active", state.sound);
+        els.sound.setAttribute("aria-pressed", String(state.sound));
         if (state.sound) playSound("button");
       });
+      if (els.menu) els.menu.addEventListener("click", () => openInfo("menu"));
+      if (els.buyFeature) {
+        els.buyFeature.addEventListener("click", () => {
+          audio.unlock();
+          playSound("button");
+          openInfo("buyFeature");
+        });
+      }
       els.volume.addEventListener("input", () => {
         audio.setVolume(Number(els.volume.value) / 100);
       });
@@ -1695,6 +1841,14 @@
       els.paytable.addEventListener("click", () => openInfo("paytable"));
       els.rules.addEventListener("click", () => openInfo("rules"));
       els.closeDialog.addEventListener("click", () => els.dialog.close());
+      // Keep the relocatable RTP/volume controls alive: park them back in the
+      // hidden host whenever the shared dialog closes so a later innerHTML
+      // rebuild can never destroy them.
+      els.dialog.addEventListener("close", () => {
+        if (!els.settingsHost) return;
+        if (els.rtp && els.rtp.parentElement !== els.settingsHost) els.settingsHost.appendChild(els.rtp);
+        if (els.volume && els.volume.parentElement !== els.settingsHost) els.settingsHost.appendChild(els.volume);
+      });
       els.cancelBuy.addEventListener("click", () => {
         els.confirmDialog.returnValue = "cancel";
         els.confirmDialog.close("cancel");
@@ -1704,7 +1858,7 @@
         els.confirmDialog.close("confirm");
       });
       els.resetSeed.addEventListener("click", () => {
-        state.seed = `golden-goal-${Date.now()}`;
+        state.seed = `world-goal-rush-${Date.now()}`;
         math = new SlotMath(state.seed, { rtp: Number(els.rtp.value), volatility: "medium-high" });
         setStatus("New deterministic seed loaded");
       });
@@ -1722,9 +1876,24 @@
         setStatus("World Final cannot be bought", "error");
       });
 
+      async function applyGameConfig() {
+        // Optional Stake frontend config; never throws (falls back to defaults).
+        const config = await loadGameConfig();
+        state.ways = config.ways;
+        state.volatility = config.volatility;
+        state.jackpot = config.jackpot;
+        state.coinDivisor = config.coinValueDivisor;
+        if (Array.isArray(config.betSteps) && config.betSteps.length > 0) {
+          state.betSteps = config.betSteps.map(roundCurrency).sort((a, b) => a - b);
+        }
+        // Snap the current bet onto the configured ladder.
+        setBet(state.bet);
+      }
+
       async function initialiseRuntime() {
         audio.setVolume(Number(els.volume.value) / 100);
         els.sound.classList.toggle("active", state.sound);
+        await applyGameConfig();
         setStatus(stakeClient ? "Connecting to Stake session" : "Ready", "ready");
         window.setInterval(updateSessionClock, 1000);
         updateSessionClock();
@@ -1866,6 +2035,9 @@
         for (const step of result.cascades) {
           scene.setGrid(step.gridBefore, Array.from(liveZones), step.removed);
           showCascadeBadge(cascadeLabel(step.index, step.cascadeMultiplier));
+          // Reflect the running cascade multiplier in the left feature panel.
+          state.multiplier = Math.max(1, Math.round(Number(step.cascadeMultiplier) || 1));
+          if (els.multiplier) els.multiplier.textContent = `x${state.multiplier}`;
           scene.spotlight(step.removed);
           setGameState("cascading", `Cascading - ${cascadeLabel(step.index, step.cascadeMultiplier)}`);
           playSound("cascade");
@@ -1968,12 +2140,21 @@
         updateUi();
       }
 
+      function stepBet(direction) {
+        const steps = state.betLevels.length > 0 ? state.betLevels : state.betSteps;
+        const index = steps.findIndex((step) => roundCurrency(step) >= roundCurrency(state.bet) - 0.0001);
+        const current = index === -1 ? steps.length - 1 : index;
+        const next = Math.min(steps.length - 1, Math.max(0, current + direction));
+        setBet(steps[next]);
+      }
+
       function setBet(value) {
-        if (state.betLevels.length > 0) {
+        const steps = state.betLevels.length > 0 ? state.betLevels : state.betSteps;
+        if (steps.length > 0) {
           const target = Number.isFinite(value) ? value : state.bet;
-          const next = state.betLevels.reduce((closest, current) =>
+          const next = steps.reduce((closest, current) =>
             Math.abs(current - target) < Math.abs(closest - target) ? current : closest,
-          state.betLevels[0]);
+          steps[0]);
           state.bet = roundCurrency(next);
         } else {
           const normalized = Math.min(MAX_BET, Math.max(MIN_BET, Number.isFinite(value) ? value : state.bet));
@@ -1982,35 +2163,66 @@
         updateUi();
       }
 
+      function setBetMax() {
+        const steps = state.betLevels.length > 0 ? state.betLevels : state.betSteps;
+        setBet(steps[steps.length - 1]);
+      }
+
       function updateUi() {
         animateNumber(els.balance, state.balance);
         animateNumber(els.win, state.lastWin);
         els.bet.textContent = money(state.bet);
-        els.spinCount.textContent = String(state.spinCount);
-        els.betInput.value = state.bet.toFixed(2);
-        els.mode.textContent = state.bonusMode ? `${formatMode(state.bonusMode)} (${state.freeSpins})` : "Base";
-        els.spin.textContent = state.bonusMode ? `FREE SPIN ${state.freeSpins}` : "SPIN";
-        if (state.replayMode) els.spin.textContent = "REPLAY";
+        if (els.coinValue) els.coinValue.textContent = money(state.bet / state.coinDivisor);
+        if (els.spinCount) els.spinCount.textContent = String(state.spinCount);
+        if (els.betInput) els.betInput.value = state.bet.toFixed(2);
+        if (els.mode) els.mode.textContent = state.bonusMode ? `${formatMode(state.bonusMode)} (${state.freeSpins})` : "Base";
+
+        // Feature stack (left): live values during bonus, showcase defaults otherwise.
+        if (els.freeSpins) {
+          els.freeSpins.textContent = String(state.bonusMode ? state.freeSpins : state.freeSpinsShowcase);
+        }
+        if (els.multiplier) els.multiplier.textContent = `x${state.multiplier}`;
+        if (els.nextReward) els.nextReward.textContent = `${state.nextRewardSpins} FREE SPINS AT x${state.nextRewardMult}`;
+        if (els.jackpot) els.jackpot.textContent = state.jackpot.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (els.ways) els.ways.textContent = `${state.ways} WAYS`;
+        if (els.volatility) els.volatility.textContent = "⚡".repeat(Math.max(1, Math.min(5, state.volatility)));
+
+        els.spin.classList.toggle("in-bonus", state.bonusMode !== null);
+        if (els.spinLabel) {
+          els.spinLabel.textContent = state.bonusMode
+            ? `FREE SPIN ${state.freeSpins}`
+            : state.replayMode
+              ? "REPLAY"
+              : "SPIN";
+        }
         els.spin.disabled = state.spinning;
         els.spin.classList.toggle("is-spinning", state.spinning);
         els.spin.classList.toggle("auto-running", state.auto);
-        els.auto.textContent = state.auto ? "Stop Auto" : "Auto";
+        if (els.auto) {
+          els.auto.classList.toggle("active", state.auto);
+          els.auto.dataset.label = state.auto ? "STOP" : "AUTO";
+        }
+        if (els.turbo) els.turbo.classList.toggle("active", state.turbo);
         els.betDown.disabled = state.spinning || state.replayMode;
         els.betUp.disabled = state.spinning || state.replayMode;
-        els.betInput.disabled = state.spinning || state.replayMode;
-        els.auto.disabled = state.replayMode || state.stakeConnected;
+        if (els.betMax) els.betMax.disabled = state.spinning || state.replayMode;
+        if (els.betInput) els.betInput.disabled = state.spinning || state.replayMode;
+        if (els.auto) els.auto.disabled = state.replayMode || state.stakeConnected;
+        if (els.buyFeature) els.buyFeature.disabled = state.stakeConnected || state.spinning || state.bonusMode !== null;
         document.querySelectorAll(".buy-option[data-buy]").forEach((button) => {
           button.disabled = state.stakeConnected || state.spinning || state.bonusMode !== null;
         });
       }
 
       function setStatus(text, tone = "ready") {
+        if (!els.status) return;
         els.status.textContent = text;
         els.status.dataset.state = tone;
         if (tone === "error") {
-          els.status.closest(".meter").classList.remove("error-shake");
-          void els.status.closest(".meter").offsetWidth;
-          els.status.closest(".meter").classList.add("error-shake");
+          const shakeTarget = els.status.closest("[data-shake]") ?? els.status;
+          shakeTarget.classList.remove("error-shake");
+          void shakeTarget.offsetWidth;
+          shakeTarget.classList.add("error-shake");
         }
       }
 
@@ -2163,10 +2375,44 @@
               <div class="pay-card"><b>Trophy Collector</b><span>Collectors collect visible coin values, then later collectors can collect earlier collectors.</span></div>
             </div>
           `;
-        } else {
-          els.dialogTitle.textContent = "Rules";
+        } else if (kind === "menu") {
+          els.dialogTitle.textContent = "Menu";
           els.dialogContent.innerHTML = `
-            <p>Golden Goal Rush is a demo-credit prototype with no real-money wallet. The grid is 6 reels by 5 rows. Clusters require 5 or more matching connected regular symbols.</p>
+            <p><b>WORLD GOAL RUSH — Championship Edition</b></p>
+            <ul>
+              <li><b>Resume</b> — close this menu and keep playing.</li>
+              <li><b>Settings</b> — RTP profile and volume are below (demo tuning only).</li>
+              <li><b>Rules</b> — open the INFO panel for full rules.</li>
+            </ul>
+            <div class="menu-settings">
+              <label for="rtpSelect">Demo RTP Profile</label>
+              <div id="menuRtpSlot"></div>
+              <label for="volumeInput">Volume</label>
+              <div id="menuVolumeSlot"></div>
+            </div>
+            <p class="muted-note">Demo credits only. No real-money wallet, deposit, crypto, or cash-out exists in this prototype.</p>
+          `;
+          // Relocate the live RTP/volume controls into the menu so their handlers stay wired.
+          const rtpSlot = els.dialogContent.querySelector("#menuRtpSlot");
+          const volSlot = els.dialogContent.querySelector("#menuVolumeSlot");
+          if (rtpSlot && els.rtp) rtpSlot.appendChild(els.rtp);
+          if (volSlot && els.volume) volSlot.appendChild(els.volume);
+        } else if (kind === "buyFeature") {
+          els.dialogTitle.textContent = "Buy Feature";
+          els.dialogContent.innerHTML = `
+            <p>Buy a demo feature using demo credits only. This prototype performs <b>no real purchase</b>, deposit, or cash-out.</p>
+            <div class="pay-grid">
+              <div class="pay-card"><b>Extra Time Bonus</b><span>8 free spins · ~100x bet</span></div>
+              <div class="pay-card"><b>Penalty Shootout</b><span>12 free spins · ~250x bet</span></div>
+              <div class="pay-card"><b>Stadium Lights Spin</b><span>Guaranteed activator · ~50x bet</span></div>
+              <div class="pay-card"><b>World Final</b><span>Locked — triggers only from 5 Whistles</span></div>
+            </div>
+            <p class="muted-note">Use the bonus-buy controls in the menu/side actions to start a demo feature.</p>
+          `;
+        } else {
+          els.dialogTitle.textContent = "Info & Rules";
+          els.dialogContent.innerHTML = `
+            <p>World Goal Rush is a 6x5, 4096-ways demo-credit prototype with no real-money wallet. Clusters require 5 or more matching connected regular symbols.</p>
             <ul>
               <li>Goal Rush Cascades remove winning clusters and all matching symbols visible on the grid.</li>
               <li>Winning cells become Golden Pitch Zones. Stadium Lights activate those zones.</li>
@@ -2497,7 +2743,7 @@
         return new Promise((resolve) => window.setTimeout(resolve, ms));
       }
 
-      window.goldenGoalQa = {
+      window.worldGoalRushQa = window.goldenGoalQa = {
         forceBigWin: async () => {
           document.body.dataset.qaBigWin = "showing";
           await showBigWin(getWinTier(100), 100, state.bet * 100);
