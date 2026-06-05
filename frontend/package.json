@@ -8,9 +8,10 @@
     "typecheck": "tsc -p ../tsconfig.json",
     "build:math:compile": "tsc ../math/src/math.ts --outDir ../math/library/publish_files/golden_goal_rush --module ES2020 --target ES2020 --lib DOM,ES2020 --skipLibCheck",
     "build:math": "npm run build:math:compile && node ../math/scripts/generateStakePublish.mjs",
-    "build": "vite build && node scripts/inlineDist.mjs",
-    "prepare": "git config core.hooksPath .githooks || true",
-    "prepare-package": "npm run build:math && npm run build"
+    "build:frontend": "vite build && node scripts/inlineDist.mjs",
+    "build:upload": "npm run build:math && npm run build:frontend",
+    "build": "npm run build:frontend",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
     "typescript": "^5.9.3",

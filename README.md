@@ -1,44 +1,54 @@
+# World Goal Rush — Championship Edition
 
-# StakeGamba
+## Projektstruktur
 
-Projektstruktur (bereinigt)
+```
+/frontend               ← EINZIGE Frontend-Quelle (hier arbeiten)
+  index.html            ← Spiel-Quellcode (Phaser, UI, CSS, inline JS)
+  src/                  ← TypeScript-Module (Animation, Audio, Config, …)
+  vite.config.ts
+  package.json          ← alle Build-Scripts
 
-- `frontend/` — Vite-Frontend-App
-	- `index.html`
-	- `vite.config.ts` (base: `./` für statische Uploads)
-	- `package.json`, `package-lock.json`, `tsconfig.json`
-	- `src/` (Animation, Audio, Design, UI, Game, `main.ts`/`main.js`)
-	- `dist/` wird durch `npm run build` erzeugt
+/math                   ← EINZIGE Math-Quelle (hier arbeiten)
+  src/
+    math.ts             ← Kern-Spiellogik (SlotMath, RNG, Cluster-Engine)
+    index.ts            ← Öffentlicher Export
+    symbols.ts / paytable.ts / config.ts / types.ts
+  scripts/
+    generateStakePublish.mjs
+  games/golden_goal_rush/math.ts  ← Stake-Entry-Point
 
-- `math/` — Spiel-Mathematik und Publish-Artefakte
-	- `game.json` (Manifest für Math/Publish)
-	- `math.ts` (Math-Quelle)
-	- `docs/` (Upload-Hinweise)
-	- `library/publish_files/` (kompilierte Math-Dateien für Stake)
+/upload                 ← NUR Build-Output — nie direkt bearbeiten!
+  frontend/             → Stake Engine: Frontend hochladen
+  math/                 → Stake Engine: Math hochladen
+```
 
-- `_archive/` — archivierte alte Dateien (falls nötig)
-
-Quickstart
-
-1. Frontend (in `frontend/`):
+## Build-Befehle (alles in `frontend/` ausführen)
 
 ```bash
 cd frontend
-npm install
-npm run build
+npm install             # einmalig nach Clone
+
+npm run dev             # Dev-Server auf localhost:5173
+
+npm run build:upload    # ALLES: Math + Frontend → upload/   ← Standard-Upload-Build
+npm run build:math      # nur Math neu → upload/math/
+npm run build:frontend  # nur Frontend neu → upload/frontend/
 ```
 
-2. Math-Publish erstellen:
+## Stake Engine Upload
 
-```bash
-cd frontend
-npm run build:math
-# erzeugt: math/library/publish_files/golden_goal_rush/math.js
-```
+Nach `npm run build:upload` genau diese zwei Ordner hochladen:
 
-Deployment
+| Stake-Bereich | Ordner            |
+|---------------|-------------------|
+| **Frontend**  | `upload/frontend/` |
+| **Math**      | `upload/math/`    |
 
-- Frontend: Lade den Inhalt von `frontend/dist/` auf die Plattform hoch.
-- Math: Lade die Dateien aus `math/library/publish_files/<game>/` gemäß Stake-Engine-Anforderungen hoch.
+Sonst nichts — kein `stake-front/`, kein `stake-math/`, kein `frontend/dist/`.
 
+## Regeln
 
+- Quellcode nur in `/frontend` und `/math` bearbeiten
+- `/upload` nie direkt editieren — wird beim nächsten Build überschrieben
+- `math/library/` nicht committen — nur intermediärer Compile-Output

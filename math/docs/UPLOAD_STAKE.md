@@ -1,34 +1,49 @@
-# Vorbereitung zum Upload auf Stake Engine
+# Stake Engine Upload — World Goal Rush
 
-Diese Anleitung betrifft nur den Math-Publish.
+## Source of Truth
 
-Source of truth:
-- `math/src/math.ts`
-- oeffentlicher Math-Entry: `math/src/index.ts`
-- Stake/Game-Entry: `math/games/golden_goal_rush/math.ts`
+| Zweck    | Ordner           |
+|----------|------------------|
+| Frontend | `/frontend`      |
+| Math     | `/math`          |
 
-Upload-Ordner fuer Stake Math:
-- `stake-math/`
+## Vorgehen: Build und Upload
 
-Alternative interne Quelle:
-- `math/library/publish_files/golden_goal_rush/`
+```bash
+cd frontend
+npm run build:upload
+# → erzeugt upload/frontend/ und upload/math/
+```
 
-`stake-math/` enthaelt genau die Dateien fuer den ACP-Upload:
+Danach diese zwei Ordner bei der Stake Engine hochladen:
+
+### Frontend-Upload → `upload/frontend/`
+- `index.html` (alles inline, ein einziger File)
+- `version.json`
+
+### Math-Upload → `upload/math/`
 - `index.json`
 - `game.json`
 - `config.json`
 - `config_fe.json`
 - `config_math.json`
-- `lookUpTable_base_0.csv`
 - `books_base.jsonl.zst`
+- `lookUpTable_base_0.csv`
 
-Im internen Publish-Ordner liegt zusaetzlich:
-- `math.js` fuer lokalen Import und interne Validierung
+## Was nicht hochgeladen wird
 
-Manifest-Pfade:
-- im Publish-Ordner referenziert `index.json` die Dateien `books_base.jsonl.zst` und `lookUpTable_base_0.csv`
-- auf Repository-Ebene referenzieren `math/index.json` und `math/game.json` dieselben Dateien mit Pfadpraefix `library/publish_files/golden_goal_rush/`
+- `math/library/publish_files/` — nur intermediärer Compile-Output (math.js)
+- `frontend/dist/` — nur intermediärer Vite-Output (vor dem Inlining)
+- `stake-front/` / `stake-math/` — veraltete Ordner, nicht mehr genutzt
 
-Empfohlener Upload:
-- Front End: `stake-front/`
-- Math: `stake-math/`
+## Math-Architektur
+
+```
+math/src/math.ts          ← Quellcode (TypeScript)
+        ↓  build:math:compile
+math/library/publish_files/golden_goal_rush/math.js   ← kompiliert
+        ↓  generateStakePublish.mjs (Simulation, 4096 Spins)
+upload/math/books_base.jsonl.zst
+upload/math/lookUpTable_base_0.csv
+upload/math/index.json + game.json + config*.json
+```

@@ -3,8 +3,7 @@
 #
 # Installed automatically by `npm install` in frontend/ (sets core.hooksPath).
 # Skips itself when no frontend source is staged, so non-frontend commits are
-# untouched. Keeps stake-front/ and frontend/dist/ always in sync — no manual
-# `npm run build` needed.
+# untouched. Keeps upload/frontend/ always in sync — no manual `npm run build` needed.
 set -euo pipefail
 
 repo_root="$(git rev-parse --show-toplevel)"
@@ -26,7 +25,7 @@ if ! ( cd "$repo_root/frontend" && npm run build --silent ); then
   exit 1
 fi
 
-# Stage the regenerated artifacts so they ride along in this commit.
-git -C "$repo_root" add frontend/dist stake-front
-echo "[pre-commit] Stake build refreshed and staged (frontend/dist, stake-front)."
+# Stage the regenerated upload artifact so it rides along in this commit.
+git -C "$repo_root" add upload/frontend
+echo "[pre-commit] Stake build refreshed and staged (upload/frontend)."
 exit 0

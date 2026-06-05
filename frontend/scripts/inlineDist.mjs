@@ -7,7 +7,7 @@ const frontendRoot = resolve(__dirname, "..");
 const repoRoot = resolve(frontendRoot, "..");
 const distDir = join(frontendRoot, "dist");
 const distIndexPath = join(distDir, "index.html");
-const stakeFrontDir = join(repoRoot, "stake-front");
+const stakeFrontDir = join(repoRoot, "upload", "frontend");
 
 const indexHtml = await readFile(distIndexPath, "utf8");
 const scriptStart = indexHtml.indexOf('<script type="module" crossorigin src="./assets/');

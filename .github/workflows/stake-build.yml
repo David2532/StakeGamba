@@ -1,11 +1,11 @@
 name: Build Stake Frontend
 
 # Auto-builds the Stake-ready frontend on every push that touches frontend
-# source, then commits the regenerated artifacts (stake-front/, frontend/dist/)
-# back to the same branch. No manual `npm run build` needed anymore.
+# source, then commits the regenerated upload/frontend/ artifact back to the
+# same branch. No manual `npm run build` needed.
 #
 # Loop protection (three layers):
-#   1. `paths:` only watches SOURCE files, never the generated artifacts.
+#   1. `paths:` only watches SOURCE files, never the generated output.
 #   2. Pushes made with GITHUB_TOKEN do not re-trigger workflows by design.
 #   3. The auto-commit message carries [skip ci].
 
@@ -52,11 +52,11 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      - name: Commit refreshed build artifacts
+      - name: Commit refreshed upload artifact
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add frontend/dist stake-front
+          git add upload/frontend
           if git diff --cached --quiet; then
             echo "Build output already up to date — nothing to commit."
           else
