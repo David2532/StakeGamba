@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -34,7 +34,27 @@ const versionManifest = {
 
 await writeFile(distIndexPath, inlinedHtml, "utf8");
 await writeFile(join(distDir, "version.json"), JSON.stringify(versionManifest, null, 2) + "\n", "utf8");
-await rm(join(distDir, "assets"), { recursive: true, force: true });
+
+// The JS is now inlined into index.html. Vite resolves image assets via
+// `new URL("<file>.png", import.meta.url)`, which is now relative to the HTML
+// document — i.e. the PNGs must sit NEXT TO index.html, not in an assets/
+// subfolder. So: keep the images, move them up to the dist root beside the
+// HTML, and drop the now-redundant JS chunk(s).
+const assetsDir = join(distDir, "assets");
+const assetFiles = await readdir(assetsDir).catch(() => []);
+const imageFiles = [];
+for (const file of assetFiles) {
+  if (file.endsWith(".js") || file.endsWith(".js.map")) continue;
+  await copyFile(join(assetsDir, file), join(distDir, file));
+  imageFiles.push(file);
+}
+await rm(assetsDir, { recursive: true, force: true });
+
 await mkdir(stakeFrontDir, { recursive: true });
 await copyFile(distIndexPath, join(stakeFrontDir, "index.html"));
 await copyFile(join(distDir, "version.json"), join(stakeFrontDir, "version.json"));
+
+// Ship the image assets beside the HTML in the upload bundle too.
+for (const file of imageFiles) {
+  await copyFile(join(distDir, file), join(stakeFrontDir, file));
+}
