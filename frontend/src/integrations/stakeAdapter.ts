@@ -74,8 +74,12 @@ function parseBoolean(value: string | null): boolean {
 export function readStakeUrlContext(search = window.location.search): StakeUrlContext | null {
   const params = new URLSearchParams(search);
   const sessionID = params.get("sessionID");
-  const rgsUrl = params.get("rgs_url");
-  if (!sessionID || !rgsUrl) return null;
+  const rawRgsUrl = params.get("rgs_url");
+  if (!sessionID || !rawRgsUrl) return null;
+
+  // Stake launches with `rgs_url=rgsd.stake-engine.com` (no scheme). Without a
+  // protocol, `new URL(path, rgsUrl)` throws "Invalid base URL", so normalise it.
+  const rgsUrl = /^https?:\/\//i.test(rawRgsUrl) ? rawRgsUrl : `https://${rawRgsUrl}`;
 
   const replayRoundId = params.get("roundID") ?? params.get("roundId") ?? params.get("replay_round_id");
   const replayMode = params.get("mode");
