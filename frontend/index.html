@@ -138,13 +138,18 @@
         display: grid;
         grid-template-rows: auto auto;
         place-items: center;
-        gap: 2px;
+        gap: 3px;
         min-width: 58px;
         min-height: 54px;
-        padding: 6px 10px;
-        border: 1px solid var(--line);
+        padding: 7px 10px;
+        border: 1px solid rgba(180, 140, 40, 0.55);
         border-radius: 12px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+        background:
+          linear-gradient(180deg, rgba(40, 34, 20, 0.92) 0%, rgba(16, 13, 6, 0.97) 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 220, 100, 0.12),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+          0 4px 14px rgba(0, 0, 0, 0.45);
         color: var(--text);
         transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease;
       }
@@ -153,6 +158,7 @@
         font-size: 18px;
         line-height: 1;
         color: var(--gold-soft);
+        filter: drop-shadow(0 0 4px rgba(216, 169, 67, 0.5));
       }
 
       .util-btn .cap {
@@ -160,23 +166,31 @@
         font-weight: 800;
         letter-spacing: 1px;
         text-transform: uppercase;
-        color: var(--muted);
+        color: rgba(200, 175, 110, 0.85);
       }
 
       .util-btn:hover {
-        border-color: var(--green-line);
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4), 0 0 16px rgba(72, 255, 106, 0.12);
+        border-color: rgba(255, 207, 82, 0.8);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 220, 100, 0.2),
+          0 8px 22px rgba(0, 0, 0, 0.5),
+          0 0 18px rgba(216, 169, 67, 0.22);
         transform: translateY(-1px);
       }
 
       .util-btn.active {
         border-color: var(--green-line);
-        background: var(--green-soft);
+        background:
+          linear-gradient(180deg, rgba(20, 50, 30, 0.95) 0%, rgba(8, 22, 12, 0.97) 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(72, 255, 106, 0.14),
+          0 0 16px rgba(72, 255, 106, 0.18);
       }
 
       .util-btn.active .ico,
       .util-btn.active .cap {
         color: var(--green);
+        filter: drop-shadow(0 0 5px rgba(72, 255, 106, 0.55));
       }
 
       /* ============ TITLE LOCKUP ============ */
@@ -462,15 +476,18 @@
         width: clamp(132px, 13vw, 188px);
         aspect-ratio: 1;
         border-radius: 50%;
-        border: 2px solid rgba(72, 255, 106, 0.5);
+        border: 3px solid rgba(180, 140, 40, 0.7);
         background:
-          radial-gradient(circle at 50% 32%, rgba(72, 255, 106, 0.34), transparent 60%),
-          radial-gradient(circle at 50% 50%, rgba(10, 30, 22, 0.95), rgba(3, 10, 8, 0.98));
+          radial-gradient(circle at 50% 28%, rgba(72, 255, 106, 0.42), transparent 55%),
+          radial-gradient(circle at 50% 50%, #0d2518, #040e0a);
         color: #eafff0;
         box-shadow:
-          0 0 0 6px rgba(72, 255, 106, 0.08),
-          0 0 48px rgba(72, 255, 106, 0.4),
-          inset 0 2px 12px rgba(255, 255, 255, 0.14);
+          0 0 0 5px rgba(72, 255, 106, 0.10),
+          0 0 0 9px rgba(180, 140, 40, 0.18),
+          0 0 52px rgba(72, 255, 106, 0.45),
+          0 0 30px rgba(216, 169, 67, 0.20),
+          inset 0 2px 14px rgba(255, 255, 255, 0.16),
+          inset 0 -4px 12px rgba(0, 0, 0, 0.5);
         transition: transform 0.12s ease, box-shadow 0.18s ease, filter 0.16s ease;
         animation: spinReadyPulse 2.5s ease-in-out infinite;
       }
@@ -478,12 +495,22 @@
       .primary-spin::before {
         content: "";
         position: absolute;
-        inset: -3px;
+        inset: -5px;
         border-radius: 50%;
         border: 2px solid transparent;
-        border-top-color: rgba(72, 255, 106, 0.85);
-        border-right-color: rgba(72, 255, 106, 0.4);
-        opacity: 0.9;
+        border-top-color: rgba(72, 255, 106, 0.9);
+        border-right-color: rgba(72, 255, 106, 0.45);
+        border-bottom-color: rgba(180, 140, 40, 0.4);
+        opacity: 1;
+      }
+
+      .primary-spin::after {
+        content: "";
+        position: absolute;
+        inset: 6px;
+        border-radius: 50%;
+        border: 1px solid rgba(72, 255, 106, 0.15);
+        pointer-events: none;
       }
 
       .primary-spin .spin-label {
@@ -491,7 +518,9 @@
         font-weight: 1000;
         letter-spacing: 1px;
         z-index: 1;
-        text-shadow: 0 0 18px rgba(72, 255, 106, 0.6);
+        text-shadow:
+          0 0 18px rgba(72, 255, 106, 0.7),
+          0 2px 4px rgba(0, 0, 0, 0.8);
       }
 
       .primary-spin .spin-sub {
@@ -504,12 +533,17 @@
       }
 
       .primary-spin:hover:not(:disabled) {
-        filter: brightness(1.08);
-        box-shadow: 0 0 0 6px rgba(72, 255, 106, 0.12), 0 0 64px rgba(72, 255, 106, 0.55), inset 0 2px 12px rgba(255, 255, 255, 0.18);
+        filter: brightness(1.1);
+        box-shadow:
+          0 0 0 5px rgba(72, 255, 106, 0.16),
+          0 0 0 10px rgba(180, 140, 40, 0.22),
+          0 0 70px rgba(72, 255, 106, 0.6),
+          0 0 40px rgba(216, 169, 67, 0.3),
+          inset 0 2px 14px rgba(255, 255, 255, 0.22);
       }
 
       .primary-spin:active:not(:disabled) {
-        transform: scale(0.97);
+        transform: scale(0.96);
       }
 
       .primary-spin.is-spinning::before {
@@ -517,8 +551,11 @@
       }
 
       .primary-spin.auto-running {
-        border-color: rgba(216, 169, 67, 0.7);
-        box-shadow: 0 0 0 6px rgba(216, 169, 67, 0.12), 0 0 56px rgba(216, 169, 67, 0.5), inset 0 2px 12px rgba(255, 255, 255, 0.16);
+        border-color: rgba(255, 207, 82, 0.8);
+        box-shadow:
+          0 0 0 5px rgba(216, 169, 67, 0.14),
+          0 0 56px rgba(216, 169, 67, 0.55),
+          inset 0 2px 12px rgba(255, 255, 255, 0.16);
       }
 
       .spin-secondary {
@@ -634,12 +671,15 @@
         gap: 2px;
         min-width: 132px;
         padding: 8px 16px;
-        border: 1px solid rgba(216, 169, 67, 0.5);
+        border: 1.5px solid rgba(216, 169, 67, 0.7);
         border-radius: 14px;
         background:
-          radial-gradient(80% 80% at 50% 0%, rgba(216, 169, 67, 0.26), transparent 70%),
-          linear-gradient(180deg, rgba(40, 30, 8, 0.7), rgba(12, 10, 6, 0.7));
-        box-shadow: var(--gold-glow);
+          radial-gradient(80% 60% at 50% 0%, rgba(255, 200, 60, 0.22), transparent 70%),
+          linear-gradient(180deg, #1c1506 0%, #0a0902 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 220, 100, 0.18),
+          0 0 28px rgba(216, 169, 67, 0.3),
+          0 4px 18px rgba(0, 0, 0, 0.5);
         transition: transform 0.12s ease, box-shadow 0.18s ease, filter 0.16s ease;
       }
 
@@ -683,18 +723,25 @@
         place-items: center;
         width: 42px;
         height: 42px;
-        border: 1px solid var(--line);
+        border: 1.5px solid rgba(180, 140, 40, 0.65);
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.06);
+        background:
+          radial-gradient(circle at 50% 30%, rgba(255, 220, 100, 0.12), transparent 60%),
+          linear-gradient(180deg, #1a1508, #0a0903);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 220, 100, 0.15),
+          0 3px 10px rgba(0, 0, 0, 0.5);
         font-size: 22px;
         font-weight: 900;
         color: var(--gold-soft);
-        transition: border-color 0.16s ease, transform 0.12s ease, background 0.16s ease;
+        transition: border-color 0.16s ease, transform 0.12s ease, box-shadow 0.16s ease;
       }
 
       .step-btn:hover:not(:disabled) {
-        border-color: var(--green-line);
-        background: var(--green-soft);
+        border-color: rgba(255, 207, 82, 0.9);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 220, 100, 0.22),
+          0 0 14px rgba(216, 169, 67, 0.3);
       }
 
       .step-btn:active:not(:disabled) {
@@ -705,14 +752,21 @@
         align-self: center;
         min-width: 96px;
         padding: 12px 16px;
-        border: 1px solid var(--green-line);
+        border: 1.5px solid rgba(72, 255, 106, 0.75);
         border-radius: 14px;
-        background: var(--green-soft);
+        background:
+          radial-gradient(80% 60% at 50% 0%, rgba(72, 255, 106, 0.28), transparent 70%),
+          linear-gradient(180deg, #0d2016 0%, #050f09 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(72, 255, 106, 0.2),
+          0 0 22px rgba(72, 255, 106, 0.28),
+          0 4px 14px rgba(0, 0, 0, 0.5);
         font-size: 14px;
         font-weight: 1000;
         letter-spacing: 1px;
         text-transform: uppercase;
         color: var(--green);
+        text-shadow: 0 0 12px rgba(72, 255, 106, 0.5);
         transition: filter 0.16s ease, transform 0.12s ease;
       }
 
@@ -1338,6 +1392,45 @@
       applyDesignTokens(document.documentElement);
       const REGULAR_SYMBOLS = ["10", "J", "Q", "K", "A", "FOOTBALL", "BOOT", "GLOVE", "TICKET", "ARMBAND", "TROPHY"];
 
+      /* ── Inline SVG artwork for each symbol ────────────────────────────── */
+      const SYMBOL_SVGS = {
+        "10": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><linearGradient id="bg10" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a0d2e"/><stop offset="100%" stop-color="#0a0515"/></linearGradient><linearGradient id="lt10" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e8d0ff"/><stop offset="45%" stop-color="#9a37ff"/><stop offset="100%" stop-color="#4a08b8"/></linearGradient><filter id="glow10" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bg10)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#7020c0" stroke-width="1.5" opacity="0.7"/><text x="44" y="57" font-family="Georgia,serif" font-size="40" font-weight="900" text-anchor="middle" fill="#200040" stroke="#200040" stroke-width="5" paint-order="stroke">10</text><text x="44" y="57" font-family="Georgia,serif" font-size="40" font-weight="900" text-anchor="middle" fill="url(#lt10)" filter="url(#glow10)">10</text></svg>`,
+
+        "J": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><linearGradient id="bgJ" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0a142a"/><stop offset="100%" stop-color="#050912"/></linearGradient><linearGradient id="ltJ" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c8eaff"/><stop offset="45%" stop-color="#4cb8ff"/><stop offset="100%" stop-color="#0860c0"/></linearGradient><filter id="glowJ" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bgJ)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#1660a0" stroke-width="1.5" opacity="0.8"/><ellipse cx="44" cy="68" rx="16" ry="6" fill="#0440a0" opacity="0.4"/><circle cx="44" cy="64" r="12" fill="none" stroke="#2080e0" stroke-width="1.5" opacity="0.5"/><circle cx="44" cy="64" r="8" fill="#0c3060" opacity="0.6"/><path d="M36,60 L44,68 L52,60" fill="none" stroke="#60b0ff" stroke-width="1.5" opacity="0.7"/><text x="44" y="54" font-family="Georgia,serif" font-size="46" font-weight="900" text-anchor="middle" fill="#020a1a" stroke="#020a1a" stroke-width="5" paint-order="stroke">J</text><text x="44" y="54" font-family="Georgia,serif" font-size="46" font-weight="900" text-anchor="middle" fill="url(#ltJ)" filter="url(#glowJ)">J</text></svg>`,
+
+        "Q": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><linearGradient id="bgQ" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a1000"/><stop offset="100%" stop-color="#0a0800"/></linearGradient><linearGradient id="ltQ" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff6d0"/><stop offset="40%" stop-color="#ffd060"/><stop offset="100%" stop-color="#a05c00"/></linearGradient><filter id="glowQ" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bgQ)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#c08020" stroke-width="1.5" opacity="0.7"/><polygon points="44,12 47,20 56,20 49,25 52,33 44,28 36,33 39,25 32,20 41,20" fill="#cc2040" stroke="#ff4060" stroke-width="0.5"/><text x="44" y="64" font-family="Georgia,serif" font-size="42" font-weight="900" text-anchor="middle" fill="#1a0800" stroke="#1a0800" stroke-width="5" paint-order="stroke">Q</text><text x="44" y="64" font-family="Georgia,serif" font-size="42" font-weight="900" text-anchor="middle" fill="url(#ltQ)" filter="url(#glowQ)">Q</text></svg>`,
+
+        "K": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><linearGradient id="bgK" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1c1200"/><stop offset="100%" stop-color="#0c0900"/></linearGradient><linearGradient id="ltK" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff8e0"/><stop offset="40%" stop-color="#ffd060"/><stop offset="100%" stop-color="#906000"/></linearGradient><filter id="glowK" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bgK)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#c08020" stroke-width="1.5" opacity="0.8"/><rect x="30" y="13" width="28" height="8" rx="2" fill="#c07820"/><rect x="36" y="8" width="6" height="8" rx="2" fill="#d08830"/><rect x="44" y="8" width="5" height="6" rx="2" fill="#d08830"/><rect x="27" y="8" width="5" height="6" rx="2" fill="#d08830"/><text x="44" y="66" font-family="Georgia,serif" font-size="42" font-weight="900" text-anchor="middle" fill="#1c0a00" stroke="#1c0a00" stroke-width="5" paint-order="stroke">K</text><text x="44" y="66" font-family="Georgia,serif" font-size="42" font-weight="900" text-anchor="middle" fill="url(#ltK)" filter="url(#glowK)">K</text></svg>`,
+
+        "A": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><linearGradient id="bgA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#201400"/><stop offset="100%" stop-color="#100a00"/></linearGradient><linearGradient id="ltA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="25%" stop-color="#fff6d0"/><stop offset="55%" stop-color="#ffcf52"/><stop offset="100%" stop-color="#8a5000"/></linearGradient><filter id="glowA" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bgA)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#c09020" stroke-width="2" opacity="0.85"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#ffe060" stroke-width="0.5" opacity="0.3"/><text x="44" y="66" font-family="Georgia,serif" font-size="56" font-weight="900" text-anchor="middle" fill="#1a0800" stroke="#1a0800" stroke-width="6" paint-order="stroke">A</text><text x="44" y="66" font-family="Georgia,serif" font-size="56" font-weight="900" text-anchor="middle" fill="url(#ltA)" filter="url(#glowA)">A</text></svg>`,
+
+        "TICKET": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><radialGradient id="bgTK" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#200808"/><stop offset="100%" stop-color="#080202"/></radialGradient><radialGradient id="cardGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ff6060" stop-opacity="0.5"/><stop offset="100%" stop-color="#cc0020" stop-opacity="0"/></radialGradient><filter id="cGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bgTK)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#cc1020" stroke-width="1.5" opacity="0.8"/><ellipse cx="44" cy="44" rx="22" ry="30" fill="#cc2030" opacity="0.1"/><path d="M28,72 L28,46 C28,42 30,40 34,38 L40,36 L44,30 L48,36 L54,38 C58,40 60,42 60,46 L60,72 Z" fill="#d0c0b0" stroke="#a09080" stroke-width="1"/><path d="M34,38 L44,30 L54,38" fill="#c0b0a0" stroke="#a09080" stroke-width="0.5"/><rect x="33" y="42" width="22" height="28" rx="3" fill="#cc0020" filter="url(#cGlow)"/><rect x="33" y="42" width="22" height="28" rx="3" fill="url(#cardGlow)"/><rect x="36" y="45" width="16" height="22" rx="2" fill="#ee1030"/><rect x="36" y="45" width="16" height="2" rx="1" fill="#ff6060" opacity="0.8"/><text x="44" y="61" font-family="Arial,sans-serif" font-size="9" font-weight="900" text-anchor="middle" fill="white" opacity="0.9">RED</text><text x="44" y="70" font-family="Arial,sans-serif" font-size="7" font-weight="700" text-anchor="middle" fill="rgba(255,255,255,0.7)">CARD</text></svg>`,
+
+        "FOOTBALL": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><radialGradient id="bgFB" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="#071a0d"/><stop offset="100%" stop-color="#020806"/></radialGradient><radialGradient id="ballGrad" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#ffffff"/><stop offset="60%" stop-color="#e8ffe8"/><stop offset="100%" stop-color="#c0d8c0"/></radialGradient><filter id="bGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bgFB)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#20a040" stroke-width="1.5" opacity="0.7"/><ellipse cx="44" cy="46" rx="26" ry="26" fill="#18ff60" opacity="0.12" filter="url(#bGlow)"/><circle cx="44" cy="44" r="24" fill="url(#ballGrad)"/><circle cx="44" cy="44" r="24" fill="none" stroke="#1a3020" stroke-width="1.5"/><polygon points="44,26 48,33 44,30 40,33" fill="#1a2820"/><polygon points="64,37 57,38 60,33 64,40" fill="#1a2820"/><polygon points="60,58 55,52 60,50 62,55" fill="#1a2820"/><polygon points="44,62 40,55 44,58 48,55" fill="#1a2820"/><polygon points="28,58 30,52 26,55 24,60" fill="#1a2820"/><polygon points="24,37 28,40 24,44 20,38" fill="#1a2820"/><path d="M44,26 L48,33 L60,33 L64,40 M64,40 L62,55 L60,58 M60,58 L48,55 L44,62 M44,62 L40,55 L28,58 M28,58 L26,55 L24,44 M24,44 L24,37 L28,40 M28,40 L40,33 L44,26" fill="none" stroke="#1a2820" stroke-width="1.2"/><circle cx="44" cy="44" r="24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-dasharray="2,2"/></svg>`,
+
+        "BOOT": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><linearGradient id="bgBT" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a1400"/><stop offset="100%" stop-color="#090700"/></linearGradient><linearGradient id="bootGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fff0a0"/><stop offset="50%" stop-color="#ffc020"/><stop offset="100%" stop-color="#a06000"/></linearGradient><filter id="btGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bgBT)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#c08020" stroke-width="1.5" opacity="0.7"/><path d="M20,56 L20,30 C20,28 21,27 23,27 L34,27 C36,27 37,28 37,30 L37,42 L62,42 C66,42 68,44 68,47 L68,54 C68,60 64,64 58,64 L22,64 C20,64 18,62 18,60 L18,58 Z" fill="url(#bootGrad)" filter="url(#btGlow)"/><path d="M20,56 L20,30 C20,28 21,27 23,27 L34,27 C36,27 37,28 37,30 L37,42 L62,42 C66,42 68,44 68,47 L68,54 C68,60 64,64 58,64 L22,64 C20,64 18,62 18,60 L18,58 Z" fill="none" stroke="#704000" stroke-width="1.5"/><line x1="22" y1="56" x2="64" y2="56" stroke="#704000" stroke-width="1.5"/><line x1="22" y1="60" x2="64" y2="60" stroke="rgba(255,200,40,0.5)" stroke-width="1"/><circle cx="32" cy="48" r="2.5" fill="#704000" opacity="0.6"/><circle cx="40" cy="48" r="2.5" fill="#704000" opacity="0.6"/><circle cx="48" cy="48" r="2.5" fill="#704000" opacity="0.6"/><circle cx="56" cy="48" r="2.5" fill="#704000" opacity="0.6"/><path d="M23,27 L23,36 C23,37 24,37 25,37 L34,37 L34,27" fill="rgba(255,255,255,0.12)"/></svg>`,
+
+        "GLOVE": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><radialGradient id="bgGL" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="#0a1a0a"/><stop offset="100%" stop-color="#040804"/></radialGradient><linearGradient id="gloveGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#90ff90"/><stop offset="50%" stop-color="#28c028"/><stop offset="100%" stop-color="#108010"/></linearGradient></defs><rect width="88" height="88" rx="9" fill="url(#bgGL)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#20a020" stroke-width="1.5" opacity="0.7"/><rect x="22" y="50" width="44" height="26" rx="8" fill="url(#gloveGrad)"/><rect x="22" y="50" width="44" height="26" rx="8" fill="none" stroke="#0a5010" stroke-width="1.5"/><rect x="22" y="22" width="9" height="34" rx="5" fill="url(#gloveGrad)"/><rect x="22" y="22" width="9" height="34" rx="5" fill="none" stroke="#0a5010" stroke-width="1"/><rect x="33" y="18" width="9" height="36" rx="5" fill="url(#gloveGrad)"/><rect x="33" y="18" width="9" height="36" rx="5" fill="none" stroke="#0a5010" stroke-width="1"/><rect x="44" y="20" width="9" height="34" rx="5" fill="url(#gloveGrad)"/><rect x="44" y="20" width="9" height="34" rx="5" fill="none" stroke="#0a5010" stroke-width="1"/><rect x="55" y="24" width="9" height="30" rx="5" fill="url(#gloveGrad)"/><rect x="55" y="24" width="9" height="30" rx="5" fill="none" stroke="#0a5010" stroke-width="1"/><line x1="24" y1="62" x2="64" y2="62" stroke="white" stroke-width="2" opacity="0.4"/><line x1="26" y1="68" x2="62" y2="68" stroke="white" stroke-width="1.5" opacity="0.25"/></svg>`,
+
+        "ARMBAND": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><radialGradient id="bgAB" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="#0a0a1a"/><stop offset="100%" stop-color="#040408"/></radialGradient><linearGradient id="shieldG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2040ff"/><stop offset="50%" stop-color="#1030d0"/><stop offset="100%" stop-color="#0818a0"/></linearGradient><filter id="abGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bgAB)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#2040e0" stroke-width="1.5" opacity="0.7"/><path d="M44,12 L68,24 L68,48 C68,62 56,74 44,78 C32,74 20,62 20,48 L20,24 Z" fill="url(#shieldG)" filter="url(#abGlow)"/><path d="M44,12 L68,24 L68,48 C68,62 56,74 44,78 C32,74 20,62 20,48 L20,24 Z" fill="none" stroke="#6080ff" stroke-width="2"/><path d="M44,16 L64,26 L64,48 C64,60 54,70 44,74 C34,70 24,60 24,48 L24,26 Z" fill="none" stroke="rgba(140,160,255,0.3)" stroke-width="1"/><text x="44" y="52" font-family="Arial,sans-serif" font-size="13" font-weight="900" text-anchor="middle" fill="white" letter-spacing="1">BONUS</text><polygon points="44,22 46,28 52,28 47,32 49,38 44,34 39,38 41,32 36,28 42,28" fill="#ffd060" stroke="#ff9000" stroke-width="0.5"/></svg>`,
+
+        "TROPHY": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><radialGradient id="bgTR" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="#1a1400"/><stop offset="100%" stop-color="#080600"/></radialGradient><linearGradient id="trophyG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#ffe070"/><stop offset="70%" stop-color="#d0a000"/><stop offset="100%" stop-color="#7a4800"/></linearGradient><filter id="trGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bgTR)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#c09020" stroke-width="2" opacity="0.85"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#ffe060" stroke-width="0.5" opacity="0.3"/><g filter="url(#trGlow)"><path d="M30,14 L58,14 L58,42 C58,56 52,64 44,68 C36,64 30,56 30,42 Z" fill="url(#trophyG)"/><path d="M30,14 L58,14 L58,42 C58,56 52,64 44,68 C36,64 30,56 30,42 Z" fill="none" stroke="#806000" stroke-width="1.5"/><path d="M22,14 L30,14 L30,30 C30,36 26,38 22,36 Z" fill="url(#trophyG)"/><path d="M66,14 L58,14 L58,30 C58,36 62,38 66,36 Z" fill="url(#trophyG)"/><path d="M22,14 L30,14 L30,30 C30,36 26,38 22,36 Z" fill="none" stroke="#806000" stroke-width="1"/><path d="M66,14 L58,14 L58,30 C58,36 62,38 66,36 Z" fill="none" stroke="#806000" stroke-width="1"/><rect x="38" y="68" width="12" height="12" rx="2" fill="url(#trophyG)"/><rect x="28" y="78" width="32" height="6" rx="3" fill="url(#trophyG)"/><rect x="38" y="68" width="12" height="12" rx="2" fill="none" stroke="#806000" stroke-width="1"/><rect x="28" y="78" width="32" height="6" rx="3" fill="none" stroke="#806000" stroke-width="1"/><path d="M34,14 L38,20 L44,18 L50,20 L54,14" fill="none" stroke="rgba(255,240,180,0.5)" stroke-width="1.5"/><circle cx="44" cy="40" r="6" fill="none" stroke="rgba(255,240,180,0.4)" stroke-width="1.5"/></g></svg>`,
+
+        "LIGHTS": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><radialGradient id="bgLT" cx="50%" cy="20%" r="80%"><stop offset="0%" stop-color="#0a1020"/><stop offset="100%" stop-color="#030508"/></radialGradient><filter id="ltGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bgLT)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#4060c0" stroke-width="1.5" opacity="0.6"/><rect x="18" y="60" width="6" height="24" rx="2" fill="#4060a0"/><rect x="64" y="60" width="6" height="24" rx="2" fill="#4060a0"/><rect x="10" y="52" width="22" height="12" rx="3" fill="#4060a0"/><rect x="56" y="52" width="22" height="12" rx="3" fill="#4060a0"/><rect x="12" y="48" width="18" height="8" rx="2" fill="#5070b0"/><rect x="58" y="48" width="18" height="8" rx="2" fill="#5070b0"/><polygon points="10,48 21,15 32,48" fill="rgba(240,248,255,0.12)" filter="url(#ltGlow)"/><polygon points="56,48 67,15 78,48" fill="rgba(240,248,255,0.12)" filter="url(#ltGlow)"/><polygon points="10,48 21,15 32,48" fill="rgba(200,220,255,0.06)"/><polygon points="56,48 67,15 78,48" fill="rgba(200,220,255,0.06)"/><ellipse cx="21" cy="56" rx="10" ry="4" fill="#d0e8ff" opacity="0.8" filter="url(#ltGlow)"/><ellipse cx="67" cy="56" rx="10" ry="4" fill="#d0e8ff" opacity="0.8" filter="url(#ltGlow)"/><line x1="21" y1="56" x2="44" y2="88" stroke="rgba(200,228,255,0.06)" stroke-width="8"/><line x1="67" y1="56" x2="44" y2="88" stroke="rgba(200,228,255,0.06)" stroke-width="8"/></svg>`,
+
+        "WHISTLE": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><radialGradient id="bgWH" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="#061a0e"/><stop offset="100%" stop-color="#020a06"/></radialGradient><linearGradient id="whistleG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#d0ffe0"/><stop offset="50%" stop-color="#80e890"/><stop offset="100%" stop-color="#208040"/></linearGradient><filter id="whGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bgWH)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#20c050" stroke-width="2" opacity="0.8"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#60ff90" stroke-width="0.5" opacity="0.3"/><ellipse cx="44" cy="44" rx="28" ry="28" fill="#10c040" opacity="0.1" filter="url(#whGlow)"/><rect x="14" y="36" width="38" height="18" rx="9" fill="url(#whistleG)" filter="url(#whGlow)"/><rect x="14" y="36" width="38" height="18" rx="9" fill="none" stroke="#0a5020" stroke-width="1.5"/><circle cx="62" cy="45" r="14" fill="url(#whistleG)" filter="url(#whGlow)"/><circle cx="62" cy="45" r="14" fill="none" stroke="#0a5020" stroke-width="1.5"/><circle cx="62" cy="45" r="6" fill="#071810"/><circle cx="62" cy="45" r="4" fill="#0a3020" stroke="#20c050" stroke-width="1"/><rect x="18" y="25" width="24" height="14" rx="4" fill="#208040" opacity="0.9"/><text x="30" y="36" font-family="Arial,sans-serif" font-size="9" font-weight="900" text-anchor="middle" fill="#d0ffe0" letter-spacing="0.5">WILD</text><text x="44" y="76" font-family="Arial,sans-serif" font-size="11" font-weight="900" text-anchor="middle" fill="#20ff60" letter-spacing="2">WILD</text></svg>`,
+
+        "GOLDEN_BALL": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><radialGradient id="bgGB" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="#201200"/><stop offset="100%" stop-color="#0a0600"/></radialGradient><radialGradient id="goldBall" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#fff8d0"/><stop offset="40%" stop-color="#ffd060"/><stop offset="80%" stop-color="#d09000"/><stop offset="100%" stop-color="#805800"/></radialGradient><filter id="gbGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bgGB)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#c09020" stroke-width="2" opacity="0.9"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#ffe060" stroke-width="0.5" opacity="0.4"/><circle cx="44" cy="40" r="30" fill="#ffd060" opacity="0.15" filter="url(#gbGlow)"/><circle cx="44" cy="40" r="24" fill="url(#goldBall)" filter="url(#gbGlow)"/><circle cx="44" cy="40" r="24" fill="none" stroke="#806000" stroke-width="1.5"/><circle cx="38" cy="33" r="5" fill="rgba(255,255,255,0.35)"/><polygon points="44,22 46.5,29 54,29 48,33.5 50,41 44,37 38,41 40,33.5 34,29 41.5,29" fill="#805800" opacity="0.5"/><text x="44" y="77" font-family="Arial,sans-serif" font-size="10" font-weight="900" text-anchor="middle" fill="#ffd060" letter-spacing="1">SCATTER</text></svg>`,
+
+        "CAPTAIN_STAR": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><radialGradient id="bgCS" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="#1a1000"/><stop offset="100%" stop-color="#080600"/></radialGradient><filter id="csGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bgCS)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#c08020" stroke-width="1.5" opacity="0.8"/><polygon points="44,10 49,28 68,28 53,39 58,57 44,46 30,57 35,39 20,28 39,28" fill="#ffd060" stroke="#a06000" stroke-width="1.5" filter="url(#csGlow)"/><polygon points="44,14 48.5,30 66,30 52,40 57,57 44,47 31,57 36,40 22,30 39.5,30" fill="rgba(255,255,255,0.15)"/></svg>`,
+
+        "COLLECTOR": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><radialGradient id="bgCL" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="#1a1400"/><stop offset="100%" stop-color="#080600"/></radialGradient><linearGradient id="collectG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffe898"/><stop offset="50%" stop-color="#ffc030"/><stop offset="100%" stop-color="#805000"/></linearGradient></defs><rect width="88" height="88" rx="9" fill="url(#bgCL)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#c08020" stroke-width="1.5" opacity="0.8"/><path d="M32,22 L56,22 L56,46 C56,56 50,62 44,66 C38,62 32,56 32,46 Z" fill="url(#collectG)"/><path d="M32,22 L56,22 L56,46 C56,56 50,62 44,66 C38,62 32,56 32,46 Z" fill="none" stroke="#806020" stroke-width="1.5"/><path d="M24,22 L32,22 L32,36 C32,40 28,41 24,39 Z" fill="url(#collectG)"/><path d="M64,22 L56,22 L56,36 C56,40 60,41 64,39 Z" fill="url(#collectG)"/><rect x="38" y="66" width="12" height="10" rx="2" fill="url(#collectG)"/><rect x="30" y="74" width="28" height="5" rx="2" fill="url(#collectG)"/><text x="44" y="50" font-family="Arial,sans-serif" font-size="9" font-weight="900" text-anchor="middle" fill="#3a1a00">COLLECT</text></svg>`,
+
+        "VAR_SCREEN": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><linearGradient id="bgVR" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#081828"/><stop offset="100%" stop-color="#020810"/></linearGradient></defs><rect width="88" height="88" rx="9" fill="url(#bgVR)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#30a0e0" stroke-width="1.5" opacity="0.8"/><rect x="14" y="20" width="60" height="40" rx="5" fill="#0a1820"/><rect x="14" y="20" width="60" height="40" rx="5" fill="none" stroke="#30a0e0" stroke-width="2"/><rect x="16" y="22" width="56" height="36" rx="4" fill="#061420"/><text x="44" y="47" font-family="Arial,sans-serif" font-size="20" font-weight="900" text-anchor="middle" fill="#40c0ff" letter-spacing="2">VAR</text><rect x="38" y="60" width="12" height="8" rx="2" fill="#30a0e0"/><rect x="28" y="68" width="32" height="4" rx="2" fill="#30a0e0" opacity="0.7"/></svg>`,
+
+        "WILD_TROPHY": `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><radialGradient id="bgWT" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="#061a0e"/><stop offset="100%" stop-color="#020a06"/></radialGradient><linearGradient id="wtG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d0ffe8"/><stop offset="50%" stop-color="#20e870"/><stop offset="100%" stop-color="#0a8040"/></linearGradient><filter id="wtGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="88" height="88" rx="9" fill="url(#bgWT)"/><rect x="1.5" y="1.5" width="85" height="85" rx="8" fill="none" stroke="#20c060" stroke-width="2" opacity="0.85"/><g filter="url(#wtGlow)"><path d="M30,14 L58,14 L58,42 C58,56 52,64 44,68 C36,64 30,56 30,42 Z" fill="url(#wtG)"/><path d="M22,14 L30,14 L30,30 C30,36 26,38 22,36 Z" fill="url(#wtG)"/><path d="M66,14 L58,14 L58,30 C58,36 62,38 66,36 Z" fill="url(#wtG)"/><rect x="38" y="68" width="12" height="10" rx="2" fill="url(#wtG)"/><rect x="28" y="76" width="32" height="6" rx="3" fill="url(#wtG)"/></g><text x="44" y="78" font-family="Arial,sans-serif" font-size="9" font-weight="900" text-anchor="middle" fill="#20ff70" letter-spacing="2">WILD</text></svg>`,
+      };
+
       const els = {
         balance: document.querySelector("#balanceValue"),
         win: document.querySelector("#winValue"),
@@ -1448,6 +1541,13 @@
           this.renderOptions = {};
         }
 
+        preload() {
+          for (const [key, svg] of Object.entries(SYMBOL_SVGS)) {
+            const b64 = btoa(unescape(encodeURIComponent(svg)));
+            this.textures.addBase64("sym_" + key, "data:image/svg+xml;base64," + b64);
+          }
+        }
+
         create() {
           scene = this;
           this.bg = this.add.graphics();
@@ -1507,10 +1607,21 @@
           this.gridBounds = { x, y, cell, gap };
 
           const frame = this.add.graphics();
-          frame.fillStyle(0x020706, 0.72);
-          frame.lineStyle(2, 0xffd66b, 0.2);
-          frame.fillRoundedRect(x - 12, y - 12, gridWidth + 24, gridHeight + 24, 8);
-          frame.strokeRoundedRect(x - 12, y - 12, gridWidth + 24, gridHeight + 24, 8);
+          /* Outer gold-border frame */
+          frame.lineStyle(3, 0xd8a943, 0.85);
+          frame.fillStyle(0x010503, 0.88);
+          frame.fillRoundedRect(x - 14, y - 14, gridWidth + 28, gridHeight + 28, 10);
+          frame.strokeRoundedRect(x - 14, y - 14, gridWidth + 28, gridHeight + 28, 10);
+          /* Inner subtle highlight */
+          frame.lineStyle(1, 0xffcf52, 0.3);
+          frame.strokeRoundedRect(x - 10, y - 10, gridWidth + 20, gridHeight + 20, 8);
+          /* Corner accent dots */
+          const corners = [
+            [x - 14, y - 14], [x + gridWidth + 14, y - 14],
+            [x - 14, y + gridHeight + 14], [x + gridWidth + 14, y + gridHeight + 14],
+          ];
+          frame.fillStyle(0xffcf52, 0.8);
+          for (const [cx2, cy2] of corners) frame.fillCircle(cx2, cy2, 4);
           this.gridLayer.add(frame);
 
           for (let row = 0; row < ROWS; row += 1) {
@@ -2550,9 +2661,26 @@
       }
 
       function drawSymbol(sceneRef, box, cell, size) {
-        const g = sceneRef.add.graphics();
         const cx = size / 2;
         const cy = size / 2;
+        const texKey = "sym_" + cell.id;
+
+        /* Use preloaded SVG texture when available */
+        if (sceneRef.textures.exists(texKey)) {
+          const img = sceneRef.add.image(cx, cy, texKey);
+          img.setDisplaySize(size, size);
+          box.add(img);
+          /* Overlay label for coin/collect values */
+          if (cell.id === "GOLDEN_BALL" && (cell.label || cell.value != null)) {
+            addSmallLabel(sceneRef, box, cell.label ?? `${cell.value}x`, cx, cy + size * 0.22, Math.max(11, size * 0.18), "#ffd66b");
+          } else if ((cell.id === "CAPTAIN_STAR" || cell.id === "COLLECTOR") && (cell.label || cell.value != null)) {
+            addSmallLabel(sceneRef, box, cell.label ?? (cell.value != null ? `${cell.value}x` : ""), cx, cy + size * 0.25, Math.max(10, size * 0.16), "#ffd66b");
+          }
+          return;
+        }
+
+        /* Fallback vector rendering (should not normally be reached) */
+        const g = sceneRef.add.graphics();
         const scale = size / 88;
         const textSize = Math.max(13, Math.floor(size * 0.24));
 
@@ -2569,83 +2697,11 @@
           text.setOrigin(0.5);
           text.setShadow(0, 4, "rgba(0,0,0,0.72)", 8, true, true);
           box.add(text);
+          box.add(g);
           return;
         }
 
-        if (cell.id === "FOOTBALL") {
-          g.fillStyle(0xeafdf4, 1);
-          g.fillCircle(cx, cy, 24 * scale);
-          g.lineStyle(3 * scale, 0x081210, 0.9);
-          g.strokeCircle(cx, cy, 24 * scale);
-          g.lineBetween(cx - 16 * scale, cy, cx + 16 * scale, cy);
-          g.lineBetween(cx, cy - 18 * scale, cx, cy + 18 * scale);
-          g.strokePoints(
-            [
-              new PhaserRef.Geom.Point(cx, cy - 12 * scale),
-              new PhaserRef.Geom.Point(cx + 11 * scale, cy),
-              new PhaserRef.Geom.Point(cx, cy + 12 * scale),
-              new PhaserRef.Geom.Point(cx - 11 * scale, cy),
-            ],
-            true,
-          );
-        } else if (cell.id === "BOOT") {
-          g.fillStyle(0xf7bd28, 1);
-          g.fillPoints(
-            [
-              { x: cx - 24 * scale, y: cy - 2 * scale },
-              { x: cx + 4 * scale, y: cy - 16 * scale },
-              { x: cx + 18 * scale, y: cy + 3 * scale },
-              { x: cx + 27 * scale, y: cy + 12 * scale },
-              { x: cx - 18 * scale, y: cy + 16 * scale },
-            ],
-            true,
-          );
-          g.fillStyle(0x111111, 0.8);
-          g.fillRect(cx - 12 * scale, cy + 12 * scale, 38 * scale, 5 * scale);
-        } else if (cell.id === "GLOVE") {
-          g.fillStyle(0x4cc3ff, 1);
-          for (let i = 0; i < 4; i += 1) g.fillRoundedRect(cx - 22 * scale + i * 10 * scale, cy - 24 * scale, 8 * scale, 28 * scale, 4 * scale);
-          g.fillRoundedRect(cx - 22 * scale, cy - 4 * scale, 42 * scale, 28 * scale, 10 * scale);
-          g.lineStyle(2 * scale, 0xffffff, 0.8);
-          g.lineBetween(cx - 12 * scale, cy + 6 * scale, cx + 12 * scale, cy + 14 * scale);
-        } else if (cell.id === "TICKET") {
-          g.fillStyle(0xff4d66, 1);
-          g.fillRoundedRect(cx - 27 * scale, cy - 18 * scale, 54 * scale, 36 * scale, 6 * scale);
-          g.fillStyle(0x07100d, 1);
-          g.fillCircle(cx - 27 * scale, cy, 7 * scale);
-          g.fillCircle(cx + 27 * scale, cy, 7 * scale);
-          g.lineStyle(2 * scale, 0xffffff, 0.55);
-          g.lineBetween(cx - 10 * scale, cy - 12 * scale, cx - 10 * scale, cy + 12 * scale);
-        } else if (cell.id === "ARMBAND") {
-          g.fillStyle(0x21f59b, 1);
-          g.fillRoundedRect(cx - 28 * scale, cy - 14 * scale, 56 * scale, 28 * scale, 6 * scale);
-          g.fillStyle(0x07100d, 0.82);
-          g.fillRect(cx - 6 * scale, cy - 14 * scale, 12 * scale, 28 * scale);
-          addSmallLabel(sceneRef, box, "C", cx, cy, size * 0.24, "#07100d");
-        } else if (cell.id === "TROPHY" || cell.id === "WILD_TROPHY") {
-          drawTrophy(g, cx, cy, scale, cell.id === "WILD_TROPHY" ? 0x21f59b : 0xffd66b);
-        } else if (cell.id === "LIGHTS") {
-          g.fillStyle(0xf5fff9, 0.95);
-          g.fillCircle(cx - 12 * scale, cy - 12 * scale, 8 * scale);
-          g.fillCircle(cx + 12 * scale, cy - 12 * scale, 8 * scale);
-          g.lineStyle(5 * scale, 0x21f59b, 0.7);
-          g.lineBetween(cx, cy - 4 * scale, cx, cy + 24 * scale);
-          g.fillStyle(0x21f59b, 0.15);
-          g.fillTriangle(cx - 30 * scale, cy + 28 * scale, cx - 12 * scale, cy - 4 * scale, cx + 8 * scale, cy + 28 * scale);
-          g.fillTriangle(cx + 30 * scale, cy + 28 * scale, cx + 12 * scale, cy - 4 * scale, cx - 8 * scale, cy + 28 * scale);
-        } else if (cell.id === "WHISTLE") {
-          g.fillStyle(0xeafdf4, 1);
-          g.fillRoundedRect(cx - 22 * scale, cy - 8 * scale, 34 * scale, 20 * scale, 8 * scale);
-          g.fillCircle(cx + 15 * scale, cy + 2 * scale, 13 * scale);
-          g.fillStyle(0x07100d, 1);
-          g.fillCircle(cx + 15 * scale, cy + 2 * scale, 5 * scale);
-        } else if (cell.id === "VAR_SCREEN") {
-          g.fillStyle(0x0f1c22, 1);
-          g.lineStyle(3 * scale, 0x4cc3ff, 0.9);
-          g.fillRoundedRect(cx - 28 * scale, cy - 20 * scale, 56 * scale, 38 * scale, 5 * scale);
-          g.strokeRoundedRect(cx - 28 * scale, cy - 20 * scale, 56 * scale, 38 * scale, 5 * scale);
-          addSmallLabel(sceneRef, box, "VAR", cx, cy, textSize, "#4cc3ff");
-        } else if (cell.id === "GOLDEN_BALL") {
+        if (cell.id === "GOLDEN_BALL") {
           const color = cell.coinTier === "gold" ? 0xffd66b : cell.coinTier === "silver" ? 0xdce8ef : 0xcd8755;
           g.fillStyle(color, 1);
           g.fillCircle(cx, cy - 4 * scale, 24 * scale);
@@ -2658,12 +2714,17 @@
         } else if (cell.id === "COLLECTOR") {
           drawTrophy(g, cx, cy - 5 * scale, scale * 0.86, 0xffd66b);
           addSmallLabel(sceneRef, box, cell.label ?? "COLLECT", cx, cy + size * 0.29, Math.max(10, size * 0.15), "#ffffff");
-        }
-
-        box.add(g);
-        if (!["VAR_SCREEN", "GOLDEN_BALL", "CAPTAIN_STAR", "COLLECTOR", "ARMBAND"].includes(cell.id)) {
+        } else if (cell.id === "VAR_SCREEN") {
+          g.fillStyle(0x0f1c22, 1);
+          g.lineStyle(3 * scale, 0x4cc3ff, 0.9);
+          g.fillRoundedRect(cx - 28 * scale, cy - 20 * scale, 56 * scale, 38 * scale, 5 * scale);
+          g.strokeRoundedRect(cx - 28 * scale, cy - 20 * scale, 56 * scale, 38 * scale, 5 * scale);
+          addSmallLabel(sceneRef, box, "VAR", cx, cy, textSize, "#4cc3ff");
+        } else {
+          drawTrophy(g, cx, cy, scale, 0xffd66b);
           addSmallLabel(sceneRef, box, SYMBOL_META[cell.id]?.short ?? cell.id, cx, size - 12 * scale, Math.max(9, size * 0.13), "#dffdee");
         }
+        box.add(g);
       }
 
       function drawTrophy(g, cx, cy, scale, color) {
