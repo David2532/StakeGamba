@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Auto-build the Stake frontend whenever frontend source is committed.
+#
+# Installed automatically by `npm install` in frontend/ (sets core.hooksPath).
+# Skips itself when no frontend source is staged, so non-frontend commits are
+# untouched. Keeps stake-front/ and frontend/dist/ always in sync — no manual
+# `npm run build` needed.
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+
+# Only run when staged changes touch frontend SOURCE (not the generated output).
+staged="$(git diff --cached --name-only --diff-filter=ACMR)"
+if ! printf '%s\n' "$staged" | grep -Eq '^frontend/(index\.html|src/|package\.json|package-lock\.json|scripts/|vite\.config\.ts)'; then
+  exit 0
+fi
+
+if [ ! -d "$repo_root/frontend/node_modules" ]; then
+  echo "[pre-commit] frontend/node_modules missing — run 'cd frontend && npm install' first. Skipping auto-build." >&2
+  exit 0
+fi
+
+echo "[pre-commit] Frontend source changed → building Stake frontend…"
+if ! ( cd "$repo_root/frontend" && npm run build --silent ); then
+  echo "[pre-commit] Build FAILED — commit aborted. Fix the build, then commit again." >&2
+  exit 1
+fi
+
+# Stage the regenerated artifacts so they ride along in this commit.
+git -C "$repo_root" add frontend/dist stake-front
+echo "[pre-commit] Stake build refreshed and staged (frontend/dist, stake-front)."
+exit 0
