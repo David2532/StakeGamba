@@ -10,8 +10,53 @@ export default {
 	},
 	pressToContinueText: {
 		type: 'sprites',
-		src: new URL('../../assets/sprites/pressToContinueText/MM_pressanywhere.json', import.meta.url).href,
+		src: new URL('../../assets/sprites/pressToContinueText/MM_pressanywhere.json', import.meta.url)
+			.href,
 		preload: true,
+	},
+	'ggr-l1': {
+		type: 'sprite',
+		src: '/assets/golden-goal-rush/symbol-l1.png',
+	},
+	'ggr-l2': {
+		type: 'sprite',
+		src: '/assets/golden-goal-rush/symbol-l2.png',
+	},
+	'ggr-l3': {
+		type: 'sprite',
+		src: '/assets/golden-goal-rush/symbol-l3.png',
+	},
+	'ggr-l4': {
+		type: 'sprite',
+		src: '/assets/golden-goal-rush/symbol-l4.png',
+	},
+	'ggr-l5': {
+		type: 'sprite',
+		src: '/assets/golden-goal-rush/symbol-l5.png',
+	},
+	'ggr-h1': {
+		type: 'sprite',
+		src: '/assets/golden-goal-rush/symbol-h1.png',
+	},
+	'ggr-h2': {
+		type: 'sprite',
+		src: '/assets/golden-goal-rush/symbol-h2.png',
+	},
+	'ggr-h3': {
+		type: 'sprite',
+		src: '/assets/golden-goal-rush/symbol-h3.png',
+	},
+	'ggr-h4': {
+		type: 'sprite',
+		src: '/assets/golden-goal-rush/symbol-h4.png',
+	},
+	'ggr-w': {
+		type: 'sprite',
+		src: '/assets/golden-goal-rush/symbol-w.png',
+	},
+	'ggr-s': {
+		type: 'sprite',
+		src: '/assets/golden-goal-rush/symbol-s.png',
 	},
 	H1: {
 		type: 'spine',
@@ -161,7 +206,8 @@ export default {
 		type: 'spine',
 		src: {
 			atlas: new URL('../../assets/spines/globalMultiplier/multiframe.atlas', import.meta.url).href,
-			skeleton: new URL('../../assets/spines/globalMultiplier/multiframe.json', import.meta.url).href,
+			skeleton: new URL('../../assets/spines/globalMultiplier/multiframe.json', import.meta.url)
+				.href,
 			scale: 2,
 		},
 	},
@@ -201,8 +247,14 @@ export default {
 	foregroundFeatureAnimation: {
 		type: 'spine',
 		src: {
-			atlas: new URL('../../assets/spines/foregroundFeatureAnimation/mm_bg_feature.atlas', import.meta.url).href,
-			skeleton: new URL('../../assets/spines/foregroundFeatureAnimation/mm_bg_feature.json', import.meta.url).href,
+			atlas: new URL(
+				'../../assets/spines/foregroundFeatureAnimation/mm_bg_feature.atlas',
+				import.meta.url,
+			).href,
+			skeleton: new URL(
+				'../../assets/spines/foregroundFeatureAnimation/mm_bg_feature.json',
+				import.meta.url,
+			).href,
 			scale: 2,
 		},
 		preload: true,
@@ -211,7 +263,8 @@ export default {
 		type: 'spine',
 		src: {
 			atlas: new URL('../../assets/spines/tumbleWin/tumble_win.atlas', import.meta.url).href,
-			skeleton: new URL('../../assets/spines/tumbleWin/tumble_multiplier.json', import.meta.url).href,
+			skeleton: new URL('../../assets/spines/tumbleWin/tumble_multiplier.json', import.meta.url)
+				.href,
 			scale: 2,
 		},
 	},
@@ -242,7 +295,8 @@ export default {
 	},
 	winSmall: {
 		type: 'sprites',
-		src: new URL('../../assets/sprites/winSmall/MM_Localisation_winsmall.json', import.meta.url).href,
+		src: new URL('../../assets/sprites/winSmall/MM_Localisation_winsmall.json', import.meta.url)
+			.href,
 	},
 	clusterWin: {
 		type: 'spine',

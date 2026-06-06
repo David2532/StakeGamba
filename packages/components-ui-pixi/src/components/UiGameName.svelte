@@ -2,7 +2,6 @@
 	import { SvelteDate } from 'svelte/reactivity';
 
 	import { Text, REM } from 'pixi-svelte';
-	import { WHITE } from 'constants-shared/colors';
 
 	type Props = {
 		name: string;
@@ -20,10 +19,10 @@
 	const textProps = {
 		style: {
 			fontFamily: 'proxima-nova',
-			fontSize: REM * 1.5,
-			fontWeight: '600',
+			fontSize: REM * 1.35,
+			fontWeight: '800',
 			lineHeight: REM * 2,
-			fill: WHITE,
+			fill: 0xf4d276,
 		},
 	} as const;
 

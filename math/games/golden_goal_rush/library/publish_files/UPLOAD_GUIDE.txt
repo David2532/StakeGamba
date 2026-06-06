@@ -1,0 +1,23 @@
+Golden Goal Rush Upload Guide
+
+Frontend package:
+Use the existing apps/lines frontend build or frontend ZIP from the normal project build pipeline. This math task does not create or replace a frontend ZIP.
+
+Math package:
+Use golden-goal-rush-math-upload.zip from this publish_files directory.
+
+Math ZIP contents:
+- index.json
+- game_config.json
+- base_lookup.csv
+- bonus_lookup.csv
+- base_books.jsonl.zst
+- bonus_books.jsonl.zst
+- README_UPLOAD.txt
+
+Remaining risks:
+- MVP only; RTP and volatility are not final.
+- Not regulatory approved.
+- Built from the local Golden Goal Rush MVP generator, not from a verified external Stake SDK template.
+- Free spin handling is intentionally simple and avoids freeSpinRetrigger because the frontend has no confirmed handler.
+- Frontend Storybook environment issues are separate and should be stabilized before final QA.

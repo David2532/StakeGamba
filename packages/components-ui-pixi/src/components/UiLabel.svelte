@@ -17,13 +17,15 @@
 	const labelStyle = {
 		fontFamily: 'proxima-nova',
 		fontSize: UI_BASE_FONT_SIZE,
-		fill: WHITE,
+		fill: 0xf4d276,
+		fontWeight: '700',
 	} as const;
 
 	const valueStyle = {
 		fontFamily: 'proxima-nova',
 		fontSize: UI_BASE_FONT_SIZE,
 		fill: WHITE,
+		fontWeight: '700',
 	} as const;
 </script>
 
