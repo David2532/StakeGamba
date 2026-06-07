@@ -109,10 +109,10 @@
 	y={context.stateGameDerived.boardLayout().y * POSITION_ADJUSTMENT}
 	width={context.stateGameDerived.boardLayout().width * INNER_SCALE.width}
 	height={context.stateGameDerived.boardLayout().height * INNER_SCALE.height}
-	backgroundColor={0x070610}
-	backgroundAlpha={0.88}
+	backgroundColor={0x0a0818}
+	backgroundAlpha={0.92}
 	borderRadius={18}
-	borderColor={0x8a1428}
+	borderColor={0x9a1830}
 	borderWidth={5}
 />
 

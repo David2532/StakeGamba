@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Sprite, type SpriteProps } from 'pixi-svelte';
+	import { Sprite } from 'pixi-svelte';
 
 	import { getSymbolInfo } from '../game/utils';
 	import { SYMBOL_SIZE } from '../game/constants';

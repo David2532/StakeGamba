@@ -15,39 +15,39 @@
 		const h = SYMBOL_SIZE * rows;
 		const offsetX = -SYMBOL_SIZE * REEL_PADDING;
 
-		// Alternating column tint (every 2nd reel slightly lighter)
+		// Alternating column tint — very subtle, even columns slightly darker
 		for (let c = 0; c < cols; c++) {
 			if (c % 2 === 0) {
 				const x = offsetX + c * SYMBOL_SIZE;
 				g.rect(x, 0, SYMBOL_SIZE, h);
-				g.fill({ color: 0x0a0810, alpha: 0.45 });
+				g.fill({ color: 0x000000, alpha: 0.12 });
 			}
 		}
 
-		// Horizontal row dividers — thin, very subtle
+		// Horizontal row dividers — warm dark
 		for (let r = 1; r < rows; r++) {
 			const y = r * SYMBOL_SIZE;
 			g.rect(offsetX, y - 1, w, 2);
-			g.fill({ color: 0x1a1520, alpha: 0.55 });
+			g.fill({ color: 0x1a1228, alpha: 0.55 });
 		}
 
-		// Vertical column separators — thin gold-tinted lines
+		// Vertical column separators — gold-tinted
 		for (let c = 1; c < cols; c++) {
 			const x = offsetX + c * SYMBOL_SIZE;
 			g.rect(x - 1, 0, 2, h);
-			g.fill({ color: 0xc89a30, alpha: 0.18 });
+			g.fill({ color: 0xd4a030, alpha: 0.22 });
 		}
 
-		// Top edge shadow (gradient-like using multiple rects)
+		// Top edge shadow
 		for (let i = 0; i < 6; i++) {
 			g.rect(offsetX, i * 4, w, 4);
-			g.fill({ color: 0x000000, alpha: 0.06 - i * 0.008 });
+			g.fill({ color: 0x000000, alpha: 0.05 - i * 0.007 });
 		}
 
 		// Bottom edge shadow
 		for (let i = 0; i < 6; i++) {
 			g.rect(offsetX, h - (i + 1) * 4, w, 4);
-			g.fill({ color: 0x000000, alpha: 0.06 - i * 0.008 });
+			g.fill({ color: 0x000000, alpha: 0.05 - i * 0.007 });
 		}
 	}}
 />
