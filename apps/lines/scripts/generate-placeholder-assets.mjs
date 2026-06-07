@@ -137,9 +137,13 @@ files['background.svg'] = `<svg xmlns="http://www.w3.org/2000/svg" width="1600" 
       <stop offset="55%" stop-color="#0c2a18"/>
       <stop offset="100%" stop-color="#03070500"/>
     </linearGradient>
-    <radialGradient id="spot" cx="50%" cy="18%" r="60%">
-      <stop offset="0%" stop-color="#ffe9a8" stop-opacity="0.30"/>
+    <radialGradient id="spot" cx="50%" cy="20%" r="62%">
+      <stop offset="0%" stop-color="#ffe9a8" stop-opacity="0.44"/>
       <stop offset="100%" stop-color="#ffe9a8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="pitchglow" cx="50%" cy="78%" r="40%">
+      <stop offset="0%" stop-color="#eafff0" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#eafff0" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="lamp" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#fffbe6"/>
@@ -168,28 +172,45 @@ files['background.svg'] = `<svg xmlns="http://www.w3.org/2000/svg" width="1600" 
     <rect x="${x - 70}" y="70" width="140" height="64" rx="10" fill="#0e1714" stroke="#2a3a30" stroke-width="3"/>
     ${[0, 1, 2, 3].map((i) => `<circle cx="${x - 48 + i * 32}" cy="92" r="11" fill="#fffbe6"/>`).join('')}
     ${[0, 1, 2, 3].map((i) => `<circle cx="${x - 48 + i * 32}" cy="116" r="11" fill="#fff1b8"/>`).join('')}
-    <circle cx="${x}" cy="102" r="150" fill="url(#lamp)" opacity="0.45"/>
+    <circle cx="${x}" cy="102" r="170" fill="url(#lamp)" opacity="0.6"/>
   </g>`).join('')}
   <!-- pitch -->
   <path d="M-120,1000 L1720,1000 L1360,560 L240,560 Z" fill="url(#grass)"/>
   <path d="M-120,1000 L1720,1000 L1360,560 L240,560 Z" fill="none" stroke="#bfeccb" stroke-opacity="0.35" stroke-width="6"/>
   <ellipse cx="800" cy="780" rx="190" ry="70" fill="none" stroke="#eafff0" stroke-opacity="0.5" stroke-width="6"/>
   <line x1="800" y1="560" x2="800" y2="1000" stroke="#eafff0" stroke-opacity="0.4" stroke-width="6"/>
-  <!-- vignette -->
-  <rect width="1600" height="1000" fill="#000" opacity="0.18"/>
+  <rect width="1600" height="1000" fill="url(#pitchglow)"/>
+  <!-- vignette for darker stadium contrast -->
+  <radialGradient id="vig" cx="50%" cy="50%" r="72%">
+    <stop offset="55%" stop-color="#000" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#000" stop-opacity="0.55"/>
+  </radialGradient>
+  <rect width="1600" height="1000" fill="url(#vig)"/>
+  <rect width="1600" height="1000" fill="#02060400" />
 </svg>`;
 
 // ---- board frame: gold border + dark reel backdrop, transparent outside ----
 files['frame.svg'] = `<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="720" viewBox="0 0 1250 720">
-  <defs>${GOLD_DEFS}</defs>
-  <rect x="125" y="60" width="1000" height="600" rx="34" fill="#06120c" fill-opacity="0.62"/>
-  <rect x="48" y="40" width="1154" height="640" rx="46" fill="none" stroke="url(#gold)" stroke-width="26"/>
-  <rect x="48" y="40" width="1154" height="640" rx="46" fill="none" stroke="#3a2600" stroke-opacity="0.5" stroke-width="2"/>
-  <rect x="110" y="48" width="1030" height="624" rx="30" fill="none" stroke="#7a1020" stroke-width="6" opacity="0.8"/>
+  <defs>${GOLD_DEFS}
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- clearer, darker reel area for symbol contrast -->
+  <rect x="123" y="58" width="1004" height="604" rx="34" fill="#020a06" fill-opacity="0.82"/>
+  <rect x="123" y="58" width="1004" height="604" rx="34" fill="none" stroke="#000" stroke-opacity="0.6" stroke-width="3"/>
+  <!-- soft outer gold glow -->
+  <rect x="44" y="36" width="1162" height="648" rx="48" fill="none" stroke="#ffd24a" stroke-opacity="0.35" stroke-width="40" filter="url(#glow)"/>
+  <!-- main heavy gold border -->
+  <rect x="46" y="38" width="1158" height="644" rx="48" fill="none" stroke="url(#gold)" stroke-width="34"/>
+  <rect x="46" y="38" width="1158" height="644" rx="48" fill="none" stroke="#3a2600" stroke-opacity="0.55" stroke-width="3"/>
+  <rect x="106" y="46" width="1038" height="628" rx="32" fill="none" stroke="#7a1020" stroke-width="7" opacity="0.85"/>
+  <rect x="116" y="52" width="1018" height="616" rx="28" fill="none" stroke="#fff3c4" stroke-opacity="0.5" stroke-width="2"/>
   <!-- LED corner accents -->
-  ${[[80, 72], [1170, 72], [80, 648], [1170, 648]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="13" fill="url(#gold)"/>`).join('')}
-  ${Array.from({ length: 18 }).map((_, i) => `<circle cx="${130 + i * 55}" cy="40" r="5" fill="#ffd24a" opacity="0.8"/>`).join('')}
-  ${Array.from({ length: 18 }).map((_, i) => `<circle cx="${130 + i * 55}" cy="680" r="5" fill="#ffd24a" opacity="0.8"/>`).join('')}
+  ${[[78, 70], [1172, 70], [78, 650], [1172, 650]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="15" fill="url(#gold)" filter="url(#glow)"/>`).join('')}
+  ${Array.from({ length: 18 }).map((_, i) => `<circle cx="${130 + i * 55}" cy="38" r="5" fill="#ffd24a" opacity="0.85"/>`).join('')}
+  ${Array.from({ length: 18 }).map((_, i) => `<circle cx="${130 + i * 55}" cy="682" r="5" fill="#ffd24a" opacity="0.85"/>`).join('')}
 </svg>`;
 
 // ---- logo (generated for later use; not wired into HUD yet) ----

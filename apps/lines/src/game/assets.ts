@@ -189,24 +189,6 @@ export default {
 			scale: 2,
 		},
 	},
-	foregroundAnimation: {
-		type: 'spine',
-		src: {
-			atlas: new URL('../../assets/spines/foregroundAnimation/mm_bg.atlas', import.meta.url).href,
-			skeleton: new URL('../../assets/spines/foregroundAnimation/mm_bg.json', import.meta.url).href,
-			scale: 2,
-		},
-		preload: true,
-	},
-	foregroundFeatureAnimation: {
-		type: 'spine',
-		src: {
-			atlas: new URL('../../assets/spines/foregroundFeatureAnimation/mm_bg_feature.atlas', import.meta.url).href,
-			skeleton: new URL('../../assets/spines/foregroundFeatureAnimation/mm_bg_feature.json', import.meta.url).href,
-			scale: 2,
-		},
-		preload: true,
-	},
 	tumble_multiplier: {
 		type: 'spine',
 		src: {
@@ -284,6 +266,11 @@ export default {
 	ggrFrame: {
 		type: 'sprite',
 		src: new URL('../../assets/ggr/frame.svg', import.meta.url).href,
+		preload: true,
+	},
+	ggrLogo: {
+		type: 'sprite',
+		src: new URL('../../assets/ggr/logo.svg', import.meta.url).href,
 		preload: true,
 	},
 	coins: {
