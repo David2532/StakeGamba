@@ -40,34 +40,43 @@
 				graphics.fill({ color: 0x0d0b14, alpha: 0.55 });
 			}
 
-			// Stadium flood-light halo — two cones from upper corners
-			graphics.moveTo(cx - width * 0.52, 0);
-			graphics.lineTo(cx - width * 0.08, height * 0.5);
-			graphics.lineTo(cx - width * 0.38, height * 0.5);
-			graphics.lineTo(cx - width * 0.72, 0);
-			graphics.fill({ color: 0xfff4c2, alpha: 0.022 });
+			// Stadium flood-light cones from upper-left and upper-right
+			graphics.moveTo(cx - width * 0.48, 0);
+			graphics.lineTo(cx - width * 0.04, height * 0.52);
+			graphics.lineTo(cx - width * 0.32, height * 0.52);
+			graphics.lineTo(cx - width * 0.68, 0);
+			graphics.fill({ color: 0xfff5cc, alpha: 0.055 });
 
-			graphics.moveTo(cx + width * 0.52, 0);
-			graphics.lineTo(cx + width * 0.08, height * 0.5);
-			graphics.lineTo(cx + width * 0.38, height * 0.5);
-			graphics.lineTo(cx + width * 0.72, 0);
-			graphics.fill({ color: 0xfff4c2, alpha: 0.022 });
+			graphics.moveTo(cx + width * 0.48, 0);
+			graphics.lineTo(cx + width * 0.04, height * 0.52);
+			graphics.lineTo(cx + width * 0.32, height * 0.52);
+			graphics.lineTo(cx + width * 0.68, 0);
+			graphics.fill({ color: 0xfff5cc, alpha: 0.055 });
 
-			// Central spotlight wash — warm amber on the board area
-			for (let r = 6; r >= 1; r--) {
-				const rw = width * 0.18 * r;
-				const rh = height * 0.22 * r;
+			// Flood-light source hotspots at top
+			graphics.ellipse(cx - width * 0.38, height * 0.01, width * 0.06, height * 0.025);
+			graphics.fill({ color: 0xfffde0, alpha: 0.22 });
+			graphics.ellipse(cx + width * 0.38, height * 0.01, width * 0.06, height * 0.025);
+			graphics.fill({ color: 0xfffde0, alpha: 0.22 });
+
+			// Central spotlight wash — warm amber behind the board
+			for (let r = 7; r >= 1; r--) {
+				const rw = width * 0.2 * r;
+				const rh = height * 0.26 * r;
 				graphics.ellipse(cx, boardY, rw, rh);
-				graphics.fill({ color: 0xd4870e, alpha: 0.013 });
+				graphics.fill({ color: 0xd4870e, alpha: 0.018 });
 			}
 
-			// Crowd seat rows in upper area — warm cream highlights
-			for (let i = 0; i < 9; i++) {
-				const x = width * 0.08 + i * width * 0.105;
-				graphics.rect(x, height * 0.07, width * 0.075, 8);
-				graphics.fill({ color: 0xffd580, alpha: 0.28 });
-				graphics.rect(x, height * 0.115, width * 0.075, 5);
-				graphics.fill({ color: 0xe8c06a, alpha: 0.18 });
+			// Crowd seat rows — multiple tiers, more visible
+			for (let tier = 0; tier < 3; tier++) {
+				const tierY = height * (0.06 + tier * 0.045);
+				for (let i = 0; i < 8; i++) {
+					const x = width * 0.06 + i * width * 0.116;
+					const w2 = width * 0.088;
+					const alpha = 0.32 - tier * 0.08;
+					graphics.rect(x, tierY, w2, 7 - tier);
+					graphics.fill({ color: tier === 0 ? 0xffd580 : 0xd4a858, alpha });
+				}
 			}
 
 			// Mid-pitch dividing zone — subtle red/gold gradient band

@@ -166,20 +166,20 @@ const explosion = {
 	sizeRatios: { width: 1, height: 1 },
 };
 
-const h1Static = { type: 'sprite', assetKey: 'ggr-h1', sizeRatios: { width: 1.08, height: 1.08 } };
-const h2Static = { type: 'sprite', assetKey: 'ggr-h2', sizeRatios: { width: 1.08, height: 1.08 } };
-const h3Static = { type: 'sprite', assetKey: 'ggr-h3', sizeRatios: { width: 1.08, height: 1.08 } };
-const h4Static = { type: 'sprite', assetKey: 'ggr-h4', sizeRatios: { width: 1.08, height: 1.08 } };
+const h1Static = { type: 'sprite', assetKey: 'ggr-h1', sizeRatios: { width: 1.26, height: 1.26 } };
+const h2Static = { type: 'sprite', assetKey: 'ggr-h2', sizeRatios: { width: 1.26, height: 1.26 } };
+const h3Static = { type: 'sprite', assetKey: 'ggr-h3', sizeRatios: { width: 1.26, height: 1.26 } };
+const h4Static = { type: 'sprite', assetKey: 'ggr-h4', sizeRatios: { width: 1.26, height: 1.26 } };
 const h5Static = { type: 'sprite', assetKey: 'h5.webp', sizeRatios: { width: 1, height: 1 } };
 
-const l1Static = { type: 'sprite', assetKey: 'ggr-l1', sizeRatios: { width: 1.02, height: 1.02 } };
-const l2Static = { type: 'sprite', assetKey: 'ggr-l2', sizeRatios: { width: 1.02, height: 1.02 } };
-const l3Static = { type: 'sprite', assetKey: 'ggr-l3', sizeRatios: { width: 1.02, height: 1.02 } };
-const l4Static = { type: 'sprite', assetKey: 'ggr-l4', sizeRatios: { width: 1.02, height: 1.02 } };
-const l5Static = { type: 'sprite', assetKey: 'ggr-l5', sizeRatios: { width: 1.02, height: 1.02 } };
+const l1Static = { type: 'sprite', assetKey: 'ggr-l1', sizeRatios: { width: 1.06, height: 1.06 } };
+const l2Static = { type: 'sprite', assetKey: 'ggr-l2', sizeRatios: { width: 1.06, height: 1.06 } };
+const l3Static = { type: 'sprite', assetKey: 'ggr-l3', sizeRatios: { width: 1.06, height: 1.06 } };
+const l4Static = { type: 'sprite', assetKey: 'ggr-l4', sizeRatios: { width: 1.06, height: 1.06 } };
+const l5Static = { type: 'sprite', assetKey: 'ggr-l5', sizeRatios: { width: 1.06, height: 1.06 } };
 
-const sStatic = { type: 'sprite', assetKey: 'ggr-s', sizeRatios: { width: 1.16, height: 1.16 } };
-const wStatic = { type: 'sprite', assetKey: 'ggr-w', sizeRatios: { width: 1.16, height: 1.16 } };
+const sStatic = { type: 'sprite', assetKey: 'ggr-s', sizeRatios: { width: 1.22, height: 1.22 } };
+const wStatic = { type: 'sprite', assetKey: 'ggr-w', sizeRatios: { width: 1.22, height: 1.22 } };
 
 export const SYMBOL_INFO_MAP = {
 	H1: {
