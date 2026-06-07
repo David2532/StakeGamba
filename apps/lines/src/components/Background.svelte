@@ -73,9 +73,9 @@
 				for (let i = 0; i < 8; i++) {
 					const x = width * 0.06 + i * width * 0.116;
 					const w2 = width * 0.088;
-					const alpha = 0.32 - tier * 0.08;
-					graphics.rect(x, tierY, w2, 7 - tier);
-					graphics.fill({ color: tier === 0 ? 0xffd580 : 0xd4a858, alpha });
+					const alpha = 0.15 - tier * 0.04;
+					graphics.rect(x, tierY, w2, 6 - tier);
+					graphics.fill({ color: tier === 0 ? 0xcaa766 : 0xa8884a, alpha });
 				}
 			}
 
@@ -83,9 +83,9 @@
 			graphics.rect(0, height * 0.5, width, height * 0.07);
 			graphics.fill({ color: 0x8c1223, alpha: 0.22 });
 
-			// Gold accent stripe at bottom of stand zone
-			graphics.rect(0, height * 0.56, width, 4);
-			graphics.fill({ color: 0xe8b84a, alpha: 0.68 });
+			// Gold accent stripe at bottom of stand zone — faint, not a placeholder line
+			graphics.rect(0, height * 0.56, width, 2);
+			graphics.fill({ color: 0xc8a24a, alpha: 0.18 });
 
 			// Green pitch hint at the very bottom
 			graphics.rect(0, height * 0.82, width, height * 0.18);
@@ -95,11 +95,9 @@
 			graphics.ellipse(cx, height * 0.92, width * 0.12, height * 0.05);
 			graphics.stroke({ color: 0x0e4a18, width: 3, alpha: 0.55 });
 
-			// Pitch goal-line markers
+			// Pitch goal-line marker — single subtle line
 			graphics.rect(width * 0.08, height * 0.84, width * 0.84, 2);
-			graphics.fill({ color: 0x0e4a18, alpha: 0.45 });
-			graphics.rect(width * 0.18, height * 0.88, width * 0.64, 2);
-			graphics.fill({ color: 0x0e4a18, alpha: 0.32 });
+			graphics.fill({ color: 0x0e4a18, alpha: 0.22 });
 
 			// Vignette — darken all four corners to focus eye on board
 			const vSize = width * 0.38;

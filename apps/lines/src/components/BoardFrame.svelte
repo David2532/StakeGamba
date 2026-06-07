@@ -11,7 +11,7 @@
 
 	const context = getContext();
 	const SPINE_SCALE = { width: 0.62, height: 0.66 };
-	const FRAME_SCALE = { width: 1.32, height: 1.38 };
+	const FRAME_SCALE = { width: 1.18, height: 1.2 };
 	const INNER_SCALE = { width: 1.08, height: 1.08 };
 	const POSITION_ADJUSTMENT = 1.01;
 
@@ -109,11 +109,11 @@
 	y={context.stateGameDerived.boardLayout().y * POSITION_ADJUSTMENT}
 	width={context.stateGameDerived.boardLayout().width * INNER_SCALE.width}
 	height={context.stateGameDerived.boardLayout().height * INNER_SCALE.height}
-	backgroundColor={0x0a0818}
-	backgroundAlpha={0.92}
+	backgroundColor={0x0a0712}
+	backgroundAlpha={0.94}
 	borderRadius={18}
-	borderColor={0x9a1830}
-	borderWidth={5}
+	borderColor={0x2a1c10}
+	borderWidth={3}
 />
 
 <!-- Gold top accent bar (glow effect via two overlapping bars) -->
@@ -149,12 +149,12 @@
 		context.stateGameDerived.boardLayout().height * 0.77) *
 		POSITION_ADJUSTMENT}
 	width={context.stateGameDerived.boardLayout().width * 0.88}
-	height={10}
-	backgroundColor={0xd42038}
-	backgroundAlpha={0.95}
+	height={8}
+	backgroundColor={0x7a121f}
+	backgroundAlpha={0.5}
 	borderRadius={8}
 />
-<!-- Red bottom accent outer glow -->
+<!-- Red bottom accent outer glow (muted, no neon) -->
 <Rectangle
 	anchor={0.5}
 	x={context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
@@ -162,9 +162,9 @@
 		context.stateGameDerived.boardLayout().height * 0.77) *
 		POSITION_ADJUSTMENT}
 	width={context.stateGameDerived.boardLayout().width * 0.96}
-	height={18}
-	backgroundColor={0xc5192e}
-	backgroundAlpha={0.22}
+	height={16}
+	backgroundColor={0x4a0c14}
+	backgroundAlpha={0.12}
 	borderRadius={12}
 />
 
@@ -177,7 +177,7 @@
 		const bh = context.stateGameDerived.boardLayout().height;
 		const fw = bw * (FRAME_SCALE.width - 0.08);
 		const fh = bh * (FRAME_SCALE.height - 0.12);
-		const s = 14; // diamond half-size
+		const s = 10; // diamond half-size
 
 		// corners: top-left, top-right, bottom-left, bottom-right
 		const corners = [
@@ -188,19 +188,16 @@
 		] as const;
 
 		for (const [cx, cy] of corners) {
-			// Outer soft halo
-			g.ellipse(cx, cy, s * 2.2, s * 2.2);
-			g.fill({ color: 0xf0c040, alpha: 0.14 });
-			// Diamond shape
+			// Outer soft halo — very subtle
+			g.ellipse(cx, cy, s * 2.0, s * 2.0);
+			g.fill({ color: 0xc8921e, alpha: 0.08 });
+			// Diamond shape — muted brushed gold, no harsh white core
 			g.moveTo(cx,     cy - s);
 			g.lineTo(cx + s, cy);
 			g.lineTo(cx,     cy + s);
 			g.lineTo(cx - s, cy);
 			g.closePath();
-			g.fill({ color: 0xffe070, alpha: 0.92 });
-			// Centre dot
-			g.circle(cx, cy, s * 0.32);
-			g.fill({ color: 0xfff4b0, alpha: 1.0 });
+			g.fill({ color: 0xc79a3c, alpha: 0.5 });
 		}
 	}}
 />

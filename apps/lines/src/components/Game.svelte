@@ -75,10 +75,11 @@
 					text="WORLD STADIUM"
 					style={{
 						fontFamily: 'proxima-nova',
-						fontSize: REM * 1.5,
-						fontWeight: '600',
+						fontSize: REM * 1.05,
+						fontWeight: '700',
+						letterSpacing: 3,
 						lineHeight: REM * 2,
-						fill: 0xffffff,
+						fill: 0xe8c061,
 					}}
 				/>
 			{/snippet}
