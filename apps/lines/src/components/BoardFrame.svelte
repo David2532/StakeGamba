@@ -13,7 +13,8 @@
 	const SPINE_SCALE = { width: 0.62, height: 0.66 };
 	const FRAME_SCALE = { width: 1.18, height: 1.2 };
 	const INNER_SCALE = { width: 1.08, height: 1.08 };
-	const POSITION_ADJUSTMENT = 1.01;
+	const POSITION_ADJUSTMENT = 1;
+	const ACCENT_OFFSET_RATIO = 0.6;
 
 	type AnimationName = 'reelhouse_glow_start' | 'reelhouse_glow_idle' | 'reelhouse_glow_exit';
 
@@ -121,7 +122,7 @@
 	anchor={0.5}
 	x={context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
 	y={(context.stateGameDerived.boardLayout().y -
-		context.stateGameDerived.boardLayout().height * 0.77) *
+		context.stateGameDerived.boardLayout().height * ACCENT_OFFSET_RATIO) *
 		POSITION_ADJUSTMENT}
 	width={context.stateGameDerived.boardLayout().width * 0.96}
 	height={18}
@@ -133,7 +134,7 @@
 	anchor={0.5}
 	x={context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
 	y={(context.stateGameDerived.boardLayout().y -
-		context.stateGameDerived.boardLayout().height * 0.77) *
+		context.stateGameDerived.boardLayout().height * ACCENT_OFFSET_RATIO) *
 		POSITION_ADJUSTMENT}
 	width={context.stateGameDerived.boardLayout().width * 0.88}
 	height={10}
@@ -146,7 +147,7 @@
 	anchor={0.5}
 	x={context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
 	y={(context.stateGameDerived.boardLayout().y +
-		context.stateGameDerived.boardLayout().height * 0.77) *
+		context.stateGameDerived.boardLayout().height * ACCENT_OFFSET_RATIO) *
 		POSITION_ADJUSTMENT}
 	width={context.stateGameDerived.boardLayout().width * 0.88}
 	height={8}
@@ -159,7 +160,7 @@
 	anchor={0.5}
 	x={context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
 	y={(context.stateGameDerived.boardLayout().y +
-		context.stateGameDerived.boardLayout().height * 0.77) *
+		context.stateGameDerived.boardLayout().height * ACCENT_OFFSET_RATIO) *
 		POSITION_ADJUSTMENT}
 	width={context.stateGameDerived.boardLayout().width * 0.96}
 	height={16}

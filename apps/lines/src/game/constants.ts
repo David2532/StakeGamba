@@ -126,6 +126,9 @@ export const HIGH_SYMBOLS = ['H1', 'H2', 'H3', 'H4'];
 export const INITIAL_SYMBOL_STATE: SymbolState = 'static';
 
 const HIGH_SYMBOL_SIZE = 0.9;
+const GGR_HIGH_SYMBOL_SIZE = 0.94;
+const GGR_LOW_SYMBOL_SIZE = 0.9;
+const GGR_FEATURE_SYMBOL_SIZE = 1;
 
 const SPIN_OPTIONS_SHARED = {
 	reelBounceBackSpeed: 0.15,
@@ -166,20 +169,64 @@ const explosion = {
 	sizeRatios: { width: 1, height: 1 },
 };
 
-const h1Static = { type: 'sprite', assetKey: 'ggr-h1', sizeRatios: { width: 1.26, height: 1.26 } };
-const h2Static = { type: 'sprite', assetKey: 'ggr-h2', sizeRatios: { width: 1.26, height: 1.26 } };
-const h3Static = { type: 'sprite', assetKey: 'ggr-h3', sizeRatios: { width: 1.26, height: 1.26 } };
-const h4Static = { type: 'sprite', assetKey: 'ggr-h4', sizeRatios: { width: 1.26, height: 1.26 } };
+const h1Static = {
+	type: 'sprite',
+	assetKey: 'ggr-h1',
+	sizeRatios: { width: GGR_HIGH_SYMBOL_SIZE, height: GGR_HIGH_SYMBOL_SIZE },
+};
+const h2Static = {
+	type: 'sprite',
+	assetKey: 'ggr-h2',
+	sizeRatios: { width: GGR_HIGH_SYMBOL_SIZE, height: GGR_HIGH_SYMBOL_SIZE },
+};
+const h3Static = {
+	type: 'sprite',
+	assetKey: 'ggr-h3',
+	sizeRatios: { width: GGR_HIGH_SYMBOL_SIZE, height: GGR_HIGH_SYMBOL_SIZE },
+};
+const h4Static = {
+	type: 'sprite',
+	assetKey: 'ggr-h4',
+	sizeRatios: { width: GGR_HIGH_SYMBOL_SIZE, height: GGR_HIGH_SYMBOL_SIZE },
+};
 const h5Static = { type: 'sprite', assetKey: 'h5.webp', sizeRatios: { width: 1, height: 1 } };
 
-const l1Static = { type: 'sprite', assetKey: 'ggr-l1', sizeRatios: { width: 1.06, height: 1.06 } };
-const l2Static = { type: 'sprite', assetKey: 'ggr-l2', sizeRatios: { width: 1.06, height: 1.06 } };
-const l3Static = { type: 'sprite', assetKey: 'ggr-l3', sizeRatios: { width: 1.06, height: 1.06 } };
-const l4Static = { type: 'sprite', assetKey: 'ggr-l4', sizeRatios: { width: 1.06, height: 1.06 } };
-const l5Static = { type: 'sprite', assetKey: 'ggr-l5', sizeRatios: { width: 1.06, height: 1.06 } };
+const l1Static = {
+	type: 'sprite',
+	assetKey: 'ggr-l1',
+	sizeRatios: { width: GGR_LOW_SYMBOL_SIZE, height: GGR_LOW_SYMBOL_SIZE },
+};
+const l2Static = {
+	type: 'sprite',
+	assetKey: 'ggr-l2',
+	sizeRatios: { width: GGR_LOW_SYMBOL_SIZE, height: GGR_LOW_SYMBOL_SIZE },
+};
+const l3Static = {
+	type: 'sprite',
+	assetKey: 'ggr-l3',
+	sizeRatios: { width: GGR_LOW_SYMBOL_SIZE, height: GGR_LOW_SYMBOL_SIZE },
+};
+const l4Static = {
+	type: 'sprite',
+	assetKey: 'ggr-l4',
+	sizeRatios: { width: GGR_LOW_SYMBOL_SIZE, height: GGR_LOW_SYMBOL_SIZE },
+};
+const l5Static = {
+	type: 'sprite',
+	assetKey: 'ggr-l5',
+	sizeRatios: { width: GGR_LOW_SYMBOL_SIZE, height: GGR_LOW_SYMBOL_SIZE },
+};
 
-const sStatic = { type: 'sprite', assetKey: 'ggr-s', sizeRatios: { width: 1.22, height: 1.22 } };
-const wStatic = { type: 'sprite', assetKey: 'ggr-w', sizeRatios: { width: 1.22, height: 1.22 } };
+const sStatic = {
+	type: 'sprite',
+	assetKey: 'ggr-s',
+	sizeRatios: { width: GGR_FEATURE_SYMBOL_SIZE, height: GGR_FEATURE_SYMBOL_SIZE },
+};
+const wStatic = {
+	type: 'sprite',
+	assetKey: 'ggr-w',
+	sizeRatios: { width: GGR_FEATURE_SYMBOL_SIZE, height: GGR_FEATURE_SYMBOL_SIZE },
+};
 
 export const SYMBOL_INFO_MAP = {
 	H1: {

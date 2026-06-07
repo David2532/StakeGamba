@@ -13,7 +13,7 @@
 		const rows = BOARD_DIMENSIONS.y;
 		const w = SYMBOL_SIZE * cols;
 		const h = SYMBOL_SIZE * rows;
-		const offsetX = -SYMBOL_SIZE * REEL_PADDING;
+		const offsetX = SYMBOL_SIZE * (REEL_PADDING - 0.5);
 
 		// Row lighting gradient — top row slightly illuminated, bottom dimmer
 		// Simulates flood-light coming from above
