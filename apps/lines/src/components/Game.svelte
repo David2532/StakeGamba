@@ -68,18 +68,18 @@
 
 		<UI>
 			{#snippet gameName()}
-				<UiGameName name="LINES GAME" />
+				<UiGameName name="GOLDEN GOAL RUSH" />
 			{/snippet}
 			{#snippet logo()}
 				<Text
 					anchor={{ x: 1, y: 0 }}
-					text="ADD YOUR LOGO"
+					text="GOLDEN GOAL RUSH"
 					style={{
 						fontFamily: 'proxima-nova',
 						fontSize: REM * 1.5,
-						fontWeight: '600',
+						fontWeight: '700',
 						lineHeight: REM * 2,
-						fill: 0xffffff,
+						fill: 0xffd24a,
 					}}
 				/>
 			{/snippet}
