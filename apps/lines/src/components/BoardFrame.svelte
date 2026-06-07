@@ -63,6 +63,20 @@
 	</SpineProvider>
 {/if}
 
+<!-- Outer ambient glow ring — very subtle warm gold halo behind the frame -->
+<Rectangle
+	anchor={0.5}
+	x={context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
+	y={context.stateGameDerived.boardLayout().y * POSITION_ADJUSTMENT}
+	width={context.stateGameDerived.boardLayout().width * (FRAME_SCALE.width + 0.14)}
+	height={context.stateGameDerived.boardLayout().height * (FRAME_SCALE.height + 0.18)}
+	backgroundColor={0xc8821a}
+	backgroundAlpha={0.12}
+	borderRadius={44}
+	borderColor={0xc8821a}
+	borderWidth={0}
+/>
+
 <Rectangle
 	anchor={0.5}
 	x={context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
@@ -72,8 +86,8 @@
 	backgroundColor={0x07060a}
 	backgroundAlpha={0.98}
 	borderRadius={34}
-	borderColor={0x1b1112}
-	borderWidth={16}
+	borderColor={0x1a1015}
+	borderWidth={14}
 />
 
 <Rectangle
@@ -82,11 +96,11 @@
 	y={context.stateGameDerived.boardLayout().y * POSITION_ADJUSTMENT}
 	width={context.stateGameDerived.boardLayout().width * (FRAME_SCALE.width - 0.08)}
 	height={context.stateGameDerived.boardLayout().height * (FRAME_SCALE.height - 0.12)}
-	backgroundColor={0x120407}
-	backgroundAlpha={0.95}
+	backgroundColor={0x0e0306}
+	backgroundAlpha={0.96}
 	borderRadius={28}
-	borderColor={0xd5a23b}
-	borderWidth={10}
+	borderColor={0xf2c040}
+	borderWidth={12}
 />
 
 <Rectangle
@@ -95,23 +109,36 @@
 	y={context.stateGameDerived.boardLayout().y * POSITION_ADJUSTMENT}
 	width={context.stateGameDerived.boardLayout().width * INNER_SCALE.width}
 	height={context.stateGameDerived.boardLayout().height * INNER_SCALE.height}
-	backgroundColor={0x090910}
-	backgroundAlpha={0.82}
+	backgroundColor={0x070610}
+	backgroundAlpha={0.88}
 	borderRadius={18}
-	borderColor={0x6f111f}
-	borderWidth={4}
+	borderColor={0x8a1428}
+	borderWidth={5}
 />
 
+<!-- Gold top accent bar (glow effect via two overlapping bars) -->
 <Rectangle
 	anchor={0.5}
 	x={context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
 	y={(context.stateGameDerived.boardLayout().y -
 		context.stateGameDerived.boardLayout().height * 0.77) *
 		POSITION_ADJUSTMENT}
-	width={context.stateGameDerived.boardLayout().width * 0.92}
-	height={9}
-	backgroundColor={0xffe49a}
-	backgroundAlpha={0.82}
+	width={context.stateGameDerived.boardLayout().width * 0.96}
+	height={18}
+	backgroundColor={0xf0c040}
+	backgroundAlpha={0.28}
+	borderRadius={12}
+/>
+<Rectangle
+	anchor={0.5}
+	x={context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
+	y={(context.stateGameDerived.boardLayout().y -
+		context.stateGameDerived.boardLayout().height * 0.77) *
+		POSITION_ADJUSTMENT}
+	width={context.stateGameDerived.boardLayout().width * 0.88}
+	height={10}
+	backgroundColor={0xffd86a}
+	backgroundAlpha={0.92}
 	borderRadius={8}
 />
 
@@ -121,9 +148,22 @@
 	y={(context.stateGameDerived.boardLayout().y +
 		context.stateGameDerived.boardLayout().height * 0.77) *
 		POSITION_ADJUSTMENT}
-	width={context.stateGameDerived.boardLayout().width * 0.92}
-	height={9}
-	backgroundColor={0xc5192e}
-	backgroundAlpha={0.9}
+	width={context.stateGameDerived.boardLayout().width * 0.88}
+	height={10}
+	backgroundColor={0xd42038}
+	backgroundAlpha={0.95}
 	borderRadius={8}
+/>
+<!-- Red bottom accent outer glow -->
+<Rectangle
+	anchor={0.5}
+	x={context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
+	y={(context.stateGameDerived.boardLayout().y +
+		context.stateGameDerived.boardLayout().height * 0.77) *
+		POSITION_ADJUSTMENT}
+	width={context.stateGameDerived.boardLayout().width * 0.96}
+	height={18}
+	backgroundColor={0xc5192e}
+	backgroundAlpha={0.22}
+	borderRadius={12}
 />
