@@ -5,7 +5,7 @@
 </script>
 
 <script lang="ts">
-	import { Rectangle, SpineProvider, SpineTrack } from 'pixi-svelte';
+	import { Rectangle, Graphics, SpineProvider, SpineTrack } from 'pixi-svelte';
 
 	import { getContext } from '../game/context';
 
@@ -166,4 +166,41 @@
 	backgroundColor={0xc5192e}
 	backgroundAlpha={0.22}
 	borderRadius={12}
+/>
+
+<!-- Gold corner accent diamonds — one per frame corner for premium casino look -->
+<Graphics
+	draw={(g) => {
+		const bx = context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT;
+		const by = context.stateGameDerived.boardLayout().y * POSITION_ADJUSTMENT;
+		const bw = context.stateGameDerived.boardLayout().width;
+		const bh = context.stateGameDerived.boardLayout().height;
+		const fw = bw * (FRAME_SCALE.width - 0.08);
+		const fh = bh * (FRAME_SCALE.height - 0.12);
+		const s = 14; // diamond half-size
+
+		// corners: top-left, top-right, bottom-left, bottom-right
+		const corners = [
+			[bx - fw / 2, by - fh / 2],
+			[bx + fw / 2, by - fh / 2],
+			[bx - fw / 2, by + fh / 2],
+			[bx + fw / 2, by + fh / 2],
+		] as const;
+
+		for (const [cx, cy] of corners) {
+			// Outer soft halo
+			g.ellipse(cx, cy, s * 2.2, s * 2.2);
+			g.fill({ color: 0xf0c040, alpha: 0.14 });
+			// Diamond shape
+			g.moveTo(cx,     cy - s);
+			g.lineTo(cx + s, cy);
+			g.lineTo(cx,     cy + s);
+			g.lineTo(cx - s, cy);
+			g.closePath();
+			g.fill({ color: 0xffe070, alpha: 0.92 });
+			// Centre dot
+			g.circle(cx, cy, s * 0.32);
+			g.fill({ color: 0xfff4b0, alpha: 1.0 });
+		}
+	}}
 />
