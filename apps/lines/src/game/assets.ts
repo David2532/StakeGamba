@@ -264,6 +264,28 @@ export default {
 		type: 'sprites',
 		src: new URL('../../assets/sprites/symbolsStatic/symbolsStatic.json', import.meta.url).href,
 	},
+	// Golden Goal Rush placeholder football assets (generated SVG, see scripts/generate-placeholder-assets.mjs)
+	ggrH1: { type: 'sprite', src: new URL('../../assets/ggr/h1.svg', import.meta.url).href },
+	ggrH2: { type: 'sprite', src: new URL('../../assets/ggr/h2.svg', import.meta.url).href },
+	ggrH3: { type: 'sprite', src: new URL('../../assets/ggr/h3.svg', import.meta.url).href },
+	ggrH4: { type: 'sprite', src: new URL('../../assets/ggr/h4.svg', import.meta.url).href },
+	ggrL1: { type: 'sprite', src: new URL('../../assets/ggr/l1.svg', import.meta.url).href },
+	ggrL2: { type: 'sprite', src: new URL('../../assets/ggr/l2.svg', import.meta.url).href },
+	ggrL3: { type: 'sprite', src: new URL('../../assets/ggr/l3.svg', import.meta.url).href },
+	ggrL4: { type: 'sprite', src: new URL('../../assets/ggr/l4.svg', import.meta.url).href },
+	ggrL5: { type: 'sprite', src: new URL('../../assets/ggr/l5.svg', import.meta.url).href },
+	ggrW: { type: 'sprite', src: new URL('../../assets/ggr/w.svg', import.meta.url).href },
+	ggrS: { type: 'sprite', src: new URL('../../assets/ggr/s.svg', import.meta.url).href },
+	ggrBackground: {
+		type: 'sprite',
+		src: new URL('../../assets/ggr/background.svg', import.meta.url).href,
+		preload: true,
+	},
+	ggrFrame: {
+		type: 'sprite',
+		src: new URL('../../assets/ggr/frame.svg', import.meta.url).href,
+		preload: true,
+	},
 	coins: {
 		type: 'spriteSheet',
 		src: new URL('../../assets/sprites/coin/SD2_Coin.json', import.meta.url).href,
