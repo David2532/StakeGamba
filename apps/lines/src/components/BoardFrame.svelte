@@ -27,11 +27,11 @@
 		const top = y - outerH * 0.5;
 
 		g.roundRect(left - 10, top - 10, outerW + 20, outerH + 20, 28);
-		g.fill({ color: 0x00142f, alpha: glowShow ? 0.54 : 0.26 });
+		g.fill({ color: 0x00142f, alpha: glowShow ? 0.28 : 0.08 });
 		g.stroke({ color: glowShow ? 0x4dbdff : 0x102d4c, width: glowShow ? 6 : 3, alpha: 0.55 });
 
 		g.roundRect(left, top, outerW, outerH, 24);
-		g.fill({ color: 0x020816, alpha: 0.52 });
+		g.fill({ color: 0x020816, alpha: 0.08 });
 		g.stroke({ color: 0xf3c64c, width: 6, alpha: 0.95 });
 
 		g.roundRect(x - width * 0.5 - 4, y - height * 0.5 - 4, width + 8, height + 8, 16);

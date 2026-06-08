@@ -3,6 +3,7 @@
 	import { getSymbolInfo } from '../game/utils';
 	import type { SymbolState, RawSymbol } from '../game/types';
 	import { BitmapText } from 'pixi-svelte';
+	import { INITIAL_BOARD } from '../game/constants';
 
 	type Props = {
 		x?: number;
@@ -14,17 +15,18 @@
 	};
 
 	const props: Props = $props();
-	const symbolInfo = $derived(getSymbolInfo({ rawSymbol: props.rawSymbol, state: props.state }));
+	const rawSymbol = $derived(props.rawSymbol ?? INITIAL_BOARD[0][0]);
+	const symbolInfo = $derived(getSymbolInfo({ rawSymbol, state: props.state }));
 </script>
 
 <SymbolSprite {symbolInfo} x={props.x} y={props.y} oncomplete={props.oncomplete} />
 
-{#if props.rawSymbol.multiplier && props.rawSymbol.name !== 'W'}
+{#if rawSymbol.multiplier && rawSymbol.name !== 'W'}
 	<BitmapText
 		anchor={0.5}
 		x={props.x}
 		y={props.y}
-		text={`${props.rawSymbol.multiplier}X`}
+		text={`${rawSymbol.multiplier}X`}
 		style={{
 			fontFamily: 'gold',
 			fontSize: 50,

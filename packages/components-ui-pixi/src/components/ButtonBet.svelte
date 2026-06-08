@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Container, Sprite, Text } from 'pixi-svelte';
+	import { Container, Graphics, Text } from 'pixi-svelte';
 	import { Button, type ButtonProps } from 'components-pixi';
 	import { OnHotkey } from 'components-shared';
 	import { stateBetDerived } from 'state-shared';
@@ -18,12 +18,22 @@
 		<Button {...props} {sizes} {onpress} {disabled}>
 			{#snippet children({ center })}
 				<Container {...center}>
-					<Sprite
-						key="spinButton"
-						width={sizes.width * 1.16}
-						height={sizes.height * 1.16}
-						anchor={0.5}
+					<Graphics
 						alpha={disabled || ['spin_disabled', 'stop_disabled'].includes(key) ? 0.86 : 1}
+						draw={(g) => {
+							const radius = sizes.width * 0.58;
+							const active = !disabled && !['spin_disabled', 'stop_disabled'].includes(key);
+
+							g.circle(0, 0, radius);
+							g.fill({ color: active ? 0x15110a : 0x5c5c58, alpha: active ? 0.98 : 0.94 });
+							g.stroke({ color: 0xf4ca61, width: 8, alpha: 1 });
+
+							g.circle(0, 0, radius * 0.84);
+							g.stroke({ color: 0xfff1a4, width: 2, alpha: 0.7 });
+
+							g.circle(-radius * 0.2, -radius * 0.26, radius * 0.52);
+							g.fill({ color: 0xffffff, alpha: active ? 0.08 : 0.05 });
+						}}
 					/>
 					<Text
 						anchor={0.5}

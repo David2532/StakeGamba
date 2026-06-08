@@ -53,11 +53,6 @@ export default {
 		src: new URL('../assets/golden-goal-rush/logo-horizontal.png', import.meta.url).href,
 		preload: true,
 	},
-	spinButton: {
-		type: 'sprite',
-		src: new URL('../../../../packages/components-ui-pixi/src/spin-button.png', import.meta.url).href,
-		preload: true,
-	},
 	symbolRainbow: {
 		type: 'sprite',
 		src: new URL('../assets/golden-goal-rush/special/symbol_rainbow.png', import.meta.url).href,

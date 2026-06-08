@@ -19,6 +19,7 @@
 	import BoardContainer from './BoardContainer.svelte';
 	import BoardMask from './BoardMask.svelte';
 	import BoardBase from './BoardBase.svelte';
+	import { normalizeRawBoard } from '../game/stateGame.svelte';
 
 	const context = getContext();
 
@@ -26,7 +27,7 @@
 
 	context.eventEmitter.subscribeOnMount({
 		stopButtonClick: () => context.stateGameDerived.enhancedBoard.stop(),
-		boardSettle: ({ board }) => context.stateGameDerived.enhancedBoard.settle(board),
+		boardSettle: ({ board }) => context.stateGameDerived.enhancedBoard.settle(normalizeRawBoard(board)),
 		boardShow: () => (show = true),
 		boardHide: () => (show = false),
 		boardWithAnimateSymbols: async ({ symbolPositions }) => {

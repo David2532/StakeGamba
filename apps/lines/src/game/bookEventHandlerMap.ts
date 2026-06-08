@@ -7,7 +7,7 @@ import { sequence } from 'utils-shared/sequence';
 import { eventEmitter } from './eventEmitter';
 import { playBookEvent } from './utils';
 import { winLevelMap, type WinLevel, type WinLevelData } from './winLevelMap';
-import { stateGame, stateGameDerived } from './stateGame.svelte';
+import { normalizeRawBoard, stateGame, stateGameDerived } from './stateGame.svelte';
 import type { BookEvent, BookEventOfType, BookEventContext } from './typesBookEvent';
 import type { Position } from './types';
 import config from './config';
@@ -56,8 +56,11 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 
 		stateGame.gameType = bookEvent.gameType;
 		await stateGameDerived.enhancedBoard.spin({
-			revealEvent: bookEvent,
-			paddingBoard: config.paddingReels[bookEvent.gameType],
+			revealEvent: {
+				...bookEvent,
+				board: normalizeRawBoard(bookEvent.board),
+			},
+			paddingBoard: normalizeRawBoard(config.paddingReels[bookEvent.gameType]),
 		});
 		eventEmitter.broadcast({ type: 'soundScatterCounterClear' });
 	},

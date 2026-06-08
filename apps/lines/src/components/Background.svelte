@@ -17,7 +17,8 @@
 			? { width, height: width / backgroundRatio }
 			: { width: height * backgroundRatio, height };
 	});
-	const logoWidth = $derived(Math.min(canvasSizes.width * 0.46, 760));
+	const logoWidth = $derived(Math.min(canvasSizes.width * 0.38, 660));
+	const logoRatio = 432 / 1516;
 </script>
 
 <Rectangle {...canvasSizes} backgroundColor={0x020305} zIndex={-5} />
@@ -31,14 +32,13 @@
 		width={cover.width}
 		height={cover.height}
 	/>
-	<Rectangle {...canvasSizes} backgroundColor={0x001026} backgroundAlpha={0.1} />
 	<Sprite
 		key="logoHorizontal"
 		anchor={0.5}
 		x={canvasSizes.width * 0.5}
-		y={canvasSizes.height * 0.135}
+		y={canvasSizes.height * 0.105}
 		width={logoWidth}
-		height={logoWidth * (438 / 1391)}
+		height={logoWidth * logoRatio}
 	/>
 </FadeContainer>
 
@@ -51,13 +51,13 @@
 		width={cover.width}
 		height={cover.height}
 	/>
-	<Rectangle {...canvasSizes} backgroundColor={0x000c20} backgroundAlpha={0.18} />
+	<Rectangle {...canvasSizes} backgroundColor={0x000c20} backgroundAlpha={0.06} />
 	<Sprite
 		key="logoHorizontal"
 		anchor={0.5}
 		x={canvasSizes.width * 0.5}
-		y={canvasSizes.height * 0.135}
+		y={canvasSizes.height * 0.105}
 		width={logoWidth}
-		height={logoWidth * (438 / 1391)}
+		height={logoWidth * logoRatio}
 	/>
 </FadeContainer>

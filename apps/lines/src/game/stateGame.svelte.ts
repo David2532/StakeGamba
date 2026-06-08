@@ -20,6 +20,19 @@ import {
 	SCATTER_LAND_SOUND_MAP,
 } from './constants';
 
+const boardSymbolCount = BOARD_DIMENSIONS.y + 2;
+
+export const normalizeRawBoard = (rawBoard?: RawSymbol[][]): RawSymbol[][] =>
+	_.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
+		const fallbackReel = INITIAL_BOARD[reelIndex];
+		const reel = rawBoard?.[reelIndex] ?? fallbackReel;
+
+		return _.range(boardSymbolCount).map(
+			(symbolIndex) =>
+				reel[symbolIndex] ?? fallbackReel[symbolIndex] ?? fallbackReel[symbolIndex % fallbackReel.length],
+		);
+	});
+
 const onSymbolLand = ({ rawSymbol }: { rawSymbol: RawSymbol }) => {
 	if (rawSymbol.name === 'S') {
 		eventEmitter.broadcast({ type: 'soundScatterCounterIncrease' });
