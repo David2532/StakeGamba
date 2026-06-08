@@ -19,7 +19,7 @@
 
 <SymbolSprite {symbolInfo} x={props.x} y={props.y} oncomplete={props.oncomplete} />
 
-{#if props.rawSymbol.multiplier}
+{#if props.rawSymbol.multiplier && props.rawSymbol.name !== 'W'}
 	<BitmapText
 		anchor={0.5}
 		x={props.x}

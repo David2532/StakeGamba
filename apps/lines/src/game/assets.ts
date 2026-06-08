@@ -48,10 +48,87 @@ export default {
 		src: new URL('../assets/golden-goal-rush/slot-background.png', import.meta.url).href,
 		preload: true,
 	},
+	logoHorizontal: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/logo-horizontal.png', import.meta.url).href,
+		preload: true,
+	},
 	spinButton: {
 		type: 'sprite',
 		src: new URL('../../../../packages/components-ui-pixi/src/spin-button.png', import.meta.url).href,
 		preload: true,
+	},
+	symbolRainbow: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/symbol_rainbow.png', import.meta.url).href,
+	},
+	symbolMultiplier: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/symbol_multiplier.png', import.meta.url).href,
+	},
+	symbolCollector: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/symbol_collector.png', import.meta.url).href,
+	},
+	coin_0_2x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_0_2x.png', import.meta.url).href,
+	},
+	coin_0_5x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_0_5x.png', import.meta.url).href,
+	},
+	coin_1x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_1x.png', import.meta.url).href,
+	},
+	coin_2x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_2x.png', import.meta.url).href,
+	},
+	coin_3x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_3x.png', import.meta.url).href,
+	},
+	coin_4x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_4x.png', import.meta.url).href,
+	},
+	coin_5x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_5x.png', import.meta.url).href,
+	},
+	coin_10x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_10x.png', import.meta.url).href,
+	},
+	coin_15x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_15x.png', import.meta.url).href,
+	},
+	coin_20x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_20x.png', import.meta.url).href,
+	},
+	coin_25x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_25x.png', import.meta.url).href,
+	},
+	coin_50x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_50x.png', import.meta.url).href,
+	},
+	coin_100x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_100x.png', import.meta.url).href,
+	},
+	coin_250x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_250x.png', import.meta.url).href,
+	},
+	coin_500x: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/coin_500x.png', import.meta.url).href,
 	},
 
 	goldFont: {

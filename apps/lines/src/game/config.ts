@@ -137,7 +137,7 @@ export default {
 					'3': 5,
 				},
 			],
-			special_properties: ['wild', 'multiplier'],
+			special_properties: ['wild'],
 		},
 		H3: {
 			paytable: [

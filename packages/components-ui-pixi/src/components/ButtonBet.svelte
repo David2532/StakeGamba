@@ -20,10 +20,10 @@
 				<Container {...center}>
 					<Sprite
 						key="spinButton"
-						width={sizes.width * 1.18}
-						height={sizes.height * 1.18}
+						width={sizes.width * 1.16}
+						height={sizes.height * 1.16}
 						anchor={0.5}
-						alpha={disabled || ['spin_disabled', 'stop_disabled'].includes(key) ? 0.48 : 1}
+						alpha={disabled || ['spin_disabled', 'stop_disabled'].includes(key) ? 0.86 : 1}
 					/>
 					<Text
 						anchor={0.5}

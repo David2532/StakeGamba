@@ -12,18 +12,18 @@
 		const offsetX = SYMBOL_SIZE * (REEL_PADDING - 0.5);
 
 		g.roundRect(offsetX, 0, w, h, 14);
-		g.fill({ color: 0x020512, alpha: 0.78 });
+		g.fill({ color: 0x020512, alpha: 0.52 });
 
 		for (let r = 0; r < rows; r++) {
 			const y = r * SYMBOL_SIZE;
 			g.rect(offsetX, y, w, SYMBOL_SIZE - 1);
-			g.fill({ color: r % 2 ? 0x06142a : 0x031022, alpha: 0.34 });
+			g.fill({ color: r % 2 ? 0x06142a : 0x031022, alpha: 0.14 });
 		}
 
 		for (let c = 0; c < cols; c++) {
 			const x = offsetX + c * SYMBOL_SIZE;
 			g.rect(x, 0, SYMBOL_SIZE - 1, h);
-			g.fill({ color: c % 2 ? 0xffffff : 0x000000, alpha: c % 2 ? 0.025 : 0.045 });
+			g.fill({ color: c % 2 ? 0xffffff : 0x000000, alpha: c % 2 ? 0.015 : 0.025 });
 		}
 
 		for (let r = 1; r < rows; r++) {
