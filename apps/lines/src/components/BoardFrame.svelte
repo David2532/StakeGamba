@@ -5,63 +5,38 @@
 </script>
 
 <script lang="ts">
-	import { Rectangle, Graphics, SpineProvider, SpineTrack } from 'pixi-svelte';
+	import { Rectangle, Graphics } from 'pixi-svelte';
 
 	import { getContext } from '../game/context';
 
 	const context = getContext();
-	const SPINE_SCALE = { width: 0.62, height: 0.66 };
 	const FRAME_SCALE = { width: 1.18, height: 1.2 };
 	const INNER_SCALE = { width: 1.08, height: 1.08 };
 	const POSITION_ADJUSTMENT = 1;
 	const ACCENT_OFFSET_RATIO = 0.6;
 
-	type AnimationName = 'reelhouse_glow_start' | 'reelhouse_glow_idle' | 'reelhouse_glow_exit';
-
-	let animationName = $state<AnimationName | undefined>(undefined);
-	let loop = $state(false);
+	let glowShow = $state(false);
 
 	context.eventEmitter.subscribeOnMount({
-		boardFrameGlowShow: () => {
-			animationName = 'reelhouse_glow_start';
-			loop = false;
-		},
-		boardFrameGlowHide: () => {
-			if (animationName) animationName = 'reelhouse_glow_exit';
-		},
+		boardFrameGlowShow: () => (glowShow = true),
+		boardFrameGlowHide: () => (glowShow = false),
 	});
 </script>
 
-{#if animationName}
-	<SpineProvider
-		zIndex={-1}
-		key="reelhouse"
+{#if glowShow}
+	<Rectangle
+		anchor={0.5}
 		x={context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
 		y={context.stateGameDerived.boardLayout().y * POSITION_ADJUSTMENT}
-		width={context.stateGameDerived.boardLayout().width * SPINE_SCALE.width}
-		height={context.stateGameDerived.boardLayout().height * SPINE_SCALE.height}
-	>
-		<SpineTrack
-			trackIndex={0}
-			{animationName}
-			{loop}
-			listener={{
-				complete: (entry) => {
-					if (entry.animation) {
-						if (entry.animation.name === 'reelhouse_glow_start') {
-							animationName = 'reelhouse_glow_idle';
-							loop = true;
-						}
-
-						if (entry.animation.name === 'reelhouse_glow_exit') {
-							animationName = undefined;
-							loop = false;
-						}
-					}
-				},
-			}}
-		/>
-	</SpineProvider>
+		width={context.stateGameDerived.boardLayout().width * 1.36}
+		height={context.stateGameDerived.boardLayout().height * 1.38}
+		backgroundColor={0x47b9ff}
+		backgroundAlpha={0.14}
+		borderRadius={54}
+		borderColor={0xffd447}
+		borderWidth={8}
+		borderAlpha={0.65}
+	/>
 {/if}
 
 <!-- Outer ambient glow ring — very subtle warm gold halo behind the frame -->

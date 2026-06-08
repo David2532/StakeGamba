@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Container, Rectangle, Sprite, Text } from 'pixi-svelte';
-	import { FadeContainer, LoadingProgress } from 'components-pixi';
+	import { Container, Rectangle, Text } from 'pixi-svelte';
+	import { FadeContainer } from 'components-pixi';
 	import { MainContainer } from 'components-layout';
 
 	import { getContext } from '../game/context';
@@ -68,17 +68,36 @@
 				borderRadius={6}
 			/>
 			{#if !context.stateApp.loaded}
-				<LoadingProgress y={180} width={1967 * 0.2} height={346 * 0.2}>
-					{#snippet background(sizes)}
-						<Sprite key="progressBarBackground.png" {...sizes} />
-					{/snippet}
-					{#snippet progress(sizes)}
-						<Sprite key="progressBar.png" {...sizes} />
-					{/snippet}
-					{#snippet frame(sizes)}
-						<Sprite key="progressBarFrame.png" {...sizes} />
-					{/snippet}
-				</LoadingProgress>
+				<Rectangle
+					anchor={0.5}
+					y={180}
+					width={420}
+					height={32}
+					backgroundColor={0x001c38}
+					borderColor={0xf4d276}
+					borderWidth={4}
+					borderRadius={18}
+				/>
+				<Rectangle
+					anchor={{ x: 0, y: 0.5 }}
+					x={-204}
+					y={180}
+					width={408 * (context.stateApp.loadingProgress / 100)}
+					height={20}
+					backgroundColor={0x12a84a}
+					borderRadius={12}
+				/>
+				<Text
+					anchor={0.5}
+					y={228}
+					text="LOADING MATCH"
+					style={{
+						fontFamily: 'proxima-nova',
+						fontSize: 24,
+						fontWeight: '800',
+						fill: 0xf4d276,
+					}}
+				/>
 			{/if}
 		</Container>
 	</MainContainer>

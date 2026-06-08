@@ -125,7 +125,6 @@ export const HIGH_SYMBOLS = ['H1', 'H2', 'H3', 'H4'];
 
 export const INITIAL_SYMBOL_STATE: SymbolState = 'static';
 
-const HIGH_SYMBOL_SIZE = 0.9;
 const GGR_HIGH_SYMBOL_SIZE = 0.94;
 const GGR_LOW_SYMBOL_SIZE = 0.9;
 const GGR_FEATURE_SYMBOL_SIZE = 1;
@@ -162,13 +161,6 @@ export const zIndexes = {
 	},
 };
 
-const explosion = {
-	type: 'spine',
-	assetKey: 'explosion',
-	animationName: 'explosion',
-	sizeRatios: { width: 1, height: 1 },
-};
-
 const h1Static = {
 	type: 'sprite',
 	assetKey: 'ggr-h1',
@@ -189,7 +181,11 @@ const h4Static = {
 	assetKey: 'ggr-h4',
 	sizeRatios: { width: GGR_HIGH_SYMBOL_SIZE, height: GGR_HIGH_SYMBOL_SIZE },
 };
-const h5Static = { type: 'sprite', assetKey: 'h5.webp', sizeRatios: { width: 1, height: 1 } };
+const h5Static = {
+	type: 'sprite',
+	assetKey: 'ggr-h1',
+	sizeRatios: { width: GGR_HIGH_SYMBOL_SIZE, height: GGR_HIGH_SYMBOL_SIZE },
+};
 
 const l1Static = {
 	type: 'sprite',
@@ -230,7 +226,7 @@ const wStatic = {
 
 export const SYMBOL_INFO_MAP = {
 	H1: {
-		explosion,
+		explosion: h1Static,
 		win: h1Static,
 		postWinStatic: h1Static,
 		static: h1Static,
@@ -238,7 +234,7 @@ export const SYMBOL_INFO_MAP = {
 		land: h1Static,
 	},
 	H2: {
-		explosion,
+		explosion: h2Static,
 		win: h2Static,
 		postWinStatic: h2Static,
 		static: h2Static,
@@ -246,7 +242,7 @@ export const SYMBOL_INFO_MAP = {
 		land: h2Static,
 	},
 	H3: {
-		explosion,
+		explosion: h3Static,
 		win: h3Static,
 		postWinStatic: h3Static,
 		static: h3Static,
@@ -254,7 +250,7 @@ export const SYMBOL_INFO_MAP = {
 		land: h3Static,
 	},
 	H4: {
-		explosion,
+		explosion: h4Static,
 		win: h4Static,
 		postWinStatic: h4Static,
 		static: h4Static,
@@ -262,20 +258,15 @@ export const SYMBOL_INFO_MAP = {
 		land: h4Static,
 	},
 	H5: {
-		explosion,
-		win: {
-			type: 'spine',
-			assetKey: 'H5',
-			animationName: 'h5',
-			sizeRatios: { width: 0.5 * 0.9, height: HIGH_SYMBOL_SIZE * 0.53 },
-		},
+		explosion: h5Static,
+		win: h5Static,
 		postWinStatic: h5Static,
 		static: h5Static,
 		spin: h5Static,
 		land: h5Static,
 	},
 	L1: {
-		explosion,
+		explosion: l1Static,
 		win: l1Static,
 		postWinStatic: l1Static,
 		static: l1Static,
@@ -283,7 +274,7 @@ export const SYMBOL_INFO_MAP = {
 		land: l1Static,
 	},
 	L2: {
-		explosion,
+		explosion: l2Static,
 		win: l2Static,
 		postWinStatic: l2Static,
 		static: l2Static,
@@ -291,7 +282,7 @@ export const SYMBOL_INFO_MAP = {
 		land: l2Static,
 	},
 	L3: {
-		explosion,
+		explosion: l3Static,
 		win: l3Static,
 		postWinStatic: l3Static,
 		static: l3Static,
@@ -299,7 +290,7 @@ export const SYMBOL_INFO_MAP = {
 		land: l3Static,
 	},
 	L4: {
-		explosion,
+		explosion: l4Static,
 		win: l4Static,
 		postWinStatic: l4Static,
 		static: l4Static,
@@ -307,7 +298,7 @@ export const SYMBOL_INFO_MAP = {
 		land: l4Static,
 	},
 	L5: {
-		explosion,
+		explosion: l5Static,
 		win: l5Static,
 		postWinStatic: l5Static,
 		static: l5Static,
@@ -315,7 +306,7 @@ export const SYMBOL_INFO_MAP = {
 		land: l5Static,
 	},
 	W: {
-		explosion,
+		explosion: wStatic,
 		postWinStatic: wStatic,
 		static: wStatic,
 		spin: wStatic,
@@ -323,7 +314,7 @@ export const SYMBOL_INFO_MAP = {
 		land: wStatic,
 	},
 	S: {
-		explosion,
+		explosion: sStatic,
 		postWinStatic: sStatic,
 		static: sStatic,
 		spin: sStatic,

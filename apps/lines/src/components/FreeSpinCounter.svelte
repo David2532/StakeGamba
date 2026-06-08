@@ -8,21 +8,16 @@
 <script lang="ts">
 	import { MainContainer } from 'components-layout';
 	import { FadeContainer } from 'components-pixi';
+	import { BitmapText, Container, Rectangle, Text } from 'pixi-svelte';
 
 	import { getContext } from '../game/context';
 	import { SYMBOL_SIZE } from '../game/constants';
-	import { anchorToPivot, BitmapText, Container, Sprite, type Sizes } from 'pixi-svelte';
 
 	const context = getContext();
-	const PANEL_KEY_DESKTOP = 'Frame_FSCounter.png';
-	const PANEL_RATIO_DESKTOP = 824 / 622;
-	const panelKey = PANEL_KEY_DESKTOP;
-	const panelWidth = $derived(SYMBOL_SIZE * 2);
-	const panelSizes = $derived({
-		width: panelWidth,
-		height: panelWidth / PANEL_RATIO_DESKTOP,
-	});
-	const scale = 1;
+	const panelSizes = {
+		width: SYMBOL_SIZE * 2.05,
+		height: SYMBOL_SIZE * 1.35,
+	};
 	const position = $derived({
 		x:
 			context.stateGameDerived.boardLayout().x -
@@ -31,22 +26,13 @@
 			SYMBOL_SIZE * 0.7,
 		y:
 			context.stateGameDerived.boardLayout().y -
-			context.stateGameDerived.boardLayout().height * 0.5,
+			context.stateGameDerived.boardLayout().height * 0.5 +
+			panelSizes.height * 0.5,
 	});
-
-	const fontSize = SYMBOL_SIZE * 0.275;
 
 	let show = $state(false);
 	let current = $state(0);
 	let total = $state(0);
-	let titleSizes: Sizes = $state({ width: 0, height: 0 });
-	let counterSizes: Sizes = $state({ width: 0, height: 0 });
-
-	const textContainerSizes = $derived({
-		width: titleSizes.width,
-		height: titleSizes.height + counterSizes.height,
-	});
-	const counterPosition = $derived({ x: titleSizes.width / 2, y: titleSizes.height });
 
 	context.eventEmitter.subscribeOnMount({
 		freeSpinCounterShow: () => (show = true),
@@ -59,34 +45,38 @@
 </script>
 
 <MainContainer>
-	<FadeContainer {show} {...position} {scale}>
-		<Sprite key={panelKey} {...panelSizes} />
-		<Container
-			x={panelSizes.width * 0.5}
-			y={panelSizes.height * 0.48}
-			pivot={anchorToPivot({
-				sizes: textContainerSizes,
-				anchor: { x: 0.5, y: 0.5 },
-			})}
-		>
-			<BitmapText
-				text={'FREE SPIN'}
+	<FadeContainer {show} {...position}>
+		<Container>
+			<Rectangle
+				anchor={0.5}
+				width={panelSizes.width}
+				height={panelSizes.height}
+				backgroundColor={0x03162f}
+				backgroundAlpha={0.92}
+				borderColor={0xffd447}
+				borderWidth={6}
+				borderRadius={24}
+			/>
+			<Text
+				anchor={0.5}
+				y={-panelSizes.height * 0.22}
+				text="FREE KICKS"
 				style={{
-					fontFamily: 'gold',
-					fontSize,
-					wordWrap: false,
+					fontFamily: 'proxima-nova',
+					fontSize: SYMBOL_SIZE * 0.21,
+					fontWeight: '900',
+					fill: 0xffd447,
+					align: 'center',
 				}}
-				onresize={(sizes) => (titleSizes = sizes)}
 			/>
 			<BitmapText
-				text={`${current} OF ${total}`}
-				{...counterPosition}
-				anchor={{ x: 0.5, y: 0 }}
+				anchor={0.5}
+				y={panelSizes.height * 0.17}
+				text={`${current} / ${total}`}
 				style={{
 					fontFamily: 'gold',
-					fontSize,
+					fontSize: SYMBOL_SIZE * 0.34,
 				}}
-				onresize={(sizes) => (counterSizes = sizes)}
 			/>
 		</Container>
 	</FadeContainer>
