@@ -1,0 +1,38 @@
+{
+  "gameId": "golden_goal_rush",
+  "gameName": "Golden Goal Rush",
+  "version": "0.1.0-mvp",
+  "status": "mvp_not_regulatory_final",
+  "frontendContract": {
+    "layout": "5 reels x 3 visible rows",
+    "boardShape": "5 reels x 5 padded rows",
+    "eventTypes": [
+      "reveal",
+      "winInfo",
+      "setWin",
+      "setTotalWin",
+      "freeSpinTrigger",
+      "updateFreeSpin",
+      "freeSpinEnd",
+      "finalWin"
+    ],
+    "freeSpinRetrigger": "not emitted"
+  },
+  "files": {
+    "baseLookup": "../lookup_tables/base_lookup.csv",
+    "bonusLookup": "../lookup_tables/bonus_lookup.csv",
+    "baseBooks": "../books/base_books.jsonl",
+    "bonusBooks": "../books/bonus_books.jsonl",
+    "baseBooksCompressed": "../books_compressed/base_books.jsonl.zst",
+    "bonusBooksCompressed": "../books_compressed/bonus_books.jsonl.zst",
+    "config": "../configs/game_config.json"
+  },
+  "counts": {
+    "baseBooks": 1000,
+    "bonusBooks": 250
+  },
+  "compression": {
+    "zstandardAvailable": true,
+    "installIfMissing": "pip install zstandard"
+  }
+}
