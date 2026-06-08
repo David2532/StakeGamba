@@ -19,6 +19,7 @@
 	import { setContext } from '../game/context';
 	import { playBet } from '../game/utils';
 	import books from './data/base_books';
+	import clusterDemo from './data/cluster_demo';
 
 	setContext();
 </script>
@@ -45,6 +46,18 @@
 			const index = randomInteger({ min: 0, max: books.length - 1 });
 			const data = books[index];
 			console.log('Running a book at index', index);
+			await playBet({ ...data, state: data.events });
+		},
+	})}
+	{template}
+/>
+
+<Story
+	name="clusterCascade"
+	args={templateArgs({
+		skipLoadingScreen: true,
+		data: clusterDemo,
+		action: async (data) => {
 			await playBet({ ...data, state: data.events });
 		},
 	})}

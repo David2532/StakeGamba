@@ -70,6 +70,13 @@ const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
 export type Reel = (typeof board)[number];
 export type ReelSymbol = Reel['reelState']['symbols'][number];
 
+export type TumbleSymbol = {
+	symbolY: Tween<number>;
+	rawSymbol: RawSymbol;
+	symbolState: SymbolState;
+	oncomplete: () => void;
+};
+
 export type MultiplierSymbol = {
 	initX: number;
 	initY: number;
@@ -83,6 +90,8 @@ export type MultiplierSymbol = {
 export const stateGame = $state({
 	board,
 	gameType: 'basegame' as GameType,
+	tumbleBoardAdding: [] as TumbleSymbol[][],
+	tumbleBoardBase: [] as TumbleSymbol[][],
 	multiplierBoard: [] as (MultiplierSymbol | undefined)[][],
 	scatterCounter: 0,
 });
@@ -97,6 +106,12 @@ const boardLayout = () => ({
 
 const boardRaw = () =>
 	board.map((reel) => reel.reelState.symbols.map((reelSymbol) => reelSymbol.rawSymbol));
+
+const tumbleBoardCombined = () =>
+	stateGame.tumbleBoardBase.map((tumbleReelBase, reelIndex) => {
+		const tumbleReelAdding = stateGame.tumbleBoardAdding[reelIndex] ?? [];
+		return [...tumbleReelAdding, ...tumbleReelBase];
+	});
 
 const scatterLandIndex = () => {
 	if (stateGame.scatterCounter > 5) return 5;
@@ -115,6 +130,7 @@ export const stateGameDerived = {
 	onSymbolLand,
 	boardLayout,
 	boardRaw,
+	tumbleBoardCombined,
 	scatterLandIndex,
 	enhancedBoard,
 	getWinLevelDataByWinLevelAlias,

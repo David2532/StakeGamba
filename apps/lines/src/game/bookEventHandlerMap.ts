@@ -150,6 +150,27 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		winLevelSoundsStop();
 		eventEmitter.broadcast({ type: 'winHide' });
 	},
+	tumbleBoard: async (bookEvent: BookEventOfType<'tumbleBoard'>) => {
+		eventEmitter.broadcast({ type: 'boardHide' });
+		eventEmitter.broadcast({ type: 'tumbleBoardShow' });
+		eventEmitter.broadcast({ type: 'tumbleBoardInit', addingBoard: bookEvent.newSymbols });
+		eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_multiplier_explosion_b' });
+		await eventEmitter.broadcastAsync({
+			type: 'tumbleBoardExplode',
+			explodingPositions: bookEvent.explodingSymbols,
+		});
+		eventEmitter.broadcast({ type: 'tumbleBoardRemoveExploded' });
+		await eventEmitter.broadcastAsync({ type: 'tumbleBoardSlideDown' });
+		eventEmitter.broadcast({
+			type: 'boardSettle',
+			board: stateGameDerived
+				.tumbleBoardCombined()
+				.map((tumbleReel) => tumbleReel.map((tumbleSymbol) => tumbleSymbol.rawSymbol)),
+		});
+		eventEmitter.broadcast({ type: 'tumbleBoardReset' });
+		eventEmitter.broadcast({ type: 'tumbleBoardHide' });
+		eventEmitter.broadcast({ type: 'boardShow' });
+	},
 	finalWin: async (bookEvent: BookEventOfType<'finalWin'>) => {
 		// Do nothing
 	},

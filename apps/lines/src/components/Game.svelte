@@ -19,6 +19,7 @@
 	import LoadingScreen from './LoadingScreen.svelte';
 	import BoardFrame from './BoardFrame.svelte';
 	import Board from './Board.svelte';
+	import TumbleBoard from './TumbleBoard.svelte';
 	import Anticipations from './Anticipations.svelte';
 	import Win from './Win.svelte';
 	import FreeSpinIntro from './FreeSpinIntro.svelte';
@@ -62,6 +63,7 @@
 
 		<MainContainer>
 			<Board />
+			<TumbleBoard />
 			<Anticipations />
 		</MainContainer>
 

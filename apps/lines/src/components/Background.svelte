@@ -17,8 +17,8 @@
 			? { width, height: width / backgroundRatio }
 			: { width: height * backgroundRatio, height };
 	});
-	const logoWidth = $derived(Math.min(canvasSizes.width * 0.38, 660));
-	const logoRatio = 432 / 1516;
+	const logoWidth = $derived(Math.min(canvasSizes.width * 0.32, 560));
+	const logoRatio = 1047 / 1516;
 </script>
 
 <Rectangle {...canvasSizes} backgroundColor={0x020305} zIndex={-5} />

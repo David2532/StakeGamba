@@ -52,6 +52,13 @@ type BookEventFreeSpinEnd = {
 	winLevel: number;
 };
 
+type BookEventTumbleBoard = {
+	index: number;
+	type: 'tumbleBoard';
+	explodingSymbols: Position[];
+	newSymbols: RawSymbol[][];
+};
+
 type BookEventWinInfo = {
 	index: number;
 	type: 'winInfo';
@@ -67,6 +74,8 @@ type BookEventWinInfo = {
 			winWithoutMult: number;
 			globalMult: number;
 			lineMultiplier: number;
+			clusterMult?: number;
+			overlay?: Position;
 		};
 	}[];
 };
@@ -88,6 +97,7 @@ export type BookEvent =
 	| BookEventFinalWin
 	| BookEventSetWin
 	| BookEventFreeSpinEnd
+	| BookEventTumbleBoard
 	// customised
 	| BookEventCreateBonusSnapshot;
 
