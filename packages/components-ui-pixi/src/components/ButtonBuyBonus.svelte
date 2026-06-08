@@ -76,10 +76,10 @@
 				align: 'center',
 				wordWrap: true,
 				wordWrapWidth: 200,
-				fontFamily: 'proxima-nova',
-				fontWeight: '600',
-				fontSize: UI_BASE_FONT_SIZE * 0.9,
-				fill: 0xffffff,
+				fontFamily: 'gold',
+				fontWeight: '900',
+				fontSize: UI_BASE_FONT_SIZE * 0.68,
+				fill: 0xfff0b0,
 			}}
 		/>
 	{/snippet}

@@ -1,12 +1,14 @@
 <script lang="ts">
 	import ReelSymbol from './ReelSymbol.svelte';
 	import ReelGrid from './ReelGrid.svelte';
+	import GoldenSquares from './GoldenSquares.svelte';
 	import { getContext } from '../game/context';
 
 	const context = getContext();
 </script>
 
 <ReelGrid />
+<GoldenSquares />
 
 {#each context.stateGame.board as reel, reelIndex (reelIndex)}
 	{#each reel.reelState.symbols as reelSymbol}

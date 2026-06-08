@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { Container, Text } from 'pixi-svelte';
+	import { Container, Sprite, Text } from 'pixi-svelte';
 	import { Button, type ButtonProps } from 'components-pixi';
 	import { OnHotkey } from 'components-shared';
 	import { stateBetDerived } from 'state-shared';
 
-	import UiSprite from './UiSprite.svelte';
 	import ButtonBetProvider from './ButtonBetProvider.svelte';
 	import { UI_BASE_FONT_SIZE, UI_BASE_SIZE } from '../constants';
 
@@ -19,20 +18,12 @@
 		<Button {...props} {sizes} {onpress} {disabled}>
 			{#snippet children({ center })}
 				<Container {...center}>
-					<UiSprite
-						key="bet"
-						width={sizes.width}
-						height={sizes.height}
+					<Sprite
+						key="spinButton"
+						width={sizes.width * 1.18}
+						height={sizes.height * 1.18}
 						anchor={0.5}
-						backgroundColor={0xb81325}
-						borderColor={0xf3c75c}
-						borderWidth={8}
-						borderRadius={sizes.width * 0.5}
-						{...disabled || ['spin_disabled', 'stop_disabled'].includes(key)
-							? {
-									backgroundColor: 0x777777,
-								}
-							: {}}
+						alpha={disabled || ['spin_disabled', 'stop_disabled'].includes(key) ? 0.48 : 1}
 					/>
 					<Text
 						anchor={0.5}
@@ -41,9 +32,9 @@
 							align: 'center',
 							wordWrap: true,
 							wordWrapWidth: 200,
-							fontFamily: 'proxima-nova',
-							fontWeight: '800',
-							fontSize: UI_BASE_FONT_SIZE * 0.88,
+							fontFamily: 'gold',
+							fontWeight: '900',
+							fontSize: UI_BASE_FONT_SIZE * 0.72,
 							fill: 0xffffff,
 						}}
 					/>

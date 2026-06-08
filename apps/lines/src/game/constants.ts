@@ -1,98 +1,17 @@
-import _ from 'lodash';
-
 import type { RawSymbol, SymbolState } from './types';
 
-export const SYMBOL_SIZE = 120;
+export const SYMBOL_SIZE = 104;
+export const REEL_PADDING = 0.5;
 
-export const REEL_PADDING = 0.53;
+const reel = (symbols: RawSymbol['name'][]): RawSymbol[] => symbols.map((name) => ({ name }));
 
-// initial board (padded top and bottom)
 export const INITIAL_BOARD: RawSymbol[][] = [
-	[
-		{
-			name: 'L2',
-		},
-		{
-			name: 'L1',
-		},
-		{
-			name: 'L4',
-		},
-		{
-			name: 'H2',
-		},
-		{
-			name: 'L1',
-		},
-	],
-	[
-		{
-			name: 'H1',
-		},
-		{
-			name: 'L5',
-		},
-		{
-			name: 'L2',
-		},
-		{
-			name: 'H3',
-		},
-		{
-			name: 'L4',
-		},
-	],
-	[
-		{
-			name: 'L3',
-		},
-		{
-			name: 'L5',
-		},
-		{
-			name: 'L3',
-		},
-		{
-			name: 'H4',
-		},
-		{
-			name: 'L4',
-		},
-	],
-	[
-		{
-			name: 'H4',
-		},
-		{
-			name: 'H3',
-		},
-		{
-			name: 'L4',
-		},
-		{
-			name: 'L5',
-		},
-		{
-			name: 'L1',
-		},
-	],
-	[
-		{
-			name: 'H3',
-		},
-		{
-			name: 'L3',
-		},
-		{
-			name: 'L3',
-		},
-		{
-			name: 'H1',
-		},
-		{
-			name: 'H1',
-		},
-	],
+	reel(['L2', 'L1', 'L4', 'H2', 'L1', 'H2', 'L3']),
+	reel(['H1', 'L5', 'L2', 'H3', 'L4', 'W', 'L1']),
+	reel(['L3', 'L5', 'L3', 'H4', 'L4', 'L2', 'S']),
+	reel(['H4', 'H3', 'L4', 'L5', 'L1', 'H2', 'L3']),
+	reel(['H3', 'L3', 'L3', 'H1', 'H1', 'L5', 'H4']),
+	reel(['L5', 'H2', 'L1', 'W', 'H3', 'L2', 'S']),
 ];
 
 export const BOARD_DIMENSIONS = { x: INITIAL_BOARD.length, y: INITIAL_BOARD[0].length - 2 };

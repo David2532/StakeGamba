@@ -38,15 +38,14 @@
 		{#snippet children({ sizes })}
 			<Text
 				anchor={0.5}
-				y={-sizes.height * 0.22}
-				text="PENALTY SHOOTOUT"
+				y={-sizes.height * 0.24}
+				text="FREE SPINS"
 				style={{
-					fontFamily: 'proxima-nova',
-					fontSize: sizes.width * 0.075,
+					fontFamily: 'gold',
+					fontSize: sizes.width * 0.105,
 					fontWeight: '900',
 					fill: 0xffd447,
 					align: 'center',
-					letterSpacing: 2,
 				}}
 			/>
 			<BitmapText
@@ -61,10 +60,10 @@
 			<Text
 				anchor={0.5}
 				y={sizes.height * 0.22}
-				text="FREE KICKS"
+				text="GOLDEN GOAL RUSH"
 				style={{
-					fontFamily: 'proxima-nova',
-					fontSize: sizes.width * 0.09,
+					fontFamily: 'gold',
+					fontSize: sizes.width * 0.065,
 					fontWeight: '900',
 					fill: 0xffffff,
 					align: 'center',

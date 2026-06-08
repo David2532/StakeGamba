@@ -38,10 +38,12 @@ const winLevelSoundsStop = () => {
 
 const animateSymbols = async ({ positions }: { positions: Position[] }) => {
 	eventEmitter.broadcast({ type: 'boardShow' });
+	eventEmitter.broadcast({ type: 'goldenSquaresShow', positions });
 	await eventEmitter.broadcastAsync({
 		type: 'boardWithAnimateSymbols',
 		symbolPositions: positions,
 	});
+	eventEmitter.broadcast({ type: 'goldenSquaresHide' });
 };
 
 export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContext> = {

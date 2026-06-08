@@ -43,6 +43,16 @@ export default {
 		type: 'sprite',
 		src: new URL('../assets/golden-goal-rush/symbol-s.png', import.meta.url).href,
 	},
+	slotBackground: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/slot-background.png', import.meta.url).href,
+		preload: true,
+	},
+	spinButton: {
+		type: 'sprite',
+		src: new URL('../../../../packages/components-ui-pixi/src/spin-button.png', import.meta.url).href,
+		preload: true,
+	},
 
 	goldFont: {
 		type: 'font',

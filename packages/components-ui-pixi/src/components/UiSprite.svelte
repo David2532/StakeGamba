@@ -21,19 +21,19 @@
 	backgroundColor={backgroundColor ?? 0x08080d}
 	backgroundAlpha={backgroundAlpha ?? 0.96}
 	borderColor={borderColor ?? 0xd5a23b}
-	borderWidth={borderWidth ?? 3}
+	borderWidth={borderWidth ?? 4}
 	borderAlpha={borderAlpha ?? 0.95}
-	borderRadius={borderRadius ?? 22}
+	borderRadius={borderRadius ?? 16}
 />
 <Rectangle
 	{...props}
-	backgroundColor={0xffffff}
-	backgroundAlpha={0.06}
+	backgroundColor={0xf2c64c}
+	backgroundAlpha={0.08}
 	borderColor={0xffe49a}
 	borderWidth={1}
-	borderAlpha={0.35}
-	borderRadius={borderRadius ?? 22}
-	scale={0.88}
+	borderAlpha={0.28}
+	borderRadius={borderRadius ?? 12}
+	scale={0.9}
 />
 
 <!-- <script lang="ts" module>

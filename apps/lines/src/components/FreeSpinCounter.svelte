@@ -60,9 +60,9 @@
 			<Text
 				anchor={0.5}
 				y={-panelSizes.height * 0.22}
-				text="FREE KICKS"
+				text="FREE SPINS"
 				style={{
-					fontFamily: 'proxima-nova',
+					fontFamily: 'gold',
 					fontSize: SYMBOL_SIZE * 0.21,
 					fontWeight: '900',
 					fill: 0xffd447,

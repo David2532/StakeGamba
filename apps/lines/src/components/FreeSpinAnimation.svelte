@@ -14,8 +14,8 @@
 	const props: Props = $props();
 	const context = getContext();
 	const PANEL_SIZES = {
-		width: SYMBOL_SIZE * BOARD_DIMENSIONS.x * 1.38,
-		height: SYMBOL_SIZE * BOARD_DIMENSIONS.y * 1.08,
+		width: SYMBOL_SIZE * BOARD_DIMENSIONS.x * 1.18,
+		height: SYMBOL_SIZE * BOARD_DIMENSIONS.y * 0.86,
 	};
 </script>
 
@@ -27,27 +27,19 @@
 				const x = -width * 0.5;
 				const y = -height * 0.5;
 
-				g.roundRect(x, y, width, height, 34);
-				g.fill({ color: 0x03162f, alpha: 0.9 });
-				g.stroke({ color: 0xf4c64d, width: 10, alpha: 0.95 });
+				g.roundRect(x - 10, y - 10, width + 20, height + 20, 30);
+				g.fill({ color: 0x00142e, alpha: 0.72 });
+				g.stroke({ color: 0xf2c64c, width: 7, alpha: 0.94 });
 
-				g.roundRect(x + 18, y + 18, width - 36, height - 36, 24);
-				g.stroke({ color: 0xffffff, width: 2, alpha: 0.35 });
+				g.roundRect(x, y, width, height, 24);
+				g.fill({ color: 0x03162f, alpha: 0.88 });
+				g.stroke({ color: 0xffffff, width: 1, alpha: 0.2 });
 
-				g.rect(x, y + height * 0.68, width, height * 0.32);
-				g.fill({ color: 0x0a661f, alpha: 0.35 });
+				g.rect(x, y + height * 0.66, width, height * 0.34);
+				g.fill({ color: 0x0a5f21, alpha: 0.32 });
 
-				for (let i = 0; i < 9; i++) {
-					const px = x + width * (0.08 + i * 0.105);
-					g.circle(px, y + height * 0.18, 5 + (i % 3) * 2);
-					g.fill({ color: i % 2 ? 0x47b9ff : 0xffd447, alpha: 0.82 });
-				}
-
-				g.circle(0, y + height * 0.72, width * 0.22);
-				g.stroke({ color: 0xffffff, width: 3, alpha: 0.35 });
-
-				g.rect(-width * 0.34, y + height * 0.72, width * 0.68, 3);
-				g.fill({ color: 0xffffff, alpha: 0.35 });
+				g.circle(0, y + height * 0.68, width * 0.16);
+				g.stroke({ color: 0xffffff, width: 3, alpha: 0.28 });
 			}}
 		/>
 

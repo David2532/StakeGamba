@@ -1,24 +1,24 @@
 export default {
 	providerName: 'sample_provider',
-	gameName: 'sample_lines',
+	gameName: 'golden_goal_rush',
 	gameID: '0_0_lines',
-	rtp: 0.97,
-	numReels: 5,
-	numRows: [3, 3, 3, 3, 3],
+	rtp: 0.9634,
+	numReels: 6,
+	numRows: [5, 5, 5, 5, 5, 5],
 	betModes: {
 		base: {
 			cost: 1.0,
 			feature: true,
 			buyBonus: false,
-			rtp: 0.97,
-			max_win: 5000.0,
+			rtp: 0.9634,
+			max_win: 10000.0,
 		},
 		bonus: {
 			cost: 100.0,
 			feature: false,
 			buyBonus: true,
-			rtp: 0.97,
-			max_win: 5000.0,
+			rtp: 0.9634,
+			max_win: 10000.0,
 		},
 	},
 	paylines: {
