@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Golden Goal Rush - Front v2.4 Visual Polish</title>
+		<link rel="stylesheet" href="./style.css" />
+	</head>
+	<body>
+		<main class="game" aria-label="Golden Goal Rush Slot">
+			<img class="logo" src="../assets/logo-horizontal.png" alt="Golden Goal Rush" />
+			<section class="board-wrap">
+				<div id="board" class="board" aria-label="Slot grid"></div>
+			</section>
+			<div id="spin-counter" class="spin-counter">SPINS LEFT: -</div>
+
+			<section class="bottom-bar" aria-label="Game controls">
+				<button id="boost" class="icon-button boost" aria-label="Turbo" aria-pressed="false">
+					<img src="../assets/ui/blitz.png" alt="" />
+				</button>
+				<button id="menu" class="hamburger" aria-label="Game info">
+					<span></span>
+					<span></span>
+					<span></span>
+				</button>
+				<div class="stat-panel balance-panel">
+					<span>BALANCE</span>
+					<strong id="balance">$1,000.00</strong>
+				</div>
+				<div class="stat-panel win-panel">
+					<span>WIN</span>
+					<strong id="win">$0.00</strong>
+				</div>
+				<div class="stat-panel bet-panel">
+					<span>PLAY</span>
+					<strong id="bet">$2.00</strong>
+				</div>
+				<div class="bet-stepper" aria-label="Change bet">
+					<button id="bet-up" class="step-button" aria-label="Bet up">
+						<img src="../assets/ui/einsatz-hoch.png" alt="" />
+					</button>
+					<button id="bet-down" class="step-button" aria-label="Bet down">
+						<img src="../assets/ui/einsatz-runter.png" alt="" />
+					</button>
+				</div>
+				<button id="auto-spin" class="icon-button auto-spin" aria-label="Auto Spin">
+					<img src="../assets/ui/autospin.png" alt="" />
+				</button>
+				<button id="spin" class="spin" aria-label="Spin">
+					<img src="../assets/ui/spin.png" alt="" />
+				</button>
+				<button id="buy-bonus" class="icon-button bonus-buy" aria-label="Bonus buy">
+					<img src="../assets/ui/bonus-buy.png" alt="" />
+				</button>
+			</section>
+		</main>
+
+		<div id="modal" class="modal" hidden>
+			<div class="modal-card">
+				<button id="modal-close" class="modal-close" aria-label="Close">X</button>
+				<h2 id="modal-title">Golden Goal Rush</h2>
+				<div id="modal-text"></div>
+			</div>
+		</div>
+
+		<script type="module" src="./game.js"></script>
+	</body>
+</html>

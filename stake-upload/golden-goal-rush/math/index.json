@@ -1,0 +1,14 @@
+{
+	"name": "golden-goal-rush-math",
+	"version": "2.4.0",
+	"entry": "math.js",
+	"type": "module",
+	"game": "Golden Goal Rush",
+	"publisher": "NobleSpin",
+	"grid": {
+		"cols": 6,
+		"rows": 5
+	},
+	"maxWinMultiplier": 10000,
+	"rtpTarget": 0.96
+}
