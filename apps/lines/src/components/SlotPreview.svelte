@@ -38,6 +38,7 @@
 		drop: new Tween(0, { duration: 340, easing: backOut }),
 		pulse: new Tween(1, { duration: 150, easing: cubicOut }),
 	});
+	const golden = new Set<string>(); // golden tile positions (must exist before board init)
 	const fromGrid = (grid: Sym[][]): Cell[][] =>
 		grid.map((col, c) => col.map((t, r) => mkCell(t, golden.has(`${c}:${r}`))));
 
@@ -65,7 +66,6 @@
 	let fsMode5 = $state(false);
 	const bet = 1;
 
-	const golden = new Set<string>(); // positions; cell.golden mirrors for reactive render
 	const goldenCount = $derived(board.flat().filter((c) => c.golden).length);
 
 	const round2 = (n: number) => Math.round(n * 100) / 100;
