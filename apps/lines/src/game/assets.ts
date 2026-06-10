@@ -53,6 +53,15 @@ export default {
 		src: new URL('../assets/golden-goal-rush/logo-horizontal.png', import.meta.url).href,
 		preload: true,
 	},
+	// --- Generated asset-sheet feature symbols (extracted from raw/sheet_feature_symbols.png) ---
+	'ggr-coin-bronze': { type: 'sprite', src: new URL('../assets/golden-goal-rush/features/coin_bronze.png', import.meta.url).href },
+	'ggr-coin-silver': { type: 'sprite', src: new URL('../assets/golden-goal-rush/features/coin_silver.png', import.meta.url).href },
+	'ggr-coin-gold': { type: 'sprite', src: new URL('../assets/golden-goal-rush/features/coin_gold.png', import.meta.url).href },
+	'ggr-rainbow-goal': { type: 'sprite', src: new URL('../assets/golden-goal-rush/features/coin_rainbow_goal.png', import.meta.url).href },
+	'ggr-goal-booster': { type: 'sprite', src: new URL('../assets/golden-goal-rush/features/goal_booster.png', import.meta.url).href },
+	'ggr-trophy-collector': { type: 'sprite', src: new URL('../assets/golden-goal-rush/features/trophy_collector.png', import.meta.url).href },
+	'ggr-scatter-badge': { type: 'sprite', src: new URL('../assets/golden-goal-rush/features/scatter.png', import.meta.url).href },
+	'ggr-wild-badge': { type: 'sprite', src: new URL('../assets/golden-goal-rush/features/wild.png', import.meta.url).href },
 	symbolRainbow: {
 		type: 'sprite',
 		src: new URL('../assets/golden-goal-rush/special/symbol_rainbow.png', import.meta.url).href,

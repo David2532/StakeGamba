@@ -30,6 +30,7 @@
 		golden: boolean;
 		revealKind?: RevealKind;
 		coinValue: number;
+		coinTier: string;
 		boosterMult: number;
 		drop: Tween<number>;
 		pulse: Tween<number>;
@@ -40,10 +41,15 @@
 		golden: isGolden,
 		revealKind: undefined,
 		coinValue: 0,
+		coinTier: '',
 		boosterMult: 0,
 		drop: new Tween(0, { duration: 340, easing: backOut }),
 		pulse: new Tween(1, { duration: 150, easing: cubicOut }),
 	});
+
+	// use generated asset-sheet symbol if loaded, else fall back to the placeholder key
+	const isLoaded = (k: string) => Boolean(app.stateApp.loadedAssets?.[k]);
+	const keyOr = (primary: string, fallback: string) => (isLoaded(primary) ? primary : fallback);
 	const fromGrid = (grid: Sym[][]): Cell[][] =>
 		grid.map((col, c) => col.map((t, r) => mkCell(t, golden.has(`${c}:${r}`))));
 
@@ -123,12 +129,12 @@
 
 	// ---- rendering helpers ----
 	function spriteKey(c: Cell): string {
-		if (c.revealKind === 'coin') return coinKey(c.coinValue);
-		if (c.revealKind === 'booster') return 'symbolMultiplier';
-		if (c.revealKind === 'collector') return 'symbolCollector';
-		if (c.type === 'RAINBOW') return 'symbolRainbow';
-		if (c.type === 'S') return 'ggr-s';
-		if (c.type === 'W') return 'ggr-w';
+		if (c.revealKind === 'coin') return keyOr(`ggr-coin-${c.coinTier || 'bronze'}`, coinKey(c.coinValue));
+		if (c.revealKind === 'booster') return keyOr('ggr-goal-booster', 'symbolMultiplier');
+		if (c.revealKind === 'collector') return keyOr('ggr-trophy-collector', 'symbolCollector');
+		if (c.type === 'RAINBOW') return keyOr('ggr-rainbow-goal', 'symbolRainbow');
+		if (c.type === 'S') return keyOr('ggr-scatter-badge', 'ggr-s');
+		if (c.type === 'W') return keyOr('ggr-wild-badge', 'ggr-w');
 		return `ggr-${c.type.toLowerCase()}`;
 	}
 	function label(c: Cell): string {
@@ -233,6 +239,7 @@
 			cell.revealKind = 'coin';
 			const cr = Math.random();
 			const tier = opts.goldBoost && cr > 0.7 ? 'gold' : cr < 0.62 ? 'bronze' : cr < 0.9 ? 'silver' : 'gold';
+			cell.coinTier = tier;
 			cell.coinValue = pickArr(COIN_TIERS[tier]);
 		}
 		pop(cell, 1.32);
@@ -495,11 +502,12 @@
 	// symbols showcase (only the Symbols tab)
 	const SHOWCASE: { k: string; l: string }[] = [
 		{ k: 'ggr-h1', l: 'H1 Ball' }, { k: 'ggr-h2', l: 'H2 Trophy' }, { k: 'ggr-h3', l: 'H3 Whistle' },
-		{ k: 'ggr-h4', l: 'H4 Shirt' }, { k: 'ggr-w', l: 'Wild' }, { k: 'ggr-s', l: 'Scatter' },
+		{ k: 'ggr-h4', l: 'H4 Shirt' }, { k: 'ggr-wild-badge', l: 'Wild' }, { k: 'ggr-scatter-badge', l: 'Scatter' },
 		{ k: 'ggr-l1', l: 'A' }, { k: 'ggr-l2', l: 'K' }, { k: 'ggr-l3', l: 'Q' }, { k: 'ggr-l4', l: 'J' },
-		{ k: 'ggr-l5', l: '10' }, { k: 'symbolRainbow', l: 'Rainbow Goal' },
-		{ k: 'symbolMultiplier', l: 'Goal Booster' }, { k: 'symbolCollector', l: 'Trophy Collector' },
-		{ k: 'coin_5x', l: 'Silver 5x' }, { k: 'coin_100x', l: 'Gold 100x' },
+		{ k: 'ggr-l5', l: '10' }, { k: 'ggr-rainbow-goal', l: 'Rainbow Goal' },
+		{ k: 'ggr-goal-booster', l: 'Goal Booster' }, { k: 'ggr-trophy-collector', l: 'Trophy Collector' },
+		{ k: 'ggr-coin-bronze', l: 'Bronze Coin' }, { k: 'ggr-coin-silver', l: 'Silver Coin' },
+		{ k: 'ggr-coin-gold', l: 'Gold Coin' },
 	];
 	const showCols = 4;
 	const showSZ = $derived(Math.min(screen.width * 0.2, (screen.height - topH) / 5.5, 160));
