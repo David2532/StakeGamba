@@ -10,7 +10,7 @@
 	import { StoryPixiApp } from 'components-storybook';
 
 	import LeBanditFeature from '../components/LeBanditFeature.svelte';
-	import assets from '../game/assets';
+	import assets from '../game/assetsPreview';
 	import { evaluateCollect, generateFeatureGrid, type FeatureGrid } from '../game/leBanditEngine';
 
 	const B = { kind: 'blank' } as const;

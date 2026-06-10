@@ -10,7 +10,7 @@
 	import { StoryPixiApp } from 'components-storybook';
 
 	import SlotPreview from '../components/SlotPreview.svelte';
-	import assets from '../game/assets';
+	import assets from '../game/assetsPreview';
 </script>
 
 <!-- Static 6x5 board with symbols (no HUD) -->
