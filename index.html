@@ -5,38 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>Golden Goal Rush</title>
 <style>
-  :root { --gold:#f4d276; --bg:#05080f; }
-  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html,body { margin:0; height:100%; background:var(--bg); font-family:-apple-system,Segoe UI,Roboto,sans-serif; overflow:hidden; }
-  #bar { display:flex; gap:8px; padding:8px 10px; background:linear-gradient(#0b1326,#070b16);
-         border-bottom:2px solid var(--gold); align-items:center; overflow-x:auto; }
-  #bar .title { color:var(--gold); font-weight:900; letter-spacing:1px; margin-right:6px; white-space:nowrap; font-size:15px; }
-  #bar button { flex:0 0 auto; padding:10px 16px; font-size:16px; font-weight:800; color:#fff;
-                background:#11203b; border:1px solid #2a4straße; border:1px solid #2a4a78; border-radius:12px; }
-  #bar button.active { background:var(--gold); color:#15110a; border-color:var(--gold); }
-  #wrap { position:absolute; top:54px; left:0; right:0; bottom:0; }
-  iframe { width:100%; height:100%; border:0; display:block; background:#000; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;background:#05080f;font-family:-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden;}
+  #bar{display:flex;gap:8px;padding:8px 10px;background:linear-gradient(#0b1326,#070b16);border-bottom:2px solid #f4d276;align-items:center;overflow-x:auto;}
+  #bar .title{color:#f4d276;font-weight:900;letter-spacing:1px;margin-right:6px;white-space:nowrap;font-size:15px;}
+  #bar button{flex:0 0 auto;padding:10px 16px;font-size:16px;font-weight:800;color:#fff;background:#11203b;border:1px solid #2a4a78;border-radius:12px;}
+  #bar button.active{background:#f4d276;color:#15110a;border-color:#f4d276;}
+  #wrap{position:absolute;top:54px;left:0;right:0;bottom:0;}
+  iframe{width:100%;height:100%;border:0;display:block;background:#000;}
 </style>
 </head>
 <body>
   <div id="bar">
     <span class="title">⚽ GOLDEN GOAL RUSH</span>
-    <button data-id="components-le-bandit-feature--collect-demo" class="active">Feature</button>
+    <button data-id="components-slot-preview--slot" class="active">Slot</button>
+    <button data-id="components-slot-preview--board">Board</button>
+    <button data-id="components-le-bandit-feature--collect-demo">Feature</button>
     <button data-id="components-symbol--symbols">Symbole</button>
-    <button data-id="components-game--pre-spin">Board</button>
-    <button data-id="mode-base-book--random">Slot (Spin)</button>
   </div>
   <div id="wrap"><iframe id="view" allowfullscreen></iframe></div>
   <script>
-    var view = document.getElementById('view');
-    var buttons = [].slice.call(document.querySelectorAll('#bar button'));
-    function show(id, btn){
-      view.src = 'sb/iframe.html?id=' + id + '&viewMode=story&t=' + Date.now();
-      buttons.forEach(function(b){ b.classList.toggle('active', b===btn); });
-    }
-    buttons.forEach(function(b){ b.addEventListener('click', function(){ show(b.dataset.id, b); }); });
-    // default
-    show(buttons[0].dataset.id, buttons[0]);
+    var view=document.getElementById('view');
+    var buttons=[].slice.call(document.querySelectorAll('#bar button'));
+    function show(id,btn){view.src='sb/iframe.html?id='+id+'&viewMode=story&t='+Date.now();buttons.forEach(function(b){b.classList.toggle('active',b===btn);});}
+    buttons.forEach(function(b){b.addEventListener('click',function(){show(b.dataset.id,b);});});
+    show(buttons[0].dataset.id,buttons[0]);
   </script>
 </body>
 </html>
