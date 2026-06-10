@@ -17,7 +17,7 @@
 <Story name="board">
 	{#snippet template()}
 		<StoryPixiApp {assets}>
-			<SlotPreview view="board" showHud={false} autoSpin={false} />
+			<SlotPreview view="board" showHud={false} />
 		</StoryPixiApp>
 	{/snippet}
 </Story>
@@ -26,7 +26,7 @@
 <Story name="slot">
 	{#snippet template()}
 		<StoryPixiApp {assets}>
-			<SlotPreview view="slot" showHud={true} autoSpin={false} />
+			<SlotPreview view="slot" showHud={true} />
 		</StoryPixiApp>
 	{/snippet}
 </Story>
