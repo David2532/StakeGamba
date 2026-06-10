@@ -4,8 +4,6 @@
 	import { MainContainer } from 'components-layout';
 
 	import { getContext } from '../game/context';
-	import TransitionAnimation from './TransitionAnimation.svelte';
-	import PressToContinue from './PressToContinue.svelte';
 
 	type Props = {
 		onloaded: () => void;
@@ -14,11 +12,17 @@
 	const props: Props = $props();
 	const context = getContext();
 
-	let loadingType = $state<'start' | 'transition'>('start');
+	// Go straight into the slot: as soon as the assets are loaded, skip the
+	// press-to-continue / "KICK OFF" transition and show the game board directly.
+	$effect(() => {
+		if (context.stateApp.loaded) {
+			props.onloaded();
+		}
+	});
 </script>
 
-<!-- logo and loading progress -->
-<FadeContainer show={loadingType === 'start'}>
+<!-- logo + loading progress (only while assets are still loading) -->
+<FadeContainer show={!context.stateApp.loaded}>
 	<Rectangle {...context.stateLayoutDerived.canvasSizes()} backgroundColor={0x030306} />
 	<MainContainer>
 		<Container
@@ -67,48 +71,36 @@
 				backgroundColor={0xc5192e}
 				borderRadius={6}
 			/>
-			{#if !context.stateApp.loaded}
-				<Rectangle
-					anchor={0.5}
-					y={180}
-					width={420}
-					height={32}
-					backgroundColor={0x001c38}
-					borderColor={0xf4d276}
-					borderWidth={4}
-					borderRadius={18}
-				/>
-				<Rectangle
-					anchor={{ x: 0, y: 0.5 }}
-					x={-204}
-					y={180}
-					width={408 * (context.stateApp.loadingProgress / 100)}
-					height={20}
-					backgroundColor={0x12a84a}
-					borderRadius={12}
-				/>
-				<Text
-					anchor={0.5}
-					y={228}
-					text="LOADING MATCH"
-					style={{
-						fontFamily: 'proxima-nova',
-						fontSize: 24,
-						fontWeight: '800',
-						fill: 0xf4d276,
-					}}
-				/>
-			{/if}
+			<Rectangle
+				anchor={0.5}
+				y={180}
+				width={420}
+				height={32}
+				backgroundColor={0x001c38}
+				borderColor={0xf4d276}
+				borderWidth={4}
+				borderRadius={18}
+			/>
+			<Rectangle
+				anchor={{ x: 0, y: 0.5 }}
+				x={-204}
+				y={180}
+				width={408 * (context.stateApp.loadingProgress / 100)}
+				height={20}
+				backgroundColor={0x12a84a}
+				borderRadius={12}
+			/>
+			<Text
+				anchor={0.5}
+				y={228}
+				text="LOADING MATCH"
+				style={{
+					fontFamily: 'proxima-nova',
+					fontSize: 24,
+					fontWeight: '800',
+					fill: 0xf4d276,
+				}}
+			/>
 		</Container>
 	</MainContainer>
-</FadeContainer>
-
-<!-- press to continue -->
-<FadeContainer show={loadingType === 'start' && context.stateApp.loaded}>
-	<PressToContinue onpress={() => (loadingType = 'transition')} />
-</FadeContainer>
-
-<!-- transition between the loading screen and the game -->
-<FadeContainer show={loadingType === 'transition'}>
-	<TransitionAnimation oncomplete={props.onloaded} />
 </FadeContainer>
