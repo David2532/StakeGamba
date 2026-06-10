@@ -10,11 +10,11 @@
 		makeGrid,
 		findClusters,
 		validateGrid,
-		rollReveal,
 		coinKey,
+		COIN_TIERS,
+		BOOSTER_MULTS,
 		adjacent,
 		type Sym,
-		type Reveal,
 	} from '../game/goldenGoalEngine';
 
 	type Props = { showHud?: boolean; debug?: boolean; view?: string };
@@ -24,46 +24,50 @@
 	const screen = $derived(app.stateApp.pixiApplication?.screen ?? { width: 1280, height: 720 });
 	const assetCount = $derived(Object.keys(app.stateApp.loadedAssets ?? {}).length);
 
+	type RevealKind = 'coin' | 'booster' | 'collector';
 	type Cell = {
 		type: Sym;
 		golden: boolean;
-		reveal?: Reveal;
+		revealKind?: RevealKind;
+		coinValue: number;
+		boosterMult: number;
 		drop: Tween<number>;
 		pulse: Tween<number>;
 	};
-	const mkCell = (type: Sym, golden = false): Cell => ({
+	const golden = new Set<string>(); // golden tile positions (declare before board init!)
+	const mkCell = (type: Sym, isGolden = false): Cell => ({
 		type,
-		golden,
-		reveal: undefined,
+		golden: isGolden,
+		revealKind: undefined,
+		coinValue: 0,
+		boosterMult: 0,
 		drop: new Tween(0, { duration: 340, easing: backOut }),
 		pulse: new Tween(1, { duration: 150, easing: cubicOut }),
 	});
-	const golden = new Set<string>(); // golden tile positions (must exist before board init)
 	const fromGrid = (grid: Sym[][]): Cell[][] =>
 		grid.map((col, c) => col.map((t, r) => mkCell(t, golden.has(`${c}:${r}`))));
 
 	// ---- state ----
 	type Phase =
 		| 'idle' | 'spinStarting' | 'reelsDropping' | 'evaluating' | 'winHighlight'
-		| 'cascadeRemoving' | 'cascadeDropping' | 'goldenTilesMarking' | 'goldenTilesReveal'
-		| 'featureTrigger' | 'featurePlaying' | 'featureOutro';
+		| 'goldenTilesMarking' | 'cascadeRemoving' | 'cascadeDropping' | 'rainbowActivation'
+		| 'goldenTilesReveal' | 'boosterResolve' | 'collectorResolve' | 'featureWinCountUp' | 'featureOutro';
 
+	let tab = $state<'slot' | 'symbols'>(view === 'symbols' ? 'symbols' : 'slot');
 	let board = $state<Cell[][]>(fromGrid(makeGrid()));
 	let phase = $state<Phase>('idle');
 	let boardValid = $state(true);
 	let filledCells = $state(REELS * ROWS);
 	let rainbowPresent = $state(false);
 	let featureActive = $state(false);
-	let featureName = $state('');
-	let freeSpinsLeft = $state(0);
+	let revealedCoins = $state(0);
 	let totalCoinMultiplier = $state(0);
-	let lastFeatureWin = $state(0);
+	let featureWin = $state(0);
+	let countWin = $state(0);
 	let lastWin = $state(0);
 	let balance = $state(1000);
 	let busy = $state(false);
-	let forceFeature = $state(false);
-	let forceRainbow = $state(false);
-	let fsMode5 = $state(false);
+	let lastError = $state('—');
 	const bet = 1;
 
 	const goldenCount = $derived(board.flat().filter((c) => c.golden).length);
@@ -75,26 +79,30 @@
 		return board[c][r];
 	};
 	const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+	const ri = (n: number) => Math.floor(Math.random() * n);
+	const pickArr = <T,>(a: readonly T[]) => a[ri(a.length)];
 
 	function validate() {
 		const v = validateGrid(grid());
 		boardValid = v.valid;
 		filledCells = v.filled;
-		if (!v.valid) console.error('[SlotPreview] board invalid:', v.reason);
+		if (!v.valid) {
+			lastError = `board invalid: ${v.reason}`;
+			console.error('[SlotPreview]', lastError);
+		}
 	}
 
 	// ---- layout ----
-	const hudH = $derived(showHud ? Math.min(screen.height * 0.15, 130) : 0);
-	const logoH = $derived(Math.min(screen.height * 0.14, 130));
-	const areaTop = $derived(logoH * 0.9);
-	const areaH = $derived(screen.height - areaTop - hudH - screen.height * 0.03);
+	const hudH = $derived(showHud ? Math.min(screen.height * 0.14, 120) : 0);
+	const topH = $derived(Math.min(screen.height * 0.13, 116)); // logo + tabs
+	const areaH = $derived(screen.height - topH - hudH - screen.height * 0.03);
 	const areaW = $derived(screen.width * 0.96);
 	const SZ = $derived(Math.max(34, Math.min(areaW / REELS, areaH / ROWS)));
 	const boardW = $derived(SZ * REELS);
 	const boardH = $derived(SZ * ROWS);
 	const cx = $derived(screen.width / 2);
 	const boardLeft = $derived(cx - boardW / 2);
-	const boardTop = $derived(areaTop + (areaH - boardH) / 2);
+	const boardTop = $derived(topH + (areaH - boardH) / 2);
 	const cellCx = (c: number) => boardLeft + c * SZ + SZ / 2;
 	const cellCy = (r: number) => boardTop + r * SZ + SZ / 2;
 
@@ -106,7 +114,7 @@
 			: { width: screen.height * bgRatio, height: screen.height };
 	});
 	const logoRatio = 1047 / 1516;
-	const logoW = $derived(Math.min(screen.width * 0.38, 520));
+	const logoW = $derived(Math.min(screen.width * 0.32, 460));
 
 	const pop = (c?: Cell, to = 1.3) => {
 		if (!c) return;
@@ -115,24 +123,21 @@
 
 	// ---- rendering helpers ----
 	function spriteKey(c: Cell): string {
-		if (c.reveal) {
-			if (c.reveal.kind === 'coin') return coinKey(c.reveal.value);
-			if (c.reveal.kind === 'booster') return 'symbolMultiplier';
-			return 'symbolCollector';
-		}
+		if (c.revealKind === 'coin') return coinKey(c.coinValue);
+		if (c.revealKind === 'booster') return 'symbolMultiplier';
+		if (c.revealKind === 'collector') return 'symbolCollector';
 		if (c.type === 'RAINBOW') return 'symbolRainbow';
 		if (c.type === 'S') return 'ggr-s';
 		if (c.type === 'W') return 'ggr-w';
 		return `ggr-${c.type.toLowerCase()}`;
 	}
 	function label(c: Cell): string {
-		if (!c.reveal) return '';
-		if (c.reveal.kind === 'coin') return `${c.reveal.value}x`;
-		if (c.reveal.kind === 'booster') return `x${c.reveal.mult}`;
+		if (c.revealKind === 'coin') return `${c.coinValue}x`;
+		if (c.revealKind === 'booster') return `x${c.boosterMult}`;
 		return '';
 	}
 
-	// ---- drop a fresh board (staggered reels) ----
+	// ---- core helpers ----
 	async function dropNewBoard(opts: { scatter?: number; rainbow?: number } = {}) {
 		const g = makeGrid(Math.random, opts);
 		const next = fromGrid(g);
@@ -142,9 +147,9 @@
 				cell.drop.set(ROWS + 1.5 - r, { duration: 0 });
 				cell.drop.set(0, { duration: 360 + r * 26, easing: backOut });
 			});
-			await sleep(95); // staggered column stop (reel 1 first .. reel 6 last)
+			await sleep(95);
 		}
-		await sleep(420);
+		await sleep(400);
 	}
 
 	function markGolden(clusters: { cells: { reel: number; row: number }[] }[]) {
@@ -152,6 +157,7 @@
 			for (const p of cl.cells) {
 				golden.add(`${p.reel}:${p.row}`);
 				board[p.reel][p.row].golden = true;
+				pop(board[p.reel][p.row], 1.18);
 			}
 	}
 
@@ -163,16 +169,17 @@
 			safe++;
 			phase = 'winHighlight';
 			cl.forEach((c) => c.cells.forEach((p) => pop(board[p.reel][p.row], 1.22)));
-			const cellsCount = cl.reduce((s, c) => s + c.cells.length, 0);
-			lastWin = round2(lastWin + bet * cellsCount * 0.25);
+			lastWin = round2(lastWin + bet * cl.reduce((s, c) => s + c.cells.length, 0) * 0.2);
+			await sleep(380);
+			phase = 'goldenTilesMarking';
 			markGolden(cl);
-			await sleep(420);
+			await sleep(260);
 
 			phase = 'cascadeRemoving';
 			const removed = new Set<string>();
 			cl.forEach((c) => c.cells.forEach((p) => removed.add(`${p.reel}:${p.row}`)));
 			removed.forEach((k) => pop(cellOf(k), 0.2));
-			await sleep(260);
+			await sleep(240);
 
 			phase = 'cascadeDropping';
 			for (let c = 0; c < REELS; c++) {
@@ -182,7 +189,7 @@
 				const fresh = Array.from({ length: newCount }, () => mkCell(makeGrid()[0][0]));
 				const col = [...fresh, ...survivors];
 				col.forEach((cell, r) => {
-					cell.golden = golden.has(`${c}:${r}`); // golden is positional
+					cell.golden = golden.has(`${c}:${r}`);
 					cell.drop.set(0, { duration: 0 });
 				});
 				fresh.forEach((cell, i) => {
@@ -191,7 +198,7 @@
 				});
 				board[c] = col;
 			}
-			await sleep(380);
+			await sleep(360);
 			validate();
 			phase = 'evaluating';
 			cl = findClusters(grid());
@@ -200,200 +207,275 @@
 
 	const hasRainbow = () => board.flat().some((c) => c.type === 'RAINBOW');
 	const countScatter = () => board.flat().filter((c) => c.type === 'S').length;
-	const sumCoins = () =>
-		round2(
-			board
-				.flat()
-				.filter((c) => c.reveal?.kind === 'coin')
-				.reduce((s, c) => s + (c.reveal as any).value, 0),
-		);
 
 	function pickEmptyNonGolden(n: number): string[] {
 		const free: string[] = [];
 		for (let c = 0; c < REELS; c++)
 			for (let r = 0; r < ROWS; r++) if (!board[c][r].golden) free.push(`${c}:${r}`);
 		for (let i = free.length - 1; i > 0; i--) {
-			const j = Math.floor(Math.random() * (i + 1));
+			const j = ri(i + 1);
 			[free[i], free[j]] = [free[j], free[i]];
 		}
 		return free.slice(0, n);
 	}
 
+	// reveal one tile; coinHeavy biases toward coins so force feature always pays
+	function revealTile(cell: Cell, opts: { coinHeavy?: boolean; goldBoost?: boolean } = {}) {
+		const r = Math.random();
+		const collectorChance = opts.coinHeavy ? 0.06 : 0.1;
+		const boosterChance = opts.coinHeavy ? 0.12 : 0.12;
+		if (r < collectorChance) {
+			cell.revealKind = 'collector';
+		} else if (r < collectorChance + boosterChance) {
+			cell.revealKind = 'booster';
+			cell.boosterMult = pickArr(BOOSTER_MULTS);
+		} else {
+			cell.revealKind = 'coin';
+			const cr = Math.random();
+			const tier = opts.goldBoost && cr > 0.7 ? 'gold' : cr < 0.62 ? 'bronze' : cr < 0.9 ? 'silver' : 'gold';
+			cell.coinValue = pickArr(COIN_TIERS[tier]);
+		}
+		pop(cell, 1.32);
+	}
+
 	function applyBoosters() {
-		const boosters = board.flat().map((c, i) => ({ c, i })).filter(({ c }) => c.reveal?.kind === 'booster');
 		for (let c = 0; c < REELS; c++)
 			for (let r = 0; r < ROWS; r++) {
 				const cell = board[c][r];
-				if (cell.reveal?.kind !== 'booster') continue;
-				const mult = cell.reveal.mult;
+				if (cell.revealKind !== 'booster') continue;
 				adjacent({ reel: c, row: r }).forEach((p) => {
 					const nb = board[p.reel][p.row];
-					if (nb.reveal?.kind === 'coin') {
-						nb.reveal = { ...nb.reveal, value: round2(nb.reveal.value * mult) };
-						pop(nb, 1.35);
+					if (nb.revealKind === 'coin') {
+						nb.coinValue = round2(Math.min(nb.coinValue * cell.boosterMult, 1000));
+						pop(nb, 1.4);
 					}
 				});
-				pop(cell, 1.3);
+				pop(cell, 1.35);
 			}
 	}
 
-	async function revealFeature(opts: { free?: boolean } = {}) {
-		phase = 'goldenTilesReveal';
-		board.flat().forEach((c) => c.type === 'RAINBOW' && pop(c, 1.4));
-		await sleep(350);
+	const coinSum = () =>
+		round2(board.flat().reduce((s, c) => s + (c.revealKind === 'coin' ? c.coinValue : 0), 0));
+	const coinCount = () => board.flat().filter((c) => c.revealKind === 'coin').length;
 
+	async function revealFeature(opts: { coinHeavy?: boolean; goldBoost?: boolean } = {}) {
+		phase = 'rainbowActivation';
+		board.flat().forEach((c) => c.type === 'RAINBOW' && pop(c, 1.45));
+		await sleep(420);
+
+		phase = 'goldenTilesReveal';
 		let round = 0;
-		let queue = [...golden].filter((k) => !cellOf(k).reveal);
+		let queue = [...golden].filter((k) => !cellOf(k).revealKind);
 		while (queue.length && round < 4) {
 			round++;
 			for (const k of queue) {
 				const cell = cellOf(k);
-				if (cell.reveal) continue;
-				cell.reveal = rollReveal(Math.random, { goldBoost: opts.free, noBronze: opts.free && fsMode5 });
-				pop(cell, 1.3);
-				await sleep(80);
+				if (cell.revealKind) continue;
+				revealTile(cell, opts);
+				await sleep(90); // 80-120ms tile flip chain
 			}
 			await sleep(220);
-			applyBoosters();
-			await sleep(320);
 
-			const collectors = queue.filter((k) => cellOf(k).reveal?.kind === 'collector');
+			phase = 'boosterResolve';
+			applyBoosters();
+			await sleep(360);
+
+			const collectors = queue.filter((k) => cellOf(k).revealKind === 'collector');
 			if (collectors.length && round < 3) {
-				collectors.forEach((k) => pop(cellOf(k), 1.4));
-				// Trophy Collector triggers a further reveal round on new golden tiles
+				phase = 'collectorResolve';
+				collectors.forEach((k) => pop(cellOf(k), 1.5));
 				const fresh = pickEmptyNonGolden(4);
 				fresh.forEach((k) => {
 					golden.add(k);
 					cellOf(k).golden = true;
+					pop(cellOf(k), 1.15);
 				});
-				await sleep(260);
+				await sleep(360);
+				phase = 'goldenTilesReveal';
 				queue = fresh;
 			} else {
 				queue = [];
 			}
 		}
 
-		const coinMult = sumCoins();
-		totalCoinMultiplier = round2(totalCoinMultiplier + coinMult);
-		const add = round2(bet * coinMult);
-		lastWin = round2(lastWin + add);
-		lastFeatureWin = round2(lastFeatureWin + add);
-		await sleep(300);
+		revealedCoins = coinCount();
+		totalCoinMultiplier = coinSum();
+		featureWin = round2(bet * totalCoinMultiplier);
 	}
 
 	function clearReveals() {
-		board.flat().forEach((c) => (c.reveal = undefined));
-	}
-
-	async function playSpin(opts: { free?: boolean } = {}) {
-		clearReveals();
-		phase = 'reelsDropping';
-		await dropNewBoard({
-			scatter: opts.free ? 0.015 : 0.04,
-			rainbow: opts.free ? 0.22 : 0.06,
+		board.flat().forEach((c) => {
+			c.revealKind = undefined;
+			c.coinValue = 0;
+			c.boosterMult = 0;
 		});
-		validate();
-		await cascadeLoop();
-		phase = 'goldenTilesMarking';
-		await sleep(220);
-		rainbowPresent = hasRainbow();
-		if ((rainbowPresent || forceRainbow) && golden.size > 0) {
-			forceRainbow = false;
-			await revealFeature(opts);
-		}
 	}
 
-	async function runFreeSpins(scatters: number) {
-		const fs = scatters >= 5 ? 12 : scatters >= 4 ? 12 : 8;
-		featureName =
-			scatters >= 5 ? 'End of the Rainbow Goal' : scatters >= 4 ? 'All Goals Turn Gold' : 'Kickoff Bonus';
-		fsMode5 = scatters >= 5;
-		featureActive = true;
-		freeSpinsLeft = fs;
-		phase = 'featureTrigger';
-		await sleep(1200);
-
-		let guard = 0;
-		while (freeSpinsLeft > 0 && guard < 30) {
-			guard++;
-			phase = 'featurePlaying';
-			await playSpin({ free: true }); // golden tiles persist across free spins
-			freeSpinsLeft -= 1;
-			await sleep(300);
+	async function countUp(target: number) {
+		phase = 'featureWinCountUp';
+		const steps = 24;
+		for (let i = 1; i <= steps; i++) {
+			countWin = round2((target * i) / steps);
+			await sleep(40);
 		}
-		phase = 'featureOutro';
-		await sleep(1400);
-		featureActive = false;
-		golden.clear();
-		board.flat().forEach((c) => (c.golden = false));
-		clearReveals();
+		countWin = target;
+	}
+
+	// ---- public actions ----
+	function resetFeatureStats() {
+		lastWin = 0;
+		featureWin = 0;
+		countWin = 0;
+		totalCoinMultiplier = 0;
+		revealedCoins = 0;
 	}
 
 	async function spin() {
 		if (busy) return;
 		busy = true;
-		phase = 'spinStarting';
-		lastWin = 0;
-		lastFeatureWin = 0;
-		totalCoinMultiplier = 0;
-		golden.clear();
-		board.flat().forEach((c) => (c.golden = false));
-		balance = round2(balance - bet);
-		await sleep(120);
+		lastError = '—';
+		try {
+			phase = 'spinStarting';
+			resetFeatureStats();
+			golden.clear();
+			board.flat().forEach((c) => (c.golden = false));
+			clearReveals();
+			balance = round2(balance - bet);
+			await sleep(110);
 
-		await playSpin({ free: false });
+			await dropNewBoard({ scatter: 0.04, rainbow: 0.07 });
+			validate();
+			await cascadeLoop();
 
-		const sc = countScatter();
-		if (forceFeature || sc >= 3) {
-			forceFeature = false;
-			await runFreeSpins(sc >= 3 ? sc : 3);
+			rainbowPresent = hasRainbow();
+			if (rainbowPresent && golden.size > 0) {
+				featureActive = true;
+				await revealFeature({});
+				if (totalCoinMultiplier > 0) {
+					lastWin = round2(lastWin + featureWin);
+					await countUp(featureWin);
+					phase = 'featureOutro';
+					await sleep(1300);
+				}
+				featureActive = false;
+			}
+
+			balance = round2(balance + lastWin);
+			phase = 'idle';
+		} catch (e) {
+			lastError = String((e as Error)?.message ?? e);
+			console.error('[SlotPreview] spin error:', e);
+			phase = 'idle';
+		} finally {
+			busy = false;
 		}
-
-		balance = round2(balance + lastWin);
-		phase = 'idle';
-		busy = false;
 	}
 
-	async function forceFeatureRun() {
+	// guaranteed visible feature for quick testing
+	async function forceFeature(opts: { collector?: boolean } = {}) {
 		if (busy) return;
 		busy = true;
-		phase = 'spinStarting';
-		lastWin = 0;
-		lastFeatureWin = 0;
-		totalCoinMultiplier = 0;
-		golden.clear();
-		board.flat().forEach((c) => (c.golden = false));
-		balance = round2(balance - bet);
-		await playSpin({ free: false });
-		// guarantee golden tiles + rainbow for a quick visible feature
-		const picks = pickEmptyNonGolden(10);
-		picks.forEach((k) => {
-			golden.add(k);
-			cellOf(k).golden = true;
-			pop(cellOf(k), 1.2);
-		});
-		phase = 'goldenTilesMarking';
-		await sleep(450);
-		rainbowPresent = true;
-		await revealFeature({ free: false });
-		phase = 'featureOutro';
-		await sleep(1200);
-		balance = round2(balance + lastWin);
-		golden.clear();
-		board.flat().forEach((c) => (c.golden = false));
-		phase = 'idle';
-		busy = false;
+		lastError = '—';
+		try {
+			phase = 'spinStarting';
+			resetFeatureStats();
+			golden.clear();
+			board.flat().forEach((c) => (c.golden = false));
+			clearReveals();
+			balance = round2(balance - bet);
+			await dropNewBoard({});
+			validate();
+
+			// place a rainbow + a guaranteed set of golden tiles
+			const picks = pickEmptyNonGolden(12);
+			picks.forEach((k) => {
+				golden.add(k);
+				cellOf(k).golden = true;
+			});
+			// drop a rainbow symbol somewhere visible
+			board[ri(REELS)][ri(ROWS)].type = 'RAINBOW';
+			phase = 'goldenTilesMarking';
+			await sleep(450);
+
+			featureActive = true;
+			rainbowPresent = true;
+			await revealFeature({ coinHeavy: true, goldBoost: true });
+
+			// guarantee a collector path if requested
+			if (opts.collector) {
+				phase = 'collectorResolve';
+				const k = [...golden][0];
+				if (k) {
+					const cell = cellOf(k);
+					cell.revealKind = 'collector';
+					pop(cell, 1.5);
+				}
+				const fresh = pickEmptyNonGolden(4);
+				fresh.forEach((fk) => {
+					golden.add(fk);
+					cellOf(fk).golden = true;
+					revealTile(cellOf(fk), { coinHeavy: true, goldBoost: true });
+				});
+				await sleep(500);
+				applyBoosters();
+				revealedCoins = coinCount();
+				totalCoinMultiplier = coinSum();
+				featureWin = round2(bet * totalCoinMultiplier);
+			}
+
+			if (totalCoinMultiplier > 0) {
+				lastWin = round2(lastWin + featureWin);
+				await countUp(featureWin);
+				phase = 'featureOutro';
+				await sleep(1500);
+			}
+			featureActive = false;
+			balance = round2(balance + lastWin);
+			phase = 'idle';
+		} catch (e) {
+			lastError = String((e as Error)?.message ?? e);
+			console.error('[SlotPreview] forceFeature error:', e);
+			featureActive = false;
+			phase = 'idle';
+		} finally {
+			busy = false;
+		}
+	}
+
+	async function forceClusterWin() {
+		if (busy) return;
+		busy = true;
+		lastError = '—';
+		try {
+			phase = 'spinStarting';
+			resetFeatureStats();
+			golden.clear();
+			board.flat().forEach((c) => (c.golden = false));
+			clearReveals();
+			balance = round2(balance - bet);
+			await dropNewBoard({});
+			// stamp a guaranteed cluster of H1 in a 2x3 block
+			for (let c = 0; c < 2; c++) for (let r = 0; r < 3; r++) board[c][r].type = 'H1';
+			validate();
+			await cascadeLoop();
+			balance = round2(balance + lastWin);
+			phase = 'idle';
+		} catch (e) {
+			lastError = String(e);
+			phase = 'idle';
+		} finally {
+			busy = false;
+		}
 	}
 
 	function resetBoard() {
 		if (busy) return;
 		golden.clear();
+		clearReveals();
 		board = fromGrid(makeGrid());
 		board.flat().forEach((c) => c.drop.set(0, { duration: 0 }));
 		phase = 'idle';
-		lastWin = 0;
-		lastFeatureWin = 0;
-		totalCoinMultiplier = 0;
+		resetFeatureStats();
 		validate();
 	}
 
@@ -403,118 +485,135 @@
 	});
 
 	const PHASE_COLOR: Record<string, number> = {
-		idle: 0x8fb0d8,
-		spinStarting: 0xffd447,
-		reelsDropping: 0xffd447,
-		evaluating: 0x7ad0ff,
-		winHighlight: 0x12d36a,
-		cascadeRemoving: 0xff6a6a,
-		cascadeDropping: 0x7ad0ff,
-		goldenTilesMarking: 0xf4d276,
-		goldenTilesReveal: 0xffb04d,
-		featureTrigger: 0xff8a3d,
-		featurePlaying: 0x12d36a,
+		idle: 0x8fb0d8, spinStarting: 0xffd447, reelsDropping: 0xffd447, evaluating: 0x7ad0ff,
+		winHighlight: 0x12d36a, goldenTilesMarking: 0xf4d276, cascadeRemoving: 0xff6a6a,
+		cascadeDropping: 0x7ad0ff, rainbowActivation: 0xff8a3d, goldenTilesReveal: 0xffb04d,
+		boosterResolve: 0x7ad0ff, collectorResolve: 0xffd447, featureWinCountUp: 0x12d36a,
 		featureOutro: 0xf4d276,
 	};
+
+	// symbols showcase (only the Symbols tab)
+	const SHOWCASE: { k: string; l: string }[] = [
+		{ k: 'ggr-h1', l: 'H1 Ball' }, { k: 'ggr-h2', l: 'H2 Trophy' }, { k: 'ggr-h3', l: 'H3 Whistle' },
+		{ k: 'ggr-h4', l: 'H4 Shirt' }, { k: 'ggr-w', l: 'Wild' }, { k: 'ggr-s', l: 'Scatter' },
+		{ k: 'ggr-l1', l: 'A' }, { k: 'ggr-l2', l: 'K' }, { k: 'ggr-l3', l: 'Q' }, { k: 'ggr-l4', l: 'J' },
+		{ k: 'ggr-l5', l: '10' }, { k: 'symbolRainbow', l: 'Rainbow Goal' },
+		{ k: 'symbolMultiplier', l: 'Goal Booster' }, { k: 'symbolCollector', l: 'Trophy Collector' },
+		{ k: 'coin_5x', l: 'Silver 5x' }, { k: 'coin_100x', l: 'Gold 100x' },
+	];
+	const showCols = 4;
+	const showSZ = $derived(Math.min(screen.width * 0.2, (screen.height - topH) / 5.5, 160));
 </script>
 
-<!-- background -->
+<!-- background (always) -->
 <Rectangle x={0} y={0} width={screen.width} height={screen.height} backgroundColor={0x05080f} />
 <Sprite key="slotBackground" anchor={0.5} x={cx} y={screen.height / 2} width={cover.width} height={cover.height} />
-<Sprite key="logoHorizontal" anchor={0.5} x={cx} y={logoH * 0.5} width={logoW} height={logoW * logoRatio} />
+<Sprite key="logoHorizontal" anchor={0.5} x={cx} y={topH * 0.42} width={logoW} height={logoW * logoRatio} />
 
-<!-- board frame -->
-<Rectangle
-	anchor={0.5}
-	x={cx}
-	y={boardTop + boardH / 2}
-	width={boardW + SZ * 0.36}
-	height={boardH + SZ * 0.36}
-	backgroundColor={0x06101f}
-	backgroundAlpha={featureActive ? 0.92 : 0.8}
-	borderColor={featureActive ? 0xff9a3d : 0xf3c64c}
-	borderWidth={Math.max(4, SZ * 0.06)}
-	borderRadius={20}
-/>
+<!-- tabs -->
+<Container eventMode="static" cursor="pointer" onpointertap={() => (tab = 'slot')}>
+	<Rectangle anchor={{ x: 0, y: 0.5 }} x={10} y={topH * 0.42} width={92} height={34} backgroundColor={tab === 'slot' ? 0xf4d276 : 0x10203a} borderColor={0xf3c64c} borderWidth={2} borderRadius={10} />
+	<Text anchor={0.5} x={56} y={topH * 0.42} text="SLOT" style={{ fontFamily: 'proxima-nova', fontSize: 16, fontWeight: '900', fill: tab === 'slot' ? 0x15110a : 0xffffff }} />
+</Container>
+<Container eventMode="static" cursor="pointer" onpointertap={() => (tab = 'symbols')}>
+	<Rectangle anchor={{ x: 0, y: 0.5 }} x={110} y={topH * 0.42} width={120} height={34} backgroundColor={tab === 'symbols' ? 0xf4d276 : 0x10203a} borderColor={0xf3c64c} borderWidth={2} borderRadius={10} />
+	<Text anchor={0.5} x={170} y={topH * 0.42} text="SYMBOLS" style={{ fontFamily: 'proxima-nova', fontSize: 16, fontWeight: '900', fill: tab === 'symbols' ? 0x15110a : 0xffffff }} />
+</Container>
 
-<!-- grid -->
-{#each board as col, c}
-	{#each col as cell, r}
-		{@const px = cellCx(c)}
-		{@const py = cellCy(r) - SZ * cell.drop.current}
-		<!-- tile bg + golden marker -->
-		<Rectangle
-			anchor={0.5}
-			x={px}
-			y={cellCy(r)}
-			width={SZ * 0.94}
-			height={SZ * 0.94}
-			backgroundColor={cell.golden ? 0x4a3a08 : (c + r) % 2 === 0 ? 0x0c1a33 : 0x0a1730}
-			backgroundAlpha={cell.golden ? 0.85 : 0.6}
-			borderColor={cell.golden ? 0xffd447 : 0x274a7d}
-			borderWidth={cell.golden ? 3 : 2}
-			borderRadius={10}
-		/>
-		<Sprite
-			key={spriteKey(cell)}
-			anchor={0.5}
-			x={px}
-			y={py}
-			width={SZ * 0.84 * cell.pulse.current}
-			height={SZ * 0.84 * cell.pulse.current}
-		/>
-		{#if label(cell)}
-			<Text
+{#if tab === 'symbols'}
+	<!-- Symbols showcase ONLY in this tab -->
+	{#each SHOWCASE as s, i}
+		{@const colI = i % showCols}
+		{@const rowI = Math.floor(i / showCols)}
+		{@const gx = cx - (showCols * showSZ) / 2 + colI * showSZ + showSZ / 2}
+		{@const gy = topH + showSZ * 0.7 + rowI * showSZ}
+		<Rectangle anchor={0.5} x={gx} y={gy} width={showSZ * 0.92} height={showSZ * 0.92} backgroundColor={0x0a1730} backgroundAlpha={0.7} borderColor={0x274a7d} borderWidth={2} borderRadius={12} />
+		<Sprite key={s.k} anchor={0.5} x={gx} y={gy - showSZ * 0.08} width={showSZ * 0.6} height={showSZ * 0.6} />
+		<Text anchor={0.5} x={gx} y={gy + showSZ * 0.34} text={s.l} style={{ fontFamily: 'proxima-nova', fontSize: showSZ * 0.13, fontWeight: '700', fill: 0xffffff }} />
+	{/each}
+{:else}
+	<!-- board frame -->
+	<Rectangle
+		anchor={0.5}
+		x={cx}
+		y={boardTop + boardH / 2}
+		width={boardW + SZ * 0.36}
+		height={boardH + SZ * 0.36}
+		backgroundColor={0x06101f}
+		backgroundAlpha={featureActive ? 0.92 : 0.8}
+		borderColor={featureActive ? 0xff9a3d : 0xf3c64c}
+		borderWidth={Math.max(4, SZ * 0.06)}
+		borderRadius={20}
+	/>
+
+	{#each board as col, c}
+		{#each col as cell, r}
+			{@const px = cellCx(c)}
+			{@const py = cellCy(r) - SZ * cell.drop.current}
+			<Rectangle
 				anchor={0.5}
 				x={px}
-				y={py + SZ * 0.28}
-				text={label(cell)}
-				style={{ fontFamily: 'proxima-nova', fontSize: SZ * 0.22, fontWeight: '900', fill: 0xffffff, stroke: { color: 0x000000, width: 4 } }}
+				y={cellCy(r)}
+				width={SZ * 0.94}
+				height={SZ * 0.94}
+				backgroundColor={cell.golden ? 0x4a3a08 : (c + r) % 2 === 0 ? 0x0c1a33 : 0x0a1730}
+				backgroundAlpha={cell.golden ? 0.85 : 0.6}
+				borderColor={cell.golden ? 0xffd447 : 0x274a7d}
+				borderWidth={cell.golden ? 3 : 2}
+				borderRadius={10}
 			/>
-		{/if}
+			<Sprite key={spriteKey(cell)} anchor={0.5} x={px} y={py} width={SZ * 0.84 * cell.pulse.current} height={SZ * 0.84 * cell.pulse.current} />
+			{#if label(cell)}
+				<Text anchor={0.5} x={px} y={py + SZ * 0.26} text={label(cell)} style={{ fontFamily: 'proxima-nova', fontSize: SZ * 0.22, fontWeight: '900', fill: 0xffffff, stroke: { color: 0x000000, width: 4 } }} />
+			{/if}
+		{/each}
 	{/each}
-{/each}
 
-<!-- feature banner -->
-{#if phase === 'featureTrigger' || phase === 'featureOutro'}
-	<Rectangle anchor={0.5} x={cx} y={screen.height * 0.5} width={screen.width * 0.74} height={screen.height * 0.17} backgroundColor={0x1a0a02} backgroundAlpha={0.9} borderColor={0xffb04d} borderWidth={4} borderRadius={20} />
-	<Text anchor={0.5} x={cx} y={screen.height * 0.47} text={phase === 'featureTrigger' ? `⚽ ${featureName}` : 'GOLDEN GOAL WIN'} style={{ fontFamily: 'proxima-nova', fontSize: screen.height * 0.055, fontWeight: '900', fill: 0xffd447 }} />
-	<Text anchor={0.5} x={cx} y={screen.height * 0.55} text={phase === 'featureTrigger' ? `${freeSpinsLeft} FREE SPINS` : `${totalCoinMultiplier}x  =  ${lastFeatureWin.toFixed(2)}`} style={{ fontFamily: 'proxima-nova', fontSize: screen.height * 0.045, fontWeight: '800', fill: 0xffffff }} />
+	<!-- feature win overlay (ONLY when there is a real win) -->
+	{#if (phase === 'featureWinCountUp' || phase === 'featureOutro') && totalCoinMultiplier > 0}
+		<Rectangle anchor={0.5} x={cx} y={screen.height * 0.5} width={screen.width * 0.74} height={screen.height * 0.2} backgroundColor={0x1a0a02} backgroundAlpha={0.92} borderColor={0xffb04d} borderWidth={4} borderRadius={20} />
+		<Text anchor={0.5} x={cx} y={screen.height * 0.45} text="GOLDEN GOAL WIN" style={{ fontFamily: 'proxima-nova', fontSize: screen.height * 0.05, fontWeight: '900', fill: 0xffd447 }} />
+		<Text anchor={0.5} x={cx} y={screen.height * 0.52} text={`${totalCoinMultiplier}x`} style={{ fontFamily: 'proxima-nova', fontSize: screen.height * 0.07, fontWeight: '900', fill: 0xffffff }} />
+		<Text anchor={0.5} x={cx} y={screen.height * 0.58} text={(phase === 'featureWinCountUp' ? countWin : featureWin).toFixed(2)} style={{ fontFamily: 'proxima-nova', fontSize: screen.height * 0.045, fontWeight: '800', fill: 0x12d36a }} />
+	{/if}
+
+	<!-- HUD -->
+	{#if showHud}
+		{@const hy = screen.height - hudH / 2}
+		<Rectangle anchor={{ x: 0, y: 0.5 }} x={0} y={hy} width={screen.width} height={hudH * 0.84} backgroundColor={0x070d1a} backgroundAlpha={0.92} borderColor={0xf3c64c} borderWidth={3} borderRadius={16} />
+		<Text anchor={{ x: 0, y: 0.5 }} x={screen.width * 0.02} y={hy - hudH * 0.14} text="BALANCE" style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.13, fontWeight: '700', fill: 0x8fb0d8 }} />
+		<Text anchor={{ x: 0, y: 0.5 }} x={screen.width * 0.02} y={hy + hudH * 0.14} text={balance.toFixed(2)} style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.19, fontWeight: '900', fill: 0xffffff }} />
+		<Text anchor={0.5} x={screen.width * 0.27} y={hy - hudH * 0.14} text="WIN" style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.13, fontWeight: '700', fill: 0x8fb0d8 }} />
+		<Text anchor={0.5} x={screen.width * 0.27} y={hy + hudH * 0.14} text={lastWin.toFixed(2)} style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.19, fontWeight: '900', fill: 0x12d36a }} />
+		<Container eventMode="static" cursor="pointer" onpointertap={() => spin()}>
+			<Rectangle anchor={0.5} x={screen.width * 0.9} y={hy} width={Math.min(screen.width * 0.16, 170)} height={hudH * 0.7} backgroundColor={busy ? 0x0c5a2a : 0x12a84a} borderColor={0xf3c64c} borderWidth={3} borderRadius={18} />
+			<Text anchor={0.5} x={screen.width * 0.9} y={hy} text={busy ? '...' : 'SPIN'} style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.2, fontWeight: '900', fill: 0xffffff }} />
+		</Container>
+	{/if}
+
+	<!-- small debug buttons row (top) -->
+	{#if debug}
+		{@const by = topH + 6}
+		{@const defs = [
+			{ t: 'Cluster', f: () => forceClusterWin() },
+			{ t: 'Rainbow', f: () => forceFeature({}) },
+			{ t: 'Feature', f: () => forceFeature({}) },
+			{ t: 'Collector', f: () => forceFeature({ collector: true }) },
+			{ t: 'Reset', f: () => resetBoard() },
+		]}
+		{#each defs as d, i}
+			{@const bx = 12 + i * 104}
+			<Container eventMode="static" cursor="pointer" onpointertap={d.f}>
+				<Rectangle anchor={{ x: 0, y: 0 }} x={bx} y={by} width={96} height={28} backgroundColor={0x161c2e} borderColor={0x3a4a6a} borderWidth={1} borderRadius={8} />
+				<Text anchor={0.5} x={bx + 48} y={by + 14} text={d.t} style={{ fontFamily: 'proxima-nova', fontSize: 13, fontWeight: '800', fill: 0xbfe0ff }} />
+			</Container>
+		{/each}
+	{/if}
 {/if}
 
-<!-- HUD -->
-{#if showHud}
-	{@const hy = screen.height - hudH / 2}
-	<Rectangle anchor={{ x: 0, y: 0.5 }} x={0} y={hy} width={screen.width} height={hudH * 0.84} backgroundColor={0x070d1a} backgroundAlpha={0.92} borderColor={0xf3c64c} borderWidth={3} borderRadius={16} />
-	<Text anchor={{ x: 0, y: 0.5 }} x={screen.width * 0.02} y={hy - hudH * 0.13} text="BALANCE" style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.12, fontWeight: '700', fill: 0x8fb0d8 }} />
-	<Text anchor={{ x: 0, y: 0.5 }} x={screen.width * 0.02} y={hy + hudH * 0.13} text={balance.toFixed(2)} style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.18, fontWeight: '900', fill: 0xffffff }} />
-	<Text anchor={0.5} x={screen.width * 0.27} y={hy - hudH * 0.13} text="WIN" style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.12, fontWeight: '700', fill: 0x8fb0d8 }} />
-	<Text anchor={0.5} x={screen.width * 0.27} y={hy + hudH * 0.13} text={lastWin.toFixed(2)} style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.18, fontWeight: '900', fill: 0x12d36a }} />
-
-	<Container eventMode="static" cursor="pointer" onpointertap={() => forceFeatureRun()}>
-		<Rectangle anchor={0.5} x={screen.width * 0.45} y={hy} width={Math.min(screen.width * 0.17, 180)} height={hudH * 0.5} backgroundColor={0x3a1020} borderColor={0xc5495f} borderWidth={2} borderRadius={12} />
-		<Text anchor={0.5} x={screen.width * 0.45} y={hy} text="FORCE FEATURE" style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.1, fontWeight: '800', fill: 0xffd0d8 }} />
-	</Container>
-
-	<Container eventMode="static" cursor="pointer" onpointertap={() => { forceRainbow = true; spin(); }}>
-		<Rectangle anchor={0.5} x={screen.width * 0.63} y={hy} width={Math.min(screen.width * 0.15, 160)} height={hudH * 0.5} backgroundColor={0x102a3a} borderColor={0x4dbdff} borderWidth={2} borderRadius={12} />
-		<Text anchor={0.5} x={screen.width * 0.63} y={hy} text="RAINBOW SPIN" style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.1, fontWeight: '800', fill: 0xcdebff }} />
-	</Container>
-
-	<Container eventMode="static" cursor="pointer" onpointertap={() => resetBoard()}>
-		<Rectangle anchor={0.5} x={screen.width * 0.77} y={hy} width={Math.min(screen.width * 0.09, 96)} height={hudH * 0.5} backgroundColor={0x10203a} borderColor={0x2a4a78} borderWidth={2} borderRadius={12} />
-		<Text anchor={0.5} x={screen.width * 0.77} y={hy} text="RESET" style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.1, fontWeight: '800', fill: 0xffffff }} />
-	</Container>
-
-	<Container eventMode="static" cursor="pointer" onpointertap={() => spin()}>
-		<Rectangle anchor={0.5} x={screen.width * 0.9} y={hy} width={Math.min(screen.width * 0.15, 160)} height={hudH * 0.66} backgroundColor={busy ? 0x0c5a2a : 0x12a84a} borderColor={0xf3c64c} borderWidth={3} borderRadius={18} />
-		<Text anchor={0.5} x={screen.width * 0.9} y={hy} text={busy ? '…' : 'SPIN'} style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.18, fontWeight: '900', fill: 0xffffff }} />
-	</Container>
-{/if}
-
-<!-- debug overlay -->
+<!-- debug overlay (always, small, top-left under tabs) -->
 {#if debug}
-	<Rectangle anchor={{ x: 0, y: 0 }} x={6} y={6} width={Math.min(screen.width * 0.62, 520)} height={70} backgroundColor={0x000000} backgroundAlpha={0.55} borderRadius={8} />
-	<Text anchor={{ x: 0, y: 0 }} x={12} y={11} text={`state:${phase}  boardValid:${boardValid}  filled:${filledCells}/30  rainbow:${rainbowPresent}`} style={{ fontFamily: 'monospace', fontSize: 14, fill: PHASE_COLOR[phase] ?? 0xffffff }} />
-	<Text anchor={{ x: 0, y: 0 }} x={12} y={36} text={`golden:${goldenCount}  feature:${featureActive}  fs:${freeSpinsLeft}  coinX:${totalCoinMultiplier}  featWin:${lastFeatureWin}`} style={{ fontFamily: 'monospace', fontSize: 13, fill: 0x9fe0b0 }} />
+	<Rectangle anchor={{ x: 0, y: 0 }} x={6} y={topH + 40} width={Math.min(screen.width * 0.64, 560)} height={64} backgroundColor={0x000000} backgroundAlpha={0.55} borderRadius={8} />
+	<Text anchor={{ x: 0, y: 0 }} x={12} y={topH + 45} text={`view:${tab} state:${phase} valid:${boardValid} filled:${filledCells}/30 rainbow:${rainbowPresent}`} style={{ fontFamily: 'monospace', fontSize: 13, fill: PHASE_COLOR[phase] ?? 0xffffff }} />
+	<Text anchor={{ x: 0, y: 0 }} x={12} y={topH + 66} text={`golden:${goldenCount} coins:${revealedCoins} coinX:${totalCoinMultiplier} featWin:${featureWin} err:${lastError}`} style={{ fontFamily: 'monospace', fontSize: 12, fill: 0x9fe0b0 }} />
 {/if}
