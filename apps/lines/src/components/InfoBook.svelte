@@ -233,7 +233,9 @@
 		--panel: #08080d;
 
 		z-index: 100;
-		display: flex;
+		// Popup renders its children twice (once outside the overlay layer);
+		// only show the copy inside the overlay.
+		display: none;
 		flex-direction: column;
 		width: min(92vw, 56rem);
 		height: min(86vh, 44rem);
@@ -244,6 +246,10 @@
 			0 0 2.5rem rgba(213, 162, 59, 0.35),
 			inset 0 0 4rem rgba(20, 128, 60, 0.15);
 		overflow: hidden;
+	}
+
+	:global(.top-layer) .infobook {
+		display: flex;
 	}
 
 	.infobook-header {

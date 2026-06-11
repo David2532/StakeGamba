@@ -12,6 +12,12 @@
 <script lang="ts">
 	import { stateModal } from 'state-shared';
 
+	import { setContext } from '../game/context';
+
+	// Popup (hotkey handling) reads the game context, so provide it like the
+	// other game stories do.
+	setContext();
+
 	const open = () => (stateModal.modal = { name: 'payTable' });
 </script>
 
