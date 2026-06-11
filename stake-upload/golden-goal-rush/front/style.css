@@ -50,7 +50,7 @@ body::after {
 	z-index: 1;
 	isolation: isolate;
 	display: grid;
-	grid-template-rows: 116px minmax(0, 1fr) 36px auto;
+	grid-template-rows: 116px minmax(0, 1fr) auto auto;
 	gap: 6px;
 	width: 100vw;
 	height: 100vh;
@@ -110,17 +110,20 @@ body::after {
 }
 
 .spin-counter {
+	display: grid;
+	place-items: center;
 	place-self: center;
-	min-width: 220px;
-	padding: 5px 16px;
-	border: 2px solid rgba(255, 214, 83, 0.7);
-	border-radius: 999px;
-	background: rgba(3, 8, 17, 0.72);
+	min-width: 252px;
+	min-height: 64px;
+	padding: 8px 36px;
+	border: 0;
+	background: url("../assets/ui-kit/win_counter_frame.png") center / 100% 100% no-repeat;
 	color: #ffdb67;
 	font-size: 18px;
 	font-weight: 900;
 	text-align: center;
 	letter-spacing: 0.04em;
+	filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.5));
 }
 
 .spin-counter[hidden] {
@@ -496,31 +499,50 @@ button:disabled {
 }
 
 .spin {
+	position: relative;
 	width: 94px;
 	height: 94px;
 	border-radius: 50%;
 	border: 0;
-	background: transparent;
+	background: url("../assets/ui-kit/spin_btn_idle.png") center / contain no-repeat;
 	color: transparent;
 	outline: 0;
 	box-shadow: none;
 	padding: 0;
 	min-width: 94px;
 	overflow: visible;
-}
-
-.spin img {
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
-	display: block;
 	filter:
 		drop-shadow(0 0 12px rgba(255, 214, 85, 0.38))
 		drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
 }
 
 .spin:hover:not(:disabled) {
+	background-image: url("../assets/ui-kit/spin_btn_hover.png");
 	animation: spin-hover 900ms ease-in-out infinite;
+}
+
+.spin:active:not(:disabled) {
+	background-image: url("../assets/ui-kit/spin_btn_pressed.png");
+}
+
+.spin:disabled {
+	background-image: url("../assets/ui-kit/spin_btn_disabled.png");
+	opacity: 1;
+}
+
+.spin.spinning::after {
+	position: absolute;
+	inset: -12%;
+	background: url("../assets/ui-kit/spin_btn_spinning_ring.png") center / contain no-repeat;
+	animation: ring-rotate 1.1s linear infinite;
+	pointer-events: none;
+	content: "";
+}
+
+@keyframes ring-rotate {
+	to {
+		transform: rotate(360deg);
+	}
 }
 
 @keyframes spin-hover {
@@ -545,7 +567,7 @@ button:disabled {
 	bottom: 0;
 	z-index: 12;
 	display: grid;
-	grid-template-columns: 58px 72px minmax(190px, 1fr) minmax(160px, 0.7fr) minmax(160px, 0.56fr) 42px 76px 104px 92px;
+	grid-template-columns: 58px 72px minmax(190px, 1fr) minmax(160px, 0.7fr) minmax(160px, 0.56fr) 48px 76px 104px 100px;
 	align-items: center;
 	gap: 10px;
 	height: 86px;
@@ -562,78 +584,68 @@ button:disabled {
 
 .icon-button,
 .hamburger,
-.step-button,
-.bottom-bar .spin {
+.step-button {
 	border: 0;
-	background:
-		linear-gradient(180deg, rgba(24, 25, 28, 1), rgba(1, 1, 2, 1));
+	background-color: transparent;
 	border-radius: 14px;
 	min-width: 0;
 	height: 64px;
 	padding: 0;
-	box-shadow:
-		inset 0 1px 0 rgba(255, 255, 255, 0.08),
-		0 8px 16px rgba(0, 0, 0, 0.42);
+	box-shadow: none;
+	filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.46));
 }
 
-.icon-button img,
-.step-button img {
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
-	display: block;
+.icon-button:hover:not(:disabled),
+.hamburger:hover:not(:disabled),
+.step-button:hover:not(:disabled) {
+	transform: translateY(-2px) scale(1.04);
+	box-shadow: none;
+	filter:
+		brightness(1.12)
+		drop-shadow(0 0 14px rgba(255, 205, 64, 0.4))
+		drop-shadow(0 10px 14px rgba(0, 0, 0, 0.42));
 }
 
 .bonus-buy {
-	width: 86px;
-	height: 72px;
+	width: 96px;
+	height: 66px;
 	border-radius: 18px;
-	background: transparent;
+	background: url("../assets/ui-kit/bonus_buy_btn_idle.png") center / contain no-repeat;
 	box-shadow: none;
-	overflow: hidden;
+	overflow: visible;
+	color: transparent;
 }
 
-.bonus-buy img {
-	width: 100%;
-	height: 100%;
-	border-radius: 18px;
-	object-fit: contain;
-	filter:
-		drop-shadow(0 0 10px rgba(255, 201, 71, 0.34))
-		drop-shadow(0 8px 10px rgba(0, 0, 0, 0.58));
+.bonus-buy:hover:not(:disabled) {
+	background-image: url("../assets/ui-kit/bonus_buy_btn_hover.png");
+}
+
+.bonus-buy:active:not(:disabled) {
+	background-image: url("../assets/ui-kit/bonus_buy_btn_pressed.png");
+}
+
+.bonus-buy:disabled {
+	background-image: url("../assets/ui-kit/bonus_buy_btn_disabled.png");
+	opacity: 1;
 }
 
 .boost {
 	width: 58px;
 	border-radius: 50%;
-	background:
-		radial-gradient(circle at 38% 26%, rgba(255, 228, 112, 0.14), transparent 36%),
-		#050506;
-	padding: 10px;
+	background: url("../assets/ui-kit/turbo_btn_idle.png") center / contain no-repeat;
+	padding: 0;
 }
 
 .boost.active {
-	outline: 3px solid #ffcf44;
-	filter: brightness(1.2);
-	box-shadow:
-		0 0 24px rgba(255, 204, 64, 0.52),
-		inset 0 0 18px rgba(255, 204, 64, 0.2);
+	background-image: url("../assets/ui-kit/turbo_btn_active.png");
+	filter:
+		drop-shadow(0 0 18px rgba(120, 255, 96, 0.5))
+		drop-shadow(0 8px 12px rgba(0, 0, 0, 0.46));
 }
 
 .hamburger {
-	display: grid;
-	align-content: center;
-	justify-items: center;
-	gap: 7px;
 	width: 62px;
-}
-
-.hamburger span {
-	display: block;
-	width: 38px;
-	height: 6px;
-	border-radius: 999px;
-	background: #f5f5f5;
+	background: url("../assets/ui-kit/menu_btn.png") center / contain no-repeat;
 }
 
 .stat-panel {
@@ -678,35 +690,64 @@ button:disabled {
 .bet-stepper {
 	display: grid;
 	grid-template-rows: 1fr 1fr;
-	gap: 2px;
-	width: 42px;
-	height: 64px;
-	padding: 2px;
-	border: 1px solid rgba(255, 255, 255, 0.18);
+	gap: 4px;
+	width: 48px;
+	height: 74px;
+	padding: 0;
+	border: 0;
 	border-radius: 8px;
-	background: #050506;
+	background: transparent;
 }
 
 .step-button {
-	height: 28px;
+	height: 35px;
 	border-radius: 6px;
-	background: #0d0d0f;
+	background-color: transparent;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: contain;
+}
+
+.step-up {
+	background-image: url("../assets/ui-kit/bet_plus_btn_idle.png");
+}
+
+.step-up:hover:not(:disabled) {
+	background-image: url("../assets/ui-kit/bet_plus_btn_hover.png");
+}
+
+.step-up:active:not(:disabled) {
+	background-image: url("../assets/ui-kit/bet_plus_btn_pressed.png");
+}
+
+.step-down {
+	background-image: url("../assets/ui-kit/bet_minus_btn_idle.png");
+}
+
+.step-down:hover:not(:disabled) {
+	background-image: url("../assets/ui-kit/bet_minus_btn_hover.png");
+}
+
+.step-down:active:not(:disabled) {
+	background-image: url("../assets/ui-kit/bet_minus_btn_pressed.png");
 }
 
 .auto-spin {
 	width: 76px;
 	position: relative;
 	padding: 0;
-	color: #fff;
+	color: transparent;
 	font-size: 0;
+	background: url("../assets/ui-kit/auto_btn_idle.png") center / contain no-repeat;
 }
 
-.auto-spin img {
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
-	display: block;
-	filter: invert(1) brightness(2) contrast(1.2) drop-shadow(0 0 8px rgba(255, 255, 255, 0.22));
+.auto-spin.active {
+	background-image: url("../assets/ui-kit/auto_btn_active.png");
+}
+
+.auto-spin:disabled {
+	background-image: url("../assets/ui-kit/auto_btn_disabled.png");
+	opacity: 1;
 }
 
 .publisher-logo {
@@ -777,11 +818,11 @@ button:disabled {
 	width: 62px;
 	height: 62px;
 	min-width: 62px;
-	border: 4px solid #bfc7d2;
+	border: 0;
 	border-radius: 50%;
-	background: rgba(10, 14, 22, 0.55);
-	color: #dfe6ef;
-	font-size: 34px;
+	background: url("../assets/ui-kit/close_btn.png") center / contain no-repeat;
+	color: transparent;
+	font-size: 0;
 }
 
 .bonus-stake-card {
@@ -1253,10 +1294,112 @@ button:disabled {
 	position: absolute;
 	top: 12px;
 	right: 12px;
-	width: 40px;
-	min-width: 40px;
-	height: 40px;
+	width: 44px;
+	min-width: 44px;
+	height: 44px;
 	padding: 0;
+	border: 0;
+	background: url("../assets/ui-kit/close_btn.png") center / contain no-repeat;
+	box-shadow: none;
+	color: transparent;
+	font-size: 0;
+}
+
+.modal-close:hover:not(:disabled) {
+	box-shadow: none;
+	filter:
+		brightness(1.15)
+		drop-shadow(0 0 12px rgba(255, 205, 64, 0.45));
+}
+
+.win-banner {
+	position: fixed;
+	inset: 0;
+	z-index: 30;
+	display: grid;
+	place-items: center;
+	background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.2) 70%);
+	pointer-events: none;
+	animation: banner-fade-in 220ms ease-out both;
+}
+
+.win-banner.hide {
+	animation: banner-fade-out 280ms ease-in both;
+}
+
+.win-banner .banner-stack {
+	position: relative;
+	display: grid;
+	place-items: center;
+	gap: 10px;
+}
+
+.win-banner .burst {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: min(78vw, 880px);
+	transform: translate(-50%, -56%);
+	animation: burst-pop 2s ease-out both;
+	pointer-events: none;
+}
+
+.win-banner .ribbon {
+	width: min(58vw, 680px);
+	filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.65));
+	animation: ribbon-pop 520ms cubic-bezier(0.16, 1.2, 0.3, 1) both;
+}
+
+.win-banner .banner-amount {
+	color: #fff7c7;
+	font-size: clamp(34px, 5vw, 64px);
+	font-weight: 950;
+	letter-spacing: 0.02em;
+	text-shadow:
+		0 3px 0 #4b2600,
+		0 0 22px rgba(255, 204, 61, 0.9),
+		0 8px 14px rgba(0, 0, 0, 0.8);
+	animation: ribbon-pop 620ms cubic-bezier(0.16, 1.2, 0.3, 1) both;
+}
+
+@keyframes banner-fade-in {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes banner-fade-out {
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes ribbon-pop {
+	0% {
+		opacity: 0;
+		transform: scale(0.55);
+	}
+	70% {
+		transform: scale(1.06);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes burst-pop {
+	0% {
+		opacity: 0;
+		transform: translate(-50%, -56%) scale(0.4) rotate(-14deg);
+	}
+	25% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: translate(-50%, -56%) scale(1.18) rotate(6deg);
+	}
 }
 
 @media (max-width: 800px) {
