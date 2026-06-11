@@ -67,6 +67,9 @@
 	let rainbowPresent = $state(false);
 	let featureActive = $state(false);
 	let revealedCoins = $state(0);
+	let clusterWins = $state(0);
+	let boosterCount = $state(0);
+	let collectorValue = $state(0);
 	let totalCoinMultiplier = $state(0);
 	let featureWin = $state(0);
 	let countWin = $state(0);
@@ -175,6 +178,7 @@
 			safe++;
 			phase = 'winHighlight';
 			cl.forEach((c) => c.cells.forEach((p) => pop(board[p.reel][p.row], 1.22)));
+			clusterWins += cl.length;
 			lastWin = round2(lastWin + bet * cl.reduce((s, c) => s + c.cells.length, 0) * 0.2);
 			await sleep(380);
 			phase = 'goldenTilesMarking';
@@ -306,7 +310,9 @@
 		}
 
 		revealedCoins = coinCount();
+		boosterCount = board.flat().filter((c) => c.revealKind === 'booster').length;
 		totalCoinMultiplier = coinSum();
+		collectorValue = totalCoinMultiplier;
 		featureWin = round2(bet * totalCoinMultiplier);
 	}
 
@@ -337,6 +343,31 @@
 		revealedCoins = 0;
 	}
 
+	function placeRainbow() {
+		const c = Math.floor(Math.random() * REELS);
+		const r = Math.floor(Math.random() * ROWS);
+		board[c][r].type = 'RAINBOW';
+		pop(board[c][r], 1.45);
+	}
+
+	// after a feature: clear coins/golden so the idle base board shows normal symbols again
+	function restoreAfterFeature() {
+		const fresh = makeGrid();
+		board.forEach((col, reel) =>
+			col.forEach((c, row) => {
+				if (c.revealKind || c.type === 'RAINBOW') c.type = fresh[reel][row];
+				c.revealKind = undefined;
+				c.coinValue = 0;
+				c.boosterMult = 0;
+				c.coinTier = '';
+				c.golden = false;
+			}),
+		);
+		golden.clear();
+		boosterCount = 0;
+		collectorValue = 0;
+	}
+
 	async function spin() {
 		if (busy) return;
 		busy = true;
@@ -344,17 +375,27 @@
 		try {
 			phase = 'spinStarting';
 			resetFeatureStats();
+			clusterWins = 0;
 			golden.clear();
 			board.flat().forEach((c) => (c.golden = false));
 			clearReveals();
 			balance = round2(balance - bet);
 			await sleep(110);
 
-			await dropNewBoard({ scatter: 0.04, rainbow: 0.07 });
+			// BASE GAME: only normal symbols drop (no coins, no rainbow yet)
+			phase = 'reelsDropping';
+			await dropNewBoard({ scatter: 0.03, rainbow: 0 });
 			validate();
+
+			// cluster wins -> mark Golden Goal Tiles -> cascade
 			await cascadeLoop();
 
+			// RAINBOW CHECK: rare event, only meaningful when Golden Goal Tiles exist
+			phase = 'rainbowCheck';
+			await sleep(280);
+			if (golden.size > 0 && Math.random() < 0.25) placeRainbow();
 			rainbowPresent = hasRainbow();
+
 			if (rainbowPresent && golden.size > 0) {
 				featureActive = true;
 				await revealFeature({});
@@ -365,6 +406,7 @@
 					await sleep(1300);
 				}
 				featureActive = false;
+				restoreAfterFeature();
 			}
 
 			balance = round2(balance + lastWin);
@@ -372,6 +414,7 @@
 		} catch (e) {
 			lastError = String((e as Error)?.message ?? e);
 			console.error('[SlotPreview] spin error:', e);
+			featureActive = false;
 			phase = 'idle';
 		} finally {
 			busy = false;
@@ -639,15 +682,16 @@
 		{@const defs = [
 			{ t: 'Cluster', f: () => forceClusterWin() },
 			{ t: 'Rainbow', f: () => forceFeature({}) },
-			{ t: 'Feature', f: () => forceFeature({}) },
+			{ t: 'Reveal', f: () => forceFeature({}) },
+			{ t: 'Booster', f: () => forceFeature({}) },
 			{ t: 'Collector', f: () => forceFeature({ collector: true }) },
 			{ t: 'Reset', f: () => resetBoard() },
 		]}
 		{#each defs as d, i}
-			{@const bx = 12 + i * 104}
+			{@const bx = 10 + i * 92}
 			<Container eventMode="static" cursor="pointer" onpointertap={d.f}>
-				<Rectangle anchor={{ x: 0, y: 0 }} x={bx} y={by} width={96} height={28} backgroundColor={0x161c2e} borderColor={0x3a4a6a} borderWidth={1} borderRadius={8} />
-				<Text anchor={0.5} x={bx + 48} y={by + 14} text={d.t} style={{ fontFamily: 'proxima-nova', fontSize: 13, fontWeight: '800', fill: 0xbfe0ff }} />
+				<Rectangle anchor={{ x: 0, y: 0 }} x={bx} y={by} width={86} height={28} backgroundColor={0x161c2e} borderColor={0x3a4a6a} borderWidth={1} borderRadius={8} />
+				<Text anchor={0.5} x={bx + 43} y={by + 14} text={d.t} style={{ fontFamily: 'proxima-nova', fontSize: 12, fontWeight: '800', fill: 0xbfe0ff }} />
 			</Container>
 		{/each}
 	{/if}
@@ -655,7 +699,8 @@
 
 <!-- debug overlay (always, small, top-left under tabs) -->
 {#if debug}
-	<Rectangle anchor={{ x: 0, y: 0 }} x={6} y={topH + 40} width={Math.min(screen.width * 0.64, 560)} height={64} backgroundColor={0x000000} backgroundAlpha={0.55} borderRadius={8} />
-	<Text anchor={{ x: 0, y: 0 }} x={12} y={topH + 45} text={`view:${tab} state:${phase} valid:${boardValid} filled:${filledCells}/30 rainbow:${rainbowPresent}`} style={{ fontFamily: 'monospace', fontSize: 13, fill: PHASE_COLOR[phase] ?? 0xffffff }} />
-	<Text anchor={{ x: 0, y: 0 }} x={12} y={topH + 66} text={`golden:${goldenCount} coins:${revealedCoins} coinX:${totalCoinMultiplier} featWin:${featureWin} err:${lastError}`} style={{ fontFamily: 'monospace', fontSize: 12, fill: 0x9fe0b0 }} />
+	<Rectangle anchor={{ x: 0, y: 0 }} x={6} y={topH + 40} width={Math.min(screen.width * 0.68, 600)} height={86} backgroundColor={0x000000} backgroundAlpha={0.55} borderRadius={8} />
+	<Text anchor={{ x: 0, y: 0 }} x={12} y={topH + 45} text={`view:${tab} state:${phase} valid:${boardValid} filled:${filledCells}/30`} style={{ fontFamily: 'monospace', fontSize: 13, fill: PHASE_COLOR[phase] ?? 0xffffff }} />
+	<Text anchor={{ x: 0, y: 0 }} x={12} y={topH + 65} text={`clusters:${clusterWins} golden:${goldenCount} rainbow:${rainbowPresent} coins:${revealedCoins} booster:${boosterCount}`} style={{ fontFamily: 'monospace', fontSize: 12, fill: 0x9fe0b0 }} />
+	<Text anchor={{ x: 0, y: 0 }} x={12} y={topH + 84} text={`collector:${collectorValue} totalMult:${totalCoinMultiplier}x featWin:${featureWin} err:${lastError}`} style={{ fontFamily: 'monospace', fontSize: 12, fill: 0x9fe0b0 }} />
 {/if}
