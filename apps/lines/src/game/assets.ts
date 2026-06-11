@@ -62,6 +62,12 @@ export default {
 	'ggr-trophy-collector': { type: 'sprite', src: new URL('../assets/golden-goal-rush/features/trophy_collector.png', import.meta.url).href },
 	'ggr-scatter-badge': { type: 'sprite', src: new URL('../assets/golden-goal-rush/features/scatter.png', import.meta.url).href },
 	'ggr-wild-badge': { type: 'sprite', src: new URL('../assets/golden-goal-rush/features/wild.png', import.meta.url).href },
+	// --- Generated HUD assets (extracted from raw/sheet_hud.png) ---
+	'ggr-hud-panel': { type: 'sprite', src: new URL('../assets/golden-goal-rush/generated/ui/hud_panel_full.png', import.meta.url).href },
+	'ggr-btn-spin': { type: 'sprite', src: new URL('../assets/golden-goal-rush/generated/buttons/button_spin.png', import.meta.url).href },
+	'ggr-btn-bonus': { type: 'sprite', src: new URL('../assets/golden-goal-rush/generated/buttons/button_bonus_buy.png', import.meta.url).href },
+	'ggr-btn-auto': { type: 'sprite', src: new URL('../assets/golden-goal-rush/generated/buttons/button_auto.png', import.meta.url).href },
+	'ggr-btn-turbo': { type: 'sprite', src: new URL('../assets/golden-goal-rush/generated/buttons/button_turbo.png', import.meta.url).href },
 	symbolRainbow: {
 		type: 'sprite',
 		src: new URL('../assets/golden-goal-rush/special/symbol_rainbow.png', import.meta.url).href,

@@ -585,17 +585,51 @@
 		<Text anchor={0.5} x={cx} y={screen.height * 0.58} text={(phase === 'featureWinCountUp' ? countWin : featureWin).toFixed(2)} style={{ fontFamily: 'proxima-nova', fontSize: screen.height * 0.045, fontWeight: '800', fill: 0x12d36a }} />
 	{/if}
 
-	<!-- HUD -->
+	<!-- HUD (generated panel + button assets; text rendered in code; rect fallback) -->
 	{#if showHud}
 		{@const hy = screen.height - hudH / 2}
-		<Rectangle anchor={{ x: 0, y: 0.5 }} x={0} y={hy} width={screen.width} height={hudH * 0.84} backgroundColor={0x070d1a} backgroundAlpha={0.92} borderColor={0xf3c64c} borderWidth={3} borderRadius={16} />
-		<Text anchor={{ x: 0, y: 0.5 }} x={screen.width * 0.02} y={hy - hudH * 0.14} text="BALANCE" style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.13, fontWeight: '700', fill: 0x8fb0d8 }} />
-		<Text anchor={{ x: 0, y: 0.5 }} x={screen.width * 0.02} y={hy + hudH * 0.14} text={balance.toFixed(2)} style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.19, fontWeight: '900', fill: 0xffffff }} />
-		<Text anchor={0.5} x={screen.width * 0.27} y={hy - hudH * 0.14} text="WIN" style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.13, fontWeight: '700', fill: 0x8fb0d8 }} />
-		<Text anchor={0.5} x={screen.width * 0.27} y={hy + hudH * 0.14} text={lastWin.toFixed(2)} style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.19, fontWeight: '900', fill: 0x12d36a }} />
+		{@const btnW = Math.min(screen.width * 0.15, 168)}
+		{@const btnH = hudH * 0.74}
+		<!-- panel bar: fallback rect + generated panel image on top -->
+		<Rectangle anchor={{ x: 0, y: 0.5 }} x={0} y={hy} width={screen.width} height={hudH * 0.86} backgroundColor={0x070d1a} backgroundAlpha={0.92} borderColor={0xf3c64c} borderWidth={3} borderRadius={16} />
+		{#if isLoaded('ggr-hud-panel')}
+			<Sprite key="ggr-hud-panel" anchor={{ x: 0, y: 0.5 }} x={0} y={hy} width={screen.width} height={hudH * 0.9} />
+		{/if}
+		<Text anchor={{ x: 0, y: 0.5 }} x={screen.width * 0.03} y={hy - hudH * 0.15} text="BALANCE" style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.13, fontWeight: '700', fill: 0x8fb0d8 }} />
+		<Text anchor={{ x: 0, y: 0.5 }} x={screen.width * 0.03} y={hy + hudH * 0.15} text={balance.toFixed(2)} style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.19, fontWeight: '900', fill: 0xffffff }} />
+		<Text anchor={0.5} x={screen.width * 0.22} y={hy - hudH * 0.15} text="BET" style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.13, fontWeight: '700', fill: 0x8fb0d8 }} />
+		<Text anchor={0.5} x={screen.width * 0.22} y={hy + hudH * 0.15} text={bet.toFixed(2)} style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.19, fontWeight: '900', fill: 0xffffff }} />
+		<Text anchor={0.5} x={screen.width * 0.33} y={hy - hudH * 0.15} text="WIN" style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.13, fontWeight: '700', fill: 0x8fb0d8 }} />
+		<Text anchor={0.5} x={screen.width * 0.33} y={hy + hudH * 0.15} text={lastWin.toFixed(2)} style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.19, fontWeight: '900', fill: 0x12d36a }} />
+
+		<!-- BONUS BUY -->
+		<Container eventMode="static" cursor="pointer" onpointertap={() => forceFeature({})}>
+			{#if isLoaded('ggr-btn-bonus')}
+				<Sprite key="ggr-btn-bonus" anchor={0.5} x={screen.width * 0.55} y={hy} width={btnW} height={btnH} />
+			{:else}
+				<Rectangle anchor={0.5} x={screen.width * 0.55} y={hy} width={btnW} height={btnH * 0.8} backgroundColor={0x3a1020} borderColor={0xc5495f} borderWidth={2} borderRadius={12} />
+			{/if}
+			<Text anchor={0.5} x={screen.width * 0.55} y={hy} text="BONUS" style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.13, fontWeight: '900', fill: 0xffe0a0, stroke: { color: 0x3a0a12, width: 4 } }} />
+		</Container>
+
+		<!-- AUTO -->
 		<Container eventMode="static" cursor="pointer" onpointertap={() => spin()}>
-			<Rectangle anchor={0.5} x={screen.width * 0.9} y={hy} width={Math.min(screen.width * 0.16, 170)} height={hudH * 0.7} backgroundColor={busy ? 0x0c5a2a : 0x12a84a} borderColor={0xf3c64c} borderWidth={3} borderRadius={18} />
-			<Text anchor={0.5} x={screen.width * 0.9} y={hy} text={busy ? '...' : 'SPIN'} style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.2, fontWeight: '900', fill: 0xffffff }} />
+			{#if isLoaded('ggr-btn-auto')}
+				<Sprite key="ggr-btn-auto" anchor={0.5} x={screen.width * 0.7} y={hy} width={btnW} height={btnH} />
+			{:else}
+				<Rectangle anchor={0.5} x={screen.width * 0.7} y={hy} width={btnW} height={btnH * 0.8} backgroundColor={0x10203a} borderColor={0x4dbdff} borderWidth={2} borderRadius={12} />
+			{/if}
+			<Text anchor={0.5} x={screen.width * 0.7} y={hy} text="AUTO" style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.13, fontWeight: '900', fill: 0xffffff, stroke: { color: 0x05101f, width: 4 } }} />
+		</Container>
+
+		<!-- SPIN -->
+		<Container eventMode="static" cursor="pointer" onpointertap={() => spin()}>
+			{#if isLoaded('ggr-btn-spin')}
+				<Sprite key="ggr-btn-spin" anchor={0.5} x={screen.width * 0.88} y={hy} width={btnW * 1.1} height={btnH} />
+			{:else}
+				<Rectangle anchor={0.5} x={screen.width * 0.88} y={hy} width={btnW} height={btnH} backgroundColor={busy ? 0x0c5a2a : 0x12a84a} borderColor={0xf3c64c} borderWidth={3} borderRadius={18} />
+			{/if}
+			<Text anchor={0.5} x={screen.width * 0.88} y={hy + btnH * 0.34} text={busy ? '...' : 'SPIN'} style={{ fontFamily: 'proxima-nova', fontSize: hudH * 0.14, fontWeight: '900', fill: 0xffffff, stroke: { color: 0x05140a, width: 4 } }} />
 		</Container>
 	{/if}
 
