@@ -5,6 +5,9 @@ export default {
 	rtp: 0.97,
 	numReels: 5,
 	numRows: [3, 3, 3, 3, 3],
+	// TODO(balancing): rtp/max_win/bonus cost mirror the unbalanced MVP math.
+	// The generated books currently pay ~37.5% RTP in base and ~1351x mean on a
+	// 100x bonus buy. See math/games/golden_goal_rush/BALANCING_NOTES.md.
 	betModes: {
 		base: {
 			cost: 1.0,

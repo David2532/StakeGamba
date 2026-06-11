@@ -26,6 +26,7 @@
 	import FreeSpinCounter from './FreeSpinCounter.svelte';
 	import FreeSpinOutro from './FreeSpinOutro.svelte';
 	import Transition from './Transition.svelte';
+	import InfoBook from './InfoBook.svelte';
 
 	const context = getContext();
 
@@ -99,5 +100,12 @@
 <Modals>
 	{#snippet version()}
 		<GameVersion version="0.0.0" />
+	{/snippet}
+	{#snippet payTable()}
+		<InfoBook>
+			{#snippet version()}
+				<GameVersion version="0.0.0" />
+			{/snippet}
+		</InfoBook>
 	{/snippet}
 </Modals>

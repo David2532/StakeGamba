@@ -60,6 +60,9 @@ PAYTABLE = {
     "W": {3: 5.00, 4: 10.00, 5: 20.00},
 }
 
+# TODO(balancing): the 100x bonus buy price is far below the measured bonus EV
+# (~1351x mean payout over 250 generated books) and base RTP is ~37.5%.
+# See BALANCING_NOTES.md before changing any value here.
 BET_MODES = {
     "base": {
         "cost": 1.0,
