@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { Text } from 'pixi-svelte';
+	import { Tween } from 'svelte/motion';
+	import { cubicOut } from 'svelte/easing';
+	import { Container, Text } from 'pixi-svelte';
 	import { WHITE } from 'constants-shared/colors';
 
 	import UiSprite from './UiSprite.svelte';
@@ -27,6 +29,24 @@
 		fill: WHITE,
 		fontWeight: '700',
 	} as const;
+
+	// Pulse the value when it changes (skipping the initial render), so balance,
+	// bet and win updates give visible feedback even for small amounts.
+	const pulseTween = new Tween(1, { duration: 130, easing: cubicOut });
+	let lastValue = props.value;
+	let pulsing = false;
+	$effect(() => {
+		if (props.value === lastValue) return;
+		lastValue = props.value;
+		if (pulsing) return;
+		pulsing = true;
+		pulseTween
+			.set(1.12)
+			.then(() => pulseTween.set(1))
+			.then(() => {
+				pulsing = false;
+			});
+	});
 </script>
 
 {#if props.stacked}
@@ -41,7 +61,9 @@
 		/>
 	{/if}
 	<Text anchor={{ x: 0.5, y: 0 }} text={props.label} style={labelStyle} />
-	<Text anchor={{ x: 0.5, y: 0 }} text={props.value} style={valueStyle} y={UI_BASE_FONT_SIZE} />
+	<Container y={UI_BASE_FONT_SIZE * 1.5} scale={pulseTween.current}>
+		<Text anchor={{ x: 0.5, y: 0.5 }} text={props.value} style={valueStyle} />
+	</Container>
 {:else}
 	{#if props.tiled}
 		<UiSprite
@@ -54,10 +76,7 @@
 		/>
 	{/if}
 	<Text anchor={{ x: 0, y: 0.5 }} text={props.label} style={labelStyle} />
-	<Text
-		anchor={{ x: 1, y: 0.5 }}
-		text={props.value}
-		style={valueStyle}
-		x={UI_BASE_FONT_SIZE * 10}
-	/>
+	<Container x={UI_BASE_FONT_SIZE * 10} scale={pulseTween.current}>
+		<Text anchor={{ x: 1, y: 0.5 }} text={props.value} style={valueStyle} />
+	</Container>
 {/if}

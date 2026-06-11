@@ -2,6 +2,25 @@ import { WHITE } from 'constants-shared/colors';
 
 export const UI_BASE_SIZE = 150;
 
+// Golden Goal Rush HUD palette (black / gold / emerald / electric-blue).
+// Recreated in vector from the generated HUD reference sheets — the sheets
+// have no alpha channel, so shapes are drawn instead of shipping sprites.
+export const UI_THEME = {
+	panel: 0x08080d,
+	panelEmerald: 0x0b2415,
+	gold: 0xd5a23b,
+	goldBright: 0xffe49a,
+	emerald: 0x14803c,
+	emeraldDark: 0x0e3d1f,
+	emeraldBright: 0x3fdc7d,
+	electricBlue: 0x57b9ff,
+	errorRed: 0xc81b2e,
+	disabledFill: 0x232328,
+	disabledBorder: 0x55555c,
+	disabledText: 0x9a9aa1,
+	textGold: 0xf4d276,
+} as const;
+
 export const UI_BASE_FONT_SIZE = UI_BASE_SIZE * 0.3;
 
 export const UI_TEXT_STYLES = {
