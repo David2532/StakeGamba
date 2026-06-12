@@ -87,6 +87,37 @@ const autoplayOptions = {
 	singleWinLimit: null,
 };
 
+const uiKitPreload = [
+	"spin_btn_hover",
+	"spin_btn_pressed",
+	"spin_btn_disabled",
+	"spin_btn_spinning_ring",
+	"turbo_btn_active",
+	"auto_btn_active",
+	"bet_plus_btn_hover",
+	"bet_plus_btn_pressed",
+	"bet_minus_btn_hover",
+	"bet_minus_btn_pressed",
+	"bonus_buy_btn_hover",
+	"bonus_buy_btn_pressed",
+	"bonus_buy_btn_disabled",
+	"big_win_ribbon",
+	"mega_win_ribbon",
+	"epic_win_ribbon",
+	"golden_goal_banner",
+	"coin_burst_overlay",
+];
+uiKitPreload.forEach((name) => {
+	const img = new Image();
+	img.src = `../assets/ui-kit/${name}.png`;
+});
+
+const WIN_BANNER_TIERS = [
+	{ threshold: 100, image: "epic_win_ribbon" },
+	{ threshold: 50, image: "mega_win_ribbon" },
+	{ threshold: 20, image: "big_win_ribbon" },
+];
+
 function wait(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -240,6 +271,31 @@ function showFloatingWin(amount, positions) {
 	setTimeout(() => label.remove(), turbo ? 700 : 1400);
 }
 
+async function showWinBanner(amount) {
+	if (amount <= 0 || currentBet <= 0) return;
+	const multiple = amount / currentBet;
+	const isMaxWin = amount >= currentBet * MATH_CONFIG.maxWinMultiplier;
+	const tier = isMaxWin
+		? { image: "golden_goal_banner" }
+		: WIN_BANNER_TIERS.find((entry) => multiple >= entry.threshold);
+	if (!tier) return;
+	const banner = document.createElement("div");
+	banner.className = "win-banner";
+	const showBurst = isMaxWin || multiple >= 50;
+	banner.innerHTML = `
+		<div class="banner-stack">
+			${showBurst ? `<img class="burst" src="../assets/ui-kit/coin_burst_overlay.png" alt="" />` : ""}
+			<img class="ribbon" src="../assets/ui-kit/${tier.image}.png" alt="" />
+			<strong class="banner-amount">${money(amount)}</strong>
+		</div>
+	`;
+	document.body.append(banner);
+	await wait(turbo ? 1200 : 2200);
+	banner.classList.add("hide");
+	await wait(300);
+	banner.remove();
+}
+
 function allPositions() {
 	return Array.from({ length: COLS * ROWS }, (_, i) => ({
 		col: i % COLS,
@@ -324,6 +380,7 @@ async function spin({
 	if (spinning) return;
 	spinning = true;
 	spinButton.disabled = true;
+	spinButton.classList.add("spinning");
 	buyBonusButton.disabled = true;
 	currentWin = 0;
 	winEl.textContent = money(0);
@@ -360,9 +417,12 @@ async function spin({
 		render();
 	}
 
+	await showWinBanner(currentWin);
+
 	balance += currentWin;
 	balanceEl.textContent = money(balance);
 	spinButton.disabled = freeSpinsPlaying;
+	spinButton.classList.remove("spinning");
 	buyBonusButton.disabled = freeSpinsPlaying;
 	spinning = false;
 	if (startingBonusLevel && !suppressBonusStart) {
@@ -775,12 +835,17 @@ function showAutoplayMenu() {
 async function runAutoplay() {
 	if (spinning) return;
 	const startBalance = balance;
-	for (let i = 0; i < autoplayOptions.rounds; i += 1) {
-		const result = await spin(spinOptionsForCurrentMode());
-		if (balance < playCost()) break;
-		if (autoplayOptions.stopOnBonus && result?.bonusTriggered) break;
-		if (autoplayOptions.lossLimit && startBalance - balance >= currentBet * autoplayOptions.lossLimit) break;
-		if (autoplayOptions.singleWinLimit && (result?.win ?? 0) >= currentBet * autoplayOptions.singleWinLimit) break;
+	autoSpinButton.classList.add("active");
+	try {
+		for (let i = 0; i < autoplayOptions.rounds; i += 1) {
+			const result = await spin(spinOptionsForCurrentMode());
+			if (balance < playCost()) break;
+			if (autoplayOptions.stopOnBonus && result?.bonusTriggered) break;
+			if (autoplayOptions.lossLimit && startBalance - balance >= currentBet * autoplayOptions.lossLimit) break;
+			if (autoplayOptions.singleWinLimit && (result?.win ?? 0) >= currentBet * autoplayOptions.singleWinLimit) break;
+		}
+	} finally {
+		autoSpinButton.classList.remove("active");
 	}
 }
 
