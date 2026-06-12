@@ -31,8 +31,22 @@
 	// books. See math/games/golden_goal_rush/BALANCING_NOTES.md.
 	const rtpPercent = (config.rtp * 100).toFixed(2);
 
+	// Final stake-upload symbol art mapping — see ../assets/golden-goal-rush/ASSETS.md.
+	const SYMBOL_IMAGE_MAP: Record<string, string> = {
+		H1: 'fussball',
+		H2: 'pokal',
+		H3: 'pfeife',
+		H4: 'trikot',
+		L1: 'a',
+		L2: 'k',
+		L3: 'q',
+		L4: 'j',
+		L5: '10',
+		W: 'wild',
+		S: 'scatter',
+	};
 	const symbolImage = (key: string) =>
-		new URL(`../assets/golden-goal-rush/symbol-${key.toLowerCase()}.png`, import.meta.url).href;
+		new URL(`../assets/golden-goal-rush/${SYMBOL_IMAGE_MAP[key]}.png`, import.meta.url).href;
 
 	type SymbolPays = { count: string; pay: number }[];
 	const paysOf = (key: keyof typeof config.symbols): SymbolPays => {
