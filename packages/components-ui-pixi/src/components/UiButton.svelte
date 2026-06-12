@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { Circle, Text } from 'pixi-svelte';
+	import { Text } from 'pixi-svelte';
 	import { Button, type ButtonProps } from 'components-pixi';
 
 	import UiSprite from './UiSprite.svelte';
-	import UiButtonScale from './UiButtonScale.svelte';
 	import type { ButtonIcon } from '../types';
 	import type { Snippet } from 'svelte';
 	import { i18nDerived } from '../i18n/i18nDerived';
-	import { UI_BASE_FONT_SIZE, UI_THEME } from '../constants';
+	import { UI_BASE_FONT_SIZE } from '../constants';
 
 	type Props = Omit<ButtonProps, 'children'> & {
 		icon: ButtonIcon;
@@ -28,62 +27,39 @@
 
 <Button {...buttonProps}>
 	{#snippet children({ center, hovered, pressed })}
-		{@const disabled = buttonProps.disabled}
+		<UiSprite
+			{...center}
+			anchor={0.5}
+			width={buttonProps.sizes.width}
+			height={buttonProps.sizes.height}
+			backgroundColor={variant === 'dark' ? 0x000000 : 0xffffff}
+			{...buttonProps.disabled
+				? {
+						backgroundColor: 0xaaaaaa,
+					}
+				: {}}
+			{...active
+				? {
+						borderWidth: 10,
+						borderColor: variant === 'dark' ? 0xffffff : 0x000000,
+					}
+				: {}}
+		/>
 
-		<UiButtonScale x={center.x} y={center.y} {hovered} {pressed}>
-			{#if active && !disabled}
-				<Circle
-					anchor={0.5}
-					diameter={Math.max(buttonProps.sizes.width, buttonProps.sizes.height) * 1.12}
-					backgroundColor={UI_THEME.emeraldBright}
-					backgroundAlpha={0.22}
-				/>
-			{/if}
-
-			<UiSprite
-				anchor={0.5}
-				width={buttonProps.sizes.width}
-				height={buttonProps.sizes.height}
-				backgroundColor={variant === 'dark' ? UI_THEME.panel : UI_THEME.goldBright}
-				{...hovered && !disabled
-					? {
-							borderColor: UI_THEME.goldBright,
-							borderWidth: 4,
-						}
-					: {}}
-				{...active && !disabled
-					? {
-							backgroundColor: UI_THEME.emeraldDark,
-							borderColor: UI_THEME.emeraldBright,
-							borderWidth: 6,
-						}
-					: {}}
-				{...disabled
-					? {
-							backgroundColor: UI_THEME.disabledFill,
-							borderColor: UI_THEME.disabledBorder,
-						}
-					: {}}
-			/>
-
-			<Text
-				anchor={0.5}
-				text={i18nDerived[icon]()}
-				style={{
-					align: 'center',
-					wordWrap: true,
-					wordWrapWidth: 200,
-					fontFamily: 'proxima-nova',
-					fontWeight: '600',
-					fontSize: UI_BASE_FONT_SIZE * 0.9,
-					fill: disabled
-						? UI_THEME.disabledText
-						: variant === 'dark'
-							? 0xffffff
-							: UI_THEME.panel,
-				}}
-			/>
-		</UiButtonScale>
+		<Text
+			{...center}
+			anchor={0.5}
+			text={i18nDerived[icon]()}
+			style={{
+				align: 'center',
+				wordWrap: true,
+				wordWrapWidth: 200,
+				fontFamily: 'proxima-nova',
+				fontWeight: '600',
+				fontSize: UI_BASE_FONT_SIZE * 0.9,
+				fill: variant === 'dark' ? 0xffffff : 0x000000,
+			}}
+		/>
 
 		{@render childrenFromParent?.()}
 	{/snippet}
