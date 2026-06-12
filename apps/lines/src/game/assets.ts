@@ -14,49 +14,58 @@ export default {
 			.href,
 		preload: true,
 	},
+	// Golden Goal Rush final symbol art. Visual source of truth is
+	// stake-upload/golden-goal-rush/assets — see ../assets/golden-goal-rush/ASSETS.md
+	// for the mapping (H1=fussball, H2=pokal, H3=pfeife, H4=trikot,
+	// L1=a, L2=k, L3=q, L4=j, L5=10, W=wild, S=scatter).
 	'ggr-l1': {
 		type: 'sprite',
-		src: new URL('../assets/golden-goal-rush/symbol-l1.png', import.meta.url).href,
+		src: new URL('../assets/golden-goal-rush/a.png', import.meta.url).href,
 	},
 	'ggr-l2': {
 		type: 'sprite',
-		src: new URL('../assets/golden-goal-rush/symbol-l2.png', import.meta.url).href,
+		src: new URL('../assets/golden-goal-rush/k.png', import.meta.url).href,
 	},
 	'ggr-l3': {
 		type: 'sprite',
-		src: new URL('../assets/golden-goal-rush/symbol-l3.png', import.meta.url).href,
+		src: new URL('../assets/golden-goal-rush/q.png', import.meta.url).href,
 	},
 	'ggr-l4': {
 		type: 'sprite',
-		src: new URL('../assets/golden-goal-rush/symbol-l4.png', import.meta.url).href,
+		src: new URL('../assets/golden-goal-rush/j.png', import.meta.url).href,
 	},
 	'ggr-l5': {
 		type: 'sprite',
-		src: new URL('../assets/golden-goal-rush/symbol-l5.png', import.meta.url).href,
+		src: new URL('../assets/golden-goal-rush/10.png', import.meta.url).href,
 	},
 	'ggr-h1': {
 		type: 'sprite',
-		src: new URL('../assets/golden-goal-rush/symbol-h1.png', import.meta.url).href,
+		src: new URL('../assets/golden-goal-rush/fussball.png', import.meta.url).href,
 	},
 	'ggr-h2': {
 		type: 'sprite',
-		src: new URL('../assets/golden-goal-rush/symbol-h2.png', import.meta.url).href,
+		src: new URL('../assets/golden-goal-rush/pokal.png', import.meta.url).href,
 	},
 	'ggr-h3': {
 		type: 'sprite',
-		src: new URL('../assets/golden-goal-rush/symbol-h3.png', import.meta.url).href,
+		src: new URL('../assets/golden-goal-rush/pfeife.png', import.meta.url).href,
 	},
 	'ggr-h4': {
 		type: 'sprite',
-		src: new URL('../assets/golden-goal-rush/symbol-h4.png', import.meta.url).href,
+		src: new URL('../assets/golden-goal-rush/trikot.png', import.meta.url).href,
 	},
 	'ggr-w': {
 		type: 'sprite',
-		src: new URL('../assets/golden-goal-rush/symbol-w.png', import.meta.url).href,
+		src: new URL('../assets/golden-goal-rush/wild.png', import.meta.url).href,
 	},
 	'ggr-s': {
 		type: 'sprite',
-		src: new URL('../assets/golden-goal-rush/symbol-s.png', import.meta.url).href,
+		src: new URL('../assets/golden-goal-rush/scatter.png', import.meta.url).href,
+	},
+	'ggr-logo': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/logo-horizontal.png', import.meta.url).href,
+		preload: true,
 	},
 	slotBackground: {
 		type: 'sprite',

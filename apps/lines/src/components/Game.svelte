@@ -4,7 +4,7 @@
 	import { EnablePixiExtension } from 'components-pixi';
 	import { EnableHotkey } from 'components-shared';
 	import { MainContainer } from 'components-layout';
-	import { App, Text, REM } from 'pixi-svelte';
+	import { App, Sprite, REM } from 'pixi-svelte';
 	import { stateModal } from 'state-shared';
 
 	import { UI, UiGameName } from 'components-ui-pixi';
@@ -73,17 +73,12 @@
 				<UiGameName name="GOLDEN GOAL RUSH" />
 			{/snippet}
 			{#snippet logo()}
-				<Text
+				<!-- Final Golden Goal Rush logo from the stake-upload asset set. -->
+				<Sprite
+					key="ggr-logo"
 					anchor={{ x: 1, y: 0 }}
-					text="WORLD STADIUM"
-					style={{
-						fontFamily: 'proxima-nova',
-						fontSize: REM * 1.05,
-						fontWeight: '700',
-						letterSpacing: 3,
-						lineHeight: REM * 2,
-						fill: 0xe8c061,
-					}}
+					width={REM * 8}
+					height={(REM * 8 * 1047) / 1516}
 				/>
 			{/snippet}
 		</UI>
