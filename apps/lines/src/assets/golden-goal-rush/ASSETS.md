@@ -35,9 +35,11 @@ several of these PNGs have baked black backgrounds and inconsistent sizes
 stake-upload front they sit on CSS-styled buttons, whose dark/gold look the
 vector HUD already mirrors.
 
-## `special/` (not copied)
+## `special/` (copied, wiring pending on math)
 
-`stake-upload/.../assets/special/` (coins, multipliers, collector, rainbow,
-golden squares) belongs to bonus features of the stake-upload math that are
-not implemented in the `apps/lines` math/event contract. They would be dead
-assets here — copy them when those features land.
+`special/` (sponsor coins, multipliers, collector, golden-goal tiers) is
+copied 1:1 from the stake-upload master for the planned "Golden Sponsor
+Bonus". The features are not part of the `apps/lines` math/event contract
+yet, so nothing references these files in game code — see
+`documentation/sponsor-bonus-design.md` for the event contract and balancing
+guardrails before wiring them up.

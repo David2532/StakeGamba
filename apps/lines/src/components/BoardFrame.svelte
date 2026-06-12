@@ -5,7 +5,7 @@
 </script>
 
 <script lang="ts">
-	import { Rectangle, Graphics, SpineProvider, SpineTrack } from 'pixi-svelte';
+	import { Rectangle, Graphics, Text, Container, SpineProvider, SpineTrack } from 'pixi-svelte';
 
 	import { getContext } from '../game/context';
 
@@ -202,3 +202,46 @@
 		}
 	}}
 />
+
+<!-- Side mechanic panels (mockup style) — honest "20 LINES" for the real math. -->
+{#each [-1, 1] as side (side)}
+	{@const bx = context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
+	{@const by = context.stateGameDerived.boardLayout().y * POSITION_ADJUSTMENT}
+	{@const fw = context.stateGameDerived.boardLayout().width * FRAME_SCALE.width}
+	<Container x={bx + side * (fw / 2 + 36)} y={by}>
+		<Rectangle
+			anchor={0.5}
+			width={58}
+			height={196}
+			borderRadius={16}
+			backgroundColor={0x0b0b10}
+			backgroundAlpha={0.92}
+			borderColor={0xd5a23b}
+			borderWidth={3}
+		/>
+		<Text
+			anchor={0.5}
+			y={-62}
+			text="20"
+			style={{
+				fontFamily: 'proxima-nova',
+				fontWeight: '800',
+				fontSize: 32,
+				fill: 0xffe49a,
+			}}
+		/>
+		<Text
+			anchor={{ x: 0.5, y: 0 }}
+			y={-34}
+			text={'L\nI\nN\nE\nS'}
+			style={{
+				align: 'center',
+				fontFamily: 'proxima-nova',
+				fontWeight: '700',
+				fontSize: 17,
+				lineHeight: 22,
+				fill: 0xd5a23b,
+			}}
+		/>
+	</Container>
+{/each}
