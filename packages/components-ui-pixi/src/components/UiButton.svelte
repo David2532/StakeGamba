@@ -35,7 +35,7 @@
 				<Circle
 					anchor={0.5}
 					diameter={Math.max(buttonProps.sizes.width, buttonProps.sizes.height) * 1.12}
-					backgroundColor={UI_THEME.goldBright}
+					backgroundColor={UI_THEME.emeraldBright}
 					backgroundAlpha={0.22}
 				/>
 			{/if}
@@ -53,7 +53,8 @@
 					: {}}
 				{...active && !disabled
 					? {
-							borderColor: UI_THEME.goldBright,
+							backgroundColor: UI_THEME.emeraldDark,
+							borderColor: UI_THEME.emeraldBright,
 							borderWidth: 6,
 						}
 					: {}}
@@ -73,12 +74,12 @@
 					wordWrap: true,
 					wordWrapWidth: 200,
 					fontFamily: 'proxima-nova',
-					fontWeight: '700',
+					fontWeight: '600',
 					fontSize: UI_BASE_FONT_SIZE * 0.9,
 					fill: disabled
 						? UI_THEME.disabledText
 						: variant === 'dark'
-							? UI_THEME.textGold
+							? 0xffffff
 							: UI_THEME.panel,
 				}}
 			/>

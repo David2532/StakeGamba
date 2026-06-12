@@ -2,15 +2,18 @@ import { WHITE } from 'constants-shared/colors';
 
 export const UI_BASE_SIZE = 150;
 
-// Golden Goal Rush HUD palette (black / gold, red bet accent) recreated in
-// vector after the final game mockup — the generated sheets have no alpha
-// channel, so shapes are drawn instead of shipping sprites.
+// Golden Goal Rush HUD palette (black / gold / emerald / electric-blue).
+// Recreated in vector from the generated HUD reference sheets — the sheets
+// have no alpha channel, so shapes are drawn instead of shipping sprites.
 export const UI_THEME = {
-	panel: 0x0b0b10,
-	panelInner: 0x16161d,
+	panel: 0x08080d,
+	panelEmerald: 0x0b2415,
 	gold: 0xd5a23b,
 	goldBright: 0xffe49a,
-	betRed: 0x8e1620,
+	emerald: 0x14803c,
+	emeraldDark: 0x0e3d1f,
+	emeraldBright: 0x3fdc7d,
+	electricBlue: 0x57b9ff,
 	errorRed: 0xc81b2e,
 	disabledFill: 0x232328,
 	disabledBorder: 0x55555c,

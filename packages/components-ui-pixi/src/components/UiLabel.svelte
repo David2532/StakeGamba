@@ -12,7 +12,6 @@
 		value: string;
 		tiled?: boolean;
 		stacked?: boolean;
-		tileColor?: number;
 	};
 
 	const props: Props = $props();
@@ -59,7 +58,6 @@
 			width={UI_BASE_FONT_SIZE * 3 * (326 / 73)}
 			height={UI_BASE_FONT_SIZE * 3}
 			borderRadius={35}
-			{...props.tileColor !== undefined ? { backgroundColor: props.tileColor } : {}}
 		/>
 	{/if}
 	<Text anchor={{ x: 0.5, y: 0 }} text={props.label} style={labelStyle} />

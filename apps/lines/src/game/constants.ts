@@ -2,9 +2,7 @@ import _ from 'lodash';
 
 import type { RawSymbol, SymbolState } from './types';
 
-// Sized so the 5x3 board fills the screen like the final mockup
-// (board 775x465 inside the 1422x800 desktop main layout).
-export const SYMBOL_SIZE = 155;
+export const SYMBOL_SIZE = 120;
 
 export const REEL_PADDING = 0.53;
 

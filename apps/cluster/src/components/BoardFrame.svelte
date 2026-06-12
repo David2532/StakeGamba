@@ -5,16 +5,15 @@
 </script>
 
 <script lang="ts">
-	import { Rectangle, Graphics, Text, Container, SpineProvider, SpineTrack } from 'pixi-svelte';
+	import { Sprite, SpineProvider, SpineTrack } from 'pixi-svelte';
 
 	import { getContext } from '../game/context';
-	import { BOARD_DIMENSIONS } from '../game/constants';
 
 	const context = getContext();
 	const SPINE_SCALE = { width: 0.6, height: 0.6 };
-	// Frame paddings around the symbol area (mockup: thick gold outer frame,
-	// thin inner line, fine gold grid lines).
-	const FRAME_PAD = 26;
+	const SPRITE_SCALE = { width: 1.07, height: 1.19 };
+	const BG_RATIO = 937 / 806;
+	const POSITION_ADJUSTMENT = 1.01;
 
 	type AnimationName = 'reelhouse_glow_start' | 'reelhouse_glow_idle' | 'reelhouse_glow_exit';
 
@@ -30,18 +29,16 @@
 			if (animationName) animationName = 'reelhouse_glow_exit';
 		},
 	});
-
-	const layout = $derived(context.stateGameDerived.boardLayout());
 </script>
 
 {#if animationName}
 	<SpineProvider
 		zIndex={-1}
 		key="reelhouse"
-		x={layout.x}
-		y={layout.y}
-		width={layout.width * SPINE_SCALE.width}
-		height={layout.height * SPINE_SCALE.height}
+		x={context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
+		y={context.stateGameDerived.boardLayout().y * POSITION_ADJUSTMENT}
+		width={context.stateGameDerived.boardLayout().width * SPINE_SCALE.width}
+		height={context.stateGameDerived.boardLayout().height * SPINE_SCALE.height}
 	>
 		<SpineTrack
 			trackIndex={0}
@@ -66,90 +63,20 @@
 	</SpineProvider>
 {/if}
 
-<!-- Soft gold halo behind the frame (subtle, keeps the stadium visible). -->
-<Rectangle
+<Sprite
+	key="frame_bg.png"
 	anchor={0.5}
-	x={layout.x}
-	y={layout.y}
-	width={layout.width + FRAME_PAD * 2 + 26}
-	height={layout.height + FRAME_PAD * 2 + 26}
-	backgroundColor={0xc8921e}
-	backgroundAlpha={0.14}
-	borderRadius={30}
+	x={context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
+	y={context.stateGameDerived.boardLayout().y * POSITION_ADJUSTMENT}
+	width={context.stateGameDerived.boardLayout().width * BG_RATIO * SPRITE_SCALE.width}
+	height={context.stateGameDerived.boardLayout().width * SPRITE_SCALE.height}
 />
 
-<!-- Board panel: dark glass with the thick gold mockup frame. -->
-<Rectangle
+<Sprite
+	key="frame_edge.png"
 	anchor={0.5}
-	x={layout.x}
-	y={layout.y}
-	width={layout.width + FRAME_PAD * 2}
-	height={layout.height + FRAME_PAD * 2}
-	backgroundColor={0x07070c}
-	backgroundAlpha={0.88}
-	borderRadius={22}
-	borderColor={0xd5a23b}
-	borderWidth={7}
+	x={context.stateGameDerived.boardLayout().x * POSITION_ADJUSTMENT}
+	y={context.stateGameDerived.boardLayout().y * POSITION_ADJUSTMENT}
+	width={context.stateGameDerived.boardLayout().width * BG_RATIO * SPRITE_SCALE.width}
+	height={context.stateGameDerived.boardLayout().width * SPRITE_SCALE.height}
 />
-<Rectangle
-	anchor={0.5}
-	x={layout.x}
-	y={layout.y}
-	width={layout.width + FRAME_PAD * 0.9}
-	height={layout.height + FRAME_PAD * 0.9}
-	backgroundColor={0x000000}
-	backgroundAlpha={0}
-	borderRadius={16}
-	borderColor={0xffe49a}
-	borderAlpha={0.55}
-	borderWidth={2}
-/>
-
-<!-- Fine gold grid lines between the 6x5 cells. -->
-<Graphics
-	alpha={0.28}
-	draw={(g) => {
-		const left = layout.x - layout.width / 2;
-		const top = layout.y - layout.height / 2;
-		const cellW = layout.width / BOARD_DIMENSIONS.x;
-		const cellH = layout.height / BOARD_DIMENSIONS.y;
-		for (let i = 1; i < BOARD_DIMENSIONS.x; i += 1) {
-			g.moveTo(left + i * cellW, top + 4);
-			g.lineTo(left + i * cellW, top + layout.height - 4);
-		}
-		for (let j = 1; j < BOARD_DIMENSIONS.y; j += 1) {
-			g.moveTo(left + 4, top + j * cellH);
-			g.lineTo(left + layout.width - 4, top + j * cellH);
-		}
-		g.stroke({ color: 0xd5a23b, width: 1.5 });
-	}}
-/>
-
-<!-- Side mechanic panels (mockup style) — honest text for cluster pays. -->
-{#each [-1, 1] as side (side)}
-	<Container x={layout.x + side * (layout.width / 2 + FRAME_PAD + 34)} y={layout.y}>
-		<Rectangle
-			anchor={0.5}
-			width={56}
-			height={210}
-			borderRadius={16}
-			backgroundColor={0x0b0b10}
-			backgroundAlpha={0.92}
-			borderColor={0xd5a23b}
-			borderWidth={3}
-		/>
-		<Text
-			anchor={{ x: 0.5, y: 0 }}
-			y={-86}
-			text={'C\nL\nU\nS\nT\nE\nR'}
-			style={{
-				align: 'center',
-				fontFamily: 'proxima-nova',
-				fontWeight: '700',
-				fontSize: 16,
-				lineHeight: 24,
-				fill: 0xffe49a,
-			}}
-		/>
-	</Container>
-{/each}
