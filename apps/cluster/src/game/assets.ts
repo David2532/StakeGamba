@@ -268,6 +268,69 @@ export default {
 		type: 'spriteSheet',
 		src: new URL('../../assets/sprites/coin/SD2_Coin.json', import.meta.url).href,
 	},
+	// Golden Goal Rush final art (stake-upload master) — see ../assets/golden-goal-rush/ASSETS.md
+	'ggr-l1': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/a.png', import.meta.url).href,
+	},
+	'ggr-l2': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/k.png', import.meta.url).href,
+	},
+	'ggr-l3': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/q.png', import.meta.url).href,
+	},
+	'ggr-l4': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/j.png', import.meta.url).href,
+	},
+	'ggr-l5': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/10.png', import.meta.url).href,
+	},
+	'ggr-h1': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/fussball.png', import.meta.url).href,
+	},
+	'ggr-h2': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/pokal.png', import.meta.url).href,
+	},
+	'ggr-h3': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/pfeife.png', import.meta.url).href,
+	},
+	'ggr-h4': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/trikot.png', import.meta.url).href,
+	},
+	'ggr-w': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/wild.png', import.meta.url).href,
+	},
+	'ggr-s': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/scatter.png', import.meta.url).href,
+	},
+	'ggr-rb': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/symbol_rainbow.png', import.meta.url).href,
+	},
+	'ggr-cl': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/special/symbol_collector.png', import.meta.url).href,
+	},
+	'ggr-logo': {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/logo-horizontal.png', import.meta.url).href,
+		preload: true,
+	},
+	slotBackground: {
+		type: 'sprite',
+		src: new URL('../assets/golden-goal-rush/slot-background.png', import.meta.url).href,
+		preload: true,
+	},
 	sound: {
 		type: 'audio',
 		src: new URL('../../assets/audio/sounds.json', import.meta.url).href,

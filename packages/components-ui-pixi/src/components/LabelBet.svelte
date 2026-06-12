@@ -9,6 +9,7 @@
 
 	type Props = {
 		stacked?: boolean;
+		tileColor?: number;
 	};
 
 	const props: Props = $props();
@@ -25,5 +26,5 @@
 </script>
 
 <Container eventMode="static" cursor={disabled ? 'not-allowed' : 'pointer'} onpointerup={onpress}>
-	<UiLabel tiled {label} {value} stacked={props.stacked} />
+	<UiLabel tiled {label} {value} stacked={props.stacked} tileColor={props.tileColor} />
 </Container>

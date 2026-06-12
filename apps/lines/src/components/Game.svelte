@@ -7,7 +7,7 @@
 	import { App, Sprite, REM } from 'pixi-svelte';
 	import { stateModal } from 'state-shared';
 
-	import { UI, UiGameName } from 'components-ui-pixi';
+	import { UI } from 'components-ui-pixi';
 	import { GameVersion, Modals } from 'components-ui-html';
 
 	import { getContext } from '../game/context';
@@ -70,15 +70,19 @@
 
 		<UI>
 			{#snippet gameName()}
-				<UiGameName name="GOLDEN GOAL RUSH" />
+				<!-- The centered logo replaces the plain game-name text (final mockup). -->
 			{/snippet}
 			{#snippet logo()}
-				<!-- Final Golden Goal Rush logo from the stake-upload asset set. -->
+				<!-- Final Golden Goal Rush logo, centered at the top like the mockup.
+				     The layout places this snippet at the right edge, so offset back
+				     to the canvas center. -->
 				<Sprite
 					key="ggr-logo"
-					anchor={{ x: 1, y: 0 }}
-					width={REM * 8}
-					height={(REM * 8 * 1047) / 1516}
+					anchor={{ x: 0.5, y: 0 }}
+					x={-(context.stateLayoutDerived.canvasSizes().width * 0.5 - 20)}
+					y={-REM * 3.6}
+					width={REM * 16}
+					height={(REM * 16 * 1047) / 1516}
 				/>
 			{/snippet}
 		</UI>

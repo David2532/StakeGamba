@@ -2,215 +2,20 @@ import _ from 'lodash';
 
 import type { RawSymbol, SymbolState } from './types';
 
-export const SYMBOL_SIZE = 80;
+// Sized so the 6x5 Golden Goal Rush board fills the 1422x800 main layout
+// like the final mockup.
+export const SYMBOL_SIZE = 112;
 
 export const REEL_PADDING = 0.53;
 
 // initial board (padded top and bottom)
 export const INITIAL_BOARD: RawSymbol[][] = [
-	[
-		{
-			name: 'L1',
-		},
-		{
-			name: 'H1',
-		},
-		{
-			name: 'L1',
-		},
-		{
-			name: 'L2',
-		},
-		{
-			name: 'L2',
-		},
-		{
-			name: 'L3',
-		},
-		{
-			name: 'L2',
-		},
-		{
-			name: 'L3',
-		},
-		{
-			name: 'H3',
-		},
-	],
-	[
-		{
-			name: 'L2',
-		},
-		{
-			name: 'L2',
-		},
-		{
-			name: 'L3',
-		},
-		{
-			name: 'L2',
-		},
-		{
-			name: 'L2',
-		},
-		{
-			name: 'L3',
-		},
-		{
-			name: 'L2',
-		},
-		{
-			name: 'L2',
-		},
-		{
-			name: 'H2',
-		},
-	],
-	[
-		{
-			name: 'L3',
-		},
-		{
-			name: 'H3',
-		},
-		{
-			name: 'L1',
-		},
-		{
-			name: 'L1',
-		},
-		{
-			name: 'H4',
-		},
-		{
-			name: 'L2',
-		},
-		{
-			name: 'H4',
-		},
-		{
-			name: 'H4',
-		},
-		{
-			name: 'H2',
-		},
-	],
-	[
-		{
-			name: 'H4',
-		},
-		{
-			name: 'L1',
-		},
-		{
-			name: 'H2',
-		},
-		{
-			name: 'H2',
-		},
-		{
-			name: 'H4',
-		},
-		{
-			name: 'H2',
-		},
-		{
-			name: 'H2',
-		},
-		{
-			name: 'L3',
-		},
-		{
-			name: 'L3',
-		},
-	],
-	[
-		{
-			name: 'L1',
-		},
-		{
-			name: 'L1',
-		},
-		{
-			name: 'H3',
-		},
-		{
-			name: 'H1',
-		},
-		{
-			name: 'H1',
-		},
-		{
-			name: 'L2',
-		},
-		{
-			name: 'L2',
-		},
-		{
-			name: 'L3',
-		},
-		{
-			name: 'L3',
-		},
-	],
-	[
-		{
-			name: 'L1',
-		},
-		{
-			name: 'L2',
-		},
-		{
-			name: 'L2',
-		},
-		{
-			name: 'H1',
-		},
-		{
-			name: 'H4',
-		},
-		{
-			name: 'H4',
-		},
-		{
-			name: 'H2',
-		},
-		{
-			name: 'H3',
-		},
-		{
-			name: 'H2',
-		},
-	],
-	[
-		{
-			name: 'L3',
-		},
-		{
-			name: 'L3',
-		},
-		{
-			name: 'L3',
-		},
-		{
-			name: 'H3',
-		},
-		{
-			name: 'H1',
-		},
-		{
-			name: 'L3',
-		},
-		{
-			name: 'H3',
-		},
-		{
-			name: 'H3',
-		},
-		{
-			name: 'H2',
-		},
-	],
+	[{ name: 'L1' }, { name: 'H1' }, { name: 'L5' }, { name: 'L2' }, { name: 'L3' }, { name: 'H3' }, { name: 'L4' }],
+	[{ name: 'L2' }, { name: 'L5' }, { name: 'H2' }, { name: 'L1' }, { name: 'L4' }, { name: 'L3' }, { name: 'H4' }],
+	[{ name: 'L3' }, { name: 'H4' }, { name: 'L2' }, { name: 'L5' }, { name: 'H1' }, { name: 'L1' }, { name: 'L2' }],
+	[{ name: 'H2' }, { name: 'L3' }, { name: 'L1' }, { name: 'L4' }, { name: 'L2' }, { name: 'H3' }, { name: 'L5' }],
+	[{ name: 'L4' }, { name: 'L2' }, { name: 'H3' }, { name: 'L3' }, { name: 'L5' }, { name: 'L1' }, { name: 'H1' }],
+	[{ name: 'L5' }, { name: 'H1' }, { name: 'L4' }, { name: 'L1' }, { name: 'L2' }, { name: 'H2' }, { name: 'L3' }],
 ];
 
 export const BOARD_DIMENSIONS = { x: INITIAL_BOARD.length, y: INITIAL_BOARD[0].length - 2 };
@@ -292,190 +97,40 @@ const explosion = {
 	sizeRatios: { width: 1, height: 1 },
 };
 
-const h1Static = { type: 'sprite', assetKey: 'h1.webp', sizeRatios: { width: 1, height: 1 } };
-const h2Static = { type: 'sprite', assetKey: 'h2.webp', sizeRatios: { width: 1, height: 1 } };
-const h3Static = { type: 'sprite', assetKey: 'h3.webp', sizeRatios: { width: 1, height: 1 } };
-const h4Static = { type: 'sprite', assetKey: 'h4.webp', sizeRatios: { width: 1, height: 1 } };
-const h5Static = { type: 'sprite', assetKey: 'h5.webp', sizeRatios: { width: 1, height: 1 } };
+// Golden Goal Rush final art (stake-upload master). All states render the
+// final sprites; the win pop/glow is handled by SymbolSprite.
+const GGR_SYMBOL_SIZE = 0.92;
+const GGR_FEATURE_SIZE = 1;
 
-const l1Static = { type: 'sprite', assetKey: 'l1.webp', sizeRatios: { width: 1, height: 1 } };
-const l2Static = { type: 'sprite', assetKey: 'l2.webp', sizeRatios: { width: 1, height: 1 } };
-const l3Static = { type: 'sprite', assetKey: 'l3.webp', sizeRatios: { width: 1, height: 1 } };
-const l4Static = { type: 'sprite', assetKey: 'l4.webp', sizeRatios: { width: 1, height: 1 } };
+const makeStatic = (assetKey: string, size = GGR_SYMBOL_SIZE) =>
+	({ type: 'sprite', assetKey, sizeRatios: { width: size, height: size } }) as const;
 
-const sStatic = { type: 'sprite', assetKey: 's.png', sizeRatios: { width: 1.243, height: 1.243 } };
-const wStatic = { type: 'sprite', assetKey: 'w.png', sizeRatios: { width: 1.12, height: 1.12 } };
-
-const m2Static = {
-	type: 'sprite',
-	assetKey: 'm1_2x.png',
-	sizeRatios: { width: 0.88, height: 0.88 },
+const symbolStates = (assetKey: string, size = GGR_SYMBOL_SIZE) => {
+	const staticInfo = makeStatic(assetKey, size);
+	return {
+		explosion,
+		win: staticInfo,
+		postWinStatic: staticInfo,
+		static: staticInfo,
+		spin: staticInfo,
+		land: staticInfo,
+	} as const;
 };
-const m4Static = {
-	type: 'sprite',
-	assetKey: 'm1_4x.png',
-	sizeRatios: { width: 0.88, height: 0.88 },
-};
-const m5Static = { type: 'sprite', assetKey: 'm2_5x.png', sizeRatios: { width: 1, height: 1 } };
-const m7Static = { type: 'sprite', assetKey: 'm2_7x.png', sizeRatios: { width: 1, height: 1 } };
-const m10Static = { type: 'sprite', assetKey: 'm3_10x.png', sizeRatios: { width: 1, height: 1 } };
-
-const wSizeRatios = { width: 1.5 * 0.9, height: SPECIAL_SYMBOL_SIZE * 1.15 };
-const sSizeRatios = { width: 2.5, height: SPECIAL_SYMBOL_SIZE * 2.3 };
 
 export const SYMBOL_INFO_MAP = {
-	H1: {
-		explosion,
-		win: {
-			type: 'spine',
-			assetKey: 'H1',
-			animationName: 'h1',
-			sizeRatios: { width: 0.5 * 1.15, height: HIGH_SYMBOL_SIZE * 0.57 },
-		},
-		postWinStatic: h1Static,
-		static: h1Static,
-		spin: h1Static,
-		land: h1Static,
-	},
-	H2: {
-		explosion,
-		win: {
-			type: 'spine',
-			assetKey: 'H2',
-			animationName: 'h2',
-			sizeRatios: { width: 0.5, height: HIGH_SYMBOL_SIZE * 0.57 },
-		},
-		postWinStatic: h2Static,
-		static: h2Static,
-		spin: h2Static,
-		land: h2Static,
-	},
-	H3: {
-		explosion,
-		win: {
-			type: 'spine',
-			assetKey: 'H3',
-			animationName: 'h3',
-			sizeRatios: { width: 0.5 * 0.9, height: HIGH_SYMBOL_SIZE * 0.53 },
-		},
-		postWinStatic: h3Static,
-		static: h3Static,
-		spin: h3Static,
-		land: h3Static,
-	},
-	H4: {
-		explosion,
-		win: {
-			type: 'spine',
-			assetKey: 'H4',
-			animationName: 'h4',
-			sizeRatios: { width: 0.5 * 0.9, height: HIGH_SYMBOL_SIZE * 0.53 },
-		},
-		postWinStatic: h4Static,
-		static: h4Static,
-		spin: h4Static,
-		land: h4Static,
-	},
-	H5: {
-		explosion,
-		win: {
-			type: 'spine',
-			assetKey: 'H5',
-			animationName: 'h5',
-			sizeRatios: { width: 0.5 * 0.9, height: HIGH_SYMBOL_SIZE * 0.53 },
-		},
-		postWinStatic: h5Static,
-		static: h5Static,
-		spin: h5Static,
-		land: h5Static,
-	},
-	L1: {
-		explosion,
-		win: {
-			type: 'spine',
-			assetKey: 'L1',
-			animationName: 'l1',
-			sizeRatios: { width: 0.5 * 0.75, height: LOW_SYMBOL_SIZE * 0.65 },
-		},
-		postWinStatic: l1Static,
-		static: l1Static,
-		spin: l1Static,
-		land: l1Static,
-	},
-	L2: {
-		explosion,
-		win: {
-			type: 'spine',
-			assetKey: 'L2',
-			animationName: 'l2',
-			sizeRatios: { width: 0.5 * 0.75, height: LOW_SYMBOL_SIZE * 0.65 },
-		},
-		postWinStatic: l2Static,
-		static: l2Static,
-		spin: l2Static,
-		land: l2Static,
-	},
-	L3: {
-		explosion,
-		win: {
-			type: 'spine',
-			assetKey: 'L3',
-			animationName: 'l3',
-			sizeRatios: { width: 0.5 * 0.75, height: LOW_SYMBOL_SIZE * 0.63 },
-		},
-		postWinStatic: l3Static,
-		static: l3Static,
-		spin: l3Static,
-		land: l3Static,
-	},
-	L4: {
-		explosion,
-		win: {
-			type: 'spine',
-			assetKey: 'L4',
-			animationName: 'l4',
-			sizeRatios: { width: 0.5 * 0.75, height: LOW_SYMBOL_SIZE * 0.63 },
-		},
-		postWinStatic: l4Static,
-		static: l4Static,
-		spin: l4Static,
-		land: l4Static,
-	},
-	W: {
-		explosion,
-		postWinStatic: {
-			type: 'sprite',
-			assetKey: 'explodedW.png',
-			sizeRatios: { width: 0.85, height: 0.85 },
-		},
-		static: wStatic,
-		spin: wStatic,
-		win: { type: 'spine', assetKey: 'W', animationName: 'wild_dynamite', sizeRatios: wSizeRatios },
-		land: {
-			type: 'spine',
-			assetKey: 'W',
-			animationName: 'wild_dynamite_land',
-			sizeRatios: wSizeRatios,
-		},
-	},
-	S: {
-		explosion,
-		postWinStatic: sStatic,
-		static: sStatic,
-		spin: {
-			type: 'spine',
-			assetKey: 'S',
-			animationName: 'scatter_spin',
-			sizeRatios: sSizeRatios,
-		},
-		win: { type: 'spine', assetKey: 'S', animationName: 'scatter_win', sizeRatios: sSizeRatios },
-		land: {
-			type: 'spine',
-			assetKey: 'S',
-			animationName: 'scatter_land',
-			sizeRatios: sSizeRatios,
-		},
-	},
+	H1: symbolStates('ggr-h1'),
+	H2: symbolStates('ggr-h2'),
+	H3: symbolStates('ggr-h3'),
+	H4: symbolStates('ggr-h4'),
+	L1: symbolStates('ggr-l1'),
+	L2: symbolStates('ggr-l2'),
+	L3: symbolStates('ggr-l3'),
+	L4: symbolStates('ggr-l4'),
+	L5: symbolStates('ggr-l5'),
+	W: symbolStates('ggr-w', GGR_FEATURE_SIZE),
+	S: symbolStates('ggr-s', GGR_FEATURE_SIZE),
+	RB: symbolStates('ggr-rb', GGR_FEATURE_SIZE),
+	CL: symbolStates('ggr-cl', GGR_FEATURE_SIZE),
 } as const;
 
 export const SCATTER_LAND_SOUND_MAP = {
