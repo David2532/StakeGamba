@@ -12,11 +12,65 @@
 		whistle: new URL('../assets/golden-goal-rush/pfeife.png', import.meta.url).href,
 		wild: new URL('../assets/golden-goal-rush/wild.png', import.meta.url).href,
 		scatter: new URL('../assets/golden-goal-rush/scatter.png', import.meta.url).href,
-		spin: new URL('../assets/golden-goal-rush/ui/spin.png', import.meta.url).href,
-		autoSpin: new URL('../assets/golden-goal-rush/ui/autospin.png', import.meta.url).href,
-		turbo: new URL('../assets/golden-goal-rush/ui/blitz.png', import.meta.url).href,
-		betUp: new URL('../assets/golden-goal-rush/ui/einsatz-hoch.png', import.meta.url).href,
-		betDown: new URL('../assets/golden-goal-rush/ui/einsatz-runter.png', import.meta.url).href,
+		coin: new URL('../assets/golden-goal-rush/special/coin_1x.png', import.meta.url).href,
+		collector: new URL('../assets/golden-goal-rush/special/symbol_collector.png', import.meta.url)
+			.href,
+		multiplier: new URL('../assets/golden-goal-rush/special/symbol_multiplier.png', import.meta.url)
+			.href,
+		meterPanelA: new URL(
+			'../assets/golden-goal-rush/hud-extracted/meter-panel-a.png',
+			import.meta.url,
+		).href,
+		meterPanelB: new URL(
+			'../assets/golden-goal-rush/hud-extracted/meter-panel-b.png',
+			import.meta.url,
+		).href,
+		meterPanelC: new URL(
+			'../assets/golden-goal-rush/hud-extracted/meter-panel-c.png',
+			import.meta.url,
+		).href,
+		controlPanel: new URL(
+			'../assets/golden-goal-rush/hud-extracted/control-panel-wide.png',
+			import.meta.url,
+		).href,
+		featurePanel: new URL(
+			'../assets/golden-goal-rush/hud-extracted/feature-panel.png',
+			import.meta.url,
+		).href,
+		menuButton: new URL('../assets/golden-goal-rush/hud-extracted/menu-button.png', import.meta.url)
+			.href,
+		bonusButton: new URL(
+			'../assets/golden-goal-rush/hud-extracted/bonus-button.png',
+			import.meta.url,
+		).href,
+		autoSpinButton: new URL(
+			'../assets/golden-goal-rush/hud-extracted/autospin-button.png',
+			import.meta.url,
+		).href,
+		turboButton: new URL(
+			'../assets/golden-goal-rush/hud-extracted/turbo-button.png',
+			import.meta.url,
+		).href,
+		spinButton: new URL(
+			'../assets/golden-goal-rush/hud-extracted/spin-button-active.png',
+			import.meta.url,
+		).href,
+		minusButton: new URL(
+			'../assets/golden-goal-rush/hud-extracted/minus-button.png',
+			import.meta.url,
+		).href,
+		plusButton: new URL('../assets/golden-goal-rush/hud-extracted/plus-button.png', import.meta.url)
+			.href,
+		infoButton: new URL('../assets/golden-goal-rush/hud-extracted/info-button.png', import.meta.url)
+			.href,
+		settingsButton: new URL(
+			'../assets/golden-goal-rush/hud-extracted/settings-button.png',
+			import.meta.url,
+		).href,
+		featureBanner: new URL(
+			'../assets/golden-goal-rush/hud-extracted/feature-banner-wide.png',
+			import.meta.url,
+		).href,
 	};
 
 	type SymbolTile = {
@@ -59,9 +113,15 @@
 	];
 
 	const meters = [
-		{ label: 'BALANCE', value: '$0.00', icon: 'wallet' },
-		{ label: 'WIN', value: '$0.00', icon: 'cup' },
-		{ label: 'BET', value: '$1.00', icon: 'coin' },
+		{ label: 'BALANCE', value: '$0.00', icon: assets.coin, frame: assets.meterPanelA },
+		{ label: 'WIN', value: '$0.00', icon: assets.trophy, frame: assets.meterPanelB },
+		{ label: 'BET', value: '$1.00', icon: assets.coin, frame: assets.meterPanelC },
+	];
+
+	const features = [
+		{ label: 'COLLECT', icon: assets.collector },
+		{ label: 'MULTI', icon: assets.multiplier },
+		{ label: 'FREE SPINS', icon: assets.scatter },
 	];
 </script>
 
@@ -96,7 +156,8 @@
 	<div class="meters">
 		{#each meters as meter}
 			<div class="meter">
-				<div class="meter-icon" data-icon={meter.icon}></div>
+				<img class="panel-art" src={meter.frame} alt="" />
+				<img class="meter-asset-icon" src={meter.icon} alt="" />
 				<div>
 					<div class="meter-label">{meter.label}</div>
 					<div class="meter-value">{meter.value}</div>
@@ -106,41 +167,56 @@
 	</div>
 
 	<div class="controls">
-		<button type="button" class="control-button menu" aria-label="Menu">
-			<span class="hamburger"></span>
+		<button type="button" class="asset-button menu" aria-label="Menu">
+			<img class="button-art" src={assets.menuButton} alt="" />
 			<span>MENU</span>
 		</button>
-		<button type="button" class="control-button bonus" aria-label="Buy Bonus">
-			<img src={assets.football} alt="" />
+		<button type="button" class="asset-button bonus" aria-label="Buy Bonus">
+			<img class="button-art" src={assets.bonusButton} alt="" />
 			<span>BUY BONUS</span>
 		</button>
-		<button type="button" class="control-button" aria-label="Auto Spin">
-			<img src={assets.autoSpin} alt="" />
+		<button type="button" class="asset-button" aria-label="Auto Spin">
+			<img class="button-art" src={assets.autoSpinButton} alt="" />
 			<span>AUTO SPIN</span>
 		</button>
-		<div class="spacer-panel"></div>
+		<div class="feature-control" aria-label="Golden Goal Rush feature logic preview">
+			<img class="button-art" src={assets.featurePanel} alt="" />
+			<div class="feature-items">
+				{#each features as feature}
+					<div class="feature-item">
+						<img src={feature.icon} alt="" />
+						<span>{feature.label}</span>
+					</div>
+				{/each}
+			</div>
+		</div>
 		<button type="button" class="spin-button" aria-label="Spin">
-			<img src={assets.spin} alt="" />
+			<img class="spin-art" src={assets.spinButton} alt="" />
 			<span>SPIN</span>
 		</button>
-		<button type="button" class="control-button turbo" aria-label="Turbo">
-			<img src={assets.turbo} alt="" />
+		<button type="button" class="asset-button turbo" aria-label="Turbo">
+			<img class="button-art" src={assets.turboButton} alt="" />
 			<span>TURBO</span>
 		</button>
 		<div class="bet-controls" aria-label="Bet controls">
+			<img class="button-art" src={assets.controlPanel} alt="" />
 			<button type="button" aria-label="Decrease bet">
-				<img src={assets.betDown} alt="" />
+				<img src={assets.minusButton} alt="" />
 			</button>
 			<div class="bet-display">
 				<span>BET</span>
 				<strong>$1.00</strong>
 			</div>
 			<button type="button" aria-label="Increase bet">
-				<img src={assets.betUp} alt="" />
+				<img src={assets.plusButton} alt="" />
 			</button>
 		</div>
-		<button type="button" class="small-button info" aria-label="Info">i</button>
-		<button type="button" class="small-button settings" aria-label="Settings"></button>
+		<button type="button" class="icon-button info" aria-label="Info">
+			<img class="button-art" src={assets.infoButton} alt="" />
+		</button>
+		<button type="button" class="icon-button settings" aria-label="Settings">
+			<img class="button-art" src={assets.settingsButton} alt="" />
+		</button>
 	</div>
 </section>
 
@@ -740,5 +816,427 @@
 		width: 9px;
 		height: 9px;
 		background: #101010;
+	}
+
+	.cell img {
+		animation: symbol-idle 4.2s ease-in-out infinite;
+	}
+
+	.cell:nth-child(2n) img {
+		animation-delay: -1.2s;
+	}
+
+	.cell:nth-child(3n) img {
+		animation-delay: -2.1s;
+	}
+
+	.board::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			110deg,
+			transparent 0 38%,
+			rgba(255, 230, 128, 0.12) 48%,
+			transparent 58% 100%
+		);
+		mix-blend-mode: screen;
+		opacity: 0;
+		pointer-events: none;
+		animation: board-sweep 5.8s ease-in-out infinite;
+	}
+
+	.meters {
+		top: 528px;
+		z-index: 8;
+	}
+
+	.meter {
+		position: relative;
+		height: 58px;
+		overflow: visible;
+		border: 0;
+		background: transparent;
+		box-shadow: none;
+	}
+
+	.panel-art,
+	.button-art {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: fill;
+		pointer-events: none;
+		user-select: none;
+	}
+
+	.panel-art {
+		filter: drop-shadow(0 4px 7px rgba(0, 0, 0, 0.85))
+			drop-shadow(0 0 10px rgba(255, 193, 48, 0.32));
+	}
+
+	.meter::after {
+		content: '';
+		position: absolute;
+		inset: 8px 26px;
+		background: linear-gradient(
+			105deg,
+			transparent 0 30%,
+			rgba(255, 245, 168, 0.4) 47%,
+			transparent 62% 100%
+		);
+		mix-blend-mode: screen;
+		opacity: 0;
+		pointer-events: none;
+		animation: meter-glint 4.6s ease-in-out infinite;
+	}
+
+	.meter:nth-child(2)::after {
+		animation-delay: -1.5s;
+	}
+
+	.meter:nth-child(3)::after {
+		animation-delay: -3s;
+	}
+
+	.meter-asset-icon {
+		position: relative;
+		z-index: 1;
+		width: 32px;
+		height: 32px;
+		object-fit: contain;
+		filter: drop-shadow(0 2px 3px #000) drop-shadow(0 0 6px rgba(255, 213, 88, 0.36));
+	}
+
+	.meter > div {
+		position: relative;
+		z-index: 1;
+		min-width: 108px;
+	}
+
+	.controls {
+		bottom: 7px;
+		left: 23px;
+		z-index: 9;
+		align-items: end;
+		height: 91px;
+		gap: 10px;
+	}
+
+	.asset-button,
+	.icon-button,
+	.feature-control {
+		position: relative;
+		display: grid;
+		place-items: center;
+		height: 76px;
+		border: 0;
+		background: transparent;
+		box-shadow: none;
+		color: #ffdd73;
+		font-size: 13px;
+		font-weight: 1000;
+		line-height: 1;
+		text-shadow:
+			0 2px 2px #000,
+			0 0 6px rgba(255, 211, 76, 0.45);
+	}
+
+	.asset-button {
+		width: 86px;
+		grid-template-rows: 48px 18px;
+	}
+
+	.asset-button.bonus {
+		width: 109px;
+	}
+
+	.asset-button.turbo {
+		width: 82px;
+	}
+
+	.asset-button .button-art,
+	.icon-button .button-art {
+		inset: -4px;
+		width: calc(100% + 8px);
+		height: calc(100% + 8px);
+		object-fit: contain;
+		filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.82));
+		transition:
+			transform 160ms ease,
+			filter 160ms ease;
+	}
+
+	.asset-button span {
+		position: relative;
+		z-index: 1;
+		align-self: end;
+		margin-bottom: 9px;
+	}
+
+	.asset-button:is(:hover, :focus-visible) .button-art,
+	.icon-button:is(:hover, :focus-visible) .button-art,
+	.bet-controls button:is(:hover, :focus-visible) img {
+		filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.88))
+			drop-shadow(0 0 12px rgba(94, 211, 255, 0.55));
+		transform: translateY(-1px) scale(1.03);
+	}
+
+	.feature-control {
+		width: 170px;
+		height: 74px;
+	}
+
+	.feature-control > .button-art {
+		inset: -7px -12px;
+		width: calc(100% + 24px);
+		height: calc(100% + 14px);
+		object-fit: fill;
+		filter: drop-shadow(0 4px 7px rgba(0, 0, 0, 0.86))
+			drop-shadow(0 0 10px rgba(43, 169, 255, 0.26));
+	}
+
+	.feature-items {
+		position: relative;
+		z-index: 1;
+		display: grid;
+		width: 148px;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 3px;
+		align-items: center;
+	}
+
+	.feature-item {
+		display: grid;
+		place-items: center;
+		gap: 1px;
+		min-width: 0;
+	}
+
+	.feature-item img {
+		width: 26px;
+		height: 26px;
+		object-fit: contain;
+		filter: drop-shadow(0 2px 3px #000) drop-shadow(0 0 6px rgba(56, 191, 255, 0.45));
+		animation: feature-pulse 2.8s ease-in-out infinite;
+	}
+
+	.feature-item:nth-child(2) img {
+		animation-delay: -0.9s;
+	}
+
+	.feature-item:nth-child(3) img {
+		animation-delay: -1.8s;
+	}
+
+	.feature-item span {
+		width: 100%;
+		overflow: hidden;
+		color: #ffdf78;
+		font-size: 7px;
+		text-align: center;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.spin-button {
+		width: 106px;
+		height: 106px;
+		margin-right: 20px;
+		margin-left: 10px;
+		border: 0;
+		background: transparent;
+		box-shadow: none;
+		animation: spin-pulse 2.5s ease-in-out infinite;
+	}
+
+	.spin-button::before,
+	.spin-button::after {
+		content: '';
+		position: absolute;
+		inset: 3px;
+		border-radius: 50%;
+		pointer-events: none;
+	}
+
+	.spin-button::before {
+		background: radial-gradient(circle, rgba(255, 222, 102, 0.18), transparent 61%);
+		filter: blur(4px);
+		animation: spin-glow 2.2s ease-in-out infinite;
+	}
+
+	.spin-button::after {
+		border: 2px solid rgba(94, 211, 255, 0.46);
+		opacity: 0;
+		animation: spin-ring 2.4s ease-out infinite;
+	}
+
+	.spin-art {
+		position: absolute;
+		inset: -7px;
+		width: calc(100% + 14px);
+		height: calc(100% + 14px);
+		object-fit: contain;
+		filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.88))
+			drop-shadow(0 0 14px rgba(255, 205, 57, 0.56));
+		animation: spin-art-idle 5.5s linear infinite;
+	}
+
+	.spin-button span {
+		position: relative;
+		z-index: 2;
+		margin-top: 38px;
+		color: #fff0a5;
+		font-size: 22px;
+		-webkit-text-stroke: 1px #5a2500;
+	}
+
+	.bet-controls {
+		position: relative;
+		display: grid;
+		width: 212px;
+		height: 76px;
+		grid-template-columns: 58px 1fr 58px;
+		overflow: visible;
+		border: 0;
+		background: transparent;
+		box-shadow: none;
+	}
+
+	.bet-controls > .button-art {
+		inset: -10px -12px;
+		width: calc(100% + 24px);
+		height: calc(100% + 20px);
+		object-fit: fill;
+		filter: drop-shadow(0 4px 7px rgba(0, 0, 0, 0.85));
+	}
+
+	.bet-controls button {
+		position: relative;
+		z-index: 1;
+		display: grid;
+		place-items: center;
+		border: 0;
+		background: transparent;
+	}
+
+	.bet-controls button img {
+		width: 46px;
+		height: 46px;
+		object-fit: contain;
+		filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.85));
+		transition:
+			transform 160ms ease,
+			filter 160ms ease;
+	}
+
+	.bet-display {
+		position: relative;
+		z-index: 1;
+		background: transparent;
+	}
+
+	.icon-button {
+		width: 58px;
+	}
+
+	@keyframes symbol-idle {
+		0%,
+		100% {
+			transform: translateY(0) scale(1);
+		}
+		50% {
+			transform: translateY(-2px) scale(1.015);
+		}
+	}
+
+	@keyframes board-sweep {
+		0%,
+		56%,
+		100% {
+			opacity: 0;
+			transform: translateX(-45%);
+		}
+		66% {
+			opacity: 0.8;
+		}
+		82% {
+			opacity: 0;
+			transform: translateX(55%);
+		}
+	}
+
+	@keyframes meter-glint {
+		0%,
+		62%,
+		100% {
+			opacity: 0;
+			transform: translateX(-52%);
+		}
+		72% {
+			opacity: 0.8;
+		}
+		88% {
+			opacity: 0;
+			transform: translateX(52%);
+		}
+	}
+
+	@keyframes feature-pulse {
+		0%,
+		100% {
+			transform: translateY(0) scale(1);
+		}
+		50% {
+			transform: translateY(-2px) scale(1.08);
+		}
+	}
+
+	@keyframes spin-pulse {
+		0%,
+		100% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.035);
+		}
+	}
+
+	@keyframes spin-glow {
+		0%,
+		100% {
+			opacity: 0.45;
+		}
+		50% {
+			opacity: 0.85;
+		}
+	}
+
+	@keyframes spin-ring {
+		0% {
+			opacity: 0.65;
+			transform: scale(0.82);
+		}
+		78%,
+		100% {
+			opacity: 0;
+			transform: scale(1.3);
+		}
+	}
+
+	@keyframes spin-art-idle {
+		0% {
+			filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.88))
+				drop-shadow(0 0 12px rgba(255, 205, 57, 0.52));
+		}
+		50% {
+			filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.88))
+				drop-shadow(0 0 19px rgba(94, 211, 255, 0.5));
+		}
+		100% {
+			filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.88))
+				drop-shadow(0 0 12px rgba(255, 205, 57, 0.52));
+		}
 	}
 </style>

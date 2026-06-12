@@ -14,6 +14,7 @@ RTP package.
 | High symbols             | `fussball.png`, `pokal.png`, `trikot.png`, `pfeife.png` |
 | Feature symbols          | `wild.png`, `scatter.png`                               |
 | HUD/button reference art | `ui/*.png`                                              |
+| Extracted HUD assets     | `hud-extracted/*.png`                                   |
 
 ## Symbol Intent
 
@@ -35,6 +36,10 @@ RTP package.
 
 `logo-horizontal.png` is kept as source art, but the static preview renders a
 cleaner CSS wordmark because the source image has large transparent padding.
+
+`hud-extracted/` contains transparent crops from the provided HUD/frame/button
+PNG sheets. The preview uses these files as visible panel and button art, with
+text and values layered over them.
 
 `special/` contains coin, multiplier, collector, and bonus reference assets.
 They are intentionally not wired into runtime logic in this branch. Any future
