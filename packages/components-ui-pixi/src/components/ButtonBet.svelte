@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { Tween } from 'svelte/motion';
-	import { Container, Circle, Graphics } from 'pixi-svelte';
+	import { Container, Circle, Graphics, Text } from 'pixi-svelte';
 	import { Button, type ButtonProps } from 'components-pixi';
 	import { OnHotkey } from 'components-shared';
 	import { stateBetDerived } from 'state-shared';
 
 	import ButtonBetProvider from './ButtonBetProvider.svelte';
 	import UiButtonScale from './UiButtonScale.svelte';
-	import { UI_BASE_SIZE, UI_THEME } from '../constants';
+	import { UI_BASE_FONT_SIZE, UI_BASE_SIZE, UI_THEME } from '../constants';
 
 	const props: Partial<Omit<ButtonProps, 'children'>> = $props();
 	const disabled = $derived(!stateBetDerived.isBetCostAvailable());
@@ -26,7 +26,7 @@
 		return () => cancelAnimationFrame(frame);
 	});
 
-	const pulseAlpha = $derived(0.18 + 0.14 * Math.sin(time * 0.004));
+	const pulseAlpha = $derived(0.16 + 0.12 * Math.sin(time * 0.004));
 	const rotorRotation = $derived((time * 0.006) % (Math.PI * 2));
 
 	// Error feedback when the player tries to spin without enough balance.
@@ -61,17 +61,18 @@
 						<Circle
 							{...center}
 							anchor={0.5}
-							diameter={sizes.width * 1.22}
-							backgroundColor={UI_THEME.emeraldBright}
+							diameter={sizes.width * 1.24}
+							backgroundColor={UI_THEME.goldBright}
 							backgroundAlpha={pulseAlpha}
 						/>
 					{/if}
 
 					<UiButtonScale x={center.x} y={center.y} {hovered} {pressed}>
+						<!-- Thick gold ring with dark center, after the final game mockup. -->
 						<Circle
 							anchor={0.5}
 							diameter={sizes.width}
-							backgroundColor={inactive ? UI_THEME.disabledFill : UI_THEME.emeraldDark}
+							backgroundColor={inactive ? UI_THEME.disabledFill : UI_THEME.panel}
 							borderColor={errorFlash
 								? UI_THEME.errorRed
 								: inactive
@@ -79,50 +80,43 @@
 									: hovered
 										? UI_THEME.goldBright
 										: UI_THEME.gold}
-							borderWidth={errorFlash ? 10 : 7}
+							borderWidth={errorFlash ? 14 : 12}
 						/>
 						<Circle
 							anchor={0.5}
-							diameter={sizes.width * 0.84}
-							backgroundColor={inactive ? UI_THEME.disabledFill : UI_THEME.emerald}
-							backgroundAlpha={inactive ? 0.4 : 0.55}
+							diameter={sizes.width * 0.78}
+							backgroundColor={inactive ? UI_THEME.disabledFill : UI_THEME.panelInner}
+							borderColor={inactive ? UI_THEME.disabledBorder : UI_THEME.gold}
+							borderWidth={2}
+						/>
+
+						<Text
+							anchor={0.5}
+							text={spinning ? 'STOP' : 'SPIN'}
+							style={{
+								align: 'center',
+								fontFamily: 'proxima-nova',
+								fontWeight: '800',
+								letterSpacing: 2,
+								fontSize: UI_BASE_FONT_SIZE * 0.95,
+								fill: inactive ? UI_THEME.disabledText : UI_THEME.textGold,
+							}}
 						/>
 
 						{#if spinning}
-							<!-- Stop square + rotating rotor ring while the reels are spinning. -->
-							<Graphics
-								draw={(graphics) => {
-									const s = sizes.width * 0.2;
-									graphics.roundRect(-s, -s, s * 2, s * 2, s * 0.3);
-									graphics.fill({ color: key === 'stop_disabled' ? UI_THEME.disabledText : 0xffffff });
-								}}
-							/>
+							<!-- Rotating rotor ring while the reels are spinning. -->
 							<Container rotation={rotorRotation}>
 								<Graphics
 									draw={(graphics) => {
 										graphics.arc(0, 0, radius * 0.92, 0, Math.PI * 1.4);
 										graphics.stroke({
-											color: UI_THEME.electricBlue,
+											color: UI_THEME.goldBright,
 											width: 6,
 											alpha: key === 'stop_disabled' ? 0.4 : 0.9,
 										});
 									}}
 								/>
 							</Container>
-						{:else}
-							<!-- Play-arrow spin icon. -->
-							<Graphics
-								draw={(graphics) => {
-									const s = sizes.width * 0.24;
-									graphics.moveTo(-s * 0.6, -s);
-									graphics.lineTo(s, 0);
-									graphics.lineTo(-s * 0.6, s);
-									graphics.closePath();
-									graphics.fill({
-										color: inactive ? UI_THEME.disabledText : UI_THEME.goldBright,
-									});
-								}}
-							/>
 						{/if}
 					</UiButtonScale>
 				{/snippet}

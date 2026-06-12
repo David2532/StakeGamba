@@ -66,7 +66,7 @@
 				<Circle
 					anchor={0.5}
 					diameter={Math.max(sizes.width, sizes.height) * 1.16}
-					backgroundColor={state === 'active' ? UI_THEME.emeraldBright : UI_THEME.goldBright}
+					backgroundColor={UI_THEME.goldBright}
 					backgroundAlpha={0.25}
 				/>
 			{/if}
@@ -75,7 +75,7 @@
 				anchor={0.5}
 				width={sizes.width}
 				height={sizes.height}
-				backgroundColor={UI_THEME.panelEmerald}
+				backgroundColor={UI_THEME.panel}
 				{...state === 'hovered'
 					? {
 							borderColor: UI_THEME.goldBright,
@@ -84,8 +84,7 @@
 					: {}}
 				{...state === 'active'
 					? {
-							backgroundColor: UI_THEME.emeraldDark,
-							borderColor: UI_THEME.emeraldBright,
+							borderColor: UI_THEME.goldBright,
 							borderWidth: 6,
 						}
 					: {}}
