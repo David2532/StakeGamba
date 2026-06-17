@@ -1,226 +1,14 @@
-<script lang="ts">
-	const assets = {
-		background: new URL('../assets/golden-goal-rush/slot-background.png', import.meta.url).href,
-		ten: new URL('../assets/golden-goal-rush/10.png', import.meta.url).href,
-		j: new URL('../assets/golden-goal-rush/j.png', import.meta.url).href,
-		q: new URL('../assets/golden-goal-rush/q.png', import.meta.url).href,
-		k: new URL('../assets/golden-goal-rush/k.png', import.meta.url).href,
-		a: new URL('../assets/golden-goal-rush/a.png', import.meta.url).href,
-		football: new URL('../assets/golden-goal-rush/fussball.png', import.meta.url).href,
-		trophy: new URL('../assets/golden-goal-rush/pokal.png', import.meta.url).href,
-		jersey: new URL('../assets/golden-goal-rush/trikot.png', import.meta.url).href,
-		whistle: new URL('../assets/golden-goal-rush/pfeife.png', import.meta.url).href,
-		wild: new URL('../assets/golden-goal-rush/wild.png', import.meta.url).href,
-		scatter: new URL('../assets/golden-goal-rush/scatter.png', import.meta.url).href,
-		coin: new URL('../assets/golden-goal-rush/special/coin_1x.png', import.meta.url).href,
-		collector: new URL('../assets/golden-goal-rush/special/symbol_collector.png', import.meta.url)
-			.href,
-		multiplier: new URL('../assets/golden-goal-rush/special/symbol_multiplier.png', import.meta.url)
-			.href,
-		meterPanelA: new URL(
-			'../assets/golden-goal-rush/hud-extracted/meter-panel-a.png',
-			import.meta.url,
-		).href,
-		meterPanelB: new URL(
-			'../assets/golden-goal-rush/hud-extracted/meter-panel-b.png',
-			import.meta.url,
-		).href,
-		meterPanelC: new URL(
-			'../assets/golden-goal-rush/hud-extracted/meter-panel-c.png',
-			import.meta.url,
-		).href,
-		controlPanel: new URL(
-			'../assets/golden-goal-rush/hud-extracted/control-panel-wide.png',
-			import.meta.url,
-		).href,
-		featurePanel: new URL(
-			'../assets/golden-goal-rush/hud-extracted/feature-panel.png',
-			import.meta.url,
-		).href,
-		menuButton: new URL('../assets/golden-goal-rush/hud-extracted/menu-button.png', import.meta.url)
-			.href,
-		bonusButton: new URL(
-			'../assets/golden-goal-rush/hud-extracted/bonus-button.png',
-			import.meta.url,
-		).href,
-		autoSpinButton: new URL(
-			'../assets/golden-goal-rush/hud-extracted/autospin-button.png',
-			import.meta.url,
-		).href,
-		turboButton: new URL(
-			'../assets/golden-goal-rush/hud-extracted/turbo-button.png',
-			import.meta.url,
-		).href,
-		spinButton: new URL(
-			'../assets/golden-goal-rush/hud-extracted/spin-button-active.png',
-			import.meta.url,
-		).href,
-		minusButton: new URL(
-			'../assets/golden-goal-rush/hud-extracted/minus-button.png',
-			import.meta.url,
-		).href,
-		plusButton: new URL('../assets/golden-goal-rush/hud-extracted/plus-button.png', import.meta.url)
-			.href,
-		infoButton: new URL('../assets/golden-goal-rush/hud-extracted/info-button.png', import.meta.url)
-			.href,
-		settingsButton: new URL(
-			'../assets/golden-goal-rush/hud-extracted/settings-button.png',
-			import.meta.url,
-		).href,
-		featureBanner: new URL(
-			'../assets/golden-goal-rush/hud-extracted/feature-banner-wide.png',
-			import.meta.url,
-		).href,
-	};
-
-	type SymbolTile = {
-		src: string;
-		label: string;
-		size?: 'wide' | 'feature';
-	};
-
-	const board: SymbolTile[] = [
-		{ src: assets.jersey, label: 'Jersey', size: 'wide' },
-		{ src: assets.trophy, label: 'Trophy' },
-		{ src: assets.k, label: 'K' },
-		{ src: assets.football, label: 'Football', size: 'feature' },
-		{ src: assets.ten, label: '10' },
-		{ src: assets.scatter, label: 'Scatter', size: 'wide' },
-		{ src: assets.q, label: 'Q' },
-		{ src: assets.ten, label: '10' },
-		{ src: assets.jersey, label: 'Jersey', size: 'wide' },
-		{ src: assets.a, label: 'A' },
-		{ src: assets.whistle, label: 'Whistle', size: 'feature' },
-		{ src: assets.j, label: 'J' },
-		{ src: assets.wild, label: 'Wild', size: 'feature' },
-		{ src: assets.j, label: 'J' },
-		{ src: assets.trophy, label: 'Trophy' },
-		{ src: assets.q, label: 'Q' },
-		{ src: assets.k, label: 'K' },
-		{ src: assets.jersey, label: 'Jersey', size: 'wide' },
-		{ src: assets.ten, label: '10' },
-		{ src: assets.football, label: 'Football', size: 'feature' },
-		{ src: assets.j, label: 'J' },
-		{ src: assets.scatter, label: 'Scatter', size: 'wide' },
-		{ src: assets.a, label: 'A' },
-		{ src: assets.q, label: 'Q' },
-		{ src: assets.j, label: 'J' },
-		{ src: assets.jersey, label: 'Jersey', size: 'wide' },
-		{ src: assets.k, label: 'K' },
-		{ src: assets.whistle, label: 'Whistle', size: 'feature' },
-		{ src: assets.trophy, label: 'Trophy' },
-		{ src: assets.ten, label: '10' },
-	];
-
-	const meters = [
-		{ label: 'BALANCE', value: '$0.00', icon: assets.coin, frame: assets.meterPanelA },
-		{ label: 'WIN', value: '$0.00', icon: assets.trophy, frame: assets.meterPanelB },
-		{ label: 'BET', value: '$1.00', icon: assets.coin, frame: assets.meterPanelC },
-	];
-
-	const features = [
-		{ label: 'COLLECT', icon: assets.collector },
-		{ label: 'MULTI', icon: assets.multiplier },
-		{ label: 'FREE SPINS', icon: assets.scatter },
-	];
-</script>
-
-<section class="stage" aria-label="Golden Goal Rush final visual direction preview">
-	<img class="background" src={assets.background} alt="" />
-	<div class="stadium-vignette"></div>
-	<div class="top-light left"></div>
-	<div class="top-light right"></div>
-
-	<div class="logo-wordmark" aria-label="Golden Goal Rush">
-		<span>GOLDEN G</span>
-		<img class="logo-ball" src={assets.football} alt="" />
-		<span>AL RUSH</span>
-	</div>
-	<div class="world-plaque">WORLD STADIUM</div>
-
-	<div class="board-wrap">
-		<div class="board-glow"></div>
-		<div class="board-frame">
-			<div class="side-badge left">243<span>WAYS</span></div>
-			<div class="side-badge right">243<span>WAYS</span></div>
-			<div class="board">
-				{#each board as symbol}
-					<div class="cell">
-						<img class={symbol.size ?? ''} src={symbol.src} alt={symbol.label} />
-					</div>
-				{/each}
-			</div>
-		</div>
-	</div>
-
-	<div class="meters">
-		{#each meters as meter}
-			<div class="meter">
-				<img class="panel-art" src={meter.frame} alt="" />
-				<img class="meter-asset-icon" src={meter.icon} alt="" />
-				<div>
-					<div class="meter-label">{meter.label}</div>
-					<div class="meter-value">{meter.value}</div>
-				</div>
-			</div>
-		{/each}
-	</div>
-
-	<div class="controls">
-		<button type="button" class="asset-button menu" aria-label="Menu">
-			<img class="button-art" src={assets.menuButton} alt="" />
-			<span>MENU</span>
-		</button>
-		<button type="button" class="asset-button bonus" aria-label="Buy Bonus">
-			<img class="button-art" src={assets.bonusButton} alt="" />
-			<span>BUY BONUS</span>
-		</button>
-		<button type="button" class="asset-button" aria-label="Auto Spin">
-			<img class="button-art" src={assets.autoSpinButton} alt="" />
-			<span>AUTO SPIN</span>
-		</button>
-		<div class="feature-control" aria-label="Golden Goal Rush feature logic preview">
-			<img class="button-art" src={assets.featurePanel} alt="" />
-			<div class="feature-items">
-				{#each features as feature}
-					<div class="feature-item">
-						<img src={feature.icon} alt="" />
-						<span>{feature.label}</span>
-					</div>
-				{/each}
-			</div>
-		</div>
-		<button type="button" class="spin-button" aria-label="Spin">
-			<img class="spin-art" src={assets.spinButton} alt="" />
-			<span>SPIN</span>
-		</button>
-		<button type="button" class="asset-button turbo" aria-label="Turbo">
-			<img class="button-art" src={assets.turboButton} alt="" />
-			<span>TURBO</span>
-		</button>
-		<div class="bet-controls" aria-label="Bet controls">
-			<img class="button-art" src={assets.controlPanel} alt="" />
-			<button type="button" aria-label="Decrease bet">
-				<img src={assets.minusButton} alt="" />
-			</button>
-			<div class="bet-display">
-				<span>BET</span>
-				<strong>$1.00</strong>
-			</div>
-			<button type="button" aria-label="Increase bet">
-				<img src={assets.plusButton} alt="" />
-			</button>
-		</div>
-		<button type="button" class="icon-button info" aria-label="Info">
-			<img class="button-art" src={assets.infoButton} alt="" />
-		</button>
-		<button type="button" class="icon-button settings" aria-label="Settings">
-			<img class="button-art" src={assets.settingsButton} alt="" />
-		</button>
-	</div>
-</section>
-
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Golden Goal Rush — Final Direction Preview</title>
 <style>
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: #05080f; display: grid; place-items: center; }
+	.viewport { width: 1200px; height: 675px; }
+
 	.stage {
 		position: relative;
 		width: 1200px;
@@ -1241,4 +1029,116 @@
 				drop-shadow(0 0 12px rgba(255, 205, 57, 0.52));
 		}
 	}
+
 </style>
+</head>
+<body>
+	<div class="viewport">
+	<section class="stage" aria-label="Golden Goal Rush final visual direction preview">
+		<img class="background" src="src/assets/golden-goal-rush/slot-background.png" alt="" />
+		<div class="stadium-vignette"></div>
+		<div class="top-light left"></div>
+		<div class="top-light right"></div>
+
+		<div class="logo-wordmark" aria-label="Golden Goal Rush">
+			<span>GOLDEN G</span>
+			<img class="logo-ball" src="src/assets/golden-goal-rush/fussball.png" alt="" />
+			<span>AL RUSH</span>
+		</div>
+		<div class="world-plaque">WORLD STADIUM</div>
+
+		<div class="board-wrap">
+			<div class="board-glow"></div>
+			<div class="board-frame">
+				<div class="side-badge left">243<span>WAYS</span></div>
+				<div class="side-badge right">243<span>WAYS</span></div>
+				<div class="board">
+					<div class="cell"><img class="wide" src="src/assets/golden-goal-rush/trikot.png" alt="Jersey" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/pokal.png" alt="Trophy" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/k.png" alt="K" /></div>
+					<div class="cell"><img class="feature" src="src/assets/golden-goal-rush/fussball.png" alt="Football" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/10.png" alt="10" /></div>
+					<div class="cell"><img class="wide" src="src/assets/golden-goal-rush/scatter.png" alt="Scatter" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/q.png" alt="Q" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/10.png" alt="10" /></div>
+					<div class="cell"><img class="wide" src="src/assets/golden-goal-rush/trikot.png" alt="Jersey" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/a.png" alt="A" /></div>
+					<div class="cell"><img class="feature" src="src/assets/golden-goal-rush/pfeife.png" alt="Whistle" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/j.png" alt="J" /></div>
+					<div class="cell"><img class="feature" src="src/assets/golden-goal-rush/wild.png" alt="Wild" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/j.png" alt="J" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/pokal.png" alt="Trophy" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/q.png" alt="Q" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/k.png" alt="K" /></div>
+					<div class="cell"><img class="wide" src="src/assets/golden-goal-rush/trikot.png" alt="Jersey" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/10.png" alt="10" /></div>
+					<div class="cell"><img class="feature" src="src/assets/golden-goal-rush/fussball.png" alt="Football" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/j.png" alt="J" /></div>
+					<div class="cell"><img class="wide" src="src/assets/golden-goal-rush/scatter.png" alt="Scatter" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/a.png" alt="A" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/q.png" alt="Q" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/j.png" alt="J" /></div>
+					<div class="cell"><img class="wide" src="src/assets/golden-goal-rush/trikot.png" alt="Jersey" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/k.png" alt="K" /></div>
+					<div class="cell"><img class="feature" src="src/assets/golden-goal-rush/pfeife.png" alt="Whistle" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/pokal.png" alt="Trophy" /></div>
+					<div class="cell"><img class="" src="src/assets/golden-goal-rush/10.png" alt="10" /></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="meters">
+			<div class="meter">
+				<img class="panel-art" src="src/assets/golden-goal-rush/hud-extracted/meter-panel-a.png" alt="" />
+				<img class="meter-asset-icon" src="src/assets/golden-goal-rush/special/coin_1x.png" alt="" />
+				<div><div class="meter-label">BALANCE</div><div class="meter-value">$0.00</div></div>
+			</div>
+			<div class="meter">
+				<img class="panel-art" src="src/assets/golden-goal-rush/hud-extracted/meter-panel-b.png" alt="" />
+				<img class="meter-asset-icon" src="src/assets/golden-goal-rush/pokal.png" alt="" />
+				<div><div class="meter-label">WIN</div><div class="meter-value">$0.00</div></div>
+			</div>
+			<div class="meter">
+				<img class="panel-art" src="src/assets/golden-goal-rush/hud-extracted/meter-panel-c.png" alt="" />
+				<img class="meter-asset-icon" src="src/assets/golden-goal-rush/special/coin_1x.png" alt="" />
+				<div><div class="meter-label">BET</div><div class="meter-value">$1.00</div></div>
+			</div>
+		</div>
+
+		<div class="controls">
+			<button type="button" class="asset-button menu" aria-label="Menu">
+				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/menu-button.png" alt="" /><span>MENU</span>
+			</button>
+			<button type="button" class="asset-button bonus" aria-label="Buy Bonus">
+				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/bonus-button.png" alt="" /><span>BUY BONUS</span>
+			</button>
+			<button type="button" class="asset-button" aria-label="Auto Spin">
+				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/autospin-button.png" alt="" /><span>AUTO SPIN</span>
+			</button>
+			<div class="feature-control" aria-label="Golden Goal Rush feature logic preview">
+				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/feature-panel.png" alt="" />
+				<div class="feature-items">
+					<div class="feature-item"><img src="src/assets/golden-goal-rush/special/symbol_collector.png" alt="" /><span>COLLECT</span></div>
+					<div class="feature-item"><img src="src/assets/golden-goal-rush/special/symbol_multiplier.png" alt="" /><span>MULTI</span></div>
+					<div class="feature-item"><img src="src/assets/golden-goal-rush/scatter.png" alt="" /><span>FREE SPINS</span></div>
+				</div>
+			</div>
+			<button type="button" class="spin-button" aria-label="Spin">
+				<img class="spin-art" src="src/assets/golden-goal-rush/hud-extracted/spin-button-active.png" alt="" /><span>SPIN</span>
+			</button>
+			<button type="button" class="asset-button turbo" aria-label="Turbo">
+				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/turbo-button.png" alt="" /><span>TURBO</span>
+			</button>
+			<div class="bet-controls" aria-label="Bet controls">
+				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/control-panel-wide.png" alt="" />
+				<button type="button" aria-label="Decrease bet"><img src="src/assets/golden-goal-rush/hud-extracted/minus-button.png" alt="" /></button>
+				<div class="bet-display"><span>BET</span><strong>$1.00</strong></div>
+				<button type="button" aria-label="Increase bet"><img src="src/assets/golden-goal-rush/hud-extracted/plus-button.png" alt="" /></button>
+			</div>
+			<button type="button" class="icon-button info" aria-label="Info"><img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/info-button.png" alt="" /></button>
+			<button type="button" class="icon-button settings" aria-label="Settings"><img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/settings-button.png" alt="" /></button>
+		</div>
+	</section>
+	</div>
+</body>
+</html>
