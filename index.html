@@ -1,9 +1,42 @@
 <!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Golden Goal Rush — Storybook</title>
-<script>location.replace('sb/' + location.search + location.hash);</script>
-</head><body>
-<p style="font-family:sans-serif;color:#eee;background:#05080f;">Redirecting to <a href="sb/">Storybook</a>…</p>
-</body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Golden Goal Rush</title>
+<style>
+	* { box-sizing: border-box; }
+	html, body { margin: 0; min-height: 100%; font-family: 'Inter', Arial, sans-serif;
+		background: radial-gradient(circle at 50% 20%, #11233a, #05080f 70%); color: #ffe49a; }
+	.wrap { min-height: 100vh; display: grid; place-items: center; gap: 0; padding: 32px; }
+	.card { text-align: center; }
+	h1 { font-family: 'Arial Black', Impact, sans-serif; font-style: italic; font-size: 54px;
+		margin: 0 0 6px; letter-spacing: 1px;
+		background: linear-gradient(180deg, #fff8bf, #ffc84d 40%, #9c4f08 78%, #ffe27a);
+		-webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+		text-shadow: 0 0 22px rgba(255, 190, 38, 0.4); }
+	p.sub { letter-spacing: 4px; color: #c9a24a; margin: 0 0 36px; font-weight: 700; }
+	.links { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; }
+	a { display: inline-block; padding: 18px 34px; border-radius: 14px; text-decoration: none;
+		font-weight: 800; font-size: 18px; letter-spacing: 1px; border: 2px solid #d5a23b;
+		color: #ffe49a; background: linear-gradient(180deg, #14161c, #08090d);
+		box-shadow: 0 6px 22px rgba(0,0,0,0.5), inset 0 0 18px rgba(255,200,60,0.12);
+		transition: transform .15s ease, box-shadow .15s ease; }
+	a:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.6), 0 0 18px rgba(255,200,60,0.4); }
+	a.primary { background: linear-gradient(180deg, #ffe088, #b07d22); color: #1a1206;
+		border-color: #ffe49a; }
+	small { display: block; margin-top: 28px; color: #6f7785; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+	<div class="wrap"><div class="card">
+		<h1>GOLDEN GOAL RUSH</h1>
+		<p class="sub">WORLD STADIUM</p>
+		<div class="links">
+			<a class="primary" href="play.html">▶ Play interactive demo</a>
+			<a href="sb/">Storybook</a>
+		</div>
+		<small>1200×675 · 6×5 cluster / cascade · visual preview</small>
+	</div></div>
+</body>
+</html>
