@@ -482,22 +482,25 @@
 	}
 
 	.cell img {
-		/* Uniform symbol footprint so letters and feature art read at the
-		   same size, matching the mockup. */
-		max-width: 84%;
-		max-height: 84%;
+		/* Absolutely fill the cell so percentage sizing resolves against the
+		   cell's definite box, then letterbox with object-fit so the whole
+		   symbol is always visible (in-flow % height was clipping symbols). */
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		padding: 1px 6px;
+		box-sizing: border-box;
 		object-fit: contain;
 		filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.78)) drop-shadow(0 0 7px rgba(255, 188, 46, 0.22));
 	}
 
 	.cell img.wide {
-		max-width: 86%;
-		max-height: 86%;
+		padding: 1px 4px;
 	}
 
 	.cell img.feature {
-		max-width: 86%;
-		max-height: 88%;
+		padding: 0 3px;
 	}
 
 	.meters {
