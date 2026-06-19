@@ -608,18 +608,20 @@
 
 	.meter-label {
 		color: #ffd96f;
-		font-size: 15px;
+		font-size: 12px;
 		font-weight: 900;
 		line-height: 1;
+		letter-spacing: 0.5px;
 		text-align: center;
 	}
 
 	.meter-value {
-		margin-top: 3px;
+		margin-top: 4px;
 		color: #fff;
-		font-size: 23px;
+		font-size: 18px;
 		font-weight: 1000;
 		line-height: 1;
+		white-space: nowrap;
 		text-align: center;
 	}
 
