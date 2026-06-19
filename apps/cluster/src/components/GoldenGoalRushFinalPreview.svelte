@@ -396,19 +396,36 @@
 
 	.board-frame {
 		position: absolute;
-		inset: -18px -25px;
-		padding: 18px 25px;
-		border: 6px solid #e7b84e;
-		border-radius: 30px;
+		inset: -20px -26px;
+		padding: 20px 26px;
+		border: 13px solid transparent;
+		border-radius: 28px;
+		/* Metallic gold gradient border (mockup look) with a dark, slightly
+		   green-tinted interior — recreated in vector because the board border
+		   cannot be cleanly extracted from the full mockup render. */
 		background:
-			linear-gradient(90deg, rgba(0, 74, 25, 0.9), transparent 7% 93%, rgba(0, 74, 25, 0.9)),
-			linear-gradient(180deg, #0b0f0d 0%, #060606 100%);
+			linear-gradient(92deg, rgba(0, 70, 24, 0.5), transparent 8% 92%, rgba(0, 70, 24, 0.5))
+				padding-box,
+			linear-gradient(180deg, #0a0e0c 0%, #050505 100%) padding-box,
+			linear-gradient(
+					150deg,
+					#fff3bd 0%,
+					#f0c75a 13%,
+					#a8741f 33%,
+					#5c3c12 50%,
+					#b6831d 64%,
+					#ffe487 83%,
+					#7e4f15 100%
+				)
+				border-box;
 		box-shadow:
-			inset 0 0 0 2px #4c2a09,
-			inset 0 0 0 7px rgba(255, 231, 119, 0.24),
-			0 0 0 4px rgba(5, 5, 5, 0.92),
-			0 0 34px rgba(255, 191, 44, 0.75);
+			inset 0 0 0 1px rgba(255, 236, 150, 0.55),
+			inset 0 0 26px rgba(0, 0, 0, 0.9),
+			0 0 0 3px #050505,
+			0 10px 30px rgba(0, 0, 0, 0.6),
+			0 0 42px rgba(255, 191, 44, 0.5);
 	}
+
 
 	.side-badge {
 		position: absolute;
@@ -735,14 +752,6 @@
 		position: relative;
 		z-index: 1;
 		margin-top: 33px;
-	}
-
-	.turbo {
-		width: 84px;
-	}
-
-	.turbo img {
-		max-width: 28px;
 	}
 
 	.bet-controls {
