@@ -672,7 +672,7 @@ async function spin(buy) {
 		retrigger(sc);
 	}
 
-	if (state.mode === 'base') { state.golden.clear(); state.reveals.clear(); }
+	if (state.mode === 'base') { state.golden.clear(); state.reveals.clear(); paint(); } // repaint to remove golden frames
 	$('btn-spin').classList.remove('busy'); state.spinning = false;
 	if (state.mode === 'base' && state.auto && !triggered) setTimeout(() => spin(), state.turbo ? 250 : 600);
 }
@@ -711,7 +711,7 @@ async function startFreeSpins(tier) {
 		await wait(state.turbo ? 250 : 550);
 	}
 	const won = state.fsWin || 0;
-	state.mode = 'base'; state.tier = 0; state.golden.clear(); state.reveals.clear();
+	state.mode = 'base'; state.tier = 0; state.golden.clear(); state.reveals.clear(); paint();
 	state.balance += won; updateMeters(); updateFsCounter();
 	$('win-banner-label').textContent = 'BONUS WIN'; setWin(won);
 	await showBanner(won);
