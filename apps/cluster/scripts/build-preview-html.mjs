@@ -62,6 +62,46 @@ const SYMBOLS = {
 	jersey: { src: `${A}/trikot.png`, weight: 6, pay: 1, cls: 'wide' },
 	wild: { src: `${A}/wild.png`, weight: 2, pay: 0, cls: 'feature', wild: true },
 	scatter: { src: `${A}/scatter.png`, weight: 2, pay: 0, cls: 'wide', scatter: true },
+	rainbow: { src: `${SPECIAL}/symbol_rainbow.png`, weight: 2, pay: 0, cls: 'feature', rainbow: true },
+};
+
+// Coin medals (tier color) + a value label render on top; multiplier badge / collector.
+const COIN_ASSETS = {
+	bronze: `${SPECIAL}/bronze.png`, silver: `${SPECIAL}/silber.png`, gold: `${SPECIAL}/gold.png`,
+};
+const MULT_ASSETS = {
+	2: `${SPECIAL}/x2.png`, 3: `${SPECIAL}/x3.png`, 4: `${SPECIAL}/x4.png`,
+	5: `${SPECIAL}/x5.png`, 10: `${SPECIAL}/x10.png`,
+};
+const COLLECTOR_ASSET = `${SPECIAL}/symbol_collector.png`;
+
+// Central balancing config (Phase 6) — all tunable feature weights/values/limits.
+const CONFIG = {
+	// reveal weights (relative) for a marked golden cell when Rainbow activates
+	bronzeWeight: 60, silverWeight: 18, goldWeight: 5, multiplierWeight: 8, collectorWeight: 6,
+	// board feature-symbol weights (frequency on the reels)
+	rainbowWeight: 2, scatterWeight: 2,
+	// coin value tables (multipliers of bet)
+	bronzeValues: [0.2, 0.5, 1, 2, 3, 4],
+	silverValues: [5, 10, 15, 20],
+	goldValues: [25, 50, 100, 250, 500],
+	multiplierValues: [2, 3, 4, 5, 10],
+	// safety limits
+	maxCollectorCycles: 20,
+	maxWinMultiplier: 10000,
+	// free-spin tiers
+	tiers: {
+		1: { name: 'Golden Chance', spins: 8, persistGolden: true, persistAfterReveal: false, guaranteedRainbow: false, reduceBronze: false },
+		2: { name: 'All That Glitters', spins: 12, persistGolden: true, persistAfterReveal: true, guaranteedRainbow: false, reduceBronze: false },
+		3: { name: 'End of the Rainbow', spins: 12, persistGolden: true, persistAfterReveal: true, guaranteedRainbow: true, reduceBronze: true },
+	},
+	// bonus buy options (price = mult * bet); tier 3 intentionally absent
+	bonusBuy: [
+		{ id: 'hunt', label: 'Feature Spins', mult: 3, desc: 'Boosts feature chance for one spin' },
+		{ id: 'rainbow', label: 'Rainbow Spin', mult: 50, desc: 'Guarantees a Golden Arc next spin' },
+		{ id: 'tier1', label: 'Golden Chance', mult: 100, desc: 'Start 8 Free Spins (Tier 1)' },
+		{ id: 'tier2', label: 'All That Glitters', mult: 250, desc: 'Start 12 Free Spins (Tier 2)' },
+	],
 };
 
 const meters = [
@@ -176,6 +216,48 @@ const extraCss = `
 	.pt-feat b { color:#ffe49a; display:block; margin-bottom:2px; font-size:14px; letter-spacing:0.5px; }
 	.pt-note { margin-top:14px; padding-top:12px; border-top:1px solid rgba(213,162,59,0.3);
 		font-size:12px; color:#9b906f; text-align:center; line-height:1.5; }
+
+	/* ---- golden cells + coin feature ---- */
+	.cell.golden::before { content:''; position:absolute; inset:2px; border-radius:6px; z-index:0;
+		border:2px solid #ffd96f; box-shadow:0 0 12px rgba(255,210,90,0.8), inset 0 0 14px rgba(255,200,60,0.4);
+		background:radial-gradient(circle, rgba(255,210,90,0.18), transparent 70%); pointer-events:none;
+		animation:golden-glow 1.6s ease-in-out infinite; }
+	@keyframes golden-glow { 0%,100%{opacity:0.7;} 50%{opacity:1;} }
+	.cell.rainbow-flash img { animation:rainbow-flash 0.5s ease-in-out 3; }
+	@keyframes rainbow-flash { 0%,100%{filter:drop-shadow(0 0 6px #fff);}
+		50%{filter:drop-shadow(0 0 22px #6cf) drop-shadow(0 0 16px #f6c) brightness(1.4);} }
+	.reveal { position:absolute; inset:0; display:grid; place-items:center; z-index:2;
+		animation:reveal-pop 0.34s cubic-bezier(.2,.9,.3,1.5) both; }
+	.reveal img { position:relative; inset:auto; width:88%; height:88%; padding:0; object-fit:contain; filter:drop-shadow(0 3px 5px #000); }
+	.reveal .coin-val { position:absolute; bottom:5%; left:0; right:0; text-align:center;
+		font-family:'Arial Black',Impact,sans-serif; font-size:15px; font-weight:1000; color:#fff;
+		text-shadow:0 1px 0 #000,0 0 6px #ffcf5a; -webkit-text-stroke:1px #5a2500; }
+	@keyframes reveal-pop { 0%{transform:scale(0.2);opacity:0;} 100%{transform:scale(1);opacity:1;} }
+	.cell.mult-pulse .reveal { animation:feat-pulse 0.34s ease-in-out 2; }
+	.cell.collect-pulse .reveal { animation:feat-pulse 0.4s ease-in-out 2; }
+	@keyframes feat-pulse { 50%{transform:scale(1.22);filter:drop-shadow(0 0 12px #ffd96f);} }
+
+	/* ---- free spins counter ---- */
+	.fs-counter { position:absolute; top:118px; left:50%; transform:translateX(-50%); z-index:15; display:none;
+		padding:5px 24px 7px; border-radius:999px; border:2px solid #ffe49a; text-align:center;
+		background:linear-gradient(180deg,#1c1305,#0a0a0f); box-shadow:0 0 18px rgba(255,200,60,0.5);
+		color:#ffe49a; font-family:Inter,Arial,sans-serif; }
+	.fs-counter.show { display:block; }
+	.fs-counter .fs-name { font-size:11px; letter-spacing:2px; color:#ffd96f; }
+	.fs-counter .fs-big { font-size:21px; font-weight:1000; color:#fff; line-height:1.1; }
+
+	/* ---- bonus buy ---- */
+	.bb-list { display:flex; flex-direction:column; gap:10px; }
+	.bb-opt { display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%;
+		cursor:pointer; text-align:left; padding:14px 18px; border-radius:12px;
+		border:1px solid rgba(213,162,59,0.5); background:rgba(8,8,12,0.85); color:#ffe9b8; }
+	.bb-opt:hover:not(.disabled) { border-color:#ffe49a; transform:translateY(-1px); }
+	.bb-opt.disabled { opacity:0.4; cursor:not-allowed; }
+	.bb-name { font-size:16px; font-weight:800; }
+	.bb-desc { font-size:12px; color:#c9bd97; margin-top:2px; }
+	.bb-price { font-size:18px; font-weight:1000; color:#ffd96f; white-space:nowrap; }
+	.bb-price::before { content:'\\26BD  '; }
+	.bb-note { margin-top:13px; font-size:12px; color:#9b906f; text-align:center; }
 `;
 
 const html = `<!doctype html>
@@ -210,13 +292,14 @@ ${extraCss}
 		<div class="board-wrap">
 			<div class="board-glow"></div>
 			<div class="board-frame">
-				<div class="side-badge left">243<span>WAYS</span></div>
-				<div class="side-badge right">243<span>WAYS</span></div>
+				<div class="side-badge left">CLUSTER<span>PAYS</span></div>
+				<div class="side-badge right">CLUSTER<span>PAYS</span></div>
 				<div class="board" id="board"></div>
 			</div>
 		</div>
 
 		<div class="win-banner" id="win-banner"><small id="win-banner-label">BIG WIN</small><span id="win-banner-amount">0.00</span></div>
+		<div class="fs-counter" id="fs-counter"><div class="fs-name" id="fs-name"></div><div class="fs-big"><span id="fs-count">0</span> / <span id="fs-total">0</span></div></div>
 
 		<div class="meters">
 ${meterRows}
@@ -290,13 +373,31 @@ ${featureItems}
 			<div class="modal">
 				<div class="modal-header"><div class="modal-title">HOW TO WIN</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
-					<p class="pt-intro">Golden Goal Rush is a 6×5 cluster-pays game. Land <b>5 or more matching symbols connected horizontally or vertically</b> to win. Winning symbols are removed and new ones cascade in &mdash; each cascade raises the win multiplier. Bigger clusters pay more.</p>
+					<p class="pt-intro">Golden Goal Rush is a 6×5 <b>cluster-pays</b> game. Land <b>5 or more matching symbols connected horizontally or vertically</b> to win. Winning symbols are removed and new ones cascade in &mdash; each cascade raises the win multiplier. Bigger clusters pay more.</p>
 					<div class="pt-grid" id="pt-grid"></div>
-					<div class="pt-feat"><img src="${SYMBOLS.wild.src}" alt="Wild" /><div><b>WILD</b>Substitutes for every paying symbol to help complete clusters. Does not replace Scatter.</div></div>
-					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Scatter" /><div><b>SCATTER &mdash; VIP TICKET</b>3 or more trigger the Golden Sponsor Bonus free spins, where Sponsor Coins, Multipliers and the Trophy Collector appear.</div></div>
-					<div class="pt-feat"><img src="${assets.collector}" alt="Collector" /><div><b>TROPHY COLLECTOR</b>Collects the cash value of every Sponsor Coin on screen.</div></div>
-					<div class="pt-feat"><img src="${assets.multiplier}" alt="Multiplier" /><div><b>SPONSOR MULTIPLIER</b>Multiplies the value of collected coins (x2 up to x10).</div></div>
-					<div class="pt-note">Theoretical RTP 96.0% &middot; Max win 10,000&times; bet &middot; All wins are shown as a multiple of the bet. Malfunction voids all pays and plays.</div>
+					<div class="pt-feat"><img src="${SYMBOLS.wild.src}" alt="Wild" /><div><b>WILD</b>Substitutes for every paying symbol to help complete clusters. Does not replace the Scatter.</div></div>
+					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Scatter" /><div><b>SCATTER &mdash; VIP TICKET</b>3, 4 or 5 trigger Free Spins Tier 1 / 2 / 3.</div></div>
+					<div class="pt-feat"><div style="width:44px;height:44px;border:2px solid #ffd96f;border-radius:8px;box-shadow:0 0 10px rgba(255,210,90,0.7) inset;flex:0 0 auto"></div><div><b>GOLDEN CELLS</b>Every winning position turns into a Golden Cell for the rest of the spin sequence.</div></div>
+					<div class="pt-feat"><img src="${SYMBOLS.rainbow.src}" alt="Golden Arc" /><div><b>GOLDEN ARC (RAINBOW)</b>While an Arc is on the board it activates all Golden Cells, revealing Coins, Multiplier Badges and Collector Cups.</div></div>
+					<div class="pt-feat"><img src="${COIN_ASSETS.gold}" alt="Coins" /><div><b>SPONSOR COINS</b>Bronze ${CONFIG.bronzeValues[0]}&ndash;${CONFIG.bronzeValues[CONFIG.bronzeValues.length-1]}×, Silver ${CONFIG.silverValues[0]}&ndash;${CONFIG.silverValues[CONFIG.silverValues.length-1]}×, Gold ${CONFIG.goldValues[0]}&ndash;${CONFIG.goldValues[CONFIG.goldValues.length-1]}× the bet.</div></div>
+					<div class="pt-feat"><img src="${MULT_ASSETS[5]}" alt="Multiplier Badge" /><div><b>MULTIPLIER BADGE</b>Multiplies adjacent coins by ${CONFIG.multiplierValues.map((v) => 'x' + v).join(', ')}.</div></div>
+					<div class="pt-feat"><img src="${COLLECTOR_ASSET}" alt="Collector Cup" /><div><b>COLLECTOR CUP</b>Collects the value of every visible coin (top-to-bottom, left-to-right). After the last cup the Golden Cells reveal again, repeating while new cups appear.</div></div>
+					<div class="pt-feat"><div style="width:0;flex:0 0 0"></div><div><b>FREE SPINS</b>
+						${Object.entries(CONFIG.tiers).map(([t, v]) => 'Tier ' + t + ' &mdash; ' + v.name + ': ' + v.spins + ' spins' + (v.guaranteedRainbow ? ', guaranteed Arc each spin' : '') + '.').join('<br>')}</div></div>
+					<div class="pt-feat"><div style="width:0;flex:0 0 0"></div><div><b>BONUS BUY</b>
+						${CONFIG.bonusBuy.map((o) => o.label + ' &mdash; ' + o.mult + '× bet').join('<br>')}<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
+					<div class="pt-note">Theoretical RTP target ~96% (demo) &middot; Max win ${CONFIG.maxWinMultiplier.toLocaleString()}× bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- ===== Bonus Buy modal ===== -->
+		<div class="modal-backdrop" id="modal-bonusbuy" data-modal>
+			<div class="modal">
+				<div class="modal-header"><div class="modal-title">BONUS BUY</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-body">
+					<div class="bb-list" id="bonusbuy-list"></div>
+					<div class="bb-note" id="bonusbuy-note"></div>
 				</div>
 			</div>
 		</div>
@@ -305,23 +406,55 @@ ${featureItems}
 
 <script>
 const SYMBOLS = ${JSON.stringify(SYMBOLS)};
-const KEYS = Object.keys(SYMBOLS);
-const POOL = KEYS.flatMap((k) => Array(SYMBOLS[k].weight).fill(k));
-const PAYKEYS = KEYS.filter((k) => SYMBOLS[k].pay > 0);
+const COIN_ASSETS = ${JSON.stringify(COIN_ASSETS)};
+const MULT_ASSETS = ${JSON.stringify(MULT_ASSETS)};
+const COLLECTOR_ASSET = ${JSON.stringify(COLLECTOR_ASSET)};
+const CONFIG = ${JSON.stringify(CONFIG)};
 const COLS = 6, ROWS = 5, MIN_CLUSTER = 5;
 const BETS = [0.2, 0.5, 1, 2, 5, 10, 20, 50, 100];
 
-const state = { balance: 1000, bet: 1, betIdx: 2, grid: [], spinning: false, turbo: false, auto: false };
+const state = {
+	balance: 1000, bet: 1, betIdx: 2, grid: [], spinning: false, turbo: false, auto: false,
+	golden: new Set(), reveals: new Map(), // golden = 'c,r' keys; reveals = 'c,r' -> {kind,value,asset}
+	mode: 'base', tier: 0, fsLeft: 0, fsTotal: 0, win: 0,
+};
 
 const $ = (id) => document.getElementById(id);
 const board = $('board');
 const stage = $('stage');
 const wait = (ms) => new Promise((r) => setTimeout(r, state.turbo ? ms * 0.42 : ms));
 const fmt = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const ck = (c, r) => c + ',' + r;
+const wpick = (entries) => { // entries: [[value, weight], ...]
+	const tot = entries.reduce((s, e) => s + e[1], 0); let x = Math.random() * tot;
+	for (const [v, w] of entries) { x -= w; if (x < 0) return v; } return entries[0][0];
+};
+const rand = (arr) => arr[(Math.random() * arr.length) | 0];
+
+// Board symbol pool — weights from SYMBOLS, feature-symbol weights from CONFIG.
+function buildPool({ noRainbow = false, boostRainbow = 1, boostScatter = 1 } = {}) {
+	const pool = [];
+	for (const k of Object.keys(SYMBOLS)) {
+		let w = SYMBOLS[k].weight;
+		if (k === 'rainbow') w = noRainbow ? 0 : Math.round(CONFIG.rainbowWeight * boostRainbow);
+		if (k === 'scatter') w = Math.round(CONFIG.scatterWeight * boostScatter);
+		for (let i = 0; i < w; i += 1) pool.push(k);
+	}
+	return pool;
+}
+let POOL = buildPool();
 const randKey = () => POOL[(Math.random() * POOL.length) | 0];
 
-function newColumn() { return Array.from({ length: ROWS }, randKey); }
-function newGrid() { state.grid = Array.from({ length: COLS }, newColumn); } // grid[col][row], row0 = top
+function newGrid(opts = {}) {
+	POOL = buildPool(opts);
+	state.grid = Array.from({ length: COLS }, () => Array.from({ length: ROWS }, randKey));
+	if (opts.forceRainbow && !state.grid.flat().includes('rainbow')) {
+		state.grid[(Math.random() * COLS) | 0][(Math.random() * ROWS) | 0] = 'rainbow';
+	}
+	for (let i = 0; i < (opts.forceScatters || 0); i += 1) {
+		state.grid[i % COLS][(i / COLS) | 0] = 'scatter';
+	}
+}
 
 function cellEl(col, row) { return board.children[row * COLS + col]; }
 
@@ -333,12 +466,22 @@ function paint({ dropping = false } = {}) {
 			const sym = SYMBOLS[key];
 			const cell = document.createElement('div');
 			cell.className = 'cell';
-			const img = document.createElement('img');
-			img.src = sym.src;
-			img.alt = key;
-			if (sym.cls) img.classList.add(sym.cls);
-			if (dropping) { img.classList.add('dropping'); img.style.animationDelay = (col * 45 + row * 12) + 'ms'; }
-			cell.appendChild(img);
+			if (state.golden.has(ck(col, row))) cell.classList.add('golden');
+			const rv = state.reveals.get(ck(col, row));
+			if (rv) {
+				cell.classList.add('has-reveal');
+				const wrap = document.createElement('div');
+				wrap.className = 'reveal ' + rv.kind;
+				const ri = document.createElement('img'); ri.src = rv.asset; wrap.appendChild(ri);
+				if (rv.kind === 'coin') { const lab = document.createElement('span'); lab.className = 'coin-val'; lab.textContent = rv.value + 'x'; wrap.appendChild(lab); }
+				cell.appendChild(wrap);
+			} else {
+				const img = document.createElement('img');
+				img.src = sym.src; img.alt = key;
+				if (sym.cls) img.classList.add(sym.cls);
+				if (dropping) { img.classList.add('dropping'); img.style.animationDelay = (col * 45 + row * 12) + 'ms'; }
+				cell.appendChild(img);
+			}
 			board.appendChild(cell);
 		}
 	}
@@ -402,22 +545,23 @@ async function showBanner(amount) {
 	await wait(700); b.classList.remove('show');
 }
 
-async function resolveCascades() {
-	let total = 0, multiplier = 1;
-	$('meter-win').textContent = '0.00';
+const capWin = () => CONFIG.maxWinMultiplier * state.bet;
+const setWin = (abs) => { state.win = Math.min(abs, capWin()); $('meter-win').textContent = fmt(state.win); };
+
+// Cluster pays + cascades. Every winning position becomes a Golden Cell.
+async function resolveCascades(baseStart) {
+	let multiplier = 1;
 	while (true) {
 		const clusters = findClusters();
 		if (!clusters.length) break;
 		const flat = clusters.flatMap((cl) => cl.cells);
-		flat.forEach(([c, r]) => cellEl(c, r).classList.add('win'));
+		flat.forEach(([c, r]) => { cellEl(c, r).classList.add('win'); state.golden.add(ck(c, r)); });
 		const stepWin = clusters.reduce((s, cl) => s + payFor(cl.key, cl.cells.length) * state.bet, 0) * multiplier;
-		total += stepWin;
-		await countUp(total);
-		await wait(420);
-		// clear winning cells
+		setWin(state.win + stepWin);
+		await countUp(state.win);
+		await wait(360);
 		flat.forEach(([c, r]) => { const img = cellEl(c, r).querySelector('img'); if (img) img.classList.add('clearing'); });
-		await wait(260);
-		// cascade per column: drop survivors, fill new on top
+		await wait(230);
 		const removed = Array.from({ length: COLS }, () => new Set());
 		flat.forEach(([c, r]) => removed[c].add(r));
 		for (let c = 0; c < COLS; c += 1) {
@@ -427,31 +571,163 @@ async function resolveCascades() {
 			state.grid[c] = [...Array.from({ length: add }, randKey), ...kept];
 		}
 		paint({ dropping: true });
-		await wait(360);
+		await wait(300);
 		multiplier += 1;
+		if (state.win >= capWin()) break;
 	}
-	if (total > 0) { state.balance += total; await showBanner(total); }
-	updateMeters();
-	return total;
+	return state.win;
 }
 
-async function spin() {
+// ---- Golden Goal Rush coin feature (Rainbow activates Golden Cells) ----
+function revealGolden() {
+	state.reveals.clear();
+	const reduce = state.mode === 'free' && CONFIG.tiers[state.tier] && CONFIG.tiers[state.tier].reduceBronze;
+	const w = {
+		bronze: reduce ? Math.max(1, Math.round(CONFIG.bronzeWeight * 0.12)) : CONFIG.bronzeWeight,
+		silver: CONFIG.silverWeight, gold: CONFIG.goldWeight,
+		mult: CONFIG.multiplierWeight, collector: CONFIG.collectorWeight,
+	};
+	for (const key of state.golden) {
+		const kind = wpick([['bronze', w.bronze], ['silver', w.silver], ['gold', w.gold], ['mult', w.mult], ['collector', w.collector]]);
+		if (kind === 'mult') { const v = rand(CONFIG.multiplierValues); state.reveals.set(key, { kind: 'mult', value: v, asset: MULT_ASSETS[v] }); }
+		else if (kind === 'collector') { state.reveals.set(key, { kind: 'collector', value: 0, asset: COLLECTOR_ASSET }); }
+		else { const tbl = kind === 'gold' ? CONFIG.goldValues : kind === 'silver' ? CONFIG.silverValues : CONFIG.bronzeValues; state.reveals.set(key, { kind: 'coin', tier: kind, value: rand(tbl), asset: COIN_ASSETS[kind] }); }
+	}
+}
+const coinList = () => [...state.reveals.values()].filter((v) => v.kind === 'coin');
+const collectorKeys = () => [...state.reveals.entries()].filter(([, v]) => v.kind === 'collector')
+	.map(([k]) => k).sort((a, b) => { const [ac, ar] = a.split(',').map(Number), [bc, br] = b.split(',').map(Number); return ar - br || ac - bc; });
+
+async function applyMultipliers(baseWinAbs) {
+	const mults = [...state.reveals.entries()].filter(([, v]) => v.kind === 'mult');
+	for (const [key, badge] of mults) {
+		const [c, r] = key.split(',').map(Number);
+		const el = cellEl(c, r); if (el) el.classList.add('mult-pulse');
+		for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+			const nv = state.reveals.get(ck(c + dc, r + dr));
+			if (nv && nv.kind === 'coin') nv.value = Math.round(nv.value * badge.value * 100) / 100;
+		}
+		paint(); await wait(320);
+	}
+}
+
+async function runFeature(baseWinAbs) {
+	let coinMult = 0; // accumulated multiplier of bet from the coin feature
+	for (let cycle = 0; cycle < CONFIG.maxCollectorCycles; cycle += 1) {
+		revealGolden();
+		paint(); await wait(440);
+		await applyMultipliers(baseWinAbs);
+		const sum = coinList().reduce((s, c) => s + c.value, 0);
+		const collectors = collectorKeys();
+		for (const key of collectors) {
+			const [c, r] = key.split(',').map(Number);
+			const el = cellEl(c, r); if (el) el.classList.add('collect-pulse');
+			coinMult += sum;
+			setWin(baseWinAbs + coinMult * state.bet);
+			await countUp(state.win);
+			await wait(300);
+			if (state.win >= capWin()) return coinMult * state.bet;
+		}
+		coinMult += sum; // the coins themselves pay
+		setWin(baseWinAbs + coinMult * state.bet);
+		await countUp(state.win);
+		await wait(260);
+		if (!collectors.length || state.win >= capWin()) break;
+		// collectors present -> re-roll golden cells for the next cycle
+		state.reveals.clear(); paint(); await wait(220);
+	}
+	state.reveals.clear();
+	return coinMult * state.bet;
+}
+
+function rainbowOnBoard() { return state.grid.some((col) => col.includes('rainbow')); }
+function scatterCount() { return state.grid.reduce((s, col) => s + col.filter((k) => k === 'scatter').length, 0); }
+
+// ---- spin orchestration ----
+async function spin(buy) {
 	if (state.spinning) return;
-	if (state.balance < state.bet) {
+	const cost = state.mode === 'free' ? 0 : Math.round(state.bet * (buy ? buy.mult : 1) * 100) / 100;
+	if (state.mode !== 'free' && state.balance < cost) {
 		stage.classList.add('shake'); setTimeout(() => stage.classList.remove('shake'), 420); return;
 	}
-	state.spinning = true;
-	$('btn-spin').classList.add('busy');
-	state.balance -= state.bet; $('meter-win').textContent = '0.00'; updateMeters();
-	// drop out then in
+	state.spinning = true; $('btn-spin').classList.add('busy');
+	if (state.mode !== 'free') { state.balance -= cost; state.golden.clear(); }
+	state.reveals.clear();
+	setWin(0); updateMeters();
+
+	const opts = {};
+	if ((buy && buy.id === 'rainbow') || (state.mode === 'free' && CONFIG.tiers[state.tier] && CONFIG.tiers[state.tier].guaranteedRainbow)) opts.forceRainbow = true;
+	if (buy && buy.id === 'hunt') opts.boostScatter = 3;
+
 	[...board.querySelectorAll('img')].forEach((img) => img.classList.add('clearing'));
-	await wait(220);
-	newGrid(); paint({ dropping: true });
+	await wait(200);
+	newGrid(opts); paint({ dropping: true });
 	await wait(420);
-	await resolveCascades();
-	$('btn-spin').classList.remove('busy');
-	state.spinning = false;
-	if (state.auto) setTimeout(spin, state.turbo ? 250 : 600);
+
+	const baseWin = await resolveCascades();
+	let featureWin = 0;
+	if (rainbowOnBoard() && state.golden.size) {
+		// highlight the rainbow activation
+		for (let c = 0; c < COLS; c += 1) for (let r = 0; r < ROWS; r += 1)
+			if (state.grid[c][r] === 'rainbow') { const e = cellEl(c, r); if (e) e.classList.add('rainbow-flash'); }
+		await wait(480);
+		featureWin = await runFeature(baseWin);
+		if (state.mode === 'free' && CONFIG.tiers[state.tier] && !CONFIG.tiers[state.tier].persistAfterReveal) state.golden.clear();
+	}
+	setWin(baseWin + featureWin);
+
+	// payout / accumulate
+	if (state.mode === 'free') state.fsWin = (state.fsWin || 0) + state.win;
+	else state.balance += state.win;
+	if (state.win > 0 && state.mode === 'base') await showBanner(state.win);
+	updateMeters();
+
+	// scatters -> trigger / retrigger free spins
+	const sc = scatterCount();
+	let triggered = false;
+	if (state.mode === 'base' && sc >= 3 && !(buy && (buy.id === 'tier1' || buy.id === 'tier2'))) {
+		triggered = true; $('btn-spin').classList.remove('busy'); state.spinning = false;
+		await startFreeSpins(sc >= 5 ? 3 : sc >= 4 ? 2 : 1); return;
+	} else if (state.mode === 'free' && sc >= 2) {
+		retrigger(sc);
+	}
+
+	if (state.mode === 'base') { state.golden.clear(); state.reveals.clear(); }
+	$('btn-spin').classList.remove('busy'); state.spinning = false;
+	if (state.mode === 'base' && state.auto && !triggered) setTimeout(() => spin(), state.turbo ? 250 : 600);
+}
+
+// ---- free spins (3 tiers) ----
+function updateFsCounter() {
+	const el = $('fs-counter'); if (!el) return;
+	el.classList.toggle('show', state.mode === 'free');
+	$('fs-count').textContent = state.fsLeft;
+	$('fs-total').textContent = state.fsTotal;
+	$('fs-name').textContent = CONFIG.tiers[state.tier] ? CONFIG.tiers[state.tier].name : '';
+}
+function retrigger(sc) {
+	let add = sc >= 4 ? 4 : sc >= 3 ? 4 : 2;
+	if (state.tier === 1 && sc >= 4) { state.tier = 2; }
+	state.fsLeft += add; state.fsTotal += add; updateFsCounter();
+	const b = $('win-banner'); $('win-banner-label').textContent = '+' + add + ' FREE SPINS'; $('win-banner-amount').textContent = CONFIG.tiers[state.tier].name;
+	b.classList.add('show'); setTimeout(() => b.classList.remove('show'), 1100);
+}
+async function startFreeSpins(tier) {
+	state.mode = 'free'; state.tier = tier; state.fsTotal = CONFIG.tiers[tier].spins; state.fsLeft = state.fsTotal; state.fsWin = 0;
+	state.golden.clear(); state.reveals.clear();
+	const b = $('win-banner'); $('win-banner-label').textContent = CONFIG.tiers[tier].name; $('win-banner-amount').textContent = state.fsTotal + ' FREE SPINS';
+	b.classList.add('show'); updateFsCounter();
+	await wait(1500); b.classList.remove('show');
+	while (state.fsLeft > 0 && (state.fsWin || 0) < capWin()) {
+		state.fsLeft -= 1; updateFsCounter();
+		await spin();
+		await wait(state.turbo ? 250 : 550);
+	}
+	const won = state.fsWin || 0;
+	state.mode = 'base'; state.tier = 0; state.golden.clear(); state.reveals.clear();
+	state.balance += won; updateMeters(); updateFsCounter();
+	$('win-banner-label').textContent = 'BONUS WIN'; setWin(won);
+	await showBanner(won);
 }
 
 function changeBet(dir) {
@@ -460,7 +736,7 @@ function changeBet(dir) {
 	state.bet = BETS[state.betIdx]; updateMeters();
 }
 
-$('btn-spin').addEventListener('click', spin);
+$('btn-spin').addEventListener('click', () => spin());
 $('btn-bet-minus').addEventListener('click', () => changeBet(-1));
 $('btn-bet-plus').addEventListener('click', () => changeBet(1));
 $('btn-turbo').addEventListener('click', () => { state.turbo = !state.turbo; $('btn-turbo').classList.toggle('armed', state.turbo); });
@@ -468,7 +744,28 @@ $('btn-auto').addEventListener('click', () => {
 	state.auto = !state.auto; $('btn-auto').classList.toggle('armed', state.auto);
 	if (state.auto && !state.spinning) spin();
 });
-$('btn-bonus').addEventListener('click', () => { if (state.balance >= state.bet * 100) { state.balance -= state.bet * 99; state.bet = state.bet; spin(); } });
+// ---- bonus buy ----
+function buildBonusBuy() {
+	const wrap = $('bonusbuy-list');
+	let anyDisabled = false;
+	wrap.innerHTML = CONFIG.bonusBuy.map((o) => {
+		const price = Math.round(o.mult * state.bet * 100) / 100;
+		const afford = state.balance >= price; if (!afford) anyDisabled = true;
+		return '<button class="bb-opt' + (afford ? '' : ' disabled') + '" data-buy="' + o.id + '"' + (afford ? '' : ' disabled') + '>' +
+			'<div class="bb-text"><div class="bb-name">' + o.label + '</div><div class="bb-desc">' + o.desc + '</div></div>' +
+			'<div class="bb-price">' + fmt(price) + '</div></button>';
+	}).join('');
+	$('bonusbuy-note').textContent = anyDisabled ? 'Greyed options exceed your balance.' : 'Prices scale with your current bet.';
+	wrap.querySelectorAll('[data-buy]').forEach((btn) => btn.addEventListener('click', () => {
+		const o = CONFIG.bonusBuy.find((x) => x.id === btn.dataset.buy);
+		const price = Math.round(o.mult * state.bet * 100) / 100;
+		if (state.balance < price) return;
+		closeModals();
+		if (o.id === 'tier1' || o.id === 'tier2') { state.balance -= price; updateMeters(); startFreeSpins(o.id === 'tier1' ? 1 : 2); }
+		else spin(o);
+	}));
+}
+$('btn-bonus').addEventListener('click', () => { if (!state.spinning && state.mode === 'base') { buildBonusBuy(); openModal('modal-bonusbuy'); } });
 window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); spin(); } });
 
 // ---- modals: open / close ----
@@ -512,20 +809,39 @@ newGrid(); paint(); updateMeters();
 // Lightweight preview API — lets you trigger a guaranteed win to preview the
 // cluster/cascade/win-banner presentation (open console: __ggr.demoWin()).
 window.__ggr = {
-	state,
-	spin,
-	resolveCascades,
+	state, spin, startFreeSpins, buildBonusBuy, CONFIG,
 	setGrid: (g) => { state.grid = g; paint(); },
 	demoWin: async () => {
 		if (state.spinning) return;
 		state.spinning = true; $('btn-spin').classList.add('busy');
-		// Seed a large football block (guaranteed >=12 cluster) + scattered fillers.
-		newGrid();
+		state.golden.clear(); state.reveals.clear(); setWin(0);
+		newGrid({ noRainbow: true });
 		for (let c = 0; c < 4; c += 1) for (let r = 0; r < 3; r += 1) state.grid[c][r] = 'football';
 		paint({ dropping: true });
 		await wait(420);
-		await resolveCascades();
+		const base = await resolveCascades();
+		state.balance += state.win; updateMeters();
+		state.golden.clear(); state.reveals.clear(); paint();
 		$('btn-spin').classList.remove('busy'); state.spinning = false;
+		return base;
+	},
+	// Golden cells + Rainbow -> full coin feature (coins, multipliers, collector).
+	demoFeature: async () => {
+		if (state.spinning) return;
+		state.spinning = true; $('btn-spin').classList.add('busy');
+		state.golden.clear(); state.reveals.clear(); setWin(0);
+		newGrid({ noRainbow: true });
+		for (let c = 0; c < 5; c += 1) for (let r = 0; r < 3; r += 1) state.grid[c][r] = 'football';
+		state.grid[5][4] = 'rainbow';
+		paint({ dropping: true }); await wait(420);
+		const base = await resolveCascades();
+		let fw = 0;
+		if (state.golden.size) fw = await runFeature(base);
+		setWin(base + fw); state.balance += state.win; updateMeters();
+		const goldenCount = state.golden.size;
+		state.golden.clear(); state.reveals.clear(); paint();
+		$('btn-spin').classList.remove('busy'); state.spinning = false;
+		return { base, featureWin: fw, goldenCount, win: state.win };
 	},
 };
 window.__ggrReady = true;

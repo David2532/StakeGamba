@@ -141,8 +141,8 @@
 	<div class="board-wrap">
 		<div class="board-glow"></div>
 		<div class="board-frame">
-			<div class="side-badge left">243<span>WAYS</span></div>
-			<div class="side-badge right">243<span>WAYS</span></div>
+			<div class="side-badge left">CLUSTER<span>PAYS</span></div>
+			<div class="side-badge right">CLUSTER<span>PAYS</span></div>
 			<div class="board">
 				{#each board as symbol}
 					<div class="cell">
@@ -441,17 +441,18 @@
 			inset 0 0 10px rgba(255, 214, 93, 0.25),
 			0 0 12px rgba(0, 0, 0, 0.75);
 		color: #ffe284;
-		font-size: 21px;
+		font-size: 13px;
 		font-weight: 1000;
-		line-height: 1;
+		letter-spacing: 0.5px;
+		line-height: 1.15;
 		text-align: center;
 		text-shadow: 0 2px 3px #000;
 	}
 
 	.side-badge span {
 		display: block;
-		font-size: 16px;
-		line-height: 1.1;
+		font-size: 13px;
+		line-height: 1.15;
 	}
 
 	.side-badge.left {
@@ -1064,7 +1065,17 @@
 		border: 0;
 		background: transparent;
 		box-shadow: none;
-		animation: spin-pulse 2.5s ease-in-out infinite;
+		/* Static button — no permanent pulse/scale loop. Only user-driven
+		   hover/active feedback (see rules below). */
+		transition: transform 0.12s ease;
+	}
+
+	.spin-button:hover {
+		transform: scale(1.03);
+	}
+
+	.spin-button:active {
+		transform: scale(0.96);
 	}
 
 	.spin-button::before,
@@ -1077,15 +1088,14 @@
 	}
 
 	.spin-button::before {
-		background: radial-gradient(circle, rgba(255, 222, 102, 0.18), transparent 61%);
+		/* Static soft glow — no animation. */
+		background: radial-gradient(circle, rgba(255, 222, 102, 0.2), transparent 61%);
 		filter: blur(4px);
-		animation: spin-glow 2.2s ease-in-out infinite;
 	}
 
 	.spin-button::after {
-		border: 2px solid rgba(94, 211, 255, 0.46);
-		opacity: 0;
-		animation: spin-ring 2.4s ease-out infinite;
+		border: 2px solid rgba(255, 213, 110, 0.3);
+		opacity: 1;
 	}
 
 	.spin-art {
@@ -1096,7 +1106,6 @@
 		object-fit: contain;
 		filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.88))
 			drop-shadow(0 0 14px rgba(255, 205, 57, 0.56));
-		animation: spin-art-idle 5.5s linear infinite;
 	}
 
 	.spin-button span {
