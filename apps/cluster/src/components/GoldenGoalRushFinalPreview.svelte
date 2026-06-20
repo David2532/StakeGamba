@@ -473,10 +473,12 @@
 		grid-template-rows: repeat(5, 1fr);
 		border: 2px solid rgba(255, 215, 91, 0.92);
 		border-radius: 13px;
-		background: #02070b;
+		background:
+			radial-gradient(ellipse at 50% 42%, rgba(40, 86, 70, 0.28), transparent 66%),
+			#02070b;
 		box-shadow:
-			inset 0 0 38px rgba(0, 0, 0, 0.78),
-			inset 0 0 0 999px rgba(0, 12, 20, 0.3);
+			inset 0 0 46px rgba(0, 0, 0, 0.72),
+			inset 0 0 0 1px rgba(255, 224, 130, 0.12);
 	}
 
 	.cell {
@@ -484,11 +486,15 @@
 		display: grid;
 		overflow: hidden;
 		place-items: center;
-		border-right: 1px solid rgba(203, 139, 33, 0.74);
-		border-bottom: 1px solid rgba(203, 139, 33, 0.74);
+		border-right: 1px solid rgba(214, 158, 54, 0.6);
+		border-bottom: 1px solid rgba(214, 158, 54, 0.6);
+		/* Recessed "slot" depth: warm top glow, top highlight, bottom inner shadow. */
 		background:
-			radial-gradient(circle at 50% 42%, rgba(18, 45, 43, 0.38), transparent 60%),
-			linear-gradient(180deg, rgba(4, 16, 24, 0.92), rgba(2, 5, 9, 0.94));
+			radial-gradient(circle at 50% 30%, rgba(34, 70, 64, 0.34), transparent 64%),
+			linear-gradient(180deg, rgba(12, 28, 36, 0.7) 0%, rgba(3, 8, 13, 0.94) 100%);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 224, 130, 0.08),
+			inset 0 -12px 18px rgba(0, 0, 0, 0.45);
 	}
 
 	.cell:nth-child(6n) {
