@@ -14,6 +14,9 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Shared math config — the SAME numbers the RTP simulation (ggr-sim.mjs) measures.
+import { SYMBOL_MATH, CONFIG } from './ggr-config.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const COMPONENT = join(ROOT, 'src/components/GoldenGoalRushFinalPreview.svelte');
@@ -50,20 +53,16 @@ const assets = {
 };
 
 // Symbol pool for the demo engine. `pay` = base multiple for a 5-cluster.
-const SYMBOLS = {
-	ten: { src: `${A}/10.png`, weight: 22, pay: 0.1 },
-	j: { src: `${A}/j.png`, weight: 20, pay: 0.1 },
-	q: { src: `${A}/q.png`, weight: 17, pay: 0.15 },
-	k: { src: `${A}/k.png`, weight: 15, pay: 0.2 },
-	a: { src: `${A}/a.png`, weight: 13, pay: 0.25 },
-	football: { src: `${A}/fussball.png`, weight: 9, pay: 0.4, cls: 'feature' },
-	whistle: { src: `${A}/pfeife.png`, weight: 8, pay: 0.5, cls: 'feature' },
-	trophy: { src: `${A}/pokal.png`, weight: 6, pay: 0.75 },
-	jersey: { src: `${A}/trikot.png`, weight: 6, pay: 1, cls: 'wide' },
-	wild: { src: `${A}/wild.png`, weight: 2, pay: 0, cls: 'feature', wild: true },
-	scatter: { src: `${A}/scatter.png`, weight: 2, pay: 0, cls: 'wide', scatter: true },
-	rainbow: { src: `${SPECIAL}/symbol_rainbow.png`, weight: 2, pay: 0, cls: 'feature', rainbow: true },
+// Build the render symbol map from the shared math (weights/pays) + asset src.
+const SYMBOL_SRC = {
+	ten: { src: `${A}/10.png` }, j: { src: `${A}/j.png` }, q: { src: `${A}/q.png` },
+	k: { src: `${A}/k.png` }, a: { src: `${A}/a.png` },
+	football: { src: `${A}/fussball.png`, cls: 'feature' }, whistle: { src: `${A}/pfeife.png`, cls: 'feature' },
+	trophy: { src: `${A}/pokal.png` }, jersey: { src: `${A}/trikot.png`, cls: 'wide' },
+	wild: { src: `${A}/wild.png`, cls: 'feature' }, scatter: { src: `${A}/scatter.png`, cls: 'wide' },
+	rainbow: { src: `${SPECIAL}/symbol_rainbow.png`, cls: 'feature' },
 };
+const SYMBOLS = Object.fromEntries(Object.entries(SYMBOL_MATH).map(([k, m]) => [k, { ...m, ...SYMBOL_SRC[k] }]));
 
 // Coin medals (tier color) + a value label render on top; multiplier badge / collector.
 const COIN_ASSETS = {
@@ -74,35 +73,7 @@ const MULT_ASSETS = {
 	5: `${SPECIAL}/x5.png`, 10: `${SPECIAL}/x10.png`,
 };
 const COLLECTOR_ASSET = `${SPECIAL}/symbol_collector.png`;
-
-// Central balancing config (Phase 6) — all tunable feature weights/values/limits.
-const CONFIG = {
-	// reveal weights (relative) for a marked golden cell when Rainbow activates
-	bronzeWeight: 60, silverWeight: 18, goldWeight: 5, multiplierWeight: 8, collectorWeight: 6,
-	// board feature-symbol weights (frequency on the reels)
-	rainbowWeight: 2, scatterWeight: 2,
-	// coin value tables (multipliers of bet)
-	bronzeValues: [0.2, 0.5, 1, 2, 3, 4],
-	silverValues: [5, 10, 15, 20],
-	goldValues: [25, 50, 100, 250, 500],
-	multiplierValues: [2, 3, 4, 5, 10],
-	// safety limits
-	maxCollectorCycles: 20,
-	maxWinMultiplier: 10000,
-	// free-spin tiers
-	tiers: {
-		1: { name: 'Golden Chance', spins: 8, persistGolden: true, persistAfterReveal: false, guaranteedRainbow: false, reduceBronze: false },
-		2: { name: 'All That Glitters', spins: 12, persistGolden: true, persistAfterReveal: true, guaranteedRainbow: false, reduceBronze: false },
-		3: { name: 'End of the Rainbow', spins: 12, persistGolden: true, persistAfterReveal: true, guaranteedRainbow: true, reduceBronze: true },
-	},
-	// bonus buy options (price = mult * bet); tier 3 intentionally absent
-	bonusBuy: [
-		{ id: 'hunt', label: 'Feature Spins', mult: 3, desc: 'Boosts feature chance for one spin' },
-		{ id: 'rainbow', label: 'Rainbow Spin', mult: 50, desc: 'Guarantees a Golden Arc next spin' },
-		{ id: 'tier1', label: 'Golden Chance', mult: 100, desc: 'Start 8 Free Spins (Tier 1)' },
-		{ id: 'tier2', label: 'All That Glitters', mult: 250, desc: 'Start 12 Free Spins (Tier 2)' },
-	],
-};
+// CONFIG is imported from ggr-config.mjs (shared with the RTP simulation).
 
 const meters = [
 	['BALANCE', 'balance', 'coin', 'meterPanelA'],
@@ -268,8 +239,9 @@ const html = `<!doctype html>
 <title>Golden Goal Rush — Interactive Preview</title>
 <style>
 	* { box-sizing: border-box; }
-	html, body { margin: 0; height: 100%; background: #05080f; display: grid; place-items: center; }
-	.viewport { width: 1200px; height: 675px; }
+	html, body { margin: 0; height: 100%; overflow: hidden; background: #05080f; display: grid; place-items: center; }
+	.viewport { width: 1200px; height: 675px; transform-origin: center center; }
+	.locked { opacity: 0.4; pointer-events: none; filter: grayscale(0.4); }
 ${style}
 ${extraCss}
 </style>
@@ -299,7 +271,7 @@ ${extraCss}
 		</div>
 
 		<div class="win-banner" id="win-banner"><small id="win-banner-label">BIG WIN</small><span id="win-banner-amount">0.00</span></div>
-		<div class="fs-counter" id="fs-counter"><div class="fs-name" id="fs-name"></div><div class="fs-big"><span id="fs-count">0</span> / <span id="fs-total">0</span></div></div>
+		<div class="fs-counter" id="fs-counter"><div class="fs-name" id="fs-name"></div><div class="fs-big">SPIN <span id="fs-count">0</span> / <span id="fs-total">0</span></div></div>
 
 		<div class="meters">
 ${meterRows}
@@ -432,13 +404,15 @@ const wpick = (entries) => { // entries: [[value, weight], ...]
 const rand = (arr) => arr[(Math.random() * arr.length) | 0];
 
 // Board symbol pool — weights from SYMBOLS, feature-symbol weights from CONFIG.
+const POOL_SCALE = 50; // allows fractional feature-symbol weights (matches the sim)
 function buildPool({ noRainbow = false, boostRainbow = 1, boostScatter = 1 } = {}) {
 	const pool = [];
 	for (const k of Object.keys(SYMBOLS)) {
 		let w = SYMBOLS[k].weight;
-		if (k === 'rainbow') w = noRainbow ? 0 : Math.round(CONFIG.rainbowWeight * boostRainbow);
-		if (k === 'scatter') w = Math.round(CONFIG.scatterWeight * boostScatter);
-		for (let i = 0; i < w; i += 1) pool.push(k);
+		if (k === 'rainbow') w = noRainbow ? 0 : CONFIG.rainbowWeight * boostRainbow;
+		if (k === 'scatter') w = CONFIG.scatterWeight * boostScatter;
+		const n = Math.round(w * POOL_SCALE);
+		for (let i = 0; i < n; i += 1) pool.push(k);
 	}
 	return pool;
 }
@@ -588,7 +562,8 @@ function revealGolden() {
 		mult: CONFIG.multiplierWeight, collector: CONFIG.collectorWeight,
 	};
 	for (const key of state.golden) {
-		const kind = wpick([['bronze', w.bronze], ['silver', w.silver], ['gold', w.gold], ['mult', w.mult], ['collector', w.collector]]);
+		const kind = wpick([['blank', CONFIG.blankWeight], ['bronze', w.bronze], ['silver', w.silver], ['gold', w.gold], ['mult', w.mult], ['collector', w.collector]]);
+		if (kind === 'blank') continue;
 		if (kind === 'mult') { const v = rand(CONFIG.multiplierValues); state.reveals.set(key, { kind: 'mult', value: v, asset: MULT_ASSETS[v] }); }
 		else if (kind === 'collector') { state.reveals.set(key, { kind: 'collector', value: 0, asset: COLLECTOR_ASSET }); }
 		else { const tbl = kind === 'gold' ? CONFIG.goldValues : kind === 'silver' ? CONFIG.silverValues : CONFIG.bronzeValues; state.reveals.set(key, { kind: 'coin', tier: kind, value: rand(tbl), asset: COIN_ASSETS[kind] }); }
@@ -657,7 +632,8 @@ async function spin(buy) {
 
 	const opts = {};
 	if ((buy && buy.id === 'rainbow') || (state.mode === 'free' && CONFIG.tiers[state.tier] && CONFIG.tiers[state.tier].guaranteedRainbow)) opts.forceRainbow = true;
-	if (buy && buy.id === 'hunt') opts.boostScatter = 3;
+	if (buy && buy.id === 'hunt') { opts.boostRainbow = 5; opts.noBonus = true; }
+	if (state.mode === 'free' && CONFIG.tiers[state.tier] && CONFIG.tiers[state.tier].rainbowBoost) opts.boostRainbow = CONFIG.tiers[state.tier].rainbowBoost;
 
 	[...board.querySelectorAll('img')].forEach((img) => img.classList.add('clearing'));
 	await wait(200);
@@ -677,15 +653,19 @@ async function spin(buy) {
 	setWin(baseWin + featureWin);
 
 	// payout / accumulate
-	if (state.mode === 'free') state.fsWin = (state.fsWin || 0) + state.win;
-	else state.balance += state.win;
-	if (state.win > 0 && state.mode === 'base') await showBanner(state.win);
+	if (state.mode === 'free') {
+		state.fsWin = (state.fsWin || 0) + state.win;
+		$('meter-win').textContent = fmt(state.fsWin); // WIN shows the running bonus total
+	} else {
+		state.balance += state.win;
+		if (state.win > 0) await showBanner(state.win);
+	}
 	updateMeters();
 
 	// scatters -> trigger / retrigger free spins
 	const sc = scatterCount();
 	let triggered = false;
-	if (state.mode === 'base' && sc >= 3 && !(buy && (buy.id === 'tier1' || buy.id === 'tier2'))) {
+	if (state.mode === 'base' && sc >= 3 && !opts.noBonus && !(buy && (buy.id === 'tier1' || buy.id === 'tier2'))) {
 		triggered = true; $('btn-spin').classList.remove('busy'); state.spinning = false;
 		await startFreeSpins(sc >= 5 ? 3 : sc >= 4 ? 2 : 1); return;
 	} else if (state.mode === 'free' && sc >= 2) {
@@ -700,10 +680,17 @@ async function spin(buy) {
 // ---- free spins (3 tiers) ----
 function updateFsCounter() {
 	const el = $('fs-counter'); if (!el) return;
-	el.classList.toggle('show', state.mode === 'free');
-	$('fs-count').textContent = state.fsLeft;
+	const free = state.mode === 'free';
+	el.classList.toggle('show', free);
+	$('fs-count').textContent = Math.max(0, state.fsTotal - state.fsLeft); // spins played so far
 	$('fs-total').textContent = state.fsTotal;
 	$('fs-name').textContent = CONFIG.tiers[state.tier] ? CONFIG.tiers[state.tier].name : '';
+	updateLocks();
+}
+// Lock Buy Bonus + bet controls during free spins (no bonus-in-bonus, no bet change).
+function updateLocks() {
+	const lock = state.mode === 'free';
+	['btn-bonus', 'btn-bet-minus', 'btn-bet-plus'].forEach((id) => { const e = $(id); if (e) e.classList.toggle('locked', lock); });
 }
 function retrigger(sc) {
 	let add = sc >= 4 ? 4 : sc >= 3 ? 4 : 2;
@@ -731,7 +718,7 @@ async function startFreeSpins(tier) {
 }
 
 function changeBet(dir) {
-	if (state.spinning) return;
+	if (state.spinning || state.mode === 'free') return; // bet locked during free spins
 	state.betIdx = Math.max(0, Math.min(BETS.length - 1, state.betIdx + dir));
 	state.bet = BETS[state.betIdx]; updateMeters();
 }
@@ -804,7 +791,17 @@ document.querySelectorAll('.toggle').forEach((t) => t.addEventListener('click', 
 	}).join('');
 })();
 
-newGrid(); paint(); updateMeters();
+newGrid(); paint(); updateMeters(); updateLocks();
+
+// Scale the 1200x675 stage to fit any window so nothing (incl. the side
+// panels) is ever cut off on smaller screens.
+function fitViewport() {
+	const s = Math.min(window.innerWidth / 1200, window.innerHeight / 675);
+	const vp = document.querySelector('.viewport');
+	if (vp) vp.style.transform = 'scale(' + s + ')';
+}
+window.addEventListener('resize', fitViewport);
+fitViewport();
 
 // Lightweight preview API — lets you trigger a guaranteed win to preview the
 // cluster/cascade/win-banner presentation (open console: __ggr.demoWin()).
