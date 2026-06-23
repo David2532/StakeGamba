@@ -277,6 +277,57 @@ const extraCss = `
 	.bb-opt.disabled .bb-price { background:linear-gradient(180deg,#7a6f4a,#4a4330); color:#1a1206; box-shadow:none; }
 	.bb-note { margin-top:15px; padding-top:12px; border-top:1px solid rgba(213,162,59,0.28);
 		font-size:12px; color:#9b906f; text-align:center; line-height:1.55; }
+
+	/* ---- animation FX layer (sparks / coin shower / fly-to-collector / flash) ---- */
+	.fx-layer { position:absolute; inset:0; z-index:18; pointer-events:none; overflow:hidden; }
+	.spark { position:absolute; width:11px; height:11px; border-radius:50%; transform:translate(-50%,-50%);
+		background:radial-gradient(circle, #fff 0%, #ffe48a 38%, rgba(255,170,40,0) 72%); will-change:transform,opacity;
+		animation:spark-fly var(--dur,0.6s) ease-out forwards; }
+	@keyframes spark-fly { 0% { opacity:1; transform:translate(-50%,-50%) scale(1); }
+		100% { opacity:0; transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.2); } }
+	.coin-drop { position:absolute; top:-46px; width:34px; height:34px; background-size:contain; background-repeat:no-repeat;
+		filter:drop-shadow(0 2px 4px rgba(0,0,0,0.6)); will-change:transform,opacity; animation:coin-fall var(--dur,1.6s) ease-in forwards; }
+	@keyframes coin-fall { 0% { opacity:0; transform:translateY(0) rotate(0); }
+		8% { opacity:1; } 88% { opacity:1; } 100% { opacity:0; transform:translateY(720px) rotate(var(--rot,540deg)); } }
+	.fly-coin { position:absolute; width:42px; height:42px; z-index:19; background-size:contain; background-repeat:no-repeat;
+		filter:drop-shadow(0 2px 4px #000); transform:translate(-50%,-50%); will-change:left,top,transform,opacity;
+		transition:left .5s cubic-bezier(.45,-0.25,.6,1), top .5s cubic-bezier(.45,-0.25,.6,1), transform .5s ease, opacity .45s ease; }
+	.cell.collect-burst .reveal img { animation:collect-burst 0.5s ease; }
+	@keyframes collect-burst { 0%{transform:scale(1);} 38%{transform:scale(1.4);filter:drop-shadow(0 0 18px #ffd96f);} 100%{transform:scale(1);} }
+	.fx-flash { position:absolute; inset:0; z-index:19; pointer-events:none; opacity:0;
+		background:radial-gradient(circle at 50% 42%, rgba(255,242,205,0.92), rgba(255,200,80,0.25) 38%, transparent 68%); }
+	.fx-flash.go { animation:fx-flash 0.6s ease-out; }
+	@keyframes fx-flash { 0%{opacity:0;} 16%{opacity:1;} 100%{opacity:0;} }
+	/* tiered big-win banner */
+	.win-banner.mega { border-color:#ffd24a; color:#ffe9a3; box-shadow:0 0 52px rgba(255,180,40,0.75), inset 0 0 26px rgba(255,200,60,0.3); }
+	.win-banner.epic { border-color:#ffcaff; color:#fff0c2;
+		box-shadow:0 0 64px rgba(255,150,40,0.85), 0 0 40px rgba(190,120,255,0.5), inset 0 0 30px rgba(255,200,60,0.35);
+		animation:epic-throb 0.7s ease-in-out infinite alternate; }
+	@keyframes epic-throb { from{transform:translate(-50%,0) scale(1);} to{transform:translate(-50%,0) scale(1.05);} }
+
+	/* ---- bonus intro overlay ---- */
+	.bonus-intro { position:absolute; inset:0; z-index:40; display:none; place-items:center; pointer-events:none; overflow:hidden;
+		background:radial-gradient(ellipse 70% 60% at 50% 45%, rgba(34,22,4,0.82), rgba(2,2,4,0.95)); }
+	.bonus-intro.show { display:grid; animation:bi-fade 0.4s ease both; }
+	.bonus-intro.out { animation:bi-fade 0.4s ease reverse both; }
+	@keyframes bi-fade { from{opacity:0;} to{opacity:1;} }
+	.bi-rays { position:absolute; width:1000px; height:1000px; left:50%; top:46%; transform:translate(-50%,-50%);
+		background:conic-gradient(from 0deg, rgba(255,212,90,0.14) 0 8deg, transparent 8deg 22deg,
+			rgba(255,212,90,0.14) 22deg 30deg, transparent 30deg 45deg,
+			rgba(255,212,90,0.14) 45deg 53deg, transparent 53deg 68deg,
+			rgba(255,212,90,0.14) 68deg 76deg, transparent 76deg 90deg);
+		border-radius:50%; animation:bi-spin 16s linear infinite; }
+	@keyframes bi-spin { to { transform:translate(-50%,-50%) rotate(360deg); } }
+	.bi-card { position:relative; text-align:center; transform:scale(0.8);
+		animation:bi-pop 0.6s cubic-bezier(.2,.9,.3,1.5) 0.1s both; }
+	.bi-kicker { font-size:18px; letter-spacing:7px; color:#ffd96f; font-weight:800; text-transform:uppercase;
+		text-shadow:0 2px 4px #000; margin-bottom:12px; }
+	.bi-title { font-family:'Arial Black',Impact,sans-serif; font-style:italic; font-size:58px; font-weight:1000;
+		color:#ffe49a; -webkit-text-stroke:2px #4b2101; text-shadow:0 4px 0 #5a2500, 0 0 32px rgba(255,200,60,0.9);
+		line-height:1.05; white-space:nowrap; }
+	.bi-spins { margin-top:16px; font-size:30px; font-weight:1000; color:#fff; letter-spacing:2px;
+		text-shadow:0 2px 3px #000, 0 0 16px rgba(255,200,60,0.8); }
+	@keyframes bi-pop { from{transform:scale(0.6);opacity:0;} to{transform:scale(1);opacity:1;} }
 `;
 
 const html = `<!doctype html>
@@ -318,8 +369,19 @@ ${extraCss}
 			</div>
 		</div>
 
+		<div class="fx-layer" id="fx-layer"></div>
+		<div class="fx-flash" id="fx-flash"></div>
 		<div class="win-banner" id="win-banner"><small id="win-banner-label">BIG WIN</small><span id="win-banner-amount">0.00</span></div>
 		<div class="fs-counter" id="fs-counter"><div class="fs-name" id="fs-name"></div><div class="fs-big">SPIN <span id="fs-count">0</span> / <span id="fs-total">0</span></div></div>
+
+		<div class="bonus-intro" id="bonus-intro" aria-hidden="true">
+			<div class="bi-rays"></div>
+			<div class="bi-card">
+				<div class="bi-kicker">Free Spins Unlocked</div>
+				<div class="bi-title" id="bi-title">Golden Chance</div>
+				<div class="bi-spins" id="bi-spins">8 FREE SPINS</div>
+			</div>
+		</div>
 
 		<div class="meters">
 ${meterRows}
@@ -514,6 +576,77 @@ function paint({ dropping = false } = {}) {
 	}
 }
 
+// ---- animation FX helpers ----
+// Cell centre in the stage's own (unscaled) coordinate space, correcting for
+// the viewport's fit-to-window scale so FX line up with the board exactly.
+function stagePos(el) {
+	const sr = stage.getBoundingClientRect();
+	const cr = el.getBoundingClientRect();
+	const sc = state.scale || 1;
+	return { x: (cr.left + cr.width / 2 - sr.left) / sc, y: (cr.top + cr.height / 2 - sr.top) / sc };
+}
+function burstAt(x, y, count = 6) {
+	const layer = $('fx-layer'); if (!layer) return;
+	for (let i = 0; i < count; i += 1) {
+		const s = document.createElement('div'); s.className = 'spark';
+		const ang = Math.random() * Math.PI * 2, dist = 24 + Math.random() * 36;
+		s.style.left = x + 'px'; s.style.top = y + 'px';
+		s.style.setProperty('--dx', (Math.cos(ang) * dist) + 'px');
+		s.style.setProperty('--dy', (Math.sin(ang) * dist) + 'px');
+		s.style.setProperty('--dur', (0.45 + Math.random() * 0.35) + 's');
+		layer.appendChild(s); setTimeout(() => s.remove(), 900);
+	}
+}
+function flashScreen() { const f = $('fx-flash'); if (!f) return; f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); }
+function coinShower(n) {
+	const layer = $('fx-layer'); if (!layer) return;
+	const tiers = [COIN_ASSETS.gold, COIN_ASSETS.silver, COIN_ASSETS.bronze];
+	for (let i = 0; i < n; i += 1) {
+		const c = document.createElement('div'); c.className = 'coin-drop';
+		c.style.left = (6 + Math.random() * 88) + '%';
+		c.style.backgroundImage = 'url(' + tiers[(Math.random() * tiers.length) | 0] + ')';
+		const dur = 1.3 + Math.random() * 0.9;
+		c.style.setProperty('--dur', dur + 's');
+		c.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+		c.style.animationDelay = (Math.random() * 0.5) + 's';
+		layer.appendChild(c); setTimeout(() => c.remove(), (dur + 0.7) * 1000);
+	}
+}
+// Fly clones of every visible coin into the collector cup cell.
+async function flyCoinsTo(tc, tr) {
+	if (state.turbo) return; // keep turbo snappy
+	const layer = $('fx-layer'); const target = cellEl(tc, tr); if (!layer || !target) return;
+	const coins = [...state.reveals.entries()].filter(([, v]) => v.kind === 'coin');
+	if (!coins.length) return;
+	const tp = stagePos(target);
+	const flyers = [];
+	for (const [k, rv] of coins) {
+		const [c, r] = k.split(',').map(Number); const el = cellEl(c, r); if (!el) continue;
+		const p = stagePos(el);
+		const f = document.createElement('div'); f.className = 'fly-coin';
+		f.style.backgroundImage = 'url(' + rv.asset + ')';
+		f.style.left = p.x + 'px'; f.style.top = p.y + 'px';
+		layer.appendChild(f); flyers.push(f);
+		const orig = el.querySelector('.reveal'); if (orig) { orig.style.transition = 'opacity .3s'; orig.style.opacity = '0.15'; }
+	}
+	void layer.offsetWidth; // commit start positions before transitioning
+	flyers.forEach((f, i) => setTimeout(() => {
+		f.style.left = tp.x + 'px'; f.style.top = tp.y + 'px';
+		f.style.transform = 'translate(-50%,-50%) scale(0.3)'; f.style.opacity = '0.15';
+	}, i * 28));
+	await wait(560 + coins.length * 28);
+	flyers.forEach((f) => f.remove());
+}
+async function bonusIntro(tier) {
+	const el = $('bonus-intro'); if (!el) return;
+	$('bi-title').textContent = CONFIG.tiers[tier].name;
+	$('bi-spins').textContent = CONFIG.tiers[tier].spins + ' FREE SPINS';
+	el.classList.remove('out'); el.classList.add('show');
+	coinShower(18);
+	await wait(state.turbo ? 1000 : 1900);
+	el.classList.add('out'); await wait(420); el.classList.remove('show', 'out');
+}
+
 function updateMeters() {
 	$('meter-balance').textContent = fmt(state.balance);
 	$('meter-bet').textContent = fmt(state.bet);
@@ -561,15 +694,19 @@ async function countUp(amount) {
 
 async function showBanner(amount) {
 	const x = amount / state.bet;
-	let label = null;
-	if (x >= 50) label = 'EPIC WIN'; else if (x >= 20) label = 'MEGA WIN'; else if (x >= 8) label = 'BIG WIN';
+	let label = null, tier = '';
+	if (x >= 50) { label = 'EPIC WIN'; tier = 'epic'; }
+	else if (x >= 20) { label = 'MEGA WIN'; tier = 'mega'; }
+	else if (x >= 8) { label = 'BIG WIN'; tier = 'big'; }
 	if (!label) return;
+	flashScreen();
+	coinShower(x >= 50 ? 42 : x >= 20 ? 28 : 18);
 	$('win-banner-label').textContent = label;
-	const b = $('win-banner'); b.classList.add('show');
+	const b = $('win-banner'); b.classList.add('show', tier);
 	if (x >= 20) { stage.classList.add('shake'); setTimeout(() => stage.classList.remove('shake'), 420); }
 	const amt = $('win-banner-amount'); const steps = 22;
 	for (let i = 1; i <= steps; i += 1) { amt.textContent = fmt((amount * i) / steps); await wait(30); }
-	await wait(700); b.classList.remove('show');
+	await wait(x >= 50 ? 1000 : 700); b.classList.remove('show', tier);
 }
 
 const capWin = () => CONFIG.maxWinMultiplier * state.bet;
@@ -587,7 +724,11 @@ async function resolveCascades(baseStart) {
 		setWin(state.win + stepWin);
 		await countUp(state.win);
 		await wait(360);
-		flat.forEach(([c, r]) => { const img = cellEl(c, r).querySelector('img'); if (img) img.classList.add('clearing'); });
+		flat.forEach(([c, r]) => {
+			const el = cellEl(c, r); const img = el.querySelector('img');
+			if (img) img.classList.add('clearing');
+			const p = stagePos(el); burstAt(p.x, p.y, 5);
+		});
 		await wait(230);
 		const removed = Array.from({ length: COLS }, () => new Set());
 		flat.forEach(([c, r]) => removed[c].add(r));
@@ -647,9 +788,12 @@ async function runFeature(baseWinAbs) {
 		await applyMultipliers(baseWinAbs);
 		const sum = coinList().reduce((s, c) => s + c.value, 0);
 		const collectors = collectorKeys();
+		let flew = false;
 		for (const key of collectors) {
 			const [c, r] = key.split(',').map(Number);
 			const el = cellEl(c, r); if (el) el.classList.add('collect-pulse');
+			if (sum > 0 && !flew) { await flyCoinsTo(c, r); flew = true; }
+			if (el) el.classList.add('collect-burst');
 			coinMult += sum;
 			setWin(baseWinAbs + coinMult * state.bet);
 			await countUp(state.win);
@@ -755,9 +899,8 @@ function retrigger(sc) {
 async function startFreeSpins(tier) {
 	state.mode = 'free'; state.tier = tier; state.fsTotal = CONFIG.tiers[tier].spins; state.fsLeft = state.fsTotal; state.fsWin = 0;
 	state.golden.clear(); state.reveals.clear();
-	const b = $('win-banner'); $('win-banner-label').textContent = CONFIG.tiers[tier].name; $('win-banner-amount').textContent = state.fsTotal + ' FREE SPINS';
-	b.classList.add('show'); updateFsCounter();
-	await wait(1500); b.classList.remove('show');
+	updateFsCounter();
+	await bonusIntro(tier);
 	while (state.fsLeft > 0 && (state.fsWin || 0) < capWin()) {
 		state.fsLeft -= 1; updateFsCounter();
 		await spin();
@@ -865,6 +1008,7 @@ newGrid(); paint(); updateMeters(); updateLocks();
 // panels) is ever cut off on smaller screens.
 function fitViewport() {
 	const s = Math.min(window.innerWidth / 1200, window.innerHeight / 675);
+	state.scale = s;
 	const vp = document.querySelector('.viewport');
 	if (vp) vp.style.transform = 'scale(' + s + ')';
 }
