@@ -138,55 +138,91 @@ const extraCss = `
 		40%{transform:translate(5px,-2px);} 60%{transform:translate(-4px,1px);} 80%{transform:translate(3px,-1px);} }
 	.bet-controls.low .bet-display strong { color:#ff8d8d; }
 
-	/* ---- modals (menu / settings / info) ---- */
+	/* ---- modals (menu / settings / info / bonus buy) ---- */
 	.modal-backdrop { position:absolute; inset:0; z-index:60; display:none;
-		align-items:center; justify-content:center; background:rgba(0,0,0,0.74);
-		-webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); }
+		align-items:center; justify-content:center; background:rgba(2,3,6,0.8);
+		-webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
 	.modal-backdrop.open { display:flex; }
-	.modal { width:min(640px,92%); max-height:88%; display:flex; flex-direction:column;
-		background:linear-gradient(180deg,#14120b 0%,#070707 100%);
-		border:3px solid #d5a23b; border-radius:18px; overflow:hidden;
-		box-shadow:0 0 0 3px #050505, 0 22px 55px rgba(0,0,0,0.75), 0 0 44px rgba(255,191,44,0.3);
-		color:#f1e4c6; font-family:Inter,Arial,sans-serif; animation:modal-in .22s ease both; }
-	@keyframes modal-in { from { opacity:0; transform:translateY(14px) scale(0.97); } }
-	.modal-header { display:flex; align-items:center; justify-content:space-between;
-		padding:14px 20px; border-bottom:1px solid rgba(213,162,59,0.4);
-		background:linear-gradient(180deg, rgba(213,162,59,0.2), transparent); }
-	.modal-title { font-size:20px; font-weight:900; letter-spacing:2px; color:#ffe49a; text-shadow:0 2px 2px #000; }
-	.modal-close { width:34px; height:34px; border-radius:9px; cursor:pointer;
-		border:2px solid #d5a23b; background:#0a0a0f; color:#ffe49a; font-size:20px; font-weight:900; line-height:1; }
-	.modal-close:hover { border-color:#ffe49a; }
-	.modal-body { padding:16px 20px; overflow-y:auto; }
+	.modal { position:relative; width:min(640px,92%); max-height:88%; display:flex; flex-direction:column;
+		background:
+			radial-gradient(125% 70% at 50% -12%, rgba(213,162,59,0.2), transparent 62%),
+			linear-gradient(180deg,#17140c 0%,#0b0a07 55%,#050505 100%);
+		border:2px solid #d5a23b; border-radius:18px; overflow:hidden;
+		box-shadow:0 0 0 1px rgba(255,224,130,0.22) inset, 0 0 0 4px #050505,
+			0 26px 62px rgba(0,0,0,0.82), 0 0 52px rgba(255,191,44,0.26);
+		color:#f1e4c6; font-family:Inter,Arial,sans-serif; animation:modal-in .24s cubic-bezier(.2,.9,.3,1.3) both; }
+	.modal::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; z-index:2;
+		background:linear-gradient(90deg, transparent, #ffe49a 18%, #d5a23b 50%, #ffe49a 82%, transparent); }
+	@keyframes modal-in { from { opacity:0; transform:translateY(16px) scale(0.96); } }
+	.modal-header { position:relative; display:flex; align-items:center; justify-content:space-between;
+		padding:16px 20px 14px; border-bottom:1px solid rgba(213,162,59,0.4);
+		background:linear-gradient(180deg, rgba(213,162,59,0.22), transparent); }
+	.modal-title { display:flex; align-items:center; gap:11px;
+		font-size:21px; font-weight:900; letter-spacing:3px; color:#ffe49a; text-shadow:0 2px 3px #000; }
+	.modal-title::before { content:''; width:6px; height:22px; border-radius:3px;
+		background:linear-gradient(180deg,#ffe49a,#d5a23b); box-shadow:0 0 9px rgba(255,200,60,0.65); }
+	.modal-close { width:36px; height:36px; border-radius:10px; cursor:pointer; display:grid; place-items:center;
+		border:2px solid #d5a23b; background:#0a0a0f; color:#ffe49a; font-size:21px; font-weight:900; line-height:1;
+		transition:background .15s, border-color .15s, transform .2s; }
+	.modal-close:hover { border-color:#ffe49a; background:linear-gradient(180deg,#3a2c0e,#1a1407); transform:rotate(90deg); }
+	.modal-body { padding:18px 20px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(213,162,59,0.55) rgba(0,0,0,0.3); }
+	.modal-body::-webkit-scrollbar { width:8px; }
+	.modal-body::-webkit-scrollbar-thumb { background:rgba(213,162,59,0.55); border-radius:8px; }
+	.modal-body::-webkit-scrollbar-track { background:rgba(0,0,0,0.3); }
 	.menu-item { display:flex; align-items:center; gap:14px; width:100%; cursor:pointer;
-		padding:13px 16px; margin-bottom:9px; border-radius:11px; text-align:left;
-		border:1px solid rgba(213,162,59,0.45); background:rgba(8,8,12,0.85);
-		color:#ffe9b8; font-size:16px; font-weight:700; letter-spacing:0.4px; }
-	.menu-item:hover { border-color:#ffe49a; background:rgba(28,22,8,0.9); transform:translateX(2px); }
-	.menu-item .mi-ico { font-size:20px; width:26px; text-align:center; }
-	.menu-item .mi-arrow { margin-left:auto; color:#d5a23b; }
-	.set-row { display:flex; align-items:center; justify-content:space-between;
-		padding:13px 4px; border-bottom:1px solid rgba(213,162,59,0.22); }
+		padding:11px 14px; margin-bottom:9px; border-radius:12px; text-align:left;
+		border:1px solid rgba(213,162,59,0.4);
+		background:linear-gradient(180deg, rgba(26,21,9,0.7), rgba(8,8,12,0.85));
+		color:#ffe9b8; font-size:16px; font-weight:700; letter-spacing:0.4px;
+		transition:border-color .15s, background .15s, transform .15s; }
+	.menu-item:hover { border-color:#ffe49a; transform:translateX(3px);
+		background:linear-gradient(180deg, rgba(50,38,12,0.95), rgba(20,16,6,0.95)); }
+	.menu-item .mi-ico { font-size:18px; width:38px; height:38px; flex:0 0 auto; display:grid; place-items:center;
+		border-radius:50%; border:1px solid rgba(255,224,130,0.5);
+		background:radial-gradient(circle at 50% 30%, rgba(255,224,130,0.28), rgba(10,10,15,0.92));
+		box-shadow:0 0 10px rgba(255,200,60,0.22) inset; }
+	.menu-item .mi-label { flex:1 1 auto; }
+	.menu-item .mi-arrow { margin-left:auto; color:#d5a23b; font-size:22px; font-weight:400; transition:color .15s; }
+	.menu-item:hover .mi-arrow { color:#ffe49a; }
+	.mi-pill { margin-left:auto; padding:4px 13px; border-radius:999px; font-size:12px; font-weight:800; letter-spacing:1.5px;
+		background:linear-gradient(180deg,#2f7335,#14491f); color:#eafce0; border:1px solid #3fae57; }
+	.mi-pill.off { background:linear-gradient(180deg,#3a1414,#1e0a0a); color:#ffb4b4; border-color:#8a3030; }
+	.set-section { font-size:11px; font-weight:800; letter-spacing:2.5px; text-transform:uppercase; color:#d5a23b;
+		margin:14px 2px 4px; padding-bottom:6px; border-bottom:1px solid rgba(213,162,59,0.28); }
+	.set-section:first-child { margin-top:0; }
+	.set-row { display:flex; align-items:center; justify-content:space-between; gap:14px;
+		padding:11px 6px; border-bottom:1px solid rgba(213,162,59,0.16); }
+	.set-row:last-child { border-bottom:0; }
 	.set-row span { font-size:15px; font-weight:700; color:#f1e4c6; }
-	.toggle { width:54px; height:28px; border-radius:16px; cursor:pointer; position:relative;
+	.toggle { width:54px; height:28px; border-radius:16px; cursor:pointer; position:relative; flex:0 0 auto;
 		border:2px solid #7a5a1c; background:#15130d; transition:background .18s, border-color .18s; }
 	.toggle::after { content:''; position:absolute; top:2px; left:2px; width:20px; height:20px;
 		border-radius:50%; background:linear-gradient(180deg,#cfcfcf,#888); transition:left .18s; }
-	.toggle.on { background:linear-gradient(180deg,#2a6b2f,#14491f); border-color:#3fae57; }
+	.toggle.on { background:linear-gradient(180deg,#2f7335,#14491f); border-color:#3fae57; }
 	.toggle.on::after { left:26px; background:linear-gradient(180deg,#fff3bd,#e7b84e); }
-	.set-slider { width:140px; accent-color:#e7b84e; }
-	.pt-intro { font-size:14px; line-height:1.5; color:#d8cba6; margin:0 0 14px; }
-	.pt-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
-	.pt-cell { display:flex; flex-direction:column; align-items:center; gap:4px;
-		padding:10px 6px; border-radius:10px; border:1px solid rgba(213,162,59,0.35); background:rgba(8,8,12,0.8); }
-	.pt-cell img { width:46px; height:46px; object-fit:contain; filter:drop-shadow(0 2px 3px #000); }
-	.pt-pays { font-size:11px; line-height:1.45; color:#ffe9b8; text-align:center; }
+	.set-vol { display:flex; align-items:center; gap:12px; }
+	.set-slider { width:150px; accent-color:#e7b84e; }
+	.set-vol-val { font-size:13px; font-weight:800; color:#ffd96f; min-width:32px; text-align:right; }
+	.pt-intro { font-size:14px; line-height:1.55; color:#d8cba6; margin:0; }
+	.pt-head { display:flex; align-items:baseline; gap:8px; margin:20px 0 11px; padding-bottom:7px;
+		font-size:13px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#ffd96f;
+		border-bottom:1px solid rgba(213,162,59,0.32); }
+	.pt-head small { margin-left:auto; font-size:11px; font-weight:600; letter-spacing:0.4px; text-transform:none; color:#9b906f; }
+	.pt-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+	.pt-cell { display:flex; flex-direction:column; align-items:center; gap:5px; padding:11px 6px; border-radius:11px;
+		border:1px solid rgba(213,162,59,0.32); background:linear-gradient(180deg, rgba(26,21,9,0.55), rgba(8,8,12,0.85)); }
+	.pt-cell img { width:48px; height:48px; object-fit:contain; filter:drop-shadow(0 2px 3px #000); }
+	.pt-pays { font-size:11px; line-height:1.5; color:#ffe9b8; text-align:center; }
 	.pt-pays b { color:#ffd96f; }
-	.pt-feat { display:flex; gap:12px; align-items:flex-start; padding:11px 0; border-top:1px solid rgba(213,162,59,0.25); }
-	.pt-feat img { width:44px; height:44px; object-fit:contain; flex:0 0 auto; filter:drop-shadow(0 2px 3px #000); }
-	.pt-feat div { font-size:13px; line-height:1.45; color:#d8cba6; }
-	.pt-feat b { color:#ffe49a; display:block; margin-bottom:2px; font-size:14px; letter-spacing:0.5px; }
-	.pt-note { margin-top:14px; padding-top:12px; border-top:1px solid rgba(213,162,59,0.3);
-		font-size:12px; color:#9b906f; text-align:center; line-height:1.5; }
+	.pt-feat { display:flex; gap:13px; align-items:flex-start; padding:10px 0; }
+	.pt-feat + .pt-feat { border-top:1px solid rgba(213,162,59,0.16); }
+	.pt-feat img { width:46px; height:46px; object-fit:contain; flex:0 0 auto; filter:drop-shadow(0 2px 3px #000); }
+	.pt-feat .pt-chip { width:46px; height:46px; flex:0 0 auto; border-radius:9px; border:2px solid #ffd96f;
+		box-shadow:0 0 11px rgba(255,210,90,0.7) inset; background:radial-gradient(circle, rgba(255,210,90,0.18), transparent 70%); }
+	.pt-feat div { font-size:13px; line-height:1.5; color:#d8cba6; }
+	.pt-feat b { color:#ffe49a; display:block; margin-bottom:3px; font-size:14px; letter-spacing:0.5px; }
+	.pt-note { margin-top:16px; padding-top:13px; border-top:1px solid rgba(213,162,59,0.3);
+		font-size:12px; color:#9b906f; text-align:center; line-height:1.6; }
 
 	/* ---- golden cells + coin feature ---- */
 	.cell.golden::before { content:''; position:absolute; inset:2px; border-radius:6px; z-index:0;
@@ -218,17 +254,29 @@ const extraCss = `
 	.fs-counter .fs-big { font-size:21px; font-weight:1000; color:#fff; line-height:1.1; }
 
 	/* ---- bonus buy ---- */
-	.bb-list { display:flex; flex-direction:column; gap:10px; }
-	.bb-opt { display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%;
-		cursor:pointer; text-align:left; padding:14px 18px; border-radius:12px;
-		border:1px solid rgba(213,162,59,0.5); background:rgba(8,8,12,0.85); color:#ffe9b8; }
-	.bb-opt:hover:not(.disabled) { border-color:#ffe49a; transform:translateY(-1px); }
-	.bb-opt.disabled { opacity:0.4; cursor:not-allowed; }
-	.bb-name { font-size:16px; font-weight:800; }
-	.bb-desc { font-size:12px; color:#c9bd97; margin-top:2px; }
-	.bb-price { font-size:18px; font-weight:1000; color:#ffd96f; white-space:nowrap; }
-	.bb-price::before { content:'\\26BD  '; }
-	.bb-note { margin-top:13px; font-size:12px; color:#9b906f; text-align:center; }
+	.bb-list { display:flex; flex-direction:column; gap:11px; }
+	.bb-opt { display:flex; align-items:center; gap:14px; width:100%; position:relative; overflow:hidden;
+		cursor:pointer; text-align:left; padding:13px 16px 13px 15px; border-radius:13px;
+		border:1px solid rgba(213,162,59,0.45); border-left:4px solid var(--bb-accent,#d5a23b);
+		background:linear-gradient(180deg, rgba(26,21,9,0.7), rgba(8,8,12,0.88)); color:#ffe9b8;
+		transition:border-color .15s, transform .15s, box-shadow .15s; }
+	.bb-opt:hover:not(.disabled) { border-color:#ffe49a; border-left-color:var(--bb-accent,#ffe49a);
+		transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,0.5), 0 0 18px rgba(255,191,44,0.18); }
+	.bb-opt.disabled { opacity:0.42; cursor:not-allowed; }
+	.bb-ico { width:44px; height:44px; flex:0 0 auto; display:grid; place-items:center; font-size:23px; border-radius:11px;
+		border:1px solid rgba(255,224,130,0.45);
+		background:radial-gradient(circle at 50% 30%, rgba(255,224,130,0.22), rgba(8,8,12,0.92));
+		box-shadow:0 0 10px rgba(255,200,60,0.2) inset; }
+	.bb-text { flex:1 1 auto; min-width:0; }
+	.bb-name { font-size:16px; font-weight:800; letter-spacing:0.3px; }
+	.bb-desc { font-size:12px; color:#c9bd97; margin-top:2px; line-height:1.35; }
+	.bb-price { display:inline-flex; align-items:center; gap:5px; flex:0 0 auto; white-space:nowrap;
+		font-size:16px; font-weight:1000; color:#241803; padding:8px 14px; border-radius:999px;
+		background:linear-gradient(180deg,#ffe9a3,#e7b84e); box-shadow:0 2px 7px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.25) inset; }
+	.bb-price::before { content:'\\26BD'; font-size:14px; }
+	.bb-opt.disabled .bb-price { background:linear-gradient(180deg,#7a6f4a,#4a4330); color:#1a1206; box-shadow:none; }
+	.bb-note { margin-top:15px; padding-top:12px; border-top:1px solid rgba(213,162,59,0.28);
+		font-size:12px; color:#9b906f; text-align:center; line-height:1.55; }
 `;
 
 const html = `<!doctype html>
@@ -314,12 +362,12 @@ ${featureItems}
 			<div class="modal">
 				<div class="modal-header"><div class="modal-title">MENU</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
-					<button class="menu-item" data-open="modal-info"><span class="mi-ico">💰</span> Pay Table <span class="mi-arrow">›</span></button>
-					<button class="menu-item" data-open="modal-info"><span class="mi-ico">📖</span> How To Play <span class="mi-arrow">›</span></button>
-					<button class="menu-item" data-open="modal-settings"><span class="mi-ico">⚙️</span> Settings <span class="mi-arrow">›</span></button>
-					<button class="menu-item" id="menu-sound"><span class="mi-ico">🔊</span> Sound: <span id="menu-sound-state" style="color:#ffd96f;margin-left:4px">ON</span></button>
-					<button class="menu-item" data-open="modal-info"><span class="mi-ico">📜</span> Game Rules <span class="mi-arrow">›</span></button>
-					<button class="menu-item" id="menu-history"><span class="mi-ico">🕘</span> Game History <span class="mi-arrow">›</span></button>
+					<button class="menu-item" data-open="modal-info"><span class="mi-ico">💰</span><span class="mi-label">Pay Table</span><span class="mi-arrow">›</span></button>
+					<button class="menu-item" data-open="modal-info"><span class="mi-ico">📖</span><span class="mi-label">How To Play</span><span class="mi-arrow">›</span></button>
+					<button class="menu-item" data-open="modal-settings"><span class="mi-ico">⚙️</span><span class="mi-label">Settings</span><span class="mi-arrow">›</span></button>
+					<button class="menu-item" id="menu-sound"><span class="mi-ico">🔊</span><span class="mi-label">Sound</span><span class="mi-pill" id="menu-sound-state">ON</span></button>
+					<button class="menu-item" data-open="modal-info"><span class="mi-ico">📜</span><span class="mi-label">Game Rules</span><span class="mi-arrow">›</span></button>
+					<button class="menu-item" id="menu-history"><span class="mi-ico">🕘</span><span class="mi-label">Game History</span><span class="mi-arrow">›</span></button>
 				</div>
 			</div>
 		</div>
@@ -329,13 +377,15 @@ ${featureItems}
 			<div class="modal">
 				<div class="modal-header"><div class="modal-title">SETTINGS</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
+					<div class="set-section">Audio</div>
 					<div class="set-row"><span>Music</span><button class="toggle on" data-toggle="music"></button></div>
 					<div class="set-row"><span>Sound Effects</span><button class="toggle on" data-toggle="sfx"></button></div>
-					<div class="set-row"><span>Master Volume</span><input class="set-slider" type="range" min="0" max="100" value="80" /></div>
+					<div class="set-row"><span>Master Volume</span><div class="set-vol"><input class="set-slider" type="range" min="0" max="100" value="80" id="vol-slider" /><span class="set-vol-val" id="vol-val">80</span></div></div>
+					<div class="set-section">Gameplay</div>
 					<div class="set-row"><span>Turbo Spin</span><button class="toggle" data-toggle="turbo"></button></div>
 					<div class="set-row"><span>Quick Spin</span><button class="toggle" data-toggle="quick"></button></div>
 					<div class="set-row"><span>Intro Screen</span><button class="toggle on" data-toggle="intro"></button></div>
-					<div class="set-row" style="border-bottom:0"><span>Left-handed Layout</span><button class="toggle" data-toggle="lefty"></button></div>
+					<div class="set-row"><span>Left-handed Layout</span><button class="toggle" data-toggle="lefty"></button></div>
 				</div>
 			</div>
 		</div>
@@ -346,17 +396,20 @@ ${featureItems}
 				<div class="modal-header"><div class="modal-title">HOW TO WIN</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
 					<p class="pt-intro">Golden Goal Rush is a 6×5 <b>cluster-pays</b> game. Land <b>5 or more matching symbols connected horizontally or vertically</b> to win. Winning symbols are removed and new ones cascade in &mdash; each cascade raises the win multiplier. Bigger clusters pay more.</p>
+					<div class="pt-head">Symbol Pays <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small></div>
 					<div class="pt-grid" id="pt-grid"></div>
+					<div class="pt-head">Features</div>
 					<div class="pt-feat"><img src="${SYMBOLS.wild.src}" alt="Wild" /><div><b>WILD</b>Substitutes for every paying symbol to help complete clusters. Does not replace the Scatter.</div></div>
 					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Scatter" /><div><b>SCATTER &mdash; VIP TICKET</b>3, 4 or 5 trigger Free Spins Tier 1 / 2 / 3.</div></div>
-					<div class="pt-feat"><div style="width:44px;height:44px;border:2px solid #ffd96f;border-radius:8px;box-shadow:0 0 10px rgba(255,210,90,0.7) inset;flex:0 0 auto"></div><div><b>GOLDEN CELLS</b>Every winning position turns into a Golden Cell for the rest of the spin sequence.</div></div>
+					<div class="pt-feat"><div class="pt-chip"></div><div><b>GOLDEN CELLS</b>Every winning position turns into a Golden Cell for the rest of the spin sequence.</div></div>
 					<div class="pt-feat"><img src="${SYMBOLS.rainbow.src}" alt="Golden Arc" /><div><b>GOLDEN ARC (RAINBOW)</b>While an Arc is on the board it activates all Golden Cells, revealing Coins, Multiplier Badges and Collector Cups.</div></div>
 					<div class="pt-feat"><img src="${COIN_ASSETS.gold}" alt="Coins" /><div><b>SPONSOR COINS</b>Bronze ${CONFIG.bronzeValues[0]}&ndash;${CONFIG.bronzeValues[CONFIG.bronzeValues.length-1]}×, Silver ${CONFIG.silverValues[0]}&ndash;${CONFIG.silverValues[CONFIG.silverValues.length-1]}×, Gold ${CONFIG.goldValues[0]}&ndash;${CONFIG.goldValues[CONFIG.goldValues.length-1]}× the bet.</div></div>
 					<div class="pt-feat"><img src="${MULT_ASSETS[5]}" alt="Multiplier Badge" /><div><b>MULTIPLIER BADGE</b>Multiplies adjacent coins by ${CONFIG.multiplierValues.map((v) => 'x' + v).join(', ')}.</div></div>
 					<div class="pt-feat"><img src="${COLLECTOR_ASSET}" alt="Collector Cup" /><div><b>COLLECTOR CUP</b>Collects the value of every visible coin (top-to-bottom, left-to-right). After the last cup the Golden Cells reveal again, repeating while new cups appear.</div></div>
-					<div class="pt-feat"><div style="width:0;flex:0 0 0"></div><div><b>FREE SPINS</b>
+					<div class="pt-head">Free Spins &amp; Bonus Buy</div>
+					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Free Spins" /><div><b>FREE SPINS</b>
 						${Object.entries(CONFIG.tiers).map(([t, v]) => 'Tier ' + t + ' &mdash; ' + v.name + ': ' + v.spins + ' spins' + (v.guaranteedRainbow ? ', guaranteed Arc each spin' : '') + '.').join('<br>')}</div></div>
-					<div class="pt-feat"><div style="width:0;flex:0 0 0"></div><div><b>BONUS BUY</b>
+					<div class="pt-feat"><img src="${assets.bonusButton}" alt="Bonus Buy" /><div><b>BONUS BUY</b>
 						${CONFIG.bonusBuy.map((o) => o.label + ' &mdash; ' + o.mult + '× bet').join('<br>')}<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
 					<div class="pt-note">Theoretical RTP target ~96% (demo) &middot; Max win ${CONFIG.maxWinMultiplier.toLocaleString()}× bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
 				</div>
@@ -732,17 +785,25 @@ $('btn-auto').addEventListener('click', () => {
 	if (state.auto && !state.spinning) spin();
 });
 // ---- bonus buy ----
+const BB_META = {
+	hunt: { ico: '🎯', accent: '#cf9b3f' },
+	rainbow: { ico: '🌈', accent: '#7d5cff' },
+	tier1: { ico: '⭐', accent: '#e7b84e' },
+	tier2: { ico: '🏆', accent: '#ffd24a' },
+};
 function buildBonusBuy() {
 	const wrap = $('bonusbuy-list');
 	let anyDisabled = false;
 	wrap.innerHTML = CONFIG.bonusBuy.map((o) => {
 		const price = Math.round(o.mult * state.bet * 100) / 100;
 		const afford = state.balance >= price; if (!afford) anyDisabled = true;
-		return '<button class="bb-opt' + (afford ? '' : ' disabled') + '" data-buy="' + o.id + '"' + (afford ? '' : ' disabled') + '>' +
+		const m = BB_META[o.id] || { ico: '⚽', accent: '#d5a23b' };
+		return '<button class="bb-opt' + (afford ? '' : ' disabled') + '" data-buy="' + o.id + '" style="--bb-accent:' + m.accent + '"' + (afford ? '' : ' disabled') + '>' +
+			'<span class="bb-ico">' + m.ico + '</span>' +
 			'<div class="bb-text"><div class="bb-name">' + o.label + '</div><div class="bb-desc">' + o.desc + '</div></div>' +
 			'<div class="bb-price">' + fmt(price) + '</div></button>';
 	}).join('');
-	$('bonusbuy-note').textContent = anyDisabled ? 'Greyed options exceed your balance.' : 'Prices scale with your current bet.';
+	$('bonusbuy-note').textContent = anyDisabled ? 'Greyed options exceed your balance. Tier 3 can only trigger naturally.' : 'Prices scale with your current bet. Tier 3 can only trigger naturally.';
 	wrap.querySelectorAll('[data-buy]').forEach((btn) => btn.addEventListener('click', () => {
 		const o = CONFIG.bonusBuy.find((x) => x.id === btn.dataset.buy);
 		const price = Math.round(o.mult * state.bet * 100) / 100;
@@ -768,9 +829,16 @@ window.addEventListener('keydown', (e) => { if (e.code === 'Escape') closeModals
 
 // menu: sound toggle
 $('menu-sound').addEventListener('click', () => {
-	const s = $('menu-sound-state'); const on = s.textContent === 'ON'; s.textContent = on ? 'OFF' : 'ON';
+	const s = $('menu-sound-state'); const on = s.textContent === 'ON';
+	s.textContent = on ? 'OFF' : 'ON'; s.classList.toggle('off', on);
 });
 $('menu-history').addEventListener('click', () => openModal('modal-info'));
+
+// settings: live master-volume readout
+(function () {
+	const sl = $('vol-slider'); const out = $('vol-val');
+	if (sl && out) sl.addEventListener('input', () => { out.textContent = sl.value; });
+})();
 
 // settings: toggle switches
 document.querySelectorAll('.toggle').forEach((t) => t.addEventListener('click', () => {
