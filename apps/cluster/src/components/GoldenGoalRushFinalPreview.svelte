@@ -246,9 +246,9 @@
 
 	.stadium-vignette {
 		background:
-			radial-gradient(circle at 50% 18%, rgba(255, 206, 69, 0.18), transparent 28%),
-			linear-gradient(180deg, rgba(0, 0, 0, 0.34) 0%, transparent 36%, rgba(0, 0, 0, 0.54) 100%),
-			radial-gradient(circle at 50% 50%, transparent 43%, rgba(0, 0, 0, 0.62) 100%);
+			radial-gradient(circle at 50% 16%, rgba(255, 206, 69, 0.16), transparent 26%),
+			linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0%, transparent 34%, rgba(0, 0, 0, 0.6) 100%),
+			radial-gradient(ellipse 72% 82% at 50% 47%, transparent 40%, rgba(0, 0, 0, 0.8) 100%);
 	}
 
 	.top-light {
