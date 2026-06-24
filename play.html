@@ -1994,13 +1994,16 @@ function rainbowOnBoard() { return state.grid.some((col) => col.includes('rainbo
 function scatterCount() { return state.grid.reduce((s, col) => s + col.filter((k) => k === 'scatter').length, 0); }
 
 // Drop the whole board in, column by column. When the bonus is close (anticipate),
-// the last two columns hang back and the stage dims so the final reels "decide".
+// the columns decelerate left->right: the first ones still drop visibly one after
+// another, then the last two hang back dramatically so the final reels "decide".
 async function dropInBoard(anticipate) {
 	const drops = fullDropMap();
 	if (anticipate) {
+		const COLD = [0, 150, 320, 510, 900, 1480]; // progressive deceleration (ms, pre-turbo)
 		for (const [k, d] of drops) {
 			const c = +k.split(',')[0];
-			if (c >= COLS - 2) { d.delay += (c === COLS - 2 ? 420 : 820) * TF(); d.dur = (DROP_DUR(ROWS) + 240) * TF(); }
+			d.delay = COLD[c] * TF();
+			d.dur = (DROP_DUR(ROWS) + c * 45 + (c >= COLS - 2 ? 150 : 0)) * TF();
 		}
 		stage.classList.add('antic'); Sound.anticipation(2); stadiumFlash();
 	}
