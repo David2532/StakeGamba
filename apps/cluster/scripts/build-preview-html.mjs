@@ -432,8 +432,11 @@ const html = `<!doctype html>
 <title>Golden Goal Rush — Interactive Preview</title>
 <style>
 	* { box-sizing: border-box; }
-	html, body { margin: 0; height: 100%; overflow: hidden; background: #05080f; display: grid; place-items: center; }
-	.viewport { width: 1200px; height: 675px; transform-origin: center center; }
+	html, body { margin: 0; height: 100%; overflow: hidden; background: #05080f; }
+	/* Centre explicitly with translate(-50%,-50%) rather than grid place-items,
+	   which keeps centring identical across browsers (Firefox included) when the
+	   stage is scaled up past the viewport size. */
+	.viewport { position: absolute; top: 50%; left: 50%; width: 1200px; height: 675px; transform-origin: center center; }
 	.locked { opacity: 0.4; pointer-events: none; filter: grayscale(0.4); }
 ${style}
 ${extraCss}
@@ -1304,7 +1307,7 @@ function fitViewport() {
 	const s = Math.min(vw / 1200, vh / 675);
 	state.scale = s;
 	const vp = document.querySelector('.viewport');
-	if (vp) vp.style.transform = 'scale(' + s + ')';
+	if (vp) vp.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
 }
 let fitQueued = false;
 function queueFit() { if (fitQueued) return; fitQueued = true; requestAnimationFrame(() => { fitQueued = false; fitViewport(); }); }
