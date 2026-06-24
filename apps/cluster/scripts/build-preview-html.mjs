@@ -1295,15 +1295,28 @@ document.querySelectorAll('.toggle').forEach((t) => t.addEventListener('click', 
 newGrid(); paint(); updateMeters(); updateLocks();
 
 // Scale the 1200x675 stage to fit any window so nothing (incl. the side
-// panels) is ever cut off on smaller screens.
+// panels) is ever cut off — including fullscreen and mobile.
 function fitViewport() {
-	const s = Math.min(window.innerWidth / 1200, window.innerHeight / 675);
+	// clientWidth/Height exclude scrollbars and track fullscreen reliably;
+	// fall back to innerWidth/Height. Take min so the whole stage always fits.
+	const vw = document.documentElement.clientWidth || window.innerWidth;
+	const vh = document.documentElement.clientHeight || window.innerHeight;
+	const s = Math.min(vw / 1200, vh / 675);
 	state.scale = s;
 	const vp = document.querySelector('.viewport');
 	if (vp) vp.style.transform = 'scale(' + s + ')';
 }
-window.addEventListener('resize', fitViewport);
+let fitQueued = false;
+function queueFit() { if (fitQueued) return; fitQueued = true; requestAnimationFrame(() => { fitQueued = false; fitViewport(); }); }
+window.addEventListener('resize', queueFit);
+window.addEventListener('orientationchange', queueFit);
+document.addEventListener('fullscreenchange', queueFit);
+document.addEventListener('webkitfullscreenchange', queueFit);
+if (window.visualViewport) window.visualViewport.addEventListener('resize', queueFit);
 fitViewport();
+// re-fit shortly after load in case fonts/chrome settle the viewport late
+setTimeout(fitViewport, 50);
+setTimeout(fitViewport, 300);
 
 // Lightweight preview API — lets you trigger a guaranteed win to preview the
 // cluster/cascade/win-banner presentation (open console: __ggr.demoWin()).
