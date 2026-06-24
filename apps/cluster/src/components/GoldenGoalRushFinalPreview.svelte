@@ -489,7 +489,7 @@
 	.cell {
 		position: relative;
 		display: grid;
-		overflow: hidden;
+		overflow: visible;
 		place-items: center;
 		border-right: 1px solid rgba(214, 158, 54, 0.6);
 		border-bottom: 1px solid rgba(214, 158, 54, 0.6);
