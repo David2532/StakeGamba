@@ -1070,15 +1070,23 @@
 		drop-shadow(0 0 10px rgba(255,221,90,0.95)) drop-shadow(0 0 18px rgba(255,200,60,0.7)); }
 	.cell.win::after { content:''; position:absolute; inset:0; border-radius:6px;
 		background: radial-gradient(circle, rgba(255,224,120,0.35), transparent 68%); pointer-events:none; }
-	.cell img.dropping { animation: drop-in 0.32s cubic-bezier(.25,.9,.3,1.2) both; }
+	.cell img.dropping { animation: drop-in 0.42s cubic-bezier(.34,.86,.4,1) both; }
 	.cell img.clearing { animation: clear-out 0.26s ease-in forwards; }
-	.stage.turbo .cell img.dropping { animation-duration: 0.16s; }
+	.stage.turbo .cell img.dropping { animation-duration: 0.2s; }
 	.stage.turbo .cell img.clearing { animation-duration: 0.12s; }
-	@keyframes drop-in { 0% { transform: translateY(-340%) scale(0.85); opacity: 0; }
-		70% { opacity: 1; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
+	@keyframes drop-in { 0% { transform: translateY(-360%) scale(0.82); opacity: 0; }
+		56% { opacity: 1; }
+		74% { transform: translateY(7%) scaleX(1.08) scaleY(0.9); opacity: 1; }
+		88% { transform: translateY(-3%) scaleX(0.97) scaleY(1.05); }
+		100% { transform: translateY(0) scale(1); opacity: 1; } }
 	@keyframes clear-out { 0% { transform: scale(1); opacity: 1; }
 		40% { transform: scale(1.18); } 100% { transform: scale(0.2); opacity: 0; } }
 	@keyframes win-pop { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+	/* a winning position briefly burns gold as it converts to a Golden Cell */
+	.cell.converting::after { content:''; position:absolute; inset:0; border-radius:6px; z-index:3; pointer-events:none;
+		background: radial-gradient(circle, rgba(255,242,175,0.95), rgba(255,200,60,0.45) 48%, transparent 72%);
+		animation: golden-convert 0.5s ease-out forwards; }
+	@keyframes golden-convert { 0%{ opacity:0; transform:scale(0.4);} 32%{opacity:1; transform:scale(1.12);} 100%{opacity:0; transform:scale(1.3);} }
 	/* Busy state: dim slightly, no rotation (per request the spin button must
 	   not spin while the reels are spinning). */
 	.spin-button.busy { pointer-events: none; filter: saturate(0.85) brightness(0.82); }
@@ -1316,6 +1324,64 @@
 	.cell.scatter-hit img { animation:scatter-hit 0.4s ease !important; }
 	@keyframes scatter-hit { 0%{transform:scale(1.16);} 45%{transform:scale(1.42); filter:drop-shadow(0 0 32px #fff) drop-shadow(0 0 20px #ffd96f) !important;} 100%{transform:scale(1.16);} }
 
+	/* ---- win-level escalation: Super Mega + Golden Goal takeover ---- */
+	.win-banner.takeover { border-color:#fff0b0; color:#fff;
+		box-shadow:0 0 80px rgba(255,170,40,0.95), 0 0 56px rgba(255,90,40,0.55), inset 0 0 34px rgba(255,210,90,0.4);
+		animation:takeover-throb 0.55s ease-in-out infinite alternate; }
+	@keyframes takeover-throb { from{transform:translate(-50%,0) scale(1);} to{transform:translate(-50%,0) scale(1.08);} }
+	.top-light.burst { animation:light-burst 0.85s ease-out; }
+	@keyframes light-burst { 0%{opacity:var(--lo,0.5);} 22%{opacity:1; filter:brightness(1.8);} 100%{opacity:var(--lo,0.5); filter:brightness(1);} }
+	/* bonus mode gives the whole stage a warm golden grade + vignette */
+	.stage.bonus-mode::after { content:''; position:absolute; inset:0; z-index:4; pointer-events:none;
+		background:radial-gradient(ellipse 80% 75% at 50% 42%, rgba(255,180,40,0.1), transparent 55%),
+			radial-gradient(ellipse 100% 100% at 50% 50%, transparent 52%, rgba(60,30,0,0.5) 100%);
+		animation:bonus-grade 0.6s ease both; }
+	@keyframes bonus-grade { from{opacity:0;} to{opacity:1;} }
+
+	/* ---- retrigger toast ---- */
+	.rt-toast { position:absolute; top:200px; left:50%; transform:translate(-50%,-12px) scale(0.9); z-index:42;
+		opacity:0; pointer-events:none; padding:12px 30px 14px; border-radius:14px; text-align:center;
+		border:2px solid #6cf0ff; background:linear-gradient(180deg,#06243a,#0a0a0f);
+		box-shadow:0 0 34px rgba(70,200,255,0.55), inset 0 0 18px rgba(70,200,255,0.2);
+		transition:opacity .3s ease, transform .35s cubic-bezier(.2,.9,.3,1.5); }
+	.rt-toast.show { opacity:1; transform:translate(-50%,0) scale(1); }
+	.rt-toast .rt-big { font-family:'Arial Black',Impact,sans-serif; font-style:italic; font-size:30px; font-weight:1000;
+		color:#bff0ff; text-shadow:0 2px 3px #000, 0 0 18px rgba(90,210,255,0.9); letter-spacing:1px; }
+	.rt-toast .rt-sub { font-size:13px; letter-spacing:3px; color:#7fd6ff; font-weight:800; text-transform:uppercase; margin-top:2px; }
+
+	/* ---- bonus end summary ---- */
+	.bonus-summary { position:absolute; inset:0; z-index:44; display:none; place-items:center; overflow:hidden;
+		background:radial-gradient(ellipse 70% 60% at 50% 45%, rgba(30,20,4,0.9), rgba(2,2,4,0.97)); }
+	.bonus-summary.show { display:grid; animation:bi-fade 0.4s ease both; }
+	.bs-card { position:relative; width:min(440px,86%); padding:26px 30px 24px; border-radius:18px; text-align:center;
+		border:2px solid #d5a23b; background:linear-gradient(180deg,#1a160c,#08080a);
+		box-shadow:0 0 0 4px #050505, 0 24px 60px rgba(0,0,0,0.8), 0 0 50px rgba(255,191,44,0.32);
+		animation:bi-pop 0.55s cubic-bezier(.2,.9,.3,1.5) 0.05s both; }
+	.bs-kicker { font-size:14px; letter-spacing:5px; color:#ffd96f; font-weight:800; text-transform:uppercase; }
+	.bs-total { font-family:'Arial Black',Impact,sans-serif; font-style:italic; font-size:52px; font-weight:1000; line-height:1.1;
+		color:#ffe49a; -webkit-text-stroke:2px #4b2101; text-shadow:0 3px 0 #5a2500, 0 0 28px rgba(255,200,60,0.9); margin:6px 0 4px; }
+	.bs-total small { display:block; font-size:13px; letter-spacing:3px; color:#fff; -webkit-text-stroke:0; text-shadow:0 2px 2px #000; margin-bottom:2px; }
+	.bs-stats { display:flex; gap:10px; margin:16px 0 20px; }
+	.bs-stat { flex:1; padding:11px 8px; border-radius:11px; border:1px solid rgba(213,162,59,0.4); background:rgba(8,8,12,0.7); }
+	.bs-stat .v { font-size:21px; font-weight:1000; color:#ffd96f; }
+	.bs-stat .l { font-size:11px; letter-spacing:1px; color:#c9bd97; text-transform:uppercase; margin-top:2px; }
+	.bs-continue { cursor:pointer; padding:13px 40px; border-radius:12px; font-size:17px; font-weight:900; letter-spacing:1.5px;
+		color:#241803; border:0; background:linear-gradient(180deg,#ffe9a3,#e7b84e);
+		box-shadow:0 4px 0 #9a6f1e, 0 8px 16px rgba(0,0,0,0.5); transition:transform .12s, box-shadow .12s; }
+	.bs-continue:hover { transform:translateY(-1px); box-shadow:0 5px 0 #9a6f1e, 0 10px 18px rgba(0,0,0,0.55); }
+	.bs-continue:active { transform:translateY(3px); box-shadow:0 1px 0 #9a6f1e, 0 4px 10px rgba(0,0,0,0.5); }
+
+	/* ---- bonus buy confirm ---- */
+	.bb-confirm { margin-top:14px; padding:16px; border-radius:13px; border:1px solid rgba(213,162,59,0.5);
+		background:linear-gradient(180deg, rgba(40,30,10,0.92), rgba(8,8,12,0.95)); text-align:center; }
+	.bb-confirm .c-q { font-size:14px; color:#f1e4c6; line-height:1.5; margin-bottom:13px; }
+	.bb-confirm .c-q b { color:#ffd96f; }
+	.bb-confirm .c-row { display:flex; gap:10px; }
+	.bb-confirm button { flex:1; cursor:pointer; padding:12px; border-radius:10px; font-size:15px; font-weight:900; letter-spacing:0.5px; }
+	.bb-confirm .c-yes { color:#241803; border:0; background:linear-gradient(180deg,#ffe9a3,#e7b84e); box-shadow:0 3px 0 #9a6f1e; }
+	.bb-confirm .c-no { color:#ffe9b8; border:1px solid rgba(213,162,59,0.5); background:rgba(8,8,12,0.85); }
+	.bb-confirm .c-yes:active { transform:translateY(2px); box-shadow:0 1px 0 #9a6f1e; }
+
 </style>
 </head>
 <body>
@@ -1353,6 +1419,20 @@
 				<div class="bi-kicker">Free Spins Unlocked</div>
 				<div class="bi-title" id="bi-title">Golden Chance</div>
 				<div class="bi-spins" id="bi-spins">8 FREE SPINS</div>
+			</div>
+		</div>
+
+		<div class="rt-toast" id="rt-toast"><div class="rt-big" id="rt-big">+4 FREE SPINS</div><div class="rt-sub" id="rt-sub">Retrigger</div></div>
+
+		<div class="bonus-summary" id="bonus-summary" aria-hidden="true">
+			<div class="bs-card">
+				<div class="bs-kicker">Bonus Complete</div>
+				<div class="bs-total"><small>TOTAL WIN</small><span id="bs-total">0.00</span></div>
+				<div class="bs-stats">
+					<div class="bs-stat"><div class="v" id="bs-spins">0</div><div class="l">Spins Played</div></div>
+					<div class="bs-stat"><div class="v" id="bs-best">0.00</div><div class="l">Best Spin</div></div>
+				</div>
+				<button class="bs-continue" id="bs-continue">CONTINUE</button>
 			</div>
 		</div>
 
@@ -1587,6 +1667,11 @@ function burstAt(x, y, count = 6) {
 	}
 }
 function flashScreen() { const f = $('fx-flash'); if (!f) return; f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); }
+// Floodlight burst — used for big wins and a 3+ scatter trigger.
+function stadiumFlash() {
+	['left', 'right'].forEach((side) => { const l = document.querySelector('.top-light.' + side); if (!l) return; l.classList.remove('burst'); void l.offsetWidth; l.classList.add('burst'); setTimeout(() => l.classList.remove('burst'), 900); });
+}
+function setBonusMode(on) { stage.classList.toggle('bonus-mode', !!on); }
 function coinShower(n) {
 	const layer = $('fx-layer'); if (!layer) return;
 	const tiers = [COIN_ASSETS.gold, COIN_ASSETS.silver, COIN_ASSETS.bronze];
@@ -1745,21 +1830,27 @@ async function countUp(amount) {
 	});
 }
 
+// Win levels (multiple of bet): below 10x stays a quiet count-up, no overlay.
+function winLevel(x) {
+	if (x >= 100) return { label: 'GOLDEN GOAL!', tier: 'takeover', coins: 60, hold: 1500 };
+	if (x >= 50) return { label: 'SUPER MEGA WIN', tier: 'epic', coins: 44, hold: 1100 };
+	if (x >= 25) return { label: 'MEGA WIN', tier: 'mega', coins: 30, hold: 850 };
+	if (x >= 10) return { label: 'BIG WIN', tier: 'big', coins: 18, hold: 700 };
+	return null;
+}
 async function showBanner(amount) {
 	const x = amount / state.bet;
-	let label = null, tier = '';
-	if (x >= 50) { label = 'EPIC WIN'; tier = 'epic'; }
-	else if (x >= 20) { label = 'MEGA WIN'; tier = 'mega'; }
-	else if (x >= 8) { label = 'BIG WIN'; tier = 'big'; }
-	if (!label) return;
-	Sound.win(tier); flashScreen();
-	coinShower(x >= 50 ? 42 : x >= 20 ? 28 : 18);
-	$('win-banner-label').textContent = label;
-	const b = $('win-banner'); b.classList.add('show', tier);
-	if (x >= 20) { stage.classList.add('shake'); setTimeout(() => stage.classList.remove('shake'), 420); }
-	const amt = $('win-banner-amount'); const steps = 22;
-	for (let i = 1; i <= steps; i += 1) { amt.textContent = fmt((amount * i) / steps); await wait(30); }
-	await wait(x >= 50 ? 1000 : 700); b.classList.remove('show', tier);
+	const lv = winLevel(x);
+	if (!lv) return;
+	Sound.win(lv.tier); flashScreen();
+	if (lv.tier === 'takeover' || lv.tier === 'epic') stadiumFlash();
+	coinShower(lv.coins);
+	$('win-banner-label').textContent = lv.label;
+	const b = $('win-banner'); b.classList.add('show', lv.tier);
+	if (x >= 25) { const n = x >= 100 ? 3 : x >= 50 ? 2 : 1; for (let s = 0; s < n; s += 1) { stage.classList.add('shake'); await wait(120); stage.classList.remove('shake'); await wait(60); } }
+	const amt = $('win-banner-amount'); const steps = x >= 50 ? 34 : 24;
+	for (let i = 1; i <= steps; i += 1) { amt.textContent = fmt((amount * i) / steps); await wait(x >= 100 ? 38 : 28); }
+	await wait(lv.hold); b.classList.remove('show', lv.tier);
 }
 
 const capWin = () => CONFIG.maxWinMultiplier * state.bet;
@@ -1780,6 +1871,7 @@ async function resolveCascades(baseStart) {
 		flat.forEach(([c, r]) => {
 			const el = cellEl(c, r); const img = el.querySelector('img');
 			if (img) img.classList.add('clearing');
+			el.classList.add('converting'); // gold burn as the cell turns into a Golden Cell
 			const p = stagePos(el); burstAt(p.x, p.y, 5);
 		});
 		await wait(230);
@@ -1907,6 +1999,7 @@ async function spin(buy) {
 	// payout / accumulate
 	if (state.mode === 'free') {
 		state.fsWin = (state.fsWin || 0) + state.win;
+		state.fsBest = Math.max(state.fsBest || 0, state.win); // track best single spin for the summary
 		$('meter-win').textContent = fmt(state.fsWin); // WIN shows the running bonus total
 	} else {
 		state.balance += state.win;
@@ -1921,7 +2014,7 @@ async function spin(buy) {
 		triggered = true; $('btn-spin').classList.remove('busy'); state.spinning = false;
 		await startFreeSpins(sc >= 5 ? 3 : sc >= 4 ? 2 : 1); return;
 	} else if (state.mode === 'free' && sc >= 2) {
-		retrigger(sc);
+		await retrigger(sc);
 	}
 
 	if (state.mode === 'base') { state.golden.clear(); state.reveals.clear(); paint(); } // repaint to remove golden frames
@@ -1944,28 +2037,58 @@ function updateLocks() {
 	const lock = state.mode === 'free';
 	['btn-bonus', 'btn-bet-minus', 'btn-bet-plus'].forEach((id) => { const e = $(id); if (e) e.classList.toggle('locked', lock); });
 }
-function retrigger(sc) {
-	let add = sc >= 4 ? 4 : sc >= 3 ? 4 : 2;
-	if (state.tier === 1 && sc >= 4) { state.tier = 2; }
-	state.fsLeft += add; state.fsTotal += add; updateFsCounter();
-	const b = $('win-banner'); $('win-banner-label').textContent = '+' + add + ' FREE SPINS'; $('win-banner-amount').textContent = CONFIG.tiers[state.tier].name;
-	b.classList.add('show'); setTimeout(() => b.classList.remove('show'), 1100);
+// Retrigger is a real highlight moment: freeze, pulse the scatters, toast, then
+// the spin counter ticks up before play resumes.
+async function retrigger(sc) {
+	const add = sc >= 3 ? 4 : 2;
+	if (state.tier === 1 && sc >= 4) state.tier = 2;
+	const from = state.fsTotal;
+	for (let c = 0; c < COLS; c += 1) for (let r = 0; r < ROWS; r += 1)
+		if (state.grid[c][r] === 'scatter') { const e = cellEl(c, r); if (e) e.classList.add('scatter-antic'); }
+	Sound.scatterHit(); stadiumFlash();
+	const t = $('rt-toast'); $('rt-big').textContent = '+' + add + ' FREE SPINS'; $('rt-sub').textContent = CONFIG.tiers[state.tier].name;
+	t.classList.add('show');
+	await wait(state.turbo ? 320 : 650);
+	state.fsLeft += add; state.fsTotal += add;
+	for (let v = from + 1; v <= state.fsTotal; v += 1) { $('fs-total').textContent = v; Sound.tick(v - from, add); await wait(state.turbo ? 70 : 130); }
+	updateFsCounter();
+	await wait(state.turbo ? 200 : 420);
+	t.classList.remove('show');
+	document.querySelectorAll('#board .cell.scatter-antic').forEach((e) => e.classList.remove('scatter-antic'));
+}
+function bonusSummary(total, spins, best) {
+	return new Promise((resolve) => {
+		const el = $('bonus-summary'); const btn = $('bs-continue');
+		$('bs-total').textContent = '0.00'; $('bs-spins').textContent = spins; $('bs-best').textContent = fmt(best);
+		el.classList.add('show');
+		const lv = winLevel(total / state.bet);
+		Sound.win(lv ? lv.tier : 'big'); coinShower(lv && lv.coins ? lv.coins : 22);
+		const steps = 30; let i = 0;
+		const cnt = setInterval(() => { i += 1; $('bs-total').textContent = fmt(total * i / steps); Sound.tick(i, steps); if (i >= steps) { clearInterval(cnt); $('bs-total').textContent = fmt(total); } }, 40);
+		let closed = false;
+		const close = () => { if (closed) return; closed = true; clearInterval(cnt); $('bs-total').textContent = fmt(total); el.classList.remove('show'); btn.onclick = null; resolve(); };
+		btn.onclick = close;
+		setTimeout(close, state.turbo ? 2600 : 8000); // fallback so auto-play / tests never hang
+	});
 }
 async function startFreeSpins(tier) {
-	state.mode = 'free'; state.tier = tier; state.fsTotal = CONFIG.tiers[tier].spins; state.fsLeft = state.fsTotal; state.fsWin = 0;
+	state.mode = 'free'; state.tier = tier; state.fsTotal = CONFIG.tiers[tier].spins; state.fsLeft = state.fsTotal;
+	state.fsWin = 0; state.fsBest = 0; state.fsPlayed = 0;
 	state.golden.clear(); state.reveals.clear();
+	setBonusMode(true);
 	updateFsCounter();
 	await bonusIntro(tier);
 	while (state.fsLeft > 0 && (state.fsWin || 0) < capWin()) {
 		state.fsLeft -= 1; updateFsCounter();
 		await spin();
+		state.fsPlayed += 1;
 		await wait(state.turbo ? 250 : 550);
 	}
 	const won = state.fsWin || 0;
 	state.mode = 'base'; state.tier = 0; state.golden.clear(); state.reveals.clear(); paint();
 	state.balance += won; updateMeters(); updateFsCounter();
-	$('win-banner-label').textContent = 'BONUS WIN'; setWin(won);
-	await showBanner(won);
+	setBonusMode(false);
+	await bonusSummary(won, state.fsPlayed, state.fsBest || 0);
 }
 
 function changeBet(dir) {
@@ -2006,10 +2129,27 @@ function buildBonusBuy() {
 		const o = CONFIG.bonusBuy.find((x) => x.id === btn.dataset.buy);
 		const price = Math.round(o.mult * state.bet * 100) / 100;
 		if (state.balance < price) return;
+		showBuyConfirm(o, price);
+	}));
+}
+// Confirm/Cancel before a purchase, with a plain-language description of what
+// the player gets, so Bonus Buy never jumps straight into spins.
+function showBuyConfirm(o, price) {
+	const what = o.id === 'tier1' ? CONFIG.tiers[1].spins + ' Free Spins · Tier 1'
+		: o.id === 'tier2' ? CONFIG.tiers[2].spins + ' Free Spins · Tier 2'
+		: o.id === 'rainbow' ? 'one spin with a guaranteed Golden Arc'
+		: 'one spin with boosted feature chance';
+	$('bonusbuy-list').innerHTML = '<div class="bb-confirm">'
+		+ '<div class="c-q">Buy <b>' + o.label + '</b><br>(' + what + ')<br>for <b>⚽ ' + fmt(price) + '</b>?</div>'
+		+ '<div class="c-row"><button class="c-no" id="bb-cancel">Cancel</button><button class="c-yes" id="bb-confirm">Confirm</button></div></div>';
+	$('bonusbuy-note').textContent = 'Balance after purchase: ' + fmt(Math.max(0, Math.round((state.balance - price) * 100) / 100));
+	$('bb-cancel').onclick = () => buildBonusBuy();
+	$('bb-confirm').onclick = () => {
+		if (state.balance < price) { buildBonusBuy(); return; }
 		closeModals();
 		if (o.id === 'tier1' || o.id === 'tier2') { state.balance -= price; updateMeters(); startFreeSpins(o.id === 'tier1' ? 1 : 2); }
 		else spin(o);
-	}));
+	};
 }
 $('btn-bonus').addEventListener('click', () => { if (!state.spinning && state.mode === 'base') { buildBonusBuy(); openModal('modal-bonusbuy'); } });
 window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); spin(); } });
