@@ -241,9 +241,12 @@ const extraCss = `
 	.cell.rainbow-flash img { animation:rainbow-flash 0.5s ease-in-out 3; }
 	@keyframes rainbow-flash { 0%,100%{filter:drop-shadow(0 0 6px #fff);}
 		50%{filter:drop-shadow(0 0 22px #6cf) drop-shadow(0 0 16px #f6c) brightness(1.4);} }
+	/* reveal cells don't take part in the tumble, so re-clip them (the board now
+	   uses overflow:visible) to keep coins neatly inside their cell */
+	.cell.has-reveal { overflow:hidden; }
 	.reveal { position:absolute; inset:0; display:grid; place-items:center; z-index:2;
 		animation:reveal-pop 0.34s cubic-bezier(.2,.9,.3,1.5) both; }
-	.reveal img { position:relative; inset:auto; width:88%; height:88%; padding:0; object-fit:contain; filter:drop-shadow(0 3px 5px #000); }
+	.reveal img { position:relative; inset:auto; width:78%; height:78%; padding:0; object-fit:contain; filter:drop-shadow(0 3px 5px #000); }
 	.reveal .coin-val { position:absolute; bottom:5%; left:0; right:0; text-align:center;
 		font-family:'Arial Black',Impact,sans-serif; font-size:15px; font-weight:1000; color:#fff;
 		text-shadow:0 1px 0 #000,0 0 6px #ffcf5a; -webkit-text-stroke:1px #5a2500; }
