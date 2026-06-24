@@ -16,6 +16,18 @@ Frontend contract:
   reveal, winInfo, setWin, setTotalWin, freeSpinTrigger, updateFreeSpin, freeSpinEnd, finalWin.
 - freeSpinRetrigger is intentionally not emitted.
 
+Phase 8B feature contract:
+- `feature_contract.py` defines the intended Golden Goal Rush feature interfaces:
+  6x5 cluster/cascade target grid, Golden Tiles, Goal Collector activations,
+  Stadium Reward reveals, bonus tiers, retriggers and a 10,000x max-win target.
+- This is not wired into the current Python book generator yet. The current
+  generator remains a Stake-compatible MVP path and must not receive blind
+  probability/reward changes.
+- Before production implementation, run a full simulation/audit for RTP, hit
+  rate, bonus frequency, retrigger frequency, bonus-buy EV and max-win capping.
+- Preview TODO: align the standalone JS prototype and Storybook visuals with
+  the final math contract before publishing production books.
+
 Useful commands:
   cd math/games/golden_goal_rush
   python run.py debug --spins 10 --seed 1

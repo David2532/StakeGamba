@@ -1,6 +1,6 @@
 {
 	"name": "golden-goal-rush-math",
-	"version": "2.4.0",
+	"version": "2.5.0-phase-8b-preview",
 	"entry": "math.js",
 	"type": "module",
 	"game": "Golden Goal Rush",
@@ -10,5 +10,6 @@
 		"rows": 5
 	},
 	"maxWinMultiplier": 10000,
-	"rtpTarget": 0.96
+	"rtpTarget": null,
+	"mathStatus": "Preview TODO: align RTP, bonus frequency, retriggers, bonus buys and rewards with final math simulation."
 }

@@ -5,7 +5,7 @@ Standalone HTML/CSS/JS prototype with separate frontend and slot math.
 ## Start
 
 ```powershell
-cd "C:\Users\uschi\Desktop\wm slot"
+cd "C:\Users\david\Downloads\StakeGamba\stake-upload\golden-goal-rush"
 node dev-server.js
 ```
 
@@ -19,9 +19,9 @@ http://127.0.0.1:6077/
 
 - `index.html`: app entry
 - `front/`: UI, animations, symbol rendering
-- `math/`: cluster pays, cascades, golden squares, rainbow rewards, bonuses, simulation
+- `math/`: cluster pays, cascades, Golden Tiles, Goal Collector activations, bonuses, simulation
 - `assets/`: existing Golden Goal Rush assets
-- `assets/special/`: existing coin, rainbow, multiplier and collector assets
+- `assets/special/`: existing coin, multiplier, collector and reward assets
 
 ## Simulation
 
@@ -49,22 +49,20 @@ window.goldenGoalMath.simulateSpins(100000, 1)
 - Cluster pays from 5 connected matching regular symbols.
 - Connections are horizontal/vertical only.
 - Wild substitutes regular symbols only.
-- Scatter, Rainbow, Coins, Multipliers and Collector do not pay as clusters.
-- Winning cells become Golden Squares.
-- Basegame Golden Squares expire at the end of the spin if no Rainbow activates them.
-- Bonus Golden Squares persist until Rainbow activation.
-- Rainbow activates Golden Squares into Coins, Multipliers, Collector or Blank.
+- Scatter, Goal Collector, Coins, Multipliers and reward symbols do not pay as clusters.
+- Winning cells become Golden Tiles.
+- Basegame Golden Tiles expire at the end of the spin if no Goal Collector activates them.
+- Bonus Golden Tiles persist until Goal Collector activation.
+- Goal Collector activates Golden Tiles into Goal Rewards, Trophy Rewards, Multipliers, Extra Spins, Collector rewards or Blank.
 - Multipliers apply additively to adjacent Coins in all 8 directions.
 - Collector pays the final visible Coin sum again.
-- Collector can re-activate Golden Squares, with strict limits.
+- Collector rewards can re-activate Golden Tiles, with strict limits.
 - Max win cap: 10,000x bet.
 
-Final 100,000-spin sample after tuning:
+Preview TODO: this standalone simulator is not the final Stake math package.
+Do not ship changed weights, reward values, bonus-buy costs or retrigger rates
+without a production simulation/RTP audit against the final engine contract.
 
-```text
-RTP: 95.948%
-Hit rate: 31.035%
-Bonus trigger: 1 in 196.9
-Rainbow activation: 1 in 113
-Max win observed: 1823.5x
-```
+No current RTP claim is made for the Phase 8B feature preview. Run a fresh
+simulation after every weight/reward change and keep the result out of
+production copy until the final math package is approved.
