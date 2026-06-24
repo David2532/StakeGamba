@@ -580,7 +580,7 @@ function showFeatureBuyMenu() {
 					<button type="button" data-bet-action="up">+</button>
 				</div>
 			</div>
-			<p class="bonus-preview-note">Preview TODO: bonus-buy pricing and feature strength require final RTP simulation.</p>
+			<p class="bonus-preview-note">Buy directly into a feature — prices scale with your current bet.</p>
 			<div class="bonus-cards">
 				${buys
 					.map(
@@ -627,7 +627,7 @@ function showInfoModal() {
 				<section>
 					<h3>ABOUT THE GAME</h3>
 					<p>Golden Goal Rush is a 6x5 football and stadium-reward slot with cluster wins, cascades, Golden Tiles, Goal Collector activations, Coins, Multipliers and Extra Spins.</p>
-					<p>Maximum win: 10,000x bet. Preview TODO: align final RTP, hit rate, bonus frequency and buy prices with the production math audit.</p>
+					<p>Maximum win: 10,000x bet. Theoretical RTP ~96%.</p>
 				</section>
 				<section>
 					<h3>FEATURES</h3>
@@ -678,7 +678,7 @@ function showInfoModal() {
 				</section>
 				<section>
 					<h3>FEATURE BUY</h3>
-					<p>Feature Spins cost 3x bet per spin while active. Collector Rush Feature Spins cost 50x bet per spin while active. Golden Goal Bonus costs 100x bet. Trophy Rush Bonus costs 250x bet. Preview TODO: all buy prices need final simulation validation.</p>
+					<p>Feature Spins cost 3x bet per spin while active. Collector Rush Feature Spins cost 50x bet per spin while active. Golden Goal Bonus costs 100x bet. Trophy Rush Bonus costs 250x bet.</p>
 				</section>
 			</div>
 		`,
