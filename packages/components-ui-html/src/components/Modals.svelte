@@ -13,9 +13,6 @@
 
 	type Props = {
 		version: Snippet;
-		// Optional game-specific pay table / info book modal. When provided it
-		// replaces the default placeholder ModalPayTable.
-		payTable?: Snippet;
 	};
 
 	const props: Props = $props();
@@ -27,13 +24,9 @@
 <ModalBuyBonusConfirm />
 <ModalAutoSpin />
 <ModalAutoSpinMessage />
-{#if props.payTable}
-	{@render props.payTable()}
-{:else}
-	<ModalPayTable>
-		{@render props.version()}
-	</ModalPayTable>
-{/if}
+<ModalPayTable>
+	{@render props.version()}
+</ModalPayTable>
 <ModalGameRules>
 	{@render props.version()}
 </ModalGameRules>

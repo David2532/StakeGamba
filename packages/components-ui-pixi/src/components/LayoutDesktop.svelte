@@ -4,7 +4,7 @@
 	import { MainContainer } from 'components-layout';
 	import { Container, Rectangle, anchorToPivot } from 'pixi-svelte';
 
-	import { DESKTOP_BASE_SIZE, DESKTOP_BACKGROUND_WIDTH_LIST, UI_THEME } from '../constants';
+	import { DESKTOP_BASE_SIZE, DESKTOP_BACKGROUND_WIDTH_LIST } from '../constants';
 	import { getContext } from '../context';
 	import type { LayoutUiProps } from '../types';
 
@@ -52,7 +52,7 @@
 			{@render props.buttonBuyBonus({ anchor: 0.5 })}
 		</Container>
 
-		<Container y={DESKTOP_BASE_SIZE * 0.5} x={220 + 150 * 2} scale={0.8}>
+		<Container y={DESKTOP_BASE_SIZE * 0.5} x={160 + 150 * 4} scale={0.8}>
 			{@render props.buttonAutoSpin({ anchor: 0.5 })}
 		</Container>
 
@@ -64,16 +64,11 @@
 			{@render props.buttonTurbo({ anchor: 0.5 })}
 		</Container>
 
-		<!-- Bet stepper group (mockup): red bet pill with minus/plus on its edges. -->
-		<Container y={DESKTOP_BASE_SIZE * 0.5 - 47} x={1490} scale={0.8}>
-			{@render props.amountBet({ stacked: true, tileColor: UI_THEME.betRed })}
-		</Container>
-
-		<Container y={DESKTOP_BASE_SIZE * 0.5} x={1320} scale={0.7}>
+		<Container y={DESKTOP_BASE_SIZE * 0.5} x={1440} scale={0.8}>
 			{@render props.buttonDecrease({ anchor: 0.5 })}
 		</Container>
 
-		<Container y={DESKTOP_BASE_SIZE * 0.5} x={1660} scale={0.7}>
+		<Container y={DESKTOP_BASE_SIZE * 0.5} x={1440 + 150} scale={0.8}>
 			{@render props.buttonIncrease({ anchor: 0.5 })}
 		</Container>
 	</Container>

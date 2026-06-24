@@ -40,7 +40,7 @@ export type LayoutUiProps = {
 	logo: Snippet;
 	amountBalance: Snippet<[{ stacked?: boolean }]>;
 	amountWin: Snippet<[{ stacked?: boolean }]>;
-	amountBet: Snippet<[{ stacked?: boolean; tileColor?: number }]>;
+	amountBet: Snippet<[{ stacked?: boolean }]>;
 	buttonBuyBonus: Snippet<[Partial<ButtonProps>]>;
 	buttonBet: Snippet<[Partial<ButtonProps>]>;
 	buttonTurbo: Snippet<[Partial<ButtonProps>]>;

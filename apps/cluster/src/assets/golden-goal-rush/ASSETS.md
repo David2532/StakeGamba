@@ -1,45 +1,46 @@
-# Golden Goal Rush — asset mapping (visual source of truth)
+# Golden Goal Rush Assets
 
-**Source of truth:** `stake-upload/golden-goal-rush/assets/` — the finished
-build uploaded to Stake is the visual master. `apps/lines` (and its Storybook)
-mirror that look; files here are 1:1 copies, original names kept.
+These files support the static Storybook visual direction for Golden Goal
+Rush in `apps/cluster`. They are not Math output and they are not a regulatory
+RTP package.
 
-## Symbol mapping (math symbol → asset file → asset key)
+## Active Preview Assets
 
-| Math symbol | File                  | Asset key (`assets.ts`) |
-| ----------- | --------------------- | ----------------------- |
-| H1          | `fussball.png`        | `ggr-h1`                |
-| H2          | `pokal.png`           | `ggr-h2`                |
-| H3          | `pfeife.png`          | `ggr-h3`                |
-| H4          | `trikot.png`          | `ggr-h4`                |
-| L1          | `a.png`               | `ggr-l1`                |
-| L2          | `k.png`               | `ggr-l2`                |
-| L3          | `q.png`               | `ggr-l3`                |
-| L4          | `j.png`               | `ggr-l4`                |
-| L5          | `10.png`              | `ggr-l5`                |
-| W (Wild)    | `wild.png`            | `ggr-w`                 |
-| S (Scatter) | `scatter.png`         | `ggr-s`                 |
-| —           | `slot-background.png` | `slotBackground`        |
-| —           | `logo-horizontal.png` | `ggr-logo`              |
+| Use                      | File                                                    |
+| ------------------------ | ------------------------------------------------------- |
+| Stadium background       | `slot-background.png`                                   |
+| Logo source              | `logo-horizontal.png`                                   |
+| Low symbols              | `10.png`, `j.png`, `q.png`, `k.png`, `a.png`            |
+| High symbols             | `fussball.png`, `pokal.png`, `trikot.png`, `pfeife.png` |
+| Feature symbols          | `wild.png`, `scatter.png`                               |
+| HUD/button reference art | `ui/*.png`                                              |
+| Extracted HUD assets     | `hud-extracted/*.png`                                   |
 
-The previous placeholder set (`symbol-h1.png` … `symbol-s.png`) has been
-deleted; nothing references it anymore.
+## Symbol Intent
 
-## `ui/` (copied, not yet wired)
+| ID  | Visual   |
+| --- | -------- |
+| L1  | 10       |
+| L2  | J        |
+| L3  | Q        |
+| L4  | K        |
+| L5  | A        |
+| H1  | Football |
+| H2  | Trophy   |
+| H3  | Jersey   |
+| H4  | Whistle  |
+| W   | Wild     |
+| S   | Scatter  |
 
-`ui/` contains the icon glyphs of the stake-upload HTML HUD (spin, autospin,
-blitz/turbo, bonus-buy badge, einsatz-hoch/runter, noble-spin-logo). They are
-copied for completeness but the Pixi HUD keeps its vector buttons for now:
-several of these PNGs have baked black backgrounds and inconsistent sizes
-(`spin.png` is 1536x1024), so they are not clean button textures. In the
-stake-upload front they sit on CSS-styled buttons, whose dark/gold look the
-vector HUD already mirrors.
+## Prepared Only
 
-## `special/` (copied, wiring pending on math)
+`logo-horizontal.png` is kept as source art, but the static preview renders a
+cleaner CSS wordmark because the source image has large transparent padding.
 
-`special/` (sponsor coins, multipliers, collector, golden-goal tiers) is
-copied 1:1 from the stake-upload master for the planned "Golden Sponsor
-Bonus". The features are not part of the `apps/lines` math/event contract
-yet, so nothing references these files in game code — see
-`documentation/sponsor-bonus-design.md` for the event contract and balancing
-guardrails before wiring them up.
+`hud-extracted/` contains transparent crops from the provided HUD/frame/button
+PNG sheets. The preview uses these files as visible panel and button art, with
+text and values layered over them.
+
+`special/` contains coin, multiplier, collector, and bonus reference assets.
+They are intentionally not wired into runtime logic in this branch. Any future
+use needs a separate Math/event contract review.

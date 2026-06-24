@@ -23,18 +23,18 @@
 
 	const BASE = 180;
 
-	const SYMBOLS_LEFT = [{ name: 'S' }, { name: 'W' }, { name: 'RB' }, { name: 'CL' }];
+	const SYMBOLS_LEFT = [{ name: 'S' }, { name: 'W' }];
 
 	const SYMBOLS_RIGHT = [
 		{ name: 'H1' },
 		{ name: 'H2' },
 		{ name: 'H3' },
 		{ name: 'H4' },
-		{ name: 'L1' },
+		{ name: 'H5' },
 		{ name: 'L2' },
-		{ name: 'L3' },
+		{ name: 'L1' },
 		{ name: 'L4' },
-		{ name: 'L5' },
+		{ name: 'L3' },
 	];
 </script>
 
