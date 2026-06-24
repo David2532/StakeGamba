@@ -24,8 +24,8 @@ const assetMap = {
 	trikot: "../assets/trikot.png",
 	wild: "../assets/wild.png",
 	scatter: "../assets/scatter.png",
-	rainbow: "../assets/special/rainbow.png",
 	collector: "../assets/special/collector.png",
+	extra_spin: "../assets/scatter.png",
 	bronzeCoin: "../assets/special/bronze.png",
 	silverCoin: "../assets/special/silber.png",
 	goldCoin: "../assets/special/gold.png",
@@ -96,8 +96,8 @@ function money(value) {
 }
 
 function playMultiplier() {
-	if (featureSpinMode === "strikerBoost") return 3;
-	if (featureSpinMode === "rainbowRush") return 50;
+	if (featureSpinMode === "featureSpins") return 3;
+	if (featureSpinMode === "collectorRush") return 50;
 	if (chanceBoost) return 2;
 	return 1;
 }
@@ -122,9 +122,9 @@ function key(pos) {
 }
 
 function kind(id) {
-	if (id === "rainbow") return "rainbow";
 	if (id.startsWith("coin_") || id === "bronzeCoin" || id === "silverCoin" || id === "goldCoin") return "coin";
 	if (id.startsWith("multi_")) return "multiplier";
+	if (id === "extra_spin") return "extra-spin";
 	if (id === "collector") return "collector";
 	if (id === "scatter") return "scatter";
 	if (id === "wild") return "wild";
@@ -188,7 +188,7 @@ function render({ dropping = [], highlight = [], revealCoins = [], multiplied = 
 			cell.style.removeProperty("--drop-delay");
 			cell.style.removeProperty("--drop-speed");
 			const drop = dropMap.get(cellKey);
-			if (snap.goldenSquares.has(cellKey)) cell.classList.add("gold");
+			if (snap.goldenTiles.has(cellKey)) cell.classList.add("gold");
 			if (snap.coinedSquares.has(cellKey)) cell.classList.add("coined");
 			if (highlightSet.has(cellKey)) cell.classList.add("hit");
 			if (multipliedSet.has(cellKey)) cell.classList.add("multiplied");
@@ -260,10 +260,12 @@ function bonusLevelFromScatterCount(count) {
 }
 
 async function runFeatureEvents(events) {
+	let awardedExtraSpins = 0;
 	for (const event of events) {
-		if (event.type === "goldenActivation") {
+		if (event.type === "goldenTileActivation") {
 			const rewardPositions = event.rewards.map((reward) => reward.pos);
 			const coinRewards = event.rewards.filter((reward) => reward.type === "coin");
+			const extraSpinRewards = event.rewards.filter((reward) => reward.type === "extraSpin");
 			const coinPositions = coinRewards.map((reward) => reward.pos);
 			const baseCoinSymbols = new Map(
 				coinRewards.map((reward) => [key(reward.pos), coinVisualIdForValue(reward.baseValue ?? reward.value)]),
@@ -277,10 +279,15 @@ async function runFeatureEvents(events) {
 			const finalCoinLabels = new Map(
 				coinRewards.map((reward) => [key(reward.pos), formatCoinValue(reward.value)]),
 			);
+			const extraSpinSymbols = new Map(extraSpinRewards.map((reward) => [key(reward.pos), "extra_spin"]));
+			const extraSpinLabels = new Map(extraSpinRewards.map((reward) => [key(reward.pos), `+${reward.value} SPIN`]));
+			const finalRewardSymbols = new Map([...finalCoinSymbols, ...extraSpinSymbols]);
+			const finalRewardLabels = new Map([...finalCoinLabels, ...extraSpinLabels]);
 			const tierSymbols = new Map(
 				coinRewards.map((reward) => [key(reward.pos), `${reward.tier}Coin`]),
 			);
-			if (tierSymbols.size) {
+			if (tierSymbols.size || extraSpinSymbols.size) {
+				for (const [positionKey, symbol] of extraSpinSymbols) tierSymbols.set(positionKey, symbol);
 				render({ highlight: event.positions, overrideSymbols: tierSymbols });
 				await wait(turbo ? 420 : 980);
 			}
@@ -289,15 +296,18 @@ async function runFeatureEvents(events) {
 			if (event.multiplied?.length) {
 				render({ pulse: event.multiplierPositions ?? [], multiplied: event.multiplied, overrideSymbols: baseCoinSymbols, coinValues: baseCoinLabels });
 				await wait(turbo ? 360 : 820);
-				render({ revealCoins: event.multiplied, multiplied: event.multiplied, overrideSymbols: finalCoinSymbols, coinValues: finalCoinLabels });
+				render({ revealCoins: event.multiplied, multiplied: event.multiplied, overrideSymbols: finalRewardSymbols, coinValues: finalRewardLabels });
 				await wait(turbo ? 620 : 1500);
 			} else if (coinRewards.length) {
-				render({ highlight: event.positions, overrideSymbols: finalCoinSymbols, coinValues: finalCoinLabels });
+				render({ highlight: event.positions, overrideSymbols: finalRewardSymbols, coinValues: finalRewardLabels });
+			} else if (extraSpinRewards.length) {
+				render({ pulse: rewardPositions, overrideSymbols: finalRewardSymbols, coinValues: finalRewardLabels });
 			}
 			if (event.collectorPositions?.length) {
-				render({ collected: event.coinPositions, pulse: event.collectorPositions, overrideSymbols: finalCoinSymbols, coinValues: finalCoinLabels });
+				render({ collected: event.coinPositions, pulse: event.collectorPositions, overrideSymbols: finalRewardSymbols, coinValues: finalRewardLabels });
 				await wait(turbo ? 420 : 1050);
 			}
+			awardedExtraSpins += event.extraSpins ?? 0;
 			currentWin += event.amount;
 			winEl.textContent = money(currentWin);
 			showFloatingWin(event.amount, rewardPositions.length ? rewardPositions : event.positions);
@@ -308,13 +318,14 @@ async function runFeatureEvents(events) {
 			await wait(turbo ? 320 : 840);
 		}
 	}
+	return awardedExtraSpins;
 }
 
 async function spin({
 	mode = "base",
 	bonusLevel = 0,
 	cost = currentBet,
-	forceRainbow = false,
+	forceCollector = false,
 	forceCluster = false,
 	forceScatters = 0,
 	bonusHunt = false,
@@ -331,8 +342,9 @@ async function spin({
 	balanceEl.textContent = money(balance);
 
 	lastBonusTriggered = false;
-	math.startSpin({ bet: currentBet, mode, bonusLevel, forceRainbow, forceCluster, forceScatters, bonusHunt, ante, preserveGold: mode !== "base" });
+	const startSnapshot = math.startSpin({ bet: currentBet, mode, bonusLevel, forceCollector, forceCluster, forceScatters, bonusHunt, ante, preserveGold: mode !== "base" });
 	const startingBonusLevel = mode === "base" ? bonusLevelFromScatterCount(countScattersOnBoard(math.snapshot().board)) : 0;
+	const retriggerScatterCount = mode === "base" ? 0 : countScattersOnBoard(startSnapshot.board);
 	render({ dropping: allPositions() });
 	await wait(turbo ? 420 : 980);
 
@@ -348,15 +360,15 @@ async function spin({
 		showFloatingWin(cascadeWin, positions);
 		await wait(turbo ? 360 : 900);
 
-		const drop = math.removeAndDrop(positions, { forceRainbow: bonusLevel === 3 });
+		const drop = math.removeAndDrop(positions, { forceCollector: bonusLevel === 3 });
 		render({ dropping: drop.dropping.map((pos) => ({ ...pos, delay: pos.col * 34 + pos.row * 24 })) });
 		await wait(turbo ? 460 : 1100);
 	}
 
-	await runFeatureEvents(math.activateFeatures());
+	const extraSpinsAwarded = await runFeatureEvents(math.activateFeatures());
 
 	if (mode === "base") {
-		math.expireGoldenSquares();
+		math.expireGoldenTiles();
 		render();
 	}
 
@@ -370,29 +382,39 @@ async function spin({
 		await showFreeSpinAward(startingBonusLevel);
 		await playFreeSpins(startingBonusLevel);
 	}
-	return { win: currentWin, bonusTriggered: lastBonusTriggered };
+	return { win: currentWin, bonusTriggered: lastBonusTriggered, extraSpinsAwarded, retriggerScatterCount };
 }
 
 async function playFreeSpins(level = 1) {
 	if (freeSpinsPlaying) return;
 	freeSpinsPlaying = true;
-	const spins = level === 1 ? 8 : 12;
+	const startingSpins = level === 1 ? 8 : 12;
+	let spinsLeft = startingSpins;
+	let spinsPlayed = 0;
+	let totalAwardedSpins = startingSpins;
 	let totalBonusWin = 0;
-	const guaranteedRainbowSpin = level === 3 ? null : 1 + Math.floor(Math.random() * spins);
+	const guaranteedCollectorSpin = level === 3 ? null : 1 + Math.floor(Math.random() * startingSpins);
 	spinButton.disabled = true;
 	buyBonusButton.disabled = true;
 
-	for (let spinIndex = 1; spinIndex <= spins; spinIndex += 1) {
-		freeSpinsLeft = spins - spinIndex + 1;
+	while (spinsLeft > 0 && spinsPlayed < 30) {
+		spinsPlayed += 1;
+		freeSpinsLeft = spinsLeft;
 		updateSpinCounter();
 		const result = await spin({
 			mode: `bonus${level}`,
 			bonusLevel: level,
 			cost: 0,
-			forceRainbow: level === 3 || spinIndex === guaranteedRainbowSpin,
+			forceCollector: level === 3 || spinsPlayed === guaranteedCollectorSpin,
 		});
 		totalBonusWin += result?.win ?? 0;
-		freeSpinsLeft = spins - spinIndex;
+		spinsLeft -= 1;
+		const scatterRetrigger = result?.retriggerScatterCount >= 5 ? 8 : result?.retriggerScatterCount === 4 ? 5 : result?.retriggerScatterCount === 3 ? 3 : 0;
+		const extraSpins = result?.extraSpinsAwarded ?? 0;
+		if (scatterRetrigger || extraSpins) {
+			spinsLeft = Math.min(30 - spinsPlayed, spinsLeft + scatterRetrigger + extraSpins);
+			totalAwardedSpins += scatterRetrigger + extraSpins;
+		}
 		updateSpinCounter();
 		await wait(turbo ? 420 : 1050);
 	}
@@ -402,7 +424,7 @@ async function playFreeSpins(level = 1) {
 	updateSpinCounter();
 	spinButton.disabled = false;
 	buyBonusButton.disabled = false;
-	await showFreeSpinSummary(spins, totalBonusWin);
+	await showFreeSpinSummary(totalAwardedSpins, totalBonusWin);
 }
 
 function waitForModalButton(selector) {
@@ -421,7 +443,7 @@ function waitForModalButton(selector) {
 
 async function showFreeSpinAward(level) {
 	const spins = level === 1 ? 8 : 12;
-	const name = level === 1 ? "Striker's Luck" : level === 2 ? "Golden Goal Fever" : "World Cup Rush";
+	const name = level === 1 ? "Golden Goal Bonus" : level === 2 ? "Collector Rush" : "Trophy Rush Bonus";
 	showRichModal(
 		"CONGRATULATIONS",
 		`
@@ -429,7 +451,7 @@ async function showFreeSpinAward(level) {
 				<div class="scatter-row">${Array.from({ length: Math.max(3, level + 2) }, () => `<img src="../assets/scatter.png" alt="" />`).join("")}</div>
 				<h3>${name}</h3>
 				<strong>${spins} FREE SPINS</strong>
-				<p>Golden Squares can stay active and wait for a Rainbow reveal.</p>
+				<p>Golden Tiles can stay active and wait for a Goal Collector hit.</p>
 				<button type="button" class="primary-continue" data-continue>CONTINUE</button>
 			</div>
 		`,
@@ -486,36 +508,36 @@ function showFeatureBuyMenu() {
 	const stake = currentBet;
 	const buys = [
 		{
-			id: "strikerBoost",
-			title: "STRIKER BOOST FEATURESPINS",
-			text: "Every paid spin is 5x more likely to trigger free spins.",
+			id: "featureSpins",
+			title: "FEATURE SPINS",
+			text: "Paid spins with elevated Scatter pressure for a higher bonus-entry chase.",
 			volatility: "High",
 			price: stake * 3,
-			cta: featureSpinMode === "strikerBoost" ? "DISABLE" : "ENABLE",
+			cta: featureSpinMode === "featureSpins" ? "DISABLE" : "ENABLE",
 			visual: `<div class="bonus-feature-symbol"><img src="../assets/scatter.png" alt="" /><b>x5</b></div>`,
 			run: () => {
-				featureSpinMode = featureSpinMode === "strikerBoost" ? null : "strikerBoost";
+				featureSpinMode = featureSpinMode === "featureSpins" ? null : "featureSpins";
 				if (featureSpinMode) chanceBoost = false;
 				updateBetDisplay();
 			},
 		},
 		{
-			id: "rainbowRush",
-			title: "RAINBOW RUSH FEATURESPINS",
-			text: "Each paid spin is guaranteed to land one Rainbow symbol.",
+			id: "collectorRush",
+			title: "COLLECTOR RUSH",
+			text: "Each paid spin is guaranteed to land one Goal Collector activator.",
 			volatility: "Medium",
 			price: stake * 50,
-			cta: featureSpinMode === "rainbowRush" ? "DISABLE" : "ENABLE",
-			visual: `<img src="../assets/special/rainbow.png" alt="" />`,
+			cta: featureSpinMode === "collectorRush" ? "DISABLE" : "ENABLE",
+			visual: `<img src="../assets/special/collector.png" alt="" />`,
 			run: () => {
-				featureSpinMode = featureSpinMode === "rainbowRush" ? null : "rainbowRush";
+				featureSpinMode = featureSpinMode === "collectorRush" ? null : "collectorRush";
 				if (featureSpinMode) chanceBoost = false;
 				updateBetDisplay();
 			},
 		},
 		{
 			id: "bonus1",
-			title: "STRIKER'S LUCK",
+			title: "GOLDEN GOAL BONUS",
 			text: "Buy a trigger spin with 3 Scatters, then play 8 Free Spins.",
 			volatility: "Medium",
 			price: stake * 100,
@@ -531,18 +553,18 @@ function showFeatureBuyMenu() {
 		},
 		{
 			id: "bonus2",
-			title: "GOLDEN TROPHY RUSH",
-			text: "Buy a trigger spin with 4 Scatters, then play 12 Super Free Spins.",
-			volatility: "Medium",
+			title: "TROPHY RUSH BONUS",
+			text: "Buy a trigger spin with 5 Scatters, then play the top 12-spin finale.",
+			volatility: "Extreme",
 			price: stake * 250,
 			cta: "BUY",
-			visual: `<div class="scatter-stack">${Array.from({ length: 4 }, () => `<img src="../assets/scatter.png" alt="" />`).join("")}</div>`,
+			visual: `<div class="scatter-stack">${Array.from({ length: 5 }, () => `<img src="../assets/scatter.png" alt="" />`).join("")}</div>`,
 			run: async () => {
 				balance -= stake * 250;
 				balanceEl.textContent = money(balance);
-				await spin({ cost: 0, forceScatters: 4, suppressBonusStart: true });
-				await showFreeSpinAward(2);
-				await playFreeSpins(2);
+				await spin({ cost: 0, forceScatters: 5, suppressBonusStart: true });
+				await showFreeSpinAward(3);
+				await playFreeSpins(3);
 			},
 		},
 	];
@@ -558,6 +580,7 @@ function showFeatureBuyMenu() {
 					<button type="button" data-bet-action="up">+</button>
 				</div>
 			</div>
+			<p class="bonus-preview-note">Preview TODO: bonus-buy pricing and feature strength require final RTP simulation.</p>
 			<div class="bonus-cards">
 				${buys
 					.map(
@@ -603,25 +626,25 @@ function showInfoModal() {
 			<div class="rules-scroll">
 				<section>
 					<h3>ABOUT THE GAME</h3>
-					<p>Golden Goal Rush is a 6x5 football and gold-coin slot with cluster wins, Super Cascades, Golden Squares, Rainbow reveals, Coins, Multipliers and Collector symbols.</p>
-					<p>Maximum win: 10,000x bet. Current simulation target RTP: around 96%.</p>
+					<p>Golden Goal Rush is a 6x5 football and stadium-reward slot with cluster wins, cascades, Golden Tiles, Goal Collector activations, Coins, Multipliers and Extra Spins.</p>
+					<p>Maximum win: 10,000x bet. Preview TODO: align final RTP, hit rate, bonus frequency and buy prices with the production math audit.</p>
 				</section>
 				<section>
 					<h3>FEATURES</h3>
-					<h4>SUPER CASCADE</h4>
+					<h4>CASCADES</h4>
 					<p>After every winning cluster, the winning symbols are removed and new symbols drop from above until no new wins are formed.</p>
-					<h4>GOLDEN SQUARES</h4>
-					<p>Every cell that was part of a winning cluster turns into a Golden Square.</p>
-					<div class="rule-visual golden-square"></div>
-					<p>If a Rainbow symbol is visible, it activates all Golden Squares. Activated squares reveal Coins, Multipliers, Collectors or Blank results.</p>
-					<img class="rule-symbol" src="../assets/special/rainbow.png" alt="" />
+					<h4>GOLDEN TILES</h4>
+					<p>Every cell that was part of a winning cluster turns into a Golden Tile.</p>
+					<div class="rule-visual golden-tile"></div>
+					<p>If a Goal Collector is visible, it activates all Golden Tiles. Activated tiles reveal Goal Rewards, Trophy Rewards, Multipliers, Extra Spins or blank results.</p>
+					<img class="rule-symbol" src="../assets/special/collector.png" alt="" />
 					<p>Bronze Coins: 0.2x, 0.5x, 1x, 2x, 4x. Silver Coins: 5x, 10x, 15x, 20x, 25x. Gold Coins: 50x, 100x, 250x, 500x.</p>
 					<div class="coin-row">
 						<img src="../assets/special/bronze.png" alt="" />
 						<img src="../assets/special/silber.png" alt="" />
 						<img src="../assets/special/gold.png" alt="" />
 					</div>
-					<p>Multipliers x2, x3, x4, x5 and x10 apply to adjacent Coins. Multiple adjacent Multipliers are added together. Collector symbols collect the total final Coin value again.</p>
+					<p>Multipliers x2, x3, x4, x5 and x10 apply to adjacent Coins. Multiple adjacent Multipliers are added together. Collector rewards collect the final Coin value again and can re-activate the same Golden Tiles within strict limits.</p>
 					<div class="coin-row">
 						<img src="../assets/special/x2.png" alt="" />
 						<img src="../assets/special/x3.png" alt="" />
@@ -631,12 +654,13 @@ function showInfoModal() {
 				</section>
 				<section>
 					<h3>FREE SPINS</h3>
-					<h4>STRIKER'S LUCK</h4>
-					<p>3 Scatters award 8 Free Spins. Golden Squares stay between spins until a Rainbow activates them.</p>
-					<h4>GOLDEN TROPHY RUSH</h4>
-					<p>4 Scatters award 12 Super Free Spins with higher chances for Silver/Gold Coins, Multipliers and Collectors.</p>
-					<h4>WORLD CUP RUSH</h4>
-					<p>5 Scatters award 12 premium Free Spins. A Rainbow appears on every spin and Bronze Coins are disabled.</p>
+					<h4>GOLDEN GOAL BONUS</h4>
+					<p>3 Scatters award 8 Free Spins. Golden Tiles can persist until a Goal Collector activates them.</p>
+					<h4>COLLECTOR RUSH</h4>
+					<p>4 Scatters award 12 Free Spins with stronger Goal Collector presence and more Stadium Rewards.</p>
+					<h4>TROPHY RUSH BONUS</h4>
+					<p>5 Scatters award the top 12-spin finale. A Goal Collector is forced each spin and Bronze Coins are disabled.</p>
+					<p>Scatter retriggers and Extra Spin reveals can add spins up to the 30-spin cap.</p>
 				</section>
 				<section>
 					<h3>SYMBOL PAYOUTS</h3>
@@ -654,7 +678,7 @@ function showInfoModal() {
 				</section>
 				<section>
 					<h3>FEATURE BUY</h3>
-					<p>Striker Boost FeatureSpins cost 3x bet per spin while active. Rainbow Rush FeatureSpins cost 50x bet per spin while active. Striker's Luck costs 100x bet. Golden Trophy Rush costs 250x bet.</p>
+					<p>Feature Spins cost 3x bet per spin while active. Collector Rush Feature Spins cost 50x bet per spin while active. Golden Goal Bonus costs 100x bet. Trophy Rush Bonus costs 250x bet. Preview TODO: all buy prices need final simulation validation.</p>
 				</section>
 			</div>
 		`,
@@ -691,9 +715,9 @@ function spinOptionsForCurrentMode() {
 	return {
 		cost: playCost(),
 		ante: chanceBoost,
-		bonusHunt: featureSpinMode === "strikerBoost",
-		forceRainbow: featureSpinMode === "rainbowRush",
-		forceCluster: featureSpinMode === "rainbowRush",
+		bonusHunt: featureSpinMode === "featureSpins",
+		forceCollector: featureSpinMode === "collectorRush",
+		forceCluster: featureSpinMode === "collectorRush",
 	};
 }
 

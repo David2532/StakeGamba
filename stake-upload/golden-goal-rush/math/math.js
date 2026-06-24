@@ -3,7 +3,9 @@ export const BET = 1;
 export const LOW_SYMBOLS = ["10", "j", "q", "k", "a"];
 export const HIGH_SYMBOLS = ["fussball", "pfeife", "pokal", "trikot"];
 export const NORMAL_SYMBOLS = [...LOW_SYMBOLS, ...HIGH_SYMBOLS];
-export const SPECIAL_SYMBOLS = ["wild", "scatter", "rainbow", "collector"];
+// Preview TODO: align symbol weights, reward weights, RTP, hit rate, retrigger rate,
+// and bonus-buy pricing with the final Golden Goal Rush math audit before production use.
+export const SPECIAL_SYMBOLS = ["wild", "scatter", "collector"];
 export const COLS = 6;
 export const ROWS = 5;
 
@@ -19,7 +21,7 @@ export const BASE_SYMBOL_WEIGHTS = {
 	trikot: 5,
 	wild: 1.2,
 	scatter: 0.55,
-	rainbow: 0.18,
+	collector: 0.18,
 };
 
 export const FS_SYMBOL_WEIGHTS_BONUS_1 = {
@@ -34,7 +36,7 @@ export const FS_SYMBOL_WEIGHTS_BONUS_1 = {
 	trikot: 5,
 	wild: 1.5,
 	scatter: 0.35,
-	rainbow: 0.45,
+	collector: 0.45,
 };
 
 export const FS_SYMBOL_WEIGHTS_BONUS_2 = {
@@ -49,7 +51,7 @@ export const FS_SYMBOL_WEIGHTS_BONUS_2 = {
 	trikot: 5,
 	wild: 1.7,
 	scatter: 0.3,
-	rainbow: 0.7,
+	collector: 0.7,
 };
 
 export const FS_SYMBOL_WEIGHTS_BONUS_3 = {
@@ -64,7 +66,7 @@ export const FS_SYMBOL_WEIGHTS_BONUS_3 = {
 	trikot: 5,
 	wild: 1.8,
 	scatter: 0.25,
-	rainbow: 0,
+	collector: 0,
 };
 
 export const PAYTABLE = {
@@ -79,39 +81,43 @@ export const PAYTABLE = {
 	trikot: { 5: 1, 7: 3, 9: 8, 11: 15, 13: 35, 16: 75 },
 };
 
-export const GOLDEN_SQUARE_REWARDS_BASE = {
+export const GOLDEN_TILE_REWARDS_BASE = {
 	bronzeCoin: 73,
 	silverCoin: 18,
 	goldCoin: 3.5,
 	multiplier: 3,
 	collector: 1.5,
+	extraSpin: 0,
 	blank: 1,
 };
 
-export const GOLDEN_SQUARE_REWARDS_BONUS_1 = {
+export const GOLDEN_TILE_REWARDS_BONUS_1 = {
 	bronzeCoin: 68,
 	silverCoin: 20,
 	goldCoin: 4.5,
 	multiplier: 4,
 	collector: 2.5,
+	extraSpin: 0.6,
 	blank: 1,
 };
 
-export const GOLDEN_SQUARE_REWARDS_BONUS_2 = {
+export const GOLDEN_TILE_REWARDS_BONUS_2 = {
 	bronzeCoin: 60,
 	silverCoin: 25,
 	goldCoin: 6,
 	multiplier: 5,
 	collector: 3.5,
+	extraSpin: 1.2,
 	blank: 0.5,
 };
 
-export const GOLDEN_SQUARE_REWARDS_BONUS_3 = {
+export const GOLDEN_TILE_REWARDS_BONUS_3 = {
 	bronzeCoin: 0,
-	silverCoin: 67,
+	silverCoin: 64,
 	goldCoin: 15,
 	multiplier: 9,
 	collector: 8,
+	extraSpin: 2,
 	blank: 1,
 };
 
@@ -162,11 +168,11 @@ export const MATH_CONFIG = {
 		bonus2: FS_SYMBOL_WEIGHTS_BONUS_2,
 		bonus3: FS_SYMBOL_WEIGHTS_BONUS_3,
 	},
-	goldenSquareRewards: {
-		base: GOLDEN_SQUARE_REWARDS_BASE,
-		bonus1: GOLDEN_SQUARE_REWARDS_BONUS_1,
-		bonus2: GOLDEN_SQUARE_REWARDS_BONUS_2,
-		bonus3: GOLDEN_SQUARE_REWARDS_BONUS_3,
+	goldenTileRewards: {
+		base: GOLDEN_TILE_REWARDS_BASE,
+		bonus1: GOLDEN_TILE_REWARDS_BONUS_1,
+		bonus2: GOLDEN_TILE_REWARDS_BONUS_2,
+		bonus3: GOLDEN_TILE_REWARDS_BONUS_3,
 	},
 	coinValues: {
 		bronze: BRONZE_COIN_VALUES,
@@ -178,7 +184,7 @@ export const MATH_CONFIG = {
 	maxWinMultiplier: 10000,
 	tuning: {
 		baseScatterWeight: 1.55,
-		baseRainbowWeight: 0.096,
+		baseCollectorWeight: 0.096,
 		baseClusterBias: 0.09,
 		freeSpinClusterBias: 0.095,
 	},
@@ -253,7 +259,7 @@ function weightsForMode(mode = "base", options = {}) {
 	const weights =
 		key === "base" ? { ...BASE_SYMBOL_WEIGHTS } : { ...MATH_CONFIG.freeSpinSymbolWeights[key] };
 	if (key === "base") weights.scatter = MATH_CONFIG.tuning.baseScatterWeight;
-	if (key === "base") weights.rainbow = MATH_CONFIG.tuning.baseRainbowWeight;
+	if (key === "base") weights.collector = MATH_CONFIG.tuning.baseCollectorWeight;
 	if (options.bonusHunt) {
 		weights.scatter *= 5;
 	}
@@ -266,7 +272,7 @@ function weightsForMode(mode = "base", options = {}) {
 export function generateGrid(mode = "base", options = {}) {
 	const weights = weightsForMode(mode, options);
 	const grid = Array.from({ length: COLS }, () => Array.from({ length: ROWS }, () => null));
-	let rainbowPlaced = false;
+	let collectorPlaced = false;
 	const bias = modeKey(mode) === "base" ? MATH_CONFIG.tuning.baseClusterBias : MATH_CONFIG.tuning.freeSpinClusterBias;
 
 	for (let col = 0; col < COLS; col += 1) {
@@ -274,7 +280,7 @@ export function generateGrid(mode = "base", options = {}) {
 		for (let row = 0; row < ROWS; row += 1) {
 			const localWeights = { ...weights };
 			if (scatterPlacedInColumn) localWeights.scatter = 0;
-			if (rainbowPlaced || modeKey(mode) === "bonus3") localWeights.rainbow = 0;
+			if (collectorPlaced || modeKey(mode) === "bonus3") localWeights.collector = 0;
 			let symbol = weightedEntry(localWeights);
 			const stickyCandidates = [
 				col > 0 ? grid[col - 1][row] : null,
@@ -284,13 +290,13 @@ export function generateGrid(mode = "base", options = {}) {
 				symbol = stickyCandidates[Math.floor(Math.random() * stickyCandidates.length)];
 			}
 			if (symbol === "scatter") scatterPlacedInColumn = true;
-			if (symbol === "rainbow") rainbowPlaced = true;
+			if (symbol === "collector") collectorPlaced = true;
 			grid[col][row] = symbol;
 		}
 	}
 
-	if (options.forceRainbow || modeKey(mode) === "bonus3") {
-		placeOneSymbol(grid, "rainbow", { replaceSpecial: true });
+	if (options.forceCollector || modeKey(mode) === "bonus3") {
+		placeOneSymbol(grid, "collector", { replaceSpecial: true });
 	}
 
 	if (options.forceCluster) {
@@ -428,9 +434,9 @@ function payoutForCluster(symbol, count, bet) {
 	return table[step] * bet;
 }
 
-export function markGoldenSquares(_grid, winningCells, goldenSquares = new Set()) {
-	for (const pos of winningCells) goldenSquares.add(posKey(pos));
-	return goldenSquares;
+export function markGoldenTiles(_grid, winningCells, goldenTiles = new Set()) {
+	for (const pos of winningCells) goldenTiles.add(posKey(pos));
+	return goldenTiles;
 }
 
 export function cascadeGrid(grid, winningCells, mode = "base", options = {}) {
@@ -439,7 +445,7 @@ export function cascadeGrid(grid, winningCells, mode = "base", options = {}) {
 
 	const next = cloneGrid(grid);
 	const dropping = [];
-	let rainbowAlreadyInDrop = grid.flat().includes("rainbow");
+	let collectorAlreadyInDrop = grid.flat().includes("collector");
 	let scatterByColumn = Array.from({ length: COLS }, (_, col) =>
 		next[col].some((symbol, row) => !removeByColumn[col].has(row) && symbol === "scatter"),
 	);
@@ -454,30 +460,30 @@ export function cascadeGrid(grid, winningCells, mode = "base", options = {}) {
 		for (let i = 0; i < addCount; i += 1) {
 			const weights = weightsForMode(mode, options);
 			if (scatterByColumn[col]) weights.scatter = 0;
-			if (rainbowAlreadyInDrop || modeKey(mode) === "bonus3") weights.rainbow = 0;
+			if (collectorAlreadyInDrop || modeKey(mode) === "bonus3") weights.collector = 0;
 			const symbol = weightedEntry(weights);
 			if (symbol === "scatter") scatterByColumn[col] = true;
-			if (symbol === "rainbow") rainbowAlreadyInDrop = true;
+			if (symbol === "collector") collectorAlreadyInDrop = true;
 			incoming.push(symbol);
 		}
 		next[col] = [...incoming, ...kept];
 		for (let row = 0; row < addCount; row += 1) dropping.push({ col, row });
 	}
 
-	if (options.forceRainbow && !hasRainbow(next)) {
-		placeOneSymbol(next, "rainbow", { replaceSpecial: true });
+	if (options.forceCollector && !hasCollectorActivator(next)) {
+		placeOneSymbol(next, "collector", { replaceSpecial: true });
 	}
 
 	return { grid: next, dropping };
 }
 
-export function hasRainbow(grid) {
-	return grid.flat().includes("rainbow");
+export function hasCollectorActivator(grid) {
+	return grid.flat().includes("collector");
 }
 
-export function revealGoldenSquareReward(mode = "base") {
+export function revealGoldenTileReward(mode = "base") {
 	const key = modeKey(mode);
-	const reward = weightedEntry(MATH_CONFIG.goldenSquareRewards[key]);
+	const reward = weightedEntry(MATH_CONFIG.goldenTileRewards[key]);
 	if (reward === "bronzeCoin") return rollCoinValue("bronze", { minValue: key === "bonus2" ? 1 : 0 });
 	if (reward === "silverCoin") return rollCoinValue("silver");
 	if (reward === "goldCoin") return rollCoinValue("gold");
@@ -486,6 +492,7 @@ export function revealGoldenSquareReward(mode = "base") {
 		return { type: "multiplier", value, id: multiplierId(value) };
 	}
 	if (reward === "collector") return { type: "collector", value: 0, id: "collector" };
+	if (reward === "extraSpin") return { type: "extraSpin", value: key === "bonus3" ? 2 : 1, id: "extra_spin" };
 	return { type: "blank", value: 0, id: "blank" };
 }
 
@@ -543,30 +550,36 @@ export function maybeReactivateCollector(mode = "base") {
 	return Math.random() < MATH_CONFIG.collectorReactivationChance[modeKey(mode)];
 }
 
-export function activateGoldenSquares(grid, mode = "base", goldenSquares = new Set(), bet = BET, options = {}) {
+export function activateGoldenTiles(grid, mode = "base", goldenTiles = new Set(), bet = BET, options = {}) {
 	const events = [];
 	const rewards = [];
 	let totalWin = 0;
+	let extraSpins = 0;
 	let reactivations = 0;
 	const limit = modeKey(mode) === "base" ? BASE_REACTIVATION_LIMIT : BONUS_REACTIVATION_LIMIT;
-	let activeKeys = [...goldenSquares];
+	let activeKeys = [...goldenTiles];
 
 	while (activeKeys.length && reactivations <= limit) {
 		const batch = activeKeys.map((value) => {
 			const pos = fromKey(value);
-			return { ...revealGoldenSquareReward(mode), pos };
+			return { ...revealGoldenTileReward(mode), pos };
 		});
 		const visibleRewards = batch.filter((reward) => reward.type !== "blank");
 		const multiplierResult = applyMultipliers(visibleRewards);
 		const collectorResult = resolveCollectors(multiplierResult.rewards, bet);
+		const batchExtraSpins = visibleRewards
+			.filter((reward) => reward.type === "extraSpin")
+			.reduce((sum, reward) => sum + reward.value, 0);
+		extraSpins += batchExtraSpins;
 		const batchWin = collectorResult.coinWin + collectorResult.collectorWin;
 		totalWin += batchWin;
 		rewards.push(...visibleRewards);
 		events.push({
-			type: "goldenActivation",
+			type: "goldenTileActivation",
 			positions: activeKeys.map(fromKey),
 			rewards: visibleRewards,
 			amount: batchWin,
+			extraSpins: batchExtraSpins,
 			multiplied: multiplierResult.changed,
 			multiplierPositions: multiplierResult.multiplierPositions,
 			collectorPositions: collectorResult.collectorPositions,
@@ -589,6 +602,7 @@ export function activateGoldenSquares(grid, mode = "base", goldenSquares = new S
 		rewards,
 		events,
 		win: totalWin,
+		extraSpins,
 		reactivations,
 	};
 }
@@ -610,12 +624,12 @@ function capWin(value, bet) {
 
 export function runPaidSpin(bet = BET, options = {}) {
 	const mode = "base";
-	const totalCost = bet * (options.ante ? 2 : options.rainbowBuy ? 50 : options.bonusHunt ? 3 : 1);
+	const totalCost = bet * (options.ante ? 2 : options.collectorBuy ? 50 : options.bonusHunt ? 3 : 1);
 	let grid = generateGrid(mode, {
 		ante: options.ante,
 		bonusHunt: options.bonusHunt,
-		forceRainbow: options.forceRainbow || options.rainbowBuy,
-		forceCluster: options.rainbowBuy,
+		forceCollector: options.forceCollector || options.collectorBuy,
+		forceCluster: options.collectorBuy,
 		forceScatters: options.forceScatters,
 	});
 	const result = runCascadingSpin(grid, bet, mode, { ...options, clearGoldAtEnd: true });
@@ -635,23 +649,24 @@ export function runFreeSpins(bet = BET, bonusLevel = 1, existingWin = 0) {
 	let spinsLeft = bonusLevel === 1 ? 8 : 12;
 	let totalSpins = 0;
 	let totalWin = 0;
-	let goldenSquares = new Set();
+	let goldenTiles = new Set();
 	const events = [];
-	let rainbowTriggered = false;
+	let collectorTriggered = false;
 
 	while (spinsLeft > 0 && totalSpins < MAX_TOTAL_FREE_SPINS && existingWin + totalWin < bet * MATH_CONFIG.maxWinMultiplier) {
 		spinsLeft -= 1;
 		totalSpins += 1;
-		const forceRainbow = bonusLevel === 3;
-		const spin = runCascadingSpin(generateGrid(mode, { forceRainbow }), bet, mode, {
-			preservedGoldenSquares: goldenSquares,
-			forceRainbow,
+		const forceCollector = bonusLevel === 3;
+		const spin = runCascadingSpin(generateGrid(mode, { forceCollector }), bet, mode, {
+			preservedGoldenTiles: goldenTiles,
+			forceCollector,
 			maxStartingWin: existingWin + totalWin,
 		});
-		goldenSquares = spin.remainingGoldenSquares;
+		goldenTiles = spin.remainingGoldenTiles;
 		totalWin = capWin(totalWin + spin.totalWin, bet);
 		events.push({ type: "freeSpin", index: totalSpins, spin });
-		if (spin.rainbowActivations > 0) rainbowTriggered = true;
+		if (spin.collectorActivations > 0) collectorTriggered = true;
+		if (spin.extraSpinsAwarded > 0) spinsLeft += spin.extraSpinsAwarded;
 
 		const scatters = scatterCount(spin.initialGrid);
 		if (scatters >= 5) spinsLeft += 8;
@@ -660,15 +675,16 @@ export function runFreeSpins(bet = BET, bonusLevel = 1, existingWin = 0) {
 		spinsLeft = Math.min(spinsLeft, MAX_TOTAL_FREE_SPINS - totalSpins);
 	}
 
-	return { totalWin, totalSpins, events, rainbowTriggered };
+	return { totalWin, totalSpins, events, collectorTriggered };
 }
 
 function runCascadingSpin(startGrid, bet = BET, mode = "base", options = {}) {
 	let grid = cloneGrid(startGrid);
 	let totalWin = 0;
+	let extraSpinsAwarded = 0;
 	let cascades = 0;
-	let goldenSquares = new Set(options.preservedGoldenSquares ?? []);
-	let rainbowActivations = 0;
+	let goldenTiles = new Set(options.preservedGoldenTiles ?? []);
+	let collectorActivations = 0;
 	const events = [{ type: "start", grid: cloneGrid(grid) }];
 	const initialGrid = cloneGrid(grid);
 	const maxWin = bet * MATH_CONFIG.maxWinMultiplier;
@@ -679,55 +695,60 @@ function runCascadingSpin(startGrid, bet = BET, mode = "base", options = {}) {
 		const winningCells = wins.flatMap((win) => win.positions);
 		const clusterWin = wins.reduce((sum, win) => sum + win.amount, 0);
 		totalWin = capWin(totalWin + clusterWin, bet);
-		markGoldenSquares(grid, winningCells, goldenSquares);
+		markGoldenTiles(grid, winningCells, goldenTiles);
 		events.push({ type: "clusters", wins, positions: winningCells, amount: clusterWin, grid: cloneGrid(grid) });
 		const cascade = cascadeGrid(grid, winningCells, mode, options);
 		grid = cascade.grid;
 		events.push({ type: "cascade", dropping: cascade.dropping, grid: cloneGrid(grid) });
-		const feature = maybeActivateFeatures(grid, mode, goldenSquares, bet, maxWin - totalWin);
+		const feature = maybeActivateFeatures(grid, mode, goldenTiles, bet, maxWin - totalWin);
 		if (feature) {
 			grid = feature.grid;
 			totalWin = capWin(totalWin + feature.win, bet);
-			goldenSquares = new Set();
-			rainbowActivations += 1;
+			extraSpinsAwarded += feature.extraSpins;
+			goldenTiles = new Set();
+			collectorActivations += 1;
 			events.push(...feature.events);
 		}
 	}
 
-	const finalFeature = maybeActivateFeatures(grid, mode, goldenSquares, bet, maxWin - totalWin);
+	const finalFeature = maybeActivateFeatures(grid, mode, goldenTiles, bet, maxWin - totalWin);
 	if (finalFeature && totalWin < maxWin) {
 		grid = finalFeature.grid;
 		totalWin = capWin(totalWin + finalFeature.win, bet);
-		goldenSquares = new Set();
-		rainbowActivations += 1;
+		extraSpinsAwarded += finalFeature.extraSpins;
+		goldenTiles = new Set();
+		collectorActivations += 1;
 		events.push(...finalFeature.events);
 	}
 
 	if (modeKey(mode) === "base" && options.clearGoldAtEnd) {
-		goldenSquares = new Set();
+		goldenTiles = new Set();
 	}
 
 	return {
 		initialGrid,
 		finalGrid: grid,
 		totalWin,
+		extraSpinsAwarded,
 		cascades,
 		events,
-		remainingGoldenSquares: goldenSquares,
-		rainbowSeen: hasRainbow(initialGrid) || events.some((event) => event.grid && hasRainbow(event.grid)),
-		rainbowActivations,
+		remainingGoldenTiles: goldenTiles,
+		collectorSeen:
+			hasCollectorActivator(initialGrid) ||
+			events.some((event) => event.grid && hasCollectorActivator(event.grid)),
+		collectorActivations,
 		maxWin: totalWin >= maxWin,
 	};
 }
 
-function maybeActivateFeatures(grid, mode, goldenSquares, bet, maxRemaining) {
-	if (!hasRainbow(grid) || goldenSquares.size <= 0 || maxRemaining <= 0) return null;
-	return activateGoldenSquares(grid, mode, goldenSquares, bet, { maxRemaining });
+function maybeActivateFeatures(grid, mode, goldenTiles, bet, maxRemaining) {
+	if (!hasCollectorActivator(grid) || goldenTiles.size <= 0 || maxRemaining <= 0) return null;
+	return activateGoldenTiles(grid, mode, goldenTiles, bet, { maxRemaining });
 }
 
 export function createMathEngine() {
 	let grid = generateGrid();
-	let goldenSquares = new Set();
+	let goldenTiles = new Set();
 	let coinedSquares = new Set();
 	let currentMode = "base";
 	let currentBet = BET;
@@ -735,12 +756,12 @@ export function createMathEngine() {
 	function startSpin(options = {}) {
 		currentMode = modeKey(options.mode ?? (options.bonusLevel ? `bonus${options.bonusLevel}` : options.bonus ? "bonus1" : "base"));
 		currentBet = options.bet ?? BET;
-		if (!options.preserveGold) goldenSquares = new Set();
+		if (!options.preserveGold) goldenTiles = new Set();
 		coinedSquares = new Set();
 		grid = generateGrid(currentMode, {
 			ante: options.ante,
 			bonusHunt: options.bonusHunt,
-			forceRainbow: options.forceRainbow,
+			forceCollector: options.forceCollector,
 			forceCluster: options.forceCluster,
 			forceScatters: options.forceScatters,
 		});
@@ -752,17 +773,17 @@ export function createMathEngine() {
 	}
 
 	function removeAndDrop(positions, options = {}) {
-		markGoldenSquares(grid, positions, goldenSquares);
+		markGoldenTiles(grid, positions, goldenTiles);
 		const cascade = cascadeGrid(grid, positions, currentMode, options);
 		grid = cascade.grid;
 		return { board: snapshot().board, dropping: cascade.dropping };
 	}
 
 	function activateFeatures() {
-		const feature = maybeActivateFeatures(grid, currentMode, goldenSquares, currentBet, currentBet * MATH_CONFIG.maxWinMultiplier);
+		const feature = maybeActivateFeatures(grid, currentMode, goldenTiles, currentBet, currentBet * MATH_CONFIG.maxWinMultiplier);
 		if (!feature) return [];
 		grid = feature.grid;
-		goldenSquares = new Set();
+		goldenTiles = new Set();
 		for (const reward of feature.rewards) coinedSquares.add(posKey(reward.pos));
 		return feature.events;
 	}
@@ -771,15 +792,15 @@ export function createMathEngine() {
 		return 0;
 	}
 
-	function expireGoldenSquares() {
-		goldenSquares = new Set();
+	function expireGoldenTiles() {
+		goldenTiles = new Set();
 		return snapshot();
 	}
 
 	function snapshot() {
 		return {
 			board: cloneGrid(grid),
-			goldenSquares: new Set(goldenSquares),
+			goldenTiles: new Set(goldenTiles),
 			coinedSquares: new Set(coinedSquares),
 		};
 	}
@@ -790,9 +811,9 @@ export function createMathEngine() {
 		removeAndDrop,
 		activateFeatures,
 		visibleCoinTotal,
-		expireGoldenSquares,
+		expireGoldenTiles,
 		snapshot,
-		hasRainbow: () => hasRainbow(grid),
+		hasCollectorActivator: () => hasCollectorActivator(grid),
 	};
 }
 
@@ -807,14 +828,15 @@ export function simulateSpins(count = 100000, bet = BET) {
 		bonus1: 0,
 		bonus2: 0,
 		bonus3: 0,
-		rainbowSeen: 0,
-		rainbowActivations: 0,
-		goldenSquaresActivated: 0,
+		collectorSeen: 0,
+		collectorActivations: 0,
+		goldenTilesActivated: 0,
 		bronzeCoins: 0,
 		silverCoins: 0,
 		goldCoins: 0,
 		multipliers: 0,
 		collectors: 0,
+		extraSpins: 0,
 		reactivations: 0,
 		winsOver50x: 0,
 		winsOver100x: 0,
@@ -833,8 +855,8 @@ export function simulateSpins(count = 100000, bet = BET) {
 			stats.bonusTriggers += 1;
 			stats[`bonus${spin.bonusLevel}`] += 1;
 		}
-		if (spin.rainbowSeen) stats.rainbowSeen += 1;
-		if (spin.rainbowActivations > 0) stats.rainbowActivations += 1;
+		if (spin.collectorSeen) stats.collectorSeen += 1;
+		if (spin.collectorActivations > 0) stats.collectorActivations += 1;
 		stats.maxWinObserved = Math.max(stats.maxWinObserved, spin.totalWin / bet);
 		if (spin.totalWin / bet > 50) stats.winsOver50x += 1;
 		if (spin.totalWin / bet > 100) stats.winsOver100x += 1;
@@ -860,15 +882,16 @@ export function simulateSpins(count = 100000, bet = BET) {
 		bonus1Rate: rate(stats.bonus1, count),
 		bonus2Rate: rate(stats.bonus2, count),
 		bonus3Rate: rate(stats.bonus3, count),
-		rainbowSeenRate: rate(stats.rainbowSeen, count),
-		rainbowActivationRate: rate(stats.rainbowActivations, count),
-		averageGoldenSquaresPerActivation: stats.rainbowActivations ? round(stats.goldenSquaresActivated / stats.rainbowActivations, 3) : 0,
-		bronzeCoinRate: rate(stats.bronzeCoins, Math.max(1, stats.goldenSquaresActivated)),
-		silverCoinRate: rate(stats.silverCoins, Math.max(1, stats.goldenSquaresActivated)),
-		goldCoinRate: rate(stats.goldCoins, Math.max(1, stats.goldenSquaresActivated)),
-		multiplierRate: rate(stats.multipliers, Math.max(1, stats.goldenSquaresActivated)),
-		collectorRate: rate(stats.collectors, Math.max(1, stats.goldenSquaresActivated)),
-		reactivationRate: rate(stats.reactivations, Math.max(1, stats.rainbowActivations)),
+		collectorSeenRate: rate(stats.collectorSeen, count),
+		collectorActivationRate: rate(stats.collectorActivations, count),
+		averageGoldenTilesPerActivation: stats.collectorActivations ? round(stats.goldenTilesActivated / stats.collectorActivations, 3) : 0,
+		bronzeCoinRate: rate(stats.bronzeCoins, Math.max(1, stats.goldenTilesActivated)),
+		silverCoinRate: rate(stats.silverCoins, Math.max(1, stats.goldenTilesActivated)),
+		goldCoinRate: rate(stats.goldCoins, Math.max(1, stats.goldenTilesActivated)),
+		multiplierRate: rate(stats.multipliers, Math.max(1, stats.goldenTilesActivated)),
+		collectorRate: rate(stats.collectors, Math.max(1, stats.goldenTilesActivated)),
+		extraSpinRate: rate(stats.extraSpins, Math.max(1, stats.goldenTilesActivated)),
+		reactivationRate: rate(stats.reactivations, Math.max(1, stats.collectorActivations)),
 		winsOver50x: stats.winsOver50x,
 		winsOver100x: stats.winsOver100x,
 		winsOver500x: stats.winsOver500x,
@@ -881,8 +904,8 @@ export function simulateSpins(count = 100000, bet = BET) {
 }
 
 function collectSimulationEventStats(event, stats) {
-	if (event.type === "goldenActivation") {
-		stats.goldenSquaresActivated += event.positions.length;
+	if (event.type === "goldenTileActivation") {
+		stats.goldenTilesActivated += event.positions.length;
 		for (const reward of event.rewards) {
 			if (reward.type === "coin") {
 				if (reward.tier === "bronze") stats.bronzeCoins += 1;
@@ -891,6 +914,7 @@ function collectSimulationEventStats(event, stats) {
 			}
 			if (reward.type === "multiplier") stats.multipliers += 1;
 			if (reward.type === "collector") stats.collectors += 1;
+			if (reward.type === "extraSpin") stats.extraSpins += reward.value;
 		}
 	}
 	if (event.type === "reactivation") stats.reactivations += 1;

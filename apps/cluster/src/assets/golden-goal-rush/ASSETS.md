@@ -12,7 +12,7 @@ RTP package.
 | Logo source              | `logo-horizontal.png`                                   |
 | Low symbols              | `10.png`, `j.png`, `q.png`, `k.png`, `a.png`            |
 | High symbols             | `fussball.png`, `pokal.png`, `trikot.png`, `pfeife.png` |
-| Feature symbols          | `wild.png`, `scatter.png`                               |
+| Feature symbols          | `wild.png`, `scatter.png`, `special/symbol_collector.png`, `special/symbol_multiplier.png` |
 | HUD/button reference art | `ui/*.png`                                              |
 | Extracted HUD assets     | `hud-extracted/*.png`                                   |
 
@@ -42,5 +42,6 @@ PNG sheets. The preview uses these files as visible panel and button art, with
 text and values layered over them.
 
 `special/` contains coin, multiplier, collector, and bonus reference assets.
-They are intentionally not wired into runtime logic in this branch. Any future
-use needs a separate Math/event contract review.
+The static Storybook preview uses collector and multiplier art for Phase 8B
+visual feedback only. Any production runtime use still needs the Math/event
+contract review documented under `math/games/golden_goal_rush/feature_contract.py`.
