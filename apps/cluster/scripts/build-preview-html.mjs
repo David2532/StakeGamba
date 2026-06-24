@@ -429,6 +429,9 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>Golden Goal Rush — Interactive Preview</title>
 <style>
 	* { box-sizing: border-box; }
@@ -1359,6 +1362,8 @@ window.__ggr = {
 		return { base, featureWin: fw, goldenCount, win: state.win };
 	},
 };
+window.__ggrBuild = '${new Date().toISOString()}';
+console.log('Golden Goal Rush build', window.__ggrBuild);
 window.__ggrReady = true;
 </script>
 </body>
