@@ -1062,7 +1062,7 @@ async function spin(buy) {
 
 	const opts = {};
 	if ((buy && buy.id === 'rainbow') || (state.mode === 'free' && CONFIG.tiers[state.tier] && CONFIG.tiers[state.tier].guaranteedRainbow)) opts.forceRainbow = true;
-	if (buy && buy.id === 'hunt') { opts.boostRainbow = 5; opts.noBonus = true; }
+	if (buy && buy.id === 'hunt') { opts.boostRainbow = CONFIG.huntBoost || 5; opts.noBonus = true; }
 	if (state.mode === 'free' && CONFIG.tiers[state.tier] && CONFIG.tiers[state.tier].rainbowBoost) opts.boostRainbow = CONFIG.tiers[state.tier].rainbowBoost;
 
 	[...board.querySelectorAll('img')].forEach((img) => img.classList.add('clearing'));

@@ -178,11 +178,12 @@ function rtp(label, spins, costPerSpin, runner) {
 const baseSpins = Number(process.argv[2] || 200000);
 const buySpins = Number(process.argv[3] || 40000);
 console.log('Golden Goal Rush — RTP simulation (bet = 1)\n');
+const price = (id) => CONFIG.bonusBuy.find((o) => o.id === id).mult;
 rtp('Base game', baseSpins, 1, () => baseSpin());
-rtp('Buy: Feature Spins', buySpins, 3, () => baseSpin({ boostRainbow: 5, noBonus: true }));
-rtp('Buy: Rainbow Spin', buySpins, 50, () => baseSpin({ forceRainbow: true }));
-rtp('Buy: Golden Chance', buySpins, 100, () => runFreeSpins(1));
-rtp('Buy: All That Glitters', buySpins, 250, () => runFreeSpins(2));
+rtp('Buy: Feature Spins', buySpins, price('hunt'), () => baseSpin({ boostRainbow: CONFIG.huntBoost || 5, noBonus: true }));
+rtp('Buy: Rainbow Spin', buySpins, price('rainbow'), () => baseSpin({ forceRainbow: true }));
+rtp('Buy: Golden Chance', buySpins, price('tier1'), () => runFreeSpins(1));
+rtp('Buy: All That Glitters', buySpins, price('tier2'), () => runFreeSpins(2));
 console.log('\nCoin audit:', JSON.stringify(audit));
 console.log('  -> base silver max:', audit.silverBaseMax, '(must be <= 20)',
 	'| base gold max:', audit.goldBaseMax, '(must be <= 500)',
