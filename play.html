@@ -278,7 +278,7 @@
 	.cell {
 		position: relative;
 		display: grid;
-		overflow: hidden;
+		overflow: visible;
 		place-items: center;
 		border-right: 1px solid rgba(214, 158, 54, 0.6);
 		border-bottom: 1px solid rgba(214, 158, 54, 0.6);
@@ -1070,15 +1070,15 @@
 		drop-shadow(0 0 10px rgba(255,221,90,0.95)) drop-shadow(0 0 18px rgba(255,200,60,0.7)); }
 	.cell.win::after { content:''; position:absolute; inset:0; border-radius:6px;
 		background: radial-gradient(circle, rgba(255,224,120,0.35), transparent 68%); pointer-events:none; }
-	.cell img.dropping { animation: drop-in 0.42s cubic-bezier(.34,.86,.4,1) both; }
-	.cell img.clearing { animation: clear-out 0.26s ease-in forwards; }
-	.stage.turbo .cell img.dropping { animation-duration: 0.2s; }
+	.cell img.dropping { animation: drop-in 0.42s cubic-bezier(.3,.62,.5,1) both; z-index:5; }
+	.cell img.clearing { animation: clear-out 0.26s ease-in forwards; z-index:6; }
 	.stage.turbo .cell img.clearing { animation-duration: 0.12s; }
-	@keyframes drop-in { 0% { transform: translateY(-360%) scale(0.82); opacity: 0; }
-		56% { opacity: 1; }
-		74% { transform: translateY(7%) scaleX(1.08) scaleY(0.9); opacity: 1; }
-		88% { transform: translateY(-3%) scaleX(0.97) scaleY(1.05); }
-		100% { transform: translateY(0) scale(1); opacity: 1; } }
+	@keyframes drop-in {
+		0% { transform: translateY(var(--dropY,-300%)) scale(1); }
+		62% { transform: translateY(0) scale(1); }
+		74% { transform: translateY(0) scaleX(1.05) scaleY(0.93); }
+		86% { transform: translateY(0) scaleX(0.985) scaleY(1.03); }
+		100% { transform: translateY(0) scale(1); } }
 	@keyframes clear-out { 0% { transform: scale(1); opacity: 1; }
 		40% { transform: scale(1.18); } 100% { transform: scale(0.2); opacity: 0; } }
 	@keyframes win-pop { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
@@ -1616,7 +1616,24 @@ function newGrid(opts = {}) {
 
 function cellEl(col, row) { return board.children[row * COLS + col]; }
 
-function paint({ dropping = false } = {}) {
+// ---- column-based drop timing ----
+const TF = () => (state.turbo ? 0.5 : 1);               // turbo time factor
+const rawWait = (ms) => new Promise((r) => setTimeout(r, ms)); // not turbo-scaled (the wait IS the drop)
+const COL_DELAY = 58;                                    // per-column stagger (left -> right)
+const DROP_DUR = (rows) => 220 + Math.min(rows, ROWS) * 42;
+// A full-board drop: every column falls in as a stack, staggered by column.
+function fullDropMap() {
+	const drops = new Map();
+	for (let c = 0; c < COLS; c += 1) for (let r = 0; r < ROWS; r += 1)
+		drops.set(ck(c, r), { rows: ROWS, delay: c * COL_DELAY * TF(), dur: DROP_DUR(ROWS) * TF() });
+	return drops;
+}
+// Latest land time (delay+dur) across a drop map, for awaiting the settle.
+function dropEnd(drops) { let m = 0; for (const d of drops.values()) m = Math.max(m, d.delay + d.dur); return m; }
+
+// paint rebuilds the board; cells listed in the drops map fall in (only moved
+// or new symbols), everything else is placed statically so nothing re-drops.
+function paint({ drops = null } = {}) {
 	board.innerHTML = '';
 	for (let row = 0; row < ROWS; row += 1) {
 		for (let col = 0; col < COLS; col += 1) {
@@ -1637,7 +1654,13 @@ function paint({ dropping = false } = {}) {
 				const img = document.createElement('img');
 				img.src = sym.src; img.alt = key;
 				if (sym.cls) img.classList.add(sym.cls);
-				if (dropping) { img.classList.add('dropping'); img.style.animationDelay = (col * 45 + row * 12) + 'ms'; }
+				const d = drops && drops.get(ck(col, row));
+				if (d && d.rows > 0) {
+					img.classList.add('dropping');
+					img.style.setProperty('--dropY', (-(d.rows * 100)) + '%');
+					img.style.animationDelay = d.delay + 'ms';
+					img.style.animationDuration = d.dur + 'ms';
+				}
 				cell.appendChild(img);
 			}
 			board.appendChild(cell);
@@ -1875,16 +1898,26 @@ async function resolveCascades(baseStart) {
 			const p = stagePos(el); burstAt(p.x, p.y, 5);
 		});
 		await wait(230);
+		// Tumble: only winning cells are removed. Survivors above fall down into
+		// the gaps, new symbols refill from the top. Unchanged cells never move.
 		const removed = Array.from({ length: COLS }, () => new Set());
 		flat.forEach(([c, r]) => removed[c].add(r));
+		const drops = new Map();
 		for (let c = 0; c < COLS; c += 1) {
-			const kept = [];
-			for (let r = 0; r < ROWS; r += 1) if (!removed[c].has(r)) kept.push(state.grid[c][r]);
-			const add = ROWS - kept.length;
-			state.grid[c] = [...Array.from({ length: add }, randKey), ...kept];
+			if (!removed[c].size) continue; // column untouched -> nothing falls
+			const survivors = [];
+			for (let r = 0; r < ROWS; r += 1) if (!removed[c].has(r)) survivors.push(r);
+			const add = ROWS - survivors.length;
+			state.grid[c] = [...Array.from({ length: add }, randKey), ...survivors.map((r) => state.grid[c][r])];
+			survivors.forEach((oldR, i) => { const newR = add + i; if (newR > oldR) drops.set(ck(c, newR), { rows: newR - oldR }); });
+			for (let r = 0; r < add; r += 1) drops.set(ck(c, r), { rows: add }); // refill stack falls from above
 		}
-		paint({ dropping: true });
-		await wait(300);
+		// uniform per-column duration (everything in a column lands together), staggered left->right
+		const colMax = {};
+		for (const [k, d] of drops) { const c = +k.split(',')[0]; colMax[c] = Math.max(colMax[c] || 0, d.rows); }
+		for (const [k, d] of drops) { const c = +k.split(',')[0]; d.dur = DROP_DUR(colMax[c]) * TF(); d.delay = c * COL_DELAY * TF(); }
+		paint({ drops });
+		await rawWait(dropEnd(drops) + 80 * TF());
 		multiplier += 1;
 		if (state.win >= capWin()) break;
 	}
@@ -1960,6 +1993,22 @@ async function runFeature(baseWinAbs) {
 function rainbowOnBoard() { return state.grid.some((col) => col.includes('rainbow')); }
 function scatterCount() { return state.grid.reduce((s, col) => s + col.filter((k) => k === 'scatter').length, 0); }
 
+// Drop the whole board in, column by column. When the bonus is close (anticipate),
+// the last two columns hang back and the stage dims so the final reels "decide".
+async function dropInBoard(anticipate) {
+	const drops = fullDropMap();
+	if (anticipate) {
+		for (const [k, d] of drops) {
+			const c = +k.split(',')[0];
+			if (c >= COLS - 2) { d.delay += (c === COLS - 2 ? 420 : 820) * TF(); d.dur = (DROP_DUR(ROWS) + 240) * TF(); }
+		}
+		stage.classList.add('antic'); Sound.anticipation(2); stadiumFlash();
+	}
+	paint({ drops });
+	await rawWait(dropEnd(drops) + 80 * TF());
+	if (anticipate) stage.classList.remove('antic');
+}
+
 // ---- spin orchestration ----
 async function spin(buy) {
 	if (state.spinning) return;
@@ -1979,8 +2028,11 @@ async function spin(buy) {
 
 	[...board.querySelectorAll('img')].forEach((img) => img.classList.add('clearing'));
 	await wait(200);
-	newGrid(opts); paint({ dropping: true });
-	await wait(420);
+	newGrid(opts);
+	let earlyScatters = 0;
+	for (let c = 0; c < COLS - 2; c += 1) for (let r = 0; r < ROWS; r += 1) if (state.grid[c][r] === 'scatter') earlyScatters += 1;
+	const anticipate = state.mode === 'base' && !opts.noBonus && !(buy && (buy.id === 'tier1' || buy.id === 'tier2')) && earlyScatters >= 2;
+	await dropInBoard(anticipate);
 	await scatterAnticipation();
 
 	const baseWin = await resolveCascades();
@@ -2222,7 +2274,7 @@ window.__ggr = {
 		state.golden.clear(); state.reveals.clear(); setWin(0);
 		newGrid({ noRainbow: true });
 		for (let c = 0; c < 4; c += 1) for (let r = 0; r < 3; r += 1) state.grid[c][r] = 'football';
-		paint({ dropping: true });
+		paint({ drops: fullDropMap() });
 		await wait(420);
 		const base = await resolveCascades();
 		state.balance += state.win; updateMeters();
@@ -2238,7 +2290,7 @@ window.__ggr = {
 		newGrid({ noRainbow: true });
 		for (let c = 0; c < 5; c += 1) for (let r = 0; r < 3; r += 1) state.grid[c][r] = 'football';
 		state.grid[5][4] = 'rainbow';
-		paint({ dropping: true }); await wait(420);
+		paint({ drops: fullDropMap() }); await wait(420);
 		const base = await resolveCascades();
 		let fw = 0;
 		if (state.golden.size) fw = await runFeature(base);
