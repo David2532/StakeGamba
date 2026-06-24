@@ -510,11 +510,25 @@
 		<div class="stadium-light right"></div>
 		<div class="gold-dust"></div>
 
+<<<<<<< HEAD
 		<header class="header">
 			<img class="logo-wordmark" src={assets.logo} alt="Golden Goal Rush" />
 			<div class="world-plaque">
 				<img src={assets.featurePanel} alt="" />
 				<span>* WORLD STADIUM *</span>
+=======
+	<div class="board-wrap">
+		<div class="board-glow"></div>
+		<div class="board-frame">
+			<div class="side-badge left">CLUSTER<span>PAYS</span></div>
+			<div class="side-badge right">CLUSTER<span>PAYS</span></div>
+			<div class="board">
+				{#each board as symbol}
+					<div class="cell">
+						<img class={symbol.size ?? ''} src={symbol.src} alt={symbol.label} />
+					</div>
+				{/each}
+>>>>>>> a618b3461dbcf0aae13bc7718acfcc5c3a88e1ad
 			</div>
 		</header>
 
@@ -800,9 +814,15 @@
 
 	.vignette {
 		background:
+<<<<<<< HEAD
 			radial-gradient(circle at 50% 16%, rgba(255, 214, 86, 0.2), transparent 31%),
 			linear-gradient(180deg, rgba(0, 0, 0, 0.24), transparent 38%, rgba(0, 0, 0, 0.46)),
 			radial-gradient(circle at 50% 52%, transparent 44%, rgba(0, 0, 0, 0.66));
+=======
+			radial-gradient(circle at 50% 16%, rgba(255, 206, 69, 0.16), transparent 26%),
+			linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0%, transparent 34%, rgba(0, 0, 0, 0.6) 100%),
+			radial-gradient(ellipse 72% 82% at 50% 47%, transparent 40%, rgba(0, 0, 0, 0.8) 100%);
+>>>>>>> a618b3461dbcf0aae13bc7718acfcc5c3a88e1ad
 	}
 
 	.game-layer {
@@ -939,6 +959,7 @@
 
 	.board-frame {
 		position: absolute;
+<<<<<<< HEAD
 		inset: -18px -34px -20px;
 		padding: 43px 42px 29px;
 		transform: rotateX(1deg);
@@ -1095,19 +1116,69 @@
 
 	.cell:nth-child(3n) img {
 		animation-delay: -2.1s;
+=======
+		inset: -20px -26px;
+		padding: 20px 26px;
+		border: 13px solid transparent;
+		border-radius: 28px;
+		/* Metallic gold gradient border (mockup look) with a dark, slightly
+		   green-tinted interior — recreated in vector because the board border
+		   cannot be cleanly extracted from the full mockup render. */
+		background:
+			linear-gradient(92deg, rgba(0, 70, 24, 0.5), transparent 8% 92%, rgba(0, 70, 24, 0.5))
+				padding-box,
+			linear-gradient(180deg, #0a0e0c 0%, #050505 100%) padding-box,
+			linear-gradient(
+					150deg,
+					#fff3bd 0%,
+					#f0c75a 13%,
+					#a8741f 33%,
+					#5c3c12 50%,
+					#b6831d 64%,
+					#ffe487 83%,
+					#7e4f15 100%
+				)
+				border-box;
+		box-shadow:
+			inset 0 0 0 1px rgba(255, 236, 150, 0.55),
+			inset 0 0 26px rgba(0, 0, 0, 0.9),
+			0 0 0 3px #050505,
+			0 10px 30px rgba(0, 0, 0, 0.6),
+			0 0 42px rgba(255, 191, 44, 0.5);
+>>>>>>> a618b3461dbcf0aae13bc7718acfcc5c3a88e1ad
 	}
+
 
 	.side-badge {
 		position: absolute;
+<<<<<<< HEAD
 		top: 50%;
 		display: grid;
 		width: 61px;
 		height: 73px;
 		place-items: center;
+=======
+		top: 38%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 3px;
+		width: 66px;
+		min-height: 82px;
+		padding: 8px 3px;
+		border: 3px solid #dca943;
+		border-radius: 14px;
+		background: linear-gradient(180deg, #2a2a27 0%, #080808 100%);
+		box-shadow:
+			inset 0 0 10px rgba(255, 214, 93, 0.25),
+			0 0 12px rgba(0, 0, 0, 0.75);
+>>>>>>> a618b3461dbcf0aae13bc7718acfcc5c3a88e1ad
 		color: #ffe284;
-		font-size: 21px;
+		font-size: 11.5px;
 		font-weight: 1000;
-		line-height: 1;
+		letter-spacing: 0;
+		line-height: 1.05;
 		text-align: center;
 		text-shadow: 0 2px 3px #000;
 		transform: translateY(-50%);
@@ -1131,8 +1202,9 @@
 
 	.side-badge span {
 		display: block;
-		font-size: 16px;
-		line-height: 1.1;
+		font-size: 11.5px;
+		line-height: 1.05;
+		color: #ffd86a;
 	}
 
 	.side-badge.left {
@@ -1147,6 +1219,7 @@
 		position: relative;
 		z-index: 4;
 		display: grid;
+<<<<<<< HEAD
 		width: 1060px;
 		height: 226px;
 		justify-self: center;
@@ -1173,6 +1246,67 @@
 		border-radius: 999px;
 		background: linear-gradient(90deg, transparent, rgba(255, 221, 108, 0.7), transparent);
 		content: '';
+=======
+		width: 100%;
+		height: 100%;
+		overflow: hidden;
+		grid-template-columns: repeat(6, 1fr);
+		grid-template-rows: repeat(5, 1fr);
+		border: 2px solid rgba(255, 215, 91, 0.92);
+		border-radius: 13px;
+		background:
+			radial-gradient(ellipse at 50% 42%, rgba(40, 86, 70, 0.28), transparent 66%),
+			#02070b;
+		box-shadow:
+			inset 0 0 46px rgba(0, 0, 0, 0.72),
+			inset 0 0 0 1px rgba(255, 224, 130, 0.12);
+	}
+
+	.cell {
+		position: relative;
+		display: grid;
+		overflow: visible;
+		place-items: center;
+		border-right: 1px solid rgba(214, 158, 54, 0.6);
+		border-bottom: 1px solid rgba(214, 158, 54, 0.6);
+		/* Recessed "slot" depth: warm top glow, top highlight, bottom inner shadow. */
+		background:
+			radial-gradient(circle at 50% 30%, rgba(34, 70, 64, 0.34), transparent 64%),
+			linear-gradient(180deg, rgba(12, 28, 36, 0.7) 0%, rgba(3, 8, 13, 0.94) 100%);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 224, 130, 0.08),
+			inset 0 -12px 18px rgba(0, 0, 0, 0.45);
+	}
+
+	.cell:nth-child(6n) {
+		border-right: 0;
+	}
+
+	.cell:nth-last-child(-n + 6) {
+		border-bottom: 0;
+	}
+
+	.cell img {
+		/* Absolutely fill the cell so percentage sizing resolves against the
+		   cell's definite box, then letterbox with object-fit so the whole
+		   symbol is always visible (in-flow % height was clipping symbols). */
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		padding: 1px 6px;
+		box-sizing: border-box;
+		object-fit: contain;
+		filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.78)) drop-shadow(0 0 7px rgba(255, 188, 46, 0.22));
+	}
+
+	.cell img.wide {
+		padding: 1px 4px;
+	}
+
+	.cell img.feature {
+		padding: 0 3px;
+>>>>>>> a618b3461dbcf0aae13bc7718acfcc5c3a88e1ad
 	}
 
 	.meters {
@@ -1205,6 +1339,7 @@
 		filter: drop-shadow(0 4px 7px rgba(0, 0, 0, 0.82));
 	}
 
+<<<<<<< HEAD
 	.meter span {
 		position: relative;
 		z-index: 1;
@@ -1226,6 +1361,68 @@
 
 	.meter.win-pulse strong {
 		animation: win-pulse 0.9s ease-in-out infinite;
+=======
+	.meter-icon[data-icon='wallet']::before {
+		inset: 6px 2px 3px;
+		border: 3px solid currentcolor;
+		border-radius: 4px;
+	}
+
+	.meter-icon[data-icon='wallet']::after {
+		right: 3px;
+		bottom: 9px;
+		width: 9px;
+		height: 7px;
+		border: 2px solid currentcolor;
+		border-radius: 3px;
+	}
+
+	.meter-icon[data-icon='cup']::before {
+		left: 8px;
+		top: 4px;
+		width: 16px;
+		height: 15px;
+		border: 3px solid currentcolor;
+		border-top: 0;
+		border-radius: 0 0 9px 9px;
+	}
+
+	.meter-icon[data-icon='cup']::after {
+		left: 11px;
+		bottom: 2px;
+		width: 10px;
+		height: 9px;
+		border-bottom: 4px solid currentcolor;
+	}
+
+	.meter-icon[data-icon='coin']::before {
+		left: 7px;
+		top: 2px;
+		width: 18px;
+		height: 22px;
+		border: 3px solid currentcolor;
+		border-radius: 50%;
+		box-shadow: inset 0 0 0 3px rgba(255, 208, 74, 0.2);
+	}
+
+	.meter-label {
+		color: #ffd96f;
+		font-size: 12px;
+		font-weight: 900;
+		line-height: 1;
+		letter-spacing: 0.5px;
+		text-align: center;
+	}
+
+	.meter-value {
+		margin-top: 4px;
+		color: #fff;
+		font-size: 18px;
+		font-weight: 1000;
+		line-height: 1;
+		white-space: nowrap;
+		text-align: center;
+>>>>>>> a618b3461dbcf0aae13bc7718acfcc5c3a88e1ad
 	}
 
 	.controls {
@@ -1269,9 +1466,305 @@
 		cursor: pointer;
 	}
 
+<<<<<<< HEAD
 	button:disabled {
 		cursor: not-allowed;
 		filter: grayscale(0.75) brightness(0.7);
+=======
+	.control-button,
+	.small-button,
+	.bet-controls,
+	.spacer-panel {
+		height: 72px;
+		border: 3px solid #bd8730;
+		border-radius: 12px;
+		background: linear-gradient(180deg, #2b2c2b 0%, #08090a 100%);
+		box-shadow:
+			inset 0 0 0 2px #050505,
+			inset 0 0 12px rgba(255, 210, 92, 0.18),
+			0 0 8px rgba(0, 0, 0, 0.8);
+	}
+
+	.control-button {
+		display: grid;
+		width: 86px;
+		place-items: center;
+		grid-template-rows: 38px 22px;
+		color: #ffd96f;
+		font-size: 13px;
+		font-weight: 1000;
+		text-shadow: 0 2px 2px #000;
+	}
+
+	.control-button img {
+		max-width: 38px;
+		max-height: 34px;
+		object-fit: contain;
+	}
+
+	.control-button.bonus {
+		width: 112px;
+	}
+
+	.control-button.bonus img {
+		max-width: 42px;
+	}
+
+	.hamburger,
+	.hamburger::before,
+	.hamburger::after {
+		display: block;
+		width: 30px;
+		height: 4px;
+		border-radius: 8px;
+		background: #ffd86a;
+		box-shadow: 0 0 5px rgba(255, 205, 63, 0.38);
+	}
+
+	.hamburger {
+		position: relative;
+	}
+
+	.hamburger::before,
+	.hamburger::after {
+		content: '';
+		position: absolute;
+		left: 0;
+	}
+
+	.hamburger::before {
+		top: -10px;
+	}
+
+	.hamburger::after {
+		top: 10px;
+	}
+
+	.spacer-panel {
+		width: 130px;
+		opacity: 0.9;
+	}
+
+	.spin-button {
+		position: relative;
+		display: grid;
+		width: 100px;
+		height: 100px;
+		margin-right: 28px;
+		margin-left: 16px;
+		place-items: center;
+		align-self: end;
+		border-radius: 50%;
+		background:
+			radial-gradient(circle at 50% 55%, #17191a 0 42%, #050505 55%),
+			linear-gradient(180deg, #ffe088 0%, #9b5a13 100%);
+		box-shadow:
+			0 0 0 4px #050505,
+			0 0 0 7px #e5ae39,
+			0 0 22px rgba(255, 197, 48, 0.9);
+		color: #ffdc6c;
+		font-size: 23px;
+		font-weight: 1000;
+		text-shadow: 0 3px 2px #000;
+	}
+
+	.spin-button img {
+		position: absolute;
+		inset: 5px;
+		width: calc(100% - 10px);
+		height: calc(100% - 10px);
+		object-fit: contain;
+		opacity: 0.8;
+	}
+
+	.spin-button span {
+		position: relative;
+		z-index: 1;
+		margin-top: 33px;
+	}
+
+	.bet-controls {
+		display: grid;
+		width: 220px;
+		grid-template-columns: 58px 1fr 58px;
+		overflow: hidden;
+	}
+
+	.bet-controls button {
+		display: grid;
+		place-items: center;
+		background: transparent;
+		border: 0;
+	}
+
+	.bet-controls button:last-child {
+		border: 0;
+	}
+
+	.bet-controls img {
+		width: 34px;
+		height: 34px;
+		object-fit: contain;
+	}
+
+	.bet-display {
+		display: grid;
+		place-items: center;
+		background: linear-gradient(180deg, #01340f 0 28%, #030303 29% 100%);
+		text-shadow: 0 2px 2px #000;
+	}
+
+	.bet-display span {
+		color: #ffdb6f;
+		font-size: 15px;
+		font-weight: 1000;
+		line-height: 1;
+	}
+
+	.bet-display strong {
+		color: #fff;
+		font-size: 17px;
+		line-height: 1;
+	}
+
+	.small-button {
+		position: relative;
+		display: grid;
+		width: 55px;
+		place-items: center;
+		color: #f4f4f4;
+		font-size: 34px;
+		font-weight: 900;
+		text-shadow: 0 2px 3px #000;
+	}
+
+	.settings::before,
+	.settings::after {
+		content: '';
+		position: absolute;
+		display: block;
+		box-sizing: border-box;
+		border-radius: 50%;
+	}
+
+	.settings::before {
+		width: 29px;
+		height: 29px;
+		border: 7px solid #f4f4f4;
+		box-shadow: 0 2px 3px #000;
+	}
+
+	.settings::after {
+		width: 9px;
+		height: 9px;
+		background: #101010;
+	}
+
+	.cell img {
+		animation: symbol-idle 4.2s ease-in-out infinite;
+	}
+
+	.cell:nth-child(2n) img {
+		animation-delay: -1.2s;
+	}
+
+	.cell:nth-child(3n) img {
+		animation-delay: -2.1s;
+	}
+
+	.board::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			110deg,
+			transparent 0 38%,
+			rgba(255, 230, 128, 0.12) 48%,
+			transparent 58% 100%
+		);
+		mix-blend-mode: screen;
+		opacity: 0;
+		pointer-events: none;
+		animation: board-sweep 5.8s ease-in-out infinite;
+	}
+
+	.meters {
+		top: 528px;
+		z-index: 8;
+	}
+
+	.meter {
+		position: relative;
+		height: 58px;
+		overflow: visible;
+		border: 0;
+		background: transparent;
+		box-shadow: none;
+	}
+
+	.panel-art,
+	.button-art {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: fill;
+		pointer-events: none;
+		user-select: none;
+	}
+
+	.panel-art {
+		filter: drop-shadow(0 4px 7px rgba(0, 0, 0, 0.85))
+			drop-shadow(0 0 10px rgba(255, 193, 48, 0.32));
+	}
+
+	.meter::after {
+		content: '';
+		position: absolute;
+		inset: 8px 26px;
+		background: linear-gradient(
+			105deg,
+			transparent 0 30%,
+			rgba(255, 245, 168, 0.4) 47%,
+			transparent 62% 100%
+		);
+		mix-blend-mode: screen;
+		opacity: 0;
+		pointer-events: none;
+		animation: meter-glint 4.6s ease-in-out infinite;
+	}
+
+	.meter:nth-child(2)::after {
+		animation-delay: -1.5s;
+	}
+
+	.meter:nth-child(3)::after {
+		animation-delay: -3s;
+	}
+
+	.meter-asset-icon {
+		position: relative;
+		z-index: 1;
+		width: 32px;
+		height: 32px;
+		object-fit: contain;
+		filter: drop-shadow(0 2px 3px #000) drop-shadow(0 0 6px rgba(255, 213, 88, 0.36));
+	}
+
+	.meter > div {
+		position: relative;
+		z-index: 1;
+		min-width: 108px;
+	}
+
+	.controls {
+		bottom: 7px;
+		left: 23px;
+		z-index: 9;
+		align-items: end;
+		height: 91px;
+		gap: 10px;
+>>>>>>> a618b3461dbcf0aae13bc7718acfcc5c3a88e1ad
 	}
 
 	.asset-button,
@@ -1405,6 +1898,7 @@
 	}
 
 	.spin-button {
+<<<<<<< HEAD
 		display: grid;
 		width: 112px;
 		height: 112px;
@@ -1413,6 +1907,26 @@
 		transition:
 			transform 140ms ease,
 			filter 140ms ease;
+=======
+		width: 106px;
+		height: 106px;
+		margin-right: 20px;
+		margin-left: 10px;
+		border: 0;
+		background: transparent;
+		box-shadow: none;
+		/* Static button — no permanent pulse/scale loop. Only user-driven
+		   hover/active feedback (see rules below). */
+		transition: transform 0.12s ease;
+	}
+
+	.spin-button:hover {
+		transform: scale(1.03);
+	}
+
+	.spin-button:active {
+		transform: scale(0.96);
+>>>>>>> a618b3461dbcf0aae13bc7718acfcc5c3a88e1ad
 	}
 
 	.spin-button.disabled {
@@ -1421,9 +1935,33 @@
 
 	.spin-button img {
 		position: absolute;
+<<<<<<< HEAD
 		inset: -10px;
 		width: calc(100% + 20px);
 		height: calc(100% + 20px);
+=======
+		inset: 3px;
+		border-radius: 50%;
+		pointer-events: none;
+	}
+
+	.spin-button::before {
+		/* Static soft glow — no animation. */
+		background: radial-gradient(circle, rgba(255, 222, 102, 0.2), transparent 61%);
+		filter: blur(4px);
+	}
+
+	.spin-button::after {
+		border: 2px solid rgba(255, 213, 110, 0.3);
+		opacity: 1;
+	}
+
+	.spin-art {
+		position: absolute;
+		inset: -7px;
+		width: calc(100% + 14px);
+		height: calc(100% + 14px);
+>>>>>>> a618b3461dbcf0aae13bc7718acfcc5c3a88e1ad
 		object-fit: contain;
 		filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.88))
 			drop-shadow(0 0 14px rgba(255, 205, 57, 0.56));
