@@ -1291,6 +1291,31 @@
 		text-shadow:0 2px 3px #000, 0 0 16px rgba(255,200,60,0.8); }
 	@keyframes bi-pop { from{transform:scale(0.6);opacity:0;} to{transform:scale(1);opacity:1;} }
 
+	/* ---- rainbow activation sweep ---- */
+	.fx-sweep { position:absolute; width:68px; border-radius:40px; z-index:19; pointer-events:none; filter:blur(2px);
+		background:linear-gradient(90deg, transparent, rgba(170,225,255,0.55) 28%, rgba(255,255,242,0.96) 50%, rgba(255,222,140,0.6) 72%, transparent);
+		box-shadow:0 0 34px rgba(255,240,205,0.75); transform:translateX(-84px); animation:fx-sweep var(--dur,0.58s) ease-in-out forwards; }
+	@keyframes fx-sweep { from{ transform:translateX(-84px); opacity:0; } 14%{opacity:1;} 86%{opacity:1;}
+		to{ transform:translateX(var(--travel,600px)); opacity:0; } }
+	.cell.activating::before { animation:golden-activate 0.55s ease both !important; }
+	@keyframes golden-activate { 0%{opacity:0.8;}
+		35%{opacity:1; box-shadow:0 0 32px rgba(255,240,160,1), inset 0 0 24px rgba(255,225,130,0.95); transform:scale(1.04);}
+		100%{opacity:1; transform:scale(1);} }
+
+	/* ---- scatter anticipation (2+ scatters build tension before the trigger) ---- */
+	.stage.antic .cell { filter:brightness(0.58) saturate(0.82); transition:filter .28s ease; }
+	.stage.antic .cell.scatter-antic { filter:none; }
+	.cell.scatter-antic { z-index:6; }
+	.cell.scatter-antic img { animation:scatter-antic 0.5s ease-in-out infinite !important;
+		filter:drop-shadow(0 0 14px rgba(130,205,255,0.95)) drop-shadow(0 0 24px rgba(255,210,90,0.85)) !important; }
+	@keyframes scatter-antic { 0%,100%{transform:scale(1);} 50%{transform:scale(1.16);} }
+	.cell.scatter-antic::after { content:''; position:absolute; inset:-2px; border-radius:8px; pointer-events:none;
+		border:2px solid rgba(140,210,255,0.9); box-shadow:0 0 18px rgba(120,200,255,0.85), inset 0 0 10px rgba(255,225,140,0.6);
+		animation:scatter-ring 0.7s ease-in-out infinite; }
+	@keyframes scatter-ring { 0%,100%{opacity:0.45; transform:scale(1);} 50%{opacity:1; transform:scale(1.07);} }
+	.cell.scatter-hit img { animation:scatter-hit 0.4s ease !important; }
+	@keyframes scatter-hit { 0%{transform:scale(1.16);} 45%{transform:scale(1.42); filter:drop-shadow(0 0 32px #fff) drop-shadow(0 0 20px #ffd96f) !important;} 100%{transform:scale(1.16);} }
+
 </style>
 </head>
 <body>
@@ -1467,7 +1492,7 @@ const BETS = [0.2, 0.5, 1, 2, 5, 10, 20, 50, 100];
 const state = {
 	balance: 1000, bet: 1, betIdx: 2, grid: [], spinning: false, turbo: false, auto: false,
 	golden: new Set(), reveals: new Map(), // golden = 'c,r' keys; reveals = 'c,r' -> {kind,value,asset}
-	mode: 'base', tier: 0, fsLeft: 0, fsTotal: 0, win: 0,
+	mode: 'base', tier: 0, fsLeft: 0, fsTotal: 0, win: 0, sound: true,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -1606,10 +1631,74 @@ async function bonusIntro(tier) {
 	$('bi-title').textContent = CONFIG.tiers[tier].name;
 	$('bi-spins').textContent = CONFIG.tiers[tier].spins + ' FREE SPINS';
 	el.classList.remove('out'); el.classList.add('show');
-	coinShower(18);
+	Sound.fanfare(); coinShower(18);
 	await wait(state.turbo ? 1000 : 1900);
 	el.classList.add('out'); await wait(420); el.classList.remove('show', 'out');
 }
+
+// Light bar sweeps across the board while the Golden Cells energise.
+async function rainbowSweep() {
+	const layer = $('fx-layer'); if (!layer) return;
+	const sr = stage.getBoundingClientRect(); const br = board.getBoundingClientRect(); const sc = state.scale || 1;
+	const x = (br.left - sr.left) / sc, y = (br.top - sr.top) / sc, w = br.width / sc, h = br.height / sc;
+	const bar = document.createElement('div'); bar.className = 'fx-sweep';
+	bar.style.left = x + 'px'; bar.style.top = y + 'px'; bar.style.height = h + 'px';
+	bar.style.setProperty('--travel', w + 'px');
+	bar.style.setProperty('--dur', (state.turbo ? 0.34 : 0.58) + 's');
+	layer.appendChild(bar);
+	Sound.sweep();
+	document.querySelectorAll('#board .cell.golden').forEach((el) => el.classList.add('activating'));
+	await wait(state.turbo ? 340 : 560);
+	bar.remove();
+	document.querySelectorAll('#board .cell.activating').forEach((el) => el.classList.remove('activating'));
+}
+
+// 2+ scatters: dim the board and pulse the scatters to build bonus tension.
+async function scatterAnticipation() {
+	const sc = scatterCount();
+	if (sc < 2 || state.mode === 'free') return;
+	const cells = [];
+	for (let c = 0; c < COLS; c += 1) for (let r = 0; r < ROWS; r += 1)
+		if (state.grid[c][r] === 'scatter') { const e = cellEl(c, r); if (e) cells.push(e); }
+	if (!cells.length) return;
+	stage.classList.add('antic');
+	cells.forEach((e) => e.classList.add('scatter-antic'));
+	Sound.anticipation(sc);
+	await wait(state.turbo ? 360 : (sc >= 3 ? 900 : 680));
+	if (sc >= 3) { cells.forEach((e) => e.classList.add('scatter-hit')); Sound.scatterHit(); await wait(state.turbo ? 160 : 340); }
+	stage.classList.remove('antic');
+	cells.forEach((e) => { e.classList.remove('scatter-antic', 'scatter-hit'); });
+}
+
+// ---- synthesised sound hooks (Web Audio; gated by the menu Sound toggle) ----
+const Sound = (() => {
+	let ctx = null;
+	function ac() {
+		try {
+			if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+			if (ctx.state === 'suspended') ctx.resume();
+			return ctx;
+		} catch (e) { return null; }
+	}
+	function tone(freq, t0, dur, type, gain) {
+		const c = ac(); if (!c) return;
+		const o = c.createOscillator(), g = c.createGain();
+		o.type = type; o.frequency.setValueAtTime(freq, t0);
+		g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(gain, t0 + 0.008);
+		g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+		o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + dur);
+	}
+	const on = () => state.sound !== false;
+	return {
+		tick(i, total) { if (!on()) return; const c = ac(); if (!c) return; const f = 520 + Math.min(i, total) / total * 660; tone(f, c.currentTime, 0.055, 'square', 0.045); },
+		fanfare() { if (!on()) return; const c = ac(); if (!c) return; [0, 4, 7, 12].forEach((n, i) => tone(523.25 * Math.pow(2, n / 12), c.currentTime + i * 0.1, 0.5, 'triangle', 0.09)); },
+		win(tier) { if (!on()) return; const c = ac(); if (!c) return; const base = tier === 'epic' ? 523.25 : tier === 'mega' ? 466.16 : 392; const set = tier === 'epic' ? [0, 4, 7, 12, 16] : [0, 4, 7, 12]; set.forEach((n, i) => tone(base * Math.pow(2, n / 12), c.currentTime + i * 0.085, 0.55, 'triangle', 0.1)); },
+		collect() { if (!on()) return; const c = ac(); if (!c) return; tone(880, c.currentTime, 0.12, 'sine', 0.085); tone(1318.5, c.currentTime + 0.045, 0.14, 'sine', 0.06); },
+		sweep() { if (!on()) return; const c = ac(); if (!c) return; const o = c.createOscillator(), g = c.createGain(); const t0 = c.currentTime; o.type = 'triangle'; o.frequency.setValueAtTime(440, t0); o.frequency.exponentialRampToValueAtTime(1320, t0 + 0.5); g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(0.06, t0 + 0.04); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.55); o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + 0.6); },
+		anticipation(sc) { if (!on()) return; const c = ac(); if (!c) return; const o = c.createOscillator(), g = c.createGain(); const t0 = c.currentTime, dur = sc >= 3 ? 0.9 : 0.68; o.type = 'sawtooth'; o.frequency.setValueAtTime(196, t0); o.frequency.exponentialRampToValueAtTime(sc >= 3 ? 784 : 523, t0 + dur); g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(0.05, t0 + 0.06); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur); o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + dur); },
+		scatterHit() { if (!on()) return; const c = ac(); if (!c) return; tone(1046.5, c.currentTime, 0.3, 'square', 0.09); tone(1568, c.currentTime + 0.02, 0.3, 'triangle', 0.06); },
+	};
+})();
 
 function updateMeters() {
 	$('meter-balance').textContent = fmt(state.balance);
@@ -1650,7 +1739,7 @@ async function countUp(amount) {
 	const steps = state.turbo ? 8 : 18; let i = 0;
 	return new Promise((resolve) => {
 		const t = setInterval(() => {
-			i += 1; el.textContent = fmt((amount * i) / steps);
+			i += 1; el.textContent = fmt((amount * i) / steps); Sound.tick(i, steps);
 			if (i >= steps) { clearInterval(t); el.textContent = fmt(amount); resolve(); }
 		}, 28);
 	});
@@ -1663,7 +1752,7 @@ async function showBanner(amount) {
 	else if (x >= 20) { label = 'MEGA WIN'; tier = 'mega'; }
 	else if (x >= 8) { label = 'BIG WIN'; tier = 'big'; }
 	if (!label) return;
-	flashScreen();
+	Sound.win(tier); flashScreen();
 	coinShower(x >= 50 ? 42 : x >= 20 ? 28 : 18);
 	$('win-banner-label').textContent = label;
 	const b = $('win-banner'); b.classList.add('show', tier);
@@ -1757,7 +1846,7 @@ async function runFeature(baseWinAbs) {
 			const [c, r] = key.split(',').map(Number);
 			const el = cellEl(c, r); if (el) el.classList.add('collect-pulse');
 			if (sum > 0 && !flew) { await flyCoinsTo(c, r); flew = true; }
-			if (el) el.classList.add('collect-burst');
+			if (el) el.classList.add('collect-burst'); Sound.collect();
 			coinMult += sum;
 			setWin(baseWinAbs + coinMult * state.bet);
 			await countUp(state.win);
@@ -1800,14 +1889,16 @@ async function spin(buy) {
 	await wait(200);
 	newGrid(opts); paint({ dropping: true });
 	await wait(420);
+	await scatterAnticipation();
 
 	const baseWin = await resolveCascades();
 	let featureWin = 0;
 	if (rainbowOnBoard() && state.golden.size) {
-		// highlight the rainbow activation
+		// flash the rainbow symbol(s), then sweep light across the energising cells
 		for (let c = 0; c < COLS; c += 1) for (let r = 0; r < ROWS; r += 1)
 			if (state.grid[c][r] === 'rainbow') { const e = cellEl(c, r); if (e) e.classList.add('rainbow-flash'); }
-		await wait(480);
+		await wait(state.turbo ? 200 : 360);
+		await rainbowSweep();
 		featureWin = await runFeature(baseWin);
 		if (state.mode === 'free' && CONFIG.tiers[state.tier] && !CONFIG.tiers[state.tier].persistAfterReveal) state.golden.clear();
 	}
@@ -1934,10 +2025,10 @@ document.querySelectorAll('[data-modal]').forEach((m) => m.addEventListener('cli
 document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => openModal(b.dataset.open)));
 window.addEventListener('keydown', (e) => { if (e.code === 'Escape') closeModals(); });
 
-// menu: sound toggle
+// menu: sound toggle (drives the synthesised SFX hooks)
 $('menu-sound').addEventListener('click', () => {
-	const s = $('menu-sound-state'); const on = s.textContent === 'ON';
-	s.textContent = on ? 'OFF' : 'ON'; s.classList.toggle('off', on);
+	const s = $('menu-sound-state'); const willOn = s.textContent !== 'ON';
+	state.sound = willOn; s.textContent = willOn ? 'ON' : 'OFF'; s.classList.toggle('off', !willOn);
 });
 $('menu-history').addEventListener('click', () => openModal('modal-info'));
 
@@ -1951,6 +2042,7 @@ $('menu-history').addEventListener('click', () => openModal('modal-info'));
 document.querySelectorAll('.toggle').forEach((t) => t.addEventListener('click', () => {
 	t.classList.toggle('on');
 	if (t.dataset.toggle === 'turbo') { state.turbo = t.classList.contains('on'); $('btn-turbo').classList.toggle('armed', state.turbo); }
+	if (t.dataset.toggle === 'sfx') { state.sound = t.classList.contains('on'); const p = $('menu-sound-state'); if (p) { p.textContent = state.sound ? 'ON' : 'OFF'; p.classList.toggle('off', !state.sound); } }
 }));
 
 // info: build the paytable grid from the symbol set
