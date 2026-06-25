@@ -68,6 +68,15 @@ const modalText = document.querySelector("#modal-text");
 const modalClose = document.querySelector("#modal-close");
 const modalCard = document.querySelector(".modal-card");
 
+// Central animation timing (ms). Tweak here to retune the whole game feel.
+const TIMING = {
+	dropSpeed: 560, // how long a symbol takes to fall in
+	dropColDelay: 56, // per-column stagger (column 0 first, then 1, 2 …)
+	turboFactor: 0.5, // turbo scales every timing down by this
+};
+const dropSpeed = () => Math.round(TIMING.dropSpeed * (turbo ? TIMING.turboFactor : 1));
+const colDelay = (col) => Math.round(col * TIMING.dropColDelay * (turbo ? TIMING.turboFactor : 1));
+
 const math = createMathEngine();
 let balance = 1000;
 let currentBet = 2;
@@ -174,6 +183,10 @@ function render({ dropping = [], highlight = [], revealCoins = [], multiplied = 
 	const collectedSet = new Set(collected.map(key));
 	const pulseSet = new Set(pulse.map(key));
 	const dropMap = new Map(dropping.map((pos) => [key(pos), pos]));
+	// How many cells drop per column → the whole column stack falls together as a
+	// rigid unit from above (no per-cell fade, no diagonal wave).
+	const dropPerCol = {};
+	for (const pos of dropping) dropPerCol[pos.col] = (dropPerCol[pos.col] || 0) + 1;
 
 	ensureBoardCells();
 	for (let row = 0; row < ROWS; row += 1) {
@@ -187,6 +200,7 @@ function render({ dropping = [], highlight = [], revealCoins = [], multiplied = 
 			cell.className = "cell";
 			cell.style.removeProperty("--drop-delay");
 			cell.style.removeProperty("--drop-speed");
+			cell.style.removeProperty("--drop-rows");
 			const drop = dropMap.get(cellKey);
 			if (snap.goldenTiles.has(cellKey)) cell.classList.add("gold");
 			if (snap.coinedSquares.has(cellKey)) cell.classList.add("coined");
@@ -196,8 +210,9 @@ function render({ dropping = [], highlight = [], revealCoins = [], multiplied = 
 			if (pulseSet.has(cellKey)) cell.classList.add("pulse");
 			if (drop) {
 				cell.classList.add("drop");
-				cell.style.setProperty("--drop-delay", `${drop.delay ?? col * 44 + row * 28}ms`);
-				cell.style.setProperty("--drop-speed", `${turbo ? 220 : 760}ms`);
+				cell.style.setProperty("--drop-rows", `${dropPerCol[col] || 1}`);
+				cell.style.setProperty("--drop-delay", `${colDelay(col)}ms`);
+				cell.style.setProperty("--drop-speed", `${dropSpeed()}ms`);
 			}
 
 			if (id !== "blank") {
@@ -361,7 +376,7 @@ async function spin({
 		await wait(turbo ? 360 : 900);
 
 		const drop = math.removeAndDrop(positions, { forceCollector: bonusLevel === 3 });
-		render({ dropping: drop.dropping.map((pos) => ({ ...pos, delay: pos.col * 34 + pos.row * 24 })) });
+		render({ dropping: drop.dropping });
 		await wait(turbo ? 460 : 1100);
 	}
 
