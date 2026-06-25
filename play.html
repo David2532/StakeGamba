@@ -193,37 +193,48 @@
 		position: absolute;
 		inset: -20px -26px;
 		padding: 20px 26px;
-		border: 13px solid transparent;
+		box-sizing: border-box;
 		border-radius: 28px;
-		/* Metallic gold gradient border (mockup look) with a dark, slightly
-		   green-tinted interior — recreated in vector because the board border
-		   cannot be cleanly extracted from the full mockup render. */
+		overflow: visible;
+		isolation: isolate;
 		background:
-			linear-gradient(92deg, rgba(0, 70, 24, 0.5), transparent 8% 92%, rgba(0, 70, 24, 0.5))
-				padding-box,
-			linear-gradient(180deg, #0a0e0c 0%, #050505 100%) padding-box,
-			linear-gradient(
-					150deg,
-					#fff3bd 0%,
-					#f0c75a 13%,
-					#a8741f 33%,
-					#5c3c12 50%,
-					#b6831d 64%,
-					#ffe487 83%,
-					#7e4f15 100%
-				)
-				border-box;
+			linear-gradient(90deg, rgba(0, 83, 31, 0.58), transparent 10% 90%, rgba(0, 83, 31, 0.58)),
+			linear-gradient(180deg, #0a110d 0%, #030403 100%);
 		box-shadow:
-			inset 0 0 0 1px rgba(255, 236, 150, 0.55),
-			inset 0 0 26px rgba(0, 0, 0, 0.9),
-			0 0 0 3px #050505,
-			0 10px 30px rgba(0, 0, 0, 0.6),
-			0 0 42px rgba(255, 191, 44, 0.5);
+			inset 0 0 34px rgba(0, 0, 0, 0.92),
+			0 12px 30px rgba(0, 0, 0, 0.64),
+			0 0 42px rgba(255, 191, 44, 0.42);
+	}
+
+	.board-frame::before {
+		content: '';
+		position: absolute;
+		inset: -9px -10px;
+		z-index: 0;
+		background: url('src/assets/golden-goal-rush/hud-extracted/cluster-reel-frame-premium.svg') center / 100% 100% no-repeat;
+		pointer-events: none;
+		filter:
+			drop-shadow(0 4px 6px rgba(0, 0, 0, 0.72))
+			drop-shadow(0 0 14px rgba(255, 204, 66, 0.22));
+	}
+
+	.board-frame::after {
+		content: '';
+		position: absolute;
+		inset: 21px 27px;
+		z-index: 1;
+		border: 1px solid rgba(255, 232, 146, 0.18);
+		border-radius: 13px;
+		background:
+			linear-gradient(180deg, rgba(255, 236, 166, 0.12), transparent 22%),
+			linear-gradient(90deg, rgba(0, 0, 0, 0.34), transparent 10% 90%, rgba(0, 0, 0, 0.34));
+		pointer-events: none;
 	}
 
 
 	.side-badge {
 		position: absolute;
+		z-index: 3;
 		top: 38%;
 		display: flex;
 		flex-direction: column;
@@ -234,11 +245,15 @@
 		min-height: 82px;
 		padding: 8px 3px;
 		border: 3px solid #dca943;
-		border-radius: 14px;
-		background: linear-gradient(180deg, #2a2a27 0%, #080808 100%);
+		border-radius: 12px;
+		background:
+			linear-gradient(180deg, rgba(255, 233, 158, 0.15), transparent 32%),
+			linear-gradient(180deg, #29251b 0%, #080807 100%);
 		box-shadow:
+			inset 0 0 0 2px rgba(0, 0, 0, 0.72),
 			inset 0 0 10px rgba(255, 214, 93, 0.25),
-			0 0 12px rgba(0, 0, 0, 0.75);
+			0 0 12px rgba(0, 0, 0, 0.75),
+			0 0 14px rgba(255, 191, 44, 0.24);
 		color: #ffe284;
 		font-size: 11.5px;
 		font-weight: 1000;
@@ -265,6 +280,7 @@
 
 	.board {
 		position: relative;
+		z-index: 2;
 		display: grid;
 		width: 100%;
 		height: 100%;
@@ -689,8 +705,18 @@
 		width: 100%;
 		height: 100%;
 		object-fit: fill;
+		image-rendering: auto;
 		pointer-events: none;
 		user-select: none;
+	}
+
+	.cell img,
+	.spin-art,
+	.meter-asset-icon,
+	.pt-cell img,
+	.pt-feat img,
+	.feature-item img {
+		image-rendering: auto;
 	}
 
 	.panel-art {
@@ -765,6 +791,14 @@
 			0 0 6px rgba(255, 211, 76, 0.45);
 	}
 
+	.asset-button,
+	.icon-button,
+	.spin-button,
+	.bet-controls button {
+		cursor: pointer;
+		-webkit-tap-highlight-color: transparent;
+	}
+
 	.asset-button {
 		width: 86px;
 		grid-template-rows: 48px 18px;
@@ -803,6 +837,36 @@
 		filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.88))
 			drop-shadow(0 0 12px rgba(94, 211, 255, 0.55));
 		transform: translateY(-1px) scale(1.03);
+	}
+
+	.asset-button:active .button-art,
+	.icon-button:active .button-art,
+	.bet-controls button:active img {
+		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.82))
+			drop-shadow(0 0 10px rgba(255, 211, 76, 0.48));
+		transform: translateY(2px) scale(0.97);
+	}
+
+	.asset-button.modal-open .button-art,
+	.icon-button.modal-open .button-art {
+		filter: drop-shadow(0 4px 7px rgba(0, 0, 0, 0.86))
+			drop-shadow(0 0 16px rgba(94, 211, 255, 0.82))
+			drop-shadow(0 0 10px rgba(255, 211, 76, 0.34));
+		transform: translateY(-1px) scale(1.04);
+	}
+
+	.asset-button.modal-open span {
+		color: #f0fbff;
+		text-shadow: 0 2px 2px #000, 0 0 8px rgba(94, 211, 255, 0.82);
+	}
+
+	.asset-button:focus-visible,
+	.icon-button:focus-visible,
+	.spin-button:focus-visible,
+	.bet-controls button:focus-visible {
+		outline: 2px solid rgba(255, 228, 154, 0.9);
+		outline-offset: -5px;
+		border-radius: 12px;
 	}
 
 	.feature-control {
@@ -1116,65 +1180,85 @@
 
 	/* ---- modals (menu / settings / info / bonus buy) ---- */
 	.modal-backdrop { position:absolute; inset:0; z-index:60; display:none;
-		align-items:center; justify-content:center; background:rgba(2,3,6,0.8);
+		align-items:center; justify-content:center;
+		background:rgba(0,0,0,0.82);
 		-webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
 	.modal-backdrop.open { display:flex; }
 	.modal { position:relative; width:min(640px,92%); max-height:88%; display:flex; flex-direction:column;
 		background:
-			radial-gradient(125% 70% at 50% -12%, rgba(213,162,59,0.2), transparent 62%),
-			linear-gradient(180deg,#17140c 0%,#0b0a07 55%,#050505 100%);
-		border:2px solid #d5a23b; border-radius:18px; overflow:hidden;
-		box-shadow:0 0 0 1px rgba(255,224,130,0.22) inset, 0 0 0 4px #050505,
-			0 26px 62px rgba(0,0,0,0.82), 0 0 52px rgba(255,191,44,0.26);
+			linear-gradient(180deg, rgba(74,55,18,0.96), rgba(18,15,10,0.98) 25%, rgba(7,7,7,0.99) 100%);
+		border:1px solid #c99a39; border-radius:8px; overflow:hidden;
+		box-shadow:0 0 0 3px #050505, 0 24px 56px rgba(0,0,0,0.86), inset 0 1px 0 rgba(255,232,150,0.18);
 		color:#f1e4c6; font-family:Inter,Arial,sans-serif; animation:modal-in .24s cubic-bezier(.2,.9,.3,1.3) both; }
 	.modal::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; z-index:2;
-		background:linear-gradient(90deg, transparent, #ffe49a 18%, #d5a23b 50%, #ffe49a 82%, transparent); }
+		background:linear-gradient(90deg, #7d5518, #f1c15a 28%, #fff2b5 50%, #c88d2f 72%, #6d4513); }
+	.modal::after { content:''; position:absolute; inset:6px; z-index:0; pointer-events:none; border:1px solid rgba(255,224,130,0.1);
+		border-radius:5px; }
+	#modal-menu .modal { width:min(520px,92%); }
 	@keyframes modal-in { from { opacity:0; transform:translateY(16px) scale(0.96); } }
 	.modal-header { position:relative; display:flex; align-items:center; justify-content:space-between;
-		padding:16px 20px 14px; border-bottom:1px solid rgba(213,162,59,0.4);
-		background:linear-gradient(180deg, rgba(213,162,59,0.22), transparent); }
+		z-index:1;
+		min-height:58px; padding:13px 18px; border-bottom:1px solid rgba(213,162,59,0.45);
+		background:linear-gradient(180deg, rgba(206,151,45,0.23), rgba(19,16,10,0.78)); }
 	.modal-title { display:flex; align-items:center; gap:11px;
-		font-size:21px; font-weight:900; letter-spacing:3px; color:#ffe49a; text-shadow:0 2px 3px #000; }
-	.modal-title::before { content:''; width:6px; height:22px; border-radius:3px;
-		background:linear-gradient(180deg,#ffe49a,#d5a23b); box-shadow:0 0 9px rgba(255,200,60,0.65); }
-	.modal-close { width:36px; height:36px; border-radius:10px; cursor:pointer; display:grid; place-items:center;
-		border:2px solid #d5a23b; background:#0a0a0f; color:#ffe49a; font-size:21px; font-weight:900; line-height:1;
+		font-size:19px; font-weight:900; letter-spacing:1.8px; color:#f7d783; text-shadow:0 2px 2px #000; }
+	.modal-title::before { content:''; width:5px; height:20px; border-radius:2px;
+		background:linear-gradient(180deg,#ffe49a,#b77c21); }
+	.modal-close { width:34px; height:34px; border-radius:6px; cursor:pointer; display:grid; place-items:center;
+		border:1px solid #d5a23b; background:#080807; color:#ffe49a; font-size:21px; font-weight:900; line-height:1;
 		transition:background .15s, border-color .15s, transform .2s; }
-	.modal-close:hover { border-color:#ffe49a; background:linear-gradient(180deg,#3a2c0e,#1a1407); transform:rotate(90deg); }
-	.modal-body { padding:18px 20px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(213,162,59,0.55) rgba(0,0,0,0.3); }
+	.modal-close:hover { border-color:#ffe49a; background:linear-gradient(180deg,#2b220f,#0f0d08); }
+	.modal-close:active { transform:scale(0.94); }
+	.modal-close:focus-visible { outline:2px solid rgba(255,228,154,0.95); outline-offset:2px; }
+	.modal-body { position:relative; z-index:1; padding:17px 20px 19px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(213,162,59,0.55) rgba(0,0,0,0.3); }
 	.modal-body::-webkit-scrollbar { width:8px; }
 	.modal-body::-webkit-scrollbar-thumb { background:rgba(213,162,59,0.55); border-radius:8px; }
 	.modal-body::-webkit-scrollbar-track { background:rgba(0,0,0,0.3); }
 	.menu-item { display:flex; align-items:center; gap:14px; width:100%; cursor:pointer;
-		padding:11px 14px; margin-bottom:9px; border-radius:12px; text-align:left;
-		border:1px solid rgba(213,162,59,0.4);
-		background:linear-gradient(180deg, rgba(26,21,9,0.7), rgba(8,8,12,0.85));
-		color:#ffe9b8; font-size:16px; font-weight:700; letter-spacing:0.4px;
-		transition:border-color .15s, background .15s, transform .15s; }
-	.menu-item:hover { border-color:#ffe49a; transform:translateX(3px);
-		background:linear-gradient(180deg, rgba(50,38,12,0.95), rgba(20,16,6,0.95)); }
-	.menu-item .mi-ico { font-size:18px; width:38px; height:38px; flex:0 0 auto; display:grid; place-items:center;
-		border-radius:50%; border:1px solid rgba(255,224,130,0.5);
-		background:radial-gradient(circle at 50% 30%, rgba(255,224,130,0.28), rgba(10,10,15,0.92));
-		box-shadow:0 0 10px rgba(255,200,60,0.22) inset; }
+		position:relative; overflow:hidden; min-height:56px;
+		padding:10px 13px; margin-bottom:8px; border-radius:5px; text-align:left;
+		border:1px solid rgba(201,154,57,0.48);
+		background:
+			linear-gradient(180deg, rgba(32,27,17,0.96), rgba(9,9,8,0.98));
+		box-shadow:inset 0 1px 0 rgba(255,232,150,0.08);
+		color:#f0e0bb; font-size:15px; font-weight:800; letter-spacing:0.2px;
+		transition:border-color .15s, background .15s, transform .15s, box-shadow .15s; }
+	.menu-item::before { content:''; position:absolute; inset:0 auto 0 0; width:4px;
+		background:#c99a39; opacity:0; transition:opacity .15s; }
+	.menu-item:hover { border-color:#e8bc5b; transform:translateY(-1px);
+		background:
+			linear-gradient(180deg, rgba(44,34,15,0.98), rgba(12,11,9,0.98));
+		box-shadow:inset 0 1px 0 rgba(255,232,150,0.12), 0 5px 14px rgba(0,0,0,0.34); }
+	.menu-item:hover::before { opacity:1; }
+	.menu-item:active { transform:translateY(1px) scale(0.992); }
+	.menu-item:focus-visible { outline:2px solid rgba(255,228,154,0.95); outline-offset:2px; }
+	.menu-item .mi-ico { width:34px; height:34px; flex:0 0 auto; display:grid; place-items:center;
+		border-radius:5px; border:1px solid rgba(201,154,57,0.55);
+		background:linear-gradient(180deg, rgba(56,44,22,0.96), rgba(10,10,9,0.98)); }
+	.mi-ico svg, .bb-ico svg { width:20px; height:20px; display:block; fill:none; stroke:#f1c15a; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 	.menu-item .mi-label { flex:1 1 auto; }
 	.menu-item .mi-arrow { margin-left:auto; color:#d5a23b; font-size:22px; font-weight:400; transition:color .15s; }
 	.menu-item:hover .mi-arrow { color:#ffe49a; }
-	.mi-pill { margin-left:auto; padding:4px 13px; border-radius:999px; font-size:12px; font-weight:800; letter-spacing:1.5px;
+	.mi-pill { margin-left:auto; padding:4px 12px; border-radius:12px; font-size:12px; font-weight:900; letter-spacing:1px;
 		background:linear-gradient(180deg,#2f7335,#14491f); color:#eafce0; border:1px solid #3fae57; }
 	.mi-pill.off { background:linear-gradient(180deg,#3a1414,#1e0a0a); color:#ffb4b4; border-color:#8a3030; }
 	.set-section { font-size:11px; font-weight:800; letter-spacing:2.5px; text-transform:uppercase; color:#d5a23b;
 		margin:14px 2px 4px; padding-bottom:6px; border-bottom:1px solid rgba(213,162,59,0.28); }
 	.set-section:first-child { margin-top:0; }
 	.set-row { display:flex; align-items:center; justify-content:space-between; gap:14px;
-		padding:11px 6px; border-bottom:1px solid rgba(213,162,59,0.16); }
+		min-height:50px; padding:10px 8px; border-bottom:1px solid rgba(213,162,59,0.16);
+		border-radius:5px; transition:background .15s; }
+	.set-row:hover { background:rgba(255,224,130,0.035); }
 	.set-row:last-child { border-bottom:0; }
 	.set-row span { font-size:15px; font-weight:700; color:#f1e4c6; }
 	.toggle { width:54px; height:28px; border-radius:16px; cursor:pointer; position:relative; flex:0 0 auto;
-		border:2px solid #7a5a1c; background:#15130d; transition:background .18s, border-color .18s; }
+		border:2px solid #7a5a1c; background:#15130d; transition:background .18s, border-color .18s, transform .12s, box-shadow .18s; }
 	.toggle::after { content:''; position:absolute; top:2px; left:2px; width:20px; height:20px;
 		border-radius:50%; background:linear-gradient(180deg,#cfcfcf,#888); transition:left .18s; }
-	.toggle.on { background:linear-gradient(180deg,#2f7335,#14491f); border-color:#3fae57; }
+	.toggle:hover { box-shadow:0 0 12px rgba(255,200,60,0.22); }
+	.toggle:active { transform:scale(0.94); }
+	.toggle:focus-visible { outline:2px solid rgba(255,228,154,0.95); outline-offset:3px; }
+	.toggle.on { background:linear-gradient(180deg,#2f7335,#14491f); border-color:#3fae57; box-shadow:0 0 12px rgba(63,174,87,0.22); }
 	.toggle.on::after { left:26px; background:linear-gradient(180deg,#fff3bd,#e7b84e); }
 	.set-vol { display:flex; align-items:center; gap:12px; }
 	.set-slider { width:150px; accent-color:#e7b84e; }
@@ -1185,8 +1269,8 @@
 		border-bottom:1px solid rgba(213,162,59,0.32); }
 	.pt-head small { margin-left:auto; font-size:11px; font-weight:600; letter-spacing:0.4px; text-transform:none; color:#9b906f; }
 	.pt-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-	.pt-cell { display:flex; flex-direction:column; align-items:center; gap:5px; padding:11px 6px; border-radius:11px;
-		border:1px solid rgba(213,162,59,0.32); background:linear-gradient(180deg, rgba(26,21,9,0.55), rgba(8,8,12,0.85)); }
+	.pt-cell { display:flex; flex-direction:column; align-items:center; gap:5px; padding:11px 6px; border-radius:5px;
+		border:1px solid rgba(213,162,59,0.28); background:linear-gradient(180deg, rgba(24,21,14,0.7), rgba(8,8,8,0.92)); }
 	.pt-cell img { width:48px; height:48px; object-fit:contain; filter:drop-shadow(0 2px 3px #000); }
 	.pt-pays { font-size:11px; line-height:1.5; color:#ffe9b8; text-align:center; }
 	.pt-pays b { color:#ffd96f; }
@@ -1224,27 +1308,31 @@
 	@keyframes feat-pulse { 50%{transform:scale(1.22);filter:drop-shadow(0 0 12px #ffd96f);} }
 
 	/* ---- free spins counter ---- */
-	.fs-counter { position:absolute; top:118px; left:50%; transform:translateX(-50%); z-index:15; display:none;
-		padding:5px 24px 7px; border-radius:999px; border:2px solid #ffe49a; text-align:center;
-		background:linear-gradient(180deg,#1c1305,#0a0a0f); box-shadow:0 0 18px rgba(255,200,60,0.5);
+	.fs-counter { position:absolute; top:68px; left:50%; transform:translateX(-50%); z-index:16; display:none;
+		min-width:276px; padding:2px 18px 3px; border-radius:999px; border:2px solid rgba(245,188,62,0.95); text-align:center;
+		background:linear-gradient(180deg,#1c1b17 0%,#050505 100%);
+		box-shadow:0 0 0 2px rgba(0,0,0,0.75), 0 0 16px rgba(255,190,42,0.45);
 		color:#ffe49a; font-family:Inter,Arial,sans-serif; }
 	.fs-counter.show { display:block; }
-	.fs-counter .fs-name { font-size:11px; letter-spacing:2px; color:#ffd96f; }
-	.fs-counter .fs-big { font-size:21px; font-weight:1000; color:#fff; line-height:1.1; }
+	.fs-counter .fs-name { font-size:8px; letter-spacing:1.6px; color:#ffd96f; line-height:1; }
+	.fs-counter .fs-big { font-size:18px; font-weight:1000; color:#fff; line-height:1.02; }
+	.stage.bonus-mode .world-plaque { opacity:0; pointer-events:none; }
 
 	/* ---- bonus buy ---- */
 	.bb-list { display:flex; flex-direction:column; gap:11px; }
 	.bb-opt { display:flex; align-items:center; gap:14px; width:100%; position:relative; overflow:hidden;
-		cursor:pointer; text-align:left; padding:13px 16px 13px 15px; border-radius:13px;
+		cursor:pointer; text-align:left; padding:13px 16px 13px 15px; border-radius:5px;
 		border:1px solid rgba(213,162,59,0.45); border-left:4px solid var(--bb-accent,#d5a23b);
-		background:linear-gradient(180deg, rgba(26,21,9,0.7), rgba(8,8,12,0.88)); color:#ffe9b8;
+		background:linear-gradient(180deg, rgba(28,24,15,0.86), rgba(8,8,8,0.96)); color:#ffe9b8;
 		transition:border-color .15s, transform .15s, box-shadow .15s; }
 	.bb-opt:hover:not(.disabled) { border-color:#ffe49a; border-left-color:var(--bb-accent,#ffe49a);
 		transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,0.5), 0 0 18px rgba(255,191,44,0.18); }
+	.bb-opt:active:not(.disabled) { transform:translateY(1px) scale(0.99); box-shadow:0 3px 10px rgba(0,0,0,0.45); }
+	.bb-opt:focus-visible { outline:2px solid rgba(255,228,154,0.95); outline-offset:2px; }
 	.bb-opt.disabled { opacity:0.42; cursor:not-allowed; }
-	.bb-ico { width:44px; height:44px; flex:0 0 auto; display:grid; place-items:center; font-size:23px; border-radius:11px;
+	.bb-ico { width:44px; height:44px; flex:0 0 auto; display:grid; place-items:center; border-radius:5px;
 		border:1px solid rgba(255,224,130,0.45);
-		background:radial-gradient(circle at 50% 30%, rgba(255,224,130,0.22), rgba(8,8,12,0.92));
+		background:linear-gradient(180deg, rgba(58,45,22,0.96), rgba(9,9,8,0.96));
 		box-shadow:0 0 10px rgba(255,200,60,0.2) inset; }
 	.bb-text { flex:1 1 auto; min-width:0; }
 	.bb-name { font-size:16px; font-weight:800; letter-spacing:0.3px; }
@@ -1252,7 +1340,10 @@
 	.bb-price { display:inline-flex; align-items:center; gap:5px; flex:0 0 auto; white-space:nowrap;
 		font-size:16px; font-weight:1000; color:#241803; padding:8px 14px; border-radius:999px;
 		background:linear-gradient(180deg,#ffe9a3,#e7b84e); box-shadow:0 2px 7px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.25) inset; }
-	.bb-price::before { content:'\26BD'; font-size:14px; }
+	.bb-price::before { content:''; width:14px; height:14px; border-radius:50%;
+		border:1px solid rgba(76,45,5,0.65);
+		background:radial-gradient(circle at 34% 30%, #fff6c8 0 18%, #e7b84e 42%, #8a5a15 100%);
+		box-shadow:inset 0 -2px 3px rgba(76,45,5,0.45); }
 	.bb-opt.disabled .bb-price { background:linear-gradient(180deg,#7a6f4a,#4a4330); color:#1a1206; box-shadow:none; }
 	.bb-note { margin-top:15px; padding-top:12px; border-top:1px solid rgba(213,162,59,0.28);
 		font-size:12px; color:#9b906f; text-align:center; line-height:1.55; }
@@ -1381,15 +1472,19 @@
 	.bs-continue:active { transform:translateY(3px); box-shadow:0 1px 0 #9a6f1e, 0 4px 10px rgba(0,0,0,0.5); }
 
 	/* ---- bonus buy confirm ---- */
-	.bb-confirm { margin-top:14px; padding:16px; border-radius:13px; border:1px solid rgba(213,162,59,0.5);
+	.bb-confirm { margin-top:14px; padding:16px; border-radius:8px; border:1px solid rgba(213,162,59,0.5);
 		background:linear-gradient(180deg, rgba(40,30,10,0.92), rgba(8,8,12,0.95)); text-align:center; }
 	.bb-confirm .c-q { font-size:14px; color:#f1e4c6; line-height:1.5; margin-bottom:13px; }
 	.bb-confirm .c-q b { color:#ffd96f; }
 	.bb-confirm .c-row { display:flex; gap:10px; }
-	.bb-confirm button { flex:1; cursor:pointer; padding:12px; border-radius:10px; font-size:15px; font-weight:900; letter-spacing:0.5px; }
+	.bb-confirm button { flex:1; cursor:pointer; padding:12px; border-radius:8px; font-size:15px; font-weight:900; letter-spacing:0.5px;
+		transition:transform .12s, box-shadow .12s, border-color .12s, filter .12s; }
 	.bb-confirm .c-yes { color:#241803; border:0; background:linear-gradient(180deg,#ffe9a3,#e7b84e); box-shadow:0 3px 0 #9a6f1e; }
 	.bb-confirm .c-no { color:#ffe9b8; border:1px solid rgba(213,162,59,0.5); background:rgba(8,8,12,0.85); }
+	.bb-confirm button:hover { filter:brightness(1.08); }
 	.bb-confirm .c-yes:active { transform:translateY(2px); box-shadow:0 1px 0 #9a6f1e; }
+	.bb-confirm .c-no:active { transform:translateY(1px); border-color:#ffe49a; }
+	.bb-confirm button:focus-visible { outline:2px solid rgba(255,228,154,0.95); outline-offset:2px; }
 
 </style>
 </head>
@@ -1502,12 +1597,12 @@
 			<div class="modal">
 				<div class="modal-header"><div class="modal-title">MENU</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
-					<button class="menu-item" data-open="modal-info"><span class="mi-ico">💰</span><span class="mi-label">Pay Table</span><span class="mi-arrow">›</span></button>
-					<button class="menu-item" data-open="modal-info"><span class="mi-ico">📖</span><span class="mi-label">How To Play</span><span class="mi-arrow">›</span></button>
-					<button class="menu-item" data-open="modal-settings"><span class="mi-ico">⚙️</span><span class="mi-label">Settings</span><span class="mi-arrow">›</span></button>
-					<button class="menu-item" id="menu-sound"><span class="mi-ico">🔊</span><span class="mi-label">Sound</span><span class="mi-pill" id="menu-sound-state">ON</span></button>
-					<button class="menu-item" data-open="modal-info"><span class="mi-ico">📜</span><span class="mi-label">Game Rules</span><span class="mi-arrow">›</span></button>
-					<button class="menu-item" id="menu-history"><span class="mi-ico">🕘</span><span class="mi-label">Game History</span><span class="mi-arrow">›</span></button>
+					<button class="menu-item" data-open="modal-info"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="7" rx="6" ry="3"/><path d="M6 7v8c0 1.7 2.7 3 6 3s6-1.3 6-3V7"/><path d="M6 11c0 1.7 2.7 3 6 3s6-1.3 6-3"/></svg></span><span class="mi-label">Pay Table</span><span class="mi-arrow">›</span></button>
+					<button class="menu-item" data-open="modal-info"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.5c2.6 0 4.6.5 7 2v11c-2.4-1.5-4.4-2-7-2z"/><path d="M19 5.5c-2.6 0-4.6.5-7 2v11c2.4-1.5 4.4-2 7-2z"/></svg></span><span class="mi-label">How To Play</span><span class="mi-arrow">›</span></button>
+					<button class="menu-item" data-open="modal-settings"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.4"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3M5.8 5.8l2.1 2.1M16.1 16.1l2.1 2.1M18.2 5.8l-2.1 2.1M7.9 16.1l-2.1 2.1"/></svg></span><span class="mi-label">Settings</span><span class="mi-arrow">›</span></button>
+					<button class="menu-item" id="menu-sound"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M18.8 6.2a8 8 0 0 1 0 11.6"/></svg></span><span class="mi-label">Sound</span><span class="mi-pill" id="menu-sound-state">ON</span></button>
+					<button class="menu-item" data-open="modal-info"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3.5h7l3 3V20H7z"/><path d="M14 3.5v4h4"/><path d="M9.5 11h5M9.5 14h5M9.5 17h3"/></svg></span><span class="mi-label">Game Rules</span><span class="mi-arrow">›</span></button>
+					<button class="menu-item" id="menu-history"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><path d="M12 7.5V12l3 2"/><path d="M5 5l-2 3h4"/></svg></span><span class="mi-label">Game History</span><span class="mi-arrow">›</span></button>
 				</div>
 			</div>
 		</div>
@@ -1639,6 +1734,9 @@ function fullDropMap() {
 }
 // Latest land time (delay+dur) across a drop map, for awaiting the settle.
 function dropEnd(drops) { let m = 0; for (const d of drops.values()) m = Math.max(m, d.delay + d.dur); return m; }
+function clearDropClasses() {
+	document.querySelectorAll('#board img.dropping').forEach((img) => img.classList.remove('dropping'));
+}
 
 // paint rebuilds the board; cells listed in the drops map fall in (only moved
 // or new symbols), everything else is placed statically so nothing re-drops.
@@ -1669,6 +1767,7 @@ function paint({ drops = null } = {}) {
 					img.style.setProperty('--dropY', (-(d.rows * 100)) + '%');
 					img.style.animationDelay = d.delay + 'ms';
 					img.style.animationDuration = d.dur + 'ms';
+					img.addEventListener('animationend', () => img.classList.remove('dropping'), { once: true });
 				}
 				cell.appendChild(img);
 			}
@@ -1894,6 +1993,7 @@ async function resolveCascades(baseStart) {
 	while (true) {
 		const clusters = findClusters();
 		if (!clusters.length) break;
+		clearDropClasses();
 		const flat = clusters.flatMap((cl) => cl.cells);
 		flat.forEach(([c, r]) => { cellEl(c, r).classList.add('win'); state.golden.add(ck(c, r)); });
 		const stepWin = clusters.reduce((s, cl) => s + payFor(cl.key, cl.cells.length) * state.bet, 0) * multiplier;
@@ -1927,6 +2027,7 @@ async function resolveCascades(baseStart) {
 		for (const [k, d] of drops) { const c = +k.split(',')[0]; d.dur = DROP_DUR(colMax[c]) * TF(); d.delay = c * COL_DELAY * TF(); }
 		paint({ drops });
 		await rawWait(dropEnd(drops) + 80 * TF());
+		clearDropClasses();
 		multiplier += 1;
 		if (state.win >= capWin()) break;
 	}
@@ -1936,14 +2037,18 @@ async function resolveCascades(baseStart) {
 // ---- Golden Goal Rush coin feature (Rainbow activates Golden Cells) ----
 function revealGolden() {
 	state.reveals.clear();
+	const bonusReveal = state.mode === 'free';
 	const reduce = state.mode === 'free' && CONFIG.tiers[state.tier] && CONFIG.tiers[state.tier].reduceBronze;
 	const w = {
 		bronze: reduce ? Math.max(1, Math.round(CONFIG.bronzeWeight * 0.12)) : CONFIG.bronzeWeight,
 		silver: CONFIG.silverWeight, gold: CONFIG.goldWeight,
 		mult: CONFIG.multiplierWeight, collector: CONFIG.collectorWeight,
 	};
+	const table = bonusReveal
+		? [['bronze', w.bronze], ['silver', w.silver], ['gold', w.gold], ['mult', w.mult], ['collector', w.collector]]
+		: [['blank', CONFIG.blankWeight], ['bronze', w.bronze], ['silver', w.silver], ['gold', w.gold], ['mult', w.mult], ['collector', w.collector]];
 	for (const key of state.golden) {
-		const kind = wpick([['blank', CONFIG.blankWeight], ['bronze', w.bronze], ['silver', w.silver], ['gold', w.gold], ['mult', w.mult], ['collector', w.collector]]);
+		const kind = wpick(table);
 		if (kind === 'blank') continue;
 		if (kind === 'mult') { const v = rand(CONFIG.multiplierValues); state.reveals.set(key, { kind: 'mult', value: v, asset: MULT_ASSETS[v] }); }
 		else if (kind === 'collector') { state.reveals.set(key, { kind: 'collector', value: 0, asset: COLLECTOR_ASSET }); }
@@ -2018,6 +2123,7 @@ async function dropInBoard(anticipate) {
 	}
 	paint({ drops });
 	await rawWait(dropEnd(drops) + 80 * TF());
+	clearDropClasses();
 	if (anticipate) stage.classList.remove('antic');
 }
 
@@ -2171,10 +2277,10 @@ $('btn-auto').addEventListener('click', () => {
 });
 // ---- bonus buy ----
 const BB_META = {
-	hunt: { ico: '🎯', accent: '#cf9b3f' },
-	rainbow: { ico: '🌈', accent: '#7d5cff' },
-	tier1: { ico: '⭐', accent: '#e7b84e' },
-	tier2: { ico: '🏆', accent: '#ffd24a' },
+	hunt: { ico: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3"/></svg>', accent: '#cf9b3f' },
+	rainbow: { ico: '<svg viewBox="0 0 24 24"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M7 16a5 5 0 0 1 10 0"/><path d="M10 16a2 2 0 0 1 4 0"/></svg>', accent: '#7d5cff' },
+	tier1: { ico: '<svg viewBox="0 0 24 24"><path d="M12 3.5l2.4 5 5.5.8-4 3.9.9 5.5-4.8-2.6-4.8 2.6.9-5.5-4-3.9 5.5-.8z"/></svg>', accent: '#e7b84e' },
+	tier2: { ico: '<svg viewBox="0 0 24 24"><path d="M8 4h8v4a4 4 0 0 1-8 0z"/><path d="M8 6H5v1.5A3.5 3.5 0 0 0 8 11M16 6h3v1.5a3.5 3.5 0 0 1-3 3.5M12 12v4M9 20h6M8 16h8"/></svg>', accent: '#ffd24a' },
 };
 function buildBonusBuy() {
 	const wrap = $('bonusbuy-list');
@@ -2182,7 +2288,7 @@ function buildBonusBuy() {
 	wrap.innerHTML = CONFIG.bonusBuy.map((o) => {
 		const price = Math.round(o.mult * state.bet * 100) / 100;
 		const afford = state.balance >= price; if (!afford) anyDisabled = true;
-		const m = BB_META[o.id] || { ico: '⚽', accent: '#d5a23b' };
+		const m = BB_META[o.id] || { ico: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7l4 3-1.5 5h-5L8 10z"/><path d="M4.8 9.5l3.2.5M19.2 9.5l-3.2.5M7.2 18l2.3-3M16.8 18l-2.3-3"/></svg>', accent: '#d5a23b' };
 		return '<button class="bb-opt' + (afford ? '' : ' disabled') + '" data-buy="' + o.id + '" style="--bb-accent:' + m.accent + '"' + (afford ? '' : ' disabled') + '>' +
 			'<span class="bb-ico">' + m.ico + '</span>' +
 			'<div class="bb-text"><div class="bb-name">' + o.label + '</div><div class="bb-desc">' + o.desc + '</div></div>' +
@@ -2204,7 +2310,7 @@ function showBuyConfirm(o, price) {
 		: o.id === 'rainbow' ? 'one spin with a guaranteed Golden Arc'
 		: 'one spin with boosted feature chance';
 	$('bonusbuy-list').innerHTML = '<div class="bb-confirm">'
-		+ '<div class="c-q">Buy <b>' + o.label + '</b><br>(' + what + ')<br>for <b>⚽ ' + fmt(price) + '</b>?</div>'
+		+ '<div class="c-q">Buy <b>' + o.label + '</b><br>(' + what + ')<br>for <b>' + fmt(price) + '</b>?</div>'
 		+ '<div class="c-row"><button class="c-no" id="bb-cancel">Cancel</button><button class="c-yes" id="bb-confirm">Confirm</button></div></div>';
 	$('bonusbuy-note').textContent = 'Balance after purchase: ' + fmt(Math.max(0, Math.round((state.balance - price) * 100) / 100));
 	$('bb-cancel').onclick = () => buildBonusBuy();
@@ -2219,8 +2325,36 @@ $('btn-bonus').addEventListener('click', () => { if (!state.spinning && state.mo
 window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); spin(); } });
 
 // ---- modals: open / close ----
-function openModal(id) { document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')); const el = document.getElementById(id); if (el) el.classList.add('open'); }
-function closeModals() { document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')); }
+const MODAL_TRIGGERS = {
+	'modal-menu': 'btn-menu',
+	'modal-settings': 'btn-settings',
+	'modal-info': 'btn-info',
+	'modal-bonusbuy': 'btn-bonus',
+};
+function setModalTrigger(id) {
+	Object.values(MODAL_TRIGGERS).forEach((triggerId) => {
+		const btn = $(triggerId);
+		if (!btn) return;
+		const active = MODAL_TRIGGERS[id] === triggerId;
+		btn.classList.toggle('modal-open', active);
+		btn.setAttribute('aria-expanded', active ? 'true' : 'false');
+	});
+}
+function openModal(id) {
+	document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open'));
+	const el = document.getElementById(id);
+	if (el) {
+		el.classList.add('open');
+		setModalTrigger(id);
+	} else {
+		setModalTrigger(null);
+	}
+}
+function closeModals() {
+	document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open'));
+	setModalTrigger(null);
+}
+setModalTrigger(null);
 $('btn-menu').addEventListener('click', () => openModal('modal-menu'));
 $('btn-settings').addEventListener('click', () => openModal('modal-settings'));
 $('btn-info').addEventListener('click', () => openModal('modal-info'));
@@ -2230,9 +2364,13 @@ document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('clic
 window.addEventListener('keydown', (e) => { if (e.code === 'Escape') closeModals(); });
 
 // menu: sound toggle (drives the synthesised SFX hooks)
+$('menu-sound').setAttribute('aria-pressed', state.sound ? 'true' : 'false');
 $('menu-sound').addEventListener('click', () => {
 	const s = $('menu-sound-state'); const willOn = s.textContent !== 'ON';
 	state.sound = willOn; s.textContent = willOn ? 'ON' : 'OFF'; s.classList.toggle('off', !willOn);
+	$('menu-sound').setAttribute('aria-pressed', willOn ? 'true' : 'false');
+	const sfxToggle = document.querySelector('.toggle[data-toggle="sfx"]');
+	if (sfxToggle) { sfxToggle.classList.toggle('on', willOn); syncToggleState(sfxToggle); }
 });
 $('menu-history').addEventListener('click', () => openModal('modal-info'));
 
@@ -2243,11 +2381,23 @@ $('menu-history').addEventListener('click', () => openModal('modal-info'));
 })();
 
 // settings: toggle switches
-document.querySelectorAll('.toggle').forEach((t) => t.addEventListener('click', () => {
-	t.classList.toggle('on');
-	if (t.dataset.toggle === 'turbo') { state.turbo = t.classList.contains('on'); $('btn-turbo').classList.toggle('armed', state.turbo); }
-	if (t.dataset.toggle === 'sfx') { state.sound = t.classList.contains('on'); const p = $('menu-sound-state'); if (p) { p.textContent = state.sound ? 'ON' : 'OFF'; p.classList.toggle('off', !state.sound); } }
-}));
+function syncToggleState(t) {
+	t.setAttribute('aria-pressed', t.classList.contains('on') ? 'true' : 'false');
+}
+document.querySelectorAll('.toggle').forEach((t) => {
+	syncToggleState(t);
+	t.addEventListener('click', () => {
+		t.classList.toggle('on');
+		syncToggleState(t);
+		if (t.dataset.toggle === 'turbo') { state.turbo = t.classList.contains('on'); $('btn-turbo').classList.toggle('armed', state.turbo); }
+		if (t.dataset.toggle === 'sfx') {
+			state.sound = t.classList.contains('on');
+			const p = $('menu-sound-state');
+			if (p) { p.textContent = state.sound ? 'ON' : 'OFF'; p.classList.toggle('off', !state.sound); }
+			$('menu-sound').setAttribute('aria-pressed', state.sound ? 'true' : 'false');
+		}
+	});
+});
 
 // info: build the paytable grid from the symbol set
 (function buildPaytable() {
@@ -2299,8 +2449,10 @@ window.__ggr = {
 		state.golden.clear(); state.reveals.clear(); setWin(0);
 		newGrid({ noRainbow: true });
 		for (let c = 0; c < 4; c += 1) for (let r = 0; r < 3; r += 1) state.grid[c][r] = 'football';
-		paint({ drops: fullDropMap() });
-		await wait(420);
+		const drops = fullDropMap();
+		paint({ drops });
+		await rawWait(dropEnd(drops) + 80 * TF());
+		clearDropClasses();
 		const base = await resolveCascades();
 		state.balance += state.win; updateMeters();
 		state.golden.clear(); state.reveals.clear(); paint();
@@ -2315,7 +2467,9 @@ window.__ggr = {
 		newGrid({ noRainbow: true });
 		for (let c = 0; c < 5; c += 1) for (let r = 0; r < 3; r += 1) state.grid[c][r] = 'football';
 		state.grid[5][4] = 'rainbow';
-		paint({ drops: fullDropMap() }); await wait(420);
+		const drops = fullDropMap();
+		paint({ drops }); await rawWait(dropEnd(drops) + 80 * TF());
+		clearDropClasses();
 		const base = await resolveCascades();
 		let fw = 0;
 		if (state.golden.size) fw = await runFeature(base);
@@ -2326,7 +2480,7 @@ window.__ggr = {
 		return { base, featureWin: fw, goldenCount, win: state.win };
 	},
 };
-window.__ggrBuild = '2026-06-24T20:19:53.363Z';
+window.__ggrBuild = '2026-06-25T19:42:00.000Z';
 console.log('Golden Goal Rush build', window.__ggrBuild);
 window.__ggrReady = true;
 </script>

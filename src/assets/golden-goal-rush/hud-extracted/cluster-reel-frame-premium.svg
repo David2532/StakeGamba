@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 910 450" fill="none">
+  <defs>
+    <linearGradient id="outerGold" x1="70" y1="0" x2="842" y2="450" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff4b8"/>
+      <stop offset="0.12" stop-color="#f1bf47"/>
+      <stop offset="0.27" stop-color="#8b5a18"/>
+      <stop offset="0.45" stop-color="#3f2609"/>
+      <stop offset="0.61" stop-color="#c08b26"/>
+      <stop offset="0.79" stop-color="#ffe285"/>
+      <stop offset="1" stop-color="#754711"/>
+    </linearGradient>
+    <linearGradient id="innerGold" x1="455" y1="22" x2="455" y2="428" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffefaa"/>
+      <stop offset="0.2" stop-color="#cd912b"/>
+      <stop offset="0.55" stop-color="#5b3710"/>
+      <stop offset="0.82" stop-color="#e2aa37"/>
+      <stop offset="1" stop-color="#fff0a0"/>
+    </linearGradient>
+    <linearGradient id="plate" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff4c7"/>
+      <stop offset="0.35" stop-color="#d89f35"/>
+      <stop offset="0.7" stop-color="#5b360d"/>
+      <stop offset="1" stop-color="#f4c85c"/>
+    </linearGradient>
+    <radialGradient id="rivet" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(0 0) rotate(90) scale(12)">
+      <stop stop-color="#fff8cf"/>
+      <stop offset="0.42" stop-color="#e0aa37"/>
+      <stop offset="0.72" stop-color="#7b4a12"/>
+      <stop offset="1" stop-color="#1b1004"/>
+    </radialGradient>
+    <filter id="softShadow" x="-8%" y="-14%" width="116%" height="128%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000000" flood-opacity="0.55"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#ffca46" flood-opacity="0.22"/>
+    </filter>
+    <mask id="frameCutout">
+      <rect width="910" height="450" fill="#fff"/>
+      <rect x="48" y="42" width="814" height="366" rx="18" fill="#000"/>
+    </mask>
+  </defs>
+
+  <g filter="url(#softShadow)">
+    <rect x="7" y="7" width="896" height="436" rx="40" fill="#030302"/>
+    <rect x="15" y="15" width="880" height="420" rx="34" fill="url(#outerGold)" mask="url(#frameCutout)"/>
+    <rect x="35" y="31" width="840" height="388" rx="23" stroke="url(#innerGold)" stroke-width="12"/>
+    <rect x="49" y="45" width="812" height="360" rx="16" stroke="#080704" stroke-width="8"/>
+    <rect x="59" y="55" width="792" height="340" rx="12" stroke="#f7d26a" stroke-opacity="0.42" stroke-width="2"/>
+  </g>
+
+  <g opacity="0.95">
+    <path d="M37 33H144L103 72H56L37 54V33Z" fill="url(#plate)"/>
+    <path d="M873 33H766L807 72H854L873 54V33Z" fill="url(#plate)"/>
+    <path d="M37 417H144L103 378H56L37 396V417Z" fill="url(#plate)"/>
+    <path d="M873 417H766L807 378H854L873 396V417Z" fill="url(#plate)"/>
+    <path d="M44 41H127" stroke="#fff3b7" stroke-opacity="0.5" stroke-width="3" stroke-linecap="round"/>
+    <path d="M866 41H783" stroke="#fff3b7" stroke-opacity="0.5" stroke-width="3" stroke-linecap="round"/>
+    <path d="M44 409H127" stroke="#fff3b7" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round"/>
+    <path d="M866 409H783" stroke="#fff3b7" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <g>
+    <circle cx="74" cy="80" r="10" fill="url(#rivet)"/>
+    <circle cx="836" cy="80" r="10" fill="url(#rivet)"/>
+    <circle cx="74" cy="370" r="10" fill="url(#rivet)"/>
+    <circle cx="836" cy="370" r="10" fill="url(#rivet)"/>
+    <circle cx="455" cy="33" r="8" fill="url(#rivet)"/>
+    <circle cx="455" cy="417" r="8" fill="url(#rivet)"/>
+  </g>
+
+  <path d="M90 24H820" stroke="#fff7cf" stroke-opacity="0.34" stroke-width="3" stroke-linecap="round"/>
+  <path d="M88 426H822" stroke="#1a0f04" stroke-opacity="0.58" stroke-width="5" stroke-linecap="round"/>
+  <path d="M31 95V355" stroke="#ffdf77" stroke-opacity="0.2" stroke-width="5" stroke-linecap="round"/>
+  <path d="M879 95V355" stroke="#ffdf77" stroke-opacity="0.2" stroke-width="5" stroke-linecap="round"/>
+</svg>
