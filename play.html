@@ -138,6 +138,13 @@
 		filter: drop-shadow(0 2px 2px #000) drop-shadow(0 0 8px rgba(255, 217, 82, 0.75));
 	}
 
+	.logo-header-img {
+		height: 100%;
+		max-width: 100%;
+		object-fit: contain;
+		filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 14px rgba(255, 190, 38, 0.5));
+	}
+
 	.world-plaque {
 		position: absolute;
 		top: 82px;
@@ -1497,17 +1504,13 @@
 		<div class="top-light right"></div>
 
 		<div class="logo-wordmark" aria-label="Golden Goal Rush">
-			<span>GOLDEN G</span>
-			<img class="logo-ball" src="src/assets/golden-goal-rush/fussball.png" alt="" />
-			<span>AL RUSH</span>
+			<img class="logo-header-img" src="src/assets/golden-goal-rush/logo-horizontal.png" alt="Golden Goal Rush" />
 		</div>
 		<div class="world-plaque">WORLD STADIUM</div>
 
 		<div class="board-wrap">
 			<div class="board-glow"></div>
 			<div class="board-frame">
-				<div class="side-badge left">CLUSTER<span>PAYS</span></div>
-				<div class="side-badge right">CLUSTER<span>PAYS</span></div>
 				<div class="board" id="board"></div>
 			</div>
 		</div>
