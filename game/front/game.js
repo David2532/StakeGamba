@@ -70,12 +70,16 @@ const modalCard = document.querySelector(".modal-card");
 
 // Central animation timing (ms). Tweak here to retune the whole game feel.
 const TIMING = {
-	dropSpeed: 560, // how long a symbol takes to fall in
-	dropColDelay: 56, // per-column stagger (column 0 first, then 1, 2 …)
+	dropSpeed: 540, // base fall time for a 1-row drop
+	dropPerRow: 42, // extra fall time per additional row of distance
+	dropColDelay: 48, // per-column stagger (column 0 first, then 1, 2 …)
+	winHighlight: 480, // how long winning clusters are shown before removal
+	removeOut: 260, // win-symbol removal animation
 	turboFactor: 0.5, // turbo scales every timing down by this
 };
-const dropSpeed = () => Math.round(TIMING.dropSpeed * (turbo ? TIMING.turboFactor : 1));
-const colDelay = (col) => Math.round(col * TIMING.dropColDelay * (turbo ? TIMING.turboFactor : 1));
+const tf = () => (turbo ? TIMING.turboFactor : 1);
+const dropSpeed = (rows = ROWS) => Math.round((TIMING.dropSpeed + (Math.max(1, rows) - 1) * TIMING.dropPerRow) * tf());
+const colDelay = (col) => Math.round(col * TIMING.dropColDelay * tf());
 
 const math = createMathEngine();
 let balance = 1000;
@@ -175,18 +179,26 @@ function ensureBoardCells() {
 	}
 }
 
-function render({ dropping = [], highlight = [], revealCoins = [], multiplied = [], collected = [], pulse = [], overrideSymbols = new Map(), coinValues = new Map() } = {}) {
+function render({ slide = null, dropping = [], highlight = [], revealCoins = [], multiplied = [], collected = [], pulse = [], overrideSymbols = new Map(), coinValues = new Map() } = {}) {
 	const snap = math.snapshot();
 	const highlightSet = new Set(highlight.map(key));
 	const revealSet = new Set(revealCoins.map(key));
 	const multipliedSet = new Set(multiplied.map(key));
 	const collectedSet = new Set(collected.map(key));
 	const pulseSet = new Set(pulse.map(key));
-	const dropMap = new Map(dropping.map((pos) => [key(pos), pos]));
-	// How many cells drop per column → the whole column stack falls together as a
-	// rigid unit from above (no per-cell fade, no diagonal wave).
-	const dropPerCol = {};
-	for (const pos of dropping) dropPerCol[pos.col] = (dropPerCol[pos.col] || 0) + 1;
+	// slide = Map(cellKey -> rows the symbol falls). Survivors and newly spawned
+	// symbols both fall (start above their final cell, settle into place), so the
+	// whole column tumbles instead of the grid swapping state. Back-compat: a
+	// plain `dropping` list becomes a uniform per-column stack fall.
+	let slideMap = slide;
+	if (!slideMap) {
+		slideMap = new Map();
+		if (dropping.length) {
+			const perCol = {};
+			for (const pos of dropping) perCol[pos.col] = (perCol[pos.col] || 0) + 1;
+			for (const pos of dropping) slideMap.set(key(pos), perCol[pos.col]);
+		}
+	}
 
 	ensureBoardCells();
 	for (let row = 0; row < ROWS; row += 1) {
@@ -201,18 +213,18 @@ function render({ dropping = [], highlight = [], revealCoins = [], multiplied = 
 			cell.style.removeProperty("--drop-delay");
 			cell.style.removeProperty("--drop-speed");
 			cell.style.removeProperty("--drop-rows");
-			const drop = dropMap.get(cellKey);
+			const shift = slideMap.get(cellKey) || 0;
 			if (snap.goldenTiles.has(cellKey)) cell.classList.add("gold");
 			if (snap.coinedSquares.has(cellKey)) cell.classList.add("coined");
 			if (highlightSet.has(cellKey)) cell.classList.add("hit");
 			if (multipliedSet.has(cellKey)) cell.classList.add("multiplied");
 			if (collectedSet.has(cellKey)) cell.classList.add("collected");
 			if (pulseSet.has(cellKey)) cell.classList.add("pulse");
-			if (drop) {
+			if (shift > 0) {
 				cell.classList.add("drop");
-				cell.style.setProperty("--drop-rows", `${dropPerCol[col] || 1}`);
+				cell.style.setProperty("--drop-rows", `${shift}`);
 				cell.style.setProperty("--drop-delay", `${colDelay(col)}ms`);
-				cell.style.setProperty("--drop-speed", `${dropSpeed()}ms`);
+				cell.style.setProperty("--drop-speed", `${dropSpeed(shift)}ms`);
 			}
 
 			if (id !== "blank") {
@@ -238,6 +250,74 @@ function render({ dropping = [], highlight = [], revealCoins = [], multiplied = 
 			}
 		}
 	}
+}
+
+// Gravity for one cascade, computed front-side from the winning positions so the
+// UI can animate it: surviving symbols compact downward, freed top slots are
+// refilled, and every moved cell gets the number of rows it falls.
+function slideMapForCascade(winnerPositions) {
+	const removedByCol = Array.from({ length: COLS }, () => new Set());
+	for (const pos of winnerPositions) removedByCol[pos.col].add(pos.row);
+	const m = new Map();
+	for (let col = 0; col < COLS; col += 1) {
+		const removed = removedByCol[col];
+		if (!removed.size) continue;
+		const addCount = removed.size;
+		const survivors = [];
+		for (let r = 0; r < ROWS; r += 1) if (!removed.has(r)) survivors.push(r);
+		survivors.forEach((oldRow, i) => {
+			const newRow = addCount + i;
+			if (newRow > oldRow) m.set(`${col}:${newRow}`, newRow - oldRow);
+		});
+		for (let r = 0; r < addCount; r += 1) m.set(`${col}:${r}`, addCount); // new symbols fall from above the board
+	}
+	return m;
+}
+
+// Every cell falls in as a fresh column stack (used for the initial reel drop).
+function slideMapFull() {
+	const m = new Map();
+	for (let col = 0; col < COLS; col += 1) for (let r = 0; r < ROWS; r += 1) m.set(`${col}:${r}`, ROWS);
+	return m;
+}
+
+// Pop the winning symbols out (explode/fade) before gravity runs.
+async function animateRemove(positions) {
+	for (const pos of positions) {
+		const cell = boardEl.children[pos.row * COLS + pos.col];
+		const img = cell?.querySelector("img");
+		if (img) img.classList.add("removing");
+	}
+	await wait(Math.round(TIMING.removeOut * tf()));
+}
+
+// Longest fall in a slide map (rows + its column delay), for awaiting the settle.
+function slideSettleMs(slideMap) {
+	let maxMs = 0;
+	for (const [cellKey, rows] of slideMap) {
+		const col = Number(cellKey.split(":")[0]);
+		maxMs = Math.max(maxMs, colDelay(col) + dropSpeed(rows));
+	}
+	return maxMs + Math.round(120 * tf());
+}
+
+// Count the WIN meter up smoothly to a target.
+function animateWinCount(from, to, ms) {
+	if (to <= from) {
+		winEl.textContent = money(to);
+		return;
+	}
+	const steps = turbo ? 8 : 18;
+	let i = 0;
+	const stepMs = Math.max(16, ms / steps);
+	const id = setInterval(() => {
+		i += 1;
+		winEl.textContent = money(from + ((to - from) * i) / steps);
+		if (i >= steps) {
+			clearInterval(id);
+			winEl.textContent = money(to);
+		}
+	}, stepMs);
 }
 
 function showFloatingWin(amount, positions) {
@@ -360,8 +440,10 @@ async function spin({
 	const startSnapshot = math.startSpin({ bet: currentBet, mode, bonusLevel, forceCollector, forceCluster, forceScatters, bonusHunt, ante, preserveGold: mode !== "base" });
 	const startingBonusLevel = mode === "base" ? bonusLevelFromScatterCount(countScattersOnBoard(math.snapshot().board)) : 0;
 	const retriggerScatterCount = mode === "base" ? 0 : countScattersOnBoard(startSnapshot.board);
-	render({ dropping: allPositions() });
-	await wait(turbo ? 420 : 980);
+	// Initial reel drop: the whole board falls in column by column from above.
+	const fullDrop = slideMapFull();
+	render({ slide: fullDrop });
+	await wait(slideSettleMs(fullDrop));
 
 	for (let cascade = 0; cascade < 30; cascade += 1) {
 		const wins = math.findWins();
@@ -369,15 +451,24 @@ async function spin({
 
 		const positions = wins.flatMap((win) => win.positions);
 		const cascadeWin = wins.reduce((sum, win) => sum + win.amount, 0);
-		currentWin = Math.min(currentBet * MATH_CONFIG.maxWinMultiplier, currentWin + cascadeWin);
-		winEl.textContent = money(currentWin);
+
+		// 1) Highlight the winning cluster(s) so the player sees what won.
 		render({ highlight: positions });
 		showFloatingWin(cascadeWin, positions);
-		await wait(turbo ? 360 : 900);
+		const prevWin = currentWin;
+		currentWin = Math.min(currentBet * MATH_CONFIG.maxWinMultiplier, currentWin + cascadeWin);
+		animateWinCount(prevWin, currentWin, Math.round(TIMING.winHighlight * tf()));
+		await wait(Math.round(TIMING.winHighlight * tf()));
 
-		const drop = math.removeAndDrop(positions, { forceCollector: bonusLevel === 3 });
-		render({ dropping: drop.dropping });
-		await wait(turbo ? 460 : 1100);
+		// 2) Remove only the winning symbols (pop/fade), then mark golden tiles.
+		await animateRemove(positions);
+
+		// 3) Gravity: survivors fall down and new symbols fall in from above — one
+		//    coordinated, column-staggered drop (no grid swap, no ghost board).
+		const slide = slideMapForCascade(positions);
+		math.removeAndDrop(positions, { forceCollector: bonusLevel === 3 });
+		render({ slide });
+		await wait(slideSettleMs(slide));
 	}
 
 	const extraSpinsAwarded = await runFeatureEvents(math.activateFeatures());
