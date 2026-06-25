@@ -1,0 +1,27 @@
+{
+  "mode": "bonus",
+  "description": "Indexed reference simulations from the unweighted raw pool, tagged by outcome category for QA and hit-rate bookkeeping. These are catalogue entries over already-generated books, not forced/synthetic outcomes -- the MVP generator does not support forcing new reel results (see game_override.py).",
+  "records": [
+    {
+      "symbol": "NONE",
+      "kind": "no_win",
+      "bookId": 174,
+      "payoutMultiplier": 0,
+      "note": "Naturally occurring zero-win round, indexed for QA baseline."
+    },
+    {
+      "symbol": "W",
+      "kind": "max_win_observed",
+      "bookId": 25381,
+      "payoutMultiplier": 13010,
+      "note": "Highest payoutMultiplier observed in this simulation pool."
+    },
+    {
+      "symbol": "MIXED",
+      "kind": "typical_win",
+      "bookId": 6862,
+      "payoutMultiplier": 1150,
+      "note": "Median payoutMultiplier round, indexed for QA baseline."
+    }
+  ]
+}

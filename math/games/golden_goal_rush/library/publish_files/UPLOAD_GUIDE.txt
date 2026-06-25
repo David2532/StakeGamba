@@ -15,9 +15,24 @@ Math ZIP contents:
 - bonus_books.jsonl.zst
 - README_UPLOAD.txt
 
+RTP calibration:
+- Lookup weights in base_lookup.csv / bonus_lookup.csv are produced by
+  optimization.py's exponential-tilting reweighting against each mode's
+  rtp_target in game_config.py, with diversity-safety caps (effective sample
+  size, top weight share). See RTP_AUDIT.json / RTP_AUDIT.txt in this directory
+  for the full per-mode achieved RTP, hit rate, and win distribution.
+- `base` reaches its 96% RTP target with high diversity. `bonus` is
+  diversity-capped to ~39% achieved RTP given the existing free-spin
+  paytable/bet cost -- see RTP_AUDIT.txt for the explanation; this is a math
+  design limitation, not an optimizer bug.
+- This calibration only reweights selection of already-generated, unmodified
+  simulations. Reels, paytable, paylines, and win-calculation logic are
+  untouched.
+
 Remaining risks:
 - MVP only; RTP and volatility are not final.
 - Not regulatory approved.
 - Built from the local Golden Goal Rush MVP generator, not from a verified external Stake SDK template.
 - Free spin handling is intentionally simple and avoids freeSpinRetrigger because the frontend has no confirmed handler.
 - Frontend Storybook environment issues are separate and should be stabilized before final QA.
+- bonus-mode achieved RTP is materially below its configured target (see RTP calibration above); raising it requires a math design change (richer feature math or a different bet-mode cost), out of scope for this calibration pass.
