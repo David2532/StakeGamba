@@ -209,10 +209,12 @@ function render({ slide = null, dropping = [], highlight = [], revealCoins = [],
 			const displayId = coinValue == null ? id : coinVisualIdForValue(coinValue);
 			const cell = boardEl.children[row * COLS + col];
 
+			// TILE LAYER (the cell itself): persistent per-cell state. Golden Tiles
+			// and the transient win highlights live here and are NEVER transformed,
+			// so a gold tile stays rock-solid while the symbol on top of it is
+			// removed, replaced or fallen onto. Gold is driven purely by the math
+			// engine's goldenTiles set — never by symbol removal or refill.
 			cell.className = "cell";
-			cell.style.removeProperty("--drop-delay");
-			cell.style.removeProperty("--drop-speed");
-			cell.style.removeProperty("--drop-rows");
 			const shift = slideMap.get(cellKey) || 0;
 			if (snap.goldenTiles.has(cellKey)) cell.classList.add("gold");
 			if (snap.coinedSquares.has(cellKey)) cell.classList.add("coined");
@@ -220,15 +222,29 @@ function render({ slide = null, dropping = [], highlight = [], revealCoins = [],
 			if (multipliedSet.has(cellKey)) cell.classList.add("multiplied");
 			if (collectedSet.has(cellKey)) cell.classList.add("collected");
 			if (pulseSet.has(cellKey)) cell.classList.add("pulse");
+
+			// SYMBOL LAYER: the moving sprite layer above the tile. Only this layer
+			// runs the fall animation, so a new symbol drops from above ONTO the
+			// static Golden Tile instead of the whole cell (tile included) flying in.
+			let layer = cell.querySelector(".sym-layer");
+			if (!layer) {
+				layer = document.createElement("div");
+				layer.className = "sym-layer";
+				cell.append(layer);
+			}
+			layer.className = "sym-layer";
+			layer.style.removeProperty("--drop-delay");
+			layer.style.removeProperty("--drop-speed");
+			layer.style.removeProperty("--drop-rows");
 			if (shift > 0) {
-				cell.classList.add("drop");
-				cell.style.setProperty("--drop-rows", `${shift}`);
-				cell.style.setProperty("--drop-delay", `${colDelay(col)}ms`);
-				cell.style.setProperty("--drop-speed", `${dropSpeed(shift)}ms`);
+				layer.classList.add("drop");
+				layer.style.setProperty("--drop-rows", `${shift}`);
+				layer.style.setProperty("--drop-delay", `${colDelay(col)}ms`);
+				layer.style.setProperty("--drop-speed", `${dropSpeed(shift)}ms`);
 			}
 
 			if (id !== "blank") {
-				let img = cell.querySelector("img");
+				let img = layer.querySelector("img");
 				if (!img) {
 					img = document.createElement("img");
 				}
@@ -237,16 +253,16 @@ function render({ slide = null, dropping = [], highlight = [], revealCoins = [],
 				img.src = assetMap[displayId] ?? assetMap["10"];
 				img.alt = id;
 				img.dataset.symbol = id;
-				cell.replaceChildren(img);
+				layer.replaceChildren(img);
 				const coinLabel = coinValues.get(cellKey) ?? (coinValue == null ? null : formatCoinValue(coinValue));
 				if (coinLabel) {
 					const label = document.createElement("span");
 					label.className = "coin-value-label";
 					label.textContent = coinLabel;
-					cell.append(label);
+					layer.append(label);
 				}
 			} else {
-				cell.replaceChildren();
+				layer.replaceChildren();
 			}
 		}
 	}
