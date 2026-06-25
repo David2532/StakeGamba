@@ -1472,3 +1472,54 @@ button:disabled {
 .modal-card #modal-text b {
 	color: #ffe49a;
 }
+
+/* ===== Cascade sequence: win highlight → remove → fall ===== */
+/* Winning symbols pulse while highlighted so the player sees what won. */
+.cell.hit .symbol {
+	animation: win-symbol-pulse 0.46s ease-in-out infinite;
+	z-index: 2;
+}
+@keyframes win-symbol-pulse {
+	50% {
+		transform: scale(1.09);
+		filter:
+			drop-shadow(0 0 16px rgba(255, 234, 130, 1))
+			drop-shadow(0 8px 8px rgba(0, 0, 0, 0.5));
+	}
+}
+/* Only the winning symbols pop out (explode/shrink) before gravity runs. */
+.cell .symbol.removing {
+	z-index: 4;
+	animation: symbol-remove var(--remove-speed, 260ms) cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+@keyframes symbol-remove {
+	0% {
+		transform: scale(1);
+		opacity: 1;
+		filter: brightness(1.5) drop-shadow(0 0 18px rgba(255, 236, 140, 0.95));
+	}
+	34% {
+		transform: scale(1.2);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(0.14) rotate(-14deg);
+		opacity: 0;
+	}
+}
+/* Won cell turning into a Golden Tile gets a brief gold burst. */
+.cell.gold-form {
+	animation: gold-form 0.6s ease-out;
+}
+@keyframes gold-form {
+	0% {
+		box-shadow:
+			inset 0 0 0 4px rgba(255, 246, 180, 1),
+			0 0 30px rgba(255, 214, 70, 0.9);
+	}
+	100% {
+		box-shadow:
+			inset 0 0 0 3px rgba(255, 228, 101, 0.92),
+			inset 0 0 22px rgba(255, 190, 42, 0.62);
+	}
+}
