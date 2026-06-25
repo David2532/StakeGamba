@@ -72,14 +72,14 @@
 
 	.logo-wordmark {
 		position: absolute;
-		top: 8px;
+		top: 6px;
 		left: 50%;
 		z-index: 4;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		width: 980px;
-		height: 62px;
+		height: 96px;
 		gap: 0;
 		transform: translateX(-50%);
 		background: linear-gradient(180deg, #fff8bf 0%, #ffc84d 34%, #9c4f08 76%, #ffe27a 100%);
@@ -111,24 +111,6 @@
 		flex: 0 0 auto;
 	}
 
-	.logo-wordmark::before,
-	.logo-wordmark::after {
-		content: '';
-		flex: 0 0 86px;
-		width: 86px;
-		height: 13px;
-		margin: 0 14px;
-		border-top: 4px solid #f7c85a;
-		border-bottom: 4px solid #9f5a12;
-		transform: skewX(-28deg);
-		background: linear-gradient(90deg, transparent, rgba(255, 236, 130, 0.95), transparent);
-		box-shadow: 0 2px 4px #000;
-	}
-
-	.logo-wordmark::after {
-		transform: skewX(28deg);
-	}
-
 	.logo-ball {
 		width: 52px;
 		height: 52px;
@@ -143,37 +125,6 @@
 		max-width: 100%;
 		object-fit: contain;
 		filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 14px rgba(255, 190, 38, 0.5));
-	}
-
-	.world-plaque {
-		position: absolute;
-		top: 82px;
-		left: 50%;
-		z-index: 7;
-		min-width: 310px;
-		padding: 6px 24px 7px;
-		transform: translateX(-50%);
-		border: 2px solid rgba(245, 188, 62, 0.95);
-		border-radius: 999px;
-		background: linear-gradient(180deg, #1c1b17 0%, #050505 100%);
-		box-shadow:
-			0 0 0 2px rgba(0, 0, 0, 0.75),
-			0 0 16px rgba(255, 190, 42, 0.45);
-		color: #ffd36a;
-		font-size: 20px;
-		font-weight: 900;
-		line-height: 1;
-		text-align: center;
-		text-shadow: 0 2px 2px #000;
-	}
-
-	.world-plaque::before,
-	.world-plaque::after {
-		content: '*';
-		margin: 0 10px;
-		color: #fff1a5;
-		font-size: 13px;
-		vertical-align: 2px;
 	}
 
 	.board-wrap {
@@ -1323,7 +1274,6 @@
 	.fs-counter.show { display:block; }
 	.fs-counter .fs-name { font-size:8px; letter-spacing:1.6px; color:#ffd96f; line-height:1; }
 	.fs-counter .fs-big { font-size:18px; font-weight:1000; color:#fff; line-height:1.02; }
-	.stage.bonus-mode .world-plaque { opacity:0; pointer-events:none; }
 
 	/* ---- bonus buy ---- */
 	.bb-list { display:flex; flex-direction:column; gap:11px; }
@@ -1506,7 +1456,6 @@
 		<div class="logo-wordmark" aria-label="Golden Goal Rush">
 			<img class="logo-header-img" src="src/assets/golden-goal-rush/logo-horizontal.png" alt="Golden Goal Rush" />
 		</div>
-		<div class="world-plaque">WORLD STADIUM</div>
 
 		<div class="board-wrap">
 			<div class="board-glow"></div>
