@@ -21,9 +21,11 @@ RTP calibration:
   rtp_target in game_config.py, under diversity-safety bounds (effective sample
   size, top weight share). See RTP_AUDIT.json / RTP_AUDIT.txt in this directory
   for the full per-mode achieved RTP, hit rate, and win distribution.
-- Both modes reach their 97% rtp_target with healthy diversity and no capping:
-  base (cost=1x) achieves 97.00% (effective sample size ~75% of pool); bonus
-  (cost=15x buy feature) achieves 97.00% (effective sample size ~99.7% of pool).
+- Both modes reach their 96.5% rtp_target with healthy diversity and no capping:
+  base (cost=1x) achieves 96.50% (effective sample size ~76% of pool); bonus
+  (cost=15x buy feature) achieves 96.50% (effective sample size ~99.7% of pool).
+  The target is 96.5% so RTP stays inside Stake's 90%-96.70% compliance band; a
+  97% target overshoots the 96.70% ceiling and fails the RTP-range check.
 - Each mode's declared rtp_achieved equals the weighted RTP of its shipped
   lookup table -- the package is internally consistent (the publish step fails
   if they disagree by more than 0.0005).

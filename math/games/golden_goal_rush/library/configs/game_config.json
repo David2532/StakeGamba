@@ -220,8 +220,8 @@
       "cost": 1.0,
       "feature": true,
       "buyBonus": false,
-      "rtp_target": 0.97,
-      "rtp_achieved": 0.970007,
+      "rtp_target": 0.965,
+      "rtp_achieved": 0.964974,
       "rtp_capped_for_diversity": false,
       "max_win": 31.2
     },
@@ -229,8 +229,8 @@
       "cost": 15.0,
       "feature": false,
       "buyBonus": true,
-      "rtp_target": 0.97,
-      "rtp_achieved": 0.97,
+      "rtp_target": 0.965,
+      "rtp_achieved": 0.965,
       "rtp_capped_for_diversity": false,
       "max_win": 130.1
     }

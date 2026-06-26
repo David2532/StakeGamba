@@ -3,33 +3,33 @@
     "simulationCount": 80000,
     "cost": 1.0,
     "rawRtp": 0.43759,
-    "targetRtp": 0.97,
-    "achievedRtp": 0.970007,
+    "targetRtp": 0.965,
+    "achievedRtp": 0.964974,
     "cappedForDiversity": false,
-    "hitRateWeighted": 0.369391,
-    "effectiveSampleSize": 60373.0,
-    "topWeightShare": 0.000803,
+    "hitRateWeighted": 0.369032,
+    "effectiveSampleSize": 60767.9,
+    "topWeightShare": 0.000789,
     "maxPayoutMultiplierObserved": 31.2,
     "winDistribution": [
       {
         "range": "0x",
-        "weightShare": 0.630609
+        "weightShare": 0.630968
       },
       {
         "range": "0-1x",
-        "weightShare": 0.204995
+        "weightShare": 0.205052
       },
       {
         "range": "1-5x",
-        "weightShare": 0.118794
+        "weightShare": 0.118666
       },
       {
         "range": "5-20x",
-        "weightShare": 0.039989
+        "weightShare": 0.039781
       },
       {
         "range": "20-50x",
-        "weightShare": 0.005614
+        "weightShare": 0.005533
       },
       {
         "range": "50x+",
@@ -41,37 +41,37 @@
     "simulationCount": 40000,
     "cost": 15.0,
     "rawRtp": 0.929253,
-    "targetRtp": 0.97,
-    "achievedRtp": 0.97,
+    "targetRtp": 0.965,
+    "achievedRtp": 0.965,
     "cappedForDiversity": false,
-    "hitRateWeighted": 0.99719,
-    "effectiveSampleSize": 39867.3,
-    "topWeightShare": 4.5e-05,
+    "hitRateWeighted": 0.997165,
+    "effectiveSampleSize": 39897.9,
+    "topWeightShare": 4.2e-05,
     "maxPayoutMultiplierObserved": 130.1,
     "winDistribution": [
       {
         "range": "0x",
-        "weightShare": 0.00281
+        "weightShare": 0.002835
       },
       {
         "range": "0-1x",
-        "weightShare": 0.02011
+        "weightShare": 0.02028
       },
       {
         "range": "1-5x",
-        "weightShare": 0.14985
+        "weightShare": 0.150875
       },
       {
         "range": "5-20x",
-        "weightShare": 0.588887
+        "weightShare": 0.58993
       },
       {
         "range": "20-50x",
-        "weightShare": 0.225469
+        "weightShare": 0.223568
       },
       {
         "range": "50x+",
-        "weightShare": 0.012874
+        "weightShare": 0.012511
       }
     ]
   }

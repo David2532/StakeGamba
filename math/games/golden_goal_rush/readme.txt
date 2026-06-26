@@ -50,14 +50,18 @@ RTP calibration (lookup-weight optimization):
   concentrating selection probability onto too few simulations. Any capped mode
   is flagged in RTP_AUDIT.json/.txt with an explanation. (In the current
   configuration nothing is capped -- both modes reach target cleanly.)
-- Current result: both modes reach their 97% rtp_target with healthy diversity.
-  base (cost=1x):  achieved 97.00%, effective sample size ~75% of the pool.
-  bonus (cost=15x): achieved 97.00%, effective sample size ~99.7% of the pool.
+- RTP target is 96.5%. Stake's math compliance requires Return to Player to fall
+  within 90%-96.70%; an earlier 97% target overshot that ceiling and failed the
+  RTP-range check, so both modes are now calibrated to 96.5% (a clean ~0.2%
+  margin under the cap, keeping Cross-Mode RTP variance at 0%).
+- Current result: both modes reach their 96.5% rtp_target with healthy diversity.
+  base (cost=1x):  achieved ~96.50%, effective sample size ~76% of the pool.
+  bonus (cost=15x): achieved ~96.50%, effective sample size ~99.7% of the pool.
 - Buy-feature cost note: the free-spin feature naturally returns ~14.5x bet on
   average (max observed ~130x). The bonus buy cost is therefore set to 15x so the
-  buy feature is a fair ~97% RTP with near-uniform lookup diversity. An earlier
+  buy feature is a fair ~96.5% RTP with near-uniform lookup diversity. An earlier
   100x cost made the buy feature a ~14% raw / 133x-max outcome that could only be
-  pushed toward 97% by collapsing the lookup to ~32 effective outcomes -- a
+  pushed toward target by collapsing the lookup to ~32 effective outcomes -- a
   diversity/predictability problem. Right-sizing the cost (a bet-mode parameter,
   not reels/paytable/win-logic) is the clean fix and keeps the math internally
   consistent. apps/lines/src/game/config.ts is kept in sync (bonus cost 15x).
