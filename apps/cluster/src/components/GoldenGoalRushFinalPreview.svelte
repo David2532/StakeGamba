@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
+
 	const assets = {
 		background: new URL('../assets/golden-goal-rush/slot-background.webp', import.meta.url).href,
 		ten: new URL('../assets/golden-goal-rush/10.webp', import.meta.url).href,
@@ -80,7 +82,7 @@
 		size?: 'wide' | 'feature';
 	};
 
-	const board: SymbolTile[] = [
+	const initialBoard: SymbolTile[] = [
 		{ src: assets.jersey, label: 'Jersey', size: 'wide' },
 		{ src: assets.trophy, label: 'Trophy' },
 		{ src: assets.k, label: 'K' },
@@ -113,20 +115,119 @@
 		{ src: assets.ten, label: '10' },
 	];
 
-	const meters = [
-		{ label: 'BALANCE', value: '0.00', icon: assets.euro, frame: assets.meterPanelA },
-		{ label: 'WIN', value: '0.00', icon: assets.trophy, frame: assets.meterPanelB },
-		{ label: 'BET', value: '1.00', icon: assets.euro, frame: assets.meterPanelC },
+	const symbolPool: SymbolTile[] = [
+		{ src: assets.ten, label: '10' },
+		{ src: assets.j, label: 'J' },
+		{ src: assets.q, label: 'Q' },
+		{ src: assets.k, label: 'K' },
+		{ src: assets.a, label: 'A' },
+		{ src: assets.football, label: 'Football', size: 'feature' },
+		{ src: assets.trophy, label: 'Trophy' },
+		{ src: assets.jersey, label: 'Jersey', size: 'wide' },
+		{ src: assets.whistle, label: 'Whistle', size: 'feature' },
+		{ src: assets.wild, label: 'Wild', size: 'feature' },
+		{ src: assets.scatter, label: 'Scatter', size: 'wide' },
 	];
+
+	const betSteps = [0.2, 0.5, 1, 2, 5, 10, 20];
+
+	let board = $state([...initialBoard]);
+	let balance = $state(1000);
+	let win = $state(0);
+	let betIndex = $state(2);
+	let spinNonce = $state(0);
+	let isSpinning = $state(false);
+	let turbo = $state(false);
+	let autoSpin = $state(false);
+	let modal = $state<'menu' | 'bonus' | 'info' | 'settings' | null>(null);
+	let autoSpinTimer: ReturnType<typeof setInterval> | null = null;
+
+	const bet = $derived(betSteps[betIndex]);
+	const spinDuration = $derived(turbo ? 260 : 620);
+	const meters = $derived([
+		{ label: 'BALANCE', value: balance.toFixed(2), icon: assets.euro, frame: assets.meterPanelA },
+		{ label: 'WIN', value: win.toFixed(2), icon: assets.trophy, frame: assets.meterPanelB },
+		{ label: 'BET', value: bet.toFixed(2), icon: assets.euro, frame: assets.meterPanelC },
+	]);
 
 	const features = [
 		{ label: 'COLLECT', icon: assets.collector },
 		{ label: 'MULTI', icon: assets.multiplier },
 		{ label: 'FREE SPINS', icon: assets.scatter },
 	];
+
+	function pickSymbol() {
+		return symbolPool[Math.floor(Math.random() * symbolPool.length)];
+	}
+
+	function nextBoard() {
+		return Array.from({ length: initialBoard.length }, pickSymbol);
+	}
+
+	function randomWinAmount() {
+		const hit = Math.random();
+		if (hit < 0.42) return 0;
+		if (hit < 0.78) return bet * (0.2 + Math.floor(Math.random() * 5) * 0.2);
+		if (hit < 0.94) return bet * (1.2 + Math.floor(Math.random() * 8) * 0.4);
+		return bet * (5 + Math.floor(Math.random() * 12));
+	}
+
+	function decreaseBet() {
+		betIndex = Math.max(0, betIndex - 1);
+	}
+
+	function increaseBet() {
+		betIndex = Math.min(betSteps.length - 1, betIndex + 1);
+	}
+
+	function handleSpin() {
+		if (isSpinning || balance < bet) return;
+
+		isSpinning = true;
+		win = 0;
+		balance = Math.max(0, balance - bet);
+		spinNonce += 1;
+		board = nextBoard();
+
+		window.setTimeout(() => {
+			win = randomWinAmount();
+			balance += win;
+			isSpinning = false;
+		}, spinDuration);
+	}
+
+	function toggleAutoSpin() {
+		autoSpin = !autoSpin;
+		if (autoSpin) {
+			handleSpin();
+			autoSpinTimer = window.setInterval(() => {
+				if (!isSpinning && balance >= bet) {
+					handleSpin();
+				} else if (!isSpinning && balance < bet) {
+					toggleAutoSpin();
+				}
+			}, turbo ? 720 : 1250);
+			return;
+		}
+
+		if (autoSpinTimer) {
+			window.clearInterval(autoSpinTimer);
+			autoSpinTimer = null;
+		}
+	}
+
+	function openModal(name: 'menu' | 'bonus' | 'info' | 'settings') {
+		modal = modal === name ? null : name;
+	}
+
+	onDestroy(() => {
+		if (autoSpinTimer) {
+			window.clearInterval(autoSpinTimer);
+		}
+	});
 </script>
 
-<section class="stage" aria-label="Golden Goal Rush final visual direction preview">
+<section class:turbo class:spinning={isSpinning} class="stage" aria-label="Golden Goal Rush final visual direction preview">
 	<img class="background" src={assets.background} alt="" />
 	<div class="stadium-vignette"></div>
 	<div class="top-light left"></div>
@@ -145,9 +246,14 @@
 			<div class="side-badge left">CLUSTER<span>PAYS</span></div>
 			<div class="side-badge right">CLUSTER<span>PAYS</span></div>
 			<div class="board">
-				{#each board as symbol}
+				{#each board as symbol, index}
 					<div class="cell">
-						<img class={symbol.size ?? ''} src={symbol.src} alt={symbol.label} />
+						<img
+							class={symbol.size ?? ''}
+							style={`animation-delay: ${isSpinning ? index * 18 : index % 3 * -700}ms`}
+							src={symbol.src}
+							alt={symbol.label}
+						/>
 					</div>
 				{/each}
 			</div>
@@ -168,15 +274,15 @@
 	</div>
 
 	<div class="controls">
-		<button type="button" class="asset-button menu" aria-label="Menu">
+		<button type="button" class:active={modal === 'menu'} class="asset-button menu" aria-label="Menu" onclick={() => openModal('menu')}>
 			<img class="button-art" src={assets.menuButton} alt="" />
 			<span>MENU</span>
 		</button>
-		<button type="button" class="asset-button bonus" aria-label="Buy Bonus">
+		<button type="button" class:active={modal === 'bonus'} class="asset-button bonus" aria-label="Buy Bonus" onclick={() => openModal('bonus')}>
 			<img class="button-art" src={assets.bonusButton} alt="" />
 			<span>BUY BONUS</span>
 		</button>
-		<button type="button" class="asset-button" aria-label="Auto Spin">
+		<button type="button" class:active={autoSpin} class="asset-button" aria-label="Auto Spin" onclick={toggleAutoSpin}>
 			<img class="button-art" src={assets.autoSpinButton} alt="" />
 			<span>AUTO SPIN</span>
 		</button>
@@ -191,34 +297,55 @@
 				{/each}
 			</div>
 		</div>
-		<button type="button" class="spin-button" aria-label="Spin">
+		<button type="button" class:busy={isSpinning} class="spin-button" aria-label="Spin" disabled={isSpinning || balance < bet} onclick={handleSpin}>
 			<img class="spin-art" src={assets.spinButton} alt="" />
-			<span>SPIN</span>
+			<span>{isSpinning ? '...' : 'SPIN'}</span>
 		</button>
-		<button type="button" class="asset-button turbo" aria-label="Turbo">
+		<button type="button" class:active={turbo} class="asset-button turbo" aria-label="Turbo" onclick={() => (turbo = !turbo)}>
 			<img class="button-art" src={assets.turboButton} alt="" />
 			<span>TURBO</span>
 		</button>
 		<div class="bet-controls" aria-label="Bet controls">
 			<img class="button-art" src={assets.controlPanel} alt="" />
-			<button type="button" aria-label="Decrease bet">
+			<button type="button" aria-label="Decrease bet" disabled={betIndex === 0} onclick={decreaseBet}>
 				<img src={assets.minusButton} alt="" />
 			</button>
 			<div class="bet-display">
 				<span>BET</span>
-				<strong>$1.00</strong>
+				<strong>{bet.toFixed(2)}</strong>
 			</div>
-			<button type="button" aria-label="Increase bet">
+			<button type="button" aria-label="Increase bet" disabled={betIndex === betSteps.length - 1} onclick={increaseBet}>
 				<img src={assets.plusButton} alt="" />
 			</button>
 		</div>
-		<button type="button" class="icon-button info" aria-label="Info">
+		<button type="button" class:active={modal === 'info'} class="icon-button info" aria-label="Info" onclick={() => openModal('info')}>
 			<img class="button-art" src={assets.infoButton} alt="" />
 		</button>
-		<button type="button" class="icon-button settings" aria-label="Settings">
+		<button type="button" class:active={modal === 'settings'} class="icon-button settings" aria-label="Settings" onclick={() => openModal('settings')}>
 			<img class="button-art" src={assets.settingsButton} alt="" />
 		</button>
 	</div>
+
+	{#if modal}
+		<button type="button" class="modal-backdrop" aria-label="Close panel" onclick={() => (modal = null)}></button>
+		<div class="hud-modal" role="dialog" aria-label={`${modal} panel`}>
+			<div class="hud-modal-title">
+				{modal === 'menu' ? 'MENU' : modal === 'bonus' ? 'BUY BONUS' : modal === 'info' ? 'INFO' : 'SETTINGS'}
+			</div>
+			<div class="hud-modal-copy">
+				{#if modal === 'bonus'}
+					Bonus Buy is armed at {(bet * 15).toFixed(2)}.
+				{:else if modal === 'info'}
+					Cluster pays, Wilds substitute, Scatters trigger Free Spins.
+				{:else if modal === 'settings'}
+					Turbo is {turbo ? 'enabled' : 'disabled'}. Auto Spin is {autoSpin ? 'enabled' : 'disabled'}.
+				{:else}
+					Golden Goal Rush controls are active.
+				{/if}
+			</div>
+			<button type="button" class="hud-modal-close" onclick={() => (modal = null)}>OK</button>
+		</div>
+	{/if}
 </section>
 
 <style>
@@ -654,7 +781,13 @@
 		padding: 0;
 		border: 0;
 		color: inherit;
+		cursor: pointer;
 		font: inherit;
+	}
+
+	button:disabled {
+		cursor: not-allowed;
+		opacity: 0.58;
 	}
 
 	.control-button,
@@ -1004,11 +1137,19 @@
 	}
 
 	.asset-button:is(:hover, :focus-visible) .button-art,
+	.asset-button.active .button-art,
 	.icon-button:is(:hover, :focus-visible) .button-art,
+	.icon-button.active .button-art,
 	.bet-controls button:is(:hover, :focus-visible) img {
 		filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.88))
 			drop-shadow(0 0 12px rgba(94, 211, 255, 0.55));
 		transform: translateY(-1px) scale(1.03);
+	}
+
+	.asset-button:active .button-art,
+	.icon-button:active .button-art,
+	.bet-controls button:active img {
+		transform: translateY(1px) scale(0.97);
 	}
 
 	.feature-control {
@@ -1087,6 +1228,10 @@
 
 	.spin-button:active {
 		transform: scale(0.96);
+	}
+
+	.spin-button.busy {
+		transform: scale(0.98);
 	}
 
 	.spin-button::before,
@@ -1177,6 +1322,75 @@
 		width: 58px;
 	}
 
+	.stage.spinning .cell img {
+		animation:
+			symbol-spin-drop 0.56s cubic-bezier(0.18, 0.72, 0.16, 1) both,
+			symbol-glow 4.2s ease-in-out infinite;
+	}
+
+	.stage.turbo.spinning .cell img {
+		animation-duration: 0.28s, 4.2s;
+	}
+
+	.modal-backdrop {
+		position: absolute;
+		inset: 0;
+		z-index: 20;
+		background: rgba(0, 0, 0, 0.28);
+	}
+
+	.hud-modal {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		z-index: 21;
+		display: grid;
+		width: 410px;
+		min-height: 154px;
+		padding: 22px 26px 20px;
+		transform: translate(-50%, -50%);
+		border: 3px solid #d39a33;
+		border-radius: 12px;
+		background:
+			linear-gradient(180deg, rgba(36, 34, 27, 0.98), rgba(5, 5, 5, 0.98)),
+			radial-gradient(circle at 50% 0%, rgba(255, 220, 103, 0.18), transparent 58%);
+		box-shadow:
+			inset 0 0 0 2px #050505,
+			0 15px 34px rgba(0, 0, 0, 0.72),
+			0 0 24px rgba(255, 190, 42, 0.4);
+		place-items: center;
+		text-align: center;
+	}
+
+	.hud-modal-title {
+		color: #ffe17b;
+		font-size: 24px;
+		font-weight: 1000;
+		line-height: 1;
+		text-shadow: 0 2px 2px #000;
+	}
+
+	.hud-modal-copy {
+		margin: 18px 0;
+		color: #fff8d1;
+		font-size: 16px;
+		font-weight: 800;
+		line-height: 1.25;
+		text-shadow: 0 2px 2px #000;
+	}
+
+	.hud-modal-close {
+		min-width: 112px;
+		padding: 10px 20px;
+		border: 2px solid #f4c75f;
+		border-radius: 8px;
+		background: linear-gradient(180deg, #2a2a27, #050505);
+		color: #ffe17b;
+		font-size: 16px;
+		font-weight: 1000;
+		text-shadow: 0 2px 2px #000;
+	}
+
 	@keyframes symbol-glow {
 		0%,
 		100% {
@@ -1184,6 +1398,23 @@
 		}
 		50% {
 			filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.78)) drop-shadow(0 0 11px rgba(255, 207, 76, 0.34));
+		}
+	}
+
+	@keyframes symbol-spin-drop {
+		0% {
+			opacity: 0;
+			transform: translateY(-34%) scale(0.94);
+			filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.85)) blur(1.5px);
+		}
+		64% {
+			opacity: 1;
+			transform: translateY(6%) scale(1.02);
+			filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.82)) blur(0);
+		}
+		100% {
+			opacity: 1;
+			transform: translateY(0) scale(1);
 		}
 	}
 
