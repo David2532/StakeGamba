@@ -32,7 +32,7 @@ const SPECIAL = `${A}/special`;
 const assets = {
 	background: `${A}/slot-background.webp`,
 	football: `${A}/fussball.webp`,
-	coin: `${SPECIAL}/coin_1x.webp`,
+	euro: `${HUD}/euro-symbol.webp`,
 	collector: `${SPECIAL}/symbol_collector.webp`,
 	multiplier: `${SPECIAL}/symbol_multiplier.webp`,
 	trophy: `${A}/pokal.webp`,
@@ -76,9 +76,9 @@ const COLLECTOR_ASSET = `${SPECIAL}/symbol_collector.webp`;
 // CONFIG is imported from ggr-config.mjs (shared with the RTP simulation).
 
 const meters = [
-	['BALANCE', 'balance', 'coin', 'meterPanelA'],
+	['BALANCE', 'balance', 'euro', 'meterPanelA'],
 	['WIN', 'win', 'trophy', 'meterPanelB'],
-	['BET', 'bet', 'coin', 'meterPanelC'],
+	['BET', 'bet', 'euro', 'meterPanelC'],
 ];
 const meterRows = meters
 	.map(

@@ -615,7 +615,7 @@
 	}
 
 	.cell img {
-		animation: symbol-idle 4.2s ease-in-out infinite;
+		animation: symbol-glow 4.2s ease-in-out infinite;
 	}
 
 	.cell:nth-child(2n) img {
@@ -993,13 +993,13 @@
 		width: 58px;
 	}
 
-	@keyframes symbol-idle {
+	@keyframes symbol-glow {
 		0%,
 		100% {
-			transform: translateY(0) scale(1);
+			filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.78)) drop-shadow(0 0 7px rgba(255, 188, 46, 0.22));
 		}
 		50% {
-			transform: translateY(-2px) scale(1.015);
+			filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.78)) drop-shadow(0 0 11px rgba(255, 207, 76, 0.34));
 		}
 	}
 
@@ -1495,7 +1495,7 @@
 		<div class="meters">
 			<div class="meter">
 				<img class="panel-art" src="src/assets/golden-goal-rush/hud-extracted/meter-panel-a.webp" alt="" />
-				<img class="meter-asset-icon" src="src/assets/golden-goal-rush/special/coin_1x.webp" alt="" />
+				<img class="meter-asset-icon" src="src/assets/golden-goal-rush/hud-extracted/euro-symbol.webp" alt="" />
 				<div><div class="meter-label">BALANCE</div><div class="meter-value" id="meter-balance">0.00</div></div>
 			</div>
 			<div class="meter">
@@ -1505,7 +1505,7 @@
 			</div>
 			<div class="meter">
 				<img class="panel-art" src="src/assets/golden-goal-rush/hud-extracted/meter-panel-c.webp" alt="" />
-				<img class="meter-asset-icon" src="src/assets/golden-goal-rush/special/coin_1x.webp" alt="" />
+				<img class="meter-asset-icon" src="src/assets/golden-goal-rush/hud-extracted/euro-symbol.webp" alt="" />
 				<div><div class="meter-label">BET</div><div class="meter-value" id="meter-bet">0.00</div></div>
 			</div>
 		</div>

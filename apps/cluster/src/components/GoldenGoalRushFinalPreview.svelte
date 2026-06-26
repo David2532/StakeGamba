@@ -12,7 +12,8 @@
 		whistle: new URL('../assets/golden-goal-rush/pfeife.webp', import.meta.url).href,
 		wild: new URL('../assets/golden-goal-rush/wild.webp', import.meta.url).href,
 		scatter: new URL('../assets/golden-goal-rush/scatter.webp', import.meta.url).href,
-		coin: new URL('../assets/golden-goal-rush/special/coin_1x.webp', import.meta.url).href,
+		euro: new URL('../assets/golden-goal-rush/hud-extracted/euro-symbol.webp', import.meta.url)
+			.href,
 		collector: new URL('../assets/golden-goal-rush/special/symbol_collector.webp', import.meta.url)
 			.href,
 		multiplier: new URL('../assets/golden-goal-rush/special/symbol_multiplier.webp', import.meta.url)
@@ -113,9 +114,9 @@
 	];
 
 	const meters = [
-		{ label: 'BALANCE', value: '$0.00', icon: assets.coin, frame: assets.meterPanelA },
-		{ label: 'WIN', value: '$0.00', icon: assets.trophy, frame: assets.meterPanelB },
-		{ label: 'BET', value: '$1.00', icon: assets.coin, frame: assets.meterPanelC },
+		{ label: 'BALANCE', value: '0.00', icon: assets.euro, frame: assets.meterPanelA },
+		{ label: 'WIN', value: '0.00', icon: assets.trophy, frame: assets.meterPanelB },
+		{ label: 'BET', value: '1.00', icon: assets.euro, frame: assets.meterPanelC },
 	];
 
 	const features = [
@@ -846,7 +847,7 @@
 	}
 
 	.cell img {
-		animation: symbol-idle 4.2s ease-in-out infinite;
+		animation: symbol-glow 4.2s ease-in-out infinite;
 	}
 
 	.cell:nth-child(2n) img {
@@ -1176,13 +1177,13 @@
 		width: 58px;
 	}
 
-	@keyframes symbol-idle {
+	@keyframes symbol-glow {
 		0%,
 		100% {
-			transform: translateY(0) scale(1);
+			filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.78)) drop-shadow(0 0 7px rgba(255, 188, 46, 0.22));
 		}
 		50% {
-			transform: translateY(-2px) scale(1.015);
+			filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.78)) drop-shadow(0 0 11px rgba(255, 207, 76, 0.34));
 		}
 	}
 
