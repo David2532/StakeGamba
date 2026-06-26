@@ -16,7 +16,7 @@ body {
 body {
 	background-image:
 		linear-gradient(180deg, rgba(0, 10, 28, 0.02), rgba(0, 0, 0, 0.2)),
-		url("../assets/slot-background.png");
+		url("../assets/slot-background.webp");
 	background-position: center;
 	background-size: cover;
 }

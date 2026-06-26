@@ -123,7 +123,7 @@ export default {
 	},
 	payFrame: {
 		type: 'sprite',
-		src: new URL('../../assets/sprites/payFrame/payFrame.png', import.meta.url).href,
+		src: new URL('../../assets/sprites/payFrame/payFrame.webp', import.meta.url).href,
 	},
 	anticipation: {
 		type: 'spine',
