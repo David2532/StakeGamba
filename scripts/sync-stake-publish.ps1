@@ -11,7 +11,9 @@ $ErrorActionPreference = "Stop"
 $Root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $PublishRoot = Join-Path $Root "publish"
 $LegacyPublishRoot = Join-Path $PublishRoot "golden-goal-rush"
-$FrontendSource = Join-Path $Root "apps\lines\build"
+$FrontendApp = "cluster"
+$FrontendAppRoot = Join-Path $Root "apps\$FrontendApp"
+$FrontendSource = Join-Path $FrontendAppRoot "build"
 $FrontendDest = Join-Path $PublishRoot "frontend"
 $MathRoot = Join-Path $Root "math\games\golden_goal_rush"
 $MathPublish = Join-Path $MathRoot "library\publish_files"
@@ -110,8 +112,8 @@ function Test-FrontendBuildFresh {
 	}
 
 	$sourceRoots = @(
-		Join-Path $Root "apps\lines\src"
-		Join-Path $Root "apps\lines\static"
+		Join-Path $FrontendAppRoot "src"
+		Join-Path $FrontendAppRoot "static"
 		Join-Path $Root "packages"
 	)
 
@@ -123,7 +125,7 @@ function Test-FrontendBuildFresh {
 	}
 
 	foreach ($file in @("package.json", "vite.config.js", "svelte.config.js", "tsconfig.json")) {
-		$path = Join-Path $Root "apps\lines\$file"
+		$path = Join-Path $FrontendAppRoot $file
 		if (Test-Path -LiteralPath $path) {
 			$sourceFiles += Get-Item -LiteralPath $path
 		}
@@ -137,10 +139,10 @@ Frontend build looks stale.
 Newest frontend/package source: $($newestSource.FullName)
 Build index: $($buildFile.FullName)
 
-Rebuild apps/lines before pushing, then rerun:
+Rebuild apps/$FrontendApp before pushing, then rerun:
   npm run stake:publish
 
-The optional auto-build path exists but is disabled for pre-push because Vite currently hangs after writing apps/lines/build in this workspace:
+The optional auto-build path exists but is disabled for pre-push because Vite can hang after writing the frontend build in this workspace:
   npm run stake:publish:build-frontend
 "@
 	}
@@ -156,7 +158,7 @@ function Test-FrontendUploadContents {
 	$requiredDirs = @(
 		"_app",
 		"assets",
-		"assets\golden-goal-rush"
+		"_app\immutable\assets"
 	)
 
 	foreach ($file in $requiredFiles) {
@@ -170,6 +172,21 @@ function Test-FrontendUploadContents {
 		$path = Join-Path $FrontendDest $dir
 		if (-not (Test-Path -LiteralPath $path -PathType Container)) {
 			throw "Frontend publish folder is missing required folder: $dir"
+		}
+	}
+
+	$slotMarkers = @(
+		"Golden Goal Rush final visual direction preview",
+		"logo-wordmark",
+		"WORLD STADIUM",
+		"symbol-glow"
+	)
+
+	$index = Join-Path $FrontendDest "index.html"
+	$indexContent = Get-Content -LiteralPath $index -Raw
+	foreach ($marker in $slotMarkers) {
+		if (-not $indexContent.Contains($marker)) {
+			throw "Frontend build does not contain final Golden Goal Rush marker: $marker"
 		}
 	}
 }
@@ -233,12 +250,12 @@ function Copy-MathUploadFiles {
 Write-Host "Syncing Stake publish snapshot..."
 
 if ($BuildFrontend) {
-	$vite = Join-Path $Root "apps\lines\node_modules\vite\bin\vite.js"
+	$vite = Join-Path $FrontendAppRoot "node_modules\vite\bin\vite.js"
 	if (-not (Test-Path -LiteralPath $vite)) {
 		throw "Missing local Vite entrypoint: $vite"
 	}
-	Write-Host "Building frontend: apps/lines"
-	Invoke-CommandChecked -WorkingDirectory (Join-Path $Root "apps\lines") -FilePath "node" -Arguments @($vite, "build")
+	Write-Host "Building frontend: apps/$FrontendApp"
+	Invoke-CommandChecked -WorkingDirectory $FrontendAppRoot -FilePath "node" -Arguments @($vite, "build")
 }
 
 if (-not (Test-Path -LiteralPath $FrontendSource)) {
