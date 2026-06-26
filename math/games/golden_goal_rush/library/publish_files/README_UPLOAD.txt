@@ -14,4 +14,12 @@ each bet mode's rtp_target, under diversity-safety bounds. This reweights
 selection of already-generated, unmodified simulations only -- reels,
 paytable, paylines, and win-calculation logic are unchanged.
 
+Both bet modes reach a 97% RTP target with healthy lookup diversity and no
+diversity capping:
+- base  (cost 1x):  rtp_achieved 97.00%
+- bonus (cost 15x): rtp_achieved 97.00%
+Each mode's declared rtp_achieved equals the weighted RTP of its lookup table,
+so the package is internally consistent. The bonus buy cost (15x) is sized to
+the feature's actual expected return so the buy feature is fair.
+
 Do not treat this package as final RTP, final volatility, or regulatory-approved math.

@@ -44,16 +44,20 @@ def compute_rtp_weighting(mode: str, books: list[dict]) -> RtpWeighting:
     )
 
 
-def write_config_files(weightings: dict[str, RtpWeighting]) -> None:
+def write_config_files(
+    weightings: dict[str, RtpWeighting], books_by_mode: dict[str, list[dict]]
+) -> None:
     config_dir = ROOT / "library" / "configs"
     config_dir.mkdir(parents=True, exist_ok=True)
     bet_modes = {}
     for mode, mode_config in BET_MODES.items():
         weighting = weightings[mode]
+        max_payout = max(book["payoutMultiplier"] for book in books_by_mode[mode])
         bet_modes[mode] = {
             **mode_config,
             "rtp_achieved": round(weighting.achieved_rtp, 6),
             "rtp_capped_for_diversity": weighting.capped_for_diversity,
+            "max_win": round(max_payout / 100, 2),
         }
     config = {
         "gameId": GAME_ID,
@@ -82,8 +86,9 @@ def write_config_files(weightings: dict[str, RtpWeighting]) -> None:
         },
         "note": (
             "MVP feature set (Phase 8B grid/cluster contract not wired in). "
-            "RTP is calibrated via lookup-weight optimization -- see RTP_AUDIT.json. "
-            "Not regulatory-approved math."
+            "RTP is calibrated to each mode's rtp_target via lookup-weight "
+            "optimization without touching reels/paytable/win logic -- see "
+            "RTP_AUDIT.json. Not regulatory-approved math."
         ),
     }
     (config_dir / "game_config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
@@ -158,6 +163,12 @@ def write_rtp_audit(weightings: dict[str, tuple[list[dict], RtpWeighting]]) -> N
             "the optimizer; raising it further requires either richer feature math (see "
             "feature_contract.py) or revisiting that mode's bet cost -- both are design changes, "
             "intentionally out of scope here."
+        )
+    else:
+        lines.append(
+            "All modes reached their configured rtp_target with healthy lookup-table diversity "
+            "(no mode was diversity-capped). Each mode's declared rtp_achieved equals the "
+            "weighted RTP of its shipped lookup table; the package is internally consistent."
         )
 
     (publish_dir / "RTP_AUDIT.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
@@ -291,7 +302,7 @@ def command_publish(args: argparse.Namespace) -> None:
         write_lookup(mode, books_by_mode[mode], weighting.weights)
         write_force_records(mode, books_by_mode[mode])
 
-    write_config_files(weightings)
+    write_config_files(weightings, books_by_mode)
     write_publish_index(compressed)
     write_rtp_audit({mode: (books_by_mode[mode], weightings[mode]) for mode in books_by_mode})
 

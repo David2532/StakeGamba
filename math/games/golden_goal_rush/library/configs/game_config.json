@@ -220,17 +220,19 @@
       "cost": 1.0,
       "feature": true,
       "buyBonus": false,
-      "rtp_target": 0.96,
-      "rtp_achieved": 0.959996,
-      "rtp_capped_for_diversity": false
+      "rtp_target": 0.97,
+      "rtp_achieved": 0.970007,
+      "rtp_capped_for_diversity": false,
+      "max_win": 31.2
     },
     "bonus": {
-      "cost": 100.0,
+      "cost": 15.0,
       "feature": false,
       "buyBonus": true,
-      "rtp_target": 0.96,
-      "rtp_achieved": 0.3928,
-      "rtp_capped_for_diversity": true
+      "rtp_target": 0.97,
+      "rtp_achieved": 0.97,
+      "rtp_capped_for_diversity": false,
+      "max_win": 130.1
     }
   },
   "frontendContract": {
@@ -248,5 +250,5 @@
     ],
     "freeSpinRetrigger": "not emitted"
   },
-  "note": "MVP feature set (Phase 8B grid/cluster contract not wired in). RTP is calibrated via lookup-weight optimization -- see RTP_AUDIT.json. Not regulatory-approved math."
+  "note": "MVP feature set (Phase 8B grid/cluster contract not wired in). RTP is calibrated to each mode's rtp_target via lookup-weight optimization without touching reels/paytable/win logic -- see RTP_AUDIT.json. Not regulatory-approved math."
 }

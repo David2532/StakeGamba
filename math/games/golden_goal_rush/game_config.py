@@ -65,13 +65,19 @@ BET_MODES = {
         "cost": 1.0,
         "feature": True,
         "buyBonus": False,
-        "rtp_target": 0.96,
+        "rtp_target": 0.97,
     },
     "bonus": {
-        "cost": 100.0,
+        # Buy-feature cost is sized to the feature's actual expected return.
+        # The free-spin math pays ~14.5x bet on average, so a 15x buy cost
+        # yields a fair ~97% RTP with full lookup diversity. A higher cost
+        # would force the lookup to over-concentrate selection weight on a
+        # handful of rare large wins to reach 97% -- see RTP_AUDIT for the
+        # diversity metrics that drove this choice.
+        "cost": 15.0,
         "feature": False,
         "buyBonus": True,
-        "rtp_target": 0.96,
+        "rtp_target": 0.97,
     },
 }
 

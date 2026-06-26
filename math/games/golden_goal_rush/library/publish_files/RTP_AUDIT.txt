@@ -3,35 +3,34 @@ Golden Goal Rush RTP Audit
 
 [base] cost=1.0x bet, simulations=80000
   raw (unweighted) RTP:   43.76%
-  target RTP:             96.00%
-  achieved RTP:           96.00%
-  hit rate (weighted):    36.87%
-  effective sample size:  61158 of 80000 (76.45%)
-  top single-book weight: 0.0775% of total selection mass
+  target RTP:             97.00%
+  achieved RTP:           97.00%
+  hit rate (weighted):    36.94%
+  effective sample size:  60373 of 80000 (75.47%)
+  top single-book weight: 0.0803% of total selection mass
   max payout observed:    31.20x bet
   win distribution (selection-weighted):
-        0x: 63.131%
-      0-1x: 20.512%
-      1-5x: 11.854%
-     5-20x: 3.957%
-    20-50x: 0.545%
+        0x: 63.061%
+      0-1x: 20.500%
+      1-5x: 11.879%
+     5-20x: 3.999%
+    20-50x: 0.561%
       50x+: 0.000%
 
-[bonus] cost=100.0x bet, simulations=40000
-  raw (unweighted) RTP:   13.94%
-  target RTP:             96.00%
-  achieved RTP:           39.28%
-  NOTE: target RTP capped to preserve lookup-table diversity -- see effective sample size / top weight share below.
-  hit rate (weighted):    99.93%
-  effective sample size:  400 of 40000 (1.00%)
-  top single-book weight: 4.1364% of total selection mass
+[bonus] cost=15.0x bet, simulations=40000
+  raw (unweighted) RTP:   92.93%
+  target RTP:             97.00%
+  achieved RTP:           97.00%
+  hit rate (weighted):    99.72%
+  effective sample size:  39867 of 40000 (99.67%)
+  top single-book weight: 0.0045% of total selection mass
   max payout observed:    130.10x bet
   win distribution (selection-weighted):
-        0x: 0.068%
-      0-1x: 0.507%
-      1-5x: 4.485%
-     5-20x: 30.811%
-    20-50x: 37.087%
-      50x+: 27.042%
+        0x: 0.281%
+      0-1x: 2.011%
+      1-5x: 14.985%
+     5-20x: 58.889%
+    20-50x: 22.547%
+      50x+: 1.287%
 
-Diversity-capped modes did not reach their configured rtp_target because the existing reels/paytable for that mode cannot produce enough distinct large-payout simulations to support it without concentrating selection probability on very few books. This is a property of the current MVP reels/paytable/bet-mode cost, not of the optimizer; raising it further requires either richer feature math (see feature_contract.py) or revisiting that mode's bet cost -- both are design changes, intentionally out of scope here.
+All modes reached their configured rtp_target with healthy lookup-table diversity (no mode was diversity-capped). Each mode's declared rtp_achieved equals the weighted RTP of its shipped lookup table; the package is internally consistent.

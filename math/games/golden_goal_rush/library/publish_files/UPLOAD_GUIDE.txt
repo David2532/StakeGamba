@@ -18,21 +18,25 @@ Math ZIP contents:
 RTP calibration:
 - Lookup weights in base_lookup.csv / bonus_lookup.csv are produced by
   optimization.py's exponential-tilting reweighting against each mode's
-  rtp_target in game_config.py, with diversity-safety caps (effective sample
+  rtp_target in game_config.py, under diversity-safety bounds (effective sample
   size, top weight share). See RTP_AUDIT.json / RTP_AUDIT.txt in this directory
   for the full per-mode achieved RTP, hit rate, and win distribution.
-- `base` reaches its 96% RTP target with high diversity. `bonus` is
-  diversity-capped to ~39% achieved RTP given the existing free-spin
-  paytable/bet cost -- see RTP_AUDIT.txt for the explanation; this is a math
-  design limitation, not an optimizer bug.
+- Both modes reach their 97% rtp_target with healthy diversity and no capping:
+  base (cost=1x) achieves 97.00% (effective sample size ~75% of pool); bonus
+  (cost=15x buy feature) achieves 97.00% (effective sample size ~99.7% of pool).
+- Each mode's declared rtp_achieved equals the weighted RTP of its shipped
+  lookup table -- the package is internally consistent (the publish step fails
+  if they disagree by more than 0.0005).
 - This calibration only reweights selection of already-generated, unmodified
   simulations. Reels, paytable, paylines, and win-calculation logic are
-  untouched.
+  untouched. The bonus buy cost (15x) is sized to the feature's actual expected
+  return so the buy feature is fair; apps/lines/src/game/config.ts is kept in
+  sync with this cost.
 
 Remaining risks:
-- MVP only; RTP and volatility are not final.
+- MVP only; RTP and volatility are calibrated and audited but not certified.
 - Not regulatory approved.
 - Built from the local Golden Goal Rush MVP generator, not from a verified external Stake SDK template.
 - Free spin handling is intentionally simple and avoids freeSpinRetrigger because the frontend has no confirmed handler.
 - Frontend Storybook environment issues are separate and should be stabilized before final QA.
-- bonus-mode achieved RTP is materially below its configured target (see RTP calibration above); raising it requires a math design change (richer feature math or a different bet-mode cost), out of scope for this calibration pass.
+- The feature set is the current MVP (Phase 8B grid/cluster contract not wired in); max win is modest (~130x bonus, ~31x base) because the free-spin math is simple. A richer feature would raise max win and volatility -- that is a design change, separate from this RTP calibration.

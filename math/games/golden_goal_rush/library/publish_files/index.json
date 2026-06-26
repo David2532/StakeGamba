@@ -8,7 +8,7 @@
     },
     {
       "name": "bonus",
-      "cost": 100.0,
+      "cost": 15.0,
       "events": "bonus_books.jsonl.zst",
       "weights": "bonus_lookup.csv"
     }
