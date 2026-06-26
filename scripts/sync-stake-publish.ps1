@@ -11,9 +11,10 @@ $ErrorActionPreference = "Stop"
 $Root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $PublishRoot = Join-Path $Root "publish"
 $LegacyPublishRoot = Join-Path $PublishRoot "golden-goal-rush"
-$FrontendApp = "cluster"
-$FrontendAppRoot = Join-Path $Root "apps\$FrontendApp"
-$FrontendSource = Join-Path $FrontendAppRoot "build"
+$FrontendPreviewHtml = Join-Path $Root "apps\cluster\preview.html"
+$FrontendPreviewBuilder = Join-Path $Root "apps\cluster\scripts\build-preview-html.mjs"
+$FrontendAssetSource = Join-Path $Root "apps\cluster\src\assets\golden-goal-rush"
+$FrontendStaticSource = Join-Path $Root "apps\cluster\static"
 $FrontendDest = Join-Path $PublishRoot "frontend"
 $MathRoot = Join-Path $Root "math\games\golden_goal_rush"
 $MathPublish = Join-Path $MathRoot "library\publish_files"
@@ -105,46 +106,13 @@ Run this before committing/pushing math changes:
 	}
 }
 
-function Test-FrontendBuildFresh {
-	$buildIndex = Join-Path $FrontendSource "index.html"
-	if (-not (Test-Path -LiteralPath $buildIndex)) {
-		throw "Frontend build index is missing: $buildIndex"
+function Test-FrontendSourceReady {
+	if (-not (Test-Path -LiteralPath $FrontendPreviewHtml -PathType Leaf)) {
+		throw "Frontend preview HTML is missing: $FrontendPreviewHtml"
 	}
 
-	$sourceRoots = @(
-		Join-Path $FrontendAppRoot "src"
-		Join-Path $FrontendAppRoot "static"
-		Join-Path $Root "packages"
-	)
-
-	$sourceFiles = foreach ($sourceRoot in $sourceRoots) {
-		if (Test-Path -LiteralPath $sourceRoot) {
-			Get-ChildItem -LiteralPath $sourceRoot -Recurse -File |
-				Where-Object { $_.FullName -notlike "*\node_modules\*" }
-		}
-	}
-
-	foreach ($file in @("package.json", "vite.config.js", "svelte.config.js", "tsconfig.json")) {
-		$path = Join-Path $FrontendAppRoot $file
-		if (Test-Path -LiteralPath $path) {
-			$sourceFiles += Get-Item -LiteralPath $path
-		}
-	}
-
-	$newestSource = Get-NewestFile -Files $sourceFiles
-	$buildFile = Get-Item -LiteralPath $buildIndex
-	if ($newestSource -and $newestSource.LastWriteTimeUtc -gt $buildFile.LastWriteTimeUtc) {
-		throw @"
-Frontend build looks stale.
-Newest frontend/package source: $($newestSource.FullName)
-Build index: $($buildFile.FullName)
-
-Rebuild apps/$FrontendApp before pushing, then rerun:
-  npm run stake:publish
-
-The optional auto-build path exists but is disabled for pre-push because Vite can hang after writing the frontend build in this workspace:
-  npm run stake:publish:build-frontend
-"@
+	if (-not (Test-Path -LiteralPath $FrontendAssetSource -PathType Container)) {
+		throw "Frontend Golden Goal Rush asset folder is missing: $FrontendAssetSource"
 	}
 }
 
@@ -156,9 +124,10 @@ function Test-FrontendUploadContents {
 		"stake-engine-loader.gif"
 	)
 	$requiredDirs = @(
-		"_app",
 		"assets",
-		"_app\immutable\assets"
+		"src\assets\golden-goal-rush",
+		"src\assets\golden-goal-rush\hud-extracted",
+		"src\assets\golden-goal-rush\special"
 	)
 
 	foreach ($file in $requiredFiles) {
@@ -175,18 +144,33 @@ function Test-FrontendUploadContents {
 		}
 	}
 
-	$slotMarkers = @(
-		"Golden Goal Rush final visual direction preview",
-		"logo-wordmark",
-		"WORLD STADIUM",
-		"symbol-glow"
+	$previewMarkers = @(
+		"Interactive Preview",
+		"const SYMBOLS",
+		"COIN_ASSETS",
+		"btn-spin",
+		"addEventListener('click', () => spin())",
+		"startFreeSpins"
 	)
 
 	$index = Join-Path $FrontendDest "index.html"
 	$indexContent = Get-Content -LiteralPath $index -Raw
-	foreach ($marker in $slotMarkers) {
+	foreach ($marker in $previewMarkers) {
 		if (-not $indexContent.Contains($marker)) {
-			throw "Frontend build does not contain final Golden Goal Rush marker: $marker"
+			throw "Frontend publish HTML does not contain interactive Golden Goal Rush marker: $marker"
+		}
+	}
+
+	$assetChecks = @(
+		"src\assets\golden-goal-rush\slot-background.webp",
+		"src\assets\golden-goal-rush\hud-extracted\euro-symbol.webp",
+		"src\assets\golden-goal-rush\hud-extracted\spin-button-active.webp",
+		"src\assets\golden-goal-rush\special\symbol_rainbow.webp"
+	)
+	foreach ($asset in $assetChecks) {
+		$path = Join-Path $FrontendDest $asset
+		if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+			throw "Frontend publish folder is missing Golden Goal Rush asset: $asset"
 		}
 	}
 }
@@ -247,23 +231,30 @@ function Copy-MathUploadFiles {
 	}
 }
 
+function Copy-FrontendUploadFiles {
+	Copy-Item -LiteralPath $FrontendPreviewHtml -Destination (Join-Path $FrontendDest "index.html") -Force
+
+	if (Test-Path -LiteralPath $FrontendStaticSource) {
+		Copy-Item -Path (Join-Path $FrontendStaticSource "*") -Destination $FrontendDest -Recurse -Force
+	}
+
+	$assetDestRoot = Join-Path $FrontendDest "src\assets"
+	New-Item -ItemType Directory -Force -Path $assetDestRoot | Out-Null
+	Copy-Item -LiteralPath $FrontendAssetSource -Destination (Join-Path $assetDestRoot "golden-goal-rush") -Recurse -Force
+}
+
 Write-Host "Syncing Stake publish snapshot..."
 
 if ($BuildFrontend) {
-	$vite = Join-Path $FrontendAppRoot "node_modules\vite\bin\vite.js"
-	if (-not (Test-Path -LiteralPath $vite)) {
-		throw "Missing local Vite entrypoint: $vite"
+	if (-not (Test-Path -LiteralPath $FrontendPreviewBuilder -PathType Leaf)) {
+		throw "Missing preview builder: $FrontendPreviewBuilder"
 	}
-	Write-Host "Building frontend: apps/$FrontendApp"
-	Invoke-CommandChecked -WorkingDirectory $FrontendAppRoot -FilePath "node" -Arguments @($vite, "build")
-}
-
-if (-not (Test-Path -LiteralPath $FrontendSource)) {
-	throw "Frontend build folder is missing: $FrontendSource"
+	Write-Host "Building frontend preview HTML"
+	Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @($FrontendPreviewBuilder)
 }
 
 if (-not $SkipFrontendStalenessCheck) {
-	Test-FrontendBuildFresh
+	Test-FrontendSourceReady
 }
 
 if ($RefreshMath) {
@@ -284,8 +275,8 @@ if (Test-Path -LiteralPath $LegacyPublishRoot) {
 Reset-Directory -Path $FrontendDest
 Reset-Directory -Path $MathDest
 
-Write-Host "Copying frontend build"
-Copy-Item -Path (Join-Path $FrontendSource "*") -Destination $FrontendDest -Recurse -Force
+Write-Host "Copying frontend preview"
+Copy-FrontendUploadFiles
 
 Write-Host "Copying math upload files"
 Copy-MathUploadFiles
