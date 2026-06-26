@@ -1,6 +1,6 @@
 import { createAsset } from 'pixi-svelte';
 
-import img from './ui_explosion.png';
+import img from './ui_explosion.webp';
 import rawAtlas from './ui_explosion.atlas?raw';
 import spine from './ui_explosion.json';
 

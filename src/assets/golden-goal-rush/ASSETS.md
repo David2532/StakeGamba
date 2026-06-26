@@ -12,7 +12,7 @@ RTP package.
 | Logo source              | `logo-horizontal.png`                                   |
 | Low symbols              | `10.png`, `j.png`, `q.png`, `k.png`, `a.png`            |
 | High symbols             | `fussball.png`, `pokal.png`, `trikot.png`, `pfeife.png` |
-| Feature symbols          | `wild.png`, `scatter.png`, `special/symbol_collector.png`, `special/symbol_multiplier.png` |
+| Feature symbols          | `wild.png`, `scatter.png`, `special/symbol_collector.webp`, `special/symbol_multiplier.webp` |
 | HUD/button reference art | `ui/*.png`                                              |
 | Extracted HUD assets     | `hud-extracted/*.png`                                   |
 

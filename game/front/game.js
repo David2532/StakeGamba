@@ -13,41 +13,41 @@ import {
 } from "../math/math.js";
 
 const assetMap = {
-	"10": "../assets/10.png",
-	j: "../assets/j.png",
-	q: "../assets/q.png",
-	k: "../assets/k.png",
-	a: "../assets/a.png",
-	fussball: "../assets/fussball.png",
-	pfeife: "../assets/pfeife.png",
-	pokal: "../assets/pokal.png",
-	trikot: "../assets/trikot.png",
-	wild: "../assets/wild.png",
-	scatter: "../assets/scatter.png",
-	collector: "../assets/special/collector.png",
-	extra_spin: "../assets/scatter.png",
-	bronzeCoin: "../assets/special/bronze.png",
-	silverCoin: "../assets/special/silber.png",
-	goldCoin: "../assets/special/gold.png",
-	coin_0_2: "../assets/special/0.2x.png",
-	coin_0_5: "../assets/special/0.5x.png",
-	coin_1: "../assets/special/1x.png",
-	coin_2: "../assets/special/2x.png",
-	coin_4: "../assets/special/4x.png",
-	coin_5: "../assets/special/5x.png",
-	coin_10: "../assets/special/10x.png",
-	coin_15: "../assets/special/15x.png",
-	coin_20: "../assets/special/20x.png",
-	coin_25: "../assets/special/25x.png",
-	coin_50: "../assets/special/50x.png",
-	coin_100: "../assets/special/100x.png",
-	coin_250: "../assets/special/250x.png",
-	coin_500: "../assets/special/500x.png",
-	multi_x2: "../assets/special/x2.png",
-	multi_x3: "../assets/special/x3.png",
-	multi_x4: "../assets/special/x4.png",
-	multi_x5: "../assets/special/x5.png",
-	multi_x10: "../assets/special/x10.png",
+	"10": "../assets/10.webp",
+	j: "../assets/j.webp",
+	q: "../assets/q.webp",
+	k: "../assets/k.webp",
+	a: "../assets/a.webp",
+	fussball: "../assets/fussball.webp",
+	pfeife: "../assets/pfeife.webp",
+	pokal: "../assets/pokal.webp",
+	trikot: "../assets/trikot.webp",
+	wild: "../assets/wild.webp",
+	scatter: "../assets/scatter.webp",
+	collector: "../assets/special/collector.webp",
+	extra_spin: "../assets/scatter.webp",
+	bronzeCoin: "../assets/special/bronze.webp",
+	silverCoin: "../assets/special/silber.webp",
+	goldCoin: "../assets/special/gold.webp",
+	coin_0_2: "../assets/special/0.2x.webp",
+	coin_0_5: "../assets/special/0.5x.webp",
+	coin_1: "../assets/special/1x.webp",
+	coin_2: "../assets/special/2x.webp",
+	coin_4: "../assets/special/4x.webp",
+	coin_5: "../assets/special/5x.webp",
+	coin_10: "../assets/special/10x.webp",
+	coin_15: "../assets/special/15x.webp",
+	coin_20: "../assets/special/20x.webp",
+	coin_25: "../assets/special/25x.webp",
+	coin_50: "../assets/special/50x.webp",
+	coin_100: "../assets/special/100x.webp",
+	coin_250: "../assets/special/250x.webp",
+	coin_500: "../assets/special/500x.webp",
+	multi_x2: "../assets/special/x2.webp",
+	multi_x3: "../assets/special/x3.webp",
+	multi_x4: "../assets/special/x4.webp",
+	multi_x5: "../assets/special/x5.webp",
+	multi_x10: "../assets/special/x10.webp",
 };
 
 const boardEl = document.querySelector("#board");
@@ -554,7 +554,7 @@ async function showFreeSpinAward(level) {
 		"CONGRATULATIONS",
 		`
 			<div class="congrats-content">
-				<div class="scatter-row">${Array.from({ length: Math.max(3, level + 2) }, () => `<img src="../assets/scatter.png" alt="" />`).join("")}</div>
+				<div class="scatter-row">${Array.from({ length: Math.max(3, level + 2) }, () => `<img src="../assets/scatter.webp" alt="" />`).join("")}</div>
 				<h3>${name}</h3>
 				<strong>${spins} FREE SPINS</strong>
 				<p>Golden Tiles can stay active and wait for a Goal Collector hit.</p>
@@ -620,7 +620,7 @@ function showFeatureBuyMenu() {
 			volatility: "High",
 			price: stake * 3,
 			cta: featureSpinMode === "featureSpins" ? "DISABLE" : "ENABLE",
-			visual: `<div class="bonus-feature-symbol"><img src="../assets/scatter.png" alt="" /><b>x5</b></div>`,
+			visual: `<div class="bonus-feature-symbol"><img src="../assets/scatter.webp" alt="" /><b>x5</b></div>`,
 			run: () => {
 				featureSpinMode = featureSpinMode === "featureSpins" ? null : "featureSpins";
 				if (featureSpinMode) chanceBoost = false;
@@ -634,7 +634,7 @@ function showFeatureBuyMenu() {
 			volatility: "Medium",
 			price: stake * 50,
 			cta: featureSpinMode === "collectorRush" ? "DISABLE" : "ENABLE",
-			visual: `<img src="../assets/special/collector.png" alt="" />`,
+			visual: `<img src="../assets/special/collector.webp" alt="" />`,
 			run: () => {
 				featureSpinMode = featureSpinMode === "collectorRush" ? null : "collectorRush";
 				if (featureSpinMode) chanceBoost = false;
@@ -648,7 +648,7 @@ function showFeatureBuyMenu() {
 			volatility: "Medium",
 			price: stake * 100,
 			cta: "BUY",
-			visual: `<div class="scatter-stack">${Array.from({ length: 3 }, () => `<img src="../assets/scatter.png" alt="" />`).join("")}</div>`,
+			visual: `<div class="scatter-stack">${Array.from({ length: 3 }, () => `<img src="../assets/scatter.webp" alt="" />`).join("")}</div>`,
 			run: async () => {
 				balance -= stake * 100;
 				balanceEl.textContent = money(balance);
@@ -664,7 +664,7 @@ function showFeatureBuyMenu() {
 			volatility: "Extreme",
 			price: stake * 250,
 			cta: "BUY",
-			visual: `<div class="scatter-stack">${Array.from({ length: 5 }, () => `<img src="../assets/scatter.png" alt="" />`).join("")}</div>`,
+			visual: `<div class="scatter-stack">${Array.from({ length: 5 }, () => `<img src="../assets/scatter.webp" alt="" />`).join("")}</div>`,
 			run: async () => {
 				balance -= stake * 250;
 				balanceEl.textContent = money(balance);
@@ -743,19 +743,19 @@ function showInfoModal() {
 					<p>Every cell that was part of a winning cluster turns into a Golden Tile.</p>
 					<div class="rule-visual golden-tile"></div>
 					<p>If a Goal Collector is visible, it activates all Golden Tiles. Activated tiles reveal Goal Rewards, Trophy Rewards, Multipliers, Extra Spins or blank results.</p>
-					<img class="rule-symbol" src="../assets/special/collector.png" alt="" />
+					<img class="rule-symbol" src="../assets/special/collector.webp" alt="" />
 					<p>Bronze Coins: 0.2x, 0.5x, 1x, 2x, 4x. Silver Coins: 5x, 10x, 15x, 20x, 25x. Gold Coins: 50x, 100x, 250x, 500x.</p>
 					<div class="coin-row">
-						<img src="../assets/special/bronze.png" alt="" />
-						<img src="../assets/special/silber.png" alt="" />
-						<img src="../assets/special/gold.png" alt="" />
+						<img src="../assets/special/bronze.webp" alt="" />
+						<img src="../assets/special/silber.webp" alt="" />
+						<img src="../assets/special/gold.webp" alt="" />
 					</div>
 					<p>Multipliers x2, x3, x4, x5 and x10 apply to adjacent Coins. Multiple adjacent Multipliers are added together. Collector rewards collect the final Coin value again and can re-activate the same Golden Tiles within strict limits.</p>
 					<div class="coin-row">
-						<img src="../assets/special/x2.png" alt="" />
-						<img src="../assets/special/x3.png" alt="" />
-						<img src="../assets/special/x10.png" alt="" />
-						<img src="../assets/special/collector.png" alt="" />
+						<img src="../assets/special/x2.webp" alt="" />
+						<img src="../assets/special/x3.webp" alt="" />
+						<img src="../assets/special/x10.webp" alt="" />
+						<img src="../assets/special/collector.webp" alt="" />
 					</div>
 				</section>
 				<section>
