@@ -129,12 +129,18 @@
 		{ src: assets.scatter, label: 'Scatter', size: 'wide' },
 	];
 
-	const betSteps = [0.2, 0.5, 1, 2, 5, 10, 20];
+	const betSteps = [
+		0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+		1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 7.5,
+		10, 15, 20, 25, 30, 40, 50, 75,
+		100, 150, 200, 250, 300, 500, 750,
+		1000, 1500, 2000, 2500, 5000, 7500, 10000,
+	];
 
 	let board = $state([...initialBoard]);
 	let balance = $state(1000);
 	let win = $state(0);
-	let betIndex = $state(2);
+	let betIndex = $state(9);
 	let spinNonce = $state(0);
 	let isSpinning = $state(false);
 	let turbo = $state(false);

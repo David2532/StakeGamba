@@ -28,9 +28,11 @@ const style = source.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? '';
 const A = 'src/assets/golden-goal-rush';
 const HUD = `${A}/hud-extracted`;
 const SPECIAL = `${A}/special`;
+const AUDIO = `${A}/audio`;
 
 const assets = {
 	background: `${A}/slot-background.webp`,
+	headerLogo: `${A}/logo-horizontal-tight.webp`,
 	football: `${A}/fussball.webp`,
 	euro: `${HUD}/euro-symbol.webp`,
 	collector: `${SPECIAL}/symbol_collector.webp`,
@@ -73,6 +75,11 @@ const MULT_ASSETS = {
 	5: `${SPECIAL}/x5.webp`, 10: `${SPECIAL}/x10.webp`,
 };
 const COLLECTOR_ASSET = `${SPECIAL}/symbol_collector.webp`;
+const AUDIO_ASSETS = {
+	music: `${AUDIO}/latin-loop-brazil.mp3`,
+	roar: `${AUDIO}/stadium-roar.mp3`,
+	reelEnd: `${AUDIO}/reel-end.mp3`,
+};
 // CONFIG is imported from ggr-config.mjs (shared with the RTP simulation).
 
 const meters = [
@@ -104,6 +111,27 @@ const featureItems = features
 
 const extraCss = `
 	/* ---- interactive demo layer ---- */
+	.logo-wordmark {
+		top: -8px;
+		width: 540px;
+		height: 161px;
+		background: none;
+		color: transparent;
+		text-shadow: none;
+		-webkit-text-fill-color: initial;
+		-webkit-text-stroke: 0;
+	}
+	.logo-wordmark::before,
+	.logo-wordmark::after { content: none; display: none; }
+	.logo-header-img {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		filter: drop-shadow(0 5px 8px rgba(0,0,0,0.9)) drop-shadow(0 0 15px rgba(255,190,38,0.5));
+	}
+	.asset-button.turbo { margin-right: 20px; }
+	.bet-controls { margin-right: 22px; }
+	.icon-button.info { margin-right: 10px; }
 	.cell.win img { animation: win-pop 0.5s ease-in-out infinite; filter:
 		drop-shadow(0 0 10px rgba(255,221,90,0.95)) drop-shadow(0 0 18px rgba(255,200,60,0.7)); }
 	.cell.win::after { content:''; position:absolute; inset:0; border-radius:6px;
@@ -185,11 +213,13 @@ const extraCss = `
 		transition:border-color .15s, background .15s, transform .15s; }
 	.menu-item:hover { border-color:#ffe49a; transform:translateX(3px);
 		background:linear-gradient(180deg, rgba(50,38,12,0.95), rgba(20,16,6,0.95)); }
-	.menu-item .mi-ico { font-size:18px; width:38px; height:38px; flex:0 0 auto; display:grid; place-items:center;
+	.menu-item .mi-ico { font-size:12px; font-weight:900; letter-spacing:0; color:#ffe49a; width:38px; height:38px; flex:0 0 auto; display:grid; place-items:center;
 		border-radius:50%; border:1px solid rgba(255,224,130,0.5);
 		background:radial-gradient(circle at 50% 30%, rgba(255,224,130,0.28), rgba(10,10,15,0.92));
 		box-shadow:0 0 10px rgba(255,200,60,0.22) inset; }
-	.menu-item .mi-label { flex:1 1 auto; }
+	.menu-item .mi-text { flex:1 1 auto; display:flex; flex-direction:column; gap:2px; min-width:0; }
+	.menu-item .mi-label { display:block; }
+	.menu-item .mi-desc { display:block; font-size:11px; line-height:1.25; color:#9b906f; font-weight:600; letter-spacing:0; }
 	.menu-item .mi-arrow { margin-left:auto; color:#d5a23b; font-size:22px; font-weight:400; transition:color .15s; }
 	.menu-item:hover .mi-arrow { color:#ffe49a; }
 	.mi-pill { margin-left:auto; padding:4px 13px; border-radius:999px; font-size:12px; font-weight:800; letter-spacing:1.5px;
@@ -208,9 +238,6 @@ const extraCss = `
 		border-radius:50%; background:linear-gradient(180deg,#cfcfcf,#888); transition:left .18s; }
 	.toggle.on { background:linear-gradient(180deg,#2f7335,#14491f); border-color:#3fae57; }
 	.toggle.on::after { left:26px; background:linear-gradient(180deg,#fff3bd,#e7b84e); }
-	.set-vol { display:flex; align-items:center; gap:12px; }
-	.set-slider { width:150px; accent-color:#e7b84e; }
-	.set-vol-val { font-size:13px; font-weight:800; color:#ffd96f; min-width:32px; text-align:right; }
 	.pt-intro { font-size:14px; line-height:1.55; color:#d8cba6; margin:0; }
 	.pt-head { display:flex; align-items:baseline; gap:8px; margin:20px 0 11px; padding-bottom:7px;
 		font-size:13px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#ffd96f;
@@ -454,17 +481,12 @@ ${extraCss}
 		<div class="top-light right"></div>
 
 		<div class="logo-wordmark" aria-label="Golden Goal Rush">
-			<span>GOLDEN G</span>
-			<img class="logo-ball" src="${assets.football}" alt="" />
-			<span>AL RUSH</span>
+			<img class="logo-header-img" src="${assets.headerLogo}" alt="" />
 		</div>
-		<div class="world-plaque">WORLD STADIUM</div>
 
 		<div class="board-wrap">
 			<div class="board-glow"></div>
 			<div class="board-frame">
-				<div class="side-badge left">CLUSTER<span>PAYS</span></div>
-				<div class="side-badge right">CLUSTER<span>PAYS</span></div>
 				<div class="board" id="board"></div>
 			</div>
 		</div>
@@ -503,13 +525,13 @@ ${meterRows}
 
 		<div class="controls">
 			<button type="button" class="asset-button menu" id="btn-menu" aria-label="Menu">
-				<img class="button-art" src="${assets.menuButton}" alt="" /><span>MENU</span>
+				<img class="button-art" src="${assets.menuButton}" alt="" />
 			</button>
 			<button type="button" class="asset-button bonus" id="btn-bonus" aria-label="Buy Bonus">
-				<img class="button-art" src="${assets.bonusButton}" alt="" /><span>BUY BONUS</span>
+				<img class="button-art" src="${assets.bonusButton}" alt="" />
 			</button>
 			<button type="button" class="asset-button" id="btn-auto" aria-label="Auto Spin">
-				<img class="button-art" src="${assets.autoSpinButton}" alt="" /><span>AUTO SPIN</span>
+				<img class="button-art" src="${assets.autoSpinButton}" alt="" />
 			</button>
 			<div class="feature-control" aria-label="Golden Goal Rush feature logic preview">
 				<img class="button-art" src="${assets.featurePanel}" alt="" />
@@ -521,7 +543,7 @@ ${featureItems}
 				<img class="spin-art" src="${assets.spinButton}" alt="" /><span>SPIN</span>
 			</button>
 			<button type="button" class="asset-button turbo" id="btn-turbo" aria-label="Turbo">
-				<img class="button-art" src="${assets.turboButton}" alt="" /><span>TURBO</span>
+				<img class="button-art" src="${assets.turboButton}" alt="" />
 			</button>
 			<div class="bet-controls" id="bet-controls" aria-label="Bet controls">
 				<img class="button-art" src="${assets.controlPanel}" alt="" />
@@ -538,12 +560,10 @@ ${featureItems}
 			<div class="modal">
 				<div class="modal-header"><div class="modal-title">MENU</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
-					<button class="menu-item" data-open="modal-info"><span class="mi-ico">💰</span><span class="mi-label">Pay Table</span><span class="mi-arrow">›</span></button>
-					<button class="menu-item" data-open="modal-info"><span class="mi-ico">📖</span><span class="mi-label">How To Play</span><span class="mi-arrow">›</span></button>
-					<button class="menu-item" data-open="modal-settings"><span class="mi-ico">⚙️</span><span class="mi-label">Settings</span><span class="mi-arrow">›</span></button>
-					<button class="menu-item" id="menu-sound"><span class="mi-ico">🔊</span><span class="mi-label">Sound</span><span class="mi-pill" id="menu-sound-state">ON</span></button>
-					<button class="menu-item" data-open="modal-info"><span class="mi-ico">📜</span><span class="mi-label">Game Rules</span><span class="mi-arrow">›</span></button>
-					<button class="menu-item" id="menu-history"><span class="mi-ico">🕘</span><span class="mi-label">Game History</span><span class="mi-arrow">›</span></button>
+					<button class="menu-item" data-open="modal-paytable"><span class="mi-ico">PT</span><span class="mi-text"><span class="mi-label">Pay Table</span><span class="mi-desc">Symbol payouts and cluster sizes</span></span><span class="mi-arrow">&rsaquo;</span></button>
+					<button class="menu-item" data-open="modal-rules"><span class="mi-ico">?</span><span class="mi-text"><span class="mi-label">Rules &amp; Features</span><span class="mi-desc">Cluster wins, coins, multipliers and free spins</span></span><span class="mi-arrow">&rsaquo;</span></button>
+					<button class="menu-item" data-open="modal-settings"><span class="mi-ico">SET</span><span class="mi-text"><span class="mi-label">Settings</span><span class="mi-desc">Stadium audio and turbo mode</span></span><span class="mi-arrow">&rsaquo;</span></button>
+					<button class="menu-item" id="menu-sound"><span class="mi-ico">SFX</span><span class="mi-text"><span class="mi-label">Sound</span><span class="mi-desc">Toggle music and effects</span></span><span class="mi-pill" id="menu-sound-state">ON</span></button>
 				</div>
 			</div>
 		</div>
@@ -554,40 +574,47 @@ ${featureItems}
 				<div class="modal-header"><div class="modal-title">SETTINGS</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
 					<div class="set-section">Audio</div>
-					<div class="set-row"><span>Music</span><button class="toggle on" data-toggle="music"></button></div>
-					<div class="set-row"><span>Sound Effects</span><button class="toggle on" data-toggle="sfx"></button></div>
-					<div class="set-row"><span>Master Volume</span><div class="set-vol"><input class="set-slider" type="range" min="0" max="100" value="80" id="vol-slider" /><span class="set-vol-val" id="vol-val">80</span></div></div>
+					<div class="set-row"><span>Sound &amp; Music</span><button class="toggle on" data-toggle="sfx" id="toggle-sfx" aria-label="Toggle sound and music"></button></div>
 					<div class="set-section">Gameplay</div>
-					<div class="set-row"><span>Turbo Spin</span><button class="toggle" data-toggle="turbo"></button></div>
-					<div class="set-row"><span>Quick Spin</span><button class="toggle" data-toggle="quick"></button></div>
-					<div class="set-row"><span>Intro Screen</span><button class="toggle on" data-toggle="intro"></button></div>
-					<div class="set-row"><span>Left-handed Layout</span><button class="toggle" data-toggle="lefty"></button></div>
+					<div class="set-row"><span>Turbo Spin</span><button class="toggle" data-toggle="turbo" id="toggle-turbo" aria-label="Toggle turbo spin"></button></div>
 				</div>
 			</div>
 		</div>
 
-		<!-- ===== Info / Paytable modal ===== -->
-		<div class="modal-backdrop" id="modal-info" data-modal>
+		<!-- ===== Paytable modal ===== -->
+		<div class="modal-backdrop" id="modal-paytable" data-modal>
 			<div class="modal">
-				<div class="modal-header"><div class="modal-title">HOW TO WIN</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-header"><div class="modal-title">PAY TABLE</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
-					<p class="pt-intro">Golden Goal Rush is a 6×5 <b>cluster-pays</b> game. Land <b>5 or more matching symbols connected horizontally or vertically</b> to win. Winning symbols are removed and new ones cascade in &mdash; each cascade raises the win multiplier. Bigger clusters pay more.</p>
+					<p class="pt-intro">Payouts are shown as bet multipliers. Wins start at <b>5 connected matching symbols</b>, and bigger clusters pay more.</p>
 					<div class="pt-head">Symbol Pays <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small></div>
 					<div class="pt-grid" id="pt-grid"></div>
-					<div class="pt-head">Features</div>
+					<div class="pt-note">All values are multiplied by the active bet. Wilds substitute for regular paying symbols but do not replace Scatters.</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- ===== Rules and features modal ===== -->
+		<div class="modal-backdrop" id="modal-rules" data-modal>
+			<div class="modal">
+				<div class="modal-header"><div class="modal-title">RULES &amp; FEATURES</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-body">
+					<p class="pt-intro">Golden Goal Rush is a 6&times;5 <b>cluster-pays</b> game. Land <b>5 or more matching symbols connected horizontally or vertically</b> to win. Winning symbols are removed and new ones cascade in; every cascade raises the win multiplier.</p>
+					<div class="pt-head">Core Game</div>
 					<div class="pt-feat"><img src="${SYMBOLS.wild.src}" alt="Wild" /><div><b>WILD</b>Substitutes for every paying symbol to help complete clusters. Does not replace the Scatter.</div></div>
 					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Scatter" /><div><b>SCATTER &mdash; VIP TICKET</b>3, 4 or 5 trigger Free Spins Tier 1 / 2 / 3.</div></div>
 					<div class="pt-feat"><div class="pt-chip"></div><div><b>GOLDEN CELLS</b>Every winning position turns into a Golden Cell for the rest of the spin sequence.</div></div>
+					<div class="pt-head">Golden Goal Feature</div>
 					<div class="pt-feat"><img src="${SYMBOLS.rainbow.src}" alt="Golden Arc" /><div><b>GOLDEN ARC (RAINBOW)</b>While an Arc is on the board it activates all Golden Cells, revealing Coins, Multiplier Badges and Collector Cups.</div></div>
-					<div class="pt-feat"><img src="${COIN_ASSETS.gold}" alt="Coins" /><div><b>SPONSOR COINS</b>Bronze ${CONFIG.bronzeValues[0]}&ndash;${CONFIG.bronzeValues[CONFIG.bronzeValues.length-1]}×, Silver ${CONFIG.silverValues[0]}&ndash;${CONFIG.silverValues[CONFIG.silverValues.length-1]}×, Gold ${CONFIG.goldValues[0]}&ndash;${CONFIG.goldValues[CONFIG.goldValues.length-1]}× the bet.</div></div>
+					<div class="pt-feat"><img src="${COIN_ASSETS.gold}" alt="Coins" /><div><b>SPONSOR COINS</b>Bronze ${CONFIG.bronzeValues[0]}&ndash;${CONFIG.bronzeValues[CONFIG.bronzeValues.length-1]}&times;, Silver ${CONFIG.silverValues[0]}&ndash;${CONFIG.silverValues[CONFIG.silverValues.length-1]}&times;, Gold ${CONFIG.goldValues[0]}&ndash;${CONFIG.goldValues[CONFIG.goldValues.length-1]}&times; the bet.</div></div>
 					<div class="pt-feat"><img src="${MULT_ASSETS[5]}" alt="Multiplier Badge" /><div><b>MULTIPLIER BADGE</b>Multiplies adjacent coins by ${CONFIG.multiplierValues.map((v) => 'x' + v).join(', ')}.</div></div>
 					<div class="pt-feat"><img src="${COLLECTOR_ASSET}" alt="Collector Cup" /><div><b>COLLECTOR CUP</b>Collects the value of every visible coin (top-to-bottom, left-to-right). After the last cup the Golden Cells reveal again, repeating while new cups appear.</div></div>
 					<div class="pt-head">Free Spins &amp; Bonus Buy</div>
 					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Free Spins" /><div><b>FREE SPINS</b>
 						${Object.entries(CONFIG.tiers).map(([t, v]) => 'Tier ' + t + ' &mdash; ' + v.name + ': ' + v.spins + ' spins' + (v.guaranteedRainbow ? ', guaranteed Arc each spin' : '') + '.').join('<br>')}</div></div>
 					<div class="pt-feat"><img src="${assets.bonusButton}" alt="Bonus Buy" /><div><b>BONUS BUY</b>
-						${CONFIG.bonusBuy.map((o) => o.label + ' &mdash; ' + o.mult + '× bet').join('<br>')}<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
-					<div class="pt-note">Theoretical RTP target ~96% (demo) &middot; Max win ${CONFIG.maxWinMultiplier.toLocaleString()}× bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
+						${CONFIG.bonusBuy.map((o) => o.label + ' &mdash; ' + o.mult + '&times; bet').join('<br>')}<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
+					<div class="pt-note">Theoretical RTP target ~96% (demo) &middot; Max win ${CONFIG.maxWinMultiplier.toLocaleString()}&times; bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
 				</div>
 			</div>
 		</div>
@@ -610,12 +637,19 @@ const SYMBOLS = ${JSON.stringify(SYMBOLS)};
 const COIN_ASSETS = ${JSON.stringify(COIN_ASSETS)};
 const MULT_ASSETS = ${JSON.stringify(MULT_ASSETS)};
 const COLLECTOR_ASSET = ${JSON.stringify(COLLECTOR_ASSET)};
+const AUDIO_ASSETS = ${JSON.stringify(AUDIO_ASSETS)};
 const CONFIG = ${JSON.stringify(CONFIG)};
 const COLS = 6, ROWS = 5, MIN_CLUSTER = 5;
-const BETS = [0.2, 0.5, 1, 2, 5, 10, 20, 50, 100];
+const BETS = [
+	0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+	1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 7.5,
+	10, 15, 20, 25, 30, 40, 50, 75,
+	100, 150, 200, 250, 300, 500, 750,
+	1000, 1500, 2000, 2500, 5000, 7500, 10000,
+];
 
 const state = {
-	balance: 1000, bet: 1, betIdx: 2, grid: [], spinning: false, turbo: false, auto: false,
+	balance: 1000, bet: 1, betIdx: 9, grid: [], spinning: false, turbo: false, auto: false,
 	golden: new Set(), reveals: new Map(), // golden = 'c,r' keys; reveals = 'c,r' -> {kind,value,asset}
 	mode: 'base', tier: 0, fsLeft: 0, fsTotal: 0, win: 0, sound: true,
 };
@@ -666,6 +700,7 @@ const TF = () => (state.turbo ? 0.5 : 1);               // turbo time factor
 const rawWait = (ms) => new Promise((r) => setTimeout(r, ms)); // not turbo-scaled (the wait IS the drop)
 const COL_DELAY = 58;                                    // per-column stagger (left -> right)
 const DROP_DUR = (rows) => 220 + Math.min(rows, ROWS) * 42;
+const REEL_END_LEAD_MS = 1000;
 // A full-board drop: every column falls in as a stack, staggered by column.
 function fullDropMap() {
 	const drops = new Map();
@@ -823,35 +858,126 @@ async function scatterAnticipation() {
 	cells.forEach((e) => { e.classList.remove('scatter-antic', 'scatter-hit'); });
 }
 
-// ---- synthesised sound hooks (Web Audio; gated by the menu Sound toggle) ----
+// ---- sound hooks ----
 const Sound = (() => {
-	let ctx = null;
-	function ac() {
+	const noop = () => {};
+	let music = null;
+	let restoreTimer = null;
+	let freeSpinRoar = null;
+	let reelEndPool = [];
+	let reelEndIndex = 0;
+	const MUSIC_VOLUME = 0.16;
+	const REEL_END_VOLUME = 0.34;
+	function enabled() { return state.sound !== false; }
+	function make(src, volume, loop = false) {
+		const a = new Audio(src);
+		a.preload = 'auto';
+		a.loop = loop;
+		a.volume = volume;
+		return a;
+	}
+	function ensureMusic() {
+		if (!music) music = make(AUDIO_ASSETS.music, MUSIC_VOLUME, true);
+		return music;
+	}
+	function prime() {
+		if (!enabled()) return;
+		const a = ensureMusic();
+		ensureReelEndPool();
+		if (a.paused) a.play().catch(() => {});
+	}
+	function ensureReelEndPool() {
+		if (!reelEndPool.length) {
+			reelEndPool = Array.from({ length: Math.max(COLS, 6) }, () => make(AUDIO_ASSETS.reelEnd, REEL_END_VOLUME, false));
+			reelEndPool.forEach((a) => { try { a.load(); } catch (e) {} });
+		}
+		return reelEndPool;
+	}
+	function stopAll() {
+		clearTimeout(restoreTimer);
+		if (music) { music.pause(); music.currentTime = 0; }
+		if (freeSpinRoar) { try { freeSpinRoar.pause(); freeSpinRoar.currentTime = 0; } catch (e) {} }
+		reelEndPool.forEach((a) => { try { a.pause(); a.currentTime = 0; } catch (e) {} });
+	}
+	function duck(ms = 1300) {
+		if (!music || music.paused) return;
+		clearTimeout(restoreTimer);
+		music.volume = 0.09;
+		restoreTimer = setTimeout(() => { if (music && enabled()) music.volume = MUSIC_VOLUME; }, ms);
+	}
+	function freeSpins() {
+		if (!enabled()) return;
+		prime();
+		duck(8500);
+		if (!freeSpinRoar) freeSpinRoar = make(AUDIO_ASSETS.roar, 0.2, false);
 		try {
-			if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
-			if (ctx.state === 'suspended') ctx.resume();
-			return ctx;
-		} catch (e) { return null; }
+			freeSpinRoar.pause();
+			freeSpinRoar.currentTime = 0;
+			freeSpinRoar.volume = 0.2;
+			freeSpinRoar.loop = false;
+			freeSpinRoar.playbackRate = 1;
+			freeSpinRoar.play().catch(() => {});
+		} catch (e) {}
 	}
-	function tone(freq, t0, dur, type, gain) {
-		const c = ac(); if (!c) return;
-		const o = c.createOscillator(), g = c.createGain();
-		o.type = type; o.frequency.setValueAtTime(freq, t0);
-		g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(gain, t0 + 0.008);
-		g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-		o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + dur);
+	function stopFreeSpins() {
+		if (!freeSpinRoar) return;
+		try {
+			freeSpinRoar.pause();
+			freeSpinRoar.currentTime = 0;
+		} catch (e) {}
+		clearTimeout(restoreTimer);
+		if (music && enabled()) music.volume = MUSIC_VOLUME;
 	}
-	const on = () => state.sound !== false;
+	function reelStop() {
+		if (!enabled()) return;
+		prime();
+		ensureReelEndPool();
+		const a = reelEndPool[reelEndIndex % reelEndPool.length];
+		reelEndIndex += 1;
+		try {
+			a.pause();
+			a.currentTime = 0;
+			a.volume = REEL_END_VOLUME;
+			a.playbackRate = 1;
+			a.play().catch(() => {});
+		} catch (e) {}
+	}
 	return {
-		tick(i, total) { if (!on()) return; const c = ac(); if (!c) return; const f = 520 + Math.min(i, total) / total * 660; tone(f, c.currentTime, 0.055, 'square', 0.045); },
-		fanfare() { if (!on()) return; const c = ac(); if (!c) return; [0, 4, 7, 12].forEach((n, i) => tone(523.25 * Math.pow(2, n / 12), c.currentTime + i * 0.1, 0.5, 'triangle', 0.09)); },
-		win(tier) { if (!on()) return; const c = ac(); if (!c) return; const base = tier === 'epic' ? 523.25 : tier === 'mega' ? 466.16 : 392; const set = tier === 'epic' ? [0, 4, 7, 12, 16] : [0, 4, 7, 12]; set.forEach((n, i) => tone(base * Math.pow(2, n / 12), c.currentTime + i * 0.085, 0.55, 'triangle', 0.1)); },
-		collect() { if (!on()) return; const c = ac(); if (!c) return; tone(880, c.currentTime, 0.12, 'sine', 0.085); tone(1318.5, c.currentTime + 0.045, 0.14, 'sine', 0.06); },
-		sweep() { if (!on()) return; const c = ac(); if (!c) return; const o = c.createOscillator(), g = c.createGain(); const t0 = c.currentTime; o.type = 'triangle'; o.frequency.setValueAtTime(440, t0); o.frequency.exponentialRampToValueAtTime(1320, t0 + 0.5); g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(0.06, t0 + 0.04); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.55); o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + 0.6); },
-		anticipation(sc) { if (!on()) return; const c = ac(); if (!c) return; const o = c.createOscillator(), g = c.createGain(); const t0 = c.currentTime, dur = sc >= 3 ? 0.9 : 0.68; o.type = 'sawtooth'; o.frequency.setValueAtTime(196, t0); o.frequency.exponentialRampToValueAtTime(sc >= 3 ? 784 : 523, t0 + dur); g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(0.05, t0 + 0.06); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur); o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + dur); },
-		scatterHit() { if (!on()) return; const c = ac(); if (!c) return; tone(1046.5, c.currentTime, 0.3, 'square', 0.09); tone(1568, c.currentTime + 0.02, 0.3, 'triangle', 0.06); },
+		prime,
+		setEnabled(v) { state.sound = !!v; if (state.sound) prime(); else stopAll(); },
+		spinStart: noop,
+		reelStop,
+		cluster: noop,
+		feature: noop,
+		tick: noop,
+		fanfare: noop,
+		win: noop,
+		collect: noop,
+		sweep: noop,
+		anticipation: noop,
+		scatterHit: noop,
+		freeSpins,
+		stopFreeSpins,
 	};
 })();
+
+function scheduleDropStops(drops) {
+	if (!drops || !drops.size) return;
+	const byCol = {};
+	for (const [k, d] of drops) {
+		const c = +k.split(',')[0];
+		const start = d.delay || 0;
+		const end = start + (d.dur || 0);
+		if (!byCol[c]) byCol[c] = { start, end };
+		byCol[c].start = Math.min(byCol[c].start, start);
+		byCol[c].end = Math.max(byCol[c].end, end);
+	}
+	Object.entries(byCol).forEach(([c, timing]) => {
+		const earliest = Math.max(30, timing.start + 30 * TF());
+		const target = Math.max(earliest, timing.end - REEL_END_LEAD_MS * TF());
+		setTimeout(() => Sound.reelStop(+c), target);
+	});
+}
 
 function updateMeters() {
 	$('meter-balance').textContent = fmt(state.balance);
@@ -930,6 +1056,7 @@ async function resolveCascades(baseStart) {
 	while (true) {
 		const clusters = findClusters();
 		if (!clusters.length) break;
+		Sound.cluster(clusters.length);
 		const flat = clusters.flatMap((cl) => cl.cells);
 		flat.forEach(([c, r]) => { cellEl(c, r).classList.add('win'); state.golden.add(ck(c, r)); });
 		const stepWin = clusters.reduce((s, cl) => s + payFor(cl.key, cl.cells.length) * state.bet, 0) * multiplier;
@@ -1007,6 +1134,7 @@ async function runFeature(baseWinAbs) {
 	let coinMult = 0; // accumulated multiplier of bet from the coin feature
 	for (let cycle = 0; cycle < CONFIG.maxCollectorCycles; cycle += 1) {
 		revealGolden();
+		if (state.reveals.size) Sound.feature();
 		paint(); await wait(440);
 		await applyMultipliers(baseWinAbs);
 		const sum = coinList().reduce((s, c) => s + c.value, 0);
@@ -1053,6 +1181,7 @@ async function dropInBoard(anticipate) {
 		stage.classList.add('antic'); Sound.anticipation(2); stadiumFlash();
 	}
 	paint({ drops });
+	scheduleDropStops(drops);
 	await rawWait(dropEnd(drops) + 80 * TF());
 	if (anticipate) stage.classList.remove('antic');
 }
@@ -1065,6 +1194,7 @@ async function spin(buy) {
 		stage.classList.add('shake'); setTimeout(() => stage.classList.remove('shake'), 420); return;
 	}
 	state.spinning = true; $('btn-spin').classList.add('busy');
+	Sound.spinStart();
 	if (state.mode !== 'free') { state.balance -= cost; state.golden.clear(); }
 	state.reveals.clear();
 	setWin(0); updateMeters();
@@ -1175,9 +1305,11 @@ async function startFreeSpins(tier) {
 	state.mode = 'free'; state.tier = tier; state.fsTotal = CONFIG.tiers[tier].spins; state.fsLeft = state.fsTotal;
 	state.fsWin = 0; state.fsBest = 0; state.fsPlayed = 0;
 	state.golden.clear(); state.reveals.clear();
+	Sound.freeSpins();
 	setBonusMode(true);
 	updateFsCounter();
 	await bonusIntro(tier);
+	Sound.stopFreeSpins();
 	while (state.fsLeft > 0 && (state.fsWin || 0) < capWin()) {
 		state.fsLeft -= 1; updateFsCounter();
 		await spin();
@@ -1200,7 +1332,7 @@ function changeBet(dir) {
 $('btn-spin').addEventListener('click', () => spin());
 $('btn-bet-minus').addEventListener('click', () => changeBet(-1));
 $('btn-bet-plus').addEventListener('click', () => changeBet(1));
-$('btn-turbo').addEventListener('click', () => { state.turbo = !state.turbo; $('btn-turbo').classList.toggle('armed', state.turbo); });
+$('btn-turbo').addEventListener('click', () => setTurbo(!state.turbo));
 $('btn-auto').addEventListener('click', () => {
 	state.auto = !state.auto; $('btn-auto').classList.toggle('armed', state.auto);
 	if (state.auto && !state.spinning) spin();
@@ -1259,30 +1391,43 @@ function openModal(id) { document.querySelectorAll('[data-modal]').forEach((m) =
 function closeModals() { document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')); }
 $('btn-menu').addEventListener('click', () => openModal('modal-menu'));
 $('btn-settings').addEventListener('click', () => openModal('modal-settings'));
-$('btn-info').addEventListener('click', () => openModal('modal-info'));
+$('btn-info').addEventListener('click', () => openModal('modal-rules'));
 document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', closeModals));
 document.querySelectorAll('[data-modal]').forEach((m) => m.addEventListener('click', (e) => { if (e.target === m) closeModals(); }));
 document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => openModal(b.dataset.open)));
 window.addEventListener('keydown', (e) => { if (e.code === 'Escape') closeModals(); });
+function primeSound() { Sound.prime(); }
+window.addEventListener('load', primeSound);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) primeSound(); });
+['pointerdown', 'mousedown', 'touchstart', 'click', 'keydown'].forEach((ev) => {
+	document.addEventListener(ev, primeSound, { passive: true, capture: true });
+});
+setTimeout(primeSound, 100);
+
+function setSound(on) {
+	state.sound = !!on;
+	Sound.setEnabled(state.sound);
+	const pill = $('menu-sound-state');
+	if (pill) { pill.textContent = state.sound ? 'ON' : 'OFF'; pill.classList.toggle('off', !state.sound); }
+	const toggle = $('toggle-sfx');
+	if (toggle) toggle.classList.toggle('on', state.sound);
+}
+function setTurbo(on) {
+	state.turbo = !!on;
+	const button = $('btn-turbo');
+	if (button) button.classList.toggle('armed', state.turbo);
+	const toggle = $('toggle-turbo');
+	if (toggle) toggle.classList.toggle('on', state.turbo);
+}
 
 // menu: sound toggle (drives the synthesised SFX hooks)
-$('menu-sound').addEventListener('click', () => {
-	const s = $('menu-sound-state'); const willOn = s.textContent !== 'ON';
-	state.sound = willOn; s.textContent = willOn ? 'ON' : 'OFF'; s.classList.toggle('off', !willOn);
-});
-$('menu-history').addEventListener('click', () => openModal('modal-info'));
-
-// settings: live master-volume readout
-(function () {
-	const sl = $('vol-slider'); const out = $('vol-val');
-	if (sl && out) sl.addEventListener('input', () => { out.textContent = sl.value; });
-})();
+$('menu-sound').addEventListener('click', () => setSound(!state.sound));
 
 // settings: toggle switches
 document.querySelectorAll('.toggle').forEach((t) => t.addEventListener('click', () => {
 	t.classList.toggle('on');
-	if (t.dataset.toggle === 'turbo') { state.turbo = t.classList.contains('on'); $('btn-turbo').classList.toggle('armed', state.turbo); }
-	if (t.dataset.toggle === 'sfx') { state.sound = t.classList.contains('on'); const p = $('menu-sound-state'); if (p) { p.textContent = state.sound ? 'ON' : 'OFF'; p.classList.toggle('off', !state.sound); } }
+	if (t.dataset.toggle === 'turbo') setTurbo(t.classList.contains('on'));
+	if (t.dataset.toggle === 'sfx') setSound(t.classList.contains('on'));
 }));
 
 // info: build the paytable grid from the symbol set
