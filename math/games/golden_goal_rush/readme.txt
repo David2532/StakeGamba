@@ -32,13 +32,44 @@ Useful commands:
   cd math/games/golden_goal_rush
   python run.py debug --spins 10 --seed 1
   python run.py smoke --spins 10 --seed 1
-  python run.py publish --spins 100 --bonus-spins 25 --seed 1
+  python run.py publish --spins 80000 --bonus-spins 40000 --seed 1
 
 Compression:
 - If Python package zstandard is installed, publish creates .jsonl.zst files.
 - If zstandard is missing, publish writes uncompressed .jsonl debug/publish books and records this in index.json.
 - Install with: pip install zstandard
 
+RTP calibration (lookup-weight optimization):
+- `optimization.py` implements the Stake Engine convention of shaping RTP through
+  per-simulation selection weights in the lookup CSV, never by touching reels,
+  paytable, or win-calculation logic (those stay exactly as designed).
+- Weights are computed via maximum-entropy/exponential-tilting reweighting of the
+  raw simulation pool toward each bet mode's `rtp_target` in game_config.py.
+- Diversity safety bounds (effective sample size, top single-book weight share)
+  would automatically cap the achieved RTP if hitting the full target required
+  concentrating selection probability onto too few simulations. Any capped mode
+  is flagged in RTP_AUDIT.json/.txt with an explanation. (In the current
+  configuration nothing is capped -- both modes reach target cleanly.)
+- Current result: both modes reach their 97% rtp_target with healthy diversity.
+  base (cost=1x):  achieved 97.00%, effective sample size ~75% of the pool.
+  bonus (cost=15x): achieved 97.00%, effective sample size ~99.7% of the pool.
+- Buy-feature cost note: the free-spin feature naturally returns ~14.5x bet on
+  average (max observed ~130x). The bonus buy cost is therefore set to 15x so the
+  buy feature is a fair ~97% RTP with near-uniform lookup diversity. An earlier
+  100x cost made the buy feature a ~14% raw / 133x-max outcome that could only be
+  pushed toward 97% by collapsing the lookup to ~32 effective outcomes -- a
+  diversity/predictability problem. Right-sizing the cost (a bet-mode parameter,
+  not reels/paytable/win-logic) is the clean fix and keeps the math internally
+  consistent. apps/lines/src/game/config.ts is kept in sync (bonus cost 15x).
+  See library/publish_files/RTP_AUDIT.txt.
+- Force records (library/forces/force_record_<mode>.json) catalogue representative
+  already-generated books (no-win, max-win, typical-win, scatter-trigger) for QA
+  bookkeeping. `game_override.py` intentionally does not implement reel forcing in
+  this MVP, so these are indexed natural examples, not synthesized outcomes.
+
 Stake upload note:
 - This scaffold prepares local publish files in library/publish_files/.
 - It is MVP-only and needs real Stake SDK validation, math tuning, and production simulation before upload.
+- "RTP-optimized" here means the lookup-table weighting has been calibrated and
+  audited per the Stake Engine math-sdk convention; it is not a regulatory or
+  certification claim.

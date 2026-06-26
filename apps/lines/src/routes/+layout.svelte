@@ -32,7 +32,7 @@
 {#if showYourLoader}
 	<LoaderExample src={loaderUrl} />
 	<!-- '/loader.gif' is served from static folder of sveltekit -->
-	<!-- File location: apps/scatter/static/loader.gif -->
+	<!-- File location: apps/lines/static/loader.gif -->
 {/if}
 
 {@render props.children()}

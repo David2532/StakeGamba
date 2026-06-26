@@ -72,14 +72,14 @@
 
 	.logo-wordmark {
 		position: absolute;
-		top: 8px;
+		top: 2px;
 		left: 50%;
 		z-index: 4;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		width: 980px;
-		height: 62px;
+		height: 102px;
 		gap: 0;
 		transform: translateX(-50%);
 		background: linear-gradient(180deg, #fff8bf 0%, #ffc84d 34%, #9c4f08 76%, #ffe27a 100%);
@@ -111,24 +111,6 @@
 		flex: 0 0 auto;
 	}
 
-	.logo-wordmark::before,
-	.logo-wordmark::after {
-		content: '';
-		flex: 0 0 86px;
-		width: 86px;
-		height: 13px;
-		margin: 0 14px;
-		border-top: 4px solid #f7c85a;
-		border-bottom: 4px solid #9f5a12;
-		transform: skewX(-28deg);
-		background: linear-gradient(90deg, transparent, rgba(255, 236, 130, 0.95), transparent);
-		box-shadow: 0 2px 4px #000;
-	}
-
-	.logo-wordmark::after {
-		transform: skewX(28deg);
-	}
-
 	.logo-ball {
 		width: 52px;
 		height: 52px;
@@ -138,35 +120,11 @@
 		filter: drop-shadow(0 2px 2px #000) drop-shadow(0 0 8px rgba(255, 217, 82, 0.75));
 	}
 
-	.world-plaque {
-		position: absolute;
-		top: 82px;
-		left: 50%;
-		z-index: 7;
-		min-width: 310px;
-		padding: 6px 24px 7px;
-		transform: translateX(-50%);
-		border: 2px solid rgba(245, 188, 62, 0.95);
-		border-radius: 999px;
-		background: linear-gradient(180deg, #1c1b17 0%, #050505 100%);
-		box-shadow:
-			0 0 0 2px rgba(0, 0, 0, 0.75),
-			0 0 16px rgba(255, 190, 42, 0.45);
-		color: #ffd36a;
-		font-size: 20px;
-		font-weight: 900;
-		line-height: 1;
-		text-align: center;
-		text-shadow: 0 2px 2px #000;
-	}
-
-	.world-plaque::before,
-	.world-plaque::after {
-		content: '*';
-		margin: 0 10px;
-		color: #fff1a5;
-		font-size: 13px;
-		vertical-align: 2px;
+	.logo-header-img {
+		height: 100%;
+		max-width: 100%;
+		object-fit: contain;
+		filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 14px rgba(255, 190, 38, 0.5));
 	}
 
 	.board-wrap {
@@ -685,13 +643,13 @@
 	}
 
 	.meters {
-		top: 528px;
+		top: 508px;
 		z-index: 8;
 	}
 
 	.meter {
 		position: relative;
-		height: 58px;
+		height: 78px;
 		overflow: visible;
 		border: 0;
 		background: transparent;
@@ -930,7 +888,7 @@
 		width: 106px;
 		height: 106px;
 		margin-right: 20px;
-		margin-left: 10px;
+		margin-left: 33px;
 		border: 0;
 		background: transparent;
 		box-shadow: none;
@@ -1308,15 +1266,14 @@
 	@keyframes feat-pulse { 50%{transform:scale(1.22);filter:drop-shadow(0 0 12px #ffd96f);} }
 
 	/* ---- free spins counter ---- */
-	.fs-counter { position:absolute; top:68px; left:50%; transform:translateX(-50%); z-index:16; display:none;
-		min-width:276px; padding:2px 18px 3px; border-radius:999px; border:2px solid rgba(245,188,62,0.95); text-align:center;
+	.fs-counter { position:absolute; top:102px; left:50%; transform:translateX(-50%); z-index:16; display:none;
+		min-width:230px; padding:1px 15px 2px; border-radius:999px; border:2px solid rgba(245,188,62,0.95); text-align:center;
 		background:linear-gradient(180deg,#1c1b17 0%,#050505 100%);
 		box-shadow:0 0 0 2px rgba(0,0,0,0.75), 0 0 16px rgba(255,190,42,0.45);
 		color:#ffe49a; font-family:Inter,Arial,sans-serif; }
 	.fs-counter.show { display:block; }
-	.fs-counter .fs-name { font-size:8px; letter-spacing:1.6px; color:#ffd96f; line-height:1; }
-	.fs-counter .fs-big { font-size:18px; font-weight:1000; color:#fff; line-height:1.02; }
-	.stage.bonus-mode .world-plaque { opacity:0; pointer-events:none; }
+	.fs-counter .fs-name { font-size:7px; letter-spacing:1.4px; color:#ffd96f; line-height:1; }
+	.fs-counter .fs-big { font-size:14px; font-weight:1000; color:#fff; line-height:1.02; }
 
 	/* ---- bonus buy ---- */
 	.bb-list { display:flex; flex-direction:column; gap:11px; }
@@ -1491,23 +1448,18 @@
 <body>
 	<div class="viewport">
 	<section class="stage" id="stage" aria-label="Golden Goal Rush interactive preview">
-		<img class="background" src="src/assets/golden-goal-rush/slot-background.png" alt="" />
+		<img class="background" src="src/assets/golden-goal-rush/slot-background.webp" alt="" />
 		<div class="stadium-vignette"></div>
 		<div class="top-light left"></div>
 		<div class="top-light right"></div>
 
 		<div class="logo-wordmark" aria-label="Golden Goal Rush">
-			<span>GOLDEN G</span>
-			<img class="logo-ball" src="src/assets/golden-goal-rush/fussball.png" alt="" />
-			<span>AL RUSH</span>
+			<img class="logo-header-img" src="src/assets/golden-goal-rush/logo-horizontal-tight.webp" alt="Golden Goal Rush" />
 		</div>
-		<div class="world-plaque">WORLD STADIUM</div>
 
 		<div class="board-wrap">
 			<div class="board-glow"></div>
 			<div class="board-frame">
-				<div class="side-badge left">CLUSTER<span>PAYS</span></div>
-				<div class="side-badge right">CLUSTER<span>PAYS</span></div>
 				<div class="board" id="board"></div>
 			</div>
 		</div>
@@ -1542,54 +1494,54 @@
 
 		<div class="meters">
 			<div class="meter">
-				<img class="panel-art" src="src/assets/golden-goal-rush/hud-extracted/meter-panel-a.png" alt="" />
-				<img class="meter-asset-icon" src="src/assets/golden-goal-rush/special/coin_1x.png" alt="" />
+				<img class="panel-art" src="src/assets/golden-goal-rush/hud-extracted/meter-panel-a.webp" alt="" />
+				<img class="meter-asset-icon" src="src/assets/golden-goal-rush/special/coin_1x.webp" alt="" />
 				<div><div class="meter-label">BALANCE</div><div class="meter-value" id="meter-balance">0.00</div></div>
 			</div>
 			<div class="meter">
-				<img class="panel-art" src="src/assets/golden-goal-rush/hud-extracted/meter-panel-b.png" alt="" />
-				<img class="meter-asset-icon" src="src/assets/golden-goal-rush/pokal.png" alt="" />
+				<img class="panel-art" src="src/assets/golden-goal-rush/hud-extracted/meter-panel-b.webp" alt="" />
+				<img class="meter-asset-icon" src="src/assets/golden-goal-rush/pokal.webp" alt="" />
 				<div><div class="meter-label">WIN</div><div class="meter-value" id="meter-win">0.00</div></div>
 			</div>
 			<div class="meter">
-				<img class="panel-art" src="src/assets/golden-goal-rush/hud-extracted/meter-panel-c.png" alt="" />
-				<img class="meter-asset-icon" src="src/assets/golden-goal-rush/special/coin_1x.png" alt="" />
+				<img class="panel-art" src="src/assets/golden-goal-rush/hud-extracted/meter-panel-c.webp" alt="" />
+				<img class="meter-asset-icon" src="src/assets/golden-goal-rush/special/coin_1x.webp" alt="" />
 				<div><div class="meter-label">BET</div><div class="meter-value" id="meter-bet">0.00</div></div>
 			</div>
 		</div>
 
 		<div class="controls">
 			<button type="button" class="asset-button menu" id="btn-menu" aria-label="Menu">
-				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/menu-button.png" alt="" /><span>MENU</span>
+				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/menu-button.webp" alt="" />
 			</button>
 			<button type="button" class="asset-button bonus" id="btn-bonus" aria-label="Buy Bonus">
-				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/bonus-button.png" alt="" /><span>BUY BONUS</span>
+				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/bonus-button.webp" alt="" />
 			</button>
 			<button type="button" class="asset-button" id="btn-auto" aria-label="Auto Spin">
-				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/autospin-button.png" alt="" /><span>AUTO SPIN</span>
+				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/autospin-button.webp" alt="" />
 			</button>
 			<div class="feature-control" aria-label="Golden Goal Rush feature logic preview">
-				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/feature-panel.png" alt="" />
+				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/feature-panel.webp" alt="" />
 				<div class="feature-items">
-					<div class="feature-item"><img src="src/assets/golden-goal-rush/special/symbol_collector.png" alt="" /><span>COLLECT</span></div>
-					<div class="feature-item"><img src="src/assets/golden-goal-rush/special/symbol_multiplier.png" alt="" /><span>MULTI</span></div>
-					<div class="feature-item"><img src="src/assets/golden-goal-rush/scatter.png" alt="" /><span>FREE SPINS</span></div>
+					<div class="feature-item"><img src="src/assets/golden-goal-rush/special/symbol_collector.webp" alt="" /><span>COLLECT</span></div>
+					<div class="feature-item"><img src="src/assets/golden-goal-rush/special/symbol_multiplier.webp" alt="" /><span>MULTI</span></div>
+					<div class="feature-item"><img src="src/assets/golden-goal-rush/scatter.webp" alt="" /><span>FREE SPINS</span></div>
 				</div>
 			</div>
 			<button type="button" class="spin-button" id="btn-spin" aria-label="Spin">
-				<img class="spin-art" src="src/assets/golden-goal-rush/hud-extracted/spin-button-active.png" alt="" /><span>SPIN</span>
+				<img class="spin-art" src="src/assets/golden-goal-rush/hud-extracted/spin-button-active.webp" alt="" /><span>SPIN</span>
 			</button>
 			<button type="button" class="asset-button turbo" id="btn-turbo" aria-label="Turbo">
-				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/turbo-button.png" alt="" /><span>TURBO</span>
+				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/turbo-button.webp" alt="" />
 			</button>
 			<div class="bet-controls" id="bet-controls" aria-label="Bet controls">
-				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/control-panel-wide.png" alt="" />
-				<button type="button" id="btn-bet-minus" aria-label="Decrease bet"><img src="src/assets/golden-goal-rush/hud-extracted/minus-button.png" alt="" /></button>
+				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/control-panel-wide.webp" alt="" />
+				<button type="button" id="btn-bet-minus" aria-label="Decrease bet"><img src="src/assets/golden-goal-rush/hud-extracted/minus-button.webp" alt="" /></button>
 				<div class="bet-display"><span>BET</span><strong id="bet-display">1.00</strong></div>
-				<button type="button" id="btn-bet-plus" aria-label="Increase bet"><img src="src/assets/golden-goal-rush/hud-extracted/plus-button.png" alt="" /></button>
+				<button type="button" id="btn-bet-plus" aria-label="Increase bet"><img src="src/assets/golden-goal-rush/hud-extracted/plus-button.webp" alt="" /></button>
 			</div>
-			<button type="button" class="icon-button info" id="btn-info" aria-label="Info"><img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/info-button.png" alt="" /></button>
-			<button type="button" class="icon-button settings" id="btn-settings" aria-label="Settings"><img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/settings-button.png" alt="" /></button>
+			<button type="button" class="icon-button info" id="btn-info" aria-label="Info"><img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/info-button.webp" alt="" /></button>
+			<button type="button" class="icon-button settings" id="btn-settings" aria-label="Settings"><img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/settings-button.webp" alt="" /></button>
 		</div>
 
 		<!-- ===== Menu modal ===== -->
@@ -1634,17 +1586,17 @@
 					<div class="pt-head">Symbol Pays <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small></div>
 					<div class="pt-grid" id="pt-grid"></div>
 					<div class="pt-head">Features</div>
-					<div class="pt-feat"><img src="src/assets/golden-goal-rush/wild.png" alt="Wild" /><div><b>WILD</b>Substitutes for every paying symbol to help complete clusters. Does not replace the Scatter.</div></div>
-					<div class="pt-feat"><img src="src/assets/golden-goal-rush/scatter.png" alt="Scatter" /><div><b>SCATTER &mdash; VIP TICKET</b>3, 4 or 5 trigger Free Spins Tier 1 / 2 / 3.</div></div>
+					<div class="pt-feat"><img src="src/assets/golden-goal-rush/wild.webp" alt="Wild" /><div><b>WILD</b>Substitutes for every paying symbol to help complete clusters. Does not replace the Scatter.</div></div>
+					<div class="pt-feat"><img src="src/assets/golden-goal-rush/scatter.webp" alt="Scatter" /><div><b>SCATTER &mdash; VIP TICKET</b>3, 4 or 5 trigger Free Spins Tier 1 / 2 / 3.</div></div>
 					<div class="pt-feat"><div class="pt-chip"></div><div><b>GOLDEN CELLS</b>Every winning position turns into a Golden Cell for the rest of the spin sequence.</div></div>
-					<div class="pt-feat"><img src="src/assets/golden-goal-rush/special/symbol_rainbow.png" alt="Golden Arc" /><div><b>GOLDEN ARC (RAINBOW)</b>While an Arc is on the board it activates all Golden Cells, revealing Coins, Multiplier Badges and Collector Cups.</div></div>
-					<div class="pt-feat"><img src="src/assets/golden-goal-rush/special/gold.png" alt="Coins" /><div><b>SPONSOR COINS</b>Bronze 0.2&ndash;4×, Silver 5&ndash;20×, Gold 25&ndash;500× the bet.</div></div>
-					<div class="pt-feat"><img src="src/assets/golden-goal-rush/special/x5.png" alt="Multiplier Badge" /><div><b>MULTIPLIER BADGE</b>Multiplies adjacent coins by x2, x3, x4, x5, x10.</div></div>
-					<div class="pt-feat"><img src="src/assets/golden-goal-rush/special/symbol_collector.png" alt="Collector Cup" /><div><b>COLLECTOR CUP</b>Collects the value of every visible coin (top-to-bottom, left-to-right). After the last cup the Golden Cells reveal again, repeating while new cups appear.</div></div>
+					<div class="pt-feat"><img src="src/assets/golden-goal-rush/special/symbol_rainbow.webp" alt="Golden Arc" /><div><b>GOLDEN ARC (RAINBOW)</b>While an Arc is on the board it activates all Golden Cells, revealing Coins, Multiplier Badges and Collector Cups.</div></div>
+					<div class="pt-feat"><img src="src/assets/golden-goal-rush/special/gold.webp" alt="Coins" /><div><b>SPONSOR COINS</b>Bronze 0.2&ndash;4×, Silver 5&ndash;20×, Gold 25&ndash;500× the bet.</div></div>
+					<div class="pt-feat"><img src="src/assets/golden-goal-rush/special/x5.webp" alt="Multiplier Badge" /><div><b>MULTIPLIER BADGE</b>Multiplies adjacent coins by x2, x3, x4, x5, x10.</div></div>
+					<div class="pt-feat"><img src="src/assets/golden-goal-rush/special/symbol_collector.webp" alt="Collector Cup" /><div><b>COLLECTOR CUP</b>Collects the value of every visible coin (top-to-bottom, left-to-right). After the last cup the Golden Cells reveal again, repeating while new cups appear.</div></div>
 					<div class="pt-head">Free Spins &amp; Bonus Buy</div>
-					<div class="pt-feat"><img src="src/assets/golden-goal-rush/scatter.png" alt="Free Spins" /><div><b>FREE SPINS</b>
+					<div class="pt-feat"><img src="src/assets/golden-goal-rush/scatter.webp" alt="Free Spins" /><div><b>FREE SPINS</b>
 						Tier 1 &mdash; Golden Chance: 8 spins.<br>Tier 2 &mdash; All That Glitters: 12 spins.<br>Tier 3 &mdash; End of the Rainbow: 12 spins, guaranteed Arc each spin.</div></div>
-					<div class="pt-feat"><img src="src/assets/golden-goal-rush/hud-extracted/bonus-button.png" alt="Bonus Buy" /><div><b>BONUS BUY</b>
+					<div class="pt-feat"><img src="src/assets/golden-goal-rush/hud-extracted/bonus-button.webp" alt="Bonus Buy" /><div><b>BONUS BUY</b>
 						Feature Spins &mdash; 4.2× bet<br>Rainbow Spin &mdash; 6× bet<br>Golden Chance &mdash; 31× bet<br>All That Glitters &mdash; 95× bet<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
 					<div class="pt-note">Theoretical RTP target ~96% (demo) &middot; Max win 10,000× bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
 				</div>
@@ -1665,10 +1617,10 @@
 	</div>
 
 <script>
-const SYMBOLS = {"ten":{"weight":22,"pay":0.09,"src":"src/assets/golden-goal-rush/10.png"},"j":{"weight":20,"pay":0.09,"src":"src/assets/golden-goal-rush/j.png"},"q":{"weight":17,"pay":0.13,"src":"src/assets/golden-goal-rush/q.png"},"k":{"weight":15,"pay":0.18,"src":"src/assets/golden-goal-rush/k.png"},"a":{"weight":13,"pay":0.22,"src":"src/assets/golden-goal-rush/a.png"},"football":{"weight":9,"pay":0.35,"src":"src/assets/golden-goal-rush/fussball.png","cls":"feature"},"whistle":{"weight":8,"pay":0.45,"src":"src/assets/golden-goal-rush/pfeife.png","cls":"feature"},"trophy":{"weight":6,"pay":0.65,"src":"src/assets/golden-goal-rush/pokal.png"},"jersey":{"weight":6,"pay":0.9,"src":"src/assets/golden-goal-rush/trikot.png","cls":"wide"},"wild":{"weight":2,"pay":0,"wild":true,"src":"src/assets/golden-goal-rush/wild.png","cls":"feature"},"scatter":{"weight":2,"pay":0,"scatter":true,"src":"src/assets/golden-goal-rush/scatter.png","cls":"wide"},"rainbow":{"weight":2,"pay":0,"rainbow":true,"src":"src/assets/golden-goal-rush/special/symbol_rainbow.png","cls":"feature"}};
-const COIN_ASSETS = {"bronze":"src/assets/golden-goal-rush/special/bronze.png","silver":"src/assets/golden-goal-rush/special/silber.png","gold":"src/assets/golden-goal-rush/special/gold.png"};
-const MULT_ASSETS = {"2":"src/assets/golden-goal-rush/special/x2.png","3":"src/assets/golden-goal-rush/special/x3.png","4":"src/assets/golden-goal-rush/special/x4.png","5":"src/assets/golden-goal-rush/special/x5.png","10":"src/assets/golden-goal-rush/special/x10.png"};
-const COLLECTOR_ASSET = "src/assets/golden-goal-rush/special/symbol_collector.png";
+const SYMBOLS = {"ten":{"weight":22,"pay":0.09,"src":"src/assets/golden-goal-rush/10.webp"},"j":{"weight":20,"pay":0.09,"src":"src/assets/golden-goal-rush/j.webp"},"q":{"weight":17,"pay":0.13,"src":"src/assets/golden-goal-rush/q.webp"},"k":{"weight":15,"pay":0.18,"src":"src/assets/golden-goal-rush/k.webp"},"a":{"weight":13,"pay":0.22,"src":"src/assets/golden-goal-rush/a.webp"},"football":{"weight":9,"pay":0.35,"src":"src/assets/golden-goal-rush/fussball.webp","cls":"feature"},"whistle":{"weight":8,"pay":0.45,"src":"src/assets/golden-goal-rush/pfeife.webp","cls":"feature"},"trophy":{"weight":6,"pay":0.65,"src":"src/assets/golden-goal-rush/pokal.webp"},"jersey":{"weight":6,"pay":0.9,"src":"src/assets/golden-goal-rush/trikot.webp","cls":"wide"},"wild":{"weight":2,"pay":0,"wild":true,"src":"src/assets/golden-goal-rush/wild.webp","cls":"feature"},"scatter":{"weight":2,"pay":0,"scatter":true,"src":"src/assets/golden-goal-rush/scatter.webp","cls":"wide"},"rainbow":{"weight":2,"pay":0,"rainbow":true,"src":"src/assets/golden-goal-rush/special/symbol_rainbow.webp","cls":"feature"}};
+const COIN_ASSETS = {"bronze":"src/assets/golden-goal-rush/special/bronze.webp","silver":"src/assets/golden-goal-rush/special/silber.webp","gold":"src/assets/golden-goal-rush/special/gold.webp"};
+const MULT_ASSETS = {"2":"src/assets/golden-goal-rush/special/x2.webp","3":"src/assets/golden-goal-rush/special/x3.webp","4":"src/assets/golden-goal-rush/special/x4.webp","5":"src/assets/golden-goal-rush/special/x5.webp","10":"src/assets/golden-goal-rush/special/x10.webp"};
+const COLLECTOR_ASSET = "src/assets/golden-goal-rush/special/symbol_collector.webp";
 const CONFIG = {"blankWeight":88,"bronzeWeight":60,"silverWeight":11,"goldWeight":1.5,"multiplierWeight":8,"collectorWeight":3,"rainbowWeight":0.12,"scatterWeight":2,"huntBoost":40,"bronzeValues":[0.2,0.5,1,2,3,4],"silverValues":[5,10,15,20],"goldValues":[25,50,100,250,500],"multiplierValues":[2,3,4,5,10],"maxCollectorCycles":4,"maxWinMultiplier":10000,"tiers":{"1":{"name":"Golden Chance","spins":8,"persistGolden":true,"persistAfterReveal":false,"guaranteedRainbow":false,"rainbowBoost":3,"reduceBronze":false},"2":{"name":"All That Glitters","spins":12,"persistGolden":true,"persistAfterReveal":true,"guaranteedRainbow":false,"rainbowBoost":3,"reduceBronze":false},"3":{"name":"End of the Rainbow","spins":12,"persistGolden":true,"persistAfterReveal":true,"guaranteedRainbow":true,"rainbowBoost":1,"reduceBronze":true}},"bonusBuy":[{"id":"hunt","label":"Feature Spins","mult":4.2,"desc":"One paid spin with boosted feature chance"},{"id":"rainbow","label":"Rainbow Spin","mult":6,"desc":"One paid spin with a guaranteed Golden Arc"},{"id":"tier1","label":"Golden Chance","mult":31,"desc":"Start 8 Free Spins (Tier 1)"},{"id":"tier2","label":"All That Glitters","mult":95,"desc":"Start 12 Free Spins (Tier 2)"}]};
 const COLS = 6, ROWS = 5, MIN_CLUSTER = 5;
 const BETS = [0.2, 0.5, 1, 2, 5, 10, 20, 50, 100];

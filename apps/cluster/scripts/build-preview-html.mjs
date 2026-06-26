@@ -30,49 +30,49 @@ const HUD = `${A}/hud-extracted`;
 const SPECIAL = `${A}/special`;
 
 const assets = {
-	background: `${A}/slot-background.png`,
-	football: `${A}/fussball.png`,
-	coin: `${SPECIAL}/coin_1x.png`,
-	collector: `${SPECIAL}/symbol_collector.png`,
-	multiplier: `${SPECIAL}/symbol_multiplier.png`,
-	trophy: `${A}/pokal.png`,
-	meterPanelA: `${HUD}/meter-panel-a.png`,
-	meterPanelB: `${HUD}/meter-panel-b.png`,
-	meterPanelC: `${HUD}/meter-panel-c.png`,
-	controlPanel: `${HUD}/control-panel-wide.png`,
-	featurePanel: `${HUD}/feature-panel.png`,
-	menuButton: `${HUD}/menu-button.png`,
-	bonusButton: `${HUD}/bonus-button.png`,
-	autoSpinButton: `${HUD}/autospin-button.png`,
-	turboButton: `${HUD}/turbo-button.png`,
-	spinButton: `${HUD}/spin-button-active.png`,
-	minusButton: `${HUD}/minus-button.png`,
-	plusButton: `${HUD}/plus-button.png`,
-	infoButton: `${HUD}/info-button.png`,
-	settingsButton: `${HUD}/settings-button.png`,
+	background: `${A}/slot-background.webp`,
+	football: `${A}/fussball.webp`,
+	coin: `${SPECIAL}/coin_1x.webp`,
+	collector: `${SPECIAL}/symbol_collector.webp`,
+	multiplier: `${SPECIAL}/symbol_multiplier.webp`,
+	trophy: `${A}/pokal.webp`,
+	meterPanelA: `${HUD}/meter-panel-a.webp`,
+	meterPanelB: `${HUD}/meter-panel-b.webp`,
+	meterPanelC: `${HUD}/meter-panel-c.webp`,
+	controlPanel: `${HUD}/control-panel-wide.webp`,
+	featurePanel: `${HUD}/feature-panel.webp`,
+	menuButton: `${HUD}/menu-button.webp`,
+	bonusButton: `${HUD}/bonus-button.webp`,
+	autoSpinButton: `${HUD}/autospin-button.webp`,
+	turboButton: `${HUD}/turbo-button.webp`,
+	spinButton: `${HUD}/spin-button-active.webp`,
+	minusButton: `${HUD}/minus-button.webp`,
+	plusButton: `${HUD}/plus-button.webp`,
+	infoButton: `${HUD}/info-button.webp`,
+	settingsButton: `${HUD}/settings-button.webp`,
 };
 
 // Symbol pool for the demo engine. `pay` = base multiple for a 5-cluster.
 // Build the render symbol map from the shared math (weights/pays) + asset src.
 const SYMBOL_SRC = {
-	ten: { src: `${A}/10.png` }, j: { src: `${A}/j.png` }, q: { src: `${A}/q.png` },
-	k: { src: `${A}/k.png` }, a: { src: `${A}/a.png` },
-	football: { src: `${A}/fussball.png`, cls: 'feature' }, whistle: { src: `${A}/pfeife.png`, cls: 'feature' },
-	trophy: { src: `${A}/pokal.png` }, jersey: { src: `${A}/trikot.png`, cls: 'wide' },
-	wild: { src: `${A}/wild.png`, cls: 'feature' }, scatter: { src: `${A}/scatter.png`, cls: 'wide' },
-	rainbow: { src: `${SPECIAL}/symbol_rainbow.png`, cls: 'feature' },
+	ten: { src: `${A}/10.webp` }, j: { src: `${A}/j.webp` }, q: { src: `${A}/q.webp` },
+	k: { src: `${A}/k.webp` }, a: { src: `${A}/a.webp` },
+	football: { src: `${A}/fussball.webp`, cls: 'feature' }, whistle: { src: `${A}/pfeife.webp`, cls: 'feature' },
+	trophy: { src: `${A}/pokal.webp` }, jersey: { src: `${A}/trikot.webp`, cls: 'wide' },
+	wild: { src: `${A}/wild.webp`, cls: 'feature' }, scatter: { src: `${A}/scatter.webp`, cls: 'wide' },
+	rainbow: { src: `${SPECIAL}/symbol_rainbow.webp`, cls: 'feature' },
 };
 const SYMBOLS = Object.fromEntries(Object.entries(SYMBOL_MATH).map(([k, m]) => [k, { ...m, ...SYMBOL_SRC[k] }]));
 
 // Coin medals (tier color) + a value label render on top; multiplier badge / collector.
 const COIN_ASSETS = {
-	bronze: `${SPECIAL}/bronze.png`, silver: `${SPECIAL}/silber.png`, gold: `${SPECIAL}/gold.png`,
+	bronze: `${SPECIAL}/bronze.webp`, silver: `${SPECIAL}/silber.webp`, gold: `${SPECIAL}/gold.webp`,
 };
 const MULT_ASSETS = {
-	2: `${SPECIAL}/x2.png`, 3: `${SPECIAL}/x3.png`, 4: `${SPECIAL}/x4.png`,
-	5: `${SPECIAL}/x5.png`, 10: `${SPECIAL}/x10.png`,
+	2: `${SPECIAL}/x2.webp`, 3: `${SPECIAL}/x3.webp`, 4: `${SPECIAL}/x4.webp`,
+	5: `${SPECIAL}/x5.webp`, 10: `${SPECIAL}/x10.webp`,
 };
-const COLLECTOR_ASSET = `${SPECIAL}/symbol_collector.png`;
+const COLLECTOR_ASSET = `${SPECIAL}/symbol_collector.webp`;
 // CONFIG is imported from ggr-config.mjs (shared with the RTP simulation).
 
 const meters = [

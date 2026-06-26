@@ -14,7 +14,7 @@ export default {
 			max_win: 5000.0,
 		},
 		bonus: {
-			cost: 100.0,
+			cost: 15.0,
 			feature: false,
 			buyBonus: true,
 			rtp: 0.97,

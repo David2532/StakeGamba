@@ -104,11 +104,11 @@ pnpm run storybook --filter=lines
 ```
 - You should see this:
 
-<img src="./documentation/get-started-storybook-run.png" alt="isolated" width="100%"/>
+<img src="./documentation/get-started-storybook-run.webp" alt="isolated" width="100%"/>
 
 - Now switch to `MODE_BASE/book/random` in the left sidebar, you will see an `Action` button appear on the left right conner of the game.
 
-<img src="./documentation/get-started-storybook-action.png" alt="isolated" width="100%"/>
+<img src="./documentation/get-started-storybook-action.webp" alt="isolated" width="100%"/>
 
 - Click on the `Action` button and wait for a base game to finish.
 - Now you are having a game running locally in the storybook.
@@ -121,7 +121,7 @@ pnpm run dev --filter=lines
 ```
 - Open up the url showed in the terminal, you should see this:
 
-<img src="./documentation/get-started-dev.png" alt="isolated" width="100%"/>
+<img src="./documentation/get-started-dev.webp" alt="isolated" width="100%"/>
 
 - It is all good to have that error screen for now, because we have not connected to the RGS with DEV mode. We will show you how to do that in the launch-a-game step.
 
@@ -162,17 +162,17 @@ build
 
 - Login [Stake Engine](https://engine.stake.com/) account. Go to `Files` page of a game. Import files to upload your the frontend by selecting the whole build folder.
 
-<img src="./documentation/get-started-launch-home.png" alt="isolated" width="100%"/>
+<img src="./documentation/get-started-launch-home.webp" alt="isolated" width="100%"/>
 
-<img src="./documentation/get-started-launch-sync.png" alt="isolated" width="100%"/>
+<img src="./documentation/get-started-launch-sync.webp" alt="isolated" width="100%"/>
 
 - Then remember to click on the `Publish Game` button then select Front End.
 
-<img src="./documentation/get-started-launch-publish.png" alt="isolated" width="100%"/>
+<img src="./documentation/get-started-launch-publish.webp" alt="isolated" width="100%"/>
 
 - Then go to the `Developer` page, click on `Start game session` button and click on `Launch in New Tab` button.
 
-<img src="./documentation/get-started-launch-test.png" alt="isolated" width="100%"/>
+<img src="./documentation/get-started-launch-test.webp" alt="isolated" width="100%"/>
 
 - A game is live with a staging environment and you can play with all the buttons.
 
@@ -297,8 +297,8 @@ Storybook is a powerful and handy tool to test our games. For example:
 - `MODE_BONUS/bookEvent/reveal`: It tests the [<Game \/>](/apps/lines/src/components/Game.svelte) component with a "reveal" bookEvent of the bonus mode. It will spin the reels.
 - ...
 
-<img src="./documentation/storybook_symbol.png" alt="isolated" width="100%"/>
-<img src="./documentation/storybook_symbols.png" alt="isolated" width="100%"/>
+<img src="./documentation/storybook_symbol.webp" alt="isolated" width="100%"/>
+<img src="./documentation/storybook_symbols.webp" alt="isolated" width="100%"/>
 
 ###
 
@@ -312,7 +312,7 @@ With all the stories above and the stories that created and customised by yourse
 
 Here it is a simplified flow chart of steps how a game is processed after RGS request. The real situation might be more complicated, but it follows the same idea.
 
-<img src="./documentation/flow_chart.png" alt="isolated" width="100%"/>
+<img src="./documentation/flow_chart.webp" alt="isolated" width="100%"/>
 
 <a name="playBookEvents"></a>
 
@@ -585,7 +585,7 @@ Stateless games can be complicated as well (vs. stateful games). For example, a 
 
 However with the data structure of math and the functions we have, we are able to break down a complicated game into small and atomic tasks (emitterEvents). It enables us to test the atomics independently as well. Visually it is something like this:
 
-<img src="./documentation/task_breakdown.png" alt="isolated" width="100%"/>
+<img src="./documentation/task_breakdown.webp" alt="isolated" width="100%"/>
 
 <mark>The colors of the emitterEvents under a bookEvent can be different, which means they are from different svelte components.</mark>
 
@@ -657,7 +657,7 @@ export type BookEvent =
 
 - [apps/lines/src/game/bookEventHandlerMap.ts](/apps/lines/src/game/bookEventHandlerMap.ts): This file includes all the bookEventHandlers. Let is add a new one for the new bookEvent. Check the intellisense that the previous step brings, it provides a better developer experience.
 
-<img src="./documentation/book_event_intellisense.png" alt="isolated" width="100%"/>
+<img src="./documentation/book_event_intellisense.webp" alt="isolated" width="100%"/>
 
 ###
 
@@ -707,7 +707,7 @@ export const { eventEmitter } = createEventEmitter<EmitterEvent>();
 
 - [apps/lines/src/components/GlobalMultiplier.svelte](/apps/lines/src/components/GlobalMultiplier.svelte): Back to our component file, the intellisense is there. Let is add the code to process the values with a spine animation as well.
 
-<img src="./documentation/emitter_event_intellisense.png" alt="isolated" width="100%"/>
+<img src="./documentation/emitter_event_intellisense.webp" alt="isolated" width="100%"/>
 
 ###
 
@@ -919,7 +919,7 @@ export const setContext = () => {
 
 <mark>Different apps and packages require different contexts.</mark>
 
-<img src="./documentation/context_diagram.png" alt="isolated" width="100%"/>
+<img src="./documentation/context_diagram.webp" alt="isolated" width="100%"/>
 
 <a name="contextEventEmitter"></a>
 

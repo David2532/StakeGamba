@@ -65,15 +65,33 @@ BET_MODES = {
         "cost": 1.0,
         "feature": True,
         "buyBonus": False,
-        "rtp_target_note": "MVP configurable target, not final",
+        "rtp_target": 0.97,
     },
     "bonus": {
-        "cost": 100.0,
+        # Buy-feature cost is sized to the feature's actual expected return.
+        # The free-spin math pays ~14.5x bet on average, so a 15x buy cost
+        # yields a fair ~97% RTP with full lookup diversity. A higher cost
+        # would force the lookup to over-concentrate selection weight on a
+        # handful of rare large wins to reach 97% -- see RTP_AUDIT for the
+        # diversity metrics that drove this choice.
+        "cost": 15.0,
         "feature": False,
         "buyBonus": True,
-        "rtp_target_note": "MVP configurable target, not final",
+        "rtp_target": 0.97,
     },
 }
+
+# Lookup-weight optimization safety bounds (see optimization.py). RTP is
+# calibrated by reweighting the unweighted simulation pool, never by
+# touching reels/paytable. These bounds stop that reweighting from
+# concentrating selection probability onto too few simulations -- if a bet
+# mode's natural payout distribution can't reach its rtp_target without
+# violating them, the achieved RTP is capped and the gap is reported in
+# RTP_AUDIT.json instead of silently produced.
+RTP_MIN_EFFECTIVE_SAMPLE_FRACTION = 0.01
+RTP_MIN_EFFECTIVE_SAMPLE_FLOOR = 200.0
+RTP_MAX_TOP_WEIGHT_SHARE = 0.05
+RTP_LOOKUP_WEIGHT_SCALE = 1_000_000_000
 
 WIN_LEVELS = [
     (5000, 7),

@@ -1,74 +1,74 @@
 <script lang="ts">
 	const assets = {
-		background: new URL('../assets/golden-goal-rush/slot-background.png', import.meta.url).href,
-		ten: new URL('../assets/golden-goal-rush/10.png', import.meta.url).href,
-		j: new URL('../assets/golden-goal-rush/j.png', import.meta.url).href,
-		q: new URL('../assets/golden-goal-rush/q.png', import.meta.url).href,
-		k: new URL('../assets/golden-goal-rush/k.png', import.meta.url).href,
-		a: new URL('../assets/golden-goal-rush/a.png', import.meta.url).href,
-		football: new URL('../assets/golden-goal-rush/fussball.png', import.meta.url).href,
-		trophy: new URL('../assets/golden-goal-rush/pokal.png', import.meta.url).href,
-		jersey: new URL('../assets/golden-goal-rush/trikot.png', import.meta.url).href,
-		whistle: new URL('../assets/golden-goal-rush/pfeife.png', import.meta.url).href,
-		wild: new URL('../assets/golden-goal-rush/wild.png', import.meta.url).href,
-		scatter: new URL('../assets/golden-goal-rush/scatter.png', import.meta.url).href,
-		coin: new URL('../assets/golden-goal-rush/special/coin_1x.png', import.meta.url).href,
-		collector: new URL('../assets/golden-goal-rush/special/symbol_collector.png', import.meta.url)
+		background: new URL('../assets/golden-goal-rush/slot-background.webp', import.meta.url).href,
+		ten: new URL('../assets/golden-goal-rush/10.webp', import.meta.url).href,
+		j: new URL('../assets/golden-goal-rush/j.webp', import.meta.url).href,
+		q: new URL('../assets/golden-goal-rush/q.webp', import.meta.url).href,
+		k: new URL('../assets/golden-goal-rush/k.webp', import.meta.url).href,
+		a: new URL('../assets/golden-goal-rush/a.webp', import.meta.url).href,
+		football: new URL('../assets/golden-goal-rush/fussball.webp', import.meta.url).href,
+		trophy: new URL('../assets/golden-goal-rush/pokal.webp', import.meta.url).href,
+		jersey: new URL('../assets/golden-goal-rush/trikot.webp', import.meta.url).href,
+		whistle: new URL('../assets/golden-goal-rush/pfeife.webp', import.meta.url).href,
+		wild: new URL('../assets/golden-goal-rush/wild.webp', import.meta.url).href,
+		scatter: new URL('../assets/golden-goal-rush/scatter.webp', import.meta.url).href,
+		coin: new URL('../assets/golden-goal-rush/special/coin_1x.webp', import.meta.url).href,
+		collector: new URL('../assets/golden-goal-rush/special/symbol_collector.webp', import.meta.url)
 			.href,
-		multiplier: new URL('../assets/golden-goal-rush/special/symbol_multiplier.png', import.meta.url)
+		multiplier: new URL('../assets/golden-goal-rush/special/symbol_multiplier.webp', import.meta.url)
 			.href,
 		meterPanelA: new URL(
-			'../assets/golden-goal-rush/hud-extracted/meter-panel-a.png',
+			'../assets/golden-goal-rush/hud-extracted/meter-panel-a.webp',
 			import.meta.url,
 		).href,
 		meterPanelB: new URL(
-			'../assets/golden-goal-rush/hud-extracted/meter-panel-b.png',
+			'../assets/golden-goal-rush/hud-extracted/meter-panel-b.webp',
 			import.meta.url,
 		).href,
 		meterPanelC: new URL(
-			'../assets/golden-goal-rush/hud-extracted/meter-panel-c.png',
+			'../assets/golden-goal-rush/hud-extracted/meter-panel-c.webp',
 			import.meta.url,
 		).href,
 		controlPanel: new URL(
-			'../assets/golden-goal-rush/hud-extracted/control-panel-wide.png',
+			'../assets/golden-goal-rush/hud-extracted/control-panel-wide.webp',
 			import.meta.url,
 		).href,
 		featurePanel: new URL(
-			'../assets/golden-goal-rush/hud-extracted/feature-panel.png',
+			'../assets/golden-goal-rush/hud-extracted/feature-panel.webp',
 			import.meta.url,
 		).href,
-		menuButton: new URL('../assets/golden-goal-rush/hud-extracted/menu-button.png', import.meta.url)
+		menuButton: new URL('../assets/golden-goal-rush/hud-extracted/menu-button.webp', import.meta.url)
 			.href,
 		bonusButton: new URL(
-			'../assets/golden-goal-rush/hud-extracted/bonus-button.png',
+			'../assets/golden-goal-rush/hud-extracted/bonus-button.webp',
 			import.meta.url,
 		).href,
 		autoSpinButton: new URL(
-			'../assets/golden-goal-rush/hud-extracted/autospin-button.png',
+			'../assets/golden-goal-rush/hud-extracted/autospin-button.webp',
 			import.meta.url,
 		).href,
 		turboButton: new URL(
-			'../assets/golden-goal-rush/hud-extracted/turbo-button.png',
+			'../assets/golden-goal-rush/hud-extracted/turbo-button.webp',
 			import.meta.url,
 		).href,
 		spinButton: new URL(
-			'../assets/golden-goal-rush/hud-extracted/spin-button-active.png',
+			'../assets/golden-goal-rush/hud-extracted/spin-button-active.webp',
 			import.meta.url,
 		).href,
 		minusButton: new URL(
-			'../assets/golden-goal-rush/hud-extracted/minus-button.png',
+			'../assets/golden-goal-rush/hud-extracted/minus-button.webp',
 			import.meta.url,
 		).href,
-		plusButton: new URL('../assets/golden-goal-rush/hud-extracted/plus-button.png', import.meta.url)
+		plusButton: new URL('../assets/golden-goal-rush/hud-extracted/plus-button.webp', import.meta.url)
 			.href,
-		infoButton: new URL('../assets/golden-goal-rush/hud-extracted/info-button.png', import.meta.url)
+		infoButton: new URL('../assets/golden-goal-rush/hud-extracted/info-button.webp', import.meta.url)
 			.href,
 		settingsButton: new URL(
-			'../assets/golden-goal-rush/hud-extracted/settings-button.png',
+			'../assets/golden-goal-rush/hud-extracted/settings-button.webp',
 			import.meta.url,
 		).href,
 		featureBanner: new URL(
-			'../assets/golden-goal-rush/hud-extracted/feature-banner-wide.png',
+			'../assets/golden-goal-rush/hud-extracted/feature-banner-wide.webp',
 			import.meta.url,
 		).href,
 	};

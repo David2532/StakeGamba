@@ -8,4 +8,18 @@ This package contains a technical MVP math bundle for Golden Goal Rush using the
 - symbol IDs: L1, L2, L3, L4, L5, H1, H2, H3, H4, W, S
 - supported events only: reveal, winInfo, setWin, setTotalWin, freeSpinTrigger, updateFreeSpin, freeSpinEnd, finalWin
 
+Lookup-table weights are calibrated via exponential-tilting RTP optimization
+(see ../../optimization.py and RTP_AUDIT.json/.txt in this directory) against
+each bet mode's rtp_target, under diversity-safety bounds. This reweights
+selection of already-generated, unmodified simulations only -- reels,
+paytable, paylines, and win-calculation logic are unchanged.
+
+Both bet modes reach a 97% RTP target with healthy lookup diversity and no
+diversity capping:
+- base  (cost 1x):  rtp_achieved 97.00%
+- bonus (cost 15x): rtp_achieved 97.00%
+Each mode's declared rtp_achieved equals the weighted RTP of its lookup table,
+so the package is internally consistent. The bonus buy cost (15x) is sized to
+the feature's actual expected return so the buy feature is fair.
+
 Do not treat this package as final RTP, final volatility, or regulatory-approved math.
