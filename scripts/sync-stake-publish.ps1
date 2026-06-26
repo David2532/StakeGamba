@@ -238,6 +238,14 @@ function Copy-FrontendUploadFiles {
 		Copy-Item -Path (Join-Path $FrontendStaticSource "*") -Destination $FrontendDest -Recurse -Force
 	}
 
+	# The standalone preview does not use the SDK bitmap-font bundles. Keeping
+	# them in the Stake scratch upload can make the review shell request font
+	# atlas files through /api/file and report noisy 403s.
+	$unusedFontAssets = Join-Path $FrontendDest "assets\fonts"
+	if (Test-Path -LiteralPath $unusedFontAssets) {
+		Remove-Item -LiteralPath $unusedFontAssets -Recurse -Force
+	}
+
 	$assetDestRoot = Join-Path $FrontendDest "src\assets"
 	New-Item -ItemType Directory -Force -Path $assetDestRoot | Out-Null
 	Copy-Item -LiteralPath $FrontendAssetSource -Destination (Join-Path $assetDestRoot "golden-goal-rush") -Recurse -Force
