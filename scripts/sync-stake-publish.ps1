@@ -9,7 +9,8 @@ param(
 $ErrorActionPreference = "Stop"
 
 $Root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$PublishRoot = Join-Path $Root "publish\golden-goal-rush"
+$PublishRoot = Join-Path $Root "publish"
+$LegacyPublishRoot = Join-Path $PublishRoot "golden-goal-rush"
 $FrontendSource = Join-Path $Root "apps\lines\build"
 $FrontendDest = Join-Path $PublishRoot "frontend"
 $MathRoot = Join-Path $Root "math\games\golden_goal_rush"
@@ -186,6 +187,66 @@ function New-MathZip {
 	}
 }
 
+function Test-FrontendUploadContents {
+	$requiredFiles = @(
+		"index.html",
+		"favicon.svg",
+		"loader.gif",
+		"stake-engine-loader.gif"
+	)
+	$requiredDirs = @(
+		"_app",
+		"assets",
+		"assets\golden-goal-rush"
+	)
+
+	foreach ($file in $requiredFiles) {
+		$path = Join-Path $FrontendDest $file
+		if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+			throw "Frontend publish folder is missing required file: $file"
+		}
+	}
+
+	foreach ($dir in $requiredDirs) {
+		$path = Join-Path $FrontendDest $dir
+		if (-not (Test-Path -LiteralPath $path -PathType Container)) {
+			throw "Frontend publish folder is missing required folder: $dir"
+		}
+	}
+}
+
+function Test-MathUploadContents {
+	$zip = Get-Item -LiteralPath $MathZip
+	if ($zip.Length -le 0) {
+		throw "Math upload ZIP is empty: $MathZip"
+	}
+
+	Add-Type -AssemblyName System.IO.Compression
+	Add-Type -AssemblyName System.IO.Compression.FileSystem
+	$expected = @(
+		"index.json",
+		"game_config.json",
+		"base_lookup.csv",
+		"bonus_lookup.csv",
+		"base_books.jsonl.zst",
+		"bonus_books.jsonl.zst",
+		"README_UPLOAD.txt"
+	)
+
+	$archive = [System.IO.Compression.ZipFile]::OpenRead($MathZip)
+	try {
+		$names = @($archive.Entries | ForEach-Object { $_.FullName })
+		foreach ($entry in $expected) {
+			if ($names -notcontains $entry) {
+				throw "Math upload ZIP is missing required file: $entry"
+			}
+		}
+	}
+	finally {
+		$archive.Dispose()
+	}
+}
+
 Write-Host "Syncing Stake publish snapshot..."
 
 if ($BuildFrontend) {
@@ -216,6 +277,10 @@ elseif (-not $SkipMathStalenessCheck) {
 }
 
 New-Item -ItemType Directory -Force -Path $PublishRoot | Out-Null
+if (Test-Path -LiteralPath $LegacyPublishRoot) {
+	Assert-ChildPath -Child $LegacyPublishRoot -Parent $PublishRoot
+	Remove-Item -LiteralPath $LegacyPublishRoot -Recurse -Force
+}
 Reset-Directory -Path $FrontendDest
 Reset-Directory -Path $MathDest
 
@@ -232,23 +297,8 @@ foreach ($file in @("README_UPLOAD.txt", "UPLOAD_GUIDE.txt", "RTP_AUDIT.json", "
 	}
 }
 
-$readme = @"
-Golden Goal Rush Stake publish snapshot
-Generated: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss K")
-
-Frontend upload:
-  $FrontendDest
-
-Math upload:
-  $MathZip
-
-Stake Engine notes:
-- Upload the complete frontend folder, not source files.
-- Upload the math ZIP as the math package.
-- This publish/ folder is generated locally and ignored by Git.
-"@
-
-Set-Content -LiteralPath (Join-Path $PublishRoot "UPLOAD_README.txt") -Value $readme -Encoding UTF8
+Test-FrontendUploadContents
+Test-MathUploadContents
 
 Write-Host "Stake publish snapshot ready:"
 Write-Host "  Frontend: $FrontendDest"
