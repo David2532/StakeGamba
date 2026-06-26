@@ -4,9 +4,9 @@ Frontend package:
 Use the existing apps/lines frontend build or frontend ZIP from the normal project build pipeline. This math task does not create or replace a frontend ZIP.
 
 Math package:
-Use golden-goal-rush-math-upload.zip from this publish_files directory.
+Use the generated publish/math folder from the repository root.
 
-Math ZIP contents:
+Math folder contents:
 - index.json
 - game_config.json
 - base_lookup.csv

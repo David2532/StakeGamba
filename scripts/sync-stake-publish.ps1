@@ -16,7 +16,6 @@ $FrontendDest = Join-Path $PublishRoot "frontend"
 $MathRoot = Join-Path $Root "math\games\golden_goal_rush"
 $MathPublish = Join-Path $MathRoot "library\publish_files"
 $MathDest = Join-Path $PublishRoot "math"
-$MathZip = Join-Path $MathDest "golden-goal-rush-math-upload.zip"
 
 function Assert-ChildPath {
 	param(
@@ -147,46 +146,6 @@ The optional auto-build path exists but is disabled for pre-push because Vite cu
 	}
 }
 
-function New-MathZip {
-	New-Item -ItemType Directory -Force -Path $MathDest | Out-Null
-	if (Test-Path -LiteralPath $MathZip) {
-		Remove-Item -LiteralPath $MathZip -Force
-	}
-
-	$entries = @(
-		@{ Source = Join-Path $MathPublish "index.json"; Entry = "index.json" }
-		@{ Source = Join-Path $MathRoot "library\configs\game_config.json"; Entry = "game_config.json" }
-		@{ Source = Join-Path $MathRoot "library\lookup_tables\base_lookup.csv"; Entry = "base_lookup.csv" }
-		@{ Source = Join-Path $MathRoot "library\lookup_tables\bonus_lookup.csv"; Entry = "bonus_lookup.csv" }
-		@{ Source = Join-Path $MathRoot "library\books_compressed\base_books.jsonl.zst"; Entry = "base_books.jsonl.zst" }
-		@{ Source = Join-Path $MathRoot "library\books_compressed\bonus_books.jsonl.zst"; Entry = "bonus_books.jsonl.zst" }
-		@{ Source = Join-Path $MathPublish "README_UPLOAD.txt"; Entry = "README_UPLOAD.txt" }
-	)
-
-	foreach ($entry in $entries) {
-		if (-not (Test-Path -LiteralPath $entry.Source)) {
-			throw "Missing math publish file: $($entry.Source)"
-		}
-	}
-
-	Add-Type -AssemblyName System.IO.Compression
-	Add-Type -AssemblyName System.IO.Compression.FileSystem
-	$zip = [System.IO.Compression.ZipFile]::Open($MathZip, [System.IO.Compression.ZipArchiveMode]::Create)
-	try {
-		foreach ($entry in $entries) {
-			[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
-				$zip,
-				$entry.Source,
-				$entry.Entry,
-				[System.IO.Compression.CompressionLevel]::Optimal
-			) | Out-Null
-		}
-	}
-	finally {
-		$zip.Dispose()
-	}
-}
-
 function Test-FrontendUploadContents {
 	$requiredFiles = @(
 		"index.html",
@@ -216,34 +175,58 @@ function Test-FrontendUploadContents {
 }
 
 function Test-MathUploadContents {
-	$zip = Get-Item -LiteralPath $MathZip
-	if ($zip.Length -le 0) {
-		throw "Math upload ZIP is empty: $MathZip"
-	}
-
-	Add-Type -AssemblyName System.IO.Compression
-	Add-Type -AssemblyName System.IO.Compression.FileSystem
 	$expected = @(
 		"index.json",
 		"game_config.json",
 		"base_lookup.csv",
 		"bonus_lookup.csv",
 		"base_books.jsonl.zst",
-		"bonus_books.jsonl.zst",
-		"README_UPLOAD.txt"
+		"bonus_books.jsonl.zst"
 	)
 
-	$archive = [System.IO.Compression.ZipFile]::OpenRead($MathZip)
-	try {
-		$names = @($archive.Entries | ForEach-Object { $_.FullName })
-		foreach ($entry in $expected) {
-			if ($names -notcontains $entry) {
-				throw "Math upload ZIP is missing required file: $entry"
+	foreach ($file in $expected) {
+		$path = Join-Path $MathDest $file
+		if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+			throw "Math publish folder is missing required file: $file"
+		}
+
+		$item = Get-Item -LiteralPath $path
+		if ($item.Length -le 0) {
+			throw "Math publish file is empty: $file"
+		}
+	}
+
+	$indexPath = Join-Path $MathDest "index.json"
+	$index = Get-Content -LiteralPath $indexPath -Raw | ConvertFrom-Json
+	foreach ($mode in @($index.modes)) {
+		foreach ($ref in @($mode.events, $mode.weights)) {
+			$path = Join-Path $MathDest $ref
+			if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+				throw "Math index references missing file: $ref"
 			}
 		}
 	}
-	finally {
-		$archive.Dispose()
+}
+
+function Copy-MathUploadFiles {
+	$entries = @(
+		@{ Source = Join-Path $MathPublish "index.json"; Name = "index.json" }
+		@{ Source = Join-Path $MathRoot "library\configs\game_config.json"; Name = "game_config.json" }
+		@{ Source = Join-Path $MathRoot "library\lookup_tables\base_lookup.csv"; Name = "base_lookup.csv" }
+		@{ Source = Join-Path $MathRoot "library\lookup_tables\bonus_lookup.csv"; Name = "bonus_lookup.csv" }
+		@{ Source = Join-Path $MathRoot "library\books_compressed\base_books.jsonl.zst"; Name = "base_books.jsonl.zst" }
+		@{ Source = Join-Path $MathRoot "library\books_compressed\bonus_books.jsonl.zst"; Name = "bonus_books.jsonl.zst" }
+		@{ Source = Join-Path $MathPublish "README_UPLOAD.txt"; Name = "README_UPLOAD.txt" }
+		@{ Source = Join-Path $MathPublish "UPLOAD_GUIDE.txt"; Name = "UPLOAD_GUIDE.txt" }
+		@{ Source = Join-Path $MathPublish "RTP_AUDIT.json"; Name = "RTP_AUDIT.json" }
+		@{ Source = Join-Path $MathPublish "RTP_AUDIT.txt"; Name = "RTP_AUDIT.txt" }
+	)
+
+	foreach ($entry in $entries) {
+		if (-not (Test-Path -LiteralPath $entry.Source)) {
+			throw "Missing math publish file: $($entry.Source)"
+		}
+		Copy-Item -LiteralPath $entry.Source -Destination (Join-Path $MathDest $entry.Name) -Force
 	}
 }
 
@@ -287,19 +270,12 @@ Reset-Directory -Path $MathDest
 Write-Host "Copying frontend build"
 Copy-Item -Path (Join-Path $FrontendSource "*") -Destination $FrontendDest -Recurse -Force
 
-Write-Host "Packing math upload ZIP"
-New-MathZip
-
-foreach ($file in @("README_UPLOAD.txt", "UPLOAD_GUIDE.txt", "RTP_AUDIT.json", "RTP_AUDIT.txt", "index.json")) {
-	$source = Join-Path $MathPublish $file
-	if (Test-Path -LiteralPath $source) {
-		Copy-Item -LiteralPath $source -Destination (Join-Path $MathDest $file) -Force
-	}
-}
+Write-Host "Copying math upload files"
+Copy-MathUploadFiles
 
 Test-FrontendUploadContents
 Test-MathUploadContents
 
 Write-Host "Stake publish snapshot ready:"
 Write-Host "  Frontend: $FrontendDest"
-Write-Host "  Math:     $MathZip"
+Write-Host "  Math:     $MathDest"
