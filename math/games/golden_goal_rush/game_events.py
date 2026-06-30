@@ -27,6 +27,15 @@ def reveal_event(index: int, board: list[list[dict[str, str]]], game_type: str, 
     }
 
 
+def _overlay_position(positions: list[dict[str, int]]) -> dict[str, int]:
+    """Centroid cell of a win, used by the frontend to anchor the floating amount."""
+    if not positions:
+        return {"reel": 0, "row": 1}
+    reel = round(sum(p["reel"] for p in positions) / len(positions))
+    row = round(sum(p["row"] for p in positions) / len(positions))
+    return {"reel": reel, "row": row}
+
+
 def win_info_event(index: int, wins: list[LineWin]) -> dict:
     return {
         "index": index,
@@ -43,7 +52,9 @@ def win_info_event(index: int, wins: list[LineWin]) -> dict:
                     "multiplier": win.multiplier,
                     "winWithoutMult": win.win,
                     "globalMult": 1,
+                    "clusterMult": win.multiplier,
                     "lineMultiplier": 1.0,
+                    "overlay": _overlay_position(win.positions),
                 },
             }
             for win in wins

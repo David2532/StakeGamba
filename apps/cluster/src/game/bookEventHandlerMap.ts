@@ -1,14 +1,24 @@
 import _ from 'lodash';
 
 import { recordBookEvent, checkIsMultipleRevealEvents, type BookEventHandlerMap } from 'utils-book';
-import { stateBet } from 'state-shared';
+import { stateBet, stateBetDerived } from 'state-shared';
+import { waitForTimeout } from 'utils-shared/wait';
 
 import { eventEmitter } from './eventEmitter';
 import { playBookEvent } from './utils';
+import { MIN_WIN_HIGHLIGHT_MS } from './constants';
 import { winLevelMap, type WinLevel, type WinLevelData } from './winLevelMap';
 import { stateGame, stateGameDerived } from './stateGame.svelte';
 import type { BookEvent, BookEventOfType, BookEventContext } from './typesBookEvent';
 import type { Position } from './types';
+
+// Anchor a win's floating amount at the centroid of its winning cells. Used as a
+// robust fallback when the math result does not provide an explicit overlay
+// position (cluster math may, line-style math does not).
+const positionsCenter = (positions: Position[]): Position => ({
+	reel: Math.round(_.meanBy(positions, (position) => position.reel)),
+	row: Math.round(_.meanBy(positions, (position) => position.row)),
+});
 
 const winLevelSoundsPlay = ({ winLevelData }: { winLevelData: WinLevelData }) => {
 	if (winLevelData?.alias === 'max') eventEmitter.broadcastAsync({ type: 'uiHide' });
@@ -45,6 +55,8 @@ const animateSymbols = async ({ positions }: { positions: Position[] }) => {
 export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContext> = {
 	reveal: async (bookEvent: BookEventOfType<'reveal'>, { bookEvents }: BookEventContext) => {
 		eventEmitter.broadcast({ type: 'tumbleWinAmountReset' });
+		// clear any win highlight / dimming from the previous spin before respinning
+		eventEmitter.broadcast({ type: 'clusterHighlightHide' });
 		const isBonusGame = checkIsMultipleRevealEvents({ bookEvents });
 		if (isBonusGame) {
 			eventEmitter.broadcast({ type: 'stopButtonEnable' });
@@ -56,27 +68,52 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		eventEmitter.broadcast({ type: 'soundScatterCounterClear' });
 	},
 	winInfo: async (bookEvent: BookEventOfType<'winInfo'>) => {
-		const promise1 = async () => {
+		// Only consider wins that actually carry cell positions — those are the
+		// ones we can highlight. A positive totalWin without any such win is a
+		// math/result bug (logged by debugSpin); we guard here so the rest of the
+		// presentation (count-up, setTotalWin) still runs instead of throwing.
+		const wins = (bookEvent.wins ?? []).filter(
+			(win) => Array.isArray(win.positions) && win.positions.length > 0,
+		);
+		if (wins.length === 0) return;
+
+		const allPositions = _.flatten(wins.map((win) => win.positions));
+
+		// strong golden cluster highlight + glow/pulse on every winning position
+		eventEmitter.broadcast({ type: 'clusterHighlightShow', positions: allPositions });
+
+		// 1) highlight winning symbols (non-winners are dimmed reactively)
+		const highlightWinningSymbols = async () => {
 			eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_winlevel_small' });
-			await animateSymbols({ positions: _.flatten(bookEvent.wins.map((win) => win.positions)) });
+			const startedAt = Date.now();
+			await animateSymbols({ positions: allPositions });
+			// keep winners clearly visible for a minimum time, even if the symbol's
+			// own win animation finished quickly
+			const minVisible = MIN_WIN_HIGHLIGHT_MS / stateBetDerived.timeScale();
+			const elapsed = Date.now() - startedAt;
+			if (elapsed < minVisible) await waitForTimeout(minVisible - elapsed);
 		};
 
-		const promise2 = async () => {
+		// 2) floating win amount per cluster, anchored at the cluster centroid
+		const showFloatingAmounts = async () => {
 			await eventEmitter.broadcastAsync({
 				type: 'showClusterWinAmounts',
-				wins: bookEvent.wins.map((win) => {
+				wins: wins.map((win) => {
+					const center = win.meta?.overlay ?? positionsCenter(win.positions);
+					const winWithoutMult = win.meta?.winWithoutMult ?? win.win;
+					const mult = win.meta?.globalMult ?? 1;
 					return {
-						win: win.meta.winWithoutMult,
-						mult: win.meta.globalMult,
-						result: win.meta.winWithoutMult * win.meta.globalMult,
-						reel: win.meta.overlay.reel,
-						row: win.meta.overlay.row,
+						win: winWithoutMult,
+						mult,
+						result: winWithoutMult * mult,
+						reel: center.reel,
+						row: center.row,
 					};
 				}),
 			});
 		};
 
-		await Promise.all([promise1(), promise2()]);
+		await Promise.all([highlightWinningSymbols(), showFloatingAmounts()]);
 	},
 	updateTumbleWin: async (bookEvent: BookEventOfType<'updateTumbleWin'>) => {
 		if (bookEvent.amount > 0) {

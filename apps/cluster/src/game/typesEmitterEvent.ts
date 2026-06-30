@@ -1,5 +1,6 @@
 import type { EmitterEventBoard } from '../components/Board.svelte';
 import type { EmitterEventBoardFrame } from '../components/BoardFrame.svelte';
+import type { EmitterEventClusterHighlight } from '../components/ClusterHighlight.svelte';
 import type { EmitterEventClusterWinAmounts } from '../components/ClusterWinAmounts.svelte';
 import type { EmitterEventTumbleBoard } from '../components/TumbleBoard.svelte';
 import type { EmitterEventTumbleWinAmount } from '../components/TumbleWinAmount.svelte';
@@ -15,6 +16,7 @@ import type { EmitterEventTransition } from '../components/Transition.svelte';
 export type EmitterEventGame =
 	| EmitterEventBoard
 	| EmitterEventBoardFrame
+	| EmitterEventClusterHighlight
 	| EmitterEventClusterWinAmounts
 	| EmitterEventTumbleBoard
 	| EmitterEventTumbleWinAmount

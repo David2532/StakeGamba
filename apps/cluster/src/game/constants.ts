@@ -6,6 +6,11 @@ export const SYMBOL_SIZE = 80;
 
 export const REEL_PADDING = 0.53;
 
+// Minimum time (ms, at 1x speed) that winning symbols stay clearly highlighted
+// before the win presentation continues. Keeps wins visually traceable even when
+// the symbol's win spine animation is very short.
+export const MIN_WIN_HIGHLIGHT_MS = 700;
+
 // initial board (padded top and bottom)
 export const INITIAL_BOARD: RawSymbol[][] = [
 	[
