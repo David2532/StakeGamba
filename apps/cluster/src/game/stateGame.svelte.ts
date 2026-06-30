@@ -114,6 +114,16 @@ const scatterLandIndex = () => {
 	return stateGame.scatterCounter as 1 | 2 | 3 | 4 | 5;
 };
 
+// Whether any symbol currently on the board is part of a win. Used to dim
+// non-winning symbols so the winning cluster stands out clearly.
+const hasWinningSymbols = () =>
+	stateGame.board.some((reel) =>
+		reel.reelState.symbols.some(
+			(reelSymbol) =>
+				reelSymbol.symbolState === 'win' || reelSymbol.symbolState === 'postWinStatic',
+		),
+	);
+
 const { enhanceBoard } = createEnhanceBoard();
 const enhancedBoard = enhanceBoard({ board: stateGame.board });
 
@@ -129,6 +139,7 @@ export const stateGameDerived = {
 	boardRaw,
 	tumbleBoardCombined,
 	scatterLandIndex,
+	hasWinningSymbols,
 	enhancedBoard,
 	getWinLevelDataByWinLevelAlias,
 };

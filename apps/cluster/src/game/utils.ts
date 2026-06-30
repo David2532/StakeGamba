@@ -5,6 +5,7 @@ import { createGetEmptyPaddedBoard } from 'utils-slots';
 
 import { SYMBOL_SIZE, REEL_PADDING, SYMBOL_INFO_MAP, BOARD_DIMENSIONS } from './constants';
 import { eventEmitter } from './eventEmitter';
+import { debugSpin } from './debugSpin';
 import type { Bet, BookEventOfType } from './typesBookEvent';
 import { bookEventHandlerMap } from './bookEventHandlerMap';
 import type { RawSymbol, SymbolState } from './types';
@@ -14,6 +15,11 @@ export const { getEmptyBoard } = createGetEmptyPaddedBoard({ reelsDimensions: BO
 export const { playBookEvent, playBookEvents } = createPlayBookUtils({ bookEventHandlerMap });
 export const playBet = async (bet: Bet) => {
 	stateBet.winBookEventAmount = 0;
+	debugSpin({
+		bet,
+		balanceBefore: stateBet.balanceAmount,
+		getBalance: () => stateBet.balanceAmount,
+	});
 	await playBookEvents(bet.state);
 	eventEmitter.broadcast({ type: 'stopButtonEnable' });
 };

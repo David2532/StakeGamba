@@ -32,7 +32,13 @@
 		boardWithAnimateSymbols: async ({ symbolPositions }) => {
 			const getPromises = () =>
 				symbolPositions.map(async (position) => {
-					const reelSymbol = context.stateGame.board[position.reel].reelState.symbols[position.row];
+					const reelSymbol =
+						context.stateGame.board[position.reel]?.reelState.symbols[position.row];
+					// guard against positions that fall outside the current board
+					if (!reelSymbol) {
+						console.error('boardWithAnimateSymbols: no symbol at position', position);
+						return;
+					}
 					reelSymbol.symbolState = 'win';
 					await waitForResolve((resolve) => (reelSymbol.oncomplete = resolve));
 					reelSymbol.symbolState = 'postWinStatic';

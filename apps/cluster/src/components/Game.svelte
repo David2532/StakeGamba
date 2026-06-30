@@ -21,6 +21,7 @@
 	import MultiplierGrid from './MultiplierGrid.svelte';
 	import Board from './Board.svelte';
 	import Anticipations from './Anticipations.svelte';
+	import ClusterHighlight from './ClusterHighlight.svelte';
 	import ClusterWinAmounts from './ClusterWinAmounts.svelte';
 	import TumbleBoard from './TumbleBoard.svelte';
 	import TumbleWinAmount from './TumbleWinAmount.svelte';
@@ -79,6 +80,7 @@
 
 		<MainContainer>
 			<TumbleBoard />
+			<ClusterHighlight />
 			<ClusterWinAmounts />
 		</MainContainer>
 

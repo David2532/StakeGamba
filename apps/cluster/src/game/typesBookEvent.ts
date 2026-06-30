@@ -19,11 +19,18 @@ type BookEventWinInfo = {
 		symbol: SymbolName;
 		win: number;
 		positions: Position[];
+		// Meta varies by math implementation: a cluster math provides `overlay` +
+		// `clusterMult`, a line-style math provides `lineIndex` + `multiplier`.
+		// Everything except the amount is optional so the frontend can render
+		// either shape; missing fields fall back to sensible defaults.
 		meta: {
-			globalMult: number;
-			clusterMult: number;
-			winWithoutMult: number;
-			overlay: Position;
+			globalMult?: number;
+			clusterMult?: number;
+			winWithoutMult?: number;
+			overlay?: Position;
+			lineIndex?: number;
+			multiplier?: number;
+			lineMultiplier?: number;
 		};
 	}[];
 };
