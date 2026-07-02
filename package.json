@@ -12,6 +12,7 @@
     "real-build-storybook": "turbo run real-build-storybook",
     "storybook": "turbo run storybook",
     "stake:publish": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/sync-stake-publish.ps1 -BuildFrontend -RefreshMath -ReuseBooks",
+    "stake:release": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stake-release-pipeline.ps1",
     "stake:publish:full-math": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/sync-stake-publish.ps1 -BuildFrontend -RefreshMath",
     "stake:publish:archive-legacy": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/sync-stake-publish.ps1 -BuildFrontend -RefreshMath -ReuseBooks -ArchiveLegacy",
     "stake:publish:build-frontend": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/sync-stake-publish.ps1 -BuildFrontend",

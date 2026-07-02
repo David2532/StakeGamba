@@ -30,6 +30,7 @@ build
 out/
 dist
 publish/
+stake-release/
 
 #storybook
 build-storybook.log

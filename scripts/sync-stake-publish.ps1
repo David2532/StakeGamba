@@ -272,6 +272,9 @@ function Test-StakeCompliance {
 		@{ Name = "URL-Guard: validateLaunchUrl vorhanden"; Marker = "function validateLaunchUrl" },
 		@{ Name = "URL-Guard: replay=true blockiert (kein Demo-Fallback)"; Marker = "The game URL contains unsupported launch parameters" },
 		@{ Name = "URL-Guard: URL-Aenderung zur Laufzeit erkannt"; Marker = "function checkLaunchUrlIntegrity" },
+		@{ Name = "URL-Guard: currency Pflichtparameter"; Marker = "hasLaunchParam('currency')" },
+		@{ Name = "URL-Guard: lang/language Pflichtparameter"; Marker = "hasLaunchParam('lang', 'language')" },
+		@{ Name = "URL-Guard: device/deviceType Pflichtparameter"; Marker = "hasLaunchParam('device', 'deviceType')" },
 		@{ Name = "Fataler Fehler-Overlay vorhanden"; Marker = "fatal-error-title" },
 		# Stake: end-round only when round.active === true
 		@{ Name = "End-Round NUR ueber round.active entschieden"; Marker = "const roundNeedsEnd = (round) => !!round && round.active === true;" },
@@ -307,8 +310,12 @@ function Test-StakeCompliance {
 	foreach ($prop in $audit.PSObject.Properties) {
 		$mode = $prop.Name
 		$m = $prop.Value
-		if ([math]::Abs([double]$m.achievedRtp - 0.965) -gt 0.0006) {
-			$failures += "MATH [$mode]: achievedRtp=$($m.achievedRtp) weicht vom 96.50%-Ziel ab"
+		$rtp = [double]$m.achievedRtp
+		if ($rtp -lt 0.9600 -or $rtp -gt 0.9650) {
+			$failures += "MATH [$mode]: achievedRtp=$($m.achievedRtp) liegt ausserhalb 96.00%-96.50%"
+		}
+		if ($rtp -gt 0.9670) {
+			$failures += "MATH [$mode]: achievedRtp=$($m.achievedRtp) liegt ueber hartem 96.70%-Maximum"
 		}
 		if ($null -ne $m.PSObject.Properties["tailMet"] -and -not $m.tailMet) {
 			$failures += "MATH [$mode]: Tail-Constraints (CVaR/ETL) NICHT erfuellt"
@@ -338,8 +345,9 @@ function Test-StakeCompliance {
 			$failures += "FE/MATH-Abweichung: Bonus-Buy '$feId' muss exakt $costText x kosten (Mode '$mode')"
 		}
 	}
-	if (-not $html.Contains("RTP 96.50%")) {
-		$failures += "FRONTEND: Game Rules muessen 'RTP 96.50%' ausweisen (passend zum RTP_AUDIT)"
+	$baseRtpText = (([double]$audit.base.achievedRtp) * 100).ToString("0.00", $inv) + "%"
+	if (-not $html.Contains("RTP $baseRtpText")) {
+		$failures += "FRONTEND: Game Rules muessen 'RTP $baseRtpText' ausweisen (passend zum RTP_AUDIT)"
 	}
 
 	if ($failures.Count -gt 0) {

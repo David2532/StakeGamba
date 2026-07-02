@@ -680,7 +680,7 @@ ${featureItems}
 					<div class="pt-feat"><img src="${assets.bonusButton}" alt="Bonus Buy" /><div><b>BONUS BUY</b>
 						${CONFIG.bonusBuy.map((o) => o.label + ' &mdash; ' + o.mult + '&times; bet').join('<br>')}<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
 					<div class="pt-note">If the game is reloaded while a base-game round is still active, the round is immediately settled with Stake Engine and the result is available in game history. Active Bonus Buy bonus rounds resume from the saved round state with the purchased balance and bet preserved.</div>
-					<div class="pt-note">RTP 96.50% &middot; Max win ${CONFIG.maxWinMultiplier.toLocaleString()}&times; bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
+					<div class="pt-note">RTP 96.45% &middot; Max win ${CONFIG.maxWinMultiplier.toLocaleString()}&times; bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
 				</div>
 			</div>
 		</div>
@@ -791,6 +791,10 @@ const UrlState = (() => {
 		}
 		return '';
 	};
+	const hasLaunchParam = (...keys) => keys.some((key) => {
+		const value = params.get(key);
+		return value !== null && value !== '';
+	});
 	const hostRequiresRgs = () => /(^|\.)stake-engine\.com$/i.test(window.location.hostname);
 	const hasAnyRgsParam = () => rgsKeys.some((key) => params.has(key));
 	return {
@@ -801,8 +805,10 @@ const UrlState = (() => {
 			return value === 'br' ? 'pt' : value;
 		},
 		currency: () => (get('currency') || DEFAULT_CURRENCY).toUpperCase(),
+		device: () => get('device', 'deviceType').toLowerCase(),
 		replay: () => get('replay') === 'true',
 		debug: () => get('debug', 'rgs_debug') === 'true',
+		hasLaunchParam,
 		requiresRgs: () => hostRequiresRgs() || hasAnyRgsParam(),
 	};
 })();
@@ -840,8 +846,20 @@ function validateLaunchUrl() {
 		fatalError('Invalid game launch', 'The game URL contains unsupported launch parameters. Please relaunch the game from Stake Engine.');
 		return false;
 	}
-	if (!UrlState.sessionID() || !UrlState.rgsUrl()) {
-		fatalError('Invalid game launch', 'The game URL is missing required Stake Engine launch parameters. Please relaunch the game.');
+	const missing = [];
+	if (!UrlState.sessionID()) missing.push('sessionID');
+	if (!UrlState.rgsUrl()) missing.push('rgs_url');
+	if (!UrlState.hasLaunchParam('currency')) missing.push('currency');
+	if (!UrlState.hasLaunchParam('lang', 'language')) missing.push('lang');
+	if (!UrlState.hasLaunchParam('device', 'deviceType')) missing.push('device');
+	const lang = UrlState.lang();
+	const currency = UrlState.currency();
+	const device = UrlState.device();
+	if (!/^[a-z]{2}(-[a-z]{2})?$/i.test(lang)) missing.push('valid lang');
+	if (!/^[A-Z]{2,8}$/.test(currency)) missing.push('valid currency');
+	if (!/^(desktop|mobile|tablet)$/i.test(device)) missing.push('valid device');
+	if (missing.length) {
+		fatalError('Invalid game launch', 'The game URL is missing or has invalid Stake Engine launch parameters: ' + missing.join(', ') + '. Please relaunch the game.');
 		return false;
 	}
 	return true;
