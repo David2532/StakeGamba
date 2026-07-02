@@ -2,35 +2,83 @@ Golden Goal Rush RTP Audit
 ===========================
 
 [base] cost=1.0x bet, simulations=80000
-  raw (unweighted) RTP:   43.76%
+  raw (unweighted) RTP:   56.48%
   target RTP:             96.50%
   achieved RTP:           96.50%
-  hit rate (weighted):    36.90%
-  effective sample size:  60768 of 80000 (75.96%)
-  top single-book weight: 0.0789% of total selection mass
-  max payout observed:    31.20x bet
+  hit rate (weighted):    18.12%
+  effective sample size:  79968 of 80000 (99.96%)
+  top single-book weight: 0.0075% of total selection mass
+  max payout observed:    4201.74x bet
   win distribution (selection-weighted):
-        0x: 63.097%
-      0-1x: 20.505%
-      1-5x: 11.867%
-     5-20x: 3.978%
-    20-50x: 0.553%
-      50x+: 0.000%
+        0x: 81.884%
+      0-1x: 17.009%
+      1-5x: 0.328%
+     5-20x: 0.385%
+    20-50x: 0.204%
+      50x+: 0.190%
 
-[bonus] cost=15.0x bet, simulations=40000
-  raw (unweighted) RTP:   92.93%
+[hunt] cost=4.2x bet, simulations=40000
+  raw (unweighted) RTP:   98.17%
   target RTP:             96.50%
   achieved RTP:           96.50%
-  hit rate (weighted):    99.72%
-  effective sample size:  39898 of 40000 (99.74%)
-  top single-book weight: 0.0042% of total selection mass
-  max payout observed:    130.10x bet
+  hit rate (weighted):    14.79%
+  effective sample size:  40000 of 40000 (100.00%)
+  top single-book weight: 0.0025% of total selection mass
+  max payout observed:    10000.00x bet
   win distribution (selection-weighted):
-        0x: 0.283%
-      0-1x: 2.028%
-      1-5x: 15.088%
-     5-20x: 58.993%
-    20-50x: 22.357%
-      50x+: 1.251%
+        0x: 85.209%
+      0-1x: 5.125%
+      1-5x: 2.395%
+     5-20x: 4.175%
+    20-50x: 1.937%
+      50x+: 1.159%
+
+[rainbow] cost=6.0x bet, simulations=40000
+  raw (unweighted) RTP:   93.25%
+  target RTP:             96.50%
+  achieved RTP:           96.50%
+  hit rate (weighted):    15.95%
+  effective sample size:  40000 of 40000 (100.00%)
+  top single-book weight: 0.0033% of total selection mass
+  max payout observed:    7511.69x bet
+  win distribution (selection-weighted):
+        0x: 84.049%
+      0-1x: 1.697%
+      1-5x: 3.817%
+     5-20x: 5.846%
+    20-50x: 2.845%
+      50x+: 1.745%
+
+[bonus_tier1] cost=31.0x bet, simulations=40000
+  raw (unweighted) RTP:   66.40%
+  target RTP:             96.50%
+  achieved RTP:           96.50%
+  hit rate (weighted):    77.92%
+  effective sample size:  39879 of 40000 (99.70%)
+  top single-book weight: 0.0126% of total selection mass
+  max payout observed:    10000.00x bet
+  win distribution (selection-weighted):
+        0x: 22.083%
+      0-1x: 47.763%
+      1-5x: 6.216%
+     5-20x: 10.614%
+    20-50x: 6.974%
+      50x+: 6.350%
+
+[bonus] cost=95.0x bet, simulations=40000
+  raw (unweighted) RTP:   56.84%
+  target RTP:             96.50%
+  achieved RTP:           96.50%
+  hit rate (weighted):    89.50%
+  effective sample size:  39172 of 40000 (97.93%)
+  top single-book weight: 0.0229% of total selection mass
+  max payout observed:    10000.00x bet
+  win distribution (selection-weighted):
+        0x: 10.501%
+      0-1x: 40.622%
+      1-5x: 7.001%
+     5-20x: 13.188%
+    20-50x: 11.751%
+      50x+: 16.937%
 
 All modes reached their configured rtp_target with healthy lookup-table diversity (no mode was diversity-capped). Each mode's declared rtp_achieved equals the weighted RTP of its shipped lookup table; the package is internally consistent.

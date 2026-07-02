@@ -81,15 +81,20 @@ function Test-MathPublishFresh {
 			($_.Extension -eq ".py" -or $_.Extension -eq ".json")
 		}
 
+	$indexPath = Join-Path $MathPublish "index.json"
 	$publishFiles = @(
-		Join-Path $MathPublish "index.json"
+		$indexPath
 		Join-Path $MathRoot "library\configs\game_config.json"
-		Join-Path $MathRoot "library\lookup_tables\base_lookup.csv"
-		Join-Path $MathRoot "library\lookup_tables\bonus_lookup.csv"
-		Join-Path $MathRoot "library\books_compressed\base_books.jsonl.zst"
-		Join-Path $MathRoot "library\books_compressed\bonus_books.jsonl.zst"
 		Join-Path $MathPublish "README_UPLOAD.txt"
-	) | ForEach-Object { Get-Item -LiteralPath $_ }
+	)
+	if (Test-Path -LiteralPath $indexPath) {
+		$index = Get-Content -LiteralPath $indexPath -Raw | ConvertFrom-Json
+		foreach ($mode in @($index.modes)) {
+			$publishFiles += Join-Path $MathRoot ("library\lookup_tables\" + $mode.weights)
+			$publishFiles += Join-Path $MathRoot ("library\books_compressed\" + $mode.events)
+		}
+	}
+	$publishFiles = $publishFiles | ForEach-Object { Get-Item -LiteralPath $_ }
 
 	$newestSource = Get-NewestFile -Files $sourceFiles
 	$oldestPublish = Get-OldestFile -Files $publishFiles
@@ -176,14 +181,7 @@ function Test-FrontendUploadContents {
 }
 
 function Test-MathUploadContents {
-	$expected = @(
-		"index.json",
-		"game_config.json",
-		"base_lookup.csv",
-		"bonus_lookup.csv",
-		"base_books.jsonl.zst",
-		"bonus_books.jsonl.zst"
-	)
+	$expected = @("index.json", "game_config.json")
 
 	foreach ($file in $expected) {
 		$path = Join-Path $MathDest $file
@@ -210,18 +208,23 @@ function Test-MathUploadContents {
 }
 
 function Copy-MathUploadFiles {
+	$indexPath = Join-Path $MathPublish "index.json"
 	$entries = @(
-		@{ Source = Join-Path $MathPublish "index.json"; Name = "index.json" }
+		@{ Source = $indexPath; Name = "index.json" }
 		@{ Source = Join-Path $MathRoot "library\configs\game_config.json"; Name = "game_config.json" }
-		@{ Source = Join-Path $MathRoot "library\lookup_tables\base_lookup.csv"; Name = "base_lookup.csv" }
-		@{ Source = Join-Path $MathRoot "library\lookup_tables\bonus_lookup.csv"; Name = "bonus_lookup.csv" }
-		@{ Source = Join-Path $MathRoot "library\books_compressed\base_books.jsonl.zst"; Name = "base_books.jsonl.zst" }
-		@{ Source = Join-Path $MathRoot "library\books_compressed\bonus_books.jsonl.zst"; Name = "bonus_books.jsonl.zst" }
 		@{ Source = Join-Path $MathPublish "README_UPLOAD.txt"; Name = "README_UPLOAD.txt" }
 		@{ Source = Join-Path $MathPublish "UPLOAD_GUIDE.txt"; Name = "UPLOAD_GUIDE.txt" }
 		@{ Source = Join-Path $MathPublish "RTP_AUDIT.json"; Name = "RTP_AUDIT.json" }
 		@{ Source = Join-Path $MathPublish "RTP_AUDIT.txt"; Name = "RTP_AUDIT.txt" }
 	)
+
+	if (Test-Path -LiteralPath $indexPath) {
+		$index = Get-Content -LiteralPath $indexPath -Raw | ConvertFrom-Json
+		foreach ($mode in @($index.modes)) {
+			$entries += @{ Source = Join-Path $MathRoot ("library\lookup_tables\" + $mode.weights); Name = $mode.weights }
+			$entries += @{ Source = Join-Path $MathRoot ("library\books_compressed\" + $mode.events); Name = $mode.events }
+		}
+	}
 
 	foreach ($entry in $entries) {
 		if (-not (Test-Path -LiteralPath $entry.Source)) {

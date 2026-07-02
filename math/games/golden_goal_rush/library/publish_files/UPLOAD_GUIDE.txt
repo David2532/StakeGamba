@@ -1,44 +1,44 @@
 Golden Goal Rush Upload Guide
 
 Frontend package:
-Use the existing apps/lines frontend build or frontend ZIP from the normal project build pipeline. This math task does not create or replace a frontend ZIP.
+Use the generated repository-root publish/frontend folder.
 
 Math package:
-Use the generated publish/math folder from the repository root.
+Use the generated repository-root publish/math folder.
 
-Math folder contents:
+Math folder contents are driven by index.json. Current modes:
+- base
+- hunt
+- rainbow
+- bonus_tier1
+- bonus
+
+Each mode has:
+- <mode>_books.jsonl.zst
+- <mode>_lookup.csv
+
+Shared files:
 - index.json
 - game_config.json
-- base_lookup.csv
-- bonus_lookup.csv
-- base_books.jsonl.zst
-- bonus_books.jsonl.zst
+- RTP_AUDIT.json
+- RTP_AUDIT.txt
 - README_UPLOAD.txt
+- UPLOAD_GUIDE.txt
+
+RGS contract:
+- The frontend must render round.state from /wallet/play.
+- /wallet/end-round remains controlled only by round.active === true.
+- Golden Cells, Rainbow reveals, coin/multiplier rewards, Collector awards,
+  Cascades and Free Spins are all present in round.state.
 
 RTP calibration:
-- Lookup weights in base_lookup.csv / bonus_lookup.csv are produced by
-  optimization.py's exponential-tilting reweighting against each mode's
-  rtp_target in game_config.py, under diversity-safety bounds (effective sample
-  size, top weight share). See RTP_AUDIT.json / RTP_AUDIT.txt in this directory
-  for the full per-mode achieved RTP, hit rate, and win distribution.
-- Both modes reach their 96.5% rtp_target with healthy diversity and no capping:
-  base (cost=1x) achieves 96.50% (effective sample size ~76% of pool); bonus
-  (cost=15x buy feature) achieves 96.50% (effective sample size ~99.7% of pool).
-  The target is 96.5% so RTP stays inside Stake's 90%-96.70% compliance band; a
-  97% target overshoots the 96.70% ceiling and fails the RTP-range check.
-- Each mode's declared rtp_achieved equals the weighted RTP of its shipped
-  lookup table -- the package is internally consistent (the publish step fails
-  if they disagree by more than 0.0005).
-- This calibration only reweights selection of already-generated, unmodified
-  simulations. Reels, paytable, paylines, and win-calculation logic are
-  untouched. The bonus buy cost (15x) is sized to the feature's actual expected
-  return so the buy feature is fair; apps/lines/src/game/config.ts is kept in
-  sync with this cost.
+- Lookup weights are produced by optimization.py against each mode's rtp_target.
+- All modes currently achieve 96.50% RTP with no diversity capping.
+- See RTP_AUDIT.txt for per-mode hit rate, effective sample size and distribution.
 
-Remaining risks:
-- MVP only; RTP and volatility are calibrated and audited but not certified.
-- Not regulatory approved.
-- Built from the local Golden Goal Rush MVP generator, not from a verified external Stake SDK template.
-- Free spin handling is intentionally simple and avoids freeSpinRetrigger because the frontend has no confirmed handler.
-- Frontend Storybook environment issues are separate and should be stabilized before final QA.
-- The feature set is the current MVP (Phase 8B grid/cluster contract not wired in); max win is modest (~130x bonus, ~31x base) because the free-spin math is simple. A richer feature would raise max win and volatility -- that is a design change, separate from this RTP calibration.
+Regenerate:
+  cd math/games/golden_goal_rush
+  python run.py publish --spins 80000 --bonus-spins 40000 --seed 1
+
+Sync upload folders:
+  .\scripts\sync-stake-publish.ps1 -BuildFrontend -SkipMathStalenessCheck

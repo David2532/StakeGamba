@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from game_calculations import LineWin, calculate_line_wins, scatter_positions, win_level_for_amount
-from game_config import DEFAULT_TOTAL_FREE_SPINS
+from game_calculations import ClusterWin, win_level_for_amount
 
 
 KNOWN_EVENT_TYPES = {
@@ -9,29 +8,42 @@ KNOWN_EVENT_TYPES = {
     "winInfo",
     "setWin",
     "setTotalWin",
+    "tumbleBoard",
     "freeSpinTrigger",
     "updateFreeSpin",
     "freeSpinEnd",
+    "goldenReveal",
+    "goldenAward",
+    "goldenClear",
     "finalWin",
 }
 
 
-def reveal_event(index: int, board: list[list[dict[str, str]]], game_type: str, padding_positions: list[int]) -> dict:
+def reindex(events: list[dict]) -> list[dict]:
+    for index, event in enumerate(events):
+        event["index"] = index
+    return events
+
+
+def reveal_event(index: int, board: list[list[dict[str, str]]], game_type: str) -> dict:
+    cols = len(board)
     return {
         "index": index,
         "type": "reveal",
         "board": board,
-        "paddingPositions": padding_positions,
+        "paddingPositions": [0 for _ in range(cols)],
         "gameType": game_type,
-        "anticipation": [0, 0, 0, 0, 0],
+        "anticipation": [0 for _ in range(cols)],
     }
 
 
-def win_info_event(index: int, wins: list[LineWin]) -> dict:
+def win_info_event(index: int, wins: list[ClusterWin], total_win: int) -> dict:
+    step_win = sum(win.win for win in wins)
     return {
         "index": index,
         "type": "winInfo",
-        "totalWin": sum(win.win for win in wins),
+        "totalWin": step_win,
+        "runningTotalWin": total_win,
         "wins": [
             {
                 "symbol": win.symbol,
@@ -39,10 +51,10 @@ def win_info_event(index: int, wins: list[LineWin]) -> dict:
                 "win": win.win,
                 "positions": win.positions,
                 "meta": {
-                    "lineIndex": win.line_index,
+                    "clusterSize": win.kind,
                     "multiplier": win.multiplier,
                     "winWithoutMult": win.win,
-                    "globalMult": 1,
+                    "globalMult": win.multiplier,
                     "lineMultiplier": 1.0,
                 },
             }
@@ -58,59 +70,66 @@ def append_win_sequence(events: list[dict], amount: int) -> None:
     events.append({"index": len(events), "type": "setTotalWin", "amount": amount})
 
 
-def base_spin_events(
+def tumble_event(
+    index: int,
+    exploding_symbols: list[dict[str, int]],
+    new_symbols: list[list[dict[str, str]]],
     board: list[list[dict[str, str]]],
-    padding_positions: list[int],
-    total_free_spins: int = DEFAULT_TOTAL_FREE_SPINS,
-) -> list[dict]:
-    events = [reveal_event(0, board, "basegame", padding_positions)]
-    wins = calculate_line_wins(board)
-    amount = sum(win.win for win in wins)
-    if wins:
-        events.append(win_info_event(len(events), wins))
-        append_win_sequence(events, amount)
-
-    scatters = scatter_positions(board)
-    if len(scatters) >= 3:
-        events.append(
-            {
-                "index": len(events),
-                "type": "freeSpinTrigger",
-                "totalFs": total_free_spins,
-                "positions": scatters,
-            }
-        )
-
-    events.append({"index": len(events), "type": "finalWin", "amount": amount})
-    return events
+) -> dict:
+    return {
+        "index": index,
+        "type": "tumbleBoard",
+        "explodingSymbols": exploding_symbols,
+        "newSymbols": new_symbols,
+        "board": board,
+    }
 
 
-def free_spin_events(
-    board: list[list[dict[str, str]]],
-    padding_positions: list[int],
-    free_spin_index: int,
-    total_free_spins: int,
-    accumulated_before: int,
-    include_end: bool = False,
-) -> tuple[list[dict], int]:
-    events = [
-        {"index": 0, "type": "updateFreeSpin", "amount": free_spin_index, "total": total_free_spins},
-        reveal_event(1, board, "freegame", padding_positions),
-    ]
-    wins = calculate_line_wins(board)
-    spin_win = sum(win.win for win in wins)
-    total_win = accumulated_before + spin_win
-    if wins:
-        events.append(win_info_event(len(events), wins))
-        append_win_sequence(events, spin_win)
-    if include_end:
-        events.append(
-            {
-                "index": len(events),
-                "type": "freeSpinEnd",
-                "amount": total_win,
-                "winLevel": win_level_for_amount(total_win),
-            }
-        )
-    events.append({"index": len(events), "type": "finalWin", "amount": total_win})
-    return events, total_win
+def free_spin_trigger_event(index: int, total_free_spins: int, positions: list[dict[str, int]], tier: int = 1) -> dict:
+    names = {1: "Golden Chance", 2: "All That Glitters", 3: "End of the Rainbow"}
+    return {
+        "index": index,
+        "type": "freeSpinTrigger",
+        "totalFs": total_free_spins,
+        "positions": positions,
+        "tier": tier,
+        "title": names.get(tier, "Golden Chance"),
+    }
+
+
+def update_free_spin_event(index: int, amount: int, total: int, tier: int) -> dict:
+    return {"index": index, "type": "updateFreeSpin", "amount": amount, "total": total, "tier": tier}
+
+
+def free_spin_end_event(index: int, amount: int) -> dict:
+    return {"index": index, "type": "freeSpinEnd", "amount": amount, "winLevel": win_level_for_amount(amount)}
+
+
+def golden_reveal_event(index: int, rewards: list[dict], cycle: int) -> dict:
+    return {"index": index, "type": "goldenReveal", "cycle": cycle, "rewards": rewards}
+
+
+def golden_award_event(
+    index: int,
+    amount: int,
+    total_win: int,
+    cycle: int,
+    collector_positions: list[dict[str, int]] | None = None,
+) -> dict:
+    return {
+        "index": index,
+        "type": "goldenAward",
+        "cycle": cycle,
+        "amount": amount,
+        "totalWin": total_win,
+        "collectorPositions": collector_positions or [],
+        "winLevel": win_level_for_amount(total_win),
+    }
+
+
+def golden_clear_event(index: int, clear_golden: bool = False) -> dict:
+    return {"index": index, "type": "goldenClear", "clearGolden": clear_golden}
+
+
+def final_win_event(index: int, amount: int) -> dict:
+    return {"index": index, "type": "finalWin", "amount": amount}

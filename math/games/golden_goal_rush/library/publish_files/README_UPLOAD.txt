@@ -1,26 +1,42 @@
 Golden Goal Rush Math Upload Package
 
-Status: MVP Math, not regulatory final.
+Status: generated 6x5 cluster/cascade math package. Not a certification claim.
 
-This package contains a technical MVP math bundle for Golden Goal Rush using the current apps/lines frontend contract:
-- 5 reels x 3 visible rows
-- padded reveal boards with 5 reels x 5 rows
-- symbol IDs: L1, L2, L3, L4, L5, H1, H2, H3, H4, W, S
-- supported events only: reveal, winInfo, setWin, setTotalWin, freeSpinTrigger, updateFreeSpin, freeSpinEnd, finalWin
+This package contains the Stake Engine upload math for Golden Goal Rush:
+- 6 reels x 5 visible rows
+- cluster/cascade wins with 5+ connected symbols
+- winning cells become Golden Cells
+- Rainbow activation, coin reveals, multipliers and Collector awards are emitted in round.state
+- free-spin starts and bought bonus starts are emitted as complete RGS event sequences
+
+Supported round.state events:
+- reveal
+- winInfo
+- setWin
+- setTotalWin
+- tumbleBoard
+- goldenReveal
+- goldenAward
+- goldenClear
+- freeSpinTrigger
+- updateFreeSpin
+- freeSpinEnd
+- finalWin
+
+Bet modes in index.json:
+- base: normal paid spin, cost 1x
+- hunt: boosted-rainbow Feature Spins buy, cost 4.2x
+- rainbow: guaranteed-rainbow spin buy, cost 6x
+- bonus_tier1: Golden Chance buy, cost 31x
+- bonus: All That Glitters buy, cost 95x
 
 Lookup-table weights are calibrated via exponential-tilting RTP optimization
 (see ../../optimization.py and RTP_AUDIT.json/.txt in this directory) against
 each bet mode's rtp_target, under diversity-safety bounds. This reweights
-selection of already-generated, unmodified simulations only -- reels,
-paytable, paylines, and win-calculation logic are unchanged.
+selection of already-generated, unmodified simulations only.
 
-Both bet modes reach a 96.5% RTP target with healthy lookup diversity and no
-diversity capping. The target is set at 96.5% so RTP stays inside Stake's
-90%-96.70% compliance band (a 97% target overshoots the 96.70% ceiling):
-- base  (cost 1x):  rtp_achieved 96.50%
-- bonus (cost 15x): rtp_achieved 96.50%
-Each mode's declared rtp_achieved equals the weighted RTP of its lookup table,
-so the package is internally consistent. The bonus buy cost (15x) is sized to
-the feature's actual expected return so the buy feature is fair.
+All shipped modes reach the 96.5% RTP target with healthy lookup diversity and
+no diversity capping. Each mode's declared rtp_achieved equals the weighted RTP
+of its lookup table, so the package is internally consistent.
 
-Do not treat this package as final RTP, final volatility, or regulatory-approved math.
+Upload the repository-root publish/math folder as the math package.

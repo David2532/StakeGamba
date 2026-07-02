@@ -200,6 +200,18 @@ const extraCss = `
 	.stage.shake { animation: stage-shake 0.4s ease; }
 	@keyframes stage-shake { 0%,100%{transform:translate(0,0);} 20%{transform:translate(-6px,2px);}
 		40%{transform:translate(5px,-2px);} 60%{transform:translate(-4px,1px);} 80%{transform:translate(3px,-1px);} }
+	.fatal-error { position:absolute; inset:0; z-index:95; display:none; place-items:center; padding:34px;
+		background:rgba(0,0,0,0.88); pointer-events:auto; }
+	.fatal-error.show { display:grid; }
+	.fatal-error-card { width:min(560px,92%); padding:28px 30px; border-radius:16px;
+		border:2px solid #ffcf6d; background:linear-gradient(180deg,#1d1508,#070707);
+		box-shadow:0 0 0 4px #060606, 0 26px 70px rgba(0,0,0,0.8), 0 0 34px rgba(255,90,60,0.28);
+		color:#fff0c4; text-align:center; font-family:Inter,Arial,sans-serif; }
+	.fatal-error-title { margin-bottom:10px; color:#ffd66e; font-size:24px; font-weight:1000; letter-spacing:1.4px; text-transform:uppercase; }
+	.fatal-error-detail { color:#f5dec0; font-size:15px; line-height:1.45; }
+	.stage.fatal .board-wrap,
+	.stage.fatal .hud,
+	.stage.fatal .controls { pointer-events:none; filter:grayscale(0.35) brightness(0.55); }
 	.bet-controls.low .bet-display strong { color:#ff8d8d; }
 
 	/* ---- modals (menu / settings / info / bonus buy) ---- */
@@ -667,6 +679,7 @@ ${featureItems}
 						${Object.entries(CONFIG.tiers).map(([t, v]) => 'Tier ' + t + ' &mdash; ' + v.name + ': ' + v.spins + ' spins' + (v.guaranteedRainbow ? ', guaranteed Arc each spin' : '') + '.').join('<br>')}</div></div>
 					<div class="pt-feat"><img src="${assets.bonusButton}" alt="Bonus Buy" /><div><b>BONUS BUY</b>
 						${CONFIG.bonusBuy.map((o) => o.label + ' &mdash; ' + o.mult + '&times; bet').join('<br>')}<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
+					<div class="pt-note">If the game is reloaded while a base-game round is still active, the round is immediately settled with Stake Engine and the result is available in game history. Active Bonus Buy bonus rounds resume from the saved round state with the purchased balance and bet preserved.</div>
 					<div class="pt-note">Theoretical RTP target ~96% (demo) &middot; Max win ${CONFIG.maxWinMultiplier.toLocaleString()}&times; bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
 				</div>
 			</div>
@@ -711,6 +724,7 @@ const state = {
 	golden: new Set(), reveals: new Map(), // golden = 'c,r' keys; reveals = 'c,r' -> {kind,value,asset}
 	mode: 'base', tier: 0, fsLeft: 0, fsTotal: 0, win: 0, sound: true, musicVolume: 100, sfxVolume: 100,
 	skipRequested: false, walletBalanceDeferred: false, pendingWalletBalance: null,
+	fatal: false,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -769,6 +783,7 @@ let rgsBoardMeta = { rowStarts: [] };
 
 const UrlState = (() => {
 	const params = new URLSearchParams(window.location.search);
+	const rgsKeys = ['sessionID', 'sessionId', 'session_id', 'sid', 'rgs_url', 'rgsUrl', 'rgsURL'];
 	const get = (...keys) => {
 		for (const key of keys) {
 			const value = params.get(key);
@@ -776,6 +791,8 @@ const UrlState = (() => {
 		}
 		return '';
 	};
+	const hostRequiresRgs = () => /(^|\.)stake-engine\.com$/i.test(window.location.hostname);
+	const hasAnyRgsParam = () => rgsKeys.some((key) => params.has(key));
 	return {
 		sessionID: () => get('sessionID', 'sessionId', 'session_id', 'sid'),
 		rgsUrl: () => get('rgs_url', 'rgsUrl', 'rgsURL'),
@@ -786,8 +803,59 @@ const UrlState = (() => {
 		currency: () => (get('currency') || DEFAULT_CURRENCY).toUpperCase(),
 		replay: () => get('replay') === 'true',
 		debug: () => get('debug', 'rgs_debug') === 'true',
+		requiresRgs: () => !get('replay') && (hostRequiresRgs() || hasAnyRgsParam()),
 	};
 })();
+
+const initialLaunchUrl = window.location.href;
+function fatalError(title, detail = '') {
+	state.fatal = true;
+	stopAutoSpin();
+	state.spinning = false;
+	state.walletBusy = false;
+	clearSkip();
+	closeModals();
+	updateLocks();
+	stage.classList.add('fatal');
+	$('btn-spin')?.classList.remove('busy', 'skip-armed');
+	let overlay = $('fatal-error');
+	if (!overlay) {
+		overlay = document.createElement('div');
+		overlay.id = 'fatal-error';
+		overlay.className = 'fatal-error';
+		overlay.innerHTML = '<div class="fatal-error-card"><div class="fatal-error-title"></div><div class="fatal-error-detail"></div></div>';
+		stage.appendChild(overlay);
+	}
+	overlay.querySelector('.fatal-error-title').textContent = title;
+	overlay.querySelector('.fatal-error-detail').textContent = detail || 'Please relaunch the game from Stake Engine.';
+	overlay.classList.add('show');
+	overlay.setAttribute('aria-hidden', 'false');
+	console.error('[GGR fatal]', { title, detail });
+}
+function validateLaunchUrl() {
+	if (!UrlState.requiresRgs()) return true;
+	if (!UrlState.sessionID() || !UrlState.rgsUrl()) {
+		fatalError('Invalid game launch', 'The game URL is missing required Stake Engine launch parameters. Please relaunch the game.');
+		return false;
+	}
+	return true;
+}
+function checkLaunchUrlIntegrity() {
+	if (!UrlState.requiresRgs()) return;
+	if (window.location.href !== initialLaunchUrl) {
+		fatalError('Game launch URL changed', 'The launch URL changed after the game started. Please relaunch the game from Stake Engine.');
+	}
+}
+window.addEventListener('popstate', checkLaunchUrlIntegrity);
+window.addEventListener('hashchange', checkLaunchUrlIntegrity);
+['pushState', 'replaceState'].forEach((method) => {
+	const original = history[method];
+	history[method] = function patchedHistoryMethod(...args) {
+		const result = original.apply(this, args);
+		setTimeout(checkLaunchUrlIntegrity, 0);
+		return result;
+	};
+});
 
 // Stake RGS wallet bridge. This mirrors packages/rgs-requests in standalone form.
 const Rgs = (() => {
@@ -803,8 +871,9 @@ const Rgs = (() => {
 	let expectedNextRequest = null;
 	let playPromise = null;
 	let endRoundPromise = null;
+	let eventPromise = null;
 	let startupRecoveryPromise = null;
-	const configured = () => !!UrlState.sessionID() && !UrlState.replay();
+	const configured = () => !!UrlState.sessionID() && !!UrlState.rgsUrl() && !UrlState.replay();
 	const now = () => Date.now();
 	const setCooldown = (ms = 1800) => { cooldownUntil = Math.max(cooldownUntil, now() + ms); };
 	const cooldownRemaining = () => Math.max(0, cooldownUntil - now());
@@ -957,6 +1026,12 @@ const Rgs = (() => {
 		return text.includes('no active round') || text.includes('does not have active round') || text.includes('round is not active') || text.includes('already closed');
 	};
 	const isRateLimitedError = (error) => Number(error && error.status) === 429;
+	const isFatalRgsError = (error) => {
+		const text = errorText(error);
+		return Number(error && error.status) === 401 || Number(error && error.status) === 403
+			|| text.includes('invalid session') || text.includes('session not found') || text.includes('unauthorized')
+			|| text.includes('forbidden') || text.includes('invalid launch') || text.includes('invalid token');
+	};
 	const warnRgs = (label, error) => {
 		if (!UrlState.debug()) return;
 		if (now() - lastRgsWarningAt < 5000) return;
@@ -965,6 +1040,9 @@ const Rgs = (() => {
 	};
 	const failRequest = (reason, error) => {
 		if (error) warnRgs('[RGS] ' + reason, error);
+		if (error && UrlState.requiresRgs() && isFatalRgsError(error)) {
+			fatalError('Stake Engine connection error', 'The game launch session is invalid or expired. Please relaunch the game from Stake Engine.');
+		}
 		if (error) setCooldown(isRateLimitedError(error) ? 2200 : 1200);
 		return false;
 	};
@@ -1041,11 +1119,16 @@ const Rgs = (() => {
 		}).then(async (data) => {
 			if (data && data.round && data.round.active === true) {
 				lastRound = data.round;
-				await recoverActiveRound(data.round);
+				applyBetFromRound(data.round);
+				if (rgsRoundIsBonus(data.round)) markRoundFromPlay(data.round);
+				else await recoverActiveRound(data.round);
 			}
 			return data;
 		}).catch((error) => {
 			console.warn('[RGS] authenticate failed', error);
+			if (UrlState.requiresRgs()) {
+				fatalError('Stake Engine connection error', 'The game could not authenticate with Stake Engine. Please relaunch the game.');
+			}
 			authenticatePromise = null;
 			return false;
 		});
@@ -1150,10 +1233,100 @@ const Rgs = (() => {
 			return { blocked: true, reason: isRateLimitedError(error) ? 'rate-limit' : 'end-round-error' };
 		}
 	};
-	const modeFor = (buy) => (buy && (buy.id === 'tier1' || buy.id === 'tier2') ? 'bonus' : 'base');
-	const busy = () => !!playPromise || !!endRoundPromise || !!startupRecoveryPromise || currentRoundNeedsEnd;
-	return { authenticate, play, endRound, modeFor, configured, blocked, cooldownRemaining, consumePendingBalance, setBalanceDeferred, busy, get lastRound() { return lastRound; } };
+	const saveEvent = async (eventValue, context = {}) => {
+		if (!configured()) return null;
+		if (eventValue === undefined || eventValue === null) return null;
+		const event = typeof eventValue === 'string' ? eventValue : JSON.stringify(eventValue);
+		eventPromise = post('/bet/event', { sessionID: UrlState.sessionID(), event }, { force: true })
+			.then((data) => {
+				debugWallet({
+					spinId: context.spinId,
+					requestType: 'bet-event',
+					roundId: roundId(data && data.round),
+					active: data && data.round ? data.round.active : null,
+					payout: data && data.round ? data.round.payout : null,
+					payoutMultiplier: data && data.round ? data.round.payoutMultiplier : null,
+					willCallEndRound: currentRoundNeedsEnd,
+					balanceBefore: state.balance,
+					balanceAfter: balanceFromResponse(data),
+				});
+				return data;
+			})
+			.catch((error) => {
+				warnRgs('[RGS] event save failed', error);
+				return false;
+			})
+			.finally(() => { eventPromise = null; });
+		return eventPromise;
+	};
+	const modeFor = (buy) => {
+		if (!buy) return 'base';
+		if (buy.id === 'hunt') return 'hunt';
+		if (buy.id === 'rainbow') return 'rainbow';
+		if (buy.id === 'tier1') return 'bonus_tier1';
+		if (buy.id === 'tier2') return 'bonus';
+		return 'base';
+	};
+	const busy = () => !!playPromise || !!endRoundPromise || !!eventPromise || !!startupRecoveryPromise || currentRoundNeedsEnd;
+	return { authenticate, play, endRound, saveEvent, modeFor, configured, blocked, cooldownRemaining, consumePendingBalance, setBalanceDeferred, busy, get lastRound() { return lastRound; } };
 })();
+
+async function resumeLaunchRound() {
+	if (!validateLaunchUrl()) return;
+	const auth = await Rgs.authenticate();
+	if (auth === false || state.fatal) return;
+	const round = auth && auth.round;
+	if (!round || round.active !== true || !rgsRoundIsBonus(round)) return;
+	const spinId = ++spinSeq;
+	const events = normalizeRgsEvents(round.state);
+	const startIndex = rgsResumeIndex(round);
+	setWalletBusy(true);
+	state.spinning = true;
+	$('btn-spin').classList.add('busy');
+	clearSkip();
+	try {
+		applyBetFromRound(round);
+		state.mode = 'free';
+		state.tier = 1;
+		state.fsTotal = rgsFreeSpinTotal(events, CONFIG.tiers[1].spins);
+		state.fsLeft = state.fsTotal;
+		state.reveals.clear();
+		state.golden.clear();
+		setWin(0);
+		updateFsCounter();
+		updateMeters();
+		if (startIndex <= 0) await bonusIntroRgs(state.fsTotal);
+		const displayedWin = await playRgsBookRound({ round }, spinId, {
+			startIndex,
+			skipBonusIntro: true,
+			trackProgress: true,
+		});
+		Rgs.setBalanceDeferred(true);
+		const endRoundResult = await Rgs.endRound({ spinId, resume: 'bonus' });
+		const walletBalanceAfterEndRound = Rgs.consumePendingBalance();
+		Rgs.setBalanceDeferred(false);
+		if (endRoundResult && endRoundResult.blocked) {
+			stopAutoSpin();
+			fatalError('Stake Engine settlement failed', 'The resumed bonus round could not be settled. Please relaunch the game.');
+			return;
+		}
+		if (walletBalanceAfterEndRound) state.balance = walletBalanceAfterEndRound.amount;
+		else if (displayedWin > 0) state.balance = roundMoney(state.balance + displayedWin);
+		if (displayedWin > 0) await showBanner(displayedWin);
+	} finally {
+		Rgs.setBalanceDeferred(false);
+		state.mode = 'base';
+		state.tier = 0;
+		state.fsLeft = 0;
+		state.fsTotal = 0;
+		updateFsCounter();
+		state.spinning = false;
+		$('btn-spin').classList.remove('busy');
+		clearSkip();
+		setWalletBusy(false);
+		updateMeters();
+	}
+}
 
 // Board symbol pool — weights from SYMBOLS, feature-symbol weights from CONFIG.
 const POOL_SCALE = 50; // allows fractional feature-symbol weights (matches the sim)
@@ -1200,6 +1373,14 @@ function fullDropMap() {
 	for (let c = 0; c < COLS; c += 1) for (let r = 0; r < ROWS; r += 1)
 		drops.set(ck(c, r), { rows: ROWS, delay: c * COL_DELAY * TF(), dur: DROP_DUR(ROWS) * TF() });
 	return drops;
+}
+function applyAnticipationDropTiming(drops) {
+	const COLD = [0, 150, 320, 510, 900, 1480]; // progressive deceleration (ms, pre-turbo)
+	for (const [k, d] of drops) {
+		const c = +k.split(',')[0];
+		d.delay = COLD[c] * TF();
+		d.dur = (DROP_DUR(ROWS) + c * 45 + (c >= COLS - 2 ? 150 : 0)) * TF();
+	}
 }
 // Latest land time (delay+dur) across a drop map, for awaiting the settle.
 function dropEnd(drops) { let m = 0; for (const d of drops.values()) m = Math.max(m, d.delay + d.dur); return m; }
@@ -1274,6 +1455,28 @@ function normalizeRgsEvents(roundState) {
 function rgsRoundId(round) {
 	return round && (round.betID || round.betId || round.roundID || round.roundId || round.id || null);
 }
+function rgsRoundMode(round) {
+	return String(round && round.mode ? round.mode : 'base').toLowerCase();
+}
+function rgsRoundIsBonus(round) {
+	const mode = rgsRoundMode(round);
+	return mode.includes('bonus') || mode.includes('free');
+}
+function applyBetFromRound(round) {
+	const bet = apiAmountToMoney(round && round.amount);
+	if (!bet || bet <= 0) return;
+	state.bet = bet;
+	const exact = BETS.findIndex((value) => Math.abs(value - bet) < 0.000001);
+	if (exact >= 0) state.betIdx = exact;
+	else {
+		let closest = 0;
+		for (let i = 1; i < BETS.length; i += 1) {
+			if (Math.abs(BETS[i] - bet) < Math.abs(BETS[closest] - bet)) closest = i;
+		}
+		state.betIdx = closest;
+	}
+	updateMeters();
+}
 function rgsRoundPayoutMoney(round) {
 	const raw = Number(round && round.payout);
 	if (Number.isFinite(raw)) return Math.abs(raw) >= 1000 ? apiAmountToMoney(raw) : roundMoney(raw);
@@ -1288,6 +1491,46 @@ function finalBookWinMoney(events) {
 	const final = [...events].reverse().find((event) => event && event.type === 'finalWin');
 	return final ? bookAmountToMoney(final.amount) : 0;
 }
+function rgsDisplayWinMoney(round, events) {
+	const stateFinal = finalBookWinMoney(events);
+	const walletPayout = rgsRoundPayoutMoney(round);
+	// Active rounds are settled by /wallet/end-round. During the visual replay,
+	// round.payout may still be 0, so the RGS book finalWin is the display source.
+	if (round && round.active === true && stateFinal > 0) return stateFinal;
+	return walletPayout !== null ? walletPayout : stateFinal;
+}
+function rgsEventIndex(event, fallback) {
+	const raw = event && (event.index ?? event.eventIndex ?? event.idx);
+	const index = Number(raw);
+	return Number.isFinite(index) ? Math.max(0, Math.floor(index)) : fallback;
+}
+function rgsResumeIndex(round) {
+	const event = round && (round.event ?? round.currentEvent ?? round.eventIndex ?? round.resumeIndex);
+	if (event === undefined || event === null || event === '') return 0;
+	if (typeof event === 'number') return Math.max(0, Math.floor(event));
+	if (typeof event === 'string') {
+		const numeric = Number(event);
+		if (Number.isFinite(numeric)) return Math.max(0, Math.floor(numeric));
+		try {
+			const parsed = JSON.parse(event);
+			return rgsResumeIndex({ event: parsed });
+		} catch (e) {
+			return 0;
+		}
+	}
+	if (typeof event === 'object') {
+		const raw = event.nextIndex ?? event.index ?? event.eventIndex ?? event.currentEvent ?? event.step;
+		const numeric = Number(raw);
+		if (Number.isFinite(numeric)) return Math.max(0, Math.floor(numeric));
+	}
+	return 0;
+}
+function rgsFreeSpinTotal(events, fallback = 0) {
+	const trigger = events.find((event) => event && event.type === 'freeSpinTrigger');
+	const update = events.find((event) => event && event.type === 'updateFreeSpin');
+	const value = Number((trigger && (trigger.totalFs ?? trigger.total ?? trigger.amount)) ?? (update && update.total));
+	return Number.isFinite(value) && value > 0 ? value : fallback;
+}
 function rgsFeatureSummary(events) {
 	const list = Array.isArray(events) ? events : [];
 	const final = [...list].reverse().find((event) => event && event.type === 'finalWin');
@@ -1295,19 +1538,34 @@ function rgsFeatureSummary(events) {
 	const hasUpdateFreeSpin = list.some((event) => event && event.type === 'updateFreeSpin');
 	const hasFreeSpinEnd = list.some((event) => event && event.type === 'freeSpinEnd');
 	const hasCompleteRgsFeature = hasUpdateFreeSpin || hasFreeSpinEnd;
+	const hasConfirmedFreeSpinFeature = hasFreeSpinTrigger && hasCompleteRgsFeature;
 	return {
 		hasFreeSpinTrigger,
 		hasUpdateFreeSpin,
 		hasFreeSpinEnd,
 		hasCompleteRgsFeature,
+		hasConfirmedFreeSpinFeature,
 		finalWin: final ? Number(final.amount) || 0 : 0,
-		willStartVisualFeature: USE_RGS_STATE_RENDERER && hasFreeSpinTrigger && hasCompleteRgsFeature,
+		willStartVisualFeature: hasConfirmedFreeSpinFeature,
 	};
+}
+function rgsRevealHasConfirmedScatterTrigger(events, revealPos) {
+	const list = Array.isArray(events) ? events : [];
+	if (!Number.isInteger(revealPos) || revealPos < 0 || revealPos >= list.length) return false;
+	let nextRevealPos = list.length;
+	for (let i = revealPos + 1; i < list.length; i += 1) {
+		if (list[i] && list[i].type === 'reveal') { nextRevealPos = i; break; }
+	}
+	const hasTriggerForReveal = list
+		.slice(revealPos + 1, nextRevealPos)
+		.some((event) => event && event.type === 'freeSpinTrigger');
+	if (!hasTriggerForReveal) return false;
+	return list.some((event) => event && (event.type === 'updateFreeSpin' || event.type === 'freeSpinEnd'));
 }
 function shouldRenderSafeRgsBase(events) {
 	const list = Array.isArray(events) ? events : [];
 	if (!USE_SAFE_RGS_BASE_RENDERER || !list.length) return false;
-	const known = new Set(['reveal', 'winInfo', 'updateTumbleWin', 'setWin', 'setTotalWin', 'tumbleBoard', 'finalWin']);
+	const known = new Set(['reveal', 'winInfo', 'updateTumbleWin', 'setWin', 'setTotalWin', 'tumbleBoard', 'goldenReveal', 'goldenAward', 'goldenClear', 'finalWin']);
 	if (!list.every((event) => event && known.has(event.type))) return false;
 	return list.some((event) => event.type === 'reveal' && event.board);
 }
@@ -1355,9 +1613,29 @@ function rgsCellsFromPositions(positions) {
 	}
 	return cells;
 }
-async function bonusIntroRgs(totalFreeSpins) {
+function primeRgsResumeState(events, startIndex) {
+	if (!startIndex) return;
+	const prior = events.filter((event, fallback) => event && rgsEventIndex(event, fallback) < startIndex);
+	const reveal = [...prior].reverse().find((event) => event.type === 'reveal' && event.board);
+	if (reveal) {
+		const revealPos = events.indexOf(reveal);
+		setGridFromRgsBoard(reveal.board);
+		if (!rgsRevealHasConfirmedScatterTrigger(events, revealPos)) removeUnconfirmedRgsScatterTrigger();
+		if (reveal.gameType === 'freegame') state.mode = 'free';
+		paint();
+	}
+	const freeSpin = [...prior].reverse().find((event) => event.type === 'updateFreeSpin');
+	if (freeSpin) {
+		state.mode = 'free';
+		state.tier = state.tier || 1;
+		state.fsTotal = Number(freeSpin.total) || state.fsTotal || 0;
+		state.fsLeft = Math.max(0, state.fsTotal - (Number(freeSpin.amount) || 0));
+		updateFsCounter();
+	}
+}
+async function bonusIntroRgs(totalFreeSpins, title = 'Golden Chance') {
 	const el = $('bonus-intro'); if (!el) return;
-	$('bi-title').textContent = 'Golden Chance';
+	$('bi-title').textContent = title || 'Golden Chance';
 	$('bi-spins').textContent = Math.max(0, Number(totalFreeSpins) || 0) + ' FREE SPINS';
 	el.setAttribute('aria-hidden', 'false');
 	el.classList.remove('out'); el.classList.add('show');
@@ -1391,6 +1669,7 @@ async function renderRgsWinInfo(event, runningWin, stepOverride = null) {
 	if (cells.length) {
 		stage.classList.add('win-focus');
 		cells.forEach(([c, r]) => {
+			state.golden.add(ck(c, r));
 			const el = cellEl(c, r);
 			if (el) el.classList.add('win');
 		});
@@ -1416,6 +1695,26 @@ async function renderRgsWinInfo(event, runningWin, stepOverride = null) {
 	}
 	return targetWin;
 }
+function rgsRewardAsset(reward) {
+	if (!reward) return COIN_ASSETS.bronze;
+	if (reward.kind === 'mult') return MULT_ASSETS[reward.value] || MULT_ASSETS[2];
+	if (reward.kind === 'collector') return COLLECTOR_ASSET;
+	if (reward.kind === 'coin') return COIN_ASSETS[reward.tier] || COIN_ASSETS.bronze;
+	return COIN_ASSETS.bronze;
+}
+function rgsRewardToReveal(reward) {
+	if (!reward) return null;
+	const kind = reward.kind === 'coin' ? 'coin'
+		: reward.kind === 'mult' ? 'mult'
+		: reward.kind === 'collector' ? 'collector'
+		: 'blank';
+	return {
+		kind,
+		tier: reward.tier || (kind === 'coin' ? 'bronze' : undefined),
+		value: Number(reward.value) || 0,
+		asset: rgsRewardAsset(reward),
+	};
+}
 async function renderRgsTumble(event) {
 	const removedByCol = Array.from({ length: COLS }, () => new Set());
 	for (const [c, r] of rgsCellsFromPositions(event.explodingSymbols || [])) removedByCol[c].add(r);
@@ -1433,34 +1732,113 @@ async function renderRgsTumble(event) {
 	scheduleDropStops(drops);
 	await rawWait(dropEnd(drops) + 80 * TF());
 }
-async function playRgsBookRound(rgsPlay, spinId) {
+async function renderRgsGoldenReveal(event) {
+	const rewards = Array.isArray(event.rewards) ? event.rewards : [];
+	state.reveals.clear();
+	const cells = [];
+	const pendingReveals = [];
+	for (const reward of rewards) {
+		const cell = rgsPosToCell(reward);
+		if (!cell) continue;
+		const [c, r] = cell;
+		const key = ck(c, r);
+		state.golden.add(key);
+		const reveal = rgsRewardToReveal(reward);
+		if (reveal) pendingReveals.push({ col: c, row: r, key, reveal });
+		cells.push([c, r]);
+	}
+	if (cells.length) {
+		paint();
+		await rainbowSweep((sweepCol) => {
+			let changed = false;
+			for (const item of pendingReveals) {
+				if (item.col !== sweepCol || state.reveals.has(item.key)) continue;
+				state.reveals.set(item.key, item.reveal);
+				changed = true;
+			}
+			if (changed) {
+				paint();
+				document.querySelectorAll('#board .cell.golden').forEach((el) => el.classList.add('activating'));
+			}
+		});
+	}
+	for (const item of pendingReveals) state.reveals.set(item.key, item.reveal);
+	paint();
+	await wait(state.turbo ? 300 : 520);
+}
+async function renderRgsGoldenAward(event, runningWin) {
+	const amount = bookAmountToMoney(event.amount);
+	const target = event.totalWin !== undefined ? bookAmountToMoney(event.totalWin) : roundMoney(runningWin + amount);
+	const collectorCells = rgsCellsFromPositions(event.collectorPositions || []);
+	if (collectorCells.length) {
+		for (const [c, r] of collectorCells) {
+			const el = cellEl(c, r);
+			if (el) el.classList.add('collect-pulse', 'collect-burst');
+		}
+		Sound.collect();
+		await wait(state.turbo ? 160 : 280);
+		for (const [c, r] of collectorCells) {
+			const el = cellEl(c, r);
+			if (el) el.classList.remove('collect-pulse', 'collect-burst');
+		}
+	}
+	if (amount > 0) {
+		const cells = [...state.reveals.keys()].map((key) => key.split(',').map(Number)).filter((cell) => cell.length === 2);
+		showClusterFloat(amount, cells);
+		setWin(target, false);
+		await countUp(target, runningWin);
+	} else {
+		setWin(target);
+	}
+	return target;
+}
+async function playRgsBookRound(rgsPlay, spinId, options = {}) {
 	const round = rgsPlay && rgsPlay.round;
 	const events = normalizeRgsEvents(round && round.state);
 	const featureInfo = rgsFeatureSummary(events);
-	const expected = rgsRoundPayoutMoney(round);
+	const walletExpected = rgsRoundPayoutMoney(round);
+	const expected = rgsDisplayWinMoney(round, events);
 	const hasAuthoritativePayout = expected !== null;
 	const winInfoCount = events.filter((event) => event && event.type === 'winInfo').length;
+	const hasRgsAwardEvents = events.some((event) => event && event.type === 'goldenAward');
+	const startIndex = Math.max(0, Number(options.startIndex) || 0);
+	const skipBonusIntro = !!options.skipBonusIntro;
+	const trackProgress = !!options.trackProgress && Rgs.configured() && rgsRoundIsBonus(round);
 	let runningWin = 0;
 	let visibleRgsWinShown = false;
 	let rgsFinalFromState = finalBookWinMoney(events);
 	state.reveals.clear();
 	state.golden.clear();
-	for (const event of events) {
+	primeRgsResumeState(events, startIndex);
+	for (let eventPos = 0; eventPos < events.length; eventPos += 1) {
+		const event = events[eventPos];
+		const eventIndex = rgsEventIndex(event, eventPos);
 		if (!event || !event.type) continue;
+		if (eventIndex < startIndex) continue;
 		if (event.type === 'reveal') {
 			[...board.querySelectorAll('img')].forEach((img) => img.classList.add('clearing'));
 			await wait(160);
 			setGridFromRgsBoard(event.board);
+			const revealHasTrigger = rgsRevealHasConfirmedScatterTrigger(events, eventPos);
+			if (!revealHasTrigger) removeUnconfirmedRgsScatterTrigger();
 			state.mode = event.gameType === 'freegame' ? 'free' : state.mode;
 			const drops = fullDropMap();
+			const anticipate = !revealHasTrigger && scatterCount() === 2 && earlyScatterCount() >= 2;
+			if (anticipate) {
+				applyAnticipationDropTiming(drops);
+				stage.classList.add('antic'); Sound.anticipation(2); stadiumFlash();
+			}
 			paint({ drops });
+			scheduleScatterSounds(drops);
 			scheduleDropStops(drops);
 			await rawWait(dropEnd(drops) + 80 * TF());
+			if (anticipate) stage.classList.remove('antic');
 		} else if (event.type === 'winInfo') {
 			if (hasAuthoritativePayout && expected <= 0) continue;
 			const cells = rgsCellsFromPositions((Array.isArray(event.wins) ? event.wins : []).flatMap((win) => win.positions || []));
 			if (!cells.length) continue;
 			const stepOverride = hasAuthoritativePayout && expected > 0 && winInfoCount === 1
+				&& !hasRgsAwardEvents
 				? Math.max(0, roundMoney(expected - runningWin))
 				: null;
 			runningWin = await renderRgsWinInfo(event, runningWin, stepOverride);
@@ -1476,22 +1854,32 @@ async function playRgsBookRound(rgsPlay, spinId) {
 		} else if (event.type === 'tumbleBoard') {
 			if (hasAuthoritativePayout && expected <= 0) continue;
 			await renderRgsTumble(event);
+		} else if (event.type === 'goldenReveal') {
+			await renderRgsGoldenReveal(event);
+		} else if (event.type === 'goldenAward') {
+			runningWin = await renderRgsGoldenAward(event, runningWin);
+		} else if (event.type === 'goldenClear') {
+			state.reveals.clear();
+			if (event.clearGolden) state.golden.clear();
+			paint();
+			await wait(state.turbo ? 80 : 140);
 		} else if (event.type === 'freeSpinTrigger') {
+			if (!featureInfo.hasCompleteRgsFeature) continue;
 			const cells = rgsCellsFromPositions(event.positions || []);
 			cells.forEach(([c, r]) => { const el = cellEl(c, r); if (el) el.classList.add('scatter-antic', 'scatter-hit'); });
 			Sound.scatter(Math.max(1, cells.length));
 			await wait(state.turbo ? 240 : 520);
 			cells.forEach(([c, r]) => { const el = cellEl(c, r); if (el) el.classList.remove('scatter-antic', 'scatter-hit'); });
-			if (!featureInfo.hasCompleteRgsFeature) continue;
 			state.mode = 'free';
 			state.tier = 1;
+			if (Number(event.tier)) state.tier = Number(event.tier);
 			state.fsTotal = Number(event.totalFs) || 0;
 			state.fsLeft = state.fsTotal;
 			updateFsCounter();
-			await bonusIntroRgs(state.fsTotal);
+			if (!skipBonusIntro) await bonusIntroRgs(state.fsTotal, event.title || event.name || 'Golden Chance');
 		} else if (event.type === 'updateFreeSpin') {
 			state.mode = 'free';
-			state.tier = 1;
+			state.tier = Number(event.tier) || state.tier || 1;
 			state.fsTotal = Number(event.total) || state.fsTotal || 0;
 			state.fsLeft = Math.max(0, state.fsTotal - (Number(event.amount) || 0));
 			updateFsCounter();
@@ -1502,6 +1890,9 @@ async function playRgsBookRound(rgsPlay, spinId) {
 			state.mode = 'base'; state.tier = 0; state.fsLeft = 0; state.fsTotal = 0; updateFsCounter();
 		} else if (event.type === 'finalWin') {
 			rgsFinalFromState = bookAmountToMoney(event.amount);
+		}
+		if (trackProgress && (event.type === 'updateFreeSpin' || event.type === 'freeSpinEnd' || event.type === 'finalWin')) {
+			await Rgs.saveEvent(String(eventIndex + 1), { spinId });
 		}
 	}
 	const displayedWin = hasAuthoritativePayout ? expected : rgsFinalFromState;
@@ -1518,6 +1909,8 @@ async function playRgsBookRound(rgsPlay, spinId) {
 			rgsBetId: rgsRoundId(round),
 			rgsActive: round && round.active,
 			rgsPayout: round && round.payout,
+			rgsWalletExpected: walletExpected,
+			rgsStateFinalWin: finalBookWinMoney(events),
 			displayedWin,
 			hasFreeSpinTrigger: featureInfo.hasFreeSpinTrigger,
 			hasUpdateFreeSpin: featureInfo.hasUpdateFreeSpin,
@@ -1533,6 +1926,8 @@ async function playRgsBookRound(rgsPlay, spinId) {
 			rgsBetId: rgsRoundId(round),
 			rgsActive: round && round.active,
 			rgsPayout: round && round.payout,
+			rgsWalletExpected: walletExpected,
+			rgsStateFinalWin: finalBookWinMoney(events),
 			displayedWin,
 			hasFreeSpinTrigger: featureInfo.hasFreeSpinTrigger,
 			hasUpdateFreeSpin: featureInfo.hasUpdateFreeSpin,
@@ -1543,10 +1938,14 @@ async function playRgsBookRound(rgsPlay, spinId) {
 			visibleRgsWinShown,
 		}]);
 	}
-	if (hasAuthoritativePayout && Math.abs(displayedWin - expected) > 0.01) console.error('[RGS assert] displayedWin must equal round.payout converted from API units', { spinId, expected, displayedWin, round });
+	if (hasAuthoritativePayout && Math.abs(displayedWin - expected) > 0.01) console.error('[RGS assert] displayedWin must equal the RGS display win', { spinId, expected, walletExpected, stateFinal: finalBookWinMoney(events), displayedWin, round });
+	if (!(round && round.active === true && finalBookWinMoney(events) > 0 && walletExpected === 0) && walletExpected !== null && Math.abs(displayedWin - walletExpected) > 0.01) console.error('[RGS assert] displayedWin must equal settled wallet payout when wallet payout is authoritative', { spinId, walletExpected, displayedWin, round });
 	if ((round && Number(round.payout) > 0) && displayedWin <= 0) console.error('[RGS assert] RGS payout > 0 but visible game shows no win', { spinId, displayedWin, round });
 	if (displayedWin > 0 && !events.length) console.error('[RGS assert] visible win has no RGS round.state events', { spinId, displayedWin, round });
 	if (state.mode === 'free') { state.mode = 'base'; state.tier = 0; state.fsLeft = 0; state.fsTotal = 0; updateFsCounter(); }
+	state.reveals.clear();
+	state.golden.clear();
+	paint();
 	return displayedWin;
 }
 
@@ -1664,7 +2063,7 @@ async function bonusIntro(tier) {
 }
 
 // Light bar sweeps across the board while the Golden Cells energise.
-async function rainbowSweep() {
+async function rainbowSweep(onColumn = null) {
 	const layer = $('fx-layer'); if (!layer) return;
 	const sr = stage.getBoundingClientRect(); const br = board.getBoundingClientRect(); const sc = state.scale || 1;
 	const x = (br.left - sr.left) / sc, y = (br.top - sr.top) / sc, w = br.width / sc, h = br.height / sc;
@@ -1675,7 +2074,15 @@ async function rainbowSweep() {
 	layer.appendChild(bar);
 	Sound.sweep();
 	document.querySelectorAll('#board .cell.golden').forEach((el) => el.classList.add('activating'));
-	await wait(state.turbo ? 340 : 560);
+	if (typeof onColumn === 'function') {
+		const step = (state.turbo ? 340 : 560) / COLS;
+		for (let col = 0; col < COLS; col += 1) {
+			await wait(step);
+			onColumn(col);
+		}
+	} else {
+		await wait(state.turbo ? 340 : 560);
+	}
 	bar.remove();
 	document.querySelectorAll('#board .cell.activating').forEach((el) => el.classList.remove('activating'));
 }
@@ -2031,6 +2438,33 @@ function removeVisibleClustersForRgsFinal() {
 	return findClusters().length === 0;
 }
 
+function removeUnconfirmedRgsScatterTrigger() {
+	let scatters = [];
+	for (let c = 0; c < COLS; c += 1) for (let r = 0; r < ROWS; r += 1) {
+		if (state.grid[c][r] === 'scatter') scatters.push([c, r]);
+	}
+	if (scatters.length < 3) return;
+	let hash = 2166136261;
+	for (let c = 0; c < COLS; c += 1) for (let r = 0; r < ROWS; r += 1) {
+		const key = state.grid[c][r] || '';
+		for (let i = 0; i < key.length; i += 1) hash = Math.imul(hash ^ key.charCodeAt(i), 16777619);
+		hash = Math.imul(hash ^ (c * 31 + r), 16777619);
+	}
+	const roll = (hash >>> 0) / 4294967295;
+	const target = roll < 0.45 ? 0 : roll < 0.82 ? 1 : 2;
+	while (scatters.length > target) {
+		const [col, row] = scatters.pop();
+		state.grid[col][row] = replacementSymbolForCell(col, row);
+		scatters = scatters.filter(([c, r]) => state.grid[c][r] === 'scatter');
+	}
+}
+
+function earlyScatterCount() {
+	let count = 0;
+	for (let c = 0; c < COLS - 2; c += 1) for (let r = 0; r < ROWS; r += 1) if (state.grid[c][r] === 'scatter') count += 1;
+	return count;
+}
+
 function payFor(key, count) {
 	const base = SYMBOLS[key].pay;
 	const sizeBoost = count >= 12 ? 8 : count >= 9 ? 4 : count >= 7 ? 2 : 1;
@@ -2334,12 +2768,7 @@ function scatterCount() { return state.grid.reduce((s, col) => s + col.filter((k
 async function dropInBoard(anticipate) {
 	const drops = fullDropMap();
 	if (anticipate) {
-		const COLD = [0, 150, 320, 510, 900, 1480]; // progressive deceleration (ms, pre-turbo)
-		for (const [k, d] of drops) {
-			const c = +k.split(',')[0];
-			d.delay = COLD[c] * TF();
-			d.dur = (DROP_DUR(ROWS) + c * 45 + (c >= COLS - 2 ? 150 : 0)) * TF();
-		}
+		applyAnticipationDropTiming(drops);
 		stage.classList.add('antic'); Sound.anticipation(2); stadiumFlash();
 	}
 	paint({ drops });
@@ -2362,6 +2791,7 @@ function setWalletBusy(busy) {
 	updateLocks();
 }
 async function spin(buy, internalFreeSpin = false) {
+	if (state.fatal) return;
 	// Free Spins are driven by startFreeSpins(). Manual clicks during the bonus
 	// must not skip animations or start extra spins between loop iterations.
 	if (state.mode === 'free' && !internalFreeSpin) return;
@@ -2399,6 +2829,7 @@ async function spin(buy, internalFreeSpin = false) {
 		walletBalanceAfterPlay = Rgs.consumePendingBalance();
 		if (Rgs.configured() && !rgsPlay) {
 			stopAutoSpin();
+			fatalError('Stake Engine request failed', 'The game could not start a wallet round. Please relaunch the game from Stake Engine.');
 			if (paidRound) setWalletBusy(false);
 			$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
 			updateMeters();
@@ -2408,8 +2839,7 @@ async function spin(buy, internalFreeSpin = false) {
 		roundNeedsEnd = !!(rgsPlay && rgsPlay.__needsEndRound);
 		const rgsEvents = normalizeRgsEvents(rgsPlay && rgsPlay.round && rgsPlay.round.state);
 		const renderSafeRgsBase = Rgs.configured() && rgsPlay && shouldRenderSafeRgsBase(rgsEvents);
-		const hasRgsPayout = Rgs.configured() && rgsPlay && rgsRoundPayoutMoney(rgsPlay.round) !== null;
-		const renderRgsRound = Rgs.configured() && rgsPlay && (shouldRenderRgsRound(rgsEvents) || hasRgsPayout);
+		const renderRgsRound = Rgs.configured() && rgsPlay && shouldRenderRgsRound(rgsEvents);
 		if ((USE_RGS_STATE_RENDERER || renderSafeRgsBase || renderRgsRound) && Rgs.configured() && rgsPlay) {
 			state.balance = roundMoney(state.balance - cost);
 			state.reveals.clear();
@@ -2417,9 +2847,17 @@ async function spin(buy, internalFreeSpin = false) {
 			const displayedWin = await playRgsBookRound(rgsPlay, spinId);
 			if (roundNeedsEnd) {
 				Rgs.setBalanceDeferred(true);
-				await Rgs.endRound({ spinId });
+				const endRoundResult = await Rgs.endRound({ spinId });
 				walletBalanceAfterEndRound = Rgs.consumePendingBalance();
 				Rgs.setBalanceDeferred(false);
+				if (endRoundResult && endRoundResult.blocked) {
+					stopAutoSpin();
+					fatalError('Stake Engine settlement failed', 'The round could not be settled with Stake Engine. Please relaunch the game.');
+					setWalletBusy(false);
+					updateMeters();
+					$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
+					return;
+				}
 			}
 			if (walletBalanceAfterEndRound) state.balance = walletBalanceAfterEndRound.amount;
 			else if (walletBalanceAfterPlay) state.balance = walletBalanceAfterPlay.amount;
@@ -2446,6 +2884,30 @@ async function spin(buy, internalFreeSpin = false) {
 			if (state.mode === 'base' && state.auto) setTimeout(() => { if (!state.walletBusy && !Rgs.busy()) spin(); }, state.turbo ? 250 : 600);
 			return;
 		}
+		if (Rgs.configured() && rgsPlay) {
+			stopAutoSpin();
+			Rgs.setBalanceDeferred(true);
+			if (roundNeedsEnd) {
+				const endRoundResult = await Rgs.endRound({ spinId, recovery: 'unrenderable-rgs-round' });
+				walletBalanceAfterEndRound = Rgs.consumePendingBalance();
+				if (endRoundResult && endRoundResult.blocked) {
+					Rgs.setBalanceDeferred(false);
+					fatalError('Stake Engine settlement failed', 'The round could not be settled after an unsupported RGS state. Please relaunch the game.');
+					setWalletBusy(false);
+					$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
+					updateMeters();
+					return;
+				}
+			}
+			Rgs.setBalanceDeferred(false);
+			if (walletBalanceAfterEndRound) state.balance = walletBalanceAfterEndRound.amount;
+			else if (walletBalanceAfterPlay) state.balance = walletBalanceAfterPlay.amount;
+			fatalError('Unsupported Stake Engine round', 'The game received a RGS round state it cannot display safely. No local fallback was used.');
+			setWalletBusy(false);
+			$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
+			updateMeters();
+			return;
+		}
 	}
 	if (paidRound) { state.balance = roundMoney(state.balance - cost); state.golden.clear(); }
 	state.reveals.clear();
@@ -2463,12 +2925,12 @@ async function spin(buy, internalFreeSpin = false) {
 	[...board.querySelectorAll('img')].forEach((img) => img.classList.add('clearing'));
 	await wait(200);
 	newGrid(opts);
+	if (rgsVisualSync) removeUnconfirmedRgsScatterTrigger();
 	if (rgsVisualSync && !rgsRoundActive) removeVisibleClustersForRgsFinal();
-	let earlyScatters = 0;
-	for (let c = 0; c < COLS - 2; c += 1) for (let r = 0; r < ROWS; r += 1) if (state.grid[c][r] === 'scatter') earlyScatters += 1;
-	const anticipate = state.mode === 'base' && !opts.noBonus && !(buy && (buy.id === 'tier1' || buy.id === 'tier2')) && earlyScatters >= 2;
+	const allowLocalScatterFeature = !rgsVisualSync;
+	const anticipate = allowLocalScatterFeature && state.mode === 'base' && !opts.noBonus && !(buy && (buy.id === 'tier1' || buy.id === 'tier2')) && earlyScatterCount() >= 2;
 	await dropInBoard(anticipate);
-	await scatterAnticipation();
+	if (allowLocalScatterFeature) await scatterAnticipation();
 
 	let baseWin = 0;
 	if (rgsVisualSync && !rgsRoundActive) {
@@ -2652,7 +3114,7 @@ async function startFreeSpins(tier, walletManaged = false) {
 }
 
 function changeBet(dir) {
-	if (state.spinning || state.walletBusy || state.mode === 'free') return; // bet locked during active paid/free rounds
+	if (state.fatal || state.spinning || state.walletBusy || state.mode === 'free') return; // bet locked during active paid/free rounds
 	state.betIdx = Math.max(0, Math.min(BETS.length - 1, state.betIdx + dir));
 	state.bet = BETS[state.betIdx]; updateMeters();
 }
@@ -2662,6 +3124,7 @@ $('btn-bet-minus').addEventListener('click', () => changeBet(-1));
 $('btn-bet-plus').addEventListener('click', () => changeBet(1));
 $('btn-turbo').addEventListener('click', () => setTurbo(!state.turbo));
 $('btn-auto').addEventListener('click', () => {
+	if (state.fatal) return;
 	state.auto = !state.auto; $('btn-auto').classList.toggle('armed', state.auto);
 	if (state.auto && !state.spinning && !state.walletBusy && !Rgs.busy()) spin();
 });
@@ -2712,38 +3175,88 @@ function showBuyConfirm(o, price) {
 		closeModals();
 		if (o.id === 'tier1' || o.id === 'tier2') {
 			const purchaseSpinId = ++spinSeq;
+			const purchaseUsesRgs = Rgs.configured();
 			setWalletBusy(true);
 			Rgs.setBalanceDeferred(true);
+			if (purchaseUsesRgs) {
+				state.spinning = true;
+				$('btn-spin').classList.add('busy');
+			}
 			try {
 				const rgsPlay = await Rgs.play(state.bet, Rgs.modeFor(o), { spinId: purchaseSpinId });
-				Rgs.consumePendingBalance();
-				if (Rgs.configured() && !rgsPlay) return;
+				const walletBalanceAfterPlay = Rgs.consumePendingBalance();
+				if (Rgs.configured() && !rgsPlay) {
+					fatalError('Stake Engine request failed', 'The bonus buy could not start a wallet round. Please relaunch the game from Stake Engine.');
+					return;
+				}
 				const walletManaged = !!rgsPlay;
 				const roundNeedsEnd = !!(rgsPlay && rgsPlay.__needsEndRound);
-				state.balance = roundMoney(state.balance - price);
+				if (walletBalanceAfterPlay) state.balance = walletBalanceAfterPlay.amount;
+				else state.balance = roundMoney(state.balance - price);
 				updateMeters();
-				const rgsEvents = USE_RGS_STATE_RENDERER ? normalizeRgsEvents(rgsPlay && rgsPlay.round && rgsPlay.round.state) : [];
-				if (USE_RGS_STATE_RENDERER && Rgs.configured() && rgsPlay && rgsEvents.length) {
-					const displayedWin = await playRgsBookRound(rgsPlay, purchaseSpinId);
-					state.balance = roundMoney(state.balance + displayedWin);
+				// RGS/Stake mode: the purchased round must render only from the RGS
+				// book/payout, exactly like a normal spin (see playRgsBookRound).
+				// This used to be gated on USE_RGS_STATE_RENDERER, which stays
+				// false, so every bonus buy fell through to the local
+				// startFreeSpins() simulator below and produced a win with no
+				// relation to the /wallet/play payout — that mismatch is what
+				// Stake Engine flagged. Local free spins are now only for
+				// non-RGS demo mode.
+				if (Rgs.configured() && rgsPlay) {
+					const tier = o.id === 'tier1' ? 1 : 2;
+					const rgsEvents = normalizeRgsEvents(rgsPlay && rgsPlay.round && rgsPlay.round.state);
+					if (!shouldRenderRgsRound(rgsEvents)) {
+						if (roundNeedsEnd) {
+							const endRoundResult = await Rgs.endRound({ spinId: purchaseSpinId, recovery: 'unrenderable-bonus-buy' });
+							if (endRoundResult && endRoundResult.blocked) {
+								fatalError('Stake Engine settlement failed', 'The unsupported bonus buy round could not be settled. Please relaunch the game.');
+								return;
+							}
+						}
+						fatalError('Unsupported Stake Engine round', 'The bonus buy returned a RGS round state the game cannot display safely. No local fallback was used.');
+						return;
+					}
+					await bonusIntroRgs(CONFIG.tiers[tier].spins);
+					const displayedWin = await playRgsBookRound(rgsPlay, purchaseSpinId, {
+						skipBonusIntro: true,
+						trackProgress: true,
+					});
+					let walletBalanceAfterEndRound = null;
+					if (roundNeedsEnd) {
+						Rgs.setBalanceDeferred(true);
+						const endRoundResult = await Rgs.endRound({ spinId: purchaseSpinId });
+						walletBalanceAfterEndRound = Rgs.consumePendingBalance();
+						if (endRoundResult && endRoundResult.blocked) {
+							fatalError('Stake Engine settlement failed', 'The bonus buy round could not be settled. Please relaunch the game.');
+							return;
+						}
+					}
+					if (walletBalanceAfterEndRound) state.balance = walletBalanceAfterEndRound.amount;
+					else if (walletBalanceAfterPlay) state.balance = walletBalanceAfterPlay.amount;
+					else if (displayedWin > 0) state.balance = roundMoney(state.balance + displayedWin);
 					if (displayedWin > 0) await showBanner(displayedWin);
 				} else {
 					await startFreeSpins(o.id === 'tier1' ? 1 : 2, walletManaged);
 				}
-				if (roundNeedsEnd) {
+				if (!Rgs.configured() && roundNeedsEnd) {
 					Rgs.setBalanceDeferred(true);
 					await Rgs.endRound({ spinId: purchaseSpinId });
 					Rgs.consumePendingBalance();
 				}
 			} finally {
 				Rgs.setBalanceDeferred(false);
+				if (purchaseUsesRgs) {
+					state.spinning = false;
+					$('btn-spin').classList.remove('busy');
+					clearSkip();
+				}
 				setWalletBusy(false);
 				updateMeters();
 			}
 		} else spin(o);
 	};
 }
-$('btn-bonus').addEventListener('click', () => { if (!state.spinning && !state.walletBusy && state.mode === 'base') { buildBonusBuy(); openModal('modal-bonusbuy'); } });
+$('btn-bonus').addEventListener('click', () => { if (!state.fatal && !state.spinning && !state.walletBusy && state.mode === 'base') { buildBonusBuy(); openModal('modal-bonusbuy'); } });
 window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); spin(); } });
 
 // ---- modals: open / close ----
@@ -2822,7 +3335,7 @@ document.querySelectorAll('.toggle').forEach((t) => t.addEventListener('click', 
 })();
 
 newGrid(); paint(); updateMeters(); updateLocks();
-Rgs.authenticate();
+resumeLaunchRound();
 
 // Scale the 1200x675 stage to fit any window so nothing (incl. the side
 // panels) is ever cut off — including fullscreen and mobile.

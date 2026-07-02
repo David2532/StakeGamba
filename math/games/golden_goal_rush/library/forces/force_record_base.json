@@ -12,21 +12,21 @@
     {
       "symbol": "W",
       "kind": "max_win_observed",
-      "bookId": 9138,
-      "payoutMultiplier": 3120,
+      "bookId": 79621,
+      "payoutMultiplier": 420174,
       "note": "Highest payoutMultiplier observed in this simulation pool."
     },
     {
       "symbol": "MIXED",
       "kind": "typical_win",
-      "bookId": 58215,
+      "bookId": 48889,
       "payoutMultiplier": 0,
       "note": "Median payoutMultiplier round, indexed for QA baseline."
     },
     {
       "symbol": "S",
       "kind": "scatter_trigger",
-      "bookId": 18,
+      "bookId": 63,
       "payoutMultiplier": 0,
       "note": "First naturally occurring free-spin trigger (3+ scatters) in this pool."
     }

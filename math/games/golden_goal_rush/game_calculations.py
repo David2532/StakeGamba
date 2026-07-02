@@ -2,77 +2,110 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from game_config import PAYLINES, PAYTABLE, SCATTER_SYMBOL, WILD_SYMBOL
+from game_config import (
+    MIN_CLUSTER,
+    NORMAL_SYMBOLS,
+    SCATTER_SYMBOL,
+    SYMBOL_MATH,
+    VISIBLE_ROWS,
+    WILD_SYMBOL,
+)
 
 
 @dataclass(frozen=True)
-class LineWin:
+class ClusterWin:
     symbol: str
     kind: int
     win: int
     positions: list[dict[str, int]]
-    line_index: int
     multiplier: int = 1
 
 
-def visible_symbols(board: list[list[dict[str, str]]]) -> list[list[str]]:
-    """Return each reel's 3 visible symbols from the 5-row padded frontend board."""
-    return [[cell["name"] for cell in reel[1:4]] for reel in board]
+def symbol_name(cell: dict[str, str] | str) -> str:
+    if isinstance(cell, str):
+        return cell
+    return str(cell.get("name", "ten"))
+
+
+def board_symbols(board: list[list[dict[str, str]]]) -> list[list[str]]:
+    return [[symbol_name(cell) for cell in reel] for reel in board]
 
 
 def scatter_positions(board: list[list[dict[str, str]]]) -> list[dict[str, int]]:
     positions: list[dict[str, int]] = []
     for reel_index, reel in enumerate(board):
-        for visible_row, cell in enumerate(reel[1:4], start=1):
-            if cell["name"] == SCATTER_SYMBOL:
-                positions.append({"reel": reel_index, "row": visible_row})
+        for row, cell in enumerate(reel):
+            if symbol_name(cell) == SCATTER_SYMBOL:
+                positions.append({"reel": reel_index, "col": reel_index, "row": row})
     return positions
 
 
-def _line_symbol(line_symbols: list[str]) -> str | None:
-    for symbol in line_symbols:
-        if symbol not in (WILD_SYMBOL, SCATTER_SYMBOL):
-            return symbol
-    if all(symbol == WILD_SYMBOL for symbol in line_symbols):
-        return WILD_SYMBOL
-    return None
+def symbols_connect(target: str, candidate: str) -> bool:
+    if candidate == target:
+        return True
+    if candidate == WILD_SYMBOL and target in NORMAL_SYMBOLS:
+        return True
+    if target == WILD_SYMBOL and candidate in NORMAL_SYMBOLS:
+        return True
+    return False
 
 
-def calculate_line_wins(board: list[list[dict[str, str]]], bet_per_line: int = 1) -> list[LineWin]:
-    visible = visible_symbols(board)
-    wins: list[LineWin] = []
+def pay_for(symbol: str, count: int, multiplier: int = 1) -> int:
+    pay = float(SYMBOL_MATH.get(symbol, {}).get("pay", 0.0))
+    if pay <= 0:
+        return 0
+    size_boost = 8 if count >= 12 else 4 if count >= 9 else 2 if count >= 7 else 1
+    return int(round(pay * size_boost * multiplier * 100))
 
-    for line_index, rows in PAYLINES.items():
-        line_symbols = [visible[reel_index][row_index] for reel_index, row_index in enumerate(rows)]
-        pay_symbol = _line_symbol(line_symbols)
-        if pay_symbol is None:
-            continue
 
-        count = 0
-        positions: list[dict[str, int]] = []
-        for reel_index, row_index in enumerate(rows):
-            symbol = line_symbols[reel_index]
-            if symbol in (pay_symbol, WILD_SYMBOL):
-                count += 1
-                positions.append({"reel": reel_index, "row": row_index + 1})
+def find_clusters(board: list[list[dict[str, str]]], multiplier: int = 1) -> list[ClusterWin]:
+    symbols = board_symbols(board)
+    cols = len(symbols)
+    rows = VISIBLE_ROWS
+    seen = [[False for _ in range(rows)] for _ in range(cols)]
+    clusters: list[ClusterWin] = []
+
+    for col in range(cols):
+        for row in range(rows):
+            target = symbols[col][row]
+            if seen[col][row] or target not in NORMAL_SYMBOLS:
                 continue
-            break
 
-        pay = PAYTABLE.get(pay_symbol, {}).get(count)
-        if pay is None:
-            continue
+            stack = [(col, row)]
+            cells: list[tuple[int, int]] = []
+            seen[col][row] = True
+            while stack:
+                current_col, current_row = stack.pop()
+                cells.append((current_col, current_row))
+                for dc, dr in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    next_col = current_col + dc
+                    next_row = current_row + dr
+                    if next_col < 0 or next_col >= cols or next_row < 0 or next_row >= rows:
+                        continue
+                    if seen[next_col][next_row]:
+                        continue
+                    if symbols_connect(target, symbols[next_col][next_row]):
+                        seen[next_col][next_row] = True
+                        stack.append((next_col, next_row))
 
-        wins.append(
-            LineWin(
-                symbol=pay_symbol,
-                kind=count,
-                win=int(round(pay * bet_per_line * 100)),
-                positions=positions,
-                line_index=line_index,
+            if len(cells) < MIN_CLUSTER:
+                continue
+
+            win = pay_for(target, len(cells), multiplier)
+            if win <= 0:
+                continue
+
+            clusters.append(
+                ClusterWin(
+                    symbol=target,
+                    kind=len(cells),
+                    win=win,
+                    positions=[{"reel": c, "col": c, "row": r} for c, r in cells],
+                    multiplier=multiplier,
+                )
             )
-        )
 
-    return wins
+    return clusters
 
 
 def win_level_for_amount(amount: int) -> int:

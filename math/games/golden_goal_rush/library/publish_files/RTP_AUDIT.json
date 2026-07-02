@@ -2,76 +2,190 @@
   "base": {
     "simulationCount": 80000,
     "cost": 1.0,
-    "rawRtp": 0.43759,
+    "rawRtp": 0.564837,
     "targetRtp": 0.965,
-    "achievedRtp": 0.964974,
+    "achievedRtp": 0.965008,
     "cappedForDiversity": false,
-    "hitRateWeighted": 0.369032,
-    "effectiveSampleSize": 60767.9,
-    "topWeightShare": 0.000789,
-    "maxPayoutMultiplierObserved": 31.2,
+    "hitRateWeighted": 0.181156,
+    "effectiveSampleSize": 79967.9,
+    "topWeightShare": 7.5e-05,
+    "maxPayoutMultiplierObserved": 4201.74,
     "winDistribution": [
       {
         "range": "0x",
-        "weightShare": 0.630968
+        "weightShare": 0.818844
       },
       {
         "range": "0-1x",
-        "weightShare": 0.205052
+        "weightShare": 0.17009
       },
       {
         "range": "1-5x",
-        "weightShare": 0.118666
+        "weightShare": 0.003277
       },
       {
         "range": "5-20x",
-        "weightShare": 0.039781
+        "weightShare": 0.003854
       },
       {
         "range": "20-50x",
-        "weightShare": 0.005533
+        "weightShare": 0.002038
       },
       {
         "range": "50x+",
-        "weightShare": 0.0
+        "weightShare": 0.001897
+      }
+    ]
+  },
+  "hunt": {
+    "simulationCount": 40000,
+    "cost": 4.2,
+    "rawRtp": 0.981705,
+    "targetRtp": 0.965,
+    "achievedRtp": 0.965005,
+    "cappedForDiversity": false,
+    "hitRateWeighted": 0.147913,
+    "effectiveSampleSize": 40000.0,
+    "topWeightShare": 2.5e-05,
+    "maxPayoutMultiplierObserved": 10000.0,
+    "winDistribution": [
+      {
+        "range": "0x",
+        "weightShare": 0.852087
+      },
+      {
+        "range": "0-1x",
+        "weightShare": 0.051252
+      },
+      {
+        "range": "1-5x",
+        "weightShare": 0.02395
+      },
+      {
+        "range": "5-20x",
+        "weightShare": 0.041747
+      },
+      {
+        "range": "20-50x",
+        "weightShare": 0.01937
+      },
+      {
+        "range": "50x+",
+        "weightShare": 0.011593
+      }
+    ]
+  },
+  "rainbow": {
+    "simulationCount": 40000,
+    "cost": 6.0,
+    "rawRtp": 0.932465,
+    "targetRtp": 0.965,
+    "achievedRtp": 0.964986,
+    "cappedForDiversity": false,
+    "hitRateWeighted": 0.159505,
+    "effectiveSampleSize": 39999.7,
+    "topWeightShare": 3.3e-05,
+    "maxPayoutMultiplierObserved": 7511.69,
+    "winDistribution": [
+      {
+        "range": "0x",
+        "weightShare": 0.840495
+      },
+      {
+        "range": "0-1x",
+        "weightShare": 0.016971
+      },
+      {
+        "range": "1-5x",
+        "weightShare": 0.038171
+      },
+      {
+        "range": "5-20x",
+        "weightShare": 0.05846
+      },
+      {
+        "range": "20-50x",
+        "weightShare": 0.02845
+      },
+      {
+        "range": "50x+",
+        "weightShare": 0.017453
+      }
+    ]
+  },
+  "bonus_tier1": {
+    "simulationCount": 40000,
+    "cost": 31.0,
+    "rawRtp": 0.664012,
+    "targetRtp": 0.965,
+    "achievedRtp": 0.964996,
+    "cappedForDiversity": false,
+    "hitRateWeighted": 0.77917,
+    "effectiveSampleSize": 39879.5,
+    "topWeightShare": 0.000126,
+    "maxPayoutMultiplierObserved": 10000.0,
+    "winDistribution": [
+      {
+        "range": "0x",
+        "weightShare": 0.22083
+      },
+      {
+        "range": "0-1x",
+        "weightShare": 0.477631
+      },
+      {
+        "range": "1-5x",
+        "weightShare": 0.062156
+      },
+      {
+        "range": "5-20x",
+        "weightShare": 0.106143
+      },
+      {
+        "range": "20-50x",
+        "weightShare": 0.069744
+      },
+      {
+        "range": "50x+",
+        "weightShare": 0.063497
       }
     ]
   },
   "bonus": {
     "simulationCount": 40000,
-    "cost": 15.0,
-    "rawRtp": 0.929253,
+    "cost": 95.0,
+    "rawRtp": 0.568423,
     "targetRtp": 0.965,
     "achievedRtp": 0.965,
     "cappedForDiversity": false,
-    "hitRateWeighted": 0.997165,
-    "effectiveSampleSize": 39897.9,
-    "topWeightShare": 4.2e-05,
-    "maxPayoutMultiplierObserved": 130.1,
+    "hitRateWeighted": 0.894991,
+    "effectiveSampleSize": 39171.5,
+    "topWeightShare": 0.000229,
+    "maxPayoutMultiplierObserved": 10000.0,
     "winDistribution": [
       {
         "range": "0x",
-        "weightShare": 0.002835
+        "weightShare": 0.105009
       },
       {
         "range": "0-1x",
-        "weightShare": 0.02028
+        "weightShare": 0.406223
       },
       {
         "range": "1-5x",
-        "weightShare": 0.150875
+        "weightShare": 0.070012
       },
       {
         "range": "5-20x",
-        "weightShare": 0.58993
+        "weightShare": 0.131881
       },
       {
         "range": "20-50x",
-        "weightShare": 0.223568
+        "weightShare": 0.117506
       },
       {
         "range": "50x+",
-        "weightShare": 0.012511
+        "weightShare": 0.169369
       }
     ]
   }

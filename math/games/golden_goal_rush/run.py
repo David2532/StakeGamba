@@ -9,13 +9,19 @@ from game_config import (
     BET_MODES,
     GAME_ID,
     GAME_NAME,
-    PAYLINES,
-    PAYTABLE,
     RTP_LOOKUP_WEIGHT_SCALE,
     RTP_MAX_TOP_WEIGHT_SHARE,
     RTP_MIN_EFFECTIVE_SAMPLE_FLOOR,
     RTP_MIN_EFFECTIVE_SAMPLE_FRACTION,
+    FREE_SPIN_TIERS,
+    GOLDEN_REVEAL_WEIGHTS,
+    MAX_WIN_MULTIPLIER,
+    MIN_CLUSTER,
+    NUM_REELS,
+    PADDED_ROWS,
+    SYMBOL_MATH,
     SYMBOLS,
+    VISIBLE_ROWS,
     VERSION,
 )
 from game_executables import (
@@ -63,32 +69,58 @@ def write_config_files(
         "gameId": GAME_ID,
         "gameName": GAME_NAME,
         "version": VERSION,
-        "layout": {"reels": 5, "visibleRows": 3, "paddedRows": 5},
-        "system": "20-lines",
+        "layout": {"reels": NUM_REELS, "visibleRows": VISIBLE_ROWS, "paddedRows": PADDED_ROWS},
+        "system": "6x5 cluster/cascade",
         "symbols": list(SYMBOLS),
-        "paylines": PAYLINES,
-        "paytable": PAYTABLE,
+        "paytable": {
+            symbol: {
+                "cluster5": round(float(config.get("pay", 0.0)), 4),
+                "cluster7Boost": 2,
+                "cluster9Boost": 4,
+                "cluster12Boost": 8,
+            }
+            for symbol, config in SYMBOL_MATH.items()
+            if float(config.get("pay", 0.0)) > 0
+        },
+        "cluster": {
+            "minCluster": MIN_CLUSTER,
+            "wildSubstitutes": True,
+            "winningCellsBecomeGolden": True,
+            "cascadeMultiplier": "increments by 1 after each cascade in a spin",
+        },
+        "goldenFeature": {
+            "trigger": "rainbow appears while at least one golden cell exists",
+            "revealWeights": GOLDEN_REVEAL_WEIGHTS,
+            "coinsMultipliersCollectorsInRoundState": True,
+        },
+        "freeSpinTiers": FREE_SPIN_TIERS,
+        "maxWinMultiplier": MAX_WIN_MULTIPLIER,
         "betModes": bet_modes,
         "frontendContract": {
-            "layout": "5 reels x 3 visible rows",
-            "boardShape": "5 reels x 5 padded rows",
+            "layout": f"{NUM_REELS} reels x {VISIBLE_ROWS} visible rows",
+            "boardShape": f"{NUM_REELS} reels x {PADDED_ROWS} rows",
             "eventTypes": [
                 "reveal",
                 "winInfo",
                 "setWin",
                 "setTotalWin",
+                "tumbleBoard",
                 "freeSpinTrigger",
                 "updateFreeSpin",
                 "freeSpinEnd",
+                "goldenReveal",
+                "goldenAward",
+                "goldenClear",
                 "finalWin",
             ],
             "freeSpinRetrigger": "not emitted",
         },
         "note": (
-            "MVP feature set (Phase 8B grid/cluster contract not wired in). "
-            "RTP is calibrated to each mode's rtp_target via lookup-weight "
-            "optimization without touching reels/paytable/win logic -- see "
-            "RTP_AUDIT.json. Not regulatory-approved math."
+            "Golden Goal Rush 6x5 cluster/cascade books are source-of-truth for "
+            "visible gameplay. Golden Cells, Rainbow reveal, coin/multiplier, "
+            "collector and free-spin events are emitted in round.state. RTP is "
+            "calibrated to each mode's rtp_target via lookup-weight optimization "
+            "without touching generated book win logic -- see RTP_AUDIT.json."
         ),
     }
     (config_dir / "game_config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
@@ -252,9 +284,10 @@ def command_debug(args: argparse.Namespace) -> None:
 def command_smoke(args: argparse.Namespace) -> None:
     ensure_library_dirs()
     errors: list[str] = []
-    all_books = generate_books("base", args.spins, args.seed) + generate_books(
-        "bonus", max(1, args.spins // 2), args.seed + 1000
-    )
+    all_books: list[dict] = []
+    for offset, mode in enumerate(BET_MODES):
+        count = args.spins if mode == "base" else max(1, args.spins // 2)
+        all_books.extend(generate_books(mode, count, args.seed + offset * 1000))
     for book in all_books:
         errors.extend(validate_book(book))
 
@@ -274,28 +307,26 @@ def command_smoke(args: argparse.Namespace) -> None:
 
 def command_publish(args: argparse.Namespace) -> None:
     ensure_library_dirs()
-    base_books = generate_books("base", args.spins, args.seed)
-    bonus_books = generate_books("bonus", args.bonus_spins, args.seed + 1000)
-    books_by_mode = {"base": base_books, "bonus": bonus_books}
+    books_by_mode: dict[str, list[dict]] = {}
+    for offset, mode in enumerate(BET_MODES):
+        count = args.spins if mode == "base" else args.bonus_spins
+        books_by_mode[mode] = generate_books(mode, count, args.seed + offset * 1000)
 
     errors: list[str] = []
-    for book in base_books + bonus_books:
-        errors.extend(validate_book(book))
+    for books in books_by_mode.values():
+        for book in books:
+            errors.extend(validate_book(book))
     if errors:
         print("Publish validation failed:")
         for error in errors:
             print(f"- {error}")
         raise SystemExit(1)
 
-    base_jsonl = ROOT / "library" / "books" / "base_books.jsonl"
-    bonus_jsonl = ROOT / "library" / "books" / "bonus_books.jsonl"
-    write_jsonl(base_jsonl, base_books)
-    write_jsonl(bonus_jsonl, bonus_books)
-
-    compressed = {
-        "base": compress_zstd(base_jsonl, ROOT / "library" / "books_compressed" / "base_books.jsonl.zst"),
-        "bonus": compress_zstd(bonus_jsonl, ROOT / "library" / "books_compressed" / "bonus_books.jsonl.zst"),
-    }
+    compressed: dict[str, bool] = {}
+    for mode, books in books_by_mode.items():
+        jsonl = ROOT / "library" / "books" / f"{mode}_books.jsonl"
+        write_jsonl(jsonl, books)
+        compressed[mode] = compress_zstd(jsonl, ROOT / "library" / "books_compressed" / f"{mode}_books.jsonl.zst")
 
     weightings = {mode: compute_rtp_weighting(mode, books) for mode, books in books_by_mode.items()}
     for mode, weighting in weightings.items():
@@ -334,7 +365,7 @@ def build_parser() -> argparse.ArgumentParser:
     debug = subparsers.add_parser("debug", help="Generate uncompressed debug books")
     debug.add_argument("--spins", type=int, default=10)
     debug.add_argument("--seed", type=int, default=1)
-    debug.add_argument("--mode", choices=["base", "bonus"], default="base")
+    debug.add_argument("--mode", choices=list(BET_MODES.keys()), default="base")
     debug.set_defaults(func=command_debug)
 
     smoke = subparsers.add_parser("smoke", help="Validate generated book/event contract")

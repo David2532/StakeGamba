@@ -1,6 +1,6 @@
 # Golden Goal Rush Generated Book Samples
 
-This MVP does not overwrite `apps/lines/src/stories/data/*_books.ts`.
+This package does not overwrite frontend story fixtures.
 
 To inspect generated books manually:
 
@@ -16,6 +16,9 @@ To inspect generated books manually:
 
    - `library/books/debug_base_books.jsonl`
    - `library/books/base_books.jsonl`
+   - `library/books/hunt_books.jsonl`
+   - `library/books/rainbow_books.jsonl`
+   - `library/books/bonus_tier1_books.jsonl`
    - `library/books/bonus_books.jsonl`
 
 3. Copy one book object into a temporary additive Storybook fixture only if needed.
@@ -27,6 +30,10 @@ Expected event types are:
 - `winInfo`
 - `setWin`
 - `setTotalWin`
+- `tumbleBoard`
+- `goldenReveal`
+- `goldenAward`
+- `goldenClear`
 - `freeSpinTrigger`
 - `updateFreeSpin`
 - `freeSpinEnd`

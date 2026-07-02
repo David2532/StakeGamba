@@ -7,8 +7,26 @@
       "weights": "base_lookup.csv"
     },
     {
+      "name": "hunt",
+      "cost": 4.2,
+      "events": "hunt_books.jsonl.zst",
+      "weights": "hunt_lookup.csv"
+    },
+    {
+      "name": "rainbow",
+      "cost": 6.0,
+      "events": "rainbow_books.jsonl.zst",
+      "weights": "rainbow_lookup.csv"
+    },
+    {
+      "name": "bonus_tier1",
+      "cost": 31.0,
+      "events": "bonus_tier1_books.jsonl.zst",
+      "weights": "bonus_tier1_lookup.csv"
+    },
+    {
       "name": "bonus",
-      "cost": 15.0,
+      "cost": 95.0,
       "events": "bonus_books.jsonl.zst",
       "weights": "bonus_lookup.csv"
     }
