@@ -6,7 +6,7 @@ import { requestBet, requestEndRound } from 'rgs-requests';
 
 import type { BaseBet } from './types';
 
-type BookEventLike = { type?: string; amount?: number };
+type BookEventLike = { type?: string; amount?: number; totalWin?: number; winLevel?: number };
 
 const numberOrNull = (value: unknown) =>
 	typeof value === 'number' && Number.isFinite(value) ? value : null;
@@ -21,6 +21,28 @@ const getLastBookAmount = (state: unknown, type: string) => {
 	}
 
 	return null;
+};
+
+const winLevelForBookAmount = (amount: number) => {
+	if (amount >= 500000) return 7;
+	if (amount >= 100000) return 6;
+	if (amount >= 50000) return 5;
+	if (amount >= 10000) return 4;
+	if (amount >= 5000) return 3;
+	if (amount >= 1000) return 2;
+	return 1;
+};
+
+const patchLastAmountEvent = ({ state, type, amount }: { state: BookEventLike[]; type: string; amount: number }) => {
+	for (let index = state.length - 1; index >= 0; index -= 1) {
+		const event = state[index];
+		if (event?.type !== type) continue;
+		state[index] = { ...event, amount };
+		if ('winLevel' in state[index]) state[index].winLevel = winLevelForBookAmount(amount);
+		return true;
+	}
+
+	return false;
 };
 
 const normaliseRoundAmount = (bet: BaseBet | null | undefined) => {
@@ -86,10 +108,20 @@ const normaliseBetWinContract = <TBet extends BaseBet>(
 
 	if (
 		expectedBookAmount !== null &&
+		expectedBookAmount > 0 &&
 		visibleBookAmount !== null &&
-		Math.abs(expectedBookAmount - visibleBookAmount) > 1
+		Math.abs(expectedBookAmount - visibleBookAmount) > 1 &&
+		Array.isArray(bet.state)
 	) {
-		console.warn('[Golden Goal Rush win contract] Book win mismatch', debugPayload);
+		console.warn('[Golden Goal Rush win contract] Book win normalised to RGS multiplier', debugPayload);
+
+		const patchedState = (bet.state as BookEventLike[]).map((event) => ({ ...event }));
+		patchLastAmountEvent({ state: patchedState, type: 'setTotalWin', amount: expectedBookAmount });
+		patchLastAmountEvent({ state: patchedState, type: 'finalWin', amount: expectedBookAmount });
+		patchLastAmountEvent({ state: patchedState, type: 'setWin', amount: expectedBookAmount });
+		patchLastAmountEvent({ state: patchedState, type: 'freeSpinEnd', amount: expectedBookAmount });
+
+		return { ...bet, state: patchedState } as TBet;
 	}
 
 	return bet;
