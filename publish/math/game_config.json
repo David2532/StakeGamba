@@ -133,7 +133,7 @@
       "buyBonus": false,
       "rtp_target": 0.965,
       "description": "Normal 6x5 cluster/cascade base spin",
-      "rtp_achieved": 0.965008,
+      "rtp_achieved": 0.965007,
       "rtp_capped_for_diversity": false,
       "max_win": 4201.74
     },

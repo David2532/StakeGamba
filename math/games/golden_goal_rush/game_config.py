@@ -144,6 +144,20 @@ RTP_MIN_EFFECTIVE_SAMPLE_FLOOR = 200.0
 RTP_MAX_TOP_WEIGHT_SHARE = 0.05
 RTP_LOOKUP_WEIGHT_SCALE = 1_000_000_000
 
+# Stake Engine bet-level tail compliance ("2 Star" limits: CVaR(0.1%) <= 700x
+# cost, ETL >40x cost <= 0.800 RTP share). Targets carry a safety margin so
+# integer weight rounding and Stake's own re-measurement stay inside the
+# limits. Only the base mode currently violates them; all buy modes pass
+# unconstrained, so they get no entry here (no distortion applied).
+RTP_TAIL_CONSTRAINTS = {
+    "base": {
+        "cvar_quantile": 0.001,
+        "cvar_max_x": 680.0,
+        "etl_threshold_x": 40.0,
+        "etl_max_share": 0.78,
+    },
+}
+
 WIN_LEVELS = [
     (5000, 7),
     (1000, 6),

@@ -514,16 +514,28 @@ def validate_book(book: dict) -> list[str]:
 def generate_books(mode: str, count: int, seed: int) -> list[dict]:
     rng = random.Random(seed)
     if mode == "base":
-        return [generate_base_book(index + 1, rng) for index in range(count)]
-    if mode == "hunt":
-        return [generate_base_like_book(index + 1, rng, "hunt") for index in range(count)]
-    if mode == "rainbow":
-        return [generate_base_like_book(index + 1, rng, "rainbow") for index in range(count)]
-    if mode == "bonus_tier1":
-        return [generate_bonus_book(index + 1, rng, tier=1) for index in range(count)]
-    if mode == "bonus":
-        return [generate_bonus_book(index + 1, rng, tier=2) for index in range(count)]
-    raise ValueError(f"Unknown mode: {mode}")
+        make = lambda index: generate_base_book(index, rng)  # noqa: E731
+    elif mode == "hunt":
+        make = lambda index: generate_base_like_book(index, rng, "hunt")  # noqa: E731
+    elif mode == "rainbow":
+        make = lambda index: generate_base_like_book(index, rng, "rainbow")  # noqa: E731
+    elif mode == "bonus_tier1":
+        make = lambda index: generate_bonus_book(index, rng, tier=1)  # noqa: E731
+    elif mode == "bonus":
+        make = lambda index: generate_bonus_book(index, rng, tier=2)  # noqa: E731
+    else:
+        raise ValueError(f"Unknown mode: {mode}")
+
+    # Progress output: bonus books simulate 8-12 full free spins each, so a
+    # silent run looks frozen even though it is just CPU-bound.
+    step = max(1, count // 20)
+    books: list[dict] = []
+    print(f"[{mode}] generating {count} books...", flush=True)
+    for index in range(count):
+        books.append(make(index + 1))
+        if (index + 1) % step == 0 or index + 1 == count:
+            print(f"[{mode}] {index + 1}/{count} books", flush=True)
+    return books
 
 
 def write_jsonl(path: Path, books: list[dict]) -> None:

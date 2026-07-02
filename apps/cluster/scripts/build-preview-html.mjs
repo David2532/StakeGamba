@@ -521,7 +521,7 @@ const html = `<!doctype html>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
-<title>Golden Goal Rush — Interactive Preview</title>
+<title>Golden Goal Rush</title>
 <style>
 	* { box-sizing: border-box; }
 	html, body { margin: 0; height: 100%; overflow: hidden; background: #05080f; }
@@ -680,7 +680,7 @@ ${featureItems}
 					<div class="pt-feat"><img src="${assets.bonusButton}" alt="Bonus Buy" /><div><b>BONUS BUY</b>
 						${CONFIG.bonusBuy.map((o) => o.label + ' &mdash; ' + o.mult + '&times; bet').join('<br>')}<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
 					<div class="pt-note">If the game is reloaded while a base-game round is still active, the round is immediately settled with Stake Engine and the result is available in game history. Active Bonus Buy bonus rounds resume from the saved round state with the purchased balance and bet preserved.</div>
-					<div class="pt-note">Theoretical RTP target ~96% (demo) &middot; Max win ${CONFIG.maxWinMultiplier.toLocaleString()}&times; bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
+					<div class="pt-note">RTP 96.50% &middot; Max win ${CONFIG.maxWinMultiplier.toLocaleString()}&times; bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
 				</div>
 			</div>
 		</div>
@@ -803,7 +803,7 @@ const UrlState = (() => {
 		currency: () => (get('currency') || DEFAULT_CURRENCY).toUpperCase(),
 		replay: () => get('replay') === 'true',
 		debug: () => get('debug', 'rgs_debug') === 'true',
-		requiresRgs: () => !get('replay') && (hostRequiresRgs() || hasAnyRgsParam()),
+		requiresRgs: () => hostRequiresRgs() || hasAnyRgsParam(),
 	};
 })();
 
@@ -834,6 +834,12 @@ function fatalError(title, detail = '') {
 }
 function validateLaunchUrl() {
 	if (!UrlState.requiresRgs()) return true;
+	if (UrlState.replay()) {
+		// This build does not implement replay rendering. A manipulated launch
+		// URL with replay=true must NOT silently fall back to the local demo.
+		fatalError('Invalid game launch', 'The game URL contains unsupported launch parameters. Please relaunch the game from Stake Engine.');
+		return false;
+	}
 	if (!UrlState.sessionID() || !UrlState.rgsUrl()) {
 		fatalError('Invalid game launch', 'The game URL is missing required Stake Engine launch parameters. Please relaunch the game.');
 		return false;
@@ -1273,10 +1279,16 @@ const Rgs = (() => {
 
 async function resumeLaunchRound() {
 	if (!validateLaunchUrl()) return;
+	if (!Rgs.configured()) return;
+	// Lock the UI until launch authentication (including any base-mode
+	// active-round settlement) is finished. Without this lock an immediate
+	// manual spin could race the startup flow and settle a resumable bonus
+	// round through the play/active-round recovery path.
+	setWalletBusy(true);
 	const auth = await Rgs.authenticate();
-	if (auth === false || state.fatal) return;
+	if (auth === false || state.fatal) { setWalletBusy(false); return; }
 	const round = auth && auth.round;
-	if (!round || round.active !== true || !rgsRoundIsBonus(round)) return;
+	if (!round || round.active !== true || !rgsRoundIsBonus(round)) { setWalletBusy(false); return; }
 	const spinId = ++spinSeq;
 	const events = normalizeRgsEvents(round.state);
 	const startIndex = rgsResumeIndex(round);
@@ -1629,7 +1641,8 @@ function primeRgsResumeState(events, startIndex) {
 		state.mode = 'free';
 		state.tier = state.tier || 1;
 		state.fsTotal = Number(freeSpin.total) || state.fsTotal || 0;
-		state.fsLeft = Math.max(0, state.fsTotal - (Number(freeSpin.amount) || 0));
+		// Same 1-based mapping as the updateFreeSpin handler (see below).
+		state.fsLeft = Math.max(0, state.fsTotal - Math.min(state.fsTotal, (Number(freeSpin.amount) || 0) + 1));
 		updateFsCounter();
 	}
 }
@@ -1881,7 +1894,10 @@ async function playRgsBookRound(rgsPlay, spinId, options = {}) {
 			state.mode = 'free';
 			state.tier = Number(event.tier) || state.tier || 1;
 			state.fsTotal = Number(event.total) || state.fsTotal || 0;
-			state.fsLeft = Math.max(0, state.fsTotal - (Number(event.amount) || 0));
+			// The math emits updateFreeSpin BEFORE each spin with a 0-based
+			// amount (0..total-1). The counter shows the spin currently being
+			// played, so map it 1-based — otherwise the last spin shows 11/12.
+			state.fsLeft = Math.max(0, state.fsTotal - Math.min(state.fsTotal, (Number(event.amount) || 0) + 1));
 			updateFsCounter();
 		} else if (event.type === 'freeSpinEnd') {
 			const total = bookAmountToMoney(event.amount);

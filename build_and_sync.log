@@ -1,0 +1,16 @@
+=== Syntax check ===
+OK
+
+=== Build preview.html / publish/frontend/index.html ===
+Wrote C:\Users\david\Downloads\StakeGamba\apps\cluster\preview.html
+
+=== Sync to publish/frontend ===
+Syncing Stake publish snapshot...
+Copying frontend preview
+Copying math upload files
+Stake publish snapshot ready:
+  Frontend: C:\Users\david\Downloads\StakeGamba\publish\frontend
+  Math:     C:\Users\david\Downloads\StakeGamba\publish\math
+
+=== DONE ===
+Build finished successfully.

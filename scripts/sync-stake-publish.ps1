@@ -1,6 +1,9 @@
 param(
 	[switch]$RefreshMath,
 	[switch]$BuildFrontend,
+	[switch]$ReuseBooks,
+	[switch]$ArchiveLegacy,
+	[switch]$SkipComplianceGate,
 	[switch]$SkipFrontendStalenessCheck,
 	[switch]$CheckMathStaleness,
 	[switch]$SkipMathStalenessCheck
@@ -150,7 +153,7 @@ function Test-FrontendUploadContents {
 	}
 
 	$previewMarkers = @(
-		"Interactive Preview",
+		"Golden Goal Rush",
 		"const SYMBOLS",
 		"COIN_ASSETS",
 		"btn-spin",
@@ -254,6 +257,143 @@ function Copy-FrontendUploadFiles {
 	Copy-Item -LiteralPath $FrontendAssetSource -Destination (Join-Path $assetDestRoot "golden-goal-rush") -Recurse -Force
 }
 
+# ---------------------------------------------------------------------------
+# Stake compliance gate: asserts that the packaged frontend/math actually
+# satisfy every point Stake raised in the approval thread. Fails the pipeline
+# (exit != 0) instead of producing an uploadable but non-compliant snapshot.
+# ---------------------------------------------------------------------------
+function Test-StakeCompliance {
+	$indexPath = Join-Path $FrontendDest "index.html"
+	$html = Get-Content -LiteralPath $indexPath -Raw
+	$failures = @()
+
+	$feChecks = @(
+		# Stake: "page crashes and displays an error when we change the URL"
+		@{ Name = "URL-Guard: validateLaunchUrl vorhanden"; Marker = "function validateLaunchUrl" },
+		@{ Name = "URL-Guard: replay=true blockiert (kein Demo-Fallback)"; Marker = "The game URL contains unsupported launch parameters" },
+		@{ Name = "URL-Guard: URL-Aenderung zur Laufzeit erkannt"; Marker = "function checkLaunchUrlIntegrity" },
+		@{ Name = "Fataler Fehler-Overlay vorhanden"; Marker = "fatal-error-title" },
+		# Stake: end-round only when round.active === true
+		@{ Name = "End-Round NUR ueber round.active entschieden"; Marker = "const roundNeedsEnd = (round) => !!round && round.active === true;" },
+		# Stake: bonus resume, bet + balance preserved
+		@{ Name = "Bonus-Resume-Flow vorhanden"; Marker = "async function resumeLaunchRound" },
+		@{ Name = "Bet aus aktiver Runde uebernommen"; Marker = "function applyBetFromRound" },
+		@{ Name = "Resume-Index aus round.event"; Marker = "function rgsResumeIndex" },
+		# Stake: base-mode active round settled immediately + rules text
+		@{ Name = "Aktive Base-Runde wird sofort settled"; Marker = "recoverActiveRound" },
+		@{ Name = "Game Rules: Auto-Settlement-Text"; Marker = "immediately settled with Stake Engine" },
+		@{ Name = "Game Rules: Game-History-Hinweis"; Marker = "game history" },
+		# Stake: pop-up when the bonus round starts (base trigger + buy)
+		@{ Name = "Bonus-Start-Popup (RGS-Pfad)"; Marker = "bonusIntroRgs" },
+		@{ Name = "Bonus-Popup-Element"; Marker = "id=`"bonus-intro`"" },
+		# Stake: no local win simulation in production
+		@{ Name = "Lokale Free Spins nur ohne RGS"; Marker = "allowLocalFreeSpins = !Rgs.configured()" },
+		@{ Name = "Unrenderbare RGS-Runde -> Fehler statt Fallback"; Marker = "No local fallback was used" }
+	)
+	foreach ($check in $feChecks) {
+		if (-not $html.Contains($check.Marker)) {
+			$failures += "FRONTEND: $($check.Name) -- Marker fehlt: $($check.Marker)"
+		}
+	}
+	if ($html -match "roundNeedsEnd[^\r\n]*payoutMultiplier") {
+		$failures += "FRONTEND: End-Round-Entscheidung darf payout/payoutMultiplier nicht verwenden"
+	}
+
+	$auditPath = Join-Path $MathDest "RTP_AUDIT.json"
+	$configPath = Join-Path $MathDest "game_config.json"
+	$audit = Get-Content -LiteralPath $auditPath -Raw | ConvertFrom-Json
+	$gameConfig = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
+
+	foreach ($prop in $audit.PSObject.Properties) {
+		$mode = $prop.Name
+		$m = $prop.Value
+		if ([math]::Abs([double]$m.achievedRtp - 0.965) -gt 0.0006) {
+			$failures += "MATH [$mode]: achievedRtp=$($m.achievedRtp) weicht vom 96.50%-Ziel ab"
+		}
+		if ($null -ne $m.PSObject.Properties["tailMet"] -and -not $m.tailMet) {
+			$failures += "MATH [$mode]: Tail-Constraints (CVaR/ETL) NICHT erfuellt"
+		}
+	}
+	$base = $audit.base
+	if ($null -ne $base.PSObject.Properties["etl40Share"]) {
+		if ([double]$base.etl40Share -gt 0.80) {
+			$failures += "MATH [base]: ETL >40x = $($base.etl40Share) ueber Stake-2-Star-Limit 0.800"
+		}
+		if ([double]$base.cvar01x -gt 700) {
+			$failures += "MATH [base]: CVaR 0.1% = $($base.cvar01x) ueber Stake-2-Star-Limit 700"
+		}
+	} else {
+		$failures += "MATH [base]: RTP_AUDIT.json ohne etl40Share/cvar01x -- Math mit aktuellem run.py neu erzeugen (npm run stake:publish)"
+	}
+
+	# Frontend bonus-buy prices must equal the math mode costs exactly.
+	$inv = [System.Globalization.CultureInfo]::InvariantCulture
+	$costMap = @{ "hunt" = "hunt"; "rainbow" = "rainbow"; "tier1" = "bonus_tier1"; "tier2" = "bonus" }
+	foreach ($feId in $costMap.Keys) {
+		$mode = $costMap[$feId]
+		$cost = [double]$gameConfig.betModes.$mode.cost
+		$costText = $cost.ToString($inv)
+		$rx = '"id":"' + $feId + '"[^}]*"mult":' + [regex]::Escape($costText) + '[,}]'
+		if (-not ($html -match $rx)) {
+			$failures += "FE/MATH-Abweichung: Bonus-Buy '$feId' muss exakt $costText x kosten (Mode '$mode')"
+		}
+	}
+	if (-not $html.Contains("RTP 96.50%")) {
+		$failures += "FRONTEND: Game Rules muessen 'RTP 96.50%' ausweisen (passend zum RTP_AUDIT)"
+	}
+
+	if ($failures.Count -gt 0) {
+		Write-Host ""
+		Write-Host "STAKE COMPLIANCE GATE: FEHLGESCHLAGEN" -ForegroundColor Red
+		foreach ($failure in $failures) { Write-Host "  - $failure" -ForegroundColor Red }
+		throw "Compliance gate failed ($($failures.Count) Punkt(e)). Dieses Paket NICHT hochladen."
+	}
+	Write-Host "Stake compliance gate: alle $($feChecks.Count + 8) Checks bestanden." -ForegroundColor Green
+}
+
+function Write-UploadReadme {
+	$stamp = Get-Date -Format o
+	$text = @(
+		"GOLDEN GOAL RUSH - STAKE UPLOAD PAKET",
+		"=====================================",
+		"",
+		"Dieser Ordner (publish\) ist die EINZIGE Upload-Quelle und wird bei jedem",
+		"Pipeline-Lauf komplett neu erzeugt. Nichts hier manuell aendern.",
+		"",
+		"  publish\frontend  ->  Stake Engine: Files -> Import Files -> 'Front End'",
+		"  publish\math      ->  Stake Engine: Files -> Import Files -> 'Math'",
+		"",
+		"Danach im Portal 'Publish Game' klicken und im Approval-Tab die neue",
+		"Front- und Math-Version im Review-Request auswaehlen.",
+		"",
+		"Alle anderen Ordner im Repo sind Build-Interna und werden NIE hochgeladen:",
+		"  math\games\golden_goal_rush\library\...  (Books/Lookups/Audit-Quelle)",
+		"  apps\cluster\...                          (Frontend-Quelle)",
+		"  stake-upload\                             (altes Prototyp-Archiv)",
+		"",
+		"Pipeline-Befehle:",
+		"  npm run stake:publish            schnell: FE bauen + Math neu gewichten",
+		"                                   (Books wiederverwendet) + Compliance-Gate",
+		"  npm run stake:publish:full-math  komplett: Books neu simulieren (~20-30 min)",
+		"",
+		"Erzeugt: $stamp"
+	)
+	($text -join [Environment]::NewLine) | Set-Content -LiteralPath (Join-Path $PublishRoot "LIES_MICH_UPLOAD.txt") -Encoding UTF8
+}
+
+function Invoke-LegacyArchive {
+	$archiveRoot = Join-Path $Root "_archive"
+	foreach ($name in @("stake-upload")) {
+		$source = Join-Path $Root $name
+		if (Test-Path -LiteralPath $source) {
+			New-Item -ItemType Directory -Force -Path $archiveRoot | Out-Null
+			$dest = Join-Path $archiveRoot ("$name-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
+			Move-Item -LiteralPath $source -Destination $dest
+			Write-Host "Legacy-Ordner archiviert (nicht geloescht): $name -> $dest"
+		}
+	}
+}
+
 Write-Host "Syncing Stake publish snapshot..."
 
 if ($BuildFrontend) {
@@ -270,7 +410,9 @@ if (-not $SkipFrontendStalenessCheck) {
 
 if ($RefreshMath) {
 	Write-Host "Refreshing math publish files"
-	Invoke-CommandChecked -WorkingDirectory $MathRoot -FilePath "python" -Arguments @("run.py", "publish", "--spins", "80000", "--bonus-spins", "40000", "--seed", "1")
+	$pythonArgs = @("run.py", "publish", "--spins", "80000", "--bonus-spins", "40000", "--seed", "1")
+	if ($ReuseBooks) { $pythonArgs += "--reuse-books" }
+	Invoke-CommandChecked -WorkingDirectory $MathRoot -FilePath "python" -Arguments $pythonArgs
 }
 elseif (-not $SkipMathStalenessCheck) {
 	if ($CheckMathStaleness) {
@@ -295,6 +437,22 @@ Copy-MathUploadFiles
 Test-FrontendUploadContents
 Test-MathUploadContents
 
-Write-Host "Stake publish snapshot ready:"
-Write-Host "  Frontend: $FrontendDest"
-Write-Host "  Math:     $MathDest"
+if (-not $SkipComplianceGate) {
+	Test-StakeCompliance
+}
+
+Write-UploadReadme
+
+if ($ArchiveLegacy) {
+	Invoke-LegacyArchive
+}
+
+Write-Host ""
+Write-Host "UPLOAD-PAKET BEREIT -- einziger Upload-Ordner ist 'publish\':" -ForegroundColor Green
+Write-Host "  1) $FrontendDest"
+Write-Host "     -> Stake Engine: Files -> Import Files -> 'Front End'"
+Write-Host "  2) $MathDest"
+Write-Host "     -> Stake Engine: Files -> Import Files -> 'Math'"
+Write-Host "  3) Portal: 'Publish Game' klicken, dann im Approval-Tab die neue"
+Write-Host "     Front-/Math-Version im Review-Request auswaehlen."
+Write-Host "  (Details: publish\LIES_MICH_UPLOAD.txt)"

@@ -40,28 +40,47 @@ class RtpWeighting:
     top_weight_share: float
     capped_for_diversity: bool
     raw_rtp: float
+    etl40_share: float = 0.0
+    cvar_x: float = 0.0
+    tail_damping: float = 1.0
+    tail_constrained: bool = False
+    tail_met: bool = True
 
 
-def _weighted_mean(payouts: list[int], lam: float) -> float:
-    shift = max(lam * p for p in payouts)
+def _weighted_mean(
+    payouts: list[int],
+    lam: float,
+    mults: list[float] | None = None,
+    exps: list[float] | None = None,
+) -> float:
+    stats = exps if exps is not None else payouts
+    shift = max(lam * s for s in stats)
     num = 0.0
     den = 0.0
-    for p in payouts:
-        w = math.exp(lam * p - shift)
+    for i, p in enumerate(payouts):
+        m = mults[i] if mults is not None else 1.0
+        w = m * math.exp(lam * stats[i] - shift)
         num += w * p
         den += w
     return num / den
 
 
-def _solve_lambda(payouts: list[int], target_mean: float, iterations: int = 200) -> float:
-    pmax = max(payouts)
-    if pmax <= 0:
+def _solve_lambda(
+    payouts: list[int],
+    target_mean: float,
+    mults: list[float] | None = None,
+    exps: list[float] | None = None,
+    iterations: int = 200,
+) -> float:
+    stats = exps if exps is not None else payouts
+    smax = max(stats)
+    if smax <= 0:
         return 0.0
-    lo, hi = -100.0 / pmax, 100.0 / pmax
-    f_lo = _weighted_mean(payouts, lo) - target_mean
+    lo, hi = -100.0 / smax, 100.0 / smax
+    f_lo = _weighted_mean(payouts, lo, mults, exps) - target_mean
     for _ in range(iterations):
         mid = (lo + hi) / 2
-        f_mid = _weighted_mean(payouts, mid) - target_mean
+        f_mid = _weighted_mean(payouts, mid, mults, exps) - target_mean
         if (f_mid > 0) == (f_lo > 0):
             lo, f_lo = mid, f_mid
         else:
@@ -69,11 +88,52 @@ def _solve_lambda(payouts: list[int], target_mean: float, iterations: int = 200)
     return (lo + hi) / 2
 
 
-def _probabilities(payouts: list[int], lam: float) -> list[float]:
-    shift = max(lam * p for p in payouts)
-    raw = [math.exp(lam * p - shift) for p in payouts]
+def _probabilities(
+    payouts: list[int],
+    lam: float,
+    mults: list[float] | None = None,
+    exps: list[float] | None = None,
+) -> list[float]:
+    stats = exps if exps is not None else payouts
+    shift = max(lam * s for s in stats)
+    raw = [
+        (mults[i] if mults is not None else 1.0) * math.exp(lam * stats[i] - shift)
+        for i in range(len(payouts))
+    ]
     total = sum(raw)
     return [w / total for w in raw]
+
+
+def _tail_metrics(
+    payouts: list[int],
+    probs: list[float],
+    cost: float,
+    etl_threshold_x: float,
+    cvar_quantile: float,
+) -> tuple[float, float]:
+    """Selection-weighted tail stats matching Stake's bet-level compliance:
+
+    - ETL share: the RTP share carried by wins strictly above
+      `etl_threshold_x` times the mode cost.
+    - CVaR: the expected payout (in multiples of cost) across the worst
+      (largest-payout) `cvar_quantile` slice of the outcome distribution.
+    """
+    thr_units = etl_threshold_x * cost * 100.0
+    etl = sum(pr * p for pr, p in zip(probs, payouts) if p > thr_units) / (100.0 * cost)
+    order = sorted(range(len(payouts)), key=lambda i: payouts[i], reverse=True)
+    q = max(1e-12, cvar_quantile)
+    acc = 0.0
+    exp_pay = 0.0
+    for i in order:
+        take = min(probs[i], q - acc)
+        if take <= 0.0:
+            break
+        exp_pay += take * payouts[i]
+        acc += take
+        if acc >= q:
+            break
+    cvar = (exp_pay / acc) / (100.0 * cost) if acc > 0.0 else 0.0
+    return etl, cvar
 
 
 def _diversity(probs: list[float]) -> tuple[float, float]:
@@ -91,6 +151,7 @@ def optimize_weights(
     max_top_share: float,
     weight_scale: int,
     search_steps: int = 40,
+    tail_constraints: dict | None = None,
 ) -> RtpWeighting:
     """Compute integer lookup weights hitting `desired_rtp` as closely as
     the configured diversity bounds allow.
@@ -129,6 +190,77 @@ def optimize_weights(
             else:
                 hi_rtp = mid_rtp
 
+    # Tail compliance (Stake bet-level constraints): damp the selection
+    # probability of books above the ETL threshold with a single factor
+    # beta <= 1, re-solving lambda each time so the RTP target is preserved
+    # exactly. Bisection finds the LARGEST beta that satisfies both limits,
+    # i.e. the smallest possible distortion of the natural distribution.
+    # Win amounts, books and game logic are untouched -- this only changes
+    # how often large-win books are served, the same lever the RTP
+    # optimization itself uses.
+    tail_damping = 1.0
+    tail_constrained = False
+    tail_met = True
+    etl_threshold_x = 40.0
+    cvar_quantile = 0.001
+    if tail_constraints:
+        etl_threshold_x = float(tail_constraints.get("etl_threshold_x", 40.0))
+        cvar_quantile = float(tail_constraints.get("cvar_quantile", 0.001))
+        etl_max = float(tail_constraints.get("etl_max_share", float("inf")))
+        cvar_max = float(tail_constraints.get("cvar_max_x", float("inf")))
+        thr_units = etl_threshold_x * cost * 100.0
+        target_mean = achieved_target * cost * 100
+
+        # IMPORTANT: the exponent statistic is CLIPPED at the tail threshold.
+        # With the plain exponential tilt, damping tail books is useless: the
+        # solver simply raises lambda and exp(lambda * payout) out-scales any
+        # constant damping factor for the very largest books. Clipping caps
+        # the exponent at the threshold, so books above it keep their natural
+        # relative frequencies, lambda controls only how much probability the
+        # sub-threshold region gets, and beta genuinely scales the whole tail.
+        exps = [float(min(p, thr_units)) for p in payouts]
+
+        def evaluate_tail(beta: float):
+            tail_mults = [beta if p > thr_units else 1.0 for p in payouts]
+            # 90 bisection steps give lambda precision far below any effect
+            # visible after integer weight rounding; keeps the beta search fast.
+            lam_b = _solve_lambda(payouts, target_mean, tail_mults, exps=exps, iterations=90)
+            probs_b = _probabilities(payouts, lam_b, tail_mults, exps=exps)
+            etl_b, cvar_b = _tail_metrics(payouts, probs_b, cost, etl_threshold_x, cvar_quantile)
+            return lam_b, probs_b, etl_b, cvar_b
+
+        etl_now, cvar_now = _tail_metrics(payouts, probs, cost, etl_threshold_x, cvar_quantile)
+        if etl_now > etl_max or cvar_now > cvar_max:
+            tail_constrained = True
+            lam_c, probs_c, etl_c, cvar_c = evaluate_tail(1.0)
+            if etl_c <= etl_max and cvar_c <= cvar_max:
+                # Clipping alone already satisfies the limits (no damping).
+                lam, probs = lam_c, probs_c
+            else:
+                found = False
+                fallback = (lam_c, probs_c)
+                lo_beta, hi_beta = 0.0, 1.0
+                for _ in range(40):
+                    mid_beta = max((lo_beta + hi_beta) / 2, 1e-12)
+                    lam_b, probs_b, etl_b, cvar_b = evaluate_tail(mid_beta)
+                    if etl_b <= etl_max and cvar_b <= cvar_max:
+                        lam, probs = lam_b, probs_b
+                        tail_damping = mid_beta
+                        lo_beta = mid_beta
+                        found = True
+                    else:
+                        hi_beta = mid_beta
+                        fallback = (lam_b, probs_b)
+                if not found:
+                    # Best effort: keep the strongest damping probed and flag
+                    # the miss so the audit/pipeline can fail loudly.
+                    lam, probs = fallback
+                    tail_damping = max(hi_beta, 1e-12)
+                    tail_met = False
+            ess, top_share = _diversity(probs)
+            if ess < min_ess or top_share > max_top_share:
+                capped = True
+
     weights = [max(1, round(p * weight_scale)) for p in probs]
     total_weight = sum(weights)
     achieved_mean = sum(w * p for w, p in zip(weights, payouts)) / total_weight
@@ -136,6 +268,8 @@ def optimize_weights(
     hit_rate = sum(w for w, p in zip(weights, payouts) if p > 0) / total_weight
     ess_final = (total_weight**2) / sum(w * w for w in weights)
     top_share_final = max(weights) / total_weight
+    probs_final = [w / total_weight for w in weights]
+    etl_final, cvar_final = _tail_metrics(payouts, probs_final, cost, etl_threshold_x, cvar_quantile)
 
     return RtpWeighting(
         target_rtp=desired_rtp,
@@ -148,6 +282,11 @@ def optimize_weights(
         top_weight_share=top_share_final,
         capped_for_diversity=capped,
         raw_rtp=raw_rtp,
+        etl40_share=etl_final,
+        cvar_x=cvar_final,
+        tail_damping=tail_damping,
+        tail_constrained=tail_constrained,
+        tail_met=tail_met,
     )
 
 

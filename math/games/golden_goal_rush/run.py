@@ -13,6 +13,7 @@ from game_config import (
     RTP_MAX_TOP_WEIGHT_SHARE,
     RTP_MIN_EFFECTIVE_SAMPLE_FLOOR,
     RTP_MIN_EFFECTIVE_SAMPLE_FRACTION,
+    RTP_TAIL_CONSTRAINTS,
     FREE_SPIN_TIERS,
     GOLDEN_REVEAL_WEIGHTS,
     MAX_WIN_MULTIPLIER,
@@ -47,6 +48,7 @@ def compute_rtp_weighting(mode: str, books: list[dict]) -> RtpWeighting:
         min_ess_floor=RTP_MIN_EFFECTIVE_SAMPLE_FLOOR,
         max_top_share=RTP_MAX_TOP_WEIGHT_SHARE,
         weight_scale=RTP_LOOKUP_WEIGHT_SCALE,
+        tail_constraints=RTP_TAIL_CONSTRAINTS.get(mode),
     )
 
 
@@ -163,6 +165,11 @@ def write_rtp_audit(weightings: dict[str, tuple[list[dict], RtpWeighting]]) -> N
             "effectiveSampleSize": round(weighting.effective_sample_size, 1),
             "topWeightShare": round(weighting.top_weight_share, 6),
             "maxPayoutMultiplierObserved": max(payouts) / 100,
+            "etl40Share": round(weighting.etl40_share, 6),
+            "cvar01x": round(weighting.cvar_x, 3),
+            "tailConstrained": weighting.tail_constrained,
+            "tailMet": weighting.tail_met,
+            "tailDamping": round(weighting.tail_damping, 9),
             "winDistribution": buckets,
         }
         lines.append(f"[{mode}] cost={weighting.cost}x bet, simulations={len(books)}")
@@ -181,6 +188,20 @@ def write_rtp_audit(weightings: dict[str, tuple[list[dict], RtpWeighting]]) -> N
         )
         lines.append(f"  top single-book weight: {weighting.top_weight_share * 100:.4f}% of total selection mass")
         lines.append(f"  max payout observed:    {max(payouts) / 100:.2f}x bet")
+        lines.append(f"  ETL >40x cost (RTP share): {weighting.etl40_share:.3f}")
+        lines.append(f"  CVaR 0.1% (x cost):     {weighting.cvar_x:.3f}")
+        if weighting.tail_constrained:
+            lines.append(
+                "  NOTE: tail-compliance reweighting applied (clipped tilt, beta="
+                f"{weighting.tail_damping:.6g}) to satisfy Stake bet-level limits "
+                "(CVaR 0.1% and ETL >40x cost); RTP target preserved."
+            )
+        if not weighting.tail_met:
+            lines.append(
+                "  WARNING: tail-compliance limits could NOT be fully satisfied "
+                "with the current simulation pool. Do NOT upload -- inspect the "
+                "constraints in game_config.py (RTP_TAIL_CONSTRAINTS)."
+            )
         lines.append("  win distribution (selection-weighted):")
         for bucket in buckets:
             lines.append(f"    {bucket['range']:>6}: {bucket['weightShare'] * 100:.3f}%")
@@ -305,11 +326,33 @@ def command_smoke(args: argparse.Namespace) -> None:
     print(f"Smoke test passed for {len(all_books)} generated books.")
 
 
+def _load_existing_books(mode: str, expected_count: int) -> list[dict] | None:
+    path = ROOT / "library" / "books" / f"{mode}_books.jsonl"
+    if not path.exists():
+        return None
+    books: list[dict] = []
+    with path.open(encoding="utf-8") as file:
+        for line in file:
+            line = line.strip()
+            if line:
+                books.append(json.loads(line))
+    if len(books) != expected_count:
+        return None
+    return books
+
+
 def command_publish(args: argparse.Namespace) -> None:
     ensure_library_dirs()
     books_by_mode: dict[str, list[dict]] = {}
     for offset, mode in enumerate(BET_MODES):
         count = args.spins if mode == "base" else args.bonus_spins
+        if getattr(args, "reuse_books", False):
+            existing = _load_existing_books(mode, count)
+            if existing is not None:
+                print(f"[{mode}] reusing {len(existing)} existing books (--reuse-books)", flush=True)
+                books_by_mode[mode] = existing
+                continue
+            print(f"[{mode}] no reusable books found; generating fresh", flush=True)
         books_by_mode[mode] = generate_books(mode, count, args.seed + offset * 1000)
 
     errors: list[str] = []
@@ -328,7 +371,10 @@ def command_publish(args: argparse.Namespace) -> None:
         write_jsonl(jsonl, books)
         compressed[mode] = compress_zstd(jsonl, ROOT / "library" / "books_compressed" / f"{mode}_books.jsonl.zst")
 
-    weightings = {mode: compute_rtp_weighting(mode, books) for mode, books in books_by_mode.items()}
+    weightings = {}
+    for mode, books in books_by_mode.items():
+        print(f"[{mode}] optimizing lookup weights...", flush=True)
+        weightings[mode] = compute_rtp_weighting(mode, books)
     for mode, weighting in weightings.items():
         write_lookup(mode, books_by_mode[mode], weighting.weights)
         write_force_records(mode, books_by_mode[mode])
@@ -377,6 +423,11 @@ def build_parser() -> argparse.ArgumentParser:
     publish.add_argument("--spins", type=int, default=80_000)
     publish.add_argument("--bonus-spins", type=int, default=40_000)
     publish.add_argument("--seed", type=int, default=1)
+    publish.add_argument(
+        "--reuse-books",
+        action="store_true",
+        help="Reuse library/books/*.jsonl if counts match (recompute weights only)",
+    )
     publish.set_defaults(func=command_publish)
 
     return parser

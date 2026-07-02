@@ -5,17 +5,20 @@ Golden Goal Rush RTP Audit
   raw (unweighted) RTP:   56.48%
   target RTP:             96.50%
   achieved RTP:           96.50%
-  hit rate (weighted):    18.12%
-  effective sample size:  79968 of 80000 (99.96%)
-  top single-book weight: 0.0075% of total selection mass
+  hit rate (weighted):    18.53%
+  effective sample size:  79725 of 80000 (99.66%)
+  top single-book weight: 0.0033% of total selection mass
   max payout observed:    4201.74x bet
+  ETL >40x cost (RTP share): 0.780
+  CVaR 0.1% (x cost):     570.890
+  NOTE: tail-compliance reweighting applied (clipped tilt, beta=0.637846) to satisfy Stake bet-level limits (CVaR 0.1% and ETL >40x cost); RTP target preserved.
   win distribution (selection-weighted):
-        0x: 81.884%
-      0-1x: 17.009%
-      1-5x: 0.328%
-     5-20x: 0.385%
-    20-50x: 0.204%
-      50x+: 0.190%
+        0x: 81.466%
+      0-1x: 17.001%
+      1-5x: 0.347%
+     5-20x: 0.502%
+    20-50x: 0.394%
+      50x+: 0.291%
 
 [hunt] cost=4.2x bet, simulations=40000
   raw (unweighted) RTP:   98.17%
@@ -25,6 +28,8 @@ Golden Goal Rush RTP Audit
   effective sample size:  40000 of 40000 (100.00%)
   top single-book weight: 0.0025% of total selection mass
   max payout observed:    10000.00x bet
+  ETL >40x cost (RTP share): 0.559
+  CVaR 0.1% (x cost):     353.251
   win distribution (selection-weighted):
         0x: 85.209%
       0-1x: 5.125%
@@ -41,6 +46,8 @@ Golden Goal Rush RTP Audit
   effective sample size:  40000 of 40000 (100.00%)
   top single-book weight: 0.0033% of total selection mass
   max payout observed:    7511.69x bet
+  ETL >40x cost (RTP share): 0.507
+  CVaR 0.1% (x cost):     264.745
   win distribution (selection-weighted):
         0x: 84.049%
       0-1x: 1.697%
@@ -57,6 +64,8 @@ Golden Goal Rush RTP Audit
   effective sample size:  39879 of 40000 (99.70%)
   top single-book weight: 0.0126% of total selection mass
   max payout observed:    10000.00x bet
+  ETL >40x cost (RTP share): 0.460
+  CVaR 0.1% (x cost):     271.823
   win distribution (selection-weighted):
         0x: 22.083%
       0-1x: 47.763%
@@ -73,6 +82,8 @@ Golden Goal Rush RTP Audit
   effective sample size:  39172 of 40000 (97.93%)
   top single-book weight: 0.0229% of total selection mass
   max payout observed:    10000.00x bet
+  ETL >40x cost (RTP share): 0.385
+  CVaR 0.1% (x cost):     105.263
   win distribution (selection-weighted):
         0x: 10.501%
       0-1x: 40.622%
