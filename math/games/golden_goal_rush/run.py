@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import random
+from collections import Counter
 from pathlib import Path
 
 from game_config import (
@@ -50,6 +52,133 @@ def compute_rtp_weighting(mode: str, books: list[dict]) -> RtpWeighting:
         weight_scale=RTP_LOOKUP_WEIGHT_SCALE,
         tail_constraints=RTP_TAIL_CONSTRAINTS.get(mode),
     )
+
+
+ANALYSIS_BUCKETS: tuple[tuple[float, float | None, str], ...] = (
+    (0.01, 0.20, "0.01x-0.20x"),
+    (0.20, 0.50, "0.20x-0.50x"),
+    (0.50, 1.00, "0.50x-1.00x"),
+    (1.00, 2.00, "1.00x-2.00x"),
+    (2.00, None, "2.00x+"),
+)
+
+
+def analyze_payouts(payouts: list[int], cost: float) -> dict:
+    total = len(payouts)
+    if total <= 0:
+        raise ValueError("Cannot analyze an empty payout sample")
+
+    wins = [payout for payout in payouts if payout > 0]
+    bucket_counts = {}
+    for low, high, label in ANALYSIS_BUCKETS:
+        low_amount = low * 100
+        high_amount = None if high is None else high * 100
+        bucket_counts[label] = sum(
+            1
+            for payout in payouts
+            if payout >= low_amount and (high_amount is None or payout < high_amount)
+        )
+
+    amount_counter = Counter(payouts)
+    return {
+        "spins": total,
+        "rtp": round(sum(payouts) / total / 100 / cost, 6),
+        "hitFrequency": round(len(wins) / total, 6),
+        "noWinShare": round((total - len(wins)) / total, 6),
+        "buckets": {
+            label: {
+                "count": count,
+                "share": round(count / total, 6),
+            }
+            for label, count in bucket_counts.items()
+        },
+        "top20FinalWinAmounts": [
+            {"finalWin": amount, "count": count, "share": round(count / total, 6)}
+            for amount, count in amount_counter.most_common(20)
+        ],
+    }
+
+
+def analyze_weighted_payouts(payouts: list[int], weights: list[int], cost: float) -> dict:
+    if len(payouts) != len(weights):
+        raise ValueError("Payout and weight lists must have identical lengths")
+    total_weight = sum(weights)
+    if total_weight <= 0:
+        raise ValueError("Cannot analyze payouts with no selection weight")
+
+    hit_weight = sum(weight for payout, weight in zip(payouts, weights) if payout > 0)
+    bucket_counts = {}
+    for low, high, label in ANALYSIS_BUCKETS:
+        low_amount = low * 100
+        high_amount = None if high is None else high * 100
+        bucket_counts[label] = sum(
+            weight
+            for payout, weight in zip(payouts, weights)
+            if payout >= low_amount and (high_amount is None or payout < high_amount)
+        )
+
+    amount_counter: Counter[int] = Counter()
+    for payout, weight in zip(payouts, weights):
+        amount_counter[payout] += weight
+
+    return {
+        "spins": len(payouts),
+        "totalLookupWeight": total_weight,
+        "rtp": round(sum(payout * weight for payout, weight in zip(payouts, weights)) / total_weight / 100 / cost, 6),
+        "hitFrequency": round(hit_weight / total_weight, 6),
+        "noWinShare": round((total_weight - hit_weight) / total_weight, 6),
+        "buckets": {
+            label: {
+                "weight": count,
+                "share": round(count / total_weight, 6),
+            }
+            for label, count in bucket_counts.items()
+        },
+        "top20FinalWinAmounts": [
+            {"finalWin": amount, "weight": count, "share": round(count / total_weight, 6)}
+            for amount, count in amount_counter.most_common(20)
+        ],
+    }
+
+
+def _load_books_from_jsonl(path: Path) -> list[dict]:
+    books: list[dict] = []
+    with path.open(encoding="utf-8") as file:
+        for line in file:
+            line = line.strip()
+            if line:
+                books.append(json.loads(line))
+    return books
+
+
+def _load_lookup_weights(mode: str) -> dict[int, int]:
+    lookup_path = ROOT / "library" / "lookup_tables" / f"{mode}_lookup.csv"
+    weights: dict[int, int] = {}
+    with lookup_path.open("r", encoding="utf-8", newline="") as file:
+        for row in csv.reader(file):
+            if len(row) != 3:
+                continue
+            weights[int(row[0])] = int(row[1])
+    return weights
+
+
+def analyze_published_lookup(mode: str) -> dict:
+    books_path = ROOT / "library" / "books" / f"{mode}_books.jsonl"
+    books = _load_books_from_jsonl(books_path)
+    weights_by_id = _load_lookup_weights(mode)
+    payouts = [int(book["payoutMultiplier"]) for book in books]
+    weights = [weights_by_id.get(int(book["id"]), 0) for book in books]
+    return analyze_weighted_payouts(payouts, weights, BET_MODES[mode]["cost"])
+
+
+def sample_published_payouts(mode: str, spins: int, seed: int) -> list[int]:
+    books_path = ROOT / "library" / "books" / f"{mode}_books.jsonl"
+    books = _load_books_from_jsonl(books_path)
+    weights_by_id = _load_lookup_weights(mode)
+    payouts = [int(book["payoutMultiplier"]) for book in books]
+    weights = [weights_by_id.get(int(book["id"]), 0) for book in books]
+    rng = random.Random(seed)
+    return rng.choices(payouts, weights=weights, k=spins)
 
 
 def write_config_files(
@@ -326,6 +455,24 @@ def command_smoke(args: argparse.Namespace) -> None:
     print(f"Smoke test passed for {len(all_books)} generated books.")
 
 
+def command_analyze(args: argparse.Namespace) -> None:
+    ensure_library_dirs()
+    mode = args.mode
+    if args.source == "lookup":
+        report = analyze_published_lookup(mode)
+    elif args.source == "published":
+        payouts = sample_published_payouts(mode, args.spins, args.seed)
+        report = analyze_payouts(payouts, BET_MODES[mode]["cost"])
+    else:
+        books = generate_books(mode, args.spins, args.seed)
+        payouts = [int(book["payoutMultiplier"]) for book in books]
+        report = analyze_payouts(payouts, BET_MODES[mode]["cost"])
+    report["mode"] = mode
+    report["source"] = args.source
+    report["seed"] = args.seed
+    print(json.dumps(report, indent=2))
+
+
 def _load_existing_books(mode: str, expected_count: int) -> list[dict] | None:
     path = ROOT / "library" / "books" / f"{mode}_books.jsonl"
     if not path.exists():
@@ -418,6 +565,18 @@ def build_parser() -> argparse.ArgumentParser:
     smoke.add_argument("--spins", type=int, default=10)
     smoke.add_argument("--seed", type=int, default=1)
     smoke.set_defaults(func=command_smoke)
+
+    analyze = subparsers.add_parser("analyze", help="Analyze base/book win distribution")
+    analyze.add_argument("--mode", choices=list(BET_MODES.keys()), default="base")
+    analyze.add_argument("--spins", type=int, default=10_000)
+    analyze.add_argument("--seed", type=int, default=1)
+    analyze.add_argument(
+        "--source",
+        choices=("raw", "published", "lookup"),
+        default="raw",
+        help="raw generates fresh spins; published samples shipped books using lookup weights; lookup reports exact shipped weights",
+    )
+    analyze.set_defaults(func=command_analyze)
 
     publish = subparsers.add_parser("publish", help="Generate MVP publish files")
     publish.add_argument("--spins", type=int, default=80_000)

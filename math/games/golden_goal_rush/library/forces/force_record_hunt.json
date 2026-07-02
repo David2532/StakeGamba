@@ -12,14 +12,14 @@
     {
       "symbol": "W",
       "kind": "max_win_observed",
-      "bookId": 22572,
+      "bookId": 18066,
       "payoutMultiplier": 1000000,
       "note": "Highest payoutMultiplier observed in this simulation pool."
     },
     {
       "symbol": "MIXED",
       "kind": "typical_win",
-      "bookId": 23464,
+      "bookId": 28082,
       "payoutMultiplier": 0,
       "note": "Median payoutMultiplier round, indexed for QA baseline."
     }

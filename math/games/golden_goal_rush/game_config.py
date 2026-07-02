@@ -9,7 +9,7 @@ from __future__ import annotations
 
 GAME_ID = "golden_goal_rush"
 GAME_NAME = "Golden Goal Rush"
-VERSION = "0.2.0-cluster"
+VERSION = "0.2.1-cluster"
 
 NUM_REELS = 6
 VISIBLE_ROWS = 5
@@ -37,16 +37,16 @@ RAINBOW_SYMBOL = "rainbow"
 NORMAL_SYMBOLS = tuple(symbol for symbol in SYMBOLS if symbol not in {WILD_SYMBOL, SCATTER_SYMBOL, RAINBOW_SYMBOL})
 
 SYMBOL_MATH = {
-    "ten": {"weight": 22.0, "pay": 0.09},
-    "j": {"weight": 20.0, "pay": 0.09},
-    "q": {"weight": 17.0, "pay": 0.13},
-    "k": {"weight": 15.0, "pay": 0.18},
-    "a": {"weight": 13.0, "pay": 0.22},
-    "football": {"weight": 9.0, "pay": 0.35},
-    "whistle": {"weight": 8.0, "pay": 0.45},
-    "trophy": {"weight": 6.0, "pay": 0.65},
-    "jersey": {"weight": 6.0, "pay": 0.90},
-    "wild": {"weight": 2.0, "pay": 0.0, "wild": True},
+    "ten": {"weight": 30.0, "pay": 0.24},
+    "j": {"weight": 25.0, "pay": 0.28},
+    "q": {"weight": 20.0, "pay": 0.36},
+    "k": {"weight": 16.0, "pay": 0.48},
+    "a": {"weight": 12.0, "pay": 0.62},
+    "football": {"weight": 6.5, "pay": 0.82},
+    "whistle": {"weight": 5.0, "pay": 1.05},
+    "trophy": {"weight": 3.5, "pay": 1.35},
+    "jersey": {"weight": 3.5, "pay": 1.85},
+    "wild": {"weight": 2.5, "pay": 0.0, "wild": True},
     "scatter": {"weight": 2.0, "pay": 0.0, "scatter": True},
     "rainbow": {"weight": 2.0, "pay": 0.0, "rainbow": True},
 }
@@ -106,35 +106,35 @@ BET_MODES = {
         "cost": 1.0,
         "feature": True,
         "buyBonus": False,
-        "rtp_target": 0.965,
+        "rtp_target": 0.9645,
         "description": "Normal 6x5 cluster/cascade base spin",
     },
     "hunt": {
         "cost": 4.2,
         "feature": True,
         "buyBonus": True,
-        "rtp_target": 0.965,
+        "rtp_target": 0.9645,
         "description": "Feature Spins buy: one paid base spin with boosted rainbow chance and no free-spin trigger",
     },
     "rainbow": {
         "cost": 6.0,
         "feature": True,
         "buyBonus": True,
-        "rtp_target": 0.965,
+        "rtp_target": 0.9645,
         "description": "Rainbow Spin buy: one paid base spin with a guaranteed rainbow symbol",
     },
     "bonus_tier1": {
         "cost": 31.0,
         "feature": False,
         "buyBonus": True,
-        "rtp_target": 0.965,
+        "rtp_target": 0.9645,
         "description": "Golden Chance buy: 8 free spins",
     },
     "bonus": {
         "cost": 95.0,
         "feature": False,
         "buyBonus": True,
-        "rtp_target": 0.965,
+        "rtp_target": 0.9645,
         "description": "All That Glitters buy: 12 free spins",
     },
 }

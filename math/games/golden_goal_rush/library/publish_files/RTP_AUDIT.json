@@ -2,215 +2,215 @@
   "base": {
     "simulationCount": 80000,
     "cost": 1.0,
-    "rawRtp": 0.564837,
-    "targetRtp": 0.965,
-    "achievedRtp": 0.965007,
+    "rawRtp": 1.97643,
+    "targetRtp": 0.9645,
+    "achievedRtp": 0.964518,
     "cappedForDiversity": false,
-    "hitRateWeighted": 0.185341,
-    "effectiveSampleSize": 79724.6,
-    "topWeightShare": 3.3e-05,
-    "maxPayoutMultiplierObserved": 4201.74,
-    "etl40Share": 0.780004,
-    "cvar01x": 570.89,
-    "tailConstrained": true,
+    "hitRateWeighted": 0.334044,
+    "effectiveSampleSize": 79972.0,
+    "topWeightShare": 1.3e-05,
+    "maxPayoutMultiplierObserved": 10000.0,
+    "etl40Share": 0.586874,
+    "cvar01x": 373.894,
+    "tailConstrained": false,
     "tailMet": true,
-    "tailDamping": 0.637845634,
+    "tailDamping": 1.0,
     "winDistribution": [
       {
         "range": "0x",
-        "weightShare": 0.814659
+        "weightShare": 0.665956
       },
       {
         "range": "0-1x",
-        "weightShare": 0.170006
+        "weightShare": 0.268091
       },
       {
         "range": "1-5x",
-        "weightShare": 0.003466
+        "weightShare": 0.051952
       },
       {
         "range": "5-20x",
-        "weightShare": 0.005016
+        "weightShare": 0.006626
       },
       {
         "range": "20-50x",
-        "weightShare": 0.00394
+        "weightShare": 0.00428
       },
       {
         "range": "50x+",
-        "weightShare": 0.002913
+        "weightShare": 0.003096
       }
     ]
   },
   "hunt": {
     "simulationCount": 40000,
     "cost": 4.2,
-    "rawRtp": 0.981705,
-    "targetRtp": 0.965,
-    "achievedRtp": 0.965005,
+    "rawRtp": 2.332144,
+    "targetRtp": 0.9645,
+    "achievedRtp": 0.964515,
     "cappedForDiversity": false,
-    "hitRateWeighted": 0.147913,
-    "effectiveSampleSize": 40000.0,
-    "topWeightShare": 2.5e-05,
+    "hitRateWeighted": 0.269778,
+    "effectiveSampleSize": 39641.4,
+    "topWeightShare": 2.6e-05,
     "maxPayoutMultiplierObserved": 10000.0,
-    "etl40Share": 0.55885,
-    "cvar01x": 353.251,
+    "etl40Share": 0.166345,
+    "cvar01x": 90.422,
     "tailConstrained": false,
     "tailMet": true,
     "tailDamping": 1.0,
     "winDistribution": [
       {
         "range": "0x",
-        "weightShare": 0.852087
+        "weightShare": 0.730222
       },
       {
         "range": "0-1x",
-        "weightShare": 0.051252
+        "weightShare": 0.084461
       },
       {
         "range": "1-5x",
-        "weightShare": 0.02395
+        "weightShare": 0.052143
       },
       {
         "range": "5-20x",
-        "weightShare": 0.041747
+        "weightShare": 0.077453
       },
       {
         "range": "20-50x",
-        "weightShare": 0.01937
+        "weightShare": 0.038466
       },
       {
         "range": "50x+",
-        "weightShare": 0.011593
+        "weightShare": 0.017254
       }
     ]
   },
   "rainbow": {
     "simulationCount": 40000,
     "cost": 6.0,
-    "rawRtp": 0.932465,
-    "targetRtp": 0.965,
-    "achievedRtp": 0.964986,
+    "rawRtp": 2.737186,
+    "targetRtp": 0.9645,
+    "achievedRtp": 0.964524,
     "cappedForDiversity": false,
-    "hitRateWeighted": 0.159505,
-    "effectiveSampleSize": 39999.7,
-    "topWeightShare": 3.3e-05,
-    "maxPayoutMultiplierObserved": 7511.69,
-    "etl40Share": 0.506661,
-    "cvar01x": 264.745,
+    "hitRateWeighted": 0.269037,
+    "effectiveSampleSize": 39462.9,
+    "topWeightShare": 2.6e-05,
+    "maxPayoutMultiplierObserved": 10000.0,
+    "etl40Share": 0.128185,
+    "cvar01x": 74.505,
     "tailConstrained": false,
     "tailMet": true,
     "tailDamping": 1.0,
     "winDistribution": [
       {
         "range": "0x",
-        "weightShare": 0.840495
+        "weightShare": 0.730963
       },
       {
         "range": "0-1x",
-        "weightShare": 0.016971
+        "weightShare": 0.020471
       },
       {
         "range": "1-5x",
-        "weightShare": 0.038171
+        "weightShare": 0.061879
       },
       {
         "range": "5-20x",
-        "weightShare": 0.05846
+        "weightShare": 0.105765
       },
       {
         "range": "20-50x",
-        "weightShare": 0.02845
+        "weightShare": 0.056325
       },
       {
         "range": "50x+",
-        "weightShare": 0.017453
+        "weightShare": 0.024597
       }
     ]
   },
   "bonus_tier1": {
     "simulationCount": 40000,
     "cost": 31.0,
-    "rawRtp": 0.664012,
-    "targetRtp": 0.965,
-    "achievedRtp": 0.964996,
+    "rawRtp": 1.667471,
+    "targetRtp": 0.9645,
+    "achievedRtp": 0.9645,
     "cappedForDiversity": false,
-    "hitRateWeighted": 0.77917,
-    "effectiveSampleSize": 39879.5,
-    "topWeightShare": 0.000126,
+    "hitRateWeighted": 0.95103,
+    "effectiveSampleSize": 39667.4,
+    "topWeightShare": 2.6e-05,
     "maxPayoutMultiplierObserved": 10000.0,
-    "etl40Share": 0.459998,
-    "cvar01x": 271.823,
+    "etl40Share": 0.063325,
+    "cvar01x": 60.629,
     "tailConstrained": false,
     "tailMet": true,
     "tailDamping": 1.0,
     "winDistribution": [
       {
         "range": "0x",
-        "weightShare": 0.22083
+        "weightShare": 0.04897
       },
       {
         "range": "0-1x",
-        "weightShare": 0.477631
+        "weightShare": 0.225727
       },
       {
         "range": "1-5x",
-        "weightShare": 0.062156
+        "weightShare": 0.356273
       },
       {
         "range": "5-20x",
-        "weightShare": 0.106143
+        "weightShare": 0.133667
       },
       {
         "range": "20-50x",
-        "weightShare": 0.069744
+        "weightShare": 0.113821
       },
       {
         "range": "50x+",
-        "weightShare": 0.063497
+        "weightShare": 0.121542
       }
     ]
   },
   "bonus": {
     "simulationCount": 40000,
     "cost": 95.0,
-    "rawRtp": 0.568423,
-    "targetRtp": 0.965,
-    "achievedRtp": 0.965,
+    "rawRtp": 1.3571,
+    "targetRtp": 0.9645,
+    "achievedRtp": 0.964498,
     "cappedForDiversity": false,
-    "hitRateWeighted": 0.894991,
-    "effectiveSampleSize": 39171.5,
-    "topWeightShare": 0.000229,
+    "hitRateWeighted": 0.989538,
+    "effectiveSampleSize": 39733.1,
+    "topWeightShare": 2.6e-05,
     "maxPayoutMultiplierObserved": 10000.0,
-    "etl40Share": 0.385064,
-    "cvar01x": 105.263,
+    "etl40Share": 0.03718,
+    "cvar01x": 49.402,
     "tailConstrained": false,
     "tailMet": true,
     "tailDamping": 1.0,
     "winDistribution": [
       {
         "range": "0x",
-        "weightShare": 0.105009
+        "weightShare": 0.010462
       },
       {
         "range": "0-1x",
-        "weightShare": 0.406223
+        "weightShare": 0.088861
       },
       {
         "range": "1-5x",
-        "weightShare": 0.070012
+        "weightShare": 0.32616
       },
       {
         "range": "5-20x",
-        "weightShare": 0.131881
+        "weightShare": 0.138486
       },
       {
         "range": "20-50x",
-        "weightShare": 0.117506
+        "weightShare": 0.143871
       },
       {
         "range": "50x+",
-        "weightShare": 0.169369
+        "weightShare": 0.29216
       }
     ]
   }

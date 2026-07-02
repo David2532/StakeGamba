@@ -1,7 +1,7 @@
 {
   "gameId": "golden_goal_rush",
   "gameName": "Golden Goal Rush",
-  "version": "0.2.0-cluster",
+  "version": "0.2.1-cluster",
   "layout": {
     "reels": 6,
     "visibleRows": 5,
@@ -24,55 +24,55 @@
   ],
   "paytable": {
     "ten": {
-      "cluster5": 0.09,
+      "cluster5": 0.24,
       "cluster7Boost": 2,
       "cluster9Boost": 4,
       "cluster12Boost": 8
     },
     "j": {
-      "cluster5": 0.09,
+      "cluster5": 0.28,
       "cluster7Boost": 2,
       "cluster9Boost": 4,
       "cluster12Boost": 8
     },
     "q": {
-      "cluster5": 0.13,
+      "cluster5": 0.36,
       "cluster7Boost": 2,
       "cluster9Boost": 4,
       "cluster12Boost": 8
     },
     "k": {
-      "cluster5": 0.18,
+      "cluster5": 0.48,
       "cluster7Boost": 2,
       "cluster9Boost": 4,
       "cluster12Boost": 8
     },
     "a": {
-      "cluster5": 0.22,
+      "cluster5": 0.62,
       "cluster7Boost": 2,
       "cluster9Boost": 4,
       "cluster12Boost": 8
     },
     "football": {
-      "cluster5": 0.35,
+      "cluster5": 0.82,
       "cluster7Boost": 2,
       "cluster9Boost": 4,
       "cluster12Boost": 8
     },
     "whistle": {
-      "cluster5": 0.45,
+      "cluster5": 1.05,
       "cluster7Boost": 2,
       "cluster9Boost": 4,
       "cluster12Boost": 8
     },
     "trophy": {
-      "cluster5": 0.65,
+      "cluster5": 1.35,
       "cluster7Boost": 2,
       "cluster9Boost": 4,
       "cluster12Boost": 8
     },
     "jersey": {
-      "cluster5": 0.9,
+      "cluster5": 1.85,
       "cluster7Boost": 2,
       "cluster9Boost": 4,
       "cluster12Boost": 8
@@ -131,19 +131,19 @@
       "cost": 1.0,
       "feature": true,
       "buyBonus": false,
-      "rtp_target": 0.965,
+      "rtp_target": 0.9645,
       "description": "Normal 6x5 cluster/cascade base spin",
-      "rtp_achieved": 0.965007,
+      "rtp_achieved": 0.964518,
       "rtp_capped_for_diversity": false,
-      "max_win": 4201.74
+      "max_win": 10000.0
     },
     "hunt": {
       "cost": 4.2,
       "feature": true,
       "buyBonus": true,
-      "rtp_target": 0.965,
+      "rtp_target": 0.9645,
       "description": "Feature Spins buy: one paid base spin with boosted rainbow chance and no free-spin trigger",
-      "rtp_achieved": 0.965005,
+      "rtp_achieved": 0.964515,
       "rtp_capped_for_diversity": false,
       "max_win": 10000.0
     },
@@ -151,19 +151,19 @@
       "cost": 6.0,
       "feature": true,
       "buyBonus": true,
-      "rtp_target": 0.965,
+      "rtp_target": 0.9645,
       "description": "Rainbow Spin buy: one paid base spin with a guaranteed rainbow symbol",
-      "rtp_achieved": 0.964986,
+      "rtp_achieved": 0.964524,
       "rtp_capped_for_diversity": false,
-      "max_win": 7511.69
+      "max_win": 10000.0
     },
     "bonus_tier1": {
       "cost": 31.0,
       "feature": false,
       "buyBonus": true,
-      "rtp_target": 0.965,
+      "rtp_target": 0.9645,
       "description": "Golden Chance buy: 8 free spins",
-      "rtp_achieved": 0.964996,
+      "rtp_achieved": 0.9645,
       "rtp_capped_for_diversity": false,
       "max_win": 10000.0
     },
@@ -171,9 +171,9 @@
       "cost": 95.0,
       "feature": false,
       "buyBonus": true,
-      "rtp_target": 0.965,
+      "rtp_target": 0.9645,
       "description": "All That Glitters buy: 12 free spins",
-      "rtp_achieved": 0.965,
+      "rtp_achieved": 0.964498,
       "rtp_capped_for_diversity": false,
       "max_win": 10000.0
     }
