@@ -1,10 +1,99 @@
 import { fromPromise } from 'xstate';
 
-import { API_AMOUNT_MULTIPLIER } from 'constants-shared/bet';
+import { API_AMOUNT_MULTIPLIER, BOOK_AMOUNT_MULTIPLIER } from 'constants-shared/bet';
 import { stateBet, stateUrlDerived, stateModal } from 'state-shared';
 import { requestBet, requestEndRound } from 'rgs-requests';
 
 import type { BaseBet } from './types';
+
+type BookEventLike = { type?: string; amount?: number };
+
+const numberOrNull = (value: unknown) =>
+	typeof value === 'number' && Number.isFinite(value) ? value : null;
+
+const getLastBookAmount = (state: unknown, type: string) => {
+	if (!Array.isArray(state)) return null;
+
+	for (let index = state.length - 1; index >= 0; index -= 1) {
+		const event = state[index] as BookEventLike;
+		if (event?.type !== type) continue;
+		return numberOrNull(event.amount);
+	}
+
+	return null;
+};
+
+const normaliseRoundAmount = (bet: BaseBet | null | undefined) => {
+	const amount = numberOrNull(bet?.amount);
+	return amount !== null ? amount / API_AMOUNT_MULTIPLIER : 0;
+};
+
+const normaliseBetWinContract = <TBet extends BaseBet>(
+	bet: TBet,
+	options: { source: 'newGame' | 'resumeGame'; wageredBetAmount: number },
+) => {
+	const finalWinAmount = getLastBookAmount(bet.state, 'finalWin');
+	const setTotalWinAmount = getLastBookAmount(bet.state, 'setTotalWin');
+	const visibleBookAmount = finalWinAmount ?? setTotalWinAmount;
+	const apiBetAmount = numberOrNull(bet.amount);
+	const apiPayoutAmount = numberOrNull(bet.payout);
+	const rawPayoutMultiplier = numberOrNull(bet.payoutMultiplier);
+	const payoutMultiplier =
+		rawPayoutMultiplier !== null &&
+		rawPayoutMultiplier > 100 &&
+		visibleBookAmount !== null &&
+		Math.abs(rawPayoutMultiplier - visibleBookAmount) <= 1
+			? rawPayoutMultiplier / BOOK_AMOUNT_MULTIPLIER
+			: rawPayoutMultiplier;
+	const multiplierFromApiAmounts =
+		apiBetAmount !== null && apiBetAmount > 0 && apiPayoutAmount !== null
+			? apiPayoutAmount / apiBetAmount
+			: null;
+	const expectedBookAmount =
+		payoutMultiplier !== null && payoutMultiplier > 0
+			? Math.round(payoutMultiplier * BOOK_AMOUNT_MULTIPLIER)
+			: multiplierFromApiAmounts !== null && multiplierFromApiAmounts > 0
+				? Math.round(multiplierFromApiAmounts * BOOK_AMOUNT_MULTIPLIER)
+				: null;
+	const wageredBetAmount = options.wageredBetAmount || normaliseRoundAmount(bet);
+
+	const debugPayload = {
+		source: options.source,
+		mode: bet.mode,
+		wageredBetAmount,
+		apiBetAmount,
+		apiPayoutAmount,
+		rawPayoutMultiplier,
+		payoutMultiplier,
+		multiplierFromApiAmounts,
+		finalWinAmount,
+		setTotalWinAmount,
+		visibleBookAmount,
+		expectedBookAmount,
+		displayWin:
+			visibleBookAmount !== null ? wageredBetAmount * (visibleBookAmount / BOOK_AMOUNT_MULTIPLIER) : null,
+	};
+
+	console.debug('[Golden Goal Rush win contract]', debugPayload);
+
+	if (
+		payoutMultiplier !== null &&
+		multiplierFromApiAmounts !== null &&
+		Math.abs(payoutMultiplier - multiplierFromApiAmounts) > Math.max(0.0001, payoutMultiplier * 0.01)
+	) {
+		console.warn('[Golden Goal Rush win contract] RGS payout mismatch', debugPayload);
+	}
+
+	if (
+		expectedBookAmount !== null &&
+		visibleBookAmount !== null &&
+		Math.abs(expectedBookAmount - visibleBookAmount) > 1
+	) {
+		console.warn('[Golden Goal Rush win contract] Book win mismatch', debugPayload);
+	}
+
+	return bet;
+};
 
 const handleRequestBet = async ({ onError }: { onError: () => void }) => {
 	try {
@@ -147,7 +236,10 @@ function createPrimaryMachines<TBet extends BaseBet>(options: Options<TBet>) {
 				handleUpdateBalance({ balanceAmountFromApi: data.balance.amount });
 			}
 
-			const bet = data.round as TBet;
+			const bet = normaliseBetWinContract(data.round as TBet, {
+				source: 'newGame',
+				wageredBetAmount: stateBet.wageredBetAmount,
+			});
 			const betType = getBetType({ bet });
 			await BET_TYPE_METHODS_MAP[betType].newGame();
 
@@ -166,11 +258,14 @@ function createPrimaryMachines<TBet extends BaseBet>(options: Options<TBet>) {
 			stateBet.betToResume = null;
 
 			//End Round resumed active bet
-			const bet = betToResume as TBet;
+			const bet = normaliseBetWinContract(betToResume as TBet, {
+				source: 'resumeGame',
+				wageredBetAmount: stateBet.wageredBetAmount || normaliseRoundAmount(betToResume),
+			});
 			const betType = getBetType({ bet });
 			await BET_TYPE_METHODS_MAP[betType].newGame();
 
-			return { bet: onResumeGameActive(betToResume), rawBet: betToResume };
+			return { bet: onResumeGameActive(bet), rawBet: bet };
 		}
 
 		if (betToResume && betToResume.state && betToResume.state.length > 0) {
