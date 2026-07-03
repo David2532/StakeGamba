@@ -18,6 +18,12 @@
     "stake:publish:build-frontend": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/sync-stake-publish.ps1 -BuildFrontend",
     "stake:publish:refresh-math": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/sync-stake-publish.ps1 -RefreshMath",
     "stake:install-hook": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install-stake-publish-hook.ps1",
+    "stake:qa": "node apps/cluster/scripts/build-preview-html.mjs && node scripts/stake-qa.mjs all",
+    "stake:qa:currency": "node scripts/stake-qa.mjs currency",
+    "stake:qa:i18n": "node scripts/stake-qa.mjs i18n",
+    "stake:qa:mobile": "node scripts/stake-qa.mjs mobile",
+    "stake:qa:major-actions": "node scripts/stake-qa.mjs major-actions",
+    "stake:qa:interrupted-round": "node scripts/stake-qa.mjs interrupted-round",
     "publish-packages": "turbo run build lint test && changeset version && changeset publish",
     "e2e": "turbo run e2e",
     "e2e-smoke": "turbo run e2e-smoke",
@@ -34,12 +40,6 @@
     "node": ">=22.16.0"
   },
   "packageManager": "pnpm@10.5.0",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "svelte-preprocess"
-    ]
-  },
   "devDependencies": {
     "cross-env": "^10.1.0"
   }

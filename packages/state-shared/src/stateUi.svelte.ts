@@ -4,11 +4,8 @@ export const AUTO_SPINS_TEXT_OPTIONS = [
 	'10',
 	'25',
 	'50',
-	'75',
 	'100',
-	'250',
-	'500',
-	'1000',
+	'200',
 	INFINITY_MARK,
 ] as const;
 export type AutoSpinsText = (typeof AUTO_SPINS_TEXT_OPTIONS)[number];
@@ -16,11 +13,8 @@ export const AUTO_SPINS_TEXT_OPTION_MAP = {
 	'10': 10,
 	'25': 25,
 	'50': 50,
-	'75': 75,
 	'100': 100,
-	'250': 250,
-	'500': 500,
-	'1000': 1000,
+	'200': 200,
 	[INFINITY_MARK]: Infinity,
 };
 

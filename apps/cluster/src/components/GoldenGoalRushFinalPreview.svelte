@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
+	import { currencyDisplaySymbol, formatCurrencyAmount } from 'utils-shared/currency.js';
 
 	const assets = {
 		background: new URL('../assets/golden-goal-rush/slot-background.webp', import.meta.url).href,
@@ -14,8 +15,6 @@
 		whistle: new URL('../assets/golden-goal-rush/pfeife.webp', import.meta.url).href,
 		wild: new URL('../assets/golden-goal-rush/wild.webp', import.meta.url).href,
 		scatter: new URL('../assets/golden-goal-rush/scatter.webp', import.meta.url).href,
-		euro: new URL('../assets/golden-goal-rush/hud-extracted/euro-symbol.webp', import.meta.url)
-			.href,
 		collector: new URL('../assets/golden-goal-rush/special/symbol_collector.webp', import.meta.url)
 			.href,
 		multiplier: new URL('../assets/golden-goal-rush/special/symbol_multiplier.webp', import.meta.url)
@@ -147,13 +146,35 @@
 	let autoSpin = $state(false);
 	let modal = $state<'menu' | 'bonus' | 'info' | 'settings' | null>(null);
 	let autoSpinTimer: ReturnType<typeof setInterval> | null = null;
+	const previewCurrency =
+		typeof window === 'undefined'
+			? 'USD'
+			: new URLSearchParams(window.location.search).get('currency')?.toUpperCase() || 'USD';
 
 	const bet = $derived(betSteps[betIndex]);
 	const spinDuration = $derived(turbo ? 260 : 620);
 	const meters = $derived([
-		{ label: 'BALANCE', value: balance.toFixed(2), icon: assets.euro, frame: assets.meterPanelA },
-		{ label: 'WIN', value: win.toFixed(2), icon: assets.trophy, frame: assets.meterPanelB },
-		{ label: 'BET', value: bet.toFixed(2), icon: assets.euro, frame: assets.meterPanelC },
+		{
+			label: 'BALANCE',
+			value: formatCurrencyAmount(balance, previewCurrency),
+			currencySymbol: currencyDisplaySymbol(previewCurrency),
+			icon: undefined,
+			frame: assets.meterPanelA,
+		},
+		{
+			label: 'WIN',
+			value: formatCurrencyAmount(win, previewCurrency),
+			currencySymbol: undefined,
+			icon: assets.trophy,
+			frame: assets.meterPanelB,
+		},
+		{
+			label: 'BET',
+			value: formatCurrencyAmount(bet, previewCurrency),
+			currencySymbol: currencyDisplaySymbol(previewCurrency),
+			icon: undefined,
+			frame: assets.meterPanelC,
+		},
 	]);
 
 	const features = [
@@ -270,7 +291,11 @@
 		{#each meters as meter}
 			<div class="meter">
 				<img class="panel-art" src={meter.frame} alt="" />
-				<img class="meter-asset-icon" src={meter.icon} alt="" />
+				{#if meter.currencySymbol}
+					<span class="meter-currency-symbol" aria-hidden="true">{meter.currencySymbol}</span>
+				{:else if meter.icon}
+					<img class="meter-asset-icon" src={meter.icon} alt="" />
+				{/if}
 				<div>
 					<div class="meter-label">{meter.label}</div>
 					<div class="meter-value">{meter.value}</div>
@@ -1074,6 +1099,22 @@
 		height: 32px;
 		object-fit: contain;
 		filter: drop-shadow(0 2px 3px #000) drop-shadow(0 0 6px rgba(255, 213, 88, 0.36));
+	}
+
+	.meter-currency-symbol {
+		position: relative;
+		z-index: 1;
+		min-width: 32px;
+		height: 32px;
+		display: grid;
+		place-items: center;
+		color: #ffd96f;
+		font-size: 18px;
+		font-weight: 1000;
+		line-height: 1;
+		text-shadow:
+			0 2px 3px #000,
+			0 0 6px rgba(255, 213, 88, 0.36);
 	}
 
 	.meter > div {

@@ -14,6 +14,7 @@ $FrontendDest = Join-Path $PublishRoot "frontend"
 $MathDest = Join-Path $PublishRoot "math"
 $FrontendBuilder = Join-Path $Root "apps\cluster\scripts\build-preview-html.mjs"
 $PreviewHtml = Join-Path $Root "apps\cluster\preview.html"
+$StakeQaScript = Join-Path $Root "scripts\stake-qa.mjs"
 $SyncScript = Join-Path $Root "scripts\sync-stake-publish.ps1"
 $MathRoot = Join-Path $Root "math\games\golden_goal_rush"
 $MathPublish = Join-Path $MathRoot "library\publish_files"
@@ -488,6 +489,7 @@ $mathConfigPath = Join-Path $MathDest "game_config.json"
 if (-not (Test-Path -LiteralPath $indexPath -PathType Leaf)) { throw "Missing built frontend index.html: $indexPath" }
 if (-not (Test-Path -LiteralPath $auditPath -PathType Leaf)) { throw "Missing math audit: $auditPath" }
 if (-not (Test-Path -LiteralPath $mathConfigPath -PathType Leaf)) { throw "Missing math config: $mathConfigPath" }
+Invoke-Checked -WorkingDirectory $Root -FilePath "node" -Arguments @($StakeQaScript, "all")
 
 $html = Get-Content -LiteralPath $indexPath -Raw
 $audit = Read-Json -Path $auditPath
@@ -544,6 +546,8 @@ Add-MarkerCheck -Group "F Refresh / Resume" -Name "resume index from round event
 Add-MarkerCheck -Group "F Refresh / Resume" -Name "bonus progress saved to RGS" -Content $html -Marker "Rgs.saveEvent"
 Add-MarkerCheck -Group "F Refresh / Resume" -Name "active base settled immediately" -Content $html -Marker "recoverActiveRound"
 Add-MarkerCheck -Group "F Refresh / Resume" -Name "active bonus not immediately settled" -Content $html -Marker "if (rgsRoundIsBonus(data.round)) markRoundFromPlay(data.round)"
+Add-MarkerCheck -Group "F Refresh / Resume" -Name "interrupted round continue notice" -Content $html -Marker "Your previous round was interrupted. You can continue where you left off."
+Add-MarkerCheck -Group "F Refresh / Resume" -Name "resume waits for interrupted notice" -Content $html -Marker "await showInterruptedRoundMessage();"
 
 Add-MarkerCheck -Group "G Bonus Start Popup" -Name "bonus intro DOM element" -Content $html -Marker "id=`"bonus-intro`""
 Add-MarkerCheck -Group "G Bonus Start Popup" -Name "RGS bonus intro function" -Content $html -Marker "async function bonusIntroRgs"
@@ -554,7 +558,16 @@ Add-MarkerCheck -Group "H Rules / Info Modal" -Name "base reload settlement expl
 Add-MarkerCheck -Group "H Rules / Info Modal" -Name "game history explained" -Content $html -Marker "game history"
 Add-MarkerCheck -Group "H Rules / Info Modal" -Name "active bonus resume explained" -Content $html -Marker "Active Bonus Buy bonus rounds resume"
 Add-MarkerCheck -Group "H Rules / Info Modal" -Name "bonus buy rules present" -Content $html -Marker "Bonus Buy"
+Add-MarkerCheck -Group "H Rules / Info Modal" -Name "buttons and controls rules present" -Content $html -Marker "Buttons &amp; Controls"
 Add-MarkerCheck -Group "H Rules / Info Modal" -Name "RTP text matches audit" -Content $html -Marker "RTP $baseRtpText"
+
+Add-MarkerCheck -Group "J Stake Feedback UI" -Name "auto-bet modal exists" -Content $html -Marker "id=`"modal-autospin`""
+Add-MarkerCheck -Group "J Stake Feedback UI" -Name "auto-bet options restricted" -Content $html -Marker "const AUTO_SPIN_OPTIONS = [10, 25, 50, 100, 200, Infinity]"
+Add-MarkerCheck -Group "J Stake Feedback UI" -Name "auto-bet confirmation function exists" -Content $html -Marker "function confirmAutoSpin(count)"
+Add-MarkerCheck -Group "J Stake Feedback UI" -Name "insufficient funds helper exists" -Content $html -Marker "function showInsufficientFunds"
+Add-MarkerCheck -Group "J Stake Feedback UI" -Name "social casino balance wording exists" -Content $html -Marker "Insufficient Balance"
+Add-MarkerCheck -Group "J Stake Feedback UI" -Name "mobile fullscreen dvh exists" -Content $html -Marker "height: 100dvh"
+Add-MarkerCheck -Group "J Stake Feedback UI" -Name "stage fit transform variable exists" -Content $html -Marker "--stage-fit-transform"
 
 foreach ($prop in $audit.PSObject.Properties) {
 	$mode = $prop.Name

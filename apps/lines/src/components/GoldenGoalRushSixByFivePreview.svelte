@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 
 	import { Container, Graphics, Rectangle, Sprite, Text, getContextApp } from 'pixi-svelte';
+	import { formatCurrencyAmount } from 'utils-shared/currency.js';
 
 	const STAGE = { width: 1366, height: 768 };
 	const REELS = 6;
@@ -212,13 +213,11 @@
 		),
 	);
 
-	const formatCurrency = (value: number) =>
-		new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: 'USD',
-			minimumFractionDigits: 2,
-			maximumFractionDigits: 2,
-		}).format(value);
+	const previewCurrency =
+		typeof window === 'undefined'
+			? 'USD'
+			: new URLSearchParams(window.location.search).get('currency')?.toUpperCase() || 'USD';
+	const formatCurrency = (value: number) => formatCurrencyAmount(value, previewCurrency);
 
 	const getSymbolAccentColor = (symbol: SymbolName) => {
 		if (symbol === 'W' || symbol === 'S') return 0x62ffb8;

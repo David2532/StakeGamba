@@ -1,12 +1,6 @@
-import { stateI18n } from 'state-shared';
-
 import { BOOK_AMOUNT_MULTIPLIER } from 'constants-shared/bet';
 import { stateBet } from 'state-shared';
-
-const NO_LOCALISATION_CURRENCY_MAP: Record<string, string> = {
-	XGC: 'GC',
-	XSC: 'SC',
-};
+import { formatCurrencyAmount } from './currency.js';
 
 // bookEventAmount: is the amount or win numbers in the events of books, e.g. the amount in setTotalWin bookEvent
 // {
@@ -30,17 +24,7 @@ export const bookEventAmountToNormalisedAmount = (bookEventAmount: number) => {
 export const numberToFloat = (value: number) => Number.parseFloat(`${value}`);
 
 export const numberToCurrencyString = (value: number) => {
-	if (stateBet.currency in NO_LOCALISATION_CURRENCY_MAP) {
-		return `${NO_LOCALISATION_CURRENCY_MAP[stateBet.currency]} ${numberToFloat(value).toFixed(2)}`;
-	}
-
-	return stateI18n.i18n.number(value, {
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-		style: 'currency',
-		currency: stateBet.currency,
-		// numberingSystem: 'latn',
-	});
+	return formatCurrencyAmount(numberToFloat(value), stateBet.currency);
 };
 
 export const bookEventAmountToCurrencyString = (bookEventAmount: number) => {

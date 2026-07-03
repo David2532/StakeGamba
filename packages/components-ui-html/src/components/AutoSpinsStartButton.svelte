@@ -17,6 +17,15 @@
 	import type { EmitterEventModal } from '../types';
 
 	const { eventEmitter } = getContextEventEmitter<EmitterEventModal>();
+	let awaitingConfirm = $state(false);
+	const confirmationKey = $derived(
+		`${stateUi.autoSpinsText}:${stateUi.autoSpinsLossLimitText}:${stateUi.autoSpinsSingleWinLimitText}`,
+	);
+
+	$effect(() => {
+		confirmationKey;
+		awaitingConfirm = false;
+	});
 
 	const startAutoBet = () => {
 		stateBet.autoSpinsCounter = AUTO_SPINS_TEXT_OPTION_MAP[stateUi.autoSpinsText];
@@ -27,11 +36,23 @@
 		eventEmitter.broadcast({ type: 'autoBet' });
 		stateModal.modal = null;
 	};
+
+	const requestAutoBet = () => {
+		if (!stateBetDerived.isBetCostAvailable()) {
+			stateModal.modal = { name: 'autoSpinMessage', message: 'insufficientFunds' };
+			return;
+		}
+		if (!awaitingConfirm) {
+			awaitingConfirm = true;
+			return;
+		}
+		startAutoBet();
+	};
 </script>
 
-<Button disabled={!stateBetDerived.isBetCostAvailable()} onclick={startAutoBet}>
+<Button onclick={requestAutoBet}>
 	<BaseIcon width="100%" height="3rem" />
 	<BaseButtonContent>
-		<span style="font-size: 1rem;">{i18nDerived.startAutoplay()}</span>
+		<span style="font-size: 1rem;">{awaitingConfirm ? i18nDerived.confirm() : i18nDerived.startAutoplay()}</span>
 	</BaseButtonContent>
 </Button>

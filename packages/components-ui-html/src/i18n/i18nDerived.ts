@@ -1,4 +1,5 @@
-import { stateI18nDerived } from 'state-shared';
+import { stateBet, stateI18nDerived, stateUrlDerived } from 'state-shared';
+import { insufficientFundsMessage } from 'utils-shared/currency.js';
 
 export const i18nDerived = {
 	bet: () => stateI18nDerived.translate('BET'),
@@ -17,7 +18,7 @@ export const i18nDerived = {
 	startAutoplay: () => stateI18nDerived.translate('START AUTOPLAY'),
 	notification: () => stateI18nDerived.translate('NOTIFICATION'),
 	autoSpinsStopInfo: () => stateI18nDerived.translate('AUTO PLAY HAS STOPPED DUE TO'),
-	insufficientFunds: () => stateI18nDerived.translate('INSUFFICIENT FUNDS TO PLACE THIS BET. PLEASE ADD FUNDS TO YOUR ACCOUNT OR LOWER THE BET LEVEL.'),
+	insufficientFunds: () => stateI18nDerived.translate(insufficientFundsMessage(stateBet.currency, stateUrlDerived.social())),
 	lossLimitReached: () => stateI18nDerived.translate('LOSS LIMIT REACHED'),
 	singleWinLimitReached: () => stateI18nDerived.translate('SINGLE WIN LIMIT REACHED'),
 	settings: () => stateI18nDerived.translate('SETTINGS'),

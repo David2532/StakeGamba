@@ -16,6 +16,7 @@ $PublishRoot = Join-Path $Root "publish"
 $LegacyPublishRoot = Join-Path $PublishRoot "golden-goal-rush"
 $FrontendPreviewHtml = Join-Path $Root "apps\cluster\preview.html"
 $FrontendPreviewBuilder = Join-Path $Root "apps\cluster\scripts\build-preview-html.mjs"
+$StakeQaScript = Join-Path $Root "scripts\stake-qa.mjs"
 $FrontendAssetSource = Join-Path $Root "apps\cluster\src\assets\golden-goal-rush"
 $FrontendStaticSource = Join-Path $Root "apps\cluster\static"
 $FrontendDest = Join-Path $PublishRoot "frontend"
@@ -289,6 +290,20 @@ function Test-StakeCompliance {
 		# Stake: pop-up when the bonus round starts (base trigger + buy)
 		@{ Name = "Bonus-Start-Popup (RGS-Pfad)"; Marker = "bonusIntroRgs" },
 		@{ Name = "Bonus-Popup-Element"; Marker = "id=`"bonus-intro`"" },
+		# Stake: interrupted bonus rounds must explicitly tell the player they can continue.
+		@{ Name = "Interrupted-Round-Hinweis vorhanden"; Marker = "Your previous round was interrupted. You can continue where you left off." },
+		@{ Name = "Interrupted-Round-Hinweis vor Resume-Playback"; Marker = "await showInterruptedRoundMessage();" },
+		# Stake: all major actions need confirmation and insufficient-balance feedback.
+		@{ Name = "Auto-Bet-Confirm-Modal vorhanden"; Marker = "id=`"modal-autospin`"" },
+		@{ Name = "Auto-Bet-Optionen auf Stake-Liste begrenzt"; Marker = "const AUTO_SPIN_OPTIONS = [10, 25, 50, 100, 200, Infinity]" },
+		@{ Name = "Auto-Bet startet erst nach Confirm"; Marker = "function confirmAutoSpin(count)" },
+		@{ Name = "Insufficient Balance/Funds Dialog vorhanden"; Marker = "function showInsufficientFunds" },
+		@{ Name = "Social Casino Balance Wording vorhanden"; Marker = "Insufficient Balance" },
+		@{ Name = "Fiat Funds Wording vorhanden"; Marker = "Insufficient Funds" },
+		# Stake: mobile/fullscreen and rules controls.
+		@{ Name = "Mobile Fullscreen nutzt dvh"; Marker = "height: 100dvh" },
+		@{ Name = "Mobile Stage Fit Variable vorhanden"; Marker = "--stage-fit-transform" },
+		@{ Name = "Rules: Buttons & Controls vorhanden"; Marker = "Buttons &amp; Controls" },
 		# Stake: no local win simulation in production
 		@{ Name = "Positiver Wallet-Payout ist Display-Quelle"; Marker = "if (walletPayout !== null && walletPayout > 0) return walletPayout;" },
 		@{ Name = "Lokale Free Spins nur ohne RGS"; Marker = "allowLocalFreeSpins = !Rgs.configured()" },
@@ -364,6 +379,14 @@ function Test-StakeCompliance {
 		throw "Compliance gate failed ($($failures.Count) Punkt(e)). Dieses Paket NICHT hochladen."
 	}
 	Write-Host "Stake compliance gate: alle $($feChecks.Count + 8) Checks bestanden." -ForegroundColor Green
+}
+
+function Invoke-StakeQa {
+	if (-not (Test-Path -LiteralPath $StakeQaScript -PathType Leaf)) {
+		throw "Missing Stake QA script: $StakeQaScript"
+	}
+	Write-Host "Running Stake QA checks"
+	Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @($StakeQaScript, "all")
 }
 
 function Write-UploadReadme {
@@ -451,6 +474,7 @@ Copy-MathUploadFiles
 
 Test-FrontendUploadContents
 Test-MathUploadContents
+Invoke-StakeQa
 
 if (-not $SkipComplianceGate) {
 	Test-StakeCompliance

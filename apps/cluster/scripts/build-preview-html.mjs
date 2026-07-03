@@ -13,6 +13,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CURRENCY_META } from '../../../packages/utils-shared/currency.js';
 
 // Shared math config — the SAME numbers the RTP simulation (ggr-sim.mjs) measures.
 import { SYMBOL_MATH, CONFIG } from './ggr-config.mjs';
@@ -34,7 +35,6 @@ const assets = {
 	background: `${A}/slot-background.webp`,
 	headerLogo: `${A}/logo-horizontal-tight.webp`,
 	football: `${A}/fussball.webp`,
-	euro: `${HUD}/euro-symbol.webp`,
 	collector: `${SPECIAL}/symbol_collector.webp`,
 	multiplier: `${SPECIAL}/symbol_multiplier.webp`,
 	trophy: `${A}/pokal.webp`,
@@ -88,15 +88,17 @@ const AUDIO_ASSETS = {
 // CONFIG is imported from ggr-config.mjs (shared with the RTP simulation).
 
 const meters = [
-	['BALANCE', 'balance', 'euro', 'meterPanelA'],
+	['BALANCE', 'balance', 'currency', 'meterPanelA'],
 	['WIN', 'win', 'trophy', 'meterPanelB'],
-	['BET', 'bet', 'euro', 'meterPanelC'],
+	['BET', 'bet', 'currency', 'meterPanelC'],
 ];
 const meterRows = meters
 	.map(
-		([label, id, icon, frame]) => `\t\t\t<div class="meter">
+		([label, id, icon, frame]) => `\t\t\t<div class="meter" data-meter="${id}">
 				<img class="panel-art" src="${assets[frame]}" alt="" />
-				<img class="meter-asset-icon" src="${assets[icon]}" alt="" />
+				${icon === 'currency'
+					? `<span class="meter-currency-symbol" id="meter-${id}-currency" aria-hidden="true"></span>`
+					: `<img class="meter-asset-icon" src="${assets[icon]}" alt="" />`}
 				<div><div class="meter-label">${label}</div><div class="meter-value" id="meter-${id}">0.00</div></div>
 			</div>`,
 	)
@@ -114,8 +116,40 @@ const featureItems = features
 	)
 	.join('\n');
 
+const controlRules = [
+	['spin', 'Spin', assets.spinButton, 'Starts a single paid spin with the selected bet.'],
+	['auto-bet', 'Auto-Bet', assets.autoSpinButton, 'Opens the Auto-Bet spin amount selection. Auto-Bet starts only after selecting an amount and confirming.'],
+	['turbo', 'Turbo', assets.turboButton, 'Toggles faster spin animations if available.'],
+	['bonus-buy', 'Bonus Buy / Buy Feature', assets.bonusButton, 'Opens the Bonus Buy confirmation. The feature is purchased only after confirmation.'],
+	['bet-minus', 'Bet Minus', assets.minusButton, 'Decreases the selected bet.'],
+	['bet-plus', 'Bet Plus', assets.plusButton, 'Increases the selected bet.'],
+	['bet-selector', 'Bet Selector / Bet Panel', assets.controlPanel, 'Shows the selected bet value and available bet step controls.'],
+	['info-rules', 'Info / Rules', assets.infoButton, 'Opens game rules, paytable, feature descriptions and button explanations.'],
+	['settings', 'Settings', assets.settingsButton, 'Opens settings such as sound or game options.'],
+	['menu', 'Menu', assets.menuButton, 'Opens the main menu.'],
+	['sound-music', 'Sound / Music', assets.menuButton, 'Toggles sound and music from the menu or settings panel.'],
+	['collect', 'Collect', assets.collector, 'Collects bonus feature values depending on the active Golden Goal feature.'],
+	['free-spins', 'Free Spins / Feature Button', assets.featurePanel, 'Shows feature state for collect, multiplier and free spins during active feature play.'],
+	['close-modal', 'Close Modal', assets.infoButton, 'Closes the current dialog without applying unconfirmed actions.'],
+];
+const controlRuleRows = controlRules
+	.map(
+		([key, name, icon, description]) => `\t\t\t\t\t<div class="control-rule" data-control-key="${key}">
+						<img src="${icon}" alt="${name}" />
+						<div><b>${name}</b>${description}</div>
+					</div>`,
+	)
+	.join('\n');
+
 const extraCss = `
 	/* ---- interactive demo layer ---- */
+	.viewport .stage {
+		position:absolute;
+		top:50%;
+		left:50%;
+		transform-origin:center center;
+		transform:var(--stage-fit-transform, translate(-50%, -50%) scale(1));
+	}
 	.logo-wordmark {
 		top: -4px;
 		width: 460px;
@@ -198,8 +232,11 @@ const extraCss = `
 	.win-banner small { display:block; font-size:20px; letter-spacing:3px; color:#fff; -webkit-text-stroke:0;
 		text-shadow:0 2px 2px #000; margin-bottom:2px; }
 	.stage.shake { animation: stage-shake 0.4s ease; }
-	@keyframes stage-shake { 0%,100%{transform:translate(0,0);} 20%{transform:translate(-6px,2px);}
-		40%{transform:translate(5px,-2px);} 60%{transform:translate(-4px,1px);} 80%{transform:translate(3px,-1px);} }
+	@keyframes stage-shake { 0%,100%{transform:var(--stage-fit-transform, translate(-50%, -50%) scale(1));}
+		20%{transform:var(--stage-fit-transform, translate(-50%, -50%) scale(1)) translate(-6px,2px);}
+		40%{transform:var(--stage-fit-transform, translate(-50%, -50%) scale(1)) translate(5px,-2px);}
+		60%{transform:var(--stage-fit-transform, translate(-50%, -50%) scale(1)) translate(-4px,1px);}
+		80%{transform:var(--stage-fit-transform, translate(-50%, -50%) scale(1)) translate(3px,-1px);} }
 	.fatal-error { position:absolute; inset:0; z-index:95; display:none; place-items:center; padding:34px;
 		background:rgba(0,0,0,0.88); pointer-events:auto; }
 	.fatal-error.show { display:grid; }
@@ -213,6 +250,11 @@ const extraCss = `
 	.stage.fatal .hud,
 	.stage.fatal .controls { pointer-events:none; filter:grayscale(0.35) brightness(0.55); }
 	.bet-controls.low .bet-display strong { color:#ff8d8d; }
+	.meter-currency-symbol { position:relative; z-index:1; min-width:34px; height:32px; display:grid; place-items:center;
+		color:#ffd96f; font-size:18px; font-weight:1000; line-height:1; text-shadow:0 2px 3px #000, 0 0 7px rgba(255,213,88,0.42); }
+	.meter[data-meter="balance"] .meter-value,
+	.meter[data-meter="bet"] .meter-value,
+	.meter[data-meter="win"] .meter-value { font-size:16px; }
 
 	/* ---- modals (menu / settings / info / bonus buy) ---- */
 	.modal-backdrop { position:absolute; inset:0; z-index:60; display:none;
@@ -511,6 +553,36 @@ const extraCss = `
 	.bb-confirm .c-yes { color:#241803; border:0; background:linear-gradient(180deg,#ffe9a3,#e7b84e); box-shadow:0 3px 0 #9a6f1e; }
 	.bb-confirm .c-no { color:#ffe9b8; border:1px solid rgba(213,162,59,0.5); background:rgba(8,8,12,0.85); }
 	.bb-confirm .c-yes:active { transform:translateY(2px); box-shadow:0 1px 0 #9a6f1e; }
+	.auto-options { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px 0; }
+	.auto-option { min-height:46px; padding:10px; border-radius:11px; border:1px solid rgba(213,162,59,0.46);
+		background:linear-gradient(180deg, rgba(26,21,9,0.7), rgba(8,8,12,0.9)); color:#ffe9b8;
+		font-size:15px; font-weight:900; cursor:pointer; }
+	.auto-option.selected { border-color:#ffe49a; color:#241803; background:linear-gradient(180deg,#ffe9a3,#e7b84e); }
+	.auto-confirm { display:none; margin-top:13px; padding:14px; border-radius:12px; border:1px solid rgba(213,162,59,0.5);
+		background:rgba(8,8,12,0.72); text-align:center; }
+	.auto-confirm.show { display:block; }
+	.auto-confirm p { margin:0 0 12px; color:#f1e4c6; font-size:14px; line-height:1.45; }
+	.auto-confirm-row { display:flex; gap:10px; }
+	.auto-confirm-row button { flex:1; padding:11px; border-radius:10px; font-size:15px; font-weight:900; cursor:pointer; }
+	.auto-confirm-row .confirm { color:#241803; border:0; background:linear-gradient(180deg,#ffe9a3,#e7b84e); box-shadow:0 3px 0 #9a6f1e; }
+	.auto-confirm-row .cancel { color:#ffe9b8; border:1px solid rgba(213,162,59,0.5); background:rgba(8,8,12,0.85); }
+	.notice-copy { color:#f1e4c6; font-size:15px; line-height:1.5; text-align:center; }
+	.notice-copy strong { color:#ffe49a; }
+	.interrupted-copy { max-width:500px; color:#f1e4c6; font-size:16px; line-height:1.5; text-align:center; }
+	.interrupted-actions { display:flex; justify-content:center; margin-top:18px; }
+	.interrupted-actions button { min-width:150px; padding:12px 18px; border-radius:10px; color:#241803;
+		border:0; background:linear-gradient(180deg,#ffe9a3,#e7b84e); box-shadow:0 3px 0 #9a6f1e;
+		font-size:16px; font-weight:1000; cursor:pointer; }
+	.controls-guide { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+	.control-rule { display:flex; align-items:center; gap:12px; min-width:0; padding:10px; border-radius:11px;
+		border:1px solid rgba(213,162,59,0.28); background:linear-gradient(180deg, rgba(26,21,9,0.48), rgba(8,8,12,0.78)); }
+	.control-rule img { width:42px; height:42px; object-fit:contain; flex:0 0 auto; filter:drop-shadow(0 2px 3px #000); }
+	.control-rule div { min-width:0; color:#d8cba6; font-size:12px; line-height:1.45; }
+	.control-rule b { display:block; color:#ffe49a; font-size:13px; margin-bottom:2px; }
+	@media (max-width: 620px) {
+		.auto-options, .controls-guide { grid-template-columns:1fr; }
+		.modal { width:min(560px,94%); max-height:92%; }
+	}
 `;
 
 const html = `<!doctype html>
@@ -524,11 +596,9 @@ const html = `<!doctype html>
 <title>Golden Goal Rush</title>
 <style>
 	* { box-sizing: border-box; }
-	html, body { margin: 0; height: 100%; overflow: hidden; background: #05080f; }
-	/* Centre explicitly with translate(-50%,-50%) rather than grid place-items,
-	   which keeps centring identical across browsers (Firefox included) when the
-	   stage is scaled up past the viewport size. */
-	.viewport { position: absolute; top: 50%; left: 50%; width: 1200px; height: 675px; transform-origin: center center; }
+	html, body { margin: 0; width: 100%; height: 100%; min-height: 100vh; min-height: 100dvh; overflow: hidden; background: #020406; }
+	.viewport { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; background: #020406; }
+	.stage { position: absolute; top: 50%; left: 50%; transform-origin: center center; }
 	.locked { opacity: 0.4; pointer-events: none; filter: grayscale(0.4); }
 ${style}
 ${extraCss}
@@ -679,8 +749,45 @@ ${featureItems}
 						${Object.entries(CONFIG.tiers).map(([t, v]) => 'Tier ' + t + ' &mdash; ' + v.name + ': ' + v.spins + ' spins' + (v.guaranteedRainbow ? ', guaranteed Arc each spin' : '') + '.').join('<br>')}</div></div>
 					<div class="pt-feat"><img src="${assets.bonusButton}" alt="Bonus Buy" /><div><b>BONUS BUY</b>
 						${CONFIG.bonusBuy.map((o) => o.label + ' &mdash; ' + o.mult + '&times; bet').join('<br>')}<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
+					<div class="pt-head">Buttons &amp; Controls</div>
+					<div class="controls-guide">
+${controlRuleRows}
+					</div>
 					<div class="pt-note">If the game is reloaded while a base-game round is still active, the round is immediately settled with Stake Engine and the result is available in game history. Active Bonus Buy bonus rounds resume from the saved round state with the purchased balance and bet preserved.</div>
 					<div class="pt-note">RTP 96.45% &middot; Max win ${CONFIG.maxWinMultiplier.toLocaleString()}&times; bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- ===== Auto-Bet modal ===== -->
+		<div class="modal-backdrop" id="modal-autospin" data-modal>
+			<div class="modal">
+				<div class="modal-header"><div class="modal-title">AUTO-BET</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-body">
+					<div class="auto-options" id="auto-options"></div>
+					<div class="auto-confirm" id="auto-confirm" aria-live="polite"></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- ===== Notification modal ===== -->
+		<div class="modal-backdrop" id="modal-notification" data-modal>
+			<div class="modal">
+				<div class="modal-header"><div class="modal-title" id="notice-title">NOTICE</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-body">
+					<p class="notice-copy" id="notice-body"></p>
+					<div class="c-row"><button class="c-yes" id="notice-ok">OK</button></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- ===== Interrupted round resume modal ===== -->
+		<div class="modal-backdrop" id="modal-interrupted-round" data-modal data-persistent="true">
+			<div class="modal">
+				<div class="modal-header"><div class="modal-title">ROUND INTERRUPTED</div></div>
+				<div class="modal-body">
+					<p class="interrupted-copy">Your previous round was interrupted. You can continue where you left off.</p>
+					<div class="interrupted-actions"><button class="c-yes" id="interrupted-continue">Continue</button></div>
 				</div>
 			</div>
 		</div>
@@ -706,6 +813,7 @@ const MULT_ASSETS = ${JSON.stringify(MULT_ASSETS)};
 const COLLECTOR_ASSET = ${JSON.stringify(COLLECTOR_ASSET)};
 const AUDIO_ASSETS = ${JSON.stringify(AUDIO_ASSETS)};
 const CONFIG = ${JSON.stringify(CONFIG)};
+const CURRENCY_META = ${JSON.stringify(CURRENCY_META)};
 const COLS = 6, ROWS = 5, MIN_CLUSTER = 5;
 let BETS = [
 	0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
@@ -716,11 +824,12 @@ let BETS = [
 ];
 const API_AMOUNT_MULTIPLIER = 1000000;
 const DEFAULT_CURRENCY = 'EUR';
+const AUTO_SPIN_OPTIONS = [10, 25, 50, 100, 200, Infinity];
 const USE_RGS_STATE_RENDERER = false;
 const USE_SAFE_RGS_BASE_RENDERER = true;
 
 const state = {
-	balance: 1000, bet: 1, betIdx: 9, currency: DEFAULT_CURRENCY, grid: [], spinning: false, walletBusy: false, turbo: false, auto: false,
+	balance: 1000, bet: 1, betIdx: 9, currency: DEFAULT_CURRENCY, grid: [], spinning: false, walletBusy: false, turbo: false, auto: false, autoRemaining: 0, selectedAutoSpins: null,
 	golden: new Set(), reveals: new Map(), // golden = 'c,r' keys; reveals = 'c,r' -> {kind,value,asset}
 	mode: 'base', tier: 0, fsLeft: 0, fsTotal: 0, win: 0, sound: true, musicVolume: 100, sfxVolume: 100,
 	skipRequested: false, walletBalanceDeferred: false, pendingWalletBalance: null,
@@ -731,6 +840,7 @@ const $ = (id) => document.getElementById(id);
 const board = $('board');
 const stage = $('stage');
 let spinSeq = 0;
+let autoTimer = null;
 const skipWaiters = new Set();
 function requestSkip() {
 	if (!state.spinning) return false;
@@ -762,6 +872,21 @@ function waitBase(ms, raw = false) {
 }
 const wait = (ms) => waitBase(ms, false);
 const fmt = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const normalizeCurrency = (currency) => String(currency || '').trim().toUpperCase();
+function currencyMeta(currency) { return CURRENCY_META[normalizeCurrency(currency)] || null; }
+function formatCurrency(amount, currency = state.currency) {
+	const code = normalizeCurrency(currency);
+	const meta = currencyMeta(code);
+	const value = Number(amount);
+	const safeValue = Number.isFinite(value) ? value : 0;
+	if (!meta) return safeValue.toFixed(2) + ' ' + (code || 'UNKNOWN');
+	const formattedAmount = safeValue.toFixed(meta.decimals);
+	return meta.symbolAfter ? formattedAmount + ' ' + meta.symbol : meta.symbol + formattedAmount;
+}
+function currencySymbol(currency = state.currency) {
+	const code = normalizeCurrency(currency);
+	return (currencyMeta(code) && currencyMeta(code).symbol) || code || '';
+}
 const ck = (c, r) => c + ',' + r;
 const apiAmountToMoney = (amount) => Math.round(((Number(amount) || 0) / API_AMOUNT_MULTIPLIER) * 100) / 100;
 function debugJson(label, value) {
@@ -806,12 +931,14 @@ const UrlState = (() => {
 		},
 		currency: () => (get('currency') || DEFAULT_CURRENCY).toUpperCase(),
 		device: () => get('device', 'deviceType').toLowerCase(),
+		social: () => ['social', 'socialCasino', 'social_casino', 'stakeUS'].some((key) => /^(1|true|yes)$/i.test(get(key))),
 		replay: () => get('replay') === 'true',
 		debug: () => get('debug', 'rgs_debug') === 'true',
 		hasLaunchParam,
 		requiresRgs: () => hostRequiresRgs() || hasAnyRgsParam(),
 	};
 })();
+state.currency = UrlState.currency();
 
 const initialLaunchUrl = window.location.href;
 function fatalError(title, detail = '') {
@@ -820,7 +947,7 @@ function fatalError(title, detail = '') {
 	state.spinning = false;
 	state.walletBusy = false;
 	clearSkip();
-	closeModals();
+	closeModals(true);
 	updateLocks();
 	stage.classList.add('fatal');
 	$('btn-spin')?.classList.remove('busy', 'skip-armed');
@@ -880,6 +1007,45 @@ window.addEventListener('hashchange', checkLaunchUrlIntegrity);
 		return result;
 	};
 });
+
+function isStakeUsBalanceLabel(currency = state.currency) {
+	const code = normalizeCurrency(currency);
+	return UrlState.social() || code === 'XGC' || code === 'XSC';
+}
+function insufficientFundsTitle(currency = state.currency) {
+	return isStakeUsBalanceLabel(currency) ? 'Insufficient Balance' : 'Insufficient Funds';
+}
+function showNotice(title, body) {
+	const titleEl = $('notice-title');
+	const bodyEl = $('notice-body');
+	if (titleEl) titleEl.textContent = title;
+	if (bodyEl) bodyEl.innerHTML = body;
+	const ok = $('notice-ok');
+	if (ok) ok.onclick = closeModals;
+	openModal('modal-notification');
+}
+function showInsufficientFunds(requiredAmount = state.bet) {
+	const title = insufficientFundsTitle();
+	const needed = Math.max(0, roundMoney(requiredAmount - state.balance));
+	const detail = needed > 0
+		? 'Your balance is too low for this action. Required: <strong>' + formatCurrency(requiredAmount) + '</strong>. Available: <strong>' + formatCurrency(state.balance) + '</strong>.'
+		: 'Your balance is too low for this action.';
+	stage.classList.add('shake');
+	setTimeout(() => stage.classList.remove('shake'), 420);
+	showNotice(title, detail);
+}
+function showInterruptedRoundMessage() {
+	return new Promise((resolve) => {
+		const btn = $('interrupted-continue');
+		if (!btn) { resolve(); return; }
+		btn.onclick = () => {
+			btn.onclick = null;
+			closeModals(true);
+			resolve();
+		};
+		openModal('modal-interrupted-round');
+	});
+}
 
 // Stake RGS wallet bridge. This mirrors packages/rgs-requests in standalone form.
 const Rgs = (() => {
@@ -1310,6 +1476,8 @@ async function resumeLaunchRound() {
 	const spinId = ++spinSeq;
 	const events = normalizeRgsEvents(round.state);
 	const startIndex = rgsResumeIndex(round);
+	await showInterruptedRoundMessage();
+	if (state.fatal) { setWalletBusy(false); return; }
 	setWalletBusy(true);
 	state.spinning = true;
 	$('btn-spin').classList.add('busy');
@@ -2022,7 +2190,7 @@ function showClusterFloat(amount, cells) {
 	const pos = clusterCenter(cells); if (!layer || !pos) return;
 	const el = document.createElement('div');
 	el.className = 'cluster-float';
-	el.textContent = '+' + fmt(amount);
+	el.textContent = '+' + formatCurrency(amount);
 	el.style.left = pos.x + 'px';
 	el.style.top = pos.y + 'px';
 	layer.appendChild(el);
@@ -2415,9 +2583,13 @@ function scheduleScatterSounds(drops) {
 }
 
 function updateMeters() {
-	$('meter-balance').textContent = fmt(state.balance);
-	$('meter-bet').textContent = fmt(state.bet);
-	$('bet-display').textContent = fmt(state.bet);
+	const balanceCurrency = $('meter-balance-currency');
+	const betCurrency = $('meter-bet-currency');
+	if (balanceCurrency) balanceCurrency.textContent = currencySymbol();
+	if (betCurrency) betCurrency.textContent = currencySymbol();
+	$('meter-balance').textContent = formatCurrency(state.balance);
+	$('meter-bet').textContent = formatCurrency(state.bet);
+	$('bet-display').textContent = formatCurrency(state.bet);
 	$('bet-controls').classList.toggle('low', state.betIdx === 0);
 }
 
@@ -2511,24 +2683,24 @@ function payFor(key, count) {
 
 function meterWinValue() {
 	const text = $('meter-win').textContent || '0';
-	const n = Number(text.replace(/,/g, ''));
+	const n = Number(text.replace(/[^0-9.-]/g, ''));
 	return Number.isFinite(n) ? n : 0;
 }
 async function countUp(amount, from = meterWinValue()) {
 	const el = $('meter-win');
 	const steps = countUpSteps(); let i = 0;
 	const target = Math.min(amount, capWin());
-	if (state.skipRequested || Math.abs(target - from) < 0.000001) { el.textContent = fmt(target); return; }
+	if (state.skipRequested || Math.abs(target - from) < 0.000001) { el.textContent = formatCurrency(target); return; }
 	return new Promise((resolve) => {
 		const t = setInterval(() => {
 			if (state.skipRequested) {
 				clearInterval(t);
-				el.textContent = fmt(target);
+				el.textContent = formatCurrency(target);
 				resolve();
 				return;
 			}
-			i += 1; el.textContent = fmt(from + ((target - from) * i) / steps); Sound.tick(i, steps);
-			if (i >= steps) { clearInterval(t); el.textContent = fmt(target); resolve(); }
+			i += 1; el.textContent = formatCurrency(from + ((target - from) * i) / steps); Sound.tick(i, steps);
+			if (i >= steps) { clearInterval(t); el.textContent = formatCurrency(target); resolve(); }
 		}, COUNT_UP_INTERVAL_MS);
 	});
 }
@@ -2553,14 +2725,14 @@ async function showBanner(amount) {
 	const b = $('win-banner'); b.classList.add('show', lv.tier);
 	if (x >= 25) { const n = x >= 100 ? 3 : x >= 50 ? 2 : 1; for (let s = 0; s < n; s += 1) { stage.classList.add('shake'); await wait(120); stage.classList.remove('shake'); await wait(60); } }
 	const amt = $('win-banner-amount'); const steps = x >= 50 ? 34 : 24;
-	for (let i = 1; i <= steps; i += 1) { amt.textContent = fmt((amount * i) / steps); await wait(x >= 100 ? 38 : 28); }
+	for (let i = 1; i <= steps; i += 1) { amt.textContent = formatCurrency((amount * i) / steps); await wait(x >= 100 ? 38 : 28); }
 	await wait(lv.hold); b.classList.remove('show', lv.tier);
 }
 
 const capWin = () => CONFIG.maxWinMultiplier * state.bet;
 const setWin = (abs, render = true) => {
 	state.win = Math.min(abs, capWin());
-	if (render) $('meter-win').textContent = fmt(state.win);
+	if (render) $('meter-win').textContent = formatCurrency(state.win);
 };
 function roundMoney(n) { return Math.round((Number(n) || 0) * 100) / 100; }
 function debugWinStep(spinDebug, cascade, wins, stepWin, targetWin) {
@@ -2817,8 +2989,88 @@ async function dropInBoard(anticipate) {
 }
 
 // ---- spin orchestration ----
+function autoSpinLabel(count) {
+	return count === Infinity ? '\u221e' : String(count);
+}
+function autoSpinCountFromDataset(value) {
+	return value === 'inf' ? Infinity : Math.max(0, Number(value) || 0);
+}
+function buildAutoSpinModal() {
+	state.selectedAutoSpins = null;
+	const options = $('auto-options');
+	const confirm = $('auto-confirm');
+	if (!options || !confirm) return;
+	confirm.classList.remove('show');
+	confirm.innerHTML = '';
+	options.innerHTML = AUTO_SPIN_OPTIONS.map((count) => {
+		const value = count === Infinity ? 'inf' : String(count);
+		return '<button type="button" class="auto-option" data-auto-count="' + value + '">' + autoSpinLabel(count) + '</button>';
+	}).join('');
+	options.querySelectorAll('[data-auto-count]').forEach((button) => {
+		button.addEventListener('click', () => {
+			state.selectedAutoSpins = autoSpinCountFromDataset(button.dataset.autoCount);
+			options.querySelectorAll('.auto-option').forEach((el) => el.classList.toggle('selected', el === button));
+			const label = autoSpinLabel(state.selectedAutoSpins);
+			confirm.innerHTML = '<p>Start Auto-Bet for <strong>' + label + '</strong> ' + (state.selectedAutoSpins === Infinity ? 'spins' : 'spins') + '?</p>'
+				+ '<div class="auto-confirm-row"><button type="button" class="cancel" id="auto-cancel">Cancel</button><button type="button" class="confirm" id="auto-confirm-start">Confirm</button></div>';
+			confirm.classList.add('show');
+			$('auto-cancel').onclick = closeModals;
+			$('auto-confirm-start').onclick = () => confirmAutoSpin(state.selectedAutoSpins);
+		});
+	});
+}
+function confirmAutoSpin(count) {
+	if (state.fatal || state.spinning || state.walletBusy || state.mode !== 'base' || Rgs.busy()) return;
+	if (state.balance < state.bet) {
+		closeModals();
+		showInsufficientFunds(state.bet);
+		return;
+	}
+	closeModals();
+	startAutoSpin(count);
+}
+function startAutoSpin(count) {
+	if (state.fatal || state.mode !== 'base') return;
+	state.auto = true;
+	state.autoRemaining = count === Infinity ? Infinity : Math.max(0, Number(count) || 0);
+	const btn = $('btn-auto');
+	if (btn) btn.classList.add('armed');
+	scheduleAutoSpin(0);
+}
+function scheduleAutoSpin(delay = 0) {
+	if (autoTimer) {
+		clearTimeout(autoTimer);
+		autoTimer = null;
+	}
+	if (!state.auto || state.fatal) return;
+	autoTimer = setTimeout(() => {
+		autoTimer = null;
+		launchAutoSpin();
+	}, Math.max(0, delay));
+}
+function launchAutoSpin() {
+	if (!state.auto || state.fatal) return;
+	if (state.mode !== 'base') { stopAutoSpin(); return; }
+	if (state.spinning || state.walletBusy || Rgs.busy()) { scheduleAutoSpin(120); return; }
+	if (state.balance < state.bet) {
+		stopAutoSpin();
+		showInsufficientFunds(state.bet);
+		return;
+	}
+	if (Number.isFinite(state.autoRemaining)) {
+		if (state.autoRemaining <= 0) { stopAutoSpin(); return; }
+		state.autoRemaining -= 1;
+	}
+	spin();
+}
 function stopAutoSpin() {
 	state.auto = false;
+	state.autoRemaining = 0;
+	state.selectedAutoSpins = null;
+	if (autoTimer) {
+		clearTimeout(autoTimer);
+		autoTimer = null;
+	}
 	const btn = $('btn-auto');
 	if (btn) btn.classList.remove('armed');
 }
@@ -2840,7 +3092,9 @@ async function spin(buy, internalFreeSpin = false) {
 	}
 	const cost = state.mode === 'free' ? 0 : Math.round(state.bet * (buy ? buy.mult : 1) * 100) / 100;
 	if (state.mode !== 'free' && state.balance < cost) {
-		stage.classList.add('shake'); setTimeout(() => stage.classList.remove('shake'), 420); return;
+		showInsufficientFunds(cost);
+		stopAutoSpin();
+		return;
 	}
 	const paidRound = state.mode !== 'free';
 	const balanceBefore = state.balance;
@@ -2919,7 +3173,7 @@ async function spin(buy, internalFreeSpin = false) {
 				rgsVisualSync: true,
 			});
 			$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
-			if (state.mode === 'base' && state.auto) setTimeout(() => { if (!state.walletBusy && !Rgs.busy()) spin(); }, state.turbo ? 250 : 600);
+			if (state.mode === 'base' && state.auto) scheduleAutoSpin(state.turbo ? 250 : 600);
 			return;
 		}
 		if (Rgs.configured() && rgsPlay) {
@@ -3000,7 +3254,7 @@ async function spin(buy, internalFreeSpin = false) {
 	if (state.mode === 'free') {
 		state.fsWin = (state.fsWin || 0) + state.win;
 		state.fsBest = Math.max(state.fsBest || 0, state.win); // track best single spin for the summary
-		$('meter-win').textContent = fmt(state.fsWin); // WIN shows the running bonus total
+		$('meter-win').textContent = formatCurrency(state.fsWin); // WIN shows the running bonus total
 	} else {
 		if (rgsVisualSync && walletBalanceAfterPlay && !rgsRoundActive) state.balance = walletBalanceAfterPlay.amount;
 		else if (!rgsVisualSync || !rgsRoundActive) state.balance = roundMoney(state.balance + state.win);
@@ -3075,7 +3329,7 @@ async function spin(buy, internalFreeSpin = false) {
 		rgsVisualSync,
 	});
 	$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
-	if (state.mode === 'base' && state.auto && !triggered) setTimeout(() => { if (!state.walletBusy && !Rgs.busy()) spin(); }, state.turbo ? 250 : 600);
+	if (state.mode === 'base' && state.auto && !triggered) scheduleAutoSpin(state.turbo ? 250 : 600);
 }
 
 // ---- free spins (3 tiers) ----
@@ -3115,14 +3369,14 @@ async function retrigger(sc) {
 function bonusSummary(total, spins, best) {
 	return new Promise((resolve) => {
 		const el = $('bonus-summary'); const btn = $('bs-continue');
-		$('bs-total').textContent = '0.00'; $('bs-spins').textContent = spins; $('bs-best').textContent = fmt(best);
+		$('bs-total').textContent = formatCurrency(0); $('bs-spins').textContent = spins; $('bs-best').textContent = formatCurrency(best);
 		el.classList.add('show');
 		const lv = winLevel(total / state.bet);
 		Sound.win(lv ? lv.tier : 'big'); coinShower(lv && lv.coins ? lv.coins : 22);
 		const steps = 30; let i = 0;
-		const cnt = setInterval(() => { i += 1; $('bs-total').textContent = fmt(total * i / steps); Sound.tick(i, steps); if (i >= steps) { clearInterval(cnt); $('bs-total').textContent = fmt(total); } }, 40);
+		const cnt = setInterval(() => { i += 1; $('bs-total').textContent = formatCurrency(total * i / steps); Sound.tick(i, steps); if (i >= steps) { clearInterval(cnt); $('bs-total').textContent = formatCurrency(total); } }, 40);
 		let closed = false;
-		const close = () => { if (closed) return; closed = true; clearInterval(cnt); $('bs-total').textContent = fmt(total); el.classList.remove('show'); btn.onclick = null; resolve(); };
+		const close = () => { if (closed) return; closed = true; clearInterval(cnt); $('bs-total').textContent = formatCurrency(total); el.classList.remove('show'); btn.onclick = null; resolve(); };
 		btn.onclick = close;
 		setTimeout(close, state.turbo ? 2600 : 8000); // fallback so auto-play / tests never hang
 	});
@@ -3163,8 +3417,10 @@ $('btn-bet-plus').addEventListener('click', () => changeBet(1));
 $('btn-turbo').addEventListener('click', () => setTurbo(!state.turbo));
 $('btn-auto').addEventListener('click', () => {
 	if (state.fatal) return;
-	state.auto = !state.auto; $('btn-auto').classList.toggle('armed', state.auto);
-	if (state.auto && !state.spinning && !state.walletBusy && !Rgs.busy()) spin();
+	if (state.auto) { stopAutoSpin(); return; }
+	if (state.spinning || state.walletBusy || state.mode !== 'base' || Rgs.busy()) return;
+	buildAutoSpinModal();
+	openModal('modal-autospin');
 });
 // ---- bonus buy ----
 const BB_META = {
@@ -3180,16 +3436,16 @@ function buildBonusBuy() {
 		const price = Math.round(o.mult * state.bet * 100) / 100;
 		const afford = state.balance >= price; if (!afford) anyDisabled = true;
 		const m = BB_META[o.id] || { asset: SYMBOLS.football.src, accent: '#d5a23b', tag: 'Bonus' };
-		return '<button class="bb-opt' + (afford ? '' : ' disabled') + '" data-buy="' + o.id + '" style="--bb-accent:' + m.accent + '"' + (afford ? '' : ' disabled') + '>' +
+		return '<button class="bb-opt' + (afford ? '' : ' disabled') + '" data-buy="' + o.id + '" style="--bb-accent:' + m.accent + '" aria-disabled="' + (afford ? 'false' : 'true') + '">' +
 			'<span class="bb-ico"><img src="' + m.asset + '" alt="" /></span>' +
 			'<div class="bb-text"><div class="bb-name">' + o.label + '</div><div class="bb-desc">' + o.desc + '</div><div class="bb-tag">' + m.tag + '</div></div>' +
-			'<div class="bb-price">' + fmt(price) + '</div></button>';
+			'<div class="bb-price">' + formatCurrency(price) + '</div></button>';
 	}).join('');
 	$('bonusbuy-note').textContent = anyDisabled ? 'Greyed options exceed your balance. Tier 3 can only trigger naturally.' : 'Prices scale with your current bet. Tier 3 can only trigger naturally.';
 	wrap.querySelectorAll('[data-buy]').forEach((btn) => btn.addEventListener('click', () => {
 		const o = CONFIG.bonusBuy.find((x) => x.id === btn.dataset.buy);
 		const price = Math.round(o.mult * state.bet * 100) / 100;
-		if (state.balance < price) return;
+		if (state.balance < price) { showInsufficientFunds(price); return; }
 		showBuyConfirm(o, price);
 	}));
 }
@@ -3201,15 +3457,15 @@ function showBuyConfirm(o, price) {
 		: o.id === 'rainbow' ? 'one spin with a guaranteed Golden Arc'
 		: 'one spin with boosted feature chance';
 	$('bonusbuy-list').innerHTML = '<div class="bb-confirm">'
-		+ '<div class="c-q">Buy <b>' + o.label + '</b><br>(' + what + ')<br>for <b>&#9917; ' + fmt(price) + '</b>?</div>'
+		+ '<div class="c-q">Buy <b>' + o.label + '</b><br>(' + what + ')<br>for <b>' + formatCurrency(price) + '</b>?</div>'
 		+ '<div class="c-row"><button class="c-no" id="bb-cancel">Cancel</button><button class="c-yes" id="bb-confirm">Confirm</button></div></div>';
-	$('bonusbuy-note').textContent = 'Balance after purchase: ' + fmt(Math.max(0, Math.round((state.balance - price) * 100) / 100));
+	$('bonusbuy-note').textContent = 'Balance after purchase: ' + formatCurrency(Math.max(0, Math.round((state.balance - price) * 100) / 100));
 	$('bb-cancel').onclick = () => buildBonusBuy();
 	$('bb-confirm').onclick = async () => {
 		const confirmBtn = $('bb-confirm');
 		if (confirmBtn && confirmBtn.disabled) return;
 		if (confirmBtn) confirmBtn.disabled = true;
-		if (state.balance < price) { buildBonusBuy(); return; }
+		if (state.balance < price) { showInsufficientFunds(price); buildBonusBuy(); return; }
 		closeModals();
 		if (o.id === 'tier1' || o.id === 'tier2') {
 			const purchaseSpinId = ++spinSeq;
@@ -3298,13 +3554,21 @@ $('btn-bonus').addEventListener('click', () => { if (!state.fatal && !state.spin
 window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); spin(); } });
 
 // ---- modals: open / close ----
-function openModal(id) { document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')); const el = document.getElementById(id); if (el) el.classList.add('open'); }
-function closeModals() { document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')); }
+function openModal(id) {
+	document.querySelectorAll('[data-modal]').forEach((m) => { if (!m.dataset.persistent || m.id === id) m.classList.remove('open'); });
+	const el = document.getElementById(id);
+	if (el) el.classList.add('open');
+}
+function closeModals(force = false) {
+	document.querySelectorAll('[data-modal]').forEach((m) => {
+		if (force || !m.dataset.persistent) m.classList.remove('open');
+	});
+}
 $('btn-menu').addEventListener('click', () => openModal('modal-menu'));
 $('btn-settings').addEventListener('click', () => openModal('modal-settings'));
 $('btn-info').addEventListener('click', () => openModal('modal-rules'));
-document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', closeModals));
-document.querySelectorAll('[data-modal]').forEach((m) => m.addEventListener('click', (e) => { if (e.target === m) closeModals(); }));
+document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => closeModals()));
+document.querySelectorAll('[data-modal]').forEach((m) => m.addEventListener('click', (e) => { if (e.target === m && !m.dataset.persistent) closeModals(); }));
 document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => openModal(b.dataset.open)));
 window.addEventListener('keydown', (e) => { if (e.code === 'Escape') closeModals(); });
 function primeSound() { Sound.prime(); }
@@ -3378,14 +3642,22 @@ resumeLaunchRound();
 // Scale the 1200x675 stage to fit any window so nothing (incl. the side
 // panels) is ever cut off — including fullscreen and mobile.
 function fitViewport() {
-	// clientWidth/Height exclude scrollbars and track fullscreen reliably;
-	// fall back to innerWidth/Height. Take min so the whole stage always fits.
 	const vw = document.documentElement.clientWidth || window.innerWidth;
 	const vh = document.documentElement.clientHeight || window.innerHeight;
-	const s = Math.min(vw / 1200, vh / 675);
+	const baseW = 1200;
+	const baseH = 675;
+	const aspect = baseW / baseH;
+	const viewAspect = vw / Math.max(1, vh);
+	const s = viewAspect < aspect ? vw / baseW : vh / baseH;
+	const stageW = viewAspect > aspect ? Math.max(baseW, vw / s) : baseW;
+	const stageH = viewAspect < aspect ? Math.max(baseH, vh / s) : baseH;
 	state.scale = s;
-	const vp = document.querySelector('.viewport');
-	if (vp) vp.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+	const stageEl = $('stage');
+	if (stageEl) {
+		stageEl.style.width = stageW + 'px';
+		stageEl.style.height = stageH + 'px';
+		stageEl.style.setProperty('--stage-fit-transform', 'translate(-50%, -50%) scale(' + s + ')');
+	}
 }
 let fitQueued = false;
 function queueFit() { if (fitQueued) return; fitQueued = true; requestAnimationFrame(() => { fitQueued = false; fitViewport(); }); }
