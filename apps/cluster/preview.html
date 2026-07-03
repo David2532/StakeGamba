@@ -9,8 +9,8 @@
 <title>Golden Goal Rush</title>
 <style>
 	* { box-sizing: border-box; }
-	html, body { margin: 0; width: 100%; height: 100%; min-height: 100vh; min-height: 100dvh; overflow: hidden; background: #020406; }
-	.viewport { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; background: #020406; }
+	html, body { margin: 0; width: 100%; height: 100%; min-height: 100vh; min-height: 100svh; min-height: 100dvh; overflow: hidden; background: #020406; }
+	.viewport { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100svh; height: 100dvh; overflow: hidden; background: #020406; }
 	.stage { position: absolute; top: 50%; left: 50%; transform-origin: center center; }
 	.locked { opacity: 0.4; pointer-events: none; filter: grayscale(0.4); }
 
@@ -1197,8 +1197,12 @@
 		transform-origin:center center;
 		transform:var(--stage-fit-transform, translate(-50%, -50%) scale(1));
 	}
+	/* --stage-x-shift / --stage-y-shift (set by fitViewport) keep the play area
+	   centered inside the extended fullscreen stage on mobile: portrait extends
+	   the stage vertically, landscape horizontally — without the shift the
+	   board/HUD would stick to the top/left edge and leave a dead gap. */
 	.logo-wordmark {
-		top: -4px;
+		top: calc(-4px + var(--stage-y-shift, 0px));
 		width: 460px;
 		height: 137px;
 		background: none;
@@ -1215,6 +1219,12 @@
 		object-fit: contain;
 		filter: drop-shadow(0 5px 8px rgba(0,0,0,0.9)) drop-shadow(0 0 15px rgba(255,190,38,0.5));
 	}
+	.board-wrap { top: calc(105px + var(--stage-y-shift, 0px)); left: calc(171px + var(--stage-x-shift, 0px)); }
+	.meters { top: calc(528px + var(--stage-y-shift, 0px)); left: calc(174px + var(--stage-x-shift, 0px)); }
+	.controls { left: calc(23px + var(--stage-x-shift, 0px)); }
+	.win-banner { top: calc(250px + var(--stage-y-shift, 0px)); }
+	.fs-counter { top: calc(118px + var(--stage-y-shift, 0px)); }
+	.rt-toast { top: calc(200px + var(--stage-y-shift, 0px)); }
 	.asset-button.turbo { margin-right: 20px; }
 	.bet-controls { margin-right: 22px; }
 	.icon-button.info { margin-right: 10px; }
@@ -1308,7 +1318,10 @@
 		align-items:center; justify-content:center; background:rgba(2,3,6,0.8);
 		-webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
 	.modal-backdrop.open { display:flex; }
-	.modal { position:relative; width:min(640px,92%); max-height:88%; display:flex; flex-direction:column;
+	/* width/max-height use vw/vh and the counter-scale below so dialogs render
+	   at native, readable pixel size on phones even though the stage that
+	   contains them can be scaled down to ~0.33 (net scale on screen is 1). */
+	.modal { position:relative; width:min(640px,92vw); max-height:min(88%,86vh); transform:scale(var(--stage-inv-scale, 1)); display:flex; flex-direction:column;
 		background:
 			radial-gradient(125% 70% at 50% -12%, rgba(213,162,59,0.2), transparent 62%),
 			linear-gradient(180deg,#17140c 0%,#0b0a07 55%,#050505 100%);
@@ -1318,7 +1331,7 @@
 		color:#f1e4c6; font-family:Inter,Arial,sans-serif; animation:modal-in .24s cubic-bezier(.2,.9,.3,1.3) both; }
 	.modal::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; z-index:2;
 		background:linear-gradient(90deg, transparent, #ffe49a 18%, #d5a23b 50%, #ffe49a 82%, transparent); }
-	@keyframes modal-in { from { opacity:0; transform:translateY(16px) scale(0.96); } }
+	@keyframes modal-in { from { opacity:0; transform:translateY(16px) scale(calc(var(--stage-inv-scale, 1) * 0.96)); } }
 	.modal-header { position:relative; display:flex; align-items:center; justify-content:space-between;
 		padding:16px 20px 14px; border-bottom:1px solid rgba(213,162,59,0.4);
 		background:linear-gradient(180deg, rgba(213,162,59,0.22), transparent); }
@@ -1628,8 +1641,79 @@
 	.control-rule b { display:block; color:#ffe49a; font-size:13px; margin-bottom:2px; }
 	@media (max-width: 620px) {
 		.auto-options, .controls-guide { grid-template-columns:1fr; }
-		.modal { width:min(560px,94%); max-height:92%; }
+		/* vw/vh are real screen units: combined with the base .modal counter-scale
+		   (net scale 1) the dialog fills ~94% of the phone screen and stays
+		   readable instead of inheriting the stage's ~0.33 downscale. */
+		.modal { width:min(560px,94vw); max-height:min(92%,86vh); }
 	}
+
+	/* ===== Mobile portrait: playable layout ===================================
+	   fitViewport() detects portrait phones, switches the stage to a
+	   board-first scale (board ≈ 94vw, max 460px) and adds .mobile-portrait.
+	   All sizes below multiply by --stage-inv-scale (1/stage scale), so they
+	   render at FIXED on-screen pixel sizes on every phone width: 44px+ touch
+	   targets, 66px spin, readable HUD — layout/scaling only, no logic. */
+	.stage.mobile-portrait {
+		--mobile-control-size: calc(50px * var(--stage-inv-scale, 1));
+		--mobile-spin-size: calc(66px * var(--stage-inv-scale, 1));
+		--mobile-hud-font-size: calc(13px * var(--stage-inv-scale, 1));
+		--mobile-hud-height: calc(44px * var(--stage-inv-scale, 1));
+		--mobile-gap: calc(7px * var(--stage-inv-scale, 1));
+		--mobile-bottom-safe-padding: calc((8px + env(safe-area-inset-bottom, 0px)) * var(--stage-inv-scale, 1));
+	}
+	/* HUD: readable balance/bet/win directly under the board */
+	.stage.mobile-portrait .meters { gap: calc(6px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .meter { height: var(--mobile-hud-height); gap: calc(4px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .meter > div { min-width: 0; }
+	.stage.mobile-portrait .meter-label { font-size: calc(9px * var(--stage-inv-scale, 1)); letter-spacing: 0.4px; }
+	.stage.mobile-portrait .meter-value { margin-top: calc(2px * var(--stage-inv-scale, 1)); font-size: var(--mobile-hud-font-size); }
+	.stage.mobile-portrait .meter-currency-symbol { min-width: calc(16px * var(--stage-inv-scale, 1)); height: auto; font-size: calc(12px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .meter-asset-icon { width: calc(18px * var(--stage-inv-scale, 1)); height: calc(18px * var(--stage-inv-scale, 1)); }
+	/* Bottom controls: same buttons, full-width wrap into 2 rows, thumb-sized */
+	.stage.mobile-portrait .controls {
+		left: 50%;
+		bottom: var(--mobile-bottom-safe-padding);
+		width: calc(100vw * var(--stage-inv-scale, 1));
+		height: auto;
+		padding: 0 calc(4px * var(--stage-inv-scale, 1));
+		transform: translateX(-50%);
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: center;
+		gap: calc(6px * var(--stage-inv-scale, 1)) var(--mobile-gap);
+	}
+	.stage.mobile-portrait .asset-button,
+	.stage.mobile-portrait .icon-button {
+		width: var(--mobile-control-size);
+		height: calc(48px * var(--stage-inv-scale, 1));
+		margin: 0;
+		grid-template-rows: 1fr;
+	}
+	.stage.mobile-portrait .asset-button.bonus { width: calc(56px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .spin-button {
+		width: var(--mobile-spin-size);
+		height: var(--mobile-spin-size);
+		margin: 0;
+		align-self: center;
+		font-size: calc(13px * var(--stage-inv-scale, 1));
+	}
+	.stage.mobile-portrait .spin-button span { margin-top: calc(19px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .bet-controls {
+		position: relative;
+		width: calc(150px * var(--stage-inv-scale, 1));
+		height: calc(48px * var(--stage-inv-scale, 1));
+		margin: 0;
+		grid-template-columns: calc(46px * var(--stage-inv-scale, 1)) 1fr calc(46px * var(--stage-inv-scale, 1));
+	}
+	/* only the minus/plus glyphs — the panel frame art must keep filling the box */
+	.stage.mobile-portrait .bet-controls button img { width: calc(22px * var(--stage-inv-scale, 1)); height: calc(22px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .bet-controls .button-art { position: absolute; inset: 0; width: 100%; height: 100%; }
+	.stage.mobile-portrait .bet-display span { font-size: calc(8px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .bet-display strong { font-size: calc(12px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .feature-control { width: calc(96px * var(--stage-inv-scale, 1)); height: calc(46px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .feature-items { width: calc(90px * var(--stage-inv-scale, 1)); gap: calc(2px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .feature-item img { width: calc(16px * var(--stage-inv-scale, 1)); height: calc(16px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .feature-item span { font-size: calc(6px * var(--stage-inv-scale, 1)); }
 
 </style>
 </head>
@@ -1854,7 +1938,7 @@
 					</div>
 					</div>
 					<div class="pt-note">If the game is reloaded while a base-game round is still active, the round is immediately settled with Stake Engine and the result is available in game history. Active Bonus Buy bonus rounds resume from the saved round state with the purchased balance and bet preserved.</div>
-					<div class="pt-note">RTP 96.45% &middot; Max win 10.000&times; bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
+					<div class="pt-note">RTP 96.45% &middot; Max win 10,000&times; bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
 				</div>
 			</div>
 		</div>
@@ -1888,6 +1972,17 @@
 				<div class="modal-body">
 					<p class="interrupted-copy">Your previous round was interrupted. You can continue where you left off.</p>
 					<div class="interrupted-actions"><button class="c-yes" id="interrupted-continue">Continue</button></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- ===== Generic major-action confirmation (future features, e.g. Double Chance) ===== -->
+		<div class="modal-backdrop" id="modal-major-confirm" data-modal>
+			<div class="modal">
+				<div class="modal-header"><div class="modal-title" id="major-confirm-title">CONFIRM ACTION</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-body">
+					<p class="notice-copy" id="major-confirm-body"></p>
+					<div class="c-row"><button class="c-no" id="major-confirm-no">Cancel</button><button class="c-yes" id="major-confirm-yes">Confirm</button></div>
 				</div>
 			</div>
 		</div>
@@ -2144,6 +2239,50 @@ function showInterruptedRoundMessage() {
 			resolve();
 		};
 		openModal('modal-interrupted-round');
+	});
+}
+// Generic confirmation gate for major actions. Stake rule: no major action
+// (starting Auto-Bet, buying a bonus, enabling a double-chance style feature)
+// may activate on a single click. Auto-Bet and Bonus Buy have their own
+// specialised confirm dialogs; every FUTURE major action (e.g. Double Chance)
+// must be routed through this gate before it takes effect:
+//
+//   if (!(await confirmMajorAction({ title: 'DOUBLE CHANCE', body: '...' }))) return;
+//
+// Resolves true only on an explicit Confirm click. Cancel, the close button,
+// a backdrop click and Escape all resolve false without side effects.
+function confirmMajorAction({ title = 'CONFIRM ACTION', body = '', confirmLabel = 'Confirm', cancelLabel = 'Cancel' } = {}) {
+	return new Promise((resolve) => {
+		const modal = $('modal-major-confirm');
+		const titleEl = $('major-confirm-title');
+		const bodyEl = $('major-confirm-body');
+		const yes = $('major-confirm-yes');
+		const no = $('major-confirm-no');
+		if (!modal || !titleEl || !bodyEl || !yes || !no) { resolve(false); return; }
+		titleEl.textContent = title;
+		bodyEl.innerHTML = body;
+		yes.textContent = confirmLabel;
+		no.textContent = cancelLabel;
+		let settled = false;
+		let observer = null;
+		const done = (result) => {
+			if (settled) return;
+			settled = true;
+			if (observer) observer.disconnect();
+			yes.onclick = null;
+			no.onclick = null;
+			closeModals();
+			resolve(result);
+		};
+		yes.onclick = () => done(true);
+		no.onclick = () => done(false);
+		// Escape / backdrop / close-x go through closeModals() directly; treat
+		// any non-confirm dismissal as Cancel so the promise can never hang.
+		observer = new MutationObserver(() => {
+			if (!modal.classList.contains('open')) done(false);
+		});
+		observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+		openModal('modal-major-confirm');
 	});
 }
 
@@ -3689,6 +3828,10 @@ function updateMeters() {
 	if (betCurrency) betCurrency.textContent = currencySymbol();
 	$('meter-balance').textContent = formatCurrency(state.balance);
 	$('meter-bet').textContent = formatCurrency(state.bet);
+	// WIN must use the same currency formatting as balance/bet (e.g. "0 CLP",
+	// "0.00 SC"). setWin/countUp own the value mid-round; here we only sync the
+	// idle/current value so the meter is never left as an unformatted number.
+	$('meter-win').textContent = formatCurrency(state.mode === 'free' ? state.fsWin || 0 : state.win);
 	$('bet-display').textContent = formatCurrency(state.bet);
 	$('bet-controls').classList.toggle('low', state.betIdx === 0);
 }
@@ -4748,14 +4891,34 @@ function fitViewport() {
 	const baseH = 675;
 	const aspect = baseW / baseH;
 	const viewAspect = vw / Math.max(1, vh);
-	const s = viewAspect < aspect ? vw / baseW : vh / baseH;
+	// Portrait phones use a board-first fit: the 858px-wide board targets
+	// ~94vw (capped at 460px on-screen) so symbols and controls stay playable,
+	// instead of shrinking the whole 1200px desktop stage to the screen width.
+	// Math.max(..., vw/baseW) guarantees the stage still covers the viewport
+	// horizontally (no side letterboxing on wide portrait screens).
+	const isPortraitMobile = vw <= 700 && vh > vw;
+	const boardBaseW = 858;
+	const s = isPortraitMobile
+		? Math.max(Math.min(vw * 0.94, 460) / boardBaseW, vw / baseW)
+		: (viewAspect < aspect ? vw / baseW : vh / baseH);
 	const stageW = viewAspect > aspect ? Math.max(baseW, vw / s) : baseW;
 	const stageH = viewAspect < aspect ? Math.max(baseH, vh / s) : baseH;
 	state.scale = s;
 	const stageEl = $('stage');
 	if (stageEl) {
+		stageEl.classList.toggle('mobile-portrait', isPortraitMobile);
 		stageEl.style.width = stageW + 'px';
 		stageEl.style.height = stageH + 'px';
+		// Center the play area inside the extended stage: portrait grows the
+		// stage downwards (y-shift re-centers board/HUD vertically), landscape
+		// grows it to the right (x-shift re-centers horizontally). The bottom
+		// control bar stays anchored to the real screen bottom. On portrait
+		// phones the block sits slightly above center (0.38) so the board is
+		// in the upper/middle area instead of behind a large empty sky.
+		const yShiftFactor = isPortraitMobile ? 0.38 : 0.5;
+		stageEl.style.setProperty('--stage-y-shift', Math.max(0, Math.round((stageH - baseH) * yShiftFactor)) + 'px');
+		stageEl.style.setProperty('--stage-x-shift', Math.max(0, Math.round((stageW - baseW) / 2)) + 'px');
+		stageEl.style.setProperty('--stage-inv-scale', String(1 / s));
 		stageEl.style.setProperty('--stage-fit-transform', 'translate(-50%, -50%) scale(' + s + ')');
 	}
 }
@@ -4774,7 +4937,7 @@ setTimeout(fitViewport, 300);
 // Lightweight preview API — lets you trigger a guaranteed win to preview the
 // cluster/cascade/win-banner presentation (open console: __ggr.demoWin()).
 window.__ggr = {
-	state, spin, startFreeSpins, buildBonusBuy, CONFIG,
+	state, spin, startFreeSpins, buildBonusBuy, CONFIG, confirmMajorAction, formatCurrency,
 	setGrid: (g) => { state.grid = g; paint(); },
 	demoWin: async () => {
 		if (state.spinning) return;
@@ -4809,7 +4972,7 @@ window.__ggr = {
 		return { base, featureWin: fw, goldenCount, win: state.win };
 	},
 };
-window.__ggrBuild = '2026-07-03T16:37:41.200Z';
+window.__ggrBuild = '2026-07-03T21:52:02.722Z';
 console.log('Golden Goal Rush build', window.__ggrBuild);
 window.__ggrReady = true;
 </script>
