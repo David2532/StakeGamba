@@ -273,6 +273,11 @@ async function runMobileChecks() {
 	expectContains('mobile', 'portrait play area is re-centered', builder, '--stage-y-shift');
 	expectContains('mobile', 'landscape play area is re-centered', builder, '--stage-x-shift');
 	expectContains('mobile', 'dialogs counter-scale for phone readability', builder, '--stage-inv-scale');
+	expectContains('mobile', 'portrait phones use board-first fit', builder, 'const isPortraitMobile = vw <= 700 && vh > vw;');
+	expectContains('mobile', 'portrait playable layout class exists', builder, '.stage.mobile-portrait');
+	expectContains('mobile', 'portrait touch-target sizing variables exist', builder, '--mobile-control-size');
+	expectContains('mobile', 'portrait spin size variable exists', builder, '--mobile-spin-size');
+	expectContains('mobile', 'bottom controls respect the safe area', builder, 'safe-area-inset-bottom');
 	expectNotContains('mobile', 'old viewport transform scaling removed', builder, "vp.style.transform = 'translate(-50%, -50%) scale(' + s + ')'");
 	if (preview) expectContains('mobile', 'generated preview contains fullscreen CSS', preview, 'height: 100dvh');
 }

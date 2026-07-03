@@ -510,8 +510,10 @@ async function testInterruptedRound(browser, base) {
 async function testMobile(browser, base) {
 	const group = 'mobile-e2e';
 	const viewports = [
-		{ name: 'phone-390x844', width: 390, height: 844 },
-		{ name: 'phone-430x932', width: 430, height: 932 },
+		{ name: 'phone-360x740', width: 360, height: 740, portrait: true },
+		{ name: 'phone-390x844', width: 390, height: 844, portrait: true },
+		{ name: 'phone-430x932', width: 430, height: 932, portrait: true },
+		{ name: 'phone-450x900', width: 450, height: 900, portrait: true },
 		{ name: 'tablet-768x1024', width: 768, height: 1024 },
 		{ name: 'landscape-844x390', width: 844, height: 390 },
 	];
@@ -537,12 +539,19 @@ async function testMobile(browser, base) {
 			const spin = document.getElementById('btn-spin');
 			const spinRect = spin.getBoundingClientRect();
 			const probe = document.elementFromPoint(spinRect.x + spinRect.width / 2, spinRect.y + spinRect.height / 2);
+			const touchTargets = {};
+			for (const id of ['btn-spin', 'btn-menu', 'btn-bonus', 'btn-auto', 'btn-turbo', 'btn-info', 'btn-settings', 'btn-bet-minus', 'btn-bet-plus']) {
+				touchTargets[id] = rect(document.getElementById(id));
+			}
 			return {
 				vw: innerWidth,
 				vh: innerHeight,
+				portraitMode: document.getElementById('stage').classList.contains('mobile-portrait'),
 				stage: rect(document.getElementById('stage')),
 				background: rect(document.querySelector('.stage > img.background')),
 				board: rect(document.getElementById('board')),
+				balanceValue: rect(document.getElementById('meter-balance')),
+				touchTargets,
 				scrollX: document.documentElement.scrollWidth > innerWidth,
 				scrollY: document.documentElement.scrollHeight > innerHeight,
 				spinVisible: visible(spin),
@@ -562,6 +571,21 @@ async function testMobile(browser, base) {
 		expect(group, `${viewport.name} board visible`, layout.boardVisible === true, JSON.stringify(layout.board));
 		expect(group, `${viewport.name} HUD meters visible`, layout.metersVisible === true, '');
 		expect(group, `${viewport.name} spin button visible and clickable`, layout.spinVisible === true && layout.spinHittable === true, `visible=${layout.spinVisible} hittable=${layout.spinHittable}`);
+		if (viewport.portrait) {
+			// Portrait phones must be PLAYABLE, not a shrunken desktop stage:
+			// big board, readable HUD, thumb-sized touch targets, nothing cut off.
+			expect(group, `${viewport.name} portrait board-first mode active`, layout.portraitMode === true, `mobile-portrait=${layout.portraitMode}`);
+			expect(group, `${viewport.name} board takes >=88% of viewport width`, !!layout.board && layout.board.w >= layout.vw * 0.88, `board=${layout.board?.w?.toFixed(1)}px of ${layout.vw}px (${((layout.board?.w || 0) / layout.vw * 100).toFixed(1)}vw)`);
+			expect(group, `${viewport.name} HUD value text readable (>=10px)`, !!layout.balanceValue && layout.balanceValue.h >= 10, `balance text height=${layout.balanceValue?.h?.toFixed(1)}px`);
+			const spinBox = layout.touchTargets['btn-spin'];
+			expect(group, `${viewport.name} spin touch target >=56x56`, !!spinBox && spinBox.w >= 56 && spinBox.h >= 56, `spin=${spinBox?.w?.toFixed(0)}x${spinBox?.h?.toFixed(0)}`);
+			for (const [id, box] of Object.entries(layout.touchTargets)) {
+				if (id === 'btn-spin') continue;
+				const bigEnough = !!box && box.w >= 44 && box.h >= 44;
+				const inViewport = !!box && box.x >= -0.5 && box.y >= -0.5 && box.right <= layout.vw + 0.5 && box.bottom <= layout.vh + 0.5;
+				expect(group, `${viewport.name} ${id} touch target >=44x44 and fully on screen`, bigEnough && inViewport, `${box?.w?.toFixed(0)}x${box?.h?.toFixed(0)} @ (${box?.x?.toFixed(0)},${box?.y?.toFixed(0)})`);
+			}
+		}
 		const shot = await screenshot(page, `mobile-${viewport.name}`);
 		pass(group, `${viewport.name} screenshot saved`, shot);
 		await context.close();

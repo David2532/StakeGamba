@@ -599,6 +599,74 @@ const extraCss = `
 		   readable instead of inheriting the stage's ~0.33 downscale. */
 		.modal { width:min(560px,94vw); max-height:min(92%,86vh); }
 	}
+
+	/* ===== Mobile portrait: playable layout ===================================
+	   fitViewport() detects portrait phones, switches the stage to a
+	   board-first scale (board ≈ 94vw, max 460px) and adds .mobile-portrait.
+	   All sizes below multiply by --stage-inv-scale (1/stage scale), so they
+	   render at FIXED on-screen pixel sizes on every phone width: 44px+ touch
+	   targets, 66px spin, readable HUD — layout/scaling only, no logic. */
+	.stage.mobile-portrait {
+		--mobile-control-size: calc(50px * var(--stage-inv-scale, 1));
+		--mobile-spin-size: calc(66px * var(--stage-inv-scale, 1));
+		--mobile-hud-font-size: calc(13px * var(--stage-inv-scale, 1));
+		--mobile-hud-height: calc(44px * var(--stage-inv-scale, 1));
+		--mobile-gap: calc(7px * var(--stage-inv-scale, 1));
+		--mobile-bottom-safe-padding: calc((8px + env(safe-area-inset-bottom, 0px)) * var(--stage-inv-scale, 1));
+	}
+	/* HUD: readable balance/bet/win directly under the board */
+	.stage.mobile-portrait .meters { gap: calc(6px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .meter { height: var(--mobile-hud-height); gap: calc(4px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .meter > div { min-width: 0; }
+	.stage.mobile-portrait .meter-label { font-size: calc(9px * var(--stage-inv-scale, 1)); letter-spacing: 0.4px; }
+	.stage.mobile-portrait .meter-value { margin-top: calc(2px * var(--stage-inv-scale, 1)); font-size: var(--mobile-hud-font-size); }
+	.stage.mobile-portrait .meter-currency-symbol { min-width: calc(16px * var(--stage-inv-scale, 1)); height: auto; font-size: calc(12px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .meter-asset-icon { width: calc(18px * var(--stage-inv-scale, 1)); height: calc(18px * var(--stage-inv-scale, 1)); }
+	/* Bottom controls: same buttons, full-width wrap into 2 rows, thumb-sized */
+	.stage.mobile-portrait .controls {
+		left: 50%;
+		bottom: var(--mobile-bottom-safe-padding);
+		width: calc(100vw * var(--stage-inv-scale, 1));
+		height: auto;
+		padding: 0 calc(4px * var(--stage-inv-scale, 1));
+		transform: translateX(-50%);
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: center;
+		gap: calc(6px * var(--stage-inv-scale, 1)) var(--mobile-gap);
+	}
+	.stage.mobile-portrait .asset-button,
+	.stage.mobile-portrait .icon-button {
+		width: var(--mobile-control-size);
+		height: calc(48px * var(--stage-inv-scale, 1));
+		margin: 0;
+		grid-template-rows: 1fr;
+	}
+	.stage.mobile-portrait .asset-button.bonus { width: calc(56px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .spin-button {
+		width: var(--mobile-spin-size);
+		height: var(--mobile-spin-size);
+		margin: 0;
+		align-self: center;
+		font-size: calc(13px * var(--stage-inv-scale, 1));
+	}
+	.stage.mobile-portrait .spin-button span { margin-top: calc(19px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .bet-controls {
+		position: relative;
+		width: calc(150px * var(--stage-inv-scale, 1));
+		height: calc(48px * var(--stage-inv-scale, 1));
+		margin: 0;
+		grid-template-columns: calc(46px * var(--stage-inv-scale, 1)) 1fr calc(46px * var(--stage-inv-scale, 1));
+	}
+	/* only the minus/plus glyphs — the panel frame art must keep filling the box */
+	.stage.mobile-portrait .bet-controls button img { width: calc(22px * var(--stage-inv-scale, 1)); height: calc(22px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .bet-controls .button-art { position: absolute; inset: 0; width: 100%; height: 100%; }
+	.stage.mobile-portrait .bet-display span { font-size: calc(8px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .bet-display strong { font-size: calc(12px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .feature-control { width: calc(96px * var(--stage-inv-scale, 1)); height: calc(46px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .feature-items { width: calc(90px * var(--stage-inv-scale, 1)); gap: calc(2px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .feature-item img { width: calc(16px * var(--stage-inv-scale, 1)); height: calc(16px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait .feature-item span { font-size: calc(6px * var(--stage-inv-scale, 1)); }
 `;
 
 const html = `<!doctype html>
@@ -612,8 +680,8 @@ const html = `<!doctype html>
 <title>Golden Goal Rush</title>
 <style>
 	* { box-sizing: border-box; }
-	html, body { margin: 0; width: 100%; height: 100%; min-height: 100vh; min-height: 100dvh; overflow: hidden; background: #020406; }
-	.viewport { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; background: #020406; }
+	html, body { margin: 0; width: 100%; height: 100%; min-height: 100vh; min-height: 100svh; min-height: 100dvh; overflow: hidden; background: #020406; }
+	.viewport { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100svh; height: 100dvh; overflow: hidden; background: #020406; }
 	.stage { position: absolute; top: 50%; left: 50%; transform-origin: center center; }
 	.locked { opacity: 0.4; pointer-events: none; filter: grayscale(0.4); }
 ${style}
@@ -3723,19 +3791,32 @@ function fitViewport() {
 	const baseH = 675;
 	const aspect = baseW / baseH;
 	const viewAspect = vw / Math.max(1, vh);
-	const s = viewAspect < aspect ? vw / baseW : vh / baseH;
+	// Portrait phones use a board-first fit: the 858px-wide board targets
+	// ~94vw (capped at 460px on-screen) so symbols and controls stay playable,
+	// instead of shrinking the whole 1200px desktop stage to the screen width.
+	// Math.max(..., vw/baseW) guarantees the stage still covers the viewport
+	// horizontally (no side letterboxing on wide portrait screens).
+	const isPortraitMobile = vw <= 700 && vh > vw;
+	const boardBaseW = 858;
+	const s = isPortraitMobile
+		? Math.max(Math.min(vw * 0.94, 460) / boardBaseW, vw / baseW)
+		: (viewAspect < aspect ? vw / baseW : vh / baseH);
 	const stageW = viewAspect > aspect ? Math.max(baseW, vw / s) : baseW;
 	const stageH = viewAspect < aspect ? Math.max(baseH, vh / s) : baseH;
 	state.scale = s;
 	const stageEl = $('stage');
 	if (stageEl) {
+		stageEl.classList.toggle('mobile-portrait', isPortraitMobile);
 		stageEl.style.width = stageW + 'px';
 		stageEl.style.height = stageH + 'px';
 		// Center the play area inside the extended stage: portrait grows the
 		// stage downwards (y-shift re-centers board/HUD vertically), landscape
 		// grows it to the right (x-shift re-centers horizontally). The bottom
-		// control bar stays anchored to the real screen bottom.
-		stageEl.style.setProperty('--stage-y-shift', Math.max(0, Math.round((stageH - baseH) / 2)) + 'px');
+		// control bar stays anchored to the real screen bottom. On portrait
+		// phones the block sits slightly above center (0.38) so the board is
+		// in the upper/middle area instead of behind a large empty sky.
+		const yShiftFactor = isPortraitMobile ? 0.38 : 0.5;
+		stageEl.style.setProperty('--stage-y-shift', Math.max(0, Math.round((stageH - baseH) * yShiftFactor)) + 'px');
 		stageEl.style.setProperty('--stage-x-shift', Math.max(0, Math.round((stageW - baseW) / 2)) + 'px');
 		stageEl.style.setProperty('--stage-inv-scale', String(1 / s));
 		stageEl.style.setProperty('--stage-fit-transform', 'translate(-50%, -50%) scale(' + s + ')');

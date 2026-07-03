@@ -46,9 +46,11 @@ set `STAKE_QA_REQUIRE_E2E=1` (CI) to turn that SKIP into a failure.
   required copy, spin/auto/bonus blocked while open, Continue resumes the
   saved round without a second bet, exactly one `/wallet/end-round`, settled
   balance applied, state cleaned up (EUR and XSC/Stake.us).
-- Mobile fullscreen at 390×844, 430×932, 768×1024, 844×390: stage and
-  background cover ≥98% of the viewport, no scrollbars, board/HUD visible,
-  spin button hittable; screenshots saved under
+- Mobile fullscreen at 360×740, 390×844, 430×932, 450×900, 768×1024,
+  844×390: stage and background cover ≥98% of the viewport, no scrollbars,
+  board/HUD visible, spin button hittable; on portrait phones additionally
+  board ≥88vw, HUD text ≥10px, spin ≥56×56 and every button ≥44×44 fully on
+  screen; screenshots saved under
   `artifacts/stake-qa/<timestamp>/e2e-screenshots/`.
 - Rules → Buttons & Controls: every visible control has an entry, every icon
   loads (no 404), no placeholder texts, dialog readable/scrollable on mobile,

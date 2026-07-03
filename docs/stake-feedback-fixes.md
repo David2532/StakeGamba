@@ -96,18 +96,29 @@ unnoticed.
 
 > "Please make sure that the game fills the screen in Mobile views."
 
-- **Fix:** fixed fullscreen viewport (`100dvh`, `overflow: hidden`), the
-  stage extends beyond its 1200×675 base to cover the screen, and
-  `--stage-x-shift`/`--stage-y-shift` re-center the play area (logo, board,
-  meters, win overlays) inside the extended stage so portrait has no dead gap
-  and landscape is no longer offset left. Dialogs counter-scale
-  (`--stage-inv-scale`) so rules/menus render at native, readable size on
-  phones.
-- **Tests:** `stake-qa-e2e.mjs mobile` runs 390×844, 430×932, 768×1024 and
-  844×390 in Chromium and asserts: stage and background art cover ≥98% of the
-  viewport (no letterboxing), no scrollbars, board/HUD visible, spin button
-  visible and actually hittable (`elementFromPoint`). Screenshots are stored
-  in `artifacts/stake-qa/<timestamp>/e2e-screenshots/` as QA evidence.
+- **Fix:** fixed fullscreen viewport (`100dvh` with `svh`/`vh` fallbacks,
+  `overflow: hidden`), the stage extends beyond its 1200×675 base to cover
+  the screen, and `--stage-x-shift`/`--stage-y-shift` re-center the play area
+  (logo, board, meters, win overlays) inside the extended stage so portrait
+  has no dead gap and landscape is no longer offset left. Dialogs
+  counter-scale (`--stage-inv-scale`) so rules/menus render at native,
+  readable size on phones.
+- **Playable portrait (phones ≤700px):** `fitViewport()` switches to a
+  board-first fit (`.mobile-portrait`): the board scales to ~94vw (max
+  460px), and the HUD/controls counter-scale to fixed on-screen sizes via
+  `--mobile-control-size`/`--mobile-spin-size`/`--mobile-hud-font-size` —
+  spin 66×66px, every other button ≥44×48px, balance/bet/win at 13px, the
+  bottom bar wraps into two thumb rows inside the safe area
+  (`--mobile-bottom-safe-padding` with `env(safe-area-inset-bottom)`). Same
+  buttons, same DOM, layout/scaling only.
+- **Tests:** `stake-qa-e2e.mjs mobile` runs 360×740, 390×844, 430×932,
+  450×900, 768×1024 and 844×390 in Chromium and asserts: stage and background
+  art cover ≥98% of the viewport (no letterboxing), no scrollbars, board/HUD
+  visible, spin button visible and actually hittable (`elementFromPoint`);
+  on portrait phones additionally: board ≥88vw, HUD value text ≥10px, spin
+  ≥56×56, and every control button ≥44×44 and fully on screen. Screenshots
+  are stored in `artifacts/stake-qa/<timestamp>/e2e-screenshots/` as QA
+  evidence.
 
 ## 6. Rules explain every button
 
