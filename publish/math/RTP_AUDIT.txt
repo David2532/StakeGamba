@@ -6,18 +6,19 @@ Golden Goal Rush RTP Audit
   target RTP:             96.45%
   achieved RTP:           96.45%
   hit rate (weighted):    33.40%
-  effective sample size:  79972 of 80000 (99.97%)
+  effective sample size:  79972 of 80000 (99.96%)
   top single-book weight: 0.0013% of total selection mass
   max payout observed:    10000.00x bet
+  max win odds:           1 in 18,868,139
   ETL >40x cost (RTP share): 0.587
-  CVaR 0.1% (x cost):     373.894
+  CVaR 0.1% (x cost):     373.897
   win distribution (selection-weighted):
         0x: 66.596%
       0-1x: 26.809%
       1-5x: 5.195%
      5-20x: 0.663%
     20-50x: 0.428%
-      50x+: 0.310%
+      50x+: 0.309%
 
 [hunt] cost=4.2x bet, simulations=40000
   raw (unweighted) RTP:   233.21%
@@ -27,8 +28,9 @@ Golden Goal Rush RTP Audit
   effective sample size:  39641 of 40000 (99.10%)
   top single-book weight: 0.0026% of total selection mass
   max payout observed:    10000.00x bet
+  max win odds:           1 in 18,867,864
   ETL >40x cost (RTP share): 0.166
-  CVaR 0.1% (x cost):     90.422
+  CVaR 0.1% (x cost):     90.428
   win distribution (selection-weighted):
         0x: 73.022%
       0-1x: 8.446%
@@ -45,8 +47,9 @@ Golden Goal Rush RTP Audit
   effective sample size:  39463 of 40000 (98.66%)
   top single-book weight: 0.0026% of total selection mass
   max payout observed:    10000.00x bet
+  max win odds:           1 in 18,867,930
   ETL >40x cost (RTP share): 0.128
-  CVaR 0.1% (x cost):     74.505
+  CVaR 0.1% (x cost):     74.500
   win distribution (selection-weighted):
         0x: 73.096%
       0-1x: 2.047%
@@ -63,6 +66,7 @@ Golden Goal Rush RTP Audit
   effective sample size:  39667 of 40000 (99.17%)
   top single-book weight: 0.0026% of total selection mass
   max payout observed:    10000.00x bet
+  max win odds:           1 in 9,090,912
   ETL >40x cost (RTP share): 0.063
   CVaR 0.1% (x cost):     60.629
   win distribution (selection-weighted):
@@ -81,6 +85,7 @@ Golden Goal Rush RTP Audit
   effective sample size:  39733 of 40000 (99.33%)
   top single-book weight: 0.0026% of total selection mass
   max payout observed:    10000.00x bet
+  max win odds:           1 in 22,148
   ETL >40x cost (RTP share): 0.037
   CVaR 0.1% (x cost):     49.402
   win distribution (selection-weighted):

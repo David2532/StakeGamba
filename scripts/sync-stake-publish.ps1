@@ -290,6 +290,7 @@ function Test-StakeCompliance {
 		@{ Name = "Bonus-Start-Popup (RGS-Pfad)"; Marker = "bonusIntroRgs" },
 		@{ Name = "Bonus-Popup-Element"; Marker = "id=`"bonus-intro`"" },
 		# Stake: no local win simulation in production
+		@{ Name = "Positiver Wallet-Payout ist Display-Quelle"; Marker = "if (walletPayout !== null && walletPayout > 0) return walletPayout;" },
 		@{ Name = "Lokale Free Spins nur ohne RGS"; Marker = "allowLocalFreeSpins = !Rgs.configured()" },
 		@{ Name = "Unrenderbare RGS-Runde -> Fehler statt Fallback"; Marker = "No local fallback was used" }
 	)
@@ -319,6 +320,12 @@ function Test-StakeCompliance {
 		}
 		if ($null -ne $m.PSObject.Properties["tailMet"] -and -not $m.tailMet) {
 			$failures += "MATH [$mode]: Tail-Constraints (CVaR/ETL) NICHT erfuellt"
+		}
+		if ($null -eq $m.PSObject.Properties["maxWinAchievabilityMet"]) {
+			$failures += "MATH [$mode]: maxWinAchievabilityMet/maxWinOdds fehlt im RTP_AUDIT -- Math mit aktueller Pipeline neu erzeugen"
+		}
+		elseif (-not [bool]$m.maxWinAchievabilityMet -or [double]$m.maxWinOdds -gt 20000000) {
+			$failures += "MATH [$mode]: Max-Win-Achievability 1 in $($m.maxWinOdds) ist schlechter als Stake-Limit 1 in 20,000,000"
 		}
 	}
 	$base = $audit.base

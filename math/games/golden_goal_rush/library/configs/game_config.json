@@ -133,7 +133,7 @@
       "buyBonus": false,
       "rtp_target": 0.9645,
       "description": "Normal 6x5 cluster/cascade base spin",
-      "rtp_achieved": 0.964518,
+      "rtp_achieved": 0.9645,
       "rtp_capped_for_diversity": false,
       "max_win": 10000.0
     },
@@ -143,7 +143,7 @@
       "buyBonus": true,
       "rtp_target": 0.9645,
       "description": "Feature Spins buy: one paid base spin with boosted rainbow chance and no free-spin trigger",
-      "rtp_achieved": 0.964515,
+      "rtp_achieved": 0.9645,
       "rtp_capped_for_diversity": false,
       "max_win": 10000.0
     },
@@ -153,7 +153,7 @@
       "buyBonus": true,
       "rtp_target": 0.9645,
       "description": "Rainbow Spin buy: one paid base spin with a guaranteed rainbow symbol",
-      "rtp_achieved": 0.964524,
+      "rtp_achieved": 0.9645,
       "rtp_capped_for_diversity": false,
       "max_win": 10000.0
     },

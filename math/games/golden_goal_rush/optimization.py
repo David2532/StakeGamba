@@ -45,6 +45,10 @@ class RtpWeighting:
     tail_damping: float = 1.0
     tail_constrained: bool = False
     tail_met: bool = True
+    max_win_weight: int = 0
+    max_win_total_weight: int = 0
+    max_win_odds: float = float("inf")
+    max_win_met: bool = True
 
 
 def _weighted_mean(
@@ -142,6 +146,69 @@ def _diversity(probs: list[float]) -> tuple[float, float]:
     return ess, top_share
 
 
+def _max_win_stats(payouts: list[int], weights: list[int]) -> tuple[int, int, float, bool]:
+    max_payout = max(payouts)
+    max_weight = sum(weight for payout, weight in zip(payouts, weights) if payout == max_payout)
+    total_weight = sum(weights)
+    odds = total_weight / max_weight if max_weight > 0 else float("inf")
+    return max_weight, total_weight, odds, max_weight > 0
+
+
+def _enforce_max_win_achievability(
+    payouts: list[int],
+    weights: list[int],
+    cost: float,
+    target_rtp: float,
+    target_odds: float,
+) -> list[int]:
+    """Ensure advertised max win is realistically selectable in the lookup.
+
+    Stake's compliance view checks the lookup odds for the max-win outcome.
+    The natural exponential tilt can leave 10,000x books with only a handful
+    of integer weight units, so the max win exists but is effectively outside
+    the allowed odds window. This raises real generated max-win books to the
+    target mass, then removes equivalent RTP mass from other high-win books.
+    """
+    adjusted = list(weights)
+    max_payout = max(payouts)
+    max_indices = [i for i, payout in enumerate(payouts) if payout == max_payout]
+    if not max_indices or target_odds <= 0:
+        return adjusted
+
+    max_weight = sum(adjusted[i] for i in max_indices)
+    total_weight = sum(adjusted)
+    # Solve (max_weight + delta) / (total_weight + delta) >= 1 / target_odds.
+    required_delta = math.ceil(max(0.0, (total_weight - target_odds * max_weight) / (target_odds - 1.0)))
+    if required_delta <= 0:
+        return adjusted
+
+    for step in range(required_delta):
+        adjusted[max_indices[step % len(max_indices)]] += 1
+
+    target_mean = target_rtp * cost * 100.0
+    error = sum(weight * (payout - target_mean) for payout, weight in zip(payouts, adjusted))
+    if error <= 0:
+        return adjusted
+
+    candidates = [
+        i
+        for i, payout in enumerate(payouts)
+        if payout != max_payout and payout > target_mean and adjusted[i] > 1
+    ]
+    candidates.sort(key=lambda i: payouts[i], reverse=True)
+    for i in candidates:
+        contribution = payouts[i] - target_mean
+        if contribution <= 0:
+            continue
+        removable = adjusted[i] - 1
+        take = min(removable, max(1, math.ceil(error / contribution)))
+        adjusted[i] -= take
+        error -= take * contribution
+        if error <= 0:
+            break
+    return adjusted
+
+
 def optimize_weights(
     payouts: list[int],
     cost: float,
@@ -152,6 +219,8 @@ def optimize_weights(
     weight_scale: int,
     search_steps: int = 40,
     tail_constraints: dict | None = None,
+    max_win_target_odds: float | None = None,
+    max_win_required_odds: float | None = None,
 ) -> RtpWeighting:
     """Compute integer lookup weights hitting `desired_rtp` as closely as
     the configured diversity bounds allow.
@@ -262,6 +331,14 @@ def optimize_weights(
                 capped = True
 
     weights = [max(1, round(p * weight_scale)) for p in probs]
+    if max_win_target_odds:
+        weights = _enforce_max_win_achievability(
+            payouts,
+            weights,
+            cost=cost,
+            target_rtp=desired_rtp,
+            target_odds=max_win_target_odds,
+        )
     total_weight = sum(weights)
     achieved_mean = sum(w * p for w, p in zip(weights, payouts)) / total_weight
     achieved_rtp = achieved_mean / 100 / cost
@@ -270,6 +347,10 @@ def optimize_weights(
     top_share_final = max(weights) / total_weight
     probs_final = [w / total_weight for w in weights]
     etl_final, cvar_final = _tail_metrics(payouts, probs_final, cost, etl_threshold_x, cvar_quantile)
+    max_win_weight, max_win_total_weight, max_win_odds, has_max_win = _max_win_stats(payouts, weights)
+    max_win_met = has_max_win and (
+        max_win_required_odds is None or max_win_odds <= max_win_required_odds
+    )
 
     return RtpWeighting(
         target_rtp=desired_rtp,
@@ -287,6 +368,10 @@ def optimize_weights(
         tail_damping=tail_damping,
         tail_constrained=tail_constrained,
         tail_met=tail_met,
+        max_win_weight=max_win_weight,
+        max_win_total_weight=max_win_total_weight,
+        max_win_odds=max_win_odds,
+        max_win_met=max_win_met,
     )
 
 

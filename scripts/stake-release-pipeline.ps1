@@ -413,7 +413,7 @@ function New-Report {
 	$lines += "## Math / RTP Summary"
 	foreach ($prop in $Audit.PSObject.Properties) {
 		$m = $prop.Value
-		$lines += "- $($prop.Name): achieved RTP $($m.achievedRtp), hit rate $($m.hitRateWeighted), ETL >40x $($m.etl40Share), CVaR 0.1% $($m.cvar01x)"
+		$lines += "- $($prop.Name): achieved RTP $($m.achievedRtp), hit rate $($m.hitRateWeighted), max win odds 1 in $($m.maxWinOdds), ETL >40x $($m.etl40Share), CVaR 0.1% $($m.cvar01x)"
 	}
 	if ($Analysis) {
 		$lines += ""
@@ -525,6 +525,7 @@ Add-Check -Group "C Play / End-Round Flow" -Name "roundNeedsEnd line does not in
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "RGS book renderer exists" -Content $html -Marker "async function playRgsBookRound"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "display win from final book amount" -Content $html -Marker "finalBookWinMoney"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "book amount conversion stays x100" -Content $html -Marker "function bookAmountToMoney(amount)"
+Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "positive wallet payout is display source" -Content $html -Marker "if (walletPayout !== null && walletPayout > 0) return walletPayout;"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "local free spins only without RGS" -Content $html -Marker "allowLocalFreeSpins = !Rgs.configured()"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "unsupported RGS state has no local fallback" -Content $html -Marker "No local fallback was used"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "positive RGS payout assertion" -Content $html -Marker "RGS payout > 0 but visible game shows no win"
@@ -563,6 +564,11 @@ foreach ($prop in $audit.PSObject.Properties) {
 	Add-Check -Group "Math / RTP" -Name "$mode hard RTP max 96.70%" -Passed ($rtp -le 0.9670) -Detail $m.achievedRtp
 	if ($null -ne $m.PSObject.Properties["tailMet"]) {
 		Add-Check -Group "Math / RTP" -Name "$mode tail constraints met" -Passed ([bool]$m.tailMet) -Detail "tailMet=$($m.tailMet)"
+	}
+	if ($null -ne $m.PSObject.Properties["maxWinAchievabilityMet"]) {
+		Add-Check -Group "Math / RTP" -Name "$mode max win achievability <= 1 in 20M" -Passed ([bool]$m.maxWinAchievabilityMet -and [double]$m.maxWinOdds -le 20000000) -Detail "1 in $($m.maxWinOdds)"
+	} else {
+		Add-Check -Group "Math / RTP" -Name "$mode max win achievability metric exists" -Passed $false -Detail "RTP_AUDIT missing maxWinOdds"
 	}
 }
 Add-Check -Group "Math / RTP" -Name "base ETL >40x within limit" -Passed ([double]$audit.base.etl40Share -le 0.80) -Detail $audit.base.etl40Share

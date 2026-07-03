@@ -1524,8 +1524,12 @@ function finalBookWinMoney(events) {
 function rgsDisplayWinMoney(round, events) {
 	const stateFinal = finalBookWinMoney(events);
 	const walletPayout = rgsRoundPayoutMoney(round);
-	// Active rounds are settled by /wallet/end-round. During the visual replay,
-	// round.payout may still be 0, so the RGS book finalWin is the display source.
+	// Stake wallet payout is authoritative whenever it is positive. Active
+	// rounds can still carry a payout in /wallet/play, and showing a smaller
+	// book finalWin makes the UI look disconnected from the RGS payload.
+	if (walletPayout !== null && walletPayout > 0) return walletPayout;
+	// During active rounds, round.payout can still be 0 until /wallet/end-round;
+	// then the RGS book finalWin is the best display source.
 	if (round && round.active === true && stateFinal > 0) return stateFinal;
 	return walletPayout !== null ? walletPayout : stateFinal;
 }

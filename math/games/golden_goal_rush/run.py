@@ -12,6 +12,8 @@ from game_config import (
     GAME_ID,
     GAME_NAME,
     RTP_LOOKUP_WEIGHT_SCALE,
+    RTP_MAX_WIN_ACHIEVABILITY_ODDS,
+    RTP_MAX_WIN_ACHIEVABILITY_TARGET_ODDS,
     RTP_MAX_TOP_WEIGHT_SHARE,
     RTP_MIN_EFFECTIVE_SAMPLE_FLOOR,
     RTP_MIN_EFFECTIVE_SAMPLE_FRACTION,
@@ -51,6 +53,8 @@ def compute_rtp_weighting(mode: str, books: list[dict]) -> RtpWeighting:
         max_top_share=RTP_MAX_TOP_WEIGHT_SHARE,
         weight_scale=RTP_LOOKUP_WEIGHT_SCALE,
         tail_constraints=RTP_TAIL_CONSTRAINTS.get(mode),
+        max_win_target_odds=RTP_MAX_WIN_ACHIEVABILITY_TARGET_ODDS,
+        max_win_required_odds=RTP_MAX_WIN_ACHIEVABILITY_ODDS,
     )
 
 
@@ -299,6 +303,10 @@ def write_rtp_audit(weightings: dict[str, tuple[list[dict], RtpWeighting]]) -> N
             "tailConstrained": weighting.tail_constrained,
             "tailMet": weighting.tail_met,
             "tailDamping": round(weighting.tail_damping, 9),
+            "maxWinWeight": weighting.max_win_weight,
+            "maxWinTotalWeight": weighting.max_win_total_weight,
+            "maxWinOdds": round(weighting.max_win_odds, 3),
+            "maxWinAchievabilityMet": weighting.max_win_met,
             "winDistribution": buckets,
         }
         lines.append(f"[{mode}] cost={weighting.cost}x bet, simulations={len(books)}")
@@ -317,6 +325,7 @@ def write_rtp_audit(weightings: dict[str, tuple[list[dict], RtpWeighting]]) -> N
         )
         lines.append(f"  top single-book weight: {weighting.top_weight_share * 100:.4f}% of total selection mass")
         lines.append(f"  max payout observed:    {max(payouts) / 100:.2f}x bet")
+        lines.append(f"  max win odds:           1 in {weighting.max_win_odds:,.0f}")
         lines.append(f"  ETL >40x cost (RTP share): {weighting.etl40_share:.3f}")
         lines.append(f"  CVaR 0.1% (x cost):     {weighting.cvar_x:.3f}")
         if weighting.tail_constrained:
