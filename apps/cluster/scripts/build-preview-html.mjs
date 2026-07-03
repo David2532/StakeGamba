@@ -150,8 +150,12 @@ const extraCss = `
 		transform-origin:center center;
 		transform:var(--stage-fit-transform, translate(-50%, -50%) scale(1));
 	}
+	/* --stage-x-shift / --stage-y-shift (set by fitViewport) keep the play area
+	   centered inside the extended fullscreen stage on mobile: portrait extends
+	   the stage vertically, landscape horizontally — without the shift the
+	   board/HUD would stick to the top/left edge and leave a dead gap. */
 	.logo-wordmark {
-		top: -4px;
+		top: calc(-4px + var(--stage-y-shift, 0px));
 		width: 460px;
 		height: 137px;
 		background: none;
@@ -168,6 +172,12 @@ const extraCss = `
 		object-fit: contain;
 		filter: drop-shadow(0 5px 8px rgba(0,0,0,0.9)) drop-shadow(0 0 15px rgba(255,190,38,0.5));
 	}
+	.board-wrap { top: calc(105px + var(--stage-y-shift, 0px)); left: calc(171px + var(--stage-x-shift, 0px)); }
+	.meters { top: calc(528px + var(--stage-y-shift, 0px)); left: calc(174px + var(--stage-x-shift, 0px)); }
+	.controls { left: calc(23px + var(--stage-x-shift, 0px)); }
+	.win-banner { top: calc(250px + var(--stage-y-shift, 0px)); }
+	.fs-counter { top: calc(118px + var(--stage-y-shift, 0px)); }
+	.rt-toast { top: calc(200px + var(--stage-y-shift, 0px)); }
 	.asset-button.turbo { margin-right: 20px; }
 	.bet-controls { margin-right: 22px; }
 	.icon-button.info { margin-right: 10px; }
@@ -261,7 +271,10 @@ const extraCss = `
 		align-items:center; justify-content:center; background:rgba(2,3,6,0.8);
 		-webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
 	.modal-backdrop.open { display:flex; }
-	.modal { position:relative; width:min(640px,92%); max-height:88%; display:flex; flex-direction:column;
+	/* width/max-height use vw/vh and the counter-scale below so dialogs render
+	   at native, readable pixel size on phones even though the stage that
+	   contains them can be scaled down to ~0.33 (net scale on screen is 1). */
+	.modal { position:relative; width:min(640px,92vw); max-height:min(88%,86vh); transform:scale(var(--stage-inv-scale, 1)); display:flex; flex-direction:column;
 		background:
 			radial-gradient(125% 70% at 50% -12%, rgba(213,162,59,0.2), transparent 62%),
 			linear-gradient(180deg,#17140c 0%,#0b0a07 55%,#050505 100%);
@@ -271,7 +284,7 @@ const extraCss = `
 		color:#f1e4c6; font-family:Inter,Arial,sans-serif; animation:modal-in .24s cubic-bezier(.2,.9,.3,1.3) both; }
 	.modal::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; z-index:2;
 		background:linear-gradient(90deg, transparent, #ffe49a 18%, #d5a23b 50%, #ffe49a 82%, transparent); }
-	@keyframes modal-in { from { opacity:0; transform:translateY(16px) scale(0.96); } }
+	@keyframes modal-in { from { opacity:0; transform:translateY(16px) scale(calc(var(--stage-inv-scale, 1) * 0.96)); } }
 	.modal-header { position:relative; display:flex; align-items:center; justify-content:space-between;
 		padding:16px 20px 14px; border-bottom:1px solid rgba(213,162,59,0.4);
 		background:linear-gradient(180deg, rgba(213,162,59,0.22), transparent); }
@@ -581,7 +594,10 @@ const extraCss = `
 	.control-rule b { display:block; color:#ffe49a; font-size:13px; margin-bottom:2px; }
 	@media (max-width: 620px) {
 		.auto-options, .controls-guide { grid-template-columns:1fr; }
-		.modal { width:min(560px,94%); max-height:92%; }
+		/* vw/vh are real screen units: combined with the base .modal counter-scale
+		   (net scale 1) the dialog fills ~94% of the phone screen and stays
+		   readable instead of inheriting the stage's ~0.33 downscale. */
+		.modal { width:min(560px,94vw); max-height:min(92%,86vh); }
 	}
 `;
 
@@ -788,6 +804,17 @@ ${controlRuleRows}
 				<div class="modal-body">
 					<p class="interrupted-copy">Your previous round was interrupted. You can continue where you left off.</p>
 					<div class="interrupted-actions"><button class="c-yes" id="interrupted-continue">Continue</button></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- ===== Generic major-action confirmation (future features, e.g. Double Chance) ===== -->
+		<div class="modal-backdrop" id="modal-major-confirm" data-modal>
+			<div class="modal">
+				<div class="modal-header"><div class="modal-title" id="major-confirm-title">CONFIRM ACTION</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-body">
+					<p class="notice-copy" id="major-confirm-body"></p>
+					<div class="c-row"><button class="c-no" id="major-confirm-no">Cancel</button><button class="c-yes" id="major-confirm-yes">Confirm</button></div>
 				</div>
 			</div>
 		</div>
@@ -1044,6 +1071,50 @@ function showInterruptedRoundMessage() {
 			resolve();
 		};
 		openModal('modal-interrupted-round');
+	});
+}
+// Generic confirmation gate for major actions. Stake rule: no major action
+// (starting Auto-Bet, buying a bonus, enabling a double-chance style feature)
+// may activate on a single click. Auto-Bet and Bonus Buy have their own
+// specialised confirm dialogs; every FUTURE major action (e.g. Double Chance)
+// must be routed through this gate before it takes effect:
+//
+//   if (!(await confirmMajorAction({ title: 'DOUBLE CHANCE', body: '...' }))) return;
+//
+// Resolves true only on an explicit Confirm click. Cancel, the close button,
+// a backdrop click and Escape all resolve false without side effects.
+function confirmMajorAction({ title = 'CONFIRM ACTION', body = '', confirmLabel = 'Confirm', cancelLabel = 'Cancel' } = {}) {
+	return new Promise((resolve) => {
+		const modal = $('modal-major-confirm');
+		const titleEl = $('major-confirm-title');
+		const bodyEl = $('major-confirm-body');
+		const yes = $('major-confirm-yes');
+		const no = $('major-confirm-no');
+		if (!modal || !titleEl || !bodyEl || !yes || !no) { resolve(false); return; }
+		titleEl.textContent = title;
+		bodyEl.innerHTML = body;
+		yes.textContent = confirmLabel;
+		no.textContent = cancelLabel;
+		let settled = false;
+		let observer = null;
+		const done = (result) => {
+			if (settled) return;
+			settled = true;
+			if (observer) observer.disconnect();
+			yes.onclick = null;
+			no.onclick = null;
+			closeModals();
+			resolve(result);
+		};
+		yes.onclick = () => done(true);
+		no.onclick = () => done(false);
+		// Escape / backdrop / close-x go through closeModals() directly; treat
+		// any non-confirm dismissal as Cancel so the promise can never hang.
+		observer = new MutationObserver(() => {
+			if (!modal.classList.contains('open')) done(false);
+		});
+		observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+		openModal('modal-major-confirm');
 	});
 }
 
@@ -2589,6 +2660,10 @@ function updateMeters() {
 	if (betCurrency) betCurrency.textContent = currencySymbol();
 	$('meter-balance').textContent = formatCurrency(state.balance);
 	$('meter-bet').textContent = formatCurrency(state.bet);
+	// WIN must use the same currency formatting as balance/bet (e.g. "0 CLP",
+	// "0.00 SC"). setWin/countUp own the value mid-round; here we only sync the
+	// idle/current value so the meter is never left as an unformatted number.
+	$('meter-win').textContent = formatCurrency(state.mode === 'free' ? state.fsWin || 0 : state.win);
 	$('bet-display').textContent = formatCurrency(state.bet);
 	$('bet-controls').classList.toggle('low', state.betIdx === 0);
 }
@@ -3656,6 +3731,13 @@ function fitViewport() {
 	if (stageEl) {
 		stageEl.style.width = stageW + 'px';
 		stageEl.style.height = stageH + 'px';
+		// Center the play area inside the extended stage: portrait grows the
+		// stage downwards (y-shift re-centers board/HUD vertically), landscape
+		// grows it to the right (x-shift re-centers horizontally). The bottom
+		// control bar stays anchored to the real screen bottom.
+		stageEl.style.setProperty('--stage-y-shift', Math.max(0, Math.round((stageH - baseH) / 2)) + 'px');
+		stageEl.style.setProperty('--stage-x-shift', Math.max(0, Math.round((stageW - baseW) / 2)) + 'px');
+		stageEl.style.setProperty('--stage-inv-scale', String(1 / s));
 		stageEl.style.setProperty('--stage-fit-transform', 'translate(-50%, -50%) scale(' + s + ')');
 	}
 }
@@ -3674,7 +3756,7 @@ setTimeout(fitViewport, 300);
 // Lightweight preview API — lets you trigger a guaranteed win to preview the
 // cluster/cascade/win-banner presentation (open console: __ggr.demoWin()).
 window.__ggr = {
-	state, spin, startFreeSpins, buildBonusBuy, CONFIG,
+	state, spin, startFreeSpins, buildBonusBuy, CONFIG, confirmMajorAction, formatCurrency,
 	setGrid: (g) => { state.grid = g; paint(); },
 	demoWin: async () => {
 		if (state.spinning) return;

@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { dirname, extname, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
@@ -132,11 +132,81 @@ function runCurrencySourceChecks() {
 
 	expectContains('currency-source', 'builder imports shared currency metadata', builder, 'CURRENCY_META');
 	expectContains('currency-source', 'builder HUD uses currency text slot', builder, "'currency'");
+	expectContains('currency-source', 'builder WIN meter uses currency formatting', builder, "$('meter-win').textContent = formatCurrency(");
 	expectContains('currency-source', 'shared amount formatter delegates to currency adapter', amount, 'formatCurrencyAmount');
 	expectNotContains('currency-source', 'builder does not use old euro image asset', builder, 'assets.euro');
 	expectNotContains('currency-source', 'cluster preview source does not use old euro image asset', clusterSource, 'assets.euro');
 	expectNotContains('currency-source', 'lines preview no longer uses Intl currency hardcode', linesSource, 'Intl.NumberFormat');
 	expectNotContains('currency-source', 'lines preview no longer hardcodes currency: USD in Intl', linesSource, "currency: 'USD'");
+	runHardcodedSymbolScan();
+}
+
+// Repo-wide gate: no UI source may hardcode a currency symbol. All symbols
+// must come from packages/utils-shared/currency.js (the single metadata
+// source). This is what keeps the original "everything shows €" bug from
+// silently coming back in any component.
+const CURRENCY_SYMBOL_PATTERN = /[€₽₱₹₩₺₦₡₫₴£¥]|zł(?=["'\s<])/u;
+function runHardcodedSymbolScan() {
+	const scanRoots = [
+		join(root, 'apps', 'cluster', 'src'),
+		join(root, 'apps', 'cluster', 'scripts'),
+		join(root, 'apps', 'lines', 'src'),
+		join(root, 'packages'),
+	];
+	const allowed = new Set([
+		relative(root, paths.currency).replaceAll('\\', '/'), // the metadata itself
+	]);
+	const scanExtensions = new Set(['.svelte', '.ts', '.js', '.mjs', '.html', '.css']);
+	const skipDirs = new Set(['node_modules', 'dist', 'build', '.svelte-kit', 'storybook-static', 'static', 'assets']);
+	const offenders = [];
+	const walk = (dir) => {
+		let entries = [];
+		try { entries = readdirSync(dir); } catch { return; }
+		for (const entry of entries) {
+			const full = join(dir, entry);
+			const stats = statSync(full);
+			if (stats.isDirectory()) {
+				if (!skipDirs.has(entry)) walk(full);
+				continue;
+			}
+			if (!scanExtensions.has(extname(entry))) continue;
+			const relPath = relative(root, full).replaceAll('\\', '/');
+			if (allowed.has(relPath)) continue;
+			const content = readFileSync(full, 'utf8');
+			for (const [lineNo, line] of content.split('\n').entries()) {
+				if (CURRENCY_SYMBOL_PATTERN.test(line)) {
+					offenders.push(`${relPath}:${lineNo + 1}`);
+					break;
+				}
+			}
+		}
+	};
+	for (const scanRoot of scanRoots) walk(scanRoot);
+	expect(
+		'currency-source',
+		'no hardcoded currency symbols outside currency metadata',
+		offenders.length === 0,
+		offenders.length ? `offenders: ${offenders.slice(0, 8).join(', ')}` : 'scanned apps/*/src, apps/cluster/scripts, packages/**',
+	);
+}
+
+// Every asset path embedded in the GENERATED preview (icons in Rules, HUD
+// art, audio) must exist on disk — a renamed/missing file would ship broken
+// images to Stake. The generated file is scanned because the builder
+// assembles paths from template variables.
+function runIconAssetChecks() {
+	if (!existsSync(paths.preview)) {
+		fail('rules', 'generated preview exists for asset audit', rel(paths.preview));
+		return;
+	}
+	const preview = read(paths.preview);
+	const assetPaths = new Set();
+	for (const match of preview.matchAll(/src\/assets\/golden-goal-rush[^'"`\s)\\]*\.(?:webp|png|mp3)/g)) {
+		assetPaths.add(match[0]);
+	}
+	expect('rules', 'preview references asset files', assetPaths.size >= 20, `found ${assetPaths.size} asset paths`);
+	const missing = [...assetPaths].filter((assetPath) => !existsSync(join(root, 'apps', 'cluster', assetPath)));
+	expect('rules', 'all referenced icon/asset files exist on disk', missing.length === 0, missing.length ? `missing: ${missing.slice(0, 6).join(', ')}` : `${assetPaths.size} files verified`);
 }
 
 function runI18nChecks() {
@@ -171,6 +241,11 @@ function runMajorActionChecks() {
 	expectContains('major-actions', 'bonus buy insufficient balance shows modal', builder, 'showInsufficientFunds(price)');
 	expectContains('major-actions', 'shared auto start has confirmation state', autoStart, 'awaitingConfirm');
 	expectContains('major-actions', 'shared auto start requires second click', autoStart, 'if (!awaitingConfirm)');
+	// The generic gate future major actions (e.g. Double Chance) must use.
+	expectContains('major-actions', 'confirmMajorAction gate exists', builder, 'function confirmMajorAction(');
+	expectContains('major-actions', 'confirmMajorAction modal exists', builder, 'id="modal-major-confirm"');
+	expectContains('major-actions', 'confirmMajorAction is part of the public preview API', builder, 'confirmMajorAction, formatCurrency');
+	expectContains('major-actions', 'confirmMajorAction treats dismissal as cancel', builder, 'observer = new MutationObserver(');
 }
 
 function runInterruptedRoundChecks() {
@@ -195,14 +270,34 @@ async function runMobileChecks() {
 	expectContains('mobile', 'stage fit transform uses CSS variable', builder, '--stage-fit-transform');
 	expectContains('mobile', 'fitViewport extends stage height for portrait', builder, 'const stageH = viewAspect < aspect');
 	expectContains('mobile', 'fitViewport updates stage dimensions', builder, "stageEl.style.height = stageH + 'px'");
+	expectContains('mobile', 'portrait play area is re-centered', builder, '--stage-y-shift');
+	expectContains('mobile', 'landscape play area is re-centered', builder, '--stage-x-shift');
+	expectContains('mobile', 'dialogs counter-scale for phone readability', builder, '--stage-inv-scale');
 	expectNotContains('mobile', 'old viewport transform scaling removed', builder, "vp.style.transform = 'translate(-50%, -50%) scale(' + s + ')'");
 	if (preview) expectContains('mobile', 'generated preview contains fullscreen CSS', preview, 'height: 100dvh');
-	try {
-		await import('playwright');
-		skip('mobile', 'Playwright screenshot check', 'Playwright package is available but screenshots are intentionally run from the browser QA step.');
-	} catch {
-		skip('mobile', 'Playwright screenshot check', 'Playwright is not installed in this workspace; static fullscreen gates ran.');
+}
+
+// Browser end-to-end gates (scripts/stake-qa-e2e.mjs): real Chromium runs of
+// currency HUD, insufficient funds, major-action confirmation, interrupted
+// bonus resume, mobile fullscreen screenshots and the rules button audit.
+function runE2eChecks(selectedMode) {
+	const e2eMode = selectedMode === 'all' ? 'all' : selectedMode;
+	const result = spawnSync(process.execPath, [join(__dirname, 'stake-qa-e2e.mjs'), e2eMode], {
+		cwd: root,
+		encoding: 'utf8',
+		stdio: ['ignore', 'inherit', 'inherit'],
+		env: { ...process.env, STAKE_QA_ARTIFACT_DIR: artifactRoot },
+		timeout: 15 * 60 * 1000,
+	});
+	if (result.status === 0) {
+		pass('e2e', 'browser end-to-end suite', `mode=${e2eMode}, report: e2e-report.json`);
+		return;
 	}
+	if (result.status === 3 && process.env.STAKE_QA_REQUIRE_E2E !== '1') {
+		skip('e2e', 'browser end-to-end suite', 'Playwright/Chromium not available. Install with: npm i -D playwright && npx playwright install chromium. Set STAKE_QA_REQUIRE_E2E=1 to make this a hard failure.');
+		return;
+	}
+	fail('e2e', 'browser end-to-end suite', `stake-qa-e2e exited with status ${result.status}`);
 }
 
 function runRulesChecks() {
@@ -248,6 +343,7 @@ function runExistingBehaviorChecks() {
 	expectContains('regression-markers', 'math config still exports symbol weights', mathConfig, 'SYMBOL_MATH');
 }
 
+const E2E_MODES = new Set(['all', 'currency', 'insufficient-funds', 'major-actions', 'interrupted-round', 'mobile', 'rules']);
 async function run(selectedMode) {
 	runSyntaxCheck();
 	if (selectedMode === 'all' || selectedMode === 'currency') {
@@ -258,8 +354,13 @@ async function run(selectedMode) {
 	if (selectedMode === 'all' || selectedMode === 'major-actions') runMajorActionChecks();
 	if (selectedMode === 'all' || selectedMode === 'interrupted-round') runInterruptedRoundChecks();
 	if (selectedMode === 'all' || selectedMode === 'mobile') await runMobileChecks();
-	if (selectedMode === 'all' || selectedMode === 'rules') runRulesChecks();
+	if (selectedMode === 'all' || selectedMode === 'rules') {
+		runRulesChecks();
+		runIconAssetChecks();
+	}
 	if (selectedMode === 'all' || selectedMode === 'regression') runExistingBehaviorChecks();
+	if (selectedMode === 'e2e') runE2eChecks('all');
+	else if (E2E_MODES.has(selectedMode)) runE2eChecks(selectedMode);
 }
 
 await run(mode);
