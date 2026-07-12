@@ -2,9 +2,9 @@
 
 This document tracks the Stake Engine feedback fixes for Golden Goal Rush:
 what Stake asked for, what was implemented, where, and which automated check
-proves it. Every point below is enforced by `npm run stake:qa` (static +
-functional + browser end-to-end gates) so a regression cannot slip through
-unnoticed.
+proves it. The final release run must complete `npm run stake:qa`, the mandatory
+browser suite, and the publish/release gates before this document can be used as
+approval evidence.
 
 ## 1. Currency display
 
@@ -138,6 +138,160 @@ unnoticed.
   on mobile. `stake-qa.mjs rules` additionally verifies every asset path in
   the generated preview exists on disk.
 
+## 7. Stake Replay Mode compliance
+
+### Launch, endpoint, and read-only boundary
+
+- Replay Mode is selected only by the Stake launch parameter `replay=true`.
+  Replay launch validation handles `rgs_url`, `game`, `version`, `mode`,
+  `event`, `amount`, `currency`, `lang`, and `device` separately from a normal
+  wallet launch; it does not require a normal `sessionID`.
+- The standalone Stake frontend in
+  `apps/cluster/scripts/build-preview-html.mjs` owns the dedicated `Replay`
+  controller. It requests the saved round with:
+
+  `GET /bet/replay/{game}/{version}/{mode}/{event}`
+
+  Each path segment is URL-encoded and the request is made against the supplied
+  `rgs_url`. Replay does not authenticate a wallet and never saves or settles
+  an event.
+- The replay path is a hard read-only boundary. It must make zero calls to
+  `/wallet/authenticate`, `/wallet/play`, `/wallet/end-round`, `/bet/event`,
+  local paid-spin generation, or any bonus-purchase action. Normal spin, bet,
+  Auto-Bet, Bonus Buy, keyboard, recovery, and authentication entry points all
+  retain logical replay guards in addition to UI hiding.
+
+### Lifecycle and controls
+
+- The explicit lifecycle is `loading`, `ready`, `running`, `completed`, or
+  `error`. Loading and replay-specific errors occupy the game stage; an error
+  remains read-only and never falls back to a random/demo result.
+- After a valid saved round loads, playback waits for the dedicated **Replay
+  Play** control. It does not reuse or resemble the normal Spin action.
+  Playback uses the existing authoritative `playRgsBookRound()` event renderer
+  for reveal, cluster positions and step wins, tumbles, Golden Cells, feature
+  awards, free spins, and the final result.
+- Completion exposes **Play Again**. It resets board/highlights, Golden Cells,
+  feature and free-spin counters, running/final win, overlays, skip/audio state,
+  and playback cursors, then replays an immutable copy of the same saved event
+  sequence. Repeated playback must therefore show the same outcome without
+  accumulating winnings.
+
+### Hidden versus displayed UI
+
+Replay removes from layout, pointer interaction, and keyboard navigation:
+
+- Balance
+- normal Spin
+- editable Bet selector and Bet minus/plus
+- Auto-Bet and autoplay settings
+- Bonus Buy and every other paid-round action
+
+Replay keeps visible and display-only:
+
+- **Win Amount**, sourced from the saved RGS round/event result
+- **Replay Bet Amount**, sourced from replay launch/response data
+- the replay currency, formatted by the shared fiat/Stake.us currency metadata
+- **Replay Play** and **Play Again**
+- permitted non-betting settings such as sound/replay speed
+
+The same contract applies in desktop, mobile landscape, phone portrait, and
+tablet layouts; hidden normal controls may not remain clickable below an
+overlay.
+
+## 8. Paytable / payout root cause and fix
+
+### Root cause
+
+The reported visible round amounts were correct for the submitted production
+math, but the standalone frontend Paytable was stale. Its former local demo
+configuration showed lower base values (including K `0.18`, Q `0.13`, and J
+`0.09`) while the production RGS books used K `0.48`, Q `0.36`, and J `0.28`
+with the production cluster-size boosts.
+
+No approved production specification supporting the lower values exists in
+this repository. Therefore production math, books, lookup weights,
+probabilities, RTP, and max-win behavior are not changed for this fix.
+
+### Production source of truth
+
+For this submission the exact contract is `publish/math/game_config.json`. Its
+generation/publish chain is:
+
+1. `math/games/golden_goal_rush/game_config.py` defines symbol base pays.
+2. `math/games/golden_goal_rush/game_calculations.py` applies cluster ranges
+   5-6 x1, 7-8 x2, 9-11 x4, and 12+ x8.
+3. `math/games/golden_goal_rush/run.py` writes
+   `math/games/golden_goal_rush/library/configs/game_config.json` and the books,
+   lookups, and audit files.
+4. `scripts/sync-stake-publish.ps1` copies those exact files to `publish/math`
+   before building the standalone frontend.
+5. `apps/cluster/scripts/production-math-contract.mjs` validates and imports
+   the generated/published config at build time. Missing symbols, thresholds,
+   boosts, invalid numbers, or generated/published drift fail the build; there
+   is no hardcoded production Paytable fallback.
+
+`ggr-config.mjs` is now explicitly limited to local visual/demo frequencies
+and feature settings. Its paying values come from the production contract; it
+no longer claims to be a second global math source.
+
+### Correct payout examples
+
+| Symbol / cluster | Production base pay | Cluster-size boost | Paytable / RGS step |
+| --- | ---: | ---: | ---: |
+| K 5+ (5-6) | 0.48x | 1x | **0.48x** |
+| Q 5+ (5-6) | 0.36x | 1x | **0.36x** |
+| J 7+ (7-8) | 0.28x | 2x | **0.56x** |
+
+All values are multipliers of the active bet. A winning cluster contains at
+least five orthogonally connected matching symbols; substituting Wilds count
+toward the displayed cluster size. The cascade multiplier starts at 1x and
+increments after each successful cascade, so a later per-cluster animation may
+exceed the unmultiplied Paytable entry. A floating amount is one win step; the
+final WIN meter is cumulative for the complete round.
+
+RGS play and replay rendering use authoritative `wins[].win`, `totalWin`,
+`finalWin`, and settled round payout fields. Client Paytable values are not
+used to recalculate or invent an RGS result.
+
+## 9. Drift-prevention release gates
+
+- The production contract validates every paying symbol and its `cluster5`,
+  `cluster7Boost`, `cluster9Boost`, and `cluster12Boost` values, then embeds the
+  normalized numerical Paytable in `preview.html`.
+- The Paytable formatter preserves significant precision (for example `0.48`,
+  `2.88`, and `3.84`) while trimming only insignificant trailing zeroes.
+- The publish sync refreshes/reuses math first, copies the authoritative config
+  into `publish/math`, builds the frontend second, and runs the deterministic
+  builder `--check` mode.
+- The sync fails unless the generated math config and published math config are
+  byte-identical, `apps/cluster/preview.html` and
+  `publish/frontend/index.html` are byte-identical, and every embedded frontend
+  symbol/base/boost/computed threshold value numerically equals
+  `publish/math/game_config.json`.
+- Static/unit/browser QA additionally covers the production K/Q/J examples,
+  all symbols and thresholds, six J plus one connecting Wild, Paytable DOM
+  content/formatting, authoritative event totals, replay read-only networking,
+  hidden/interactivity requirements, and deterministic Play Again behavior.
+
+## 10. Final QA evidence for this Stake response
+
+Populate these paths from the final clean release run; do not replace them with
+older evidence:
+
+- Combined QA report: **TBD - `artifacts/stake-qa/<final-timestamp>/report.json`**
+- Browser report: **TBD - `artifacts/stake-qa/<final-timestamp>/e2e-report.json`**
+- Replay screenshots: **TBD - `artifacts/stake-qa/<final-timestamp>/e2e-screenshots/`**
+- Final release report: **TBD - `stake-release/<final-release>/stake-release-report.md`**
+- Final approval checklist: **TBD - `stake-release/<final-release>/stake-approval-checklist.md`**
+- Final release manifest/ZIP: **TBD - `stake-release/<final-release>/manifest.json` and matching `.zip`**
+
+The final evidence must include Base and bonus/free-spin replay runs, all
+required viewports, the observed replay GET URL, a forbidden wallet/session
+call count of zero, production Paytable DOM comparisons, and before/after
+SHA-256 confirmation that production configs, books, lookups, and RTP audit
+artifacts did not change.
+
 ## Existing behavior preserved
 
 - Math configuration, RTP values, symbol weights, lookup/book generation and
@@ -154,12 +308,15 @@ unnoticed.
 ```
 npm run stake:qa          # static + functional + browser e2e, one report
 npm run stake:qa:e2e      # browser e2e only
+npm run stake:publish     # authoritative math -> frontend -> publish snapshot
+npm run stake:release     # final validated release folder, reports and ZIP
 ```
 
 Reports land in `artifacts/stake-qa/<timestamp>/` (`report.json`,
 `e2e-report.json`, `e2e-screenshots/`). The publish/release pipelines
 (`scripts/sync-stake-publish.ps1`, `scripts/stake-release-pipeline.ps1`) run
-`scripts/stake-qa.mjs all` as a hard gate. The browser suite needs Playwright
-and Chromium; without them `stake:qa` records an explicit SKIP with install
-instructions (`npm i -D playwright && npx playwright install chromium`), and
-`STAKE_QA_REQUIRE_E2E=1` turns that into a hard failure for CI.
+`scripts/stake-qa.mjs all` as a hard gate. Playwright and Chromium are required
+for a releasable package (`npm i -D playwright && npx playwright install
+chromium`). CI and the final release run set `STAKE_QA_REQUIRE_E2E=1`; a missing
+browser or any skipped browser suite is a release failure, not acceptable Stake
+approval evidence.

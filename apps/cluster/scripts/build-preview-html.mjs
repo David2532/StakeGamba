@@ -11,20 +11,36 @@
  *   node apps/cluster/scripts/build-preview-html.mjs
  */
 import { readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CURRENCY_META } from '../../../packages/utils-shared/currency.js';
 
 // Shared math config — the SAME numbers the RTP simulation (ggr-sim.mjs) measures.
 import { SYMBOL_MATH, CONFIG } from './ggr-config.mjs';
+import {
+	CLUSTER_THRESHOLDS,
+	PAYING_SYMBOLS,
+	PRODUCTION_GAME_CONFIG,
+	PRODUCTION_PAYTABLE,
+	formatPaytableMultiplier,
+} from './production-math-contract.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const COMPONENT = join(ROOT, 'src/components/GoldenGoalRushFinalPreview.svelte');
 const OUT = join(ROOT, 'preview.html');
+const BUILDER = fileURLToPath(import.meta.url);
 
 const source = readFileSync(COMPONENT, 'utf8');
 const style = source.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? '';
+const frontendBuildId = createHash('sha256')
+	.update(readFileSync(BUILDER))
+	.update(readFileSync(join(__dirname, 'ggr-config.mjs')))
+	.update(readFileSync(join(__dirname, 'production-math-contract.mjs')))
+	.update(source)
+	.update(JSON.stringify(PRODUCTION_GAME_CONFIG))
+	.digest('hex');
 
 const A = 'src/assets/golden-goal-rush';
 const HUD = `${A}/hud-extracted`;
@@ -55,6 +71,75 @@ const assets = {
 	settingsButton: `${HUD}/settings-button.webp`,
 };
 
+const PLAYER_MODE_META = {
+	base: {
+		name: 'Base Game',
+		socialName: 'Base Play',
+		costMultiplier: 1,
+		trigger: 'Main Spin button',
+		socialTrigger: 'Main Play button',
+		description: 'Standard paid spin on the 6x5 cluster grid. Winning clusters cascade and mark Golden Cells.',
+		socialDescription: 'Standard play on the 6x5 cluster grid. Winning clusters cascade and mark Golden Cells.',
+		retrigger: 'Not a bonus mode. Scatter tickets can trigger Free Spins from the paid spin.',
+		socialRetrigger: 'Not a feature sequence. Scatter tickets can trigger Free Spins from the play.',
+	},
+	hunt: {
+		name: 'Feature Spins',
+		socialName: 'Feature Spins',
+		costMultiplier: CONFIG.bonusBuy.find((o) => o.id === 'hunt')?.mult ?? 4.2,
+		trigger: 'Bonus Buy panel',
+		socialTrigger: 'Feature panel',
+		description: 'One paid spin with boosted Golden Arc chance. Free-spin triggers are disabled for this mode.',
+		socialDescription: 'One play with boosted Golden Arc chance. Free-spin triggers are disabled for this mode.',
+		retrigger: 'No retrigger inside this single-spin mode.',
+		socialRetrigger: 'No extra sequence is added inside this single-play mode.',
+	},
+	rainbow: {
+		name: 'Rainbow Spin',
+		socialName: 'Rainbow Spin',
+		costMultiplier: CONFIG.bonusBuy.find((o) => o.id === 'rainbow')?.mult ?? 6,
+		trigger: 'Bonus Buy panel',
+		socialTrigger: 'Feature panel',
+		description: 'One paid spin with a guaranteed Golden Arc. Scatter tickets can still award Free Spins.',
+		socialDescription: 'One play with a guaranteed Golden Arc. Scatter tickets can still award Free Spins.',
+		retrigger: 'The Rainbow Spin itself does not retrigger; a scatter award starts the matching Free Spins tier.',
+		socialRetrigger: 'The Rainbow Spin itself does not add more plays; a scatter award starts the matching Free Spins tier.',
+	},
+	bonus_tier1: {
+		name: CONFIG.tiers[1].name,
+		socialName: CONFIG.tiers[1].name,
+		costMultiplier: CONFIG.bonusBuy.find((o) => o.id === 'tier1')?.mult ?? 31,
+		trigger: 'Bonus Buy panel or 3 Scatter tickets',
+		socialTrigger: 'Feature panel or 3 Scatter tickets',
+		description: `${CONFIG.tiers[1].spins} Free Spins. Golden Cells persist during the sequence and reset after reveal.`,
+		socialDescription: `${CONFIG.tiers[1].spins} Free Spins. Golden Cells persist during the sequence and reset after reveal.`,
+		retrigger: 'The current math book does not create additional Free Spins inside this tier.',
+		socialRetrigger: 'The current math book does not add extra Free Spins inside this tier.',
+	},
+	bonus: {
+		name: CONFIG.tiers[2].name,
+		socialName: CONFIG.tiers[2].name,
+		costMultiplier: CONFIG.bonusBuy.find((o) => o.id === 'tier2')?.mult ?? 95,
+		trigger: 'Bonus Buy panel or 4 Scatter tickets',
+		socialTrigger: 'Feature panel or 4 Scatter tickets',
+		description: `${CONFIG.tiers[2].spins} Free Spins. Golden Cells persist after reveal, increasing the chance of later Arc awards.`,
+		socialDescription: `${CONFIG.tiers[2].spins} Free Spins. Golden Cells persist after reveal, increasing the chance of later Arc awards.`,
+		retrigger: 'The current math book does not create additional Free Spins inside this tier.',
+		socialRetrigger: 'The current math book does not add extra Free Spins inside this tier.',
+	},
+	bonus_tier3: {
+		name: CONFIG.tiers[3].name,
+		socialName: CONFIG.tiers[3].name,
+		costMultiplier: 1,
+		trigger: '5 Scatter tickets only',
+		socialTrigger: '5 Scatter tickets only',
+		description: `${CONFIG.tiers[3].spins} Free Spins with a guaranteed Golden Arc each spin. This tier is not available from the feature panel.`,
+		socialDescription: `${CONFIG.tiers[3].spins} Free Spins with a guaranteed Golden Arc each spin. This tier is not available from the feature panel.`,
+		retrigger: 'The current math book does not create additional Free Spins inside this tier.',
+		socialRetrigger: 'The current math book does not add extra Free Spins inside this tier.',
+	},
+};
+
 // Symbol pool for the demo engine. `pay` = base multiple for a 5-cluster.
 // Build the render symbol map from the shared math (weights/pays) + asset src.
 const SYMBOL_SRC = {
@@ -66,6 +151,12 @@ const SYMBOL_SRC = {
 	rainbow: { src: `${SPECIAL}/symbol_rainbow.webp`, cls: 'feature' },
 };
 const SYMBOLS = Object.fromEntries(Object.entries(SYMBOL_MATH).map(([k, m]) => [k, { ...m, ...SYMBOL_SRC[k] }]));
+const FORMATTED_PRODUCTION_PAYTABLE = Object.fromEntries(Object.entries(PRODUCTION_PAYTABLE).map(([symbol, pay]) => [symbol, {
+	cluster5: formatPaytableMultiplier(pay.cluster5),
+	cluster7: formatPaytableMultiplier(pay.cluster7),
+	cluster9: formatPaytableMultiplier(pay.cluster9),
+	cluster12: formatPaytableMultiplier(pay.cluster12),
+}]));
 
 // Coin medals (tier color) + a value label render on top; multiplier badge / collector.
 const COIN_ASSETS = {
@@ -88,18 +179,18 @@ const AUDIO_ASSETS = {
 // CONFIG is imported from ggr-config.mjs (shared with the RTP simulation).
 
 const meters = [
-	['BALANCE', 'balance', 'currency', 'meterPanelA'],
-	['WIN', 'win', 'trophy', 'meterPanelB'],
-	['BET', 'bet', 'currency', 'meterPanelC'],
+	['balanceLabel', 'balance', 'currency', 'meterPanelA'],
+	['winLabel', 'win', 'trophy', 'meterPanelB'],
+	['betLabel', 'bet', 'currency', 'meterPanelC'],
 ];
 const meterRows = meters
 	.map(
-		([label, id, icon, frame]) => `\t\t\t<div class="meter" data-meter="${id}">
+		([labelKey, id, icon, frame]) => `\t\t\t<div class="meter" data-meter="${id}">
 				<img class="panel-art" src="${assets[frame]}" alt="" />
 				${icon === 'currency'
 					? `<span class="meter-currency-symbol" id="meter-${id}-currency" aria-hidden="true"></span>`
 					: `<img class="meter-asset-icon" src="${assets[icon]}" alt="" />`}
-				<div><div class="meter-label">${label}</div><div class="meter-value" id="meter-${id}">0.00</div></div>
+				<div><div class="meter-label" data-i18n="${labelKey}">${labelKey === 'betLabel' ? 'BET' : labelKey === 'winLabel' ? 'WIN' : 'BALANCE'}</div><div class="meter-value" id="meter-${id}">0.00</div></div>
 			</div>`,
 	)
 	.join('\n');
@@ -117,24 +208,24 @@ const featureItems = features
 	.join('\n');
 
 const controlRules = [
-	['spin', 'Spin', assets.spinButton, 'Starts a single paid spin with the selected bet.'],
-	['auto-bet', 'Auto-Bet', assets.autoSpinButton, 'Opens the Auto-Bet spin amount selection. Auto-Bet starts only after selecting an amount and confirming.'],
-	['turbo', 'Turbo', assets.turboButton, 'Toggles faster spin animations if available.'],
-	['bonus-buy', 'Bonus Buy / Buy Feature', assets.bonusButton, 'Opens the Bonus Buy confirmation. The feature is purchased only after confirmation.'],
-	['bet-minus', 'Bet Minus', assets.minusButton, 'Decreases the selected bet.'],
-	['bet-plus', 'Bet Plus', assets.plusButton, 'Increases the selected bet.'],
-	['bet-selector', 'Bet Selector / Bet Panel', assets.controlPanel, 'Shows the selected bet value and available bet step controls.'],
-	['info-rules', 'Info / Rules', assets.infoButton, 'Opens game rules, paytable, feature descriptions and button explanations.'],
-	['settings', 'Settings', assets.settingsButton, 'Opens settings such as sound or game options.'],
-	['menu', 'Menu', assets.menuButton, 'Opens the main menu.'],
-	['sound-music', 'Sound / Music', assets.menuButton, 'Toggles sound and music from the menu or settings panel.'],
-	['collect', 'Collect', assets.collector, 'Collects bonus feature values depending on the active Golden Goal feature.'],
-	['free-spins', 'Free Spins / Feature Button', assets.featurePanel, 'Shows feature state for collect, multiplier and free spins during active feature play.'],
-	['close-modal', 'Close Modal', assets.infoButton, 'Closes the current dialog without applying unconfirmed actions.'],
+	['spin', 'Spin', 'Play', assets.spinButton, 'Starts a single paid spin with the selected bet.', 'Starts one play with the selected amount.'],
+	['auto-bet', 'Auto-Bet', 'Auto-Play', assets.autoSpinButton, 'Opens the Auto-Bet spin amount selection. Auto-Bet starts only after selecting an amount and confirming.', 'Opens the Auto-Play amount selection. Auto-Play starts only after selecting an amount and confirming.'],
+	['turbo', 'Turbo', 'Turbo', assets.turboButton, 'Toggles faster spin animations if available.', 'Toggles faster animations if available.'],
+	['bonus-buy', 'Bonus Buy / Buy Feature', 'Bonus / Feature', assets.bonusButton, 'Opens the Bonus Buy confirmation. The feature is purchased only after confirmation.', 'Opens the feature confirmation. The feature starts only after confirmation.'],
+	['bet-minus', 'Bet Minus', 'Play Minus', assets.minusButton, 'Decreases the selected bet.', 'Decreases the selected play amount.'],
+	['bet-plus', 'Bet Plus', 'Play Plus', assets.plusButton, 'Increases the selected bet.', 'Increases the selected play amount.'],
+	['bet-selector', 'Bet Selector / Bet Panel', 'Play Selector / Play Panel', assets.controlPanel, 'Shows the selected bet value and available bet step controls.', 'Shows the selected play amount and available amount steps.'],
+	['info-rules', 'Info / Rules', 'Info / Rules', assets.infoButton, 'Opens game rules, paytable, feature descriptions and button explanations.', 'Opens game rules, symbol values, feature descriptions and button explanations.'],
+	['settings', 'Settings', 'Settings', assets.settingsButton, 'Opens settings such as sound or game options.', 'Opens settings such as sound or game options.'],
+	['menu', 'Menu', 'Menu', assets.menuButton, 'Opens the main menu.', 'Opens the main menu.'],
+	['sound-music', 'Sound / Music', 'Sound / Music', assets.menuButton, 'Toggles sound and music from the menu or settings panel.', 'Toggles sound and music from the menu or settings panel.'],
+	['collect', 'Collect', 'Collect', assets.collector, 'Collects bonus feature values depending on the active Golden Goal feature.', 'Collects feature values depending on the active Golden Goal feature.'],
+	['free-spins', 'Free Spins / Feature Button', 'Free Spins / Feature Button', assets.featurePanel, 'Shows feature state for collect, multiplier and free spins during active feature play.', 'Shows feature state for collect, multiplier and free spins during active feature play.'],
+	['close-modal', 'Close Modal', 'Close Modal', assets.infoButton, 'Closes the current dialog without applying unconfirmed actions.', 'Closes the current dialog without applying unconfirmed actions.'],
 ];
 const controlRuleRows = controlRules
 	.map(
-		([key, name, icon, description]) => `\t\t\t\t\t<div class="control-rule" data-control-key="${key}">
+		([key, name, socialName, icon, description, socialDescription]) => `\t\t\t\t\t<div class="control-rule" data-control-key="${key}" data-normal-name="${name}" data-social-name="${socialName}" data-normal-desc="${description}" data-social-desc="${socialDescription}">
 						<img src="${icon}" alt="${name}" />
 						<div><b>${name}</b>${description}</div>
 					</div>`,
@@ -579,6 +670,64 @@ const extraCss = `
 	.auto-confirm-row button { flex:1; padding:11px; border-radius:10px; font-size:15px; font-weight:900; cursor:pointer; }
 	.auto-confirm-row .confirm { color:#241803; border:0; background:linear-gradient(180deg,#ffe9a3,#e7b84e); box-shadow:0 3px 0 #9a6f1e; }
 	.auto-confirm-row .cancel { color:#ffe9b8; border:1px solid rgba(213,162,59,0.5); background:rgba(8,8,12,0.85); }
+	.replay-modal { width:min(560px,92vw); }
+	.replay-kicker { display:inline-flex; align-items:center; justify-content:center; min-width:126px; margin:0 auto 14px; padding:8px 22px;
+		border-radius:999px; color:#241803; background:linear-gradient(180deg,#ffe55f,#ffad10); font-size:14px; font-weight:1000; letter-spacing:4px; }
+	.replay-title { margin:0 0 20px; color:#f7f7ff; font-size:34px; line-height:1.1; text-align:center; font-weight:1000; }
+	.replay-card { padding:17px 19px; border-radius:12px; background:rgba(8,10,24,0.92); box-shadow:inset 0 0 0 1px rgba(255,255,255,0.04); }
+	.replay-row { display:flex; justify-content:space-between; gap:16px; padding:10px 0; color:#aaaec1; font-size:16px; line-height:1.25; border-bottom:1px solid rgba(255,255,255,0.12); }
+	.replay-row:last-child { border-bottom:0; }
+	.replay-row strong { color:#ffe450; font-size:18px; text-align:right; }
+	.replay-row.highlight { margin:8px -8px; padding:12px 8px; border-radius:9px; border-bottom:0; background:rgba(255,226,70,0.08); }
+	.replay-row.win strong { color:#20d884; }
+	.replay-start { width:100%; margin-top:22px; padding:15px 18px; border:0; border-radius:12px; cursor:pointer; color:#1b2032;
+		background:linear-gradient(90deg,#ffe600,#ff9c0a); box-shadow:0 4px 0 #9a6f1e; font-size:22px; font-weight:1000; }
+	.replay-note { margin:16px 0 0; color:#8d91a8; font-size:13px; text-align:center; line-height:1.45; }
+	.replay-control-panel { display:none; position:relative; align-items:center; justify-content:space-between; gap:calc(18px * var(--stage-inv-scale,1));
+		width:calc(520px * var(--stage-inv-scale,1)); min-height:calc(76px * var(--stage-inv-scale,1));
+		padding:calc(10px * var(--stage-inv-scale,1)) calc(14px * var(--stage-inv-scale,1)) calc(10px * var(--stage-inv-scale,1)) calc(20px * var(--stage-inv-scale,1));
+		border:2px solid #d5a23b; border-radius:15px;
+		background:linear-gradient(180deg,rgba(28,25,15,.98),rgba(6,7,10,.98));
+		box-shadow:inset 0 0 0 2px #050505,0 0 18px rgba(255,194,48,.28),0 6px 16px rgba(0,0,0,.7); }
+	.replay-control-copy { min-width:0; display:grid; gap:4px; color:#fff; font-family:Inter,Arial,sans-serif; }
+	.replay-control-copy strong { color:#ffe36e; font-size:calc(16px * var(--stage-inv-scale,1)); font-weight:1000; letter-spacing:1.2px; }
+	.replay-control-copy small { overflow:hidden; color:#d6c69e; font-size:calc(12px * var(--stage-inv-scale,1)); line-height:1.25; text-overflow:ellipsis; white-space:nowrap; }
+	.replay-currency-code { display:inline-flex; align-items:center; justify-content:center; min-width:44px; margin-left:6px;
+		padding:3px 7px; border:1px solid rgba(255,226,110,.5); border-radius:999px; color:#fff2b6; font-weight:900; }
+	.replay-action { flex:0 0 auto; min-width:calc(178px * var(--stage-inv-scale,1)); min-height:calc(54px * var(--stage-inv-scale,1)); padding:10px 18px; border:2px solid #fff0a6; border-radius:12px;
+		background:linear-gradient(180deg,#ffe862,#f4a817); color:#211704; box-shadow:0 4px 0 #8c621a,0 0 18px rgba(255,207,62,.3);
+		font-size:calc(18px * var(--stage-inv-scale,1)); font-weight:1000; letter-spacing:.5px; cursor:pointer; }
+	.replay-action:hover { filter:brightness(1.07); transform:translateY(-1px); }
+	.replay-action:active { transform:translateY(2px); box-shadow:0 1px 0 #8c621a; }
+	.replay-action:focus-visible { outline:calc(4px * var(--stage-inv-scale,1)) solid #fff; outline-offset:calc(3px * var(--stage-inv-scale,1)); }
+	.replay-action[hidden] { display:none !important; }
+	.replay-overlay { position:absolute; inset:0; z-index:92; display:none; place-items:center; padding:28px;
+		background:rgba(0,0,0,.84); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); pointer-events:auto; }
+	.stage.replay-mode[data-replay-state="loading"] .replay-overlay,
+	.stage.replay-mode[data-replay-state="error"] .replay-overlay { display:grid; }
+	.replay-overlay-card { width:min(560px,92vw); padding:30px; transform:scale(var(--stage-inv-scale,1)); border:2px solid #d5a23b;
+		border-radius:18px; background:linear-gradient(180deg,#1b170d,#060709); box-shadow:0 0 0 4px #050505,0 26px 70px #000,0 0 38px rgba(255,194,48,.26);
+		color:#f8edcf; text-align:center; font-family:Inter,Arial,sans-serif; }
+	.replay-spinner { width:52px; height:52px; margin:0 auto 18px; border:5px solid rgba(255,226,100,.2); border-top-color:#ffe264; border-radius:50%;
+		animation:replay-spin .9s linear infinite; }
+	@keyframes replay-spin { to { transform:rotate(360deg); } }
+	.replay-overlay-title { color:#ffe36e; font-size:26px; font-weight:1000; letter-spacing:1.4px; text-transform:uppercase; }
+	.replay-overlay-detail { margin-top:10px; color:#e8d9b5; font-size:15px; line-height:1.45; }
+	.stage.replay-mode[data-replay-state="error"] .replay-spinner { display:none; }
+	.stage.replay-mode .replay-control-panel { display:flex; }
+	.stage.replay-mode .meter[data-meter="balance"],
+	.stage.replay-mode #btn-bonus,
+	.stage.replay-mode #btn-auto,
+	.stage.replay-mode .feature-control,
+	.stage.replay-mode #btn-spin,
+	.stage.replay-mode #bet-controls { display:none !important; }
+	.stage.replay-mode .meters { width:570px; left:calc(315px + var(--stage-x-shift,0px)); grid-template-columns:repeat(2,minmax(0,1fr)); }
+	.stage.replay-mode .controls { justify-content:center; align-items:center; gap:calc(12px * var(--stage-inv-scale,1)); }
+	.stage.replay-mode #btn-turbo { margin-right:0; }
+	.stage.replay-mode[data-replay-state="running"] .replay-action,
+	.stage.replay-mode[data-replay-state="loading"] .replay-action,
+	.stage.replay-mode[data-replay-state="error"] .replay-action { display:none !important; }
+	.stage.replay-mode[data-replay-state="error"] .replay-control-panel { opacity:.55; pointer-events:none; }
 	.notice-copy { color:#f1e4c6; font-size:15px; line-height:1.5; text-align:center; }
 	.notice-copy strong { color:#ffe49a; }
 	.interrupted-copy { max-width:500px; color:#f1e4c6; font-size:16px; line-height:1.5; text-align:center; }
@@ -667,6 +816,18 @@ const extraCss = `
 	.stage.mobile-portrait .feature-items { width: calc(90px * var(--stage-inv-scale, 1)); gap: calc(2px * var(--stage-inv-scale, 1)); }
 	.stage.mobile-portrait .feature-item img { width: calc(16px * var(--stage-inv-scale, 1)); height: calc(16px * var(--stage-inv-scale, 1)); }
 	.stage.mobile-portrait .feature-item span { font-size: calc(6px * var(--stage-inv-scale, 1)); }
+	.stage.mobile-portrait.replay-mode .meters {
+		left:50%; width:min(calc(94vw * var(--stage-inv-scale,1)),calc(570px * var(--stage-inv-scale,1))); transform:translateX(-50%);
+	}
+	.stage.mobile-portrait.replay-mode .replay-control-panel {
+		order:-1; width:min(calc(94vw * var(--stage-inv-scale,1)),calc(430px * var(--stage-inv-scale,1))); min-height:calc(68px * var(--stage-inv-scale,1));
+		padding:calc(7px * var(--stage-inv-scale,1)) calc(9px * var(--stage-inv-scale,1)); gap:calc(7px * var(--stage-inv-scale,1));
+	}
+	.stage.mobile-portrait.replay-mode .replay-control-copy { gap:calc(2px * var(--stage-inv-scale,1)); }
+	.stage.mobile-portrait.replay-mode .replay-control-copy strong { font-size:calc(12px * var(--stage-inv-scale,1)); }
+	.stage.mobile-portrait.replay-mode .replay-control-copy small { font-size:calc(11px * var(--stage-inv-scale,1)); white-space:normal; }
+	.stage.mobile-portrait.replay-mode .replay-currency-code { min-width:calc(36px * var(--stage-inv-scale,1)); margin-left:calc(3px * var(--stage-inv-scale,1)); padding:calc(2px * var(--stage-inv-scale,1)) calc(5px * var(--stage-inv-scale,1)); }
+	.stage.mobile-portrait.replay-mode .replay-action { min-width:calc(130px * var(--stage-inv-scale,1)); min-height:calc(48px * var(--stage-inv-scale,1)); padding:calc(7px * var(--stage-inv-scale,1)); font-size:calc(14px * var(--stage-inv-scale,1)); }
 `;
 
 const html = `<!doctype html>
@@ -756,6 +917,13 @@ ${meterRows}
 ${featureItems}
 				</div>
 			</div>
+			<div class="replay-control-panel" id="replay-controls" aria-live="polite" aria-label="Replay controls" hidden>
+				<div class="replay-control-copy">
+					<strong id="replay-status">LOADING REPLAY</strong>
+					<small><span id="replay-summary">Saved round &middot; read-only</span><span class="replay-currency-code" id="replay-currency">USD</span></small>
+				</div>
+				<button type="button" class="replay-action" id="replay-action" data-testid="replay-action" hidden>Replay Play</button>
+			</div>
 			<button type="button" class="spin-button" id="btn-spin" aria-label="Spin">
 				<img class="spin-art" src="${assets.spinButton}" alt="" /><span>SPIN</span>
 			</button>
@@ -765,7 +933,7 @@ ${featureItems}
 			<div class="bet-controls" id="bet-controls" aria-label="Bet controls">
 				<img class="button-art" src="${assets.controlPanel}" alt="" />
 				<button type="button" id="btn-bet-minus" aria-label="Decrease bet"><img src="${assets.minusButton}" alt="" /></button>
-				<div class="bet-display"><span>BET</span><strong id="bet-display">1.00</strong></div>
+				<div class="bet-display"><span id="bet-display-label" data-i18n="betLabel">BET</span><strong id="bet-display">1.00</strong></div>
 				<button type="button" id="btn-bet-plus" aria-label="Increase bet"><img src="${assets.plusButton}" alt="" /></button>
 			</div>
 			<button type="button" class="icon-button info" id="btn-info" aria-label="Info"><img class="button-art" src="${assets.infoButton}" alt="" /></button>
@@ -777,8 +945,8 @@ ${featureItems}
 			<div class="modal">
 				<div class="modal-header"><div class="modal-title">MENU</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
-					<button class="menu-item" data-open="modal-paytable"><span class="mi-ico">PT</span><span class="mi-text"><span class="mi-label">Pay Table</span><span class="mi-desc">Symbol payouts and cluster sizes</span></span><span class="mi-arrow">&rsaquo;</span></button>
-					<button class="menu-item" data-open="modal-rules"><span class="mi-ico">?</span><span class="mi-text"><span class="mi-label">Rules &amp; Features</span><span class="mi-desc">Cluster wins, coins, multipliers and free spins</span></span><span class="mi-arrow">&rsaquo;</span></button>
+					<button class="menu-item" data-open="modal-paytable"><span class="mi-ico">PT</span><span class="mi-text"><span class="mi-label" id="menu-paytable-label">Pay Table</span><span class="mi-desc" id="menu-paytable-desc">Symbol payouts and cluster sizes</span></span><span class="mi-arrow">&rsaquo;</span></button>
+					<button class="menu-item" data-open="modal-rules"><span class="mi-ico">?</span><span class="mi-text"><span class="mi-label">Rules &amp; Features</span><span class="mi-desc" id="menu-rules-desc">Cluster wins, coins, multipliers and free spins</span></span><span class="mi-arrow">&rsaquo;</span></button>
 					<button class="menu-item" data-open="modal-settings"><span class="mi-ico">SET</span><span class="mi-text"><span class="mi-label">Settings</span><span class="mi-desc">Stadium audio and turbo mode</span></span><span class="mi-arrow">&rsaquo;</span></button>
 					<button class="menu-item" id="menu-sound"><span class="mi-ico">SFX</span><span class="mi-text"><span class="mi-label">Sound</span><span class="mi-desc">Toggle music and effects</span></span><span class="mi-pill" id="menu-sound-state">ON</span></button>
 				</div>
@@ -803,12 +971,12 @@ ${featureItems}
 		<!-- ===== Paytable modal ===== -->
 		<div class="modal-backdrop" id="modal-paytable" data-modal>
 			<div class="modal">
-				<div class="modal-header"><div class="modal-title">PAY TABLE</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-header"><div class="modal-title" id="paytable-title">PAY TABLE</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
-					<p class="pt-intro">Payouts are shown as bet multipliers. Wins start at <b>5 connected matching symbols</b>, and bigger clusters pay more.</p>
-					<div class="pt-head">Symbol Pays <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small></div>
+					<p class="pt-intro" id="paytable-intro">Payouts are multipliers of the active bet. Wins begin with <b>5 orthogonally connected matching symbols</b>; substituting Wilds count in the cluster size.</p>
+					<div class="pt-head" id="paytable-head">Symbol Pays <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small></div>
 					<div class="pt-grid" id="pt-grid"></div>
-					<div class="pt-note">All values are multiplied by the active bet. Wilds substitute for regular paying symbols but do not replace Scatters.</div>
+					<div class="pt-note" id="paytable-note">5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. The cascade multiplier begins at 1× and rises after each successful cascade. Floating amounts are individual win steps; WIN is the cumulative round result.</div>
 				</div>
 			</div>
 		</div>
@@ -817,10 +985,11 @@ ${featureItems}
 		<div class="modal-backdrop" id="modal-rules" data-modal>
 			<div class="modal">
 				<div class="modal-header"><div class="modal-title">RULES &amp; FEATURES</div><button class="modal-close" data-close>&times;</button></div>
-				<div class="modal-body">
-					<p class="pt-intro">Golden Goal Rush is a 6&times;5 <b>cluster-pays</b> game. Land <b>5 or more matching symbols connected horizontally or vertically</b> to win. Winning symbols are removed and new ones cascade in; every cascade raises the win multiplier.</p>
+				<div class="modal-body" id="rules-body">
+					<p class="pt-intro">Golden Goal Rush is a 6&times;5 <b>cluster-pays</b> game. Land <b>5 or more matching symbols connected horizontally or vertically</b> to win. The 5+/7+/9+/12+ bands mean 5–6, 7–8, 9–11, and 12 or more symbols. Winning symbols are removed and new ones cascade in. The cascade multiplier starts at 1&times; and increments after each successful cascade.</p>
 					<div class="pt-head">Core Game</div>
-					<div class="pt-feat"><img src="${SYMBOLS.wild.src}" alt="Wild" /><div><b>WILD</b>Substitutes for every paying symbol to help complete clusters. Does not replace the Scatter.</div></div>
+					<div class="pt-feat"><img src="${SYMBOLS.wild.src}" alt="Wild" /><div><b>WILD</b>Substitutes for every normal paying symbol to help complete clusters and is included in the displayed cluster size. Does not replace the Scatter.</div></div>
+					<div class="pt-feat"><div class="pt-chip"></div><div><b>WIN AMOUNTS</b>Each floating cluster amount is the award for that specific cascade step, including its cascade multiplier. The WIN meter is the cumulative authoritative result for the full round.</div></div>
 					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Scatter" /><div><b>SCATTER &mdash; VIP TICKET</b>3, 4 or 5 trigger Free Spins Tier 1 / 2 / 3.</div></div>
 					<div class="pt-feat"><div class="pt-chip"></div><div><b>GOLDEN CELLS</b>Every winning position turns into a Golden Cell for the rest of the spin sequence.</div></div>
 					<div class="pt-head">Golden Goal Feature</div>
@@ -833,6 +1002,10 @@ ${featureItems}
 						${Object.entries(CONFIG.tiers).map(([t, v]) => 'Tier ' + t + ' &mdash; ' + v.name + ': ' + v.spins + ' spins' + (v.guaranteedRainbow ? ', guaranteed Arc each spin' : '') + '.').join('<br>')}</div></div>
 					<div class="pt-feat"><img src="${assets.bonusButton}" alt="Bonus Buy" /><div><b>BONUS BUY</b>
 						${CONFIG.bonusBuy.map((o) => o.label + ' &mdash; ' + o.mult + '&times; bet').join('<br>')}<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
+					<div class="pt-head">Game Modes</div>
+					${Object.values(PLAYER_MODE_META).map((mode) => `<div class="pt-feat"><div class="pt-chip"></div><div><b>${mode.name}</b>${mode.description}<br><small>Trigger: ${mode.trigger}. Cost multiplier: ${mode.costMultiplier}&times;. ${mode.retrigger}</small></div></div>`).join('\n\t\t\t\t\t')}
+					<div class="pt-head">Retriggers</div>
+					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Retrigger" /><div><b>RETRIGGERS</b>Base Game and Rainbow Spin can trigger Free Spins with 3, 4 or 5 Scatter tickets. Purchased Free Spins do not generate additional Free Spins in the current math book.</div></div>
 					<div class="pt-head">Buttons &amp; Controls</div>
 					<div class="controls-guide">
 ${controlRuleRows}
@@ -846,11 +1019,20 @@ ${controlRuleRows}
 		<!-- ===== Auto-Bet modal ===== -->
 		<div class="modal-backdrop" id="modal-autospin" data-modal>
 			<div class="modal">
-				<div class="modal-header"><div class="modal-title">AUTO-BET</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-header"><div class="modal-title" id="autospin-title">AUTO-BET</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
 					<div class="auto-options" id="auto-options"></div>
 					<div class="auto-confirm" id="auto-confirm" aria-live="polite"></div>
 				</div>
+			</div>
+		</div>
+
+		<!-- Replay-only loading/error surface. Ready/Play Again controls live in the HUD. -->
+		<div class="replay-overlay" id="replay-overlay" data-testid="replay-overlay" role="status" aria-live="assertive" aria-hidden="true">
+			<div class="replay-overlay-card">
+				<div class="replay-spinner" aria-hidden="true"></div>
+				<div class="replay-overlay-title" id="replay-overlay-title">Loading Replay</div>
+				<div class="replay-overlay-detail" id="replay-overlay-detail">Retrieving the saved round from Stake Engine.</div>
 			</div>
 		</div>
 
@@ -890,7 +1072,7 @@ ${controlRuleRows}
 		<!-- ===== Bonus Buy modal ===== -->
 		<div class="modal-backdrop" id="modal-bonusbuy" data-modal>
 			<div class="modal">
-				<div class="modal-header"><div class="modal-title">BONUS BUY</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-header"><div class="modal-title" id="bonusbuy-title">BONUS BUY</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
 					<div class="bonusbuy-hero"><img src="${assets.featureBanner}" alt="" /><div class="bonusbuy-title">Golden Goal Rush</div></div>
 					<div class="bb-list" id="bonusbuy-list"></div>
@@ -903,32 +1085,122 @@ ${controlRuleRows}
 
 <script>
 const SYMBOLS = ${JSON.stringify(SYMBOLS)};
+const PRODUCTION_PAYTABLE = ${JSON.stringify(PRODUCTION_PAYTABLE)};
+const FORMATTED_PRODUCTION_PAYTABLE = ${JSON.stringify(FORMATTED_PRODUCTION_PAYTABLE)};
+const PRODUCTION_PAYING_SYMBOLS = ${JSON.stringify(PAYING_SYMBOLS)};
+const CLUSTER_THRESHOLDS = ${JSON.stringify(CLUSTER_THRESHOLDS)};
+const PRODUCTION_GAME_ID = ${JSON.stringify(PRODUCTION_GAME_CONFIG.gameId)};
+const PRODUCTION_MATH_VERSION = ${JSON.stringify(PRODUCTION_GAME_CONFIG.version)};
+const PRODUCTION_BET_MODES = ${JSON.stringify(Object.keys(PRODUCTION_GAME_CONFIG.betModes || {}))};
 const COIN_ASSETS = ${JSON.stringify(COIN_ASSETS)};
 const MULT_ASSETS = ${JSON.stringify(MULT_ASSETS)};
 const COLLECTOR_ASSET = ${JSON.stringify(COLLECTOR_ASSET)};
 const AUDIO_ASSETS = ${JSON.stringify(AUDIO_ASSETS)};
+const ASSETS = ${JSON.stringify(assets)};
+const PLAYER_MODE_META = ${JSON.stringify(PLAYER_MODE_META)};
+const CONTROL_RULES = ${JSON.stringify(controlRules)};
 const CONFIG = ${JSON.stringify(CONFIG)};
 const CURRENCY_META = ${JSON.stringify(CURRENCY_META)};
 const COLS = 6, ROWS = 5, MIN_CLUSTER = 5;
-let BETS = [
+const DEV_BET_LEVELS = [
 	0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
 	1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 7.5,
 	10, 15, 20, 25, 30, 40, 50, 75,
 	100, 150, 200, 250, 300, 500, 750,
 	1000, 1500, 2000, 2500, 5000, 7500, 10000,
 ];
+let BETS = [...DEV_BET_LEVELS];
 const API_AMOUNT_MULTIPLIER = 1000000;
 const DEFAULT_CURRENCY = 'EUR';
 const AUTO_SPIN_OPTIONS = [10, 25, 50, 100, 200, Infinity];
 const USE_RGS_STATE_RENDERER = false;
 const USE_SAFE_RGS_BASE_RENDERER = true;
+const LANGUAGE_RESOURCES = {
+	en: {
+		balanceLabel: 'BALANCE',
+		winLabel: 'WIN',
+		betLabel: 'BET',
+		spinButton: 'SPIN',
+		buyBonusAria: 'Buy Bonus',
+		autoAria: 'Auto Spin',
+		betControlsAria: 'Bet controls',
+		decreaseBetAria: 'Decrease bet',
+		increaseBetAria: 'Increase bet',
+		autoTitle: 'AUTO-BET',
+		bonusBuyTitle: 'BONUS BUY',
+		paytableLabel: 'Pay Table',
+		paytableDesc: 'Symbol payouts and cluster sizes',
+		paytableTitle: 'PAY TABLE',
+		paytableIntro: 'Payouts are multipliers of the active bet. Wins begin with <b>5 orthogonally connected matching symbols</b>; substituting Wilds are included in the displayed cluster size.',
+		paytableHead: 'Symbol Pays <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small>',
+		paytableNote: '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each paying symbol is evaluated independently with orthogonally connected Wilds. A Wild may support more than one distinct symbol cluster, counts toward each supported cluster, and appears only once within a single win. The tumble removes the union of all winning positions. The cascade multiplier starts at 1× and increases after each successful cascade, so a later floating cluster amount can exceed the base table value. A floating amount is that win step; the WIN meter is cumulative for the complete round.',
+		rulesDesc: 'Cluster wins, coins, multipliers and free spins',
+		autoConfirm: 'Start Auto-Bet for',
+		bonusNoteAffordable: 'Prices scale with your current bet. Tier 3 can only trigger naturally.',
+		bonusNoteDisabled: 'Greyed options exceed your balance. Tier 3 can only trigger naturally.',
+		buyConfirmVerb: 'Buy',
+		balanceAfterPurchase: 'Balance after purchase',
+		replayTitle: 'Bet Replay',
+		startReplay: 'Start Replay',
+		replayEvent: 'Replay Event',
+		replayMode: 'Mode',
+		replayBaseBet: 'Base Bet',
+		replayCostMultiplier: 'Cost Multiplier',
+		replayTotalCost: 'Total Bet Cost',
+		replayPayoutMultiplier: 'Payout Multiplier',
+		replayTotalWin: 'Total Win',
+		replayNote: 'This is a replay of a previous bet round. No bets will be placed.',
+		replayComplete: 'Replay Complete',
+	},
+	sweeps_en: {
+		balanceLabel: 'BALANCE',
+		winLabel: 'WIN',
+		betLabel: 'PLAY',
+		spinButton: 'PLAY',
+		buyBonusAria: 'Feature',
+		autoAria: 'Auto-Play',
+		betControlsAria: 'Play controls',
+		decreaseBetAria: 'Decrease play amount',
+		increaseBetAria: 'Increase play amount',
+		autoTitle: 'AUTO-PLAY',
+		bonusBuyTitle: 'BONUS / FEATURE',
+		paytableLabel: 'Symbol Table',
+		paytableDesc: 'Symbol values and cluster sizes',
+		paytableTitle: 'SYMBOL TABLE',
+		paytableIntro: 'Values are multipliers of the active play amount. Awards begin with <b>5 orthogonally connected matching symbols</b>; substituting Wilds are included in the displayed cluster size.',
+		paytableHead: 'Symbol Values <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small>',
+		paytableNote: '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each paying symbol is evaluated independently with orthogonally connected Wilds. A Wild may support more than one distinct symbol cluster, counts toward each supported cluster, and appears only once within a single award. The tumble removes the union of all winning positions. The cascade multiplier starts at 1× and increases after each successful cascade, so a later floating cluster amount can exceed the base table value. A floating amount is that award step; the WIN meter is cumulative for the complete round.',
+		rulesDesc: 'Cluster awards, coins, multipliers and free spins',
+		autoConfirm: 'Start Auto-Play for',
+		bonusNoteAffordable: 'Feature amounts scale with your current play amount. Tier 3 can only trigger naturally.',
+		bonusNoteDisabled: 'Greyed options exceed your balance. Tier 3 can only trigger naturally.',
+		buyConfirmVerb: 'Start',
+		balanceAfterPurchase: 'Balance after feature',
+		replayTitle: 'Play Replay',
+		startReplay: 'Start Replay',
+		replayEvent: 'Replay Play',
+		replayMode: 'Mode',
+		replayBaseBet: 'Base Play',
+		replayCostMultiplier: 'Feature Multiplier',
+		replayTotalCost: 'Play Cost',
+		replayPayoutMultiplier: 'Final Multiplier',
+		replayTotalWin: 'Final Play Amount',
+		replayNote: 'This is a replay of a previous play round. No new play will be placed.',
+		replayComplete: 'Replay Complete',
+	},
+};
+const SOCIAL_RESTRICTED_PHRASES = ['Bet Replay', 'Base Bet', 'Total Bet Cost', 'Payout Multiplier', 'Bonus Buy', 'Auto-Bet'];
+const SOCIAL_RESOURCE_TEXT = Object.values(LANGUAGE_RESOURCES.sweeps_en).join(' ');
+for (const phrase of SOCIAL_RESTRICTED_PHRASES) {
+	if (SOCIAL_RESOURCE_TEXT.includes(phrase)) console.error('[GGR social-copy] restricted phrase in sweeps_en', phrase);
+}
 
 const state = {
 	balance: 1000, bet: 1, betIdx: 9, currency: DEFAULT_CURRENCY, grid: [], spinning: false, walletBusy: false, turbo: false, auto: false, autoRemaining: 0, selectedAutoSpins: null,
 	golden: new Set(), reveals: new Map(), // golden = 'c,r' keys; reveals = 'c,r' -> {kind,value,asset}
-	mode: 'base', tier: 0, fsLeft: 0, fsTotal: 0, win: 0, sound: true, musicVolume: 100, sfxVolume: 100,
+	mode: 'base', tier: 0, fsLeft: 0, fsTotal: 0, fsWin: 0, fsBest: 0, fsPlayed: 0, win: 0, sound: true, musicVolume: 100, sfxVolume: 100,
 	skipRequested: false, walletBalanceDeferred: false, pendingWalletBalance: null,
-	fatal: false,
+	fatal: false, replay: false, replayPlaying: false,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -984,6 +1256,128 @@ function currencySymbol(currency = state.currency) {
 }
 const ck = (c, r) => c + ',' + r;
 const apiAmountToMoney = (amount) => Math.round(((Number(amount) || 0) / API_AMOUNT_MULTIPLIER) * 100) / 100;
+const moneyToApiAmount = (amount) => Math.round((Number(amount) || 0) * API_AMOUNT_MULTIPLIER);
+const moneyRound = (amount) => Math.round((Number(amount) || 0) * 100) / 100;
+const BOOK_MULTIPLIER_SCALE = 100;
+const replayApiAmountToMoney = (amount) => Number(amount) / API_AMOUNT_MULTIPLIER;
+const replayBookUnitsToMultiplier = (amount) => Number(amount) / BOOK_MULTIPLIER_SCALE;
+function requireReplaySafeInteger(value, label, { positive = false } = {}) {
+	if (typeof value !== 'number' || !Number.isSafeInteger(value) || (positive ? value <= 0 : value < 0)) {
+		throw new Error(label + ' must be a ' + (positive ? 'positive' : 'non-negative') + ' integer');
+	}
+	return value;
+}
+const DEV_BET_CONFIG = {
+	source: 'dev-fallback',
+	currency: DEFAULT_CURRENCY,
+	defaultBet: 1,
+	betLevels: [...DEV_BET_LEVELS],
+	apiLevels: DEV_BET_LEVELS.map((amount) => moneyToApiAmount(amount)),
+};
+let activeBetConfig = { ...DEV_BET_CONFIG };
+function configAmountLooksApi(value) {
+	const n = Number(value);
+	return Number.isFinite(n) && Math.abs(n) >= 1000;
+}
+function rawConfigAmount(raw) {
+	if (raw && typeof raw === 'object') return raw.amount ?? raw.value ?? raw.bet ?? raw.level ?? raw.betLevel ?? raw.defaultBetLevel;
+	return raw;
+}
+function configAmountToMoney(raw) {
+	const value = rawConfigAmount(raw);
+	const n = Number(value);
+	if (!Number.isFinite(n) || n <= 0) return null;
+	return configAmountLooksApi(n) ? apiAmountToMoney(n) : moneyRound(n);
+}
+function configAmountToApi(raw, money) {
+	const value = rawConfigAmount(raw);
+	const n = Number(value);
+	return configAmountLooksApi(n) ? Math.round(n) : moneyToApiAmount(money);
+}
+function uniqueSortedBetLevels(items) {
+	const byMoney = new Map();
+	for (const item of items || []) {
+		if (!item || !Number.isFinite(item.money) || item.money <= 0) continue;
+		const key = item.money.toFixed(2);
+		if (!byMoney.has(key)) byMoney.set(key, { money: item.money, api: item.api || moneyToApiAmount(item.money) });
+	}
+	return [...byMoney.values()].sort((a, b) => a.money - b.money);
+}
+function firstArrayConfig(config, keys) {
+	for (const key of keys) {
+		if (Array.isArray(config && config[key])) return config[key];
+	}
+	return [];
+}
+function firstMoneyConfig(config, keys) {
+	for (const key of keys) {
+		const value = config && config[key];
+		const money = configAmountToMoney(value);
+		if (money !== null) return money;
+	}
+	return null;
+}
+function normalizeBetConfig(data = {}, source = 'authenticate') {
+	const config = data && data.config ? data.config : (data || {});
+	const balanceCurrency = data && data.balance && data.balance.currency;
+	const currency = normalizeCurrency(config.currency || config.defaultCurrency || balanceCurrency || state.currency || UrlState.currency());
+	const rawLevels = firstArrayConfig(config, ['betLevels', 'availableBetLevels', 'betAmounts', 'bets', 'levels', 'denominations']);
+	const levels = uniqueSortedBetLevels(rawLevels.map((raw) => {
+		const money = configAmountToMoney(raw);
+		return money === null ? null : { money, api: configAmountToApi(raw, money) };
+	}));
+	let defaultBet = firstMoneyConfig(config, ['defaultBetLevel', 'defaultBet', 'defaultBetAmount', 'betLevel', 'betAmount', 'minBet']);
+	if (defaultBet === null && levels.length) defaultBet = levels[0].money;
+	if (defaultBet === null && data && data.round && data.round.amount) defaultBet = configAmountToMoney(data.round.amount);
+	if (defaultBet === null && source === 'dev-fallback') defaultBet = DEV_BET_CONFIG.defaultBet;
+	if (source === 'authenticate' && !levels.length && defaultBet !== null) {
+		levels.push({ money: defaultBet, api: moneyToApiAmount(defaultBet) });
+	}
+	return {
+		source,
+		currency,
+		defaultBet,
+		betLevels: levels.map((item) => item.money),
+		apiLevels: levels.map((item) => item.api),
+		modes: config.betModes || config.modes || {},
+		raw: config,
+	};
+}
+function nearestBetIndex(amount, levels = BETS) {
+	if (!levels.length) return -1;
+	let idx = 0;
+	let best = Math.abs(levels[0] - amount);
+	for (let i = 1; i < levels.length; i += 1) {
+		const diff = Math.abs(levels[i] - amount);
+		if (diff < best) { best = diff; idx = i; }
+	}
+	return idx;
+}
+function applyBetConfig(config, options = {}) {
+	if (!config) return false;
+	activeBetConfig = { ...activeBetConfig, ...config };
+	if (config.currency) state.currency = normalizeCurrency(config.currency);
+	const levels = Array.isArray(config.betLevels) ? config.betLevels.filter((v) => Number.isFinite(v) && v > 0) : [];
+	const apiLevels = Array.isArray(config.apiLevels) ? config.apiLevels : [];
+	if (levels.length) {
+		BETS = levels;
+		activeBetConfig.apiLevels = levels.map((level, index) => apiLevels[index] || moneyToApiAmount(level));
+	} else if (config.source === 'authenticate' && UrlState.requiresRgs()) {
+		const fallback = Number.isFinite(config.defaultBet) && config.defaultBet > 0 ? config.defaultBet : state.bet;
+		BETS = [fallback];
+		activeBetConfig.apiLevels = [moneyToApiAmount(fallback)];
+	}
+	const target = options.preferDefault && Number.isFinite(config.defaultBet) && config.defaultBet > 0
+		? config.defaultBet
+		: (Number.isFinite(state.bet) && state.bet > 0 ? state.bet : (config.defaultBet || BETS[0] || 1));
+	const idx = nearestBetIndex(target, BETS);
+	if (idx >= 0) {
+		state.betIdx = idx;
+		state.bet = BETS[idx];
+	}
+	updateMeters();
+	return true;
+}
 function debugJson(label, value) {
 	if (!UrlState.debug()) return;
 	try { console.log(label, JSON.stringify(value)); } catch (e) { console.log(label, value); }
@@ -1024,8 +1418,14 @@ const UrlState = (() => {
 			const value = get('lang', 'language') || 'en';
 			return value === 'br' ? 'pt' : value;
 		},
+		currencyRaw: () => get('currency').toUpperCase(),
 		currency: () => (get('currency') || DEFAULT_CURRENCY).toUpperCase(),
 		device: () => get('device', 'deviceType').toLowerCase(),
+		game: () => get('game', 'gameName', 'slug') || 'golden-goal-rush',
+		version: () => get('version', 'gameVersion') || '1',
+		launchMode: () => get('mode', 'betMode') || 'base',
+		event: () => get('event', 'eventID', 'eventId', 'betID', 'betId'),
+		amount: () => get('amount', 'bet', 'stake'),
 		social: () => ['social', 'socialCasino', 'social_casino', 'stakeUS'].some((key) => /^(1|true|yes)$/i.test(get(key))),
 		replay: () => get('replay') === 'true',
 		debug: () => get('debug', 'rgs_debug') === 'true',
@@ -1033,9 +1433,226 @@ const UrlState = (() => {
 		requiresRgs: () => hostRequiresRgs() || hasAnyRgsParam(),
 	};
 })();
-state.currency = UrlState.currency();
+state.currency = UrlState.replay() ? UrlState.currencyRaw() : UrlState.currency();
+
+function isSocialPlay() {
+	return UrlState.social() || normalizeCurrency(state.currency) === 'XGC' || normalizeCurrency(state.currency) === 'XSC';
+}
+function textResource() {
+	return isSocialPlay() ? LANGUAGE_RESOURCES.sweeps_en : LANGUAGE_RESOURCES.en;
+}
+function t(key) {
+	const resource = textResource();
+	return resource[key] || LANGUAGE_RESOURCES.en[key] || key;
+}
+function canonicalMode(mode) {
+	const key = String(mode || 'base').toLowerCase();
+	if (key === 'bonus_tier1' || key === 'tier1' || key === 'golden_chance') return 'bonus_tier1';
+	if (key === 'bonus_tier2' || key === 'tier2' || key === 'all_that_glitters') return 'bonus';
+	if (key === 'bonus_tier3' || key === 'tier3' || key === 'end_of_the_rainbow') return 'bonus_tier3';
+	if (key === 'feature' || key === 'feature_spins') return 'hunt';
+	if (key === 'rainbow_spin') return 'rainbow';
+	return PLAYER_MODE_META[key] ? key : 'base';
+}
+function modeMeta(mode) {
+	return PLAYER_MODE_META[canonicalMode(mode)] || PLAYER_MODE_META.base;
+}
+function playerModeName(mode) {
+	const meta = modeMeta(mode);
+	return isSocialPlay() ? (meta.socialName || meta.name) : meta.name;
+}
+function multiplierText(value) {
+	const n = Number(value);
+	if (!Number.isFinite(n)) return '0x';
+	return (Math.round(n * 100) / 100).toString() + 'x';
+}
+function controlRulesGuideHtml(social = isSocialPlay()) {
+	return '<div class="controls-guide">' + CONTROL_RULES.map((rule) => {
+		const key = rule[0], name = social ? rule[2] : rule[1], icon = rule[3], desc = social ? rule[5] : rule[4];
+		return '<div class="control-rule" data-control-key="' + key + '" data-normal-name="' + rule[1] + '" data-social-name="' + rule[2] + '" data-normal-desc="' + rule[4] + '" data-social-desc="' + rule[5] + '">'
+			+ '<img src="' + icon + '" alt="' + name + '" />'
+			+ '<div><b>' + name + '</b>' + desc + '</div></div>';
+	}).join('') + '</div>';
+}
+function buildSocialRulesBodyHtml() {
+	const modeKeys = ['base', 'hunt', 'rainbow', 'bonus_tier1', 'bonus', 'bonus_tier3'];
+	const modeRows = modeKeys.map((key) => {
+		const meta = PLAYER_MODE_META[key];
+		return '<div class="pt-feat"><div class="pt-chip"></div><div><b>' + (meta.socialName || meta.name) + '</b>'
+			+ meta.socialDescription + '<br><small>Access: ' + meta.socialTrigger + '. Feature Multiplier: ' + multiplierText(meta.costMultiplier) + '. ' + meta.socialRetrigger + '</small></div></div>';
+	}).join('');
+	const tierRows = Object.entries(CONFIG.tiers).map(([tier, value]) => 'Tier ' + tier + ' - ' + value.name + ': ' + value.spins + ' free spins' + (value.guaranteedRainbow ? ', guaranteed Arc each spin' : '') + '.').join('<br>');
+	const featureRows = CONFIG.bonusBuy.map((option) => option.label + ' - ' + multiplierText(option.mult) + ' play amount').join('<br>');
+	return ''
+		+ '<p class="pt-intro">Golden Goal Rush is a 6&times;5 <b>cluster-awards</b> game. Land <b>5 or more matching symbols connected horizontally or vertically</b> to receive an award. The 5+/7+/9+/12+ bands mean 5–6, 7–8, 9–11, and 12 or more symbols. The cascade multiplier starts at 1&times; and increments after each successful cascade.</p>'
+		+ '<div class="pt-head">Core Game</div>'
+		+ '<div class="pt-feat"><img src="' + SYMBOLS.wild.src + '" alt="Wild" /><div><b>WILD</b>Substitutes for every normal symbol to help complete clusters and is included in the displayed cluster size. Does not replace the Scatter.</div></div>'
+		+ '<div class="pt-feat"><div class="pt-chip"></div><div><b>WIN AMOUNTS</b>Each floating cluster amount is the award for that cascade step, including its cascade multiplier. The WIN meter is cumulative for the full recorded round.</div></div>'
+		+ '<div class="pt-feat"><img src="' + SYMBOLS.scatter.src + '" alt="Scatter" /><div><b>SCATTER - VIP TICKET</b>3, 4 or 5 trigger Free Spins Tier 1 / 2 / 3.</div></div>'
+		+ '<div class="pt-feat"><div class="pt-chip"></div><div><b>GOLDEN CELLS</b>Every winning position turns into a Golden Cell for the rest of the spin sequence.</div></div>'
+		+ '<div class="pt-head">Golden Goal Feature</div>'
+		+ '<div class="pt-feat"><img src="' + SYMBOLS.rainbow.src + '" alt="Golden Arc" /><div><b>GOLDEN ARC (RAINBOW)</b>While an Arc is on the board it activates all Golden Cells, revealing Coins, Multiplier Badges and Collector Cups.</div></div>'
+		+ '<div class="pt-feat"><img src="' + COIN_ASSETS.gold + '" alt="Coins" /><div><b>SPONSOR COINS</b>Bronze ' + CONFIG.bronzeValues[0] + '-' + CONFIG.bronzeValues[CONFIG.bronzeValues.length - 1] + 'x, Silver ' + CONFIG.silverValues[0] + '-' + CONFIG.silverValues[CONFIG.silverValues.length - 1] + 'x, Gold ' + CONFIG.goldValues[0] + '-' + CONFIG.goldValues[CONFIG.goldValues.length - 1] + 'x the play amount.</div></div>'
+		+ '<div class="pt-feat"><img src="' + MULT_ASSETS[5] + '" alt="Multiplier Badge" /><div><b>MULTIPLIER BADGE</b>Multiplies adjacent coins by ' + CONFIG.multiplierValues.map((v) => 'x' + v).join(', ') + '.</div></div>'
+		+ '<div class="pt-feat"><img src="' + COLLECTOR_ASSET + '" alt="Collector Cup" /><div><b>COLLECTOR CUP</b>Collects the value of every visible coin. After the last cup the Golden Cells reveal again, repeating while new cups appear.</div></div>'
+		+ '<div class="pt-head">Free Spins &amp; Features</div>'
+		+ '<div class="pt-feat"><img src="' + SYMBOLS.scatter.src + '" alt="Free Spins" /><div><b>FREE SPINS</b>' + tierRows + '</div></div>'
+		+ '<div class="pt-feat"><img src="' + ASSETS.bonusButton + '" alt="Feature" /><div><b>BONUS / FEATURE</b>' + featureRows + '<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>'
+		+ '<div class="pt-head">Game Modes</div>' + modeRows
+		+ '<div class="pt-head">Retriggers</div>'
+		+ '<div class="pt-feat"><img src="' + SYMBOLS.scatter.src + '" alt="Retrigger" /><div><b>RETRIGGERS</b>Base Play and Rainbow Spin can trigger Free Spins with 3, 4 or 5 Scatter tickets. Feature-panel Free Spins do not add additional Free Spins in the current math book.</div></div>'
+		+ '<div class="pt-head">Buttons &amp; Controls</div>' + controlRulesGuideHtml(true)
+		+ '<div class="pt-note">If the game is refreshed while a base-game round is still active, the round is immediately settled with Stake Engine and the result is available in game history. Active feature rounds resume from the saved round state with the selected balance and play amount preserved.</div>'
+		+ '<div class="pt-note">RTP 96.45% &middot; Max award ' + CONFIG.maxWinMultiplier.toLocaleString() + 'x play amount &middot; All awards use the play amount. Malfunction voids all awards and plays.</div>';
+}
+let normalRulesHtml = '';
+function applyLanguage() {
+	const social = isSocialPlay();
+	document.documentElement.dataset.social = social ? 'true' : 'false';
+	document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+	const setText = (id, value) => { const el = $(id); if (el) el.textContent = value; };
+	const setHtml = (id, value) => { const el = $(id); if (el) el.innerHTML = value; };
+	const setAttr = (id, attr, value) => { const el = $(id); if (el) el.setAttribute(attr, value); };
+	const spinText = $('btn-spin')?.querySelector('span');
+	if (spinText) spinText.textContent = t('spinButton');
+	setAttr('btn-spin', 'aria-label', t('spinButton'));
+	setAttr('btn-bonus', 'aria-label', t('buyBonusAria'));
+	setAttr('btn-auto', 'aria-label', t('autoAria'));
+	setAttr('bet-controls', 'aria-label', t('betControlsAria'));
+	setAttr('btn-bet-minus', 'aria-label', t('decreaseBetAria'));
+	setAttr('btn-bet-plus', 'aria-label', t('increaseBetAria'));
+	setText('autospin-title', t('autoTitle'));
+	setText('bonusbuy-title', t('bonusBuyTitle'));
+	setText('menu-paytable-label', t('paytableLabel'));
+	setText('menu-paytable-desc', t('paytableDesc'));
+	setText('menu-rules-desc', t('rulesDesc'));
+	setText('paytable-title', t('paytableTitle'));
+	setHtml('paytable-intro', t('paytableIntro'));
+	setHtml('paytable-head', t('paytableHead'));
+	setText('paytable-note', t('paytableNote'));
+	setText('replay-title', t('replayTitle'));
+	setText('replay-start', t('startReplay'));
+	setText('replay-again', t('replayEvent'));
+	setText('replay-mode-label', t('replayMode'));
+	setText('replay-basebet-label', t('replayBaseBet'));
+	setText('replay-cost-label', t('replayCostMultiplier'));
+	setText('replay-totalcost-label', t('replayTotalCost'));
+	setText('replay-payout-label', t('replayPayoutMultiplier'));
+	setText('replay-totalwin-label', t('replayTotalWin'));
+	setText('replay-end-mode-label', t('replayMode'));
+	setText('replay-end-win-label', t('replayTotalWin'));
+	setText('replay-note', t('replayNote'));
+	setText('replay-end-title', t('replayComplete'));
+	const rulesBody = $('rules-body');
+	if (rulesBody) {
+		if (!normalRulesHtml) normalRulesHtml = rulesBody.innerHTML;
+		rulesBody.innerHTML = social ? buildSocialRulesBodyHtml() : normalRulesHtml;
+	}
+}
 
 const initialLaunchUrl = window.location.href;
+const REPLAY_FORBIDDEN_IDS = Object.freeze([
+	'meter-balance',
+	'btn-spin',
+	'btn-auto',
+	'btn-bonus',
+	'bet-controls',
+	'modal-autospin',
+	'modal-bonusbuy',
+	'modal-major-confirm',
+	'modal-interrupted-round',
+]);
+
+function makeUnavailableInReplay(element) {
+	if (!element) return;
+	element.hidden = true;
+	element.setAttribute('aria-hidden', 'true');
+	element.setAttribute('inert', '');
+	try { element.inert = true; } catch (error) {}
+	if ('disabled' in element) element.disabled = true;
+	element.querySelectorAll?.('button,input,select,textarea,[tabindex]').forEach((child) => {
+		if ('disabled' in child) child.disabled = true;
+		child.setAttribute('tabindex', '-1');
+	});
+}
+
+function enterReplayUi() {
+	state.replay = true;
+	stopAutoSpin();
+	stage.classList.add('replay-mode');
+	stage.setAttribute('aria-label', 'Golden Goal Rush bet replay');
+	const controls = $('replay-controls');
+	if (controls) {
+		controls.hidden = false;
+		controls.removeAttribute('aria-hidden');
+	}
+	for (const id of REPLAY_FORBIDDEN_IDS) makeUnavailableInReplay($(id));
+	makeUnavailableInReplay(document.querySelector('.meter[data-meter="balance"]'));
+	makeUnavailableInReplay(document.querySelector('.feature-control'));
+	const replayBetLabel = document.querySelector('.meter[data-meter="bet"] .meter-label');
+	if (replayBetLabel) {
+		replayBetLabel.textContent = isSocialPlay() ? 'REPLAY PLAY' : 'REPLAY BET';
+		replayBetLabel.removeAttribute('data-i18n');
+	}
+	const turbo = $('btn-turbo');
+	if (turbo) turbo.setAttribute('aria-label', 'Replay speed');
+	updateLocks();
+}
+
+function setReplayLifecycle(status, meta = null, detail = '') {
+	enterReplayUi();
+	stage.dataset.replayState = status;
+	const action = $('replay-action');
+	const statusLabel = $('replay-status');
+	const summary = $('replay-summary');
+	const currency = $('replay-currency');
+	const overlay = $('replay-overlay');
+	const overlayTitle = $('replay-overlay-title');
+	const overlayDetail = $('replay-overlay-detail');
+	const labels = {
+		loading: 'LOADING REPLAY',
+		ready: 'READY TO REPLAY',
+		running: 'REPLAY RUNNING',
+		completed: 'REPLAY COMPLETED',
+		error: 'REPLAY ERROR',
+	};
+	if (statusLabel) statusLabel.textContent = labels[status] || 'REPLAY';
+	if (currency) currency.textContent = normalizeCurrency(state.currency || (UrlState.replay() ? UrlState.currencyRaw() : UrlState.currency()));
+	if (summary && meta) summary.textContent = String(meta.mode || 'Base').toUpperCase() + ' · Replay Bet ' + formatCurrency(meta.baseBet);
+	if (summary && status === 'loading') summary.textContent = 'Saved round · read-only';
+	if (action) {
+		const available = status === 'ready' || status === 'completed';
+		action.hidden = !available;
+		action.disabled = !available;
+		action.textContent = status === 'completed' ? 'Play Again' : 'Replay Play';
+		action.setAttribute('aria-label', status === 'completed' ? 'Play Again saved replay' : 'Replay Play saved round');
+	}
+	if (overlay) overlay.setAttribute('aria-hidden', status === 'loading' || status === 'error' ? 'false' : 'true');
+	if (status === 'loading') {
+		if (overlayTitle) overlayTitle.textContent = 'Loading Replay';
+		if (overlayDetail) overlayDetail.textContent = detail || 'Retrieving the saved round from Stake Engine.';
+	} else if (status === 'error') {
+		if (overlayTitle) overlayTitle.textContent = 'Replay Error';
+		if (overlayDetail) overlayDetail.textContent = detail || 'The saved replay could not be loaded.';
+	}
+}
+
+function replayError(title, detail) {
+	state.fatal = true;
+	state.replay = true;
+	state.replayPlaying = false;
+	state.spinning = false;
+	state.walletBusy = false;
+	stopAutoSpin();
+	clearSkip();
+	closeModals(true);
+	state.grid = [];
+	board.innerHTML = '';
+	stage.classList.remove('spinning', 'bonus-mode', 'win-focus', 'antic', 'skip-mode');
+	setReplayLifecycle('error', null, (title ? title + '. ' : '') + (detail || 'Please relaunch the replay from Stake Engine.'));
+	console.error('[GGR replay error]', { title, detail });
+}
+
 function fatalError(title, detail = '') {
 	state.fatal = true;
 	stopAutoSpin();
@@ -1061,13 +1678,47 @@ function fatalError(title, detail = '') {
 	console.error('[GGR fatal]', { title, detail });
 }
 function validateLaunchUrl() {
-	if (!UrlState.requiresRgs()) return true;
 	if (UrlState.replay()) {
-		// This build does not implement replay rendering. A manipulated launch
-		// URL with replay=true must NOT silently fall back to the local demo.
-		fatalError('Invalid game launch', 'The game URL contains unsupported launch parameters. Please relaunch the game from Stake Engine.');
-		return false;
+		const missing = [];
+		if (!UrlState.hasLaunchParam('rgs_url', 'rgsUrl', 'rgsURL')) missing.push('rgs_url');
+		if (!UrlState.hasLaunchParam('game', 'gameName', 'slug')) missing.push('game');
+		if (!UrlState.hasLaunchParam('version', 'gameVersion')) missing.push('version');
+		if (!UrlState.hasLaunchParam('mode', 'betMode')) missing.push('mode');
+		if (!UrlState.hasLaunchParam('event', 'eventID', 'eventId', 'betID', 'betId')) missing.push('event');
+		if (!UrlState.hasLaunchParam('amount', 'bet', 'stake')) missing.push('amount');
+		if (!UrlState.hasLaunchParam('currency')) missing.push('currency');
+		if (!UrlState.hasLaunchParam('lang', 'language')) missing.push('lang');
+		if (!UrlState.hasLaunchParam('device', 'deviceType')) missing.push('device');
+		if (missing.length) {
+			replayError('Invalid replay launch', 'Missing required Stake Engine replay parameters: ' + missing.join(', ') + '.');
+			return false;
+		}
+		const malformed = [];
+		const boundedPathValue = (value) => typeof value === 'string' && value.length > 0 && value.length <= 240
+			&& ![...value].some((character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127);
+		if (!boundedPathValue(UrlState.game())) malformed.push('game');
+		if (!boundedPathValue(UrlState.version())) malformed.push('version');
+		if (!boundedPathValue(UrlState.launchMode())) malformed.push('mode');
+		if (!boundedPathValue(UrlState.event())) malformed.push('event');
+		if (!PRODUCTION_BET_MODES.map((mode) => mode.toLowerCase()).includes(replayModeIdentity(UrlState.launchMode()))) malformed.push('mode');
+		try {
+			const raw = UrlState.rgsUrl();
+			const lowerRaw = raw.toLowerCase();
+			const url = new URL(lowerRaw.startsWith('http://') || lowerRaw.startsWith('https://') ? raw : 'https://' + raw);
+			if (!/^https?:$/.test(url.protocol) || !url.hostname || url.username || url.password || url.search || url.hash) malformed.push('rgs_url');
+		} catch (error) { malformed.push('rgs_url'); }
+		const amount = Number(rawConfigAmount(UrlState.amount()));
+		if (!Number.isSafeInteger(amount) || amount <= 0) malformed.push('amount');
+		if (!/^[A-Z]{2,8}$/.test(UrlState.currencyRaw())) malformed.push('currency');
+		if (UrlState.hasLaunchParam('lang', 'language') && !/^[a-z]{2}(-[a-z]{2})?$/i.test(UrlState.lang())) malformed.push('lang');
+		if (UrlState.hasLaunchParam('device', 'deviceType') && !/^(desktop|mobile|tablet)$/i.test(UrlState.device())) malformed.push('device');
+		if (malformed.length) {
+			replayError('Invalid replay launch', 'Malformed Stake Engine replay parameters: ' + [...new Set(malformed)].join(', ') + '.');
+			return false;
+		}
+		return true;
 	}
+	if (!UrlState.requiresRgs()) return true;
 	const missing = [];
 	if (!UrlState.sessionID()) missing.push('sessionID');
 	if (!UrlState.rgsUrl()) missing.push('rgs_url');
@@ -1152,6 +1803,7 @@ function showInterruptedRoundMessage() {
 // Resolves true only on an explicit Confirm click. Cancel, the close button,
 // a backdrop click and Escape all resolve false without side effects.
 function confirmMajorAction({ title = 'CONFIRM ACTION', body = '', confirmLabel = 'Confirm', cancelLabel = 'Cancel' } = {}) {
+	if (state.replay || UrlState.replay()) return Promise.resolve(false);
 	return new Promise((resolve) => {
 		const modal = $('modal-major-confirm');
 		const titleEl = $('major-confirm-title');
@@ -1214,39 +1866,20 @@ const Rgs = (() => {
 		while (base.endsWith('/')) base = base.slice(0, -1);
 		return base + path;
 	};
-	const toApiAmount = (amount) => Math.round((Number(amount) || 0) * API_AMOUNT_MULTIPLIER);
-	const fromApiAmount = (amount) => Math.round(((Number(amount) || 0) / API_AMOUNT_MULTIPLIER) * 100) / 100;
-	const syncBetLevels = (config) => {
-		const levels = (config && Array.isArray(config.betLevels) ? config.betLevels : [])
-			.map(fromApiAmount)
-			.filter((v) => Number.isFinite(v) && v > 0);
-		if (!levels.length) return;
-		BETS = [...new Set(levels)].sort((a, b) => a - b);
-		const current = Number(state.bet) || BETS[0];
-		let idx = 0;
-		let best = Infinity;
-		for (let i = 0; i < BETS.length; i += 1) {
-			const diff = Math.abs(BETS[i] - current);
-			if (diff < best) { best = diff; idx = i; }
-		}
-		state.betIdx = idx;
-		state.bet = BETS[idx];
-		updateMeters();
+	const toApiAmount = moneyToApiAmount;
+	const fromApiAmount = apiAmountToMoney;
+	const syncBetLevels = (config, data = {}) => {
+		return applyBetConfig(normalizeBetConfig({ ...data, config }, 'authenticate'), { preferDefault: true });
 	};
 	const normalizeBet = (amount) => {
 		const config = walletConfig || {};
-		const levels = Array.isArray(config.betLevels) ? config.betLevels : [];
-		if (levels.length) {
-			const requested = toApiAmount(amount);
-			let selected = levels[0];
-			let best = Math.abs(levels[0] - requested);
-			for (const level of levels) {
-				const diff = Math.abs(level - requested);
-				if (diff < best) { best = diff; selected = level; }
-			}
-			const normalized = fromApiAmount(selected);
+		const levels = Array.isArray(activeBetConfig.apiLevels) ? activeBetConfig.apiLevels : [];
+		if (levels.length && BETS.length) {
+			const requestedMoney = Number(amount) || state.bet;
+			const idx = nearestBetIndex(requestedMoney, BETS);
+			const selected = levels[Math.max(0, idx)] || toApiAmount(BETS[Math.max(0, idx)] || requestedMoney);
+			const normalized = BETS[Math.max(0, idx)] || fromApiAmount(selected);
 			if (normalized !== state.bet) {
-				const idx = BETS.findIndex((v) => Math.abs(v - normalized) < 0.000001);
 				state.bet = normalized;
 				state.betIdx = idx >= 0 ? idx : state.betIdx;
 				updateMeters();
@@ -1268,6 +1901,7 @@ const Rgs = (() => {
 	const applyWalletBalance = (walletBalance) => {
 		state.balance = walletBalance.amount;
 		if (walletBalance.currency) state.currency = walletBalance.currency;
+		applyLanguage();
 		updateMeters();
 	};
 	const consumePendingBalance = () => {
@@ -1294,7 +1928,7 @@ const Rgs = (() => {
 		if (data && data.config) {
 			walletConfig = data.config;
 			if (data.config.betModes) availableModes = Object.keys(data.config.betModes);
-			syncBetLevels(data.config);
+			syncBetLevels(data.config, data);
 		}
 		return data;
 	};
@@ -1383,6 +2017,7 @@ const Rgs = (() => {
 			|| mode;
 	};
 	const post = async (path, variables, options = {}) => {
+		if (state.replay || UrlState.replay()) throw new Error('Wallet/session requests are forbidden in Replay Mode');
 		if (!options.force && blocked()) {
 			const error = new Error('RGS request throttled');
 			error.status = 429;
@@ -1602,6 +2237,10 @@ const Rgs = (() => {
 
 async function resumeLaunchRound() {
 	if (!validateLaunchUrl()) return;
+	if (Replay.configured()) {
+		await Replay.start();
+		return;
+	}
 	if (!Rgs.configured()) return;
 	// Lock the UI until launch authentication (including any base-mode
 	// active-round settlement) is finished. Without this lock an immediate
@@ -1682,6 +2321,7 @@ let POOL = buildPool();
 const randKey = () => POOL[(Math.random() * POOL.length) | 0];
 
 function newGrid(opts = {}) {
+	if (state.replay || UrlState.replay()) return false;
 	POOL = buildPool(opts);
 	state.grid = Array.from({ length: COLS }, () => Array.from({ length: ROWS }, randKey));
 	if (opts.forceRainbow && !state.grid.flat().includes('rainbow')) {
@@ -1690,6 +2330,7 @@ function newGrid(opts = {}) {
 	for (let i = 0; i < (opts.forceScatters || 0); i += 1) {
 		state.grid[i % COLS][(i / COLS) | 0] = 'scatter';
 	}
+	return true;
 }
 
 function cellEl(col, row) { return board.children[row * COLS + col]; }
@@ -1815,11 +2456,14 @@ function applyBetFromRound(round) {
 	updateMeters();
 }
 function rgsRoundPayoutMoney(round) {
-	const raw = Number(round && round.payout);
-	if (Number.isFinite(raw)) return Math.abs(raw) >= 1000 ? apiAmountToMoney(raw) : roundMoney(raw);
-	const mult = Number(round && round.payoutMultiplier);
-	if (!Number.isFinite(mult)) return null;
-	return roundMoney((mult > 1000 ? mult / 100 : mult) * state.bet);
+	const raw = round && round.payout;
+	if (raw !== undefined && raw !== null) {
+		if (typeof raw !== 'number' || !Number.isSafeInteger(raw) || raw < 0) return null;
+		return replayApiAmountToMoney(raw);
+	}
+	const bookUnits = round && round.payoutMultiplier;
+	if (typeof bookUnits !== 'number' || !Number.isSafeInteger(bookUnits) || bookUnits < 0) return null;
+	return moneyRound(replayBookUnitsToMultiplier(bookUnits) * state.bet);
 }
 function bookAmountToMoney(amount) {
 	return roundMoney((Number(amount) || 0) * state.bet / 100);
@@ -1912,7 +2556,10 @@ function shouldRenderSafeRgsBase(events) {
 }
 function shouldRenderRgsRound(events) {
 	const list = Array.isArray(events) ? events : [];
-	return Rgs.configured() && list.some((event) => event && event.type === 'reveal' && event.board);
+	return Rgs.configured()
+		&& list.length > 0
+		&& list.every((event) => event && REPLAY_EVENT_TYPES.has(event.type))
+		&& list.some((event) => event.type === 'reveal' && event.board);
 }
 function setGridFromRgsBoard(rawBoard) {
 	const boardData = Array.isArray(rawBoard) ? rawBoard : [];
@@ -1985,9 +2632,11 @@ async function bonusIntroRgs(totalFreeSpins, title = 'Golden Chance') {
 	await wait(state.turbo ? 320 : 520);
 	await new Promise((resolve) => {
 		let done = false;
+		let replayTimer = null;
 		const close = () => {
 			if (done) return;
 			done = true;
+			clearTimeout(replayTimer);
 			el.removeEventListener('click', close);
 			window.removeEventListener('keydown', onKey);
 			resolve();
@@ -1997,16 +2646,17 @@ async function bonusIntroRgs(totalFreeSpins, title = 'Golden Chance') {
 		};
 		el.addEventListener('click', close);
 		window.addEventListener('keydown', onKey);
+		if (state.replayPlaying) replayTimer = setTimeout(close, state.turbo ? 380 : 900);
 	});
 	el.classList.add('out'); await wait(420); el.classList.remove('show', 'out');
 	el.setAttribute('aria-hidden', 'true');
 	Sound.stopFreeSpins();
 }
-async function renderRgsWinInfo(event, runningWin, stepOverride = null) {
+async function renderRgsWinInfo(event, runningWin) {
 	const wins = Array.isArray(event.wins) ? event.wins : [];
 	const cells = rgsCellsFromPositions(wins.flatMap((win) => win.positions || []));
 	const eventStepWin = bookAmountToMoney(event.totalWin || wins.reduce((sum, win) => sum + (Number(win.win) || 0), 0));
-	const stepWin = stepOverride !== null ? Math.max(0, roundMoney(stepOverride)) : eventStepWin;
+	const stepWin = eventStepWin;
 	const targetWin = roundMoney(runningWin + stepWin);
 	if (cells.length) {
 		stage.classList.add('win-focus');
@@ -2016,7 +2666,11 @@ async function renderRgsWinInfo(event, runningWin, stepOverride = null) {
 			if (el) el.classList.add('win');
 		});
 		Sound.cluster(Math.max(1, wins.length));
-		showClusterFloat(stepWin, cells);
+		wins.forEach((win) => {
+			const winCells = rgsCellsFromPositions(win.positions || []);
+			const cascadeMultiplier = Number(win.meta && (win.meta.multiplier ?? win.meta.globalMult)) || 1;
+			showClusterFloat(bookAmountToMoney(win.win), winCells, cascadeMultiplier > 1 ? cascadeMultiplier + '× cascade' : '');
+		});
 	}
 	setWin(targetWin, false);
 	await countUp(targetWin, runningWin);
@@ -2061,6 +2715,17 @@ async function renderRgsTumble(event) {
 	const removedByCol = Array.from({ length: COLS }, () => new Set());
 	for (const [c, r] of rgsCellsFromPositions(event.explodingSymbols || [])) removedByCol[c].add(r);
 	const drops = new Map();
+	if (Array.isArray(event.board) && event.board.length === COLS) {
+		setGridFromRgsBoard(event.board);
+		for (let col = 0; col < COLS; col += 1) {
+			const rows = Math.max(1, removedByCol[col].size);
+			for (let row = 0; row < ROWS; row += 1) drops.set(ck(col, row), { rows, delay: col * COL_DELAY * TF(), dur: DROP_DUR(rows) * TF() });
+		}
+		paint({ drops });
+		scheduleDropStops(drops);
+		await rawWait(dropEnd(drops) + 80 * TF());
+		return;
+	}
 	for (let col = 0; col < COLS; col += 1) {
 		if (!removedByCol[col].size) continue;
 		const additions = (Array.isArray(event.newSymbols && event.newSymbols[col]) ? event.newSymbols[col] : []).map(rgsSymbolKey);
@@ -2141,8 +2806,6 @@ async function playRgsBookRound(rgsPlay, spinId, options = {}) {
 	const walletExpected = rgsRoundPayoutMoney(round);
 	const expected = rgsDisplayWinMoney(round, events);
 	const hasAuthoritativePayout = expected !== null;
-	const winInfoCount = events.filter((event) => event && event.type === 'winInfo').length;
-	const hasRgsAwardEvents = events.some((event) => event && event.type === 'goldenAward');
 	const startIndex = Math.max(0, Number(options.startIndex) || 0);
 	const skipBonusIntro = !!options.skipBonusIntro;
 	const trackProgress = !!options.trackProgress && Rgs.configured() && rgsRoundIsBonus(round);
@@ -2179,11 +2842,7 @@ async function playRgsBookRound(rgsPlay, spinId, options = {}) {
 			if (hasAuthoritativePayout && expected <= 0) continue;
 			const cells = rgsCellsFromPositions((Array.isArray(event.wins) ? event.wins : []).flatMap((win) => win.positions || []));
 			if (!cells.length) continue;
-			const stepOverride = hasAuthoritativePayout && expected > 0 && winInfoCount === 1
-				&& !hasRgsAwardEvents
-				? Math.max(0, roundMoney(expected - runningWin))
-				: null;
-			runningWin = await renderRgsWinInfo(event, runningWin, stepOverride);
+			runningWin = await renderRgsWinInfo(event, runningWin);
 			visibleRgsWinShown = true;
 		} else if (event.type === 'updateTumbleWin' || event.type === 'setWin' || event.type === 'setTotalWin') {
 			if (hasAuthoritativePayout) continue;
@@ -2294,6 +2953,354 @@ async function playRgsBookRound(rgsPlay, spinId, options = {}) {
 	return displayedWin;
 }
 
+const REPLAY_TIMEOUT_MS = 10000;
+const REPLAY_EVENT_TYPES = new Set([...${JSON.stringify(PRODUCTION_GAME_CONFIG.frontendContract?.eventTypes || [])}, 'updateTumbleWin']);
+
+function cloneReplayData(value) {
+	return JSON.parse(JSON.stringify(value));
+}
+function deepFreezeReplayData(value) {
+	if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+	Object.freeze(value);
+	Object.values(value).forEach(deepFreezeReplayData);
+	return value;
+}
+function replaySymbolIsKnown(raw) {
+	const name = typeof raw === 'string' ? raw : raw && (raw.name || raw.symbol || raw.id || raw.key);
+	const key = RGS_SYMBOL_ALIASES[name] || RGS_SYMBOL_ALIASES[String(name || '').toUpperCase()] || name;
+	return !!SYMBOLS[key];
+}
+function validateReplayBoard(rawBoard, context) {
+	if (!Array.isArray(rawBoard) || rawBoard.length !== COLS) throw new Error(context + ' must contain exactly ' + COLS + ' reels');
+	rawBoard.forEach((reel, reelIndex) => {
+		if (!Array.isArray(reel) || reel.length < ROWS) throw new Error(context + ' reel ' + reelIndex + ' is missing visible rows');
+		reel.forEach((symbol, rowIndex) => {
+			if (!replaySymbolIsKnown(symbol)) throw new Error(context + ' contains unsupported symbol at reel ' + reelIndex + ', row ' + rowIndex);
+		});
+	});
+}
+function validateReplayPosition(position, context) {
+	const col = Number(position && (position.col ?? position.column ?? position.reel));
+	const row = Number(position && position.row);
+	if (!Number.isInteger(col) || !Number.isInteger(row) || col < 0 || col >= COLS || row < 0 || row > ROWS + 8) {
+		throw new Error(context + ' contains an invalid board position');
+	}
+}
+function validateReplayEvents(events) {
+	if (!Array.isArray(events) || !events.length) throw new Error('Replay response contains no round-state events');
+	let revealCount = 0;
+	let previousIndex = -1;
+	let runningBookUnits = 0;
+	const maxBookUnits = Math.round(Number(CONFIG.maxWinMultiplier) * BOOK_MULTIPLIER_SCALE);
+	const assertBookUnits = (value, label) => {
+		const units = requireReplaySafeInteger(value, label);
+		if (units > maxBookUnits) throw new Error(label + ' exceeds the configured max win');
+		return units;
+	};
+	events.forEach((event, position) => {
+		if (!event || typeof event !== 'object' || Array.isArray(event) || typeof event.type !== 'string') {
+			throw new Error('Replay event ' + position + ' is malformed');
+		}
+		if (!REPLAY_EVENT_TYPES.has(event.type)) throw new Error('Unsupported replay event type: ' + event.type);
+		const eventIndex = rgsEventIndex(event, position);
+		if (eventIndex < previousIndex) throw new Error('Replay event indexes are not ordered');
+		previousIndex = eventIndex;
+		if (event.type === 'reveal') {
+			revealCount += 1;
+			validateReplayBoard(event.board, 'Replay reveal event ' + eventIndex + ' board');
+		}
+		if (event.type === 'tumbleBoard') {
+			validateReplayBoard(event.board, 'Replay tumble event ' + eventIndex + ' board');
+			if (!Array.isArray(event.explodingSymbols) || !Array.isArray(event.newSymbols)) throw new Error('Replay tumble event ' + eventIndex + ' is incomplete');
+			event.explodingSymbols.forEach((item) => validateReplayPosition(item, 'Replay tumble event ' + eventIndex));
+		}
+		if (event.type === 'winInfo') {
+			if (!Array.isArray(event.wins) || !event.wins.length) throw new Error('Replay win event ' + eventIndex + ' has no wins');
+			let sumOfWins = 0;
+			event.wins.forEach((win, winIndex) => {
+				const winAmount = assertBookUnits(win && win.win, 'Replay win ' + winIndex + ' in event ' + eventIndex);
+				sumOfWins += winAmount;
+				if (!Array.isArray(win.positions) || !win.positions.length) throw new Error('Replay win event ' + eventIndex + ' has no winning positions');
+				const uniquePositions = new Set();
+				win.positions.forEach((item) => {
+					validateReplayPosition(item, 'Replay win ' + winIndex + ' in event ' + eventIndex);
+					const col = Number(item && (item.col ?? item.column ?? item.reel));
+					const row = Number(item && item.row);
+					const key = col + ',' + row;
+					if (uniquePositions.has(key)) throw new Error('Replay win ' + winIndex + ' in event ' + eventIndex + ' repeats a winning position');
+					uniquePositions.add(key);
+				});
+			});
+			const stepTotal = assertBookUnits(event.totalWin, 'Replay win event ' + eventIndex + ' totalWin');
+			if (stepTotal !== sumOfWins) {
+				throw new Error('Replay win event ' + eventIndex + ' totalWin differs from wins[].win');
+			}
+			runningBookUnits += stepTotal;
+			if (runningBookUnits > maxBookUnits) throw new Error('Replay cumulative win exceeds the configured max win');
+			if (event.runningTotalWin !== undefined
+				&& assertBookUnits(event.runningTotalWin, 'Replay win event ' + eventIndex + ' runningTotalWin') !== runningBookUnits) {
+				throw new Error('Replay win event ' + eventIndex + ' runningTotalWin is inconsistent');
+			}
+		}
+		if (event.type === 'goldenReveal') {
+			if (!Array.isArray(event.rewards)) throw new Error('Replay Golden Cell reveal event ' + eventIndex + ' is incomplete');
+			event.rewards.forEach((item) => validateReplayPosition(item, 'Replay Golden Cell reveal event ' + eventIndex));
+		}
+		if (event.type === 'goldenAward') {
+			const award = assertBookUnits(event.amount, 'Replay Golden Cell award event ' + eventIndex + ' amount');
+			runningBookUnits += award;
+			if (runningBookUnits > maxBookUnits) throw new Error('Replay cumulative win exceeds the configured max win');
+			if (event.totalWin === undefined
+				|| assertBookUnits(event.totalWin, 'Replay Golden Cell award event ' + eventIndex + ' totalWin') !== runningBookUnits) {
+				throw new Error('Replay Golden Cell award event ' + eventIndex + ' totalWin is inconsistent');
+			}
+		}
+		if (['setWin', 'setTotalWin', 'updateTumbleWin'].includes(event.type)) {
+			if (assertBookUnits(event.amount, 'Replay event ' + eventIndex + ' amount') !== runningBookUnits) {
+				throw new Error('Replay event ' + eventIndex + ' cumulative amount is inconsistent');
+			}
+		}
+		if (event.type === 'freeSpinEnd'
+			&& assertBookUnits(event.amount, 'Replay free-spin end event ' + eventIndex + ' amount') !== runningBookUnits) {
+			throw new Error('Replay free-spin end event ' + eventIndex + ' amount is inconsistent');
+		}
+		if (event.type === 'finalWin'
+			&& assertBookUnits(event.amount, 'Replay finalWin event ' + eventIndex + ' amount') !== runningBookUnits) {
+			throw new Error('Replay finalWin differs from the cumulative event total');
+		}
+	});
+	if (!revealCount) throw new Error('Replay response has no board reveal data');
+	const final = [...events].reverse().find((event) => event.type === 'finalWin');
+	if (!final) throw new Error('Replay response is missing the authoritative finalWin event');
+	return { final, runningBookUnits };
+}
+function replayModeIdentity(mode) {
+	const key = String(mode || '').trim().toLowerCase();
+	if (key === 'tier1' || key === 'golden_chance') return 'bonus_tier1';
+	if (key === 'tier2' || key === 'bonus_tier2' || key === 'all_that_glitters') return 'bonus';
+	if (key === 'feature' || key === 'feature_spins') return 'hunt';
+	if (key === 'rainbow_spin') return 'rainbow';
+	return key;
+}
+function normalizeReplayPayload(data) {
+	if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Replay response must be a JSON object');
+	const payload = data.replay && typeof data.replay === 'object' ? data.replay : data;
+	const source = (payload.round || payload.bet || payload.eventRound || payload);
+	if (!source || typeof source !== 'object' || Array.isArray(source)) throw new Error('Replay response does not contain a round object');
+	const launchMode = UrlState.launchMode();
+	const responseMode = source.mode ?? payload.mode;
+	if (responseMode && replayModeIdentity(responseMode) !== replayModeIdentity(launchMode)) {
+		throw new Error('Replay response mode does not match the launch mode');
+	}
+	const responseGame = source.game ?? source.gameId ?? payload.game ?? payload.gameId;
+	if (responseGame !== undefined && String(responseGame) !== String(UrlState.game())) throw new Error('Replay response game does not match the launch game');
+	const responseVersion = source.version ?? source.gameVersion ?? payload.version ?? payload.gameVersion;
+	if (responseVersion !== undefined && String(responseVersion) !== String(UrlState.version())) throw new Error('Replay response version does not match the launch version');
+	const responseEvent = source.eventId ?? source.eventID ?? payload.eventId ?? payload.eventID;
+	if (responseEvent !== undefined && String(responseEvent) !== String(UrlState.event())) throw new Error('Replay response event does not match the launch event');
+	const stateValue = source.state ?? source.events ?? payload.state ?? payload.events;
+	const events = normalizeRgsEvents(stateValue);
+	const { final, runningBookUnits } = validateReplayEvents(events);
+	const launchAmount = requireReplaySafeInteger(Number(UrlState.amount()), 'Replay launch amount', { positive: true });
+	const responseAmount = source.amount ?? source.betAmount ?? payload.amount ?? payload.betAmount;
+	const amount = responseAmount === undefined || responseAmount === null
+		? launchAmount
+		: requireReplaySafeInteger(responseAmount, 'Replay response amount', { positive: true });
+	if (amount !== launchAmount) throw new Error('Replay response amount does not match the launch amount');
+	const baseBet = replayApiAmountToMoney(amount);
+	const payoutMultiplierBookUnits = requireReplaySafeInteger(
+		source.payoutMultiplier ?? payload.payoutMultiplier,
+		'Replay payoutMultiplier',
+	);
+	if (payoutMultiplierBookUnits !== runningBookUnits || payoutMultiplierBookUnits !== final.amount) {
+		throw new Error('Replay payoutMultiplier differs from the authoritative finalWin event');
+	}
+	const payoutMultiplier = replayBookUnitsToMultiplier(payoutMultiplierBookUnits);
+	const rawCostMultiplier = source.costMultiplier ?? payload.costMultiplier ?? modeMeta(launchMode).costMultiplier ?? 1;
+	if (typeof rawCostMultiplier !== 'number' || !Number.isFinite(rawCostMultiplier) || rawCostMultiplier <= 0) {
+		throw new Error('Replay response contains an invalid costMultiplier');
+	}
+	const costMultiplier = rawCostMultiplier;
+	const explicitPayout = source.payout ?? payload.payout;
+	if (explicitPayout !== undefined && explicitPayout !== null) {
+		const payoutApiAmount = requireReplaySafeInteger(explicitPayout, 'Replay payout');
+		const expectedPayoutApiAmount = Math.round(amount * payoutMultiplierBookUnits / BOOK_MULTIPLIER_SCALE);
+		if (payoutApiAmount !== expectedPayoutApiAmount) throw new Error('Replay payout differs from the authoritative finalWin event');
+	}
+	const launchCurrency = normalizeCurrency(UrlState.currencyRaw());
+	const responseCurrency = normalizeCurrency(source.currency || source.currencyCode || payload.currency || payload.currencyCode || '');
+	if (responseCurrency && responseCurrency !== launchCurrency) throw new Error('Replay response currency does not match the launch currency');
+	const currency = responseCurrency || launchCurrency;
+	if (!/^[A-Z]{2,8}$/.test(currency)) throw new Error('Replay response contains an invalid currency');
+	return {
+		round: {
+			...cloneReplayData(source),
+			active: false,
+			mode: launchMode,
+			amount,
+			currency,
+			costMultiplier,
+			payoutMultiplier: payoutMultiplierBookUnits,
+			payout: Math.round(amount * payoutMultiplierBookUnits / BOOK_MULTIPLIER_SCALE),
+			state: { events: cloneReplayData(events) },
+		},
+		meta: { baseBet, payoutMultiplier },
+	};
+}
+function replayMetadata(round) {
+	const events = normalizeRgsEvents(round && round.state);
+	const meta = modeMeta(rgsRoundMode(round));
+	const baseBet = replayApiAmountToMoney(round && round.amount);
+	const costMultiplier = Number(round && round.costMultiplier) || Number(meta.costMultiplier) || 1;
+	const totalCost = moneyRound(baseBet * costMultiplier);
+	const totalWin = rgsDisplayWinMoney(round, events) || 0;
+	const payoutMultiplier = replayBookUnitsToMultiplier(round && round.payoutMultiplier);
+	return {
+		mode: playerModeName(rgsRoundMode(round)),
+		baseBet,
+		costMultiplier,
+		totalCost,
+		payoutMultiplier,
+		totalWin,
+		 events,
+	};
+}
+function resetReplayPresentation() {
+	clearSkip();
+	closeModals(true);
+	state.mode = 'base';
+	state.tier = 0;
+	state.fsLeft = 0;
+	state.fsTotal = 0;
+	state.fsWin = 0;
+	state.fsBest = 0;
+	state.fsPlayed = 0;
+	state.reveals.clear();
+	state.golden.clear();
+	state.grid = [];
+	rgsBoardMeta = { rowStarts: [] };
+	board.innerHTML = '';
+	setWin(0);
+	stage.classList.remove('spinning', 'bonus-mode', 'win-focus', 'antic', 'skip-mode', 'shake');
+	document.querySelectorAll('#board .win,#board .converting,#board .scatter-antic,#board .scatter-hit,#board .activating').forEach((element) => {
+		element.classList.remove('win', 'converting', 'scatter-antic', 'scatter-hit', 'activating');
+	});
+	const fx = $('fx-layer'); if (fx) fx.replaceChildren();
+	const flash = $('fx-flash'); if (flash) flash.classList.remove('go');
+	const banner = $('win-banner'); if (banner) banner.classList.remove('show');
+	const intro = $('bonus-intro'); if (intro) { intro.classList.remove('show', 'out'); intro.setAttribute('aria-hidden', 'true'); }
+	const summary = $('bonus-summary'); if (summary) { summary.classList.remove('show'); summary.setAttribute('aria-hidden', 'true'); }
+	const toast = $('rt-toast'); if (toast) toast.classList.remove('show');
+	Sound.resetRound();
+	updateFsCounter();
+	updateMeters();
+}
+const Replay = (() => {
+	let current = null;
+	let status = 'idle';
+	const configured = () => UrlState.replay();
+	const endpoint = (path, params = {}) => {
+		const host = UrlState.rgsUrl();
+		if (!host) return path;
+		let base = host.indexOf('http://') === 0 || host.indexOf('https://') === 0 ? host : 'https://' + host;
+		while (base.endsWith('/')) base = base.slice(0, -1);
+		const query = new URLSearchParams(params);
+		const suffix = query.toString() ? '?' + query.toString() : '';
+		return base + path + suffix;
+	};
+	const replayPath = () => '/bet/replay/'
+		+ encodeURIComponent(UrlState.game()) + '/'
+		+ encodeURIComponent(UrlState.version()) + '/'
+		+ encodeURIComponent(UrlState.launchMode() || 'base') + '/'
+		+ encodeURIComponent(UrlState.event());
+	const fetchReplayRound = async () => {
+		const controller = new AbortController();
+		const timeout = setTimeout(() => controller.abort(), REPLAY_TIMEOUT_MS);
+		try {
+			const response = await fetch(endpoint(replayPath(), { language: UrlState.lang(), lang: UrlState.lang() }), {
+				method: 'GET',
+				headers: { Accept: 'application/json' },
+				signal: controller.signal,
+			});
+			const text = await response.text();
+			let data;
+			try { data = text ? JSON.parse(text) : null; } catch (error) { throw new Error('Replay endpoint returned invalid JSON'); }
+			const statusCode = data && data.status && data.status.statusCode;
+			if (!response.ok || data?.error || (statusCode && statusCode !== 'SUCCESS')) {
+				const message = data?.error?.message || data?.status?.statusMessage || response.statusText || 'Replay request failed';
+				throw new Error('Replay endpoint returned ' + response.status + ': ' + message);
+			}
+			return normalizeReplayPayload(data);
+		} catch (error) {
+			if (error && error.name === 'AbortError') throw new Error('Replay request timed out');
+			throw error;
+		} finally {
+			clearTimeout(timeout);
+		}
+	};
+	const start = async () => {
+		if (!configured()) return false;
+		status = 'loading';
+		setReplayLifecycle(status);
+		try {
+			const replay = await fetchReplayRound();
+			const immutableRound = deepFreezeReplayData(cloneReplayData(replay.round));
+			current = { round: immutableRound, signature: JSON.stringify(immutableRound) };
+			const replayCurrency = immutableRound.currency || immutableRound.currencyCode || UrlState.currency();
+			if (replayCurrency) state.currency = normalizeCurrency(replayCurrency);
+			applyBetFromRound(immutableRound);
+			current.meta = Object.freeze(replayMetadata(immutableRound));
+			state.win = current.meta.totalWin;
+			updateMeters();
+			applyLanguage();
+			enterReplayUi();
+			status = 'ready';
+			setReplayLifecycle(status, current.meta);
+			return true;
+		} catch (error) {
+			status = 'error';
+			replayError('Replay unavailable', error && error.message ? error.message : 'The saved event could not be loaded.');
+			console.warn('[Replay] load failed', error);
+			return false;
+		}
+	};
+	const play = async () => {
+		if (!current || !current.round || state.replayPlaying || !['ready', 'completed'].includes(status)) return false;
+		state.replayPlaying = true;
+		state.fatal = false;
+		resetReplayPresentation();
+		state.bet = current.meta.baseBet;
+		status = 'running';
+		setReplayLifecycle(status, current.meta);
+		state.spinning = true;
+		stage.classList.add('spinning');
+		try {
+			const playbackRound = cloneReplayData(current.round);
+			const displayedWin = await playRgsBookRound({ round: playbackRound }, ++spinSeq, { replay: true, skipBonusIntro: false, trackProgress: false });
+			if (JSON.stringify(current.round) !== current.signature) throw new Error('Saved replay data changed during playback');
+			if (Math.abs(displayedWin - current.meta.totalWin) > 0.01) throw new Error('Displayed replay total differs from the authoritative saved result');
+			setWin(current.meta.totalWin);
+			status = 'completed';
+			setReplayLifecycle(status, current.meta);
+			return true;
+		} catch (error) {
+			status = 'error';
+			replayError('Replay playback failed', error && error.message ? error.message : 'The saved event could not be rendered.');
+			return false;
+		} finally {
+			state.spinning = false;
+			state.replayPlaying = false;
+			stage.classList.remove('spinning');
+			clearSkip();
+			updateMeters();
+			updateLocks();
+		}
+	};
+	const action = $('replay-action');
+	if (action) action.onclick = () => play();
+	return { configured, start, play, fetchReplayRound, get current() { return current; }, get status() { return status; } };
+})();
+
 // ---- animation FX helpers ----
 // Cell centre in the stage's own (unscaled) coordinate space, correcting for
 // the viewport's fit-to-window scale so FX line up with the board exactly.
@@ -2323,13 +3330,13 @@ function clusterCenter(cells) {
 	}
 	return n ? { x: x / n, y: y / n } : null;
 }
-function showClusterFloat(amount, cells) {
+function showClusterFloat(amount, cells, detail = '') {
 	if (!amount || !cells || !cells.length) return;
 	const layer = $('fx-layer') || stage;
 	const pos = clusterCenter(cells); if (!layer || !pos) return;
 	const el = document.createElement('div');
 	el.className = 'cluster-float';
-	el.textContent = '+' + formatCurrency(amount);
+	el.textContent = '+' + formatCurrency(amount) + (detail ? ' · ' + detail : '');
 	el.style.left = pos.x + 'px';
 	el.style.top = pos.y + 'px';
 	layer.appendChild(el);
@@ -2464,6 +3471,7 @@ const Sound = (() => {
 	let scatterIndex = 0;
 	let clusterBurstPool = [];
 	let clusterBurstIndex = 0;
+	const roundSoundTimers = new Set();
 	const MUSIC_VOLUME = 0.16;
 	const REEL_END_VOLUME = 0.34;
 	const PING_VOLUME = 0.42;
@@ -2550,6 +3558,8 @@ const Sound = (() => {
 	}
 	function stopAll() {
 		clearTimeout(restoreTimer);
+		roundSoundTimers.forEach((timer) => clearTimeout(timer));
+		roundSoundTimers.clear();
 		if (music) { music.pause(); music.currentTime = 0; }
 		if (freeSpinRoar) { try { freeSpinRoar.pause(); freeSpinRoar.currentTime = 0; } catch (e) {} }
 		reelEndPool.forEach((a) => { try { a.pause(); a.currentTime = 0; } catch (e) {} });
@@ -2557,6 +3567,25 @@ const Sound = (() => {
 		scatterPool.forEach((a) => { try { a.pause(); a.currentTime = 0; } catch (e) {} });
 		clusterBurstPool.forEach((a) => { try { a.pause(); a.currentTime = 0; } catch (e) {} });
 		if (rainbowReveal) { try { rainbowReveal.pause(); rainbowReveal.currentTime = 0; } catch (e) {} }
+	}
+	function scheduleRoundSound(callback, delay) {
+		const timer = setTimeout(() => {
+			roundSoundTimers.delete(timer);
+			callback();
+		}, delay);
+		roundSoundTimers.add(timer);
+	}
+	function resetRound() {
+		clearTimeout(restoreTimer);
+		roundSoundTimers.forEach((timer) => clearTimeout(timer));
+		roundSoundTimers.clear();
+		if (freeSpinRoar) { try { freeSpinRoar.pause(); freeSpinRoar.currentTime = 0; } catch (e) {} }
+		reelEndPool.forEach((audio) => { try { audio.pause(); audio.currentTime = 0; } catch (e) {} });
+		pingPool.forEach((audio) => { try { audio.pause(); audio.currentTime = 0; } catch (e) {} });
+		scatterPool.forEach((audio) => { try { audio.pause(); audio.currentTime = 0; } catch (e) {} });
+		clusterBurstPool.forEach((audio) => { try { audio.pause(); audio.currentTime = 0; } catch (e) {} });
+		if (rainbowReveal) { try { rainbowReveal.pause(); rainbowReveal.currentTime = 0; } catch (e) {} }
+		if (music && enabled()) music.volume = musicVolume();
 	}
 	function duck(ms = 1300) {
 		if (!music || music.paused) return;
@@ -2617,7 +3646,7 @@ const Sound = (() => {
 	}
 	function pings(count = 1) {
 		const n = Math.max(0, Math.min(30, count | 0));
-		for (let i = 0; i < n; i += 1) setTimeout(pingOnce, i * 85 * TF());
+		for (let i = 0; i < n; i += 1) scheduleRoundSound(pingOnce, i * 85 * TF());
 	}
 	function scatterOnce() {
 		if (!enabled()) return;
@@ -2635,7 +3664,7 @@ const Sound = (() => {
 	}
 	function scatterSounds(count = 1) {
 		const n = Math.max(0, Math.min(30, count | 0));
-		for (let i = 0; i < n; i += 1) setTimeout(scatterOnce, i * 95 * TF());
+		for (let i = 0; i < n; i += 1) scheduleRoundSound(scatterOnce, i * 95 * TF());
 	}
 	function clusterBurstOnce() {
 		if (!enabled()) return;
@@ -2654,7 +3683,7 @@ const Sound = (() => {
 	function clusterBurst(count = 1, leadMs = 0) {
 		const n = Math.max(0, Math.min(30, count | 0));
 		const baseDelay = Math.max(0, leadMs | 0);
-		for (let i = 0; i < n; i += 1) setTimeout(clusterBurstOnce, baseDelay + i * 70 * TF());
+		for (let i = 0; i < n; i += 1) scheduleRoundSound(clusterBurstOnce, baseDelay + i * 70 * TF());
 	}
 	function revealBling() {
 		if (!enabled()) return;
@@ -2687,6 +3716,7 @@ const Sound = (() => {
 		scatter: scatterSounds,
 		freeSpins,
 		stopFreeSpins,
+		resetRound,
 	};
 })();
 
@@ -2737,21 +3767,28 @@ function updateMeters() {
 }
 
 function findClusters() {
-	const seen = Array.from({ length: COLS }, () => Array(ROWS).fill(false));
 	const clusters = [];
-	for (let c = 0; c < COLS; c += 1) for (let r = 0; r < ROWS; r += 1) {
-		const key = state.grid[c][r];
-		if (seen[c][r] || SYMBOLS[key].wild || SYMBOLS[key].scatter) continue;
-		const stack = [[c, r]]; const cells = []; seen[c][r] = true;
-		while (stack.length) {
-			const [cc, rr] = stack.pop(); cells.push([cc, rr]);
-			for (const [dc, dr] of [[1,0],[-1,0],[0,1],[0,-1]]) {
-				const nc = cc + dc, nr = rr + dr;
-				if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS || seen[nc][nr]) continue;
-				if (symbolsConnect(key, state.grid[nc][nr])) { seen[nc][nr] = true; stack.push([nc, nr]); }
+	const payingSymbols = Object.keys(SYMBOLS).filter((key) => SYMBOLS[key].pay > 0 && !SYMBOLS[key].wild && !SYMBOLS[key].scatter);
+	for (const key of payingSymbols) {
+		const seen = Array.from({ length: COLS }, () => Array(ROWS).fill(false));
+		for (let c = 0; c < COLS; c += 1) for (let r = 0; r < ROWS; r += 1) {
+			if (seen[c][r] || state.grid[c][r] !== key) continue;
+			const stack = [[c, r]];
+			const cells = [];
+			seen[c][r] = true;
+			while (stack.length) {
+				const [cc, rr] = stack.pop(); cells.push([cc, rr]);
+				for (const [dc, dr] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+					const nc = cc + dc, nr = rr + dr;
+					if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS || seen[nc][nr]) continue;
+					if (state.grid[nc][nr] === key || SYMBOLS[state.grid[nc][nr]]?.wild) {
+						seen[nc][nr] = true;
+						stack.push([nc, nr]);
+					}
+				}
 			}
+			if (cells.length >= MIN_CLUSTER) clusters.push({ key, cells });
 		}
-		if (cells.length >= MIN_CLUSTER) clusters.push({ key, cells });
 	}
 	return clusters;
 }
@@ -2976,13 +4013,14 @@ function finishSpinDebug(spinDebug, result) {
 
 // Cluster pays + cascades. Every winning position becomes a Golden Cell.
 async function resolveCascades(spinDebug = null) {
+	if (state.replay || UrlState.replay()) return 0;
 	let multiplier = 1;
 	let cascade = 0;
 	while (state.win < capWin()) {
 		const clusters = findClusters();
 		if (!clusters.length) break;
 		cascade += 1;
-		const flat = clusters.flatMap((cl) => cl.cells);
+		const flat = [...new Map(clusters.flatMap((cl) => cl.cells).map((cell) => [ck(cell[0], cell[1]), cell])).values()];
 		const rawWins = clusters.map((cl) => ({
 			symbol: cl.key,
 			amount: payFor(cl.key, cl.cells.length) * state.bet * multiplier,
@@ -3154,7 +4192,7 @@ function buildAutoSpinModal() {
 			state.selectedAutoSpins = autoSpinCountFromDataset(button.dataset.autoCount);
 			options.querySelectorAll('.auto-option').forEach((el) => el.classList.toggle('selected', el === button));
 			const label = autoSpinLabel(state.selectedAutoSpins);
-			confirm.innerHTML = '<p>Start Auto-Bet for <strong>' + label + '</strong> ' + (state.selectedAutoSpins === Infinity ? 'spins' : 'spins') + '?</p>'
+			confirm.innerHTML = '<p>' + t('autoConfirm') + ' <strong>' + label + '</strong> ' + (state.selectedAutoSpins === Infinity ? 'spins' : 'spins') + '?</p>'
 				+ '<div class="auto-confirm-row"><button type="button" class="cancel" id="auto-cancel">Cancel</button><button type="button" class="confirm" id="auto-confirm-start">Confirm</button></div>';
 			confirm.classList.add('show');
 			$('auto-cancel').onclick = closeModals;
@@ -3163,7 +4201,7 @@ function buildAutoSpinModal() {
 	});
 }
 function confirmAutoSpin(count) {
-	if (state.fatal || state.spinning || state.walletBusy || state.mode !== 'base' || Rgs.busy()) return;
+	if (state.fatal || state.replay || state.spinning || state.walletBusy || state.mode !== 'base' || Rgs.busy()) return;
 	if (state.balance < state.bet) {
 		closeModals();
 		showInsufficientFunds(state.bet);
@@ -3173,7 +4211,7 @@ function confirmAutoSpin(count) {
 	startAutoSpin(count);
 }
 function startAutoSpin(count) {
-	if (state.fatal || state.mode !== 'base') return;
+	if (state.fatal || state.replay || state.mode !== 'base') return;
 	state.auto = true;
 	state.autoRemaining = count === Infinity ? Infinity : Math.max(0, Number(count) || 0);
 	const btn = $('btn-auto');
@@ -3185,14 +4223,14 @@ function scheduleAutoSpin(delay = 0) {
 		clearTimeout(autoTimer);
 		autoTimer = null;
 	}
-	if (!state.auto || state.fatal) return;
+	if (!state.auto || state.fatal || state.replay) return;
 	autoTimer = setTimeout(() => {
 		autoTimer = null;
 		launchAutoSpin();
 	}, Math.max(0, delay));
 }
 function launchAutoSpin() {
-	if (!state.auto || state.fatal) return;
+	if (!state.auto || state.fatal || state.replay) { stopAutoSpin(); return; }
 	if (state.mode !== 'base') { stopAutoSpin(); return; }
 	if (state.spinning || state.walletBusy || Rgs.busy()) { scheduleAutoSpin(120); return; }
 	if (state.balance < state.bet) {
@@ -3225,6 +4263,7 @@ function setWalletBusy(busy) {
 }
 async function spin(buy, internalFreeSpin = false) {
 	if (state.fatal) return;
+	if (state.replay || UrlState.replay()) return false;
 	// Free Spins are driven by startFreeSpins(). Manual clicks during the bonus
 	// must not skip animations or start extra spins between loop iterations.
 	if (state.mode === 'free' && !internalFreeSpin) return;
@@ -3487,7 +4526,7 @@ function updateFsCounter() {
 }
 // Lock Buy Bonus + bet controls during free spins (no bonus-in-bonus, no bet change).
 function updateLocks() {
-	const lock = state.mode === 'free' || state.walletBusy;
+	const lock = state.mode === 'free' || state.walletBusy || state.replay;
 	['btn-bonus', 'btn-bet-minus', 'btn-bet-plus'].forEach((id) => { const e = $(id); if (e) e.classList.toggle('locked', lock); });
 }
 // Retrigger is a real highlight moment: freeze, pulse the scatters, toast, then
@@ -3521,10 +4560,11 @@ function bonusSummary(total, spins, best) {
 		let closed = false;
 		const close = () => { if (closed) return; closed = true; clearInterval(cnt); $('bs-total').textContent = formatCurrency(total); el.classList.remove('show'); btn.onclick = null; resolve(); };
 		btn.onclick = close;
-		setTimeout(close, state.turbo ? 2600 : 8000); // fallback so auto-play / tests never hang
+		setTimeout(close, state.replayPlaying ? (state.turbo ? 500 : 1200) : (state.turbo ? 2600 : 8000)); // fallback so auto-play / replay never hangs
 	});
 }
 async function startFreeSpins(tier, walletManaged = false) {
+	if (state.replay || UrlState.replay()) return false;
 	clearSkip();
 	state.mode = 'free'; state.tier = tier; state.fsTotal = CONFIG.tiers[tier].spins; state.fsLeft = state.fsTotal;
 	state.fsWin = 0; state.fsBest = 0; state.fsPlayed = 0;
@@ -3549,7 +4589,7 @@ async function startFreeSpins(tier, walletManaged = false) {
 }
 
 function changeBet(dir) {
-	if (state.fatal || state.spinning || state.walletBusy || state.mode === 'free') return; // bet locked during active paid/free rounds
+	if (state.fatal || state.replay || state.spinning || state.walletBusy || state.mode === 'free') return; // bet locked during active paid/free rounds
 	state.betIdx = Math.max(0, Math.min(BETS.length - 1, state.betIdx + dir));
 	state.bet = BETS[state.betIdx]; updateMeters();
 }
@@ -3559,7 +4599,7 @@ $('btn-bet-minus').addEventListener('click', () => changeBet(-1));
 $('btn-bet-plus').addEventListener('click', () => changeBet(1));
 $('btn-turbo').addEventListener('click', () => setTurbo(!state.turbo));
 $('btn-auto').addEventListener('click', () => {
-	if (state.fatal) return;
+	if (state.fatal || state.replay) return;
 	if (state.auto) { stopAutoSpin(); return; }
 	if (state.spinning || state.walletBusy || state.mode !== 'base' || Rgs.busy()) return;
 	buildAutoSpinModal();
@@ -3573,18 +4613,26 @@ const BB_META = {
 	tier2: { asset: COLLECTOR_ASSET, accent: '#ffd24a', tag: '12 Spins' },
 };
 function buildBonusBuy() {
+	if (state.replay || UrlState.replay()) return false;
 	const wrap = $('bonusbuy-list');
 	let anyDisabled = false;
 	wrap.innerHTML = CONFIG.bonusBuy.map((o) => {
 		const price = Math.round(o.mult * state.bet * 100) / 100;
 		const afford = state.balance >= price; if (!afford) anyDisabled = true;
 		const m = BB_META[o.id] || { asset: SYMBOLS.football.src, accent: '#d5a23b', tag: 'Bonus' };
+		const desc = isSocialPlay()
+			? (o.id === 'hunt' ? 'One play with boosted feature chance'
+				: o.id === 'rainbow' ? 'One play with a guaranteed Golden Arc'
+				: o.id === 'tier1' ? 'Start 8 Free Spins (Tier 1)'
+				: o.id === 'tier2' ? 'Start 12 Free Spins (Tier 2)'
+				: o.desc)
+			: o.desc;
 		return '<button class="bb-opt' + (afford ? '' : ' disabled') + '" data-buy="' + o.id + '" style="--bb-accent:' + m.accent + '" aria-disabled="' + (afford ? 'false' : 'true') + '">' +
 			'<span class="bb-ico"><img src="' + m.asset + '" alt="" /></span>' +
-			'<div class="bb-text"><div class="bb-name">' + o.label + '</div><div class="bb-desc">' + o.desc + '</div><div class="bb-tag">' + m.tag + '</div></div>' +
+			'<div class="bb-text"><div class="bb-name">' + o.label + '</div><div class="bb-desc">' + desc + '</div><div class="bb-tag">' + m.tag + '</div></div>' +
 			'<div class="bb-price">' + formatCurrency(price) + '</div></button>';
 	}).join('');
-	$('bonusbuy-note').textContent = anyDisabled ? 'Greyed options exceed your balance. Tier 3 can only trigger naturally.' : 'Prices scale with your current bet. Tier 3 can only trigger naturally.';
+	$('bonusbuy-note').textContent = anyDisabled ? t('bonusNoteDisabled') : t('bonusNoteAffordable');
 	wrap.querySelectorAll('[data-buy]').forEach((btn) => btn.addEventListener('click', () => {
 		const o = CONFIG.bonusBuy.find((x) => x.id === btn.dataset.buy);
 		const price = Math.round(o.mult * state.bet * 100) / 100;
@@ -3595,14 +4643,15 @@ function buildBonusBuy() {
 // Confirm/Cancel before a purchase, with a plain-language description of what
 // the player gets, so Bonus Buy never jumps straight into spins.
 function showBuyConfirm(o, price) {
+	if (state.replay || UrlState.replay()) return false;
 	const what = o.id === 'tier1' ? CONFIG.tiers[1].spins + ' Free Spins · Tier 1'
 		: o.id === 'tier2' ? CONFIG.tiers[2].spins + ' Free Spins · Tier 2'
 		: o.id === 'rainbow' ? 'one spin with a guaranteed Golden Arc'
 		: 'one spin with boosted feature chance';
 	$('bonusbuy-list').innerHTML = '<div class="bb-confirm">'
-		+ '<div class="c-q">Buy <b>' + o.label + '</b><br>(' + what + ')<br>for <b>' + formatCurrency(price) + '</b>?</div>'
+		+ '<div class="c-q">' + t('buyConfirmVerb') + ' <b>' + o.label + '</b><br>(' + what + ')<br>for <b>' + formatCurrency(price) + '</b>?</div>'
 		+ '<div class="c-row"><button class="c-no" id="bb-cancel">Cancel</button><button class="c-yes" id="bb-confirm">Confirm</button></div></div>';
-	$('bonusbuy-note').textContent = 'Balance after purchase: ' + formatCurrency(Math.max(0, Math.round((state.balance - price) * 100) / 100));
+	$('bonusbuy-note').textContent = t('balanceAfterPurchase') + ': ' + formatCurrency(Math.max(0, Math.round((state.balance - price) * 100) / 100));
 	$('bb-cancel').onclick = () => buildBonusBuy();
 	$('bb-confirm').onclick = async () => {
 		const confirmBtn = $('bb-confirm');
@@ -3693,14 +4742,23 @@ function showBuyConfirm(o, price) {
 		} else spin(o);
 	};
 }
-$('btn-bonus').addEventListener('click', () => { if (!state.fatal && !state.spinning && !state.walletBusy && state.mode === 'base') { buildBonusBuy(); openModal('modal-bonusbuy'); } });
-window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); spin(); } });
+$('btn-bonus').addEventListener('click', () => { if (!state.fatal && !state.replay && !state.spinning && !state.walletBusy && state.mode === 'base') { buildBonusBuy(); openModal('modal-bonusbuy'); } });
+window.addEventListener('keydown', (event) => {
+	if (event.code !== 'Space' || event.repeat) return;
+	const target = event.target instanceof Element ? event.target : null;
+	const interactive = target?.closest('button,a[href],input,select,textarea,[contenteditable="true"],[role="button"]');
+	if (interactive || state.replay || UrlState.replay()) return;
+	event.preventDefault();
+	spin();
+});
 
 // ---- modals: open / close ----
 function openModal(id) {
+	if (state.replay && ['modal-autospin', 'modal-bonusbuy', 'modal-major-confirm', 'modal-interrupted-round'].includes(id)) return false;
 	document.querySelectorAll('[data-modal]').forEach((m) => { if (!m.dataset.persistent || m.id === id) m.classList.remove('open'); });
 	const el = document.getElementById(id);
 	if (el) el.classList.add('open');
+	return !!el;
 }
 function closeModals(force = false) {
 	document.querySelectorAll('[data-modal]').forEach((m) => {
@@ -3771,15 +4829,30 @@ document.querySelectorAll('.toggle').forEach((t) => t.addEventListener('click', 
 	const order = ['jersey', 'trophy', 'whistle', 'football', 'a', 'k', 'q', 'j', 'ten'];
 	const grid = $('pt-grid');
 	grid.innerHTML = order.map((key) => {
-		const s = SYMBOLS[key]; const p5 = s.pay, p7 = s.pay * 2, p9 = s.pay * 4, p12 = s.pay * 8;
-		const f = (n) => (n >= 1 ? n.toFixed(n % 1 ? 1 : 0) : n.toFixed(2));
-		return '<div class="pt-cell"><img src="' + s.src + '" alt="' + key + '" />' +
-			'<div class="pt-pays"><b>12+</b> ' + f(p12) + '× &nbsp; <b>9+</b> ' + f(p9) + '×<br>' +
-			'<b>7+</b> ' + f(p7) + '× &nbsp; <b>5+</b> ' + f(p5) + '×</div></div>';
+		const symbol = SYMBOLS[key];
+		const pay = PRODUCTION_PAYTABLE[key];
+		const formatted = FORMATTED_PRODUCTION_PAYTABLE[key];
+		if (!symbol || !pay) throw new Error('Published Paytable symbol is missing from the frontend: ' + key);
+		const value = (size) => size === 12 ? pay.cluster12 : size === 9 ? pay.cluster9 : size === 7 ? pay.cluster7 : pay.cluster5;
+		const formattedValue = (size) => size === 12 ? formatted.cluster12 : size === 9 ? formatted.cluster9 : size === 7 ? formatted.cluster7 : formatted.cluster5;
+		const item = (size) => '<span data-cluster-threshold="' + size + '" data-multiplier="' + value(size) + '"><b>' + size + '+</b> ' + formattedValue(size) + '×</span>';
+		return '<div class="pt-cell" data-paytable-symbol="' + key + '"><img src="' + symbol.src + '" alt="' + key + '" />' +
+			'<div class="pt-pays">' + item(12) + ' &nbsp; ' + item(9) + '<br>' + item(7) + ' &nbsp; ' + item(5) + '</div></div>';
 	}).join('');
 })();
 
-newGrid(); paint(); updateMeters(); updateLocks();
+if (!UrlState.requiresRgs() && !Replay.configured()) applyBetConfig({ ...DEV_BET_CONFIG, currency: state.currency }, { preferDefault: true });
+applyLanguage();
+if (Replay.configured()) {
+	state.grid = [];
+	board.innerHTML = '';
+	setWin(0);
+	setReplayLifecycle('loading');
+} else {
+	newGrid();
+	paint();
+}
+updateMeters(); updateLocks();
 resumeLaunchRound();
 
 // Scale the 1200x675 stage to fit any window so nothing (incl. the side
@@ -3834,45 +4907,13 @@ fitViewport();
 setTimeout(fitViewport, 50);
 setTimeout(fitViewport, 300);
 
-// Lightweight preview API — lets you trigger a guaranteed win to preview the
-// cluster/cascade/win-banner presentation (open console: __ggr.demoWin()).
-window.__ggr = {
-	state, spin, startFreeSpins, buildBonusBuy, CONFIG, confirmMajorAction, formatCurrency,
-	setGrid: (g) => { state.grid = g; paint(); },
-	demoWin: async () => {
-		if (state.spinning) return;
-		state.spinning = true; $('btn-spin').classList.add('busy');
-		state.golden.clear(); state.reveals.clear(); setWin(0);
-		newGrid({ noRainbow: true });
-		for (let c = 0; c < 4; c += 1) for (let r = 0; r < 3; r += 1) state.grid[c][r] = 'football';
-		paint({ drops: fullDropMap() });
-		await wait(420);
-		const base = await resolveCascades();
-		state.balance += state.win; updateMeters();
-		state.golden.clear(); state.reveals.clear(); paint();
-		$('btn-spin').classList.remove('busy'); state.spinning = false;
-		return base;
-	},
-	// Golden cells + Rainbow -> full coin feature (coins, multipliers, collector).
-	demoFeature: async () => {
-		if (state.spinning) return;
-		state.spinning = true; $('btn-spin').classList.add('busy');
-		state.golden.clear(); state.reveals.clear(); setWin(0);
-		newGrid({ noRainbow: true });
-		for (let c = 0; c < 5; c += 1) for (let r = 0; r < 3; r += 1) state.grid[c][r] = 'football';
-		state.grid[5][4] = 'rainbow';
-		paint({ drops: fullDropMap() }); await wait(420);
-		const base = await resolveCascades();
-		let fw = 0;
-		if (state.golden.size) fw = await runFeature(base);
-		setWin(base + fw); state.balance += state.win; updateMeters();
-		const goldenCount = state.golden.size;
-		state.golden.clear(); state.reveals.clear(); paint();
-		$('btn-spin').classList.remove('busy'); state.spinning = false;
-		return { base, featureWin: fw, goldenCount, win: state.win };
-	},
-};
-window.__ggrBuild = '${new Date().toISOString()}';
+// Production intentionally exposes no gameplay state or mutation functions.
+// The E2E server replaces this inert marker in-memory with test-only
+// instrumentation while serving QA; the generated/published HTML keeps only
+// this comment and therefore has no raw-spin, demo-win, or state mutation API.
+/*__STAKE_QA_RUNTIME_HOOK__*/
+window.__ggrPaytable = Object.freeze(JSON.parse(JSON.stringify(PRODUCTION_PAYTABLE)));
+window.__ggrBuild = '${frontendBuildId}';
 console.log('Golden Goal Rush build', window.__ggrBuild);
 window.__ggrReady = true;
 </script>
@@ -3880,5 +4921,14 @@ window.__ggrReady = true;
 </html>
 `;
 
-writeFileSync(OUT, html);
-console.log('Wrote', OUT);
+if (process.argv.includes('--check')) {
+	let existing = '';
+	try { existing = readFileSync(OUT, 'utf8'); } catch (error) {}
+	if (existing !== html) {
+		throw new Error(`Generated frontend is stale: run node ${BUILDER}`);
+	}
+	console.log('Generated frontend is current:', OUT);
+} else {
+	writeFileSync(OUT, html);
+	console.log('Wrote', OUT);
+}

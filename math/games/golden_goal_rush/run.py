@@ -220,6 +220,12 @@ def write_config_files(
         "cluster": {
             "minCluster": MIN_CLUSTER,
             "wildSubstitutes": True,
+            "wildEvaluation": (
+                "Each normal paying symbol is evaluated independently over its symbol and "
+                "orthogonally connected Wilds. Wild-only groups do not pay; one Wild may "
+                "support simultaneous clusters of different normal symbols, and removal "
+                "coordinates are de-duplicated."
+            ),
             "winningCellsBecomeGolden": True,
             "cascadeMultiplier": "increments by 1 after each cascade in a spin",
         },

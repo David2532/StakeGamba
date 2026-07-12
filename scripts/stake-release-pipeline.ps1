@@ -1,7 +1,5 @@
 param(
-	[switch]$ReuseBooks,
-	[switch]$NoZip,
-	[switch]$SkipBuild
+	[switch]$ReuseBooks
 )
 
 $ErrorActionPreference = "Stop"
@@ -16,10 +14,21 @@ $FrontendBuilder = Join-Path $Root "apps\cluster\scripts\build-preview-html.mjs"
 $PreviewHtml = Join-Path $Root "apps\cluster\preview.html"
 $StakeQaScript = Join-Path $Root "scripts\stake-qa.mjs"
 $SyncScript = Join-Path $Root "scripts\sync-stake-publish.ps1"
+$PaytableVerifier = Join-Path $Root "scripts\verify-stake-paytable.mjs"
 $MathRoot = Join-Path $Root "math\games\golden_goal_rush"
 $MathPublish = Join-Path $MathRoot "library\publish_files"
 $AssetRoot = Join-Path $Root "apps\cluster\src\assets\golden-goal-rush"
 $PowerShellExe = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
+$QaArtifactRoot = Join-Path $Root ("artifacts\stake-qa\release-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
+$ImplementationEvidenceRoot = Join-Path $Root "artifacts\stake-final-implementation-20260712-164933"
+$ShortWorkRoot = Join-Path ([System.IO.Path]::GetTempPath()) "ggr-stake-release"
+
+# Release validation must exercise the exact upload frontend and must never
+# silently downgrade a missing Playwright/Chromium install to SKIP.
+$env:STAKE_QA_REQUIRE_E2E = "1"
+$env:STAKE_QA_FRONTEND_ROOT = $FrontendDest
+$env:STAKE_QA_FRONTEND_ENTRY = "index.html"
+$env:STAKE_QA_ARTIFACT_DIR = $QaArtifactRoot
 
 $script:Checks = New-Object System.Collections.Generic.List[object]
 
@@ -48,6 +57,71 @@ function Add-MarkerCheck {
 	)
 
 	Add-Check -Group $Group -Name $Name -Passed ($Content.Contains($Marker)) -Detail "marker: $Marker"
+}
+
+function Get-BalancedObjectText {
+	param(
+		[string]$Content,
+		[string]$Marker
+	)
+
+	$start = $Content.IndexOf($Marker)
+	if ($start -lt 0) { return "" }
+	$brace = $Content.IndexOf("{", $start)
+	if ($brace -lt 0) { return "" }
+	$depth = 0
+	for ($i = $brace; $i -lt $Content.Length; $i++) {
+		$ch = $Content[$i]
+		if ($ch -eq "{") { $depth++ }
+		elseif ($ch -eq "}") {
+			$depth--
+			if ($depth -eq 0) { return $Content.Substring($brace, $i - $brace + 1) }
+		}
+	}
+	return ""
+}
+
+function Get-JsStringValues {
+	param([string]$Content)
+	$values = New-Object System.Collections.Generic.List[string]
+	foreach ($match in [regex]::Matches($Content, ":\s*'([^']*)'")) {
+		$values.Add($match.Groups[1].Value) | Out-Null
+	}
+	return ($values -join " ")
+}
+
+function Test-TextContainsWordOrPhrase {
+	param(
+		[string]$Text,
+		[string]$Phrase
+	)
+	$pattern = "\b" + [regex]::Escape($Phrase) + "\b"
+	return [regex]::IsMatch($Text, $pattern, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+}
+
+function Add-SocialLanguageChecks {
+	param(
+		[string]$Group,
+		[string]$Content
+	)
+	$sweepsBlock = Get-BalancedObjectText -Content $Content -Marker "sweeps_en:"
+	$socialText = Get-JsStringValues -Content $sweepsBlock
+	Add-Check -Group $Group -Name "sweeps_en language resource is extractable" -Passed ($socialText.Length -gt 0) -Detail "chars=$($socialText.Length)"
+
+	foreach ($term in @(
+		"Bet Replay", "Base Bet", "Cost Multiplier", "Total Bet Cost", "Payout Multiplier", "Total Win",
+		"Bonus Buy", "Buy Bonus", "Auto-Bet", "Auto Bet", "Bet", "Wager", "Gamble", "Purchase",
+		"Paid", "Pay out", "Payout", "Rebet", "Cash", "Credit", "Currency"
+	)) {
+		Add-Check -Group $Group -Name "sweeps_en avoids restricted term '$term'" -Passed (-not (Test-TextContainsWordOrPhrase -Text $socialText -Phrase $term)) -Detail $term
+	}
+
+	foreach ($term in @(
+		"Play Replay", "Base Play", "Feature Multiplier", "Play Cost", "Final Multiplier",
+		"Final Play Amount", "Replay Play", "BONUS / FEATURE", "AUTO-PLAY", "PLAY"
+	)) {
+		Add-Check -Group $Group -Name "sweeps_en includes required substitute '$term'" -Passed ($socialText.Contains($term)) -Detail $term
+	}
 }
 
 function Invoke-Checked {
@@ -92,12 +166,7 @@ function Invoke-Capture {
 
 function Get-GitValue {
 	param([string[]]$Arguments)
-	try {
-		return (Invoke-Capture -WorkingDirectory $Root -FilePath "git" -Arguments $Arguments).Trim()
-	}
-	catch {
-		return ""
-	}
+	return (Invoke-Capture -WorkingDirectory $Root -FilePath "git" -Arguments $Arguments).Trim()
 }
 
 function Sanitize-Name {
@@ -140,11 +209,67 @@ function Copy-DirectoryClean {
 	if (-not (Test-Path -LiteralPath $Source -PathType Container)) {
 		throw "Missing directory: $Source"
 	}
+	Assert-ChildPath -Child $Destination -Parent $ShortWorkRoot
 	if (Test-Path -LiteralPath $Destination) {
 		Remove-Item -LiteralPath $Destination -Recurse -Force
 	}
-	New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Destination) | Out-Null
-	Copy-Item -LiteralPath $Source -Destination $Destination -Recurse -Force
+	New-Item -ItemType Directory -Force -Path $Destination | Out-Null
+	& robocopy.exe $Source $Destination /E /COPY:DAT /DCOPY:DAT /R:2 /W:1 /NFL /NDL /NP /NJH /NJS | Out-Null
+	$robocopyCode = $LASTEXITCODE
+	if ($robocopyCode -ge 8) {
+		throw "Robocopy failed with exit code $robocopyCode while copying '$Source' to '$Destination'"
+	}
+}
+
+function Assert-ChildPath {
+	param(
+		[string]$Child,
+		[string]$Parent
+	)
+	$parentFull = [System.IO.Path]::GetFullPath($Parent).TrimEnd('\', '/')
+	$childFull = [System.IO.Path]::GetFullPath($Child)
+	if (-not $childFull.StartsWith($parentFull + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)) {
+		throw "Refusing recursive operation outside '$parentFull': $childFull"
+	}
+}
+
+function Reset-ShortDirectory {
+	param([string]$Path)
+	Assert-ChildPath -Child $Path -Parent $ShortWorkRoot
+	if (Test-Path -LiteralPath $Path) {
+		Remove-Item -LiteralPath $Path -Recurse -Force
+	}
+	New-Item -ItemType Directory -Force -Path $Path | Out-Null
+}
+
+function Get-FileHashEntries {
+	param(
+		[string]$Path,
+		[string]$Base
+	)
+	return @(Get-ChildItem -LiteralPath $Path -Recurse -File | ForEach-Object {
+		[pscustomobject]@{
+			path = (ConvertTo-RelativePath -Path $_.FullName -Base $Base).Replace('\', '/')
+			bytes = $_.Length
+			sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+		}
+	} | Sort-Object path)
+}
+
+function Assert-DirectoryMatches {
+	param(
+		[string]$Expected,
+		[string]$Actual,
+		[string]$Name
+	)
+	$expectedEntries = @(Get-FileHashEntries -Path $Expected -Base $Expected)
+	$actualEntries = @(Get-FileHashEntries -Path $Actual -Base $Actual)
+	$expectedJson = $expectedEntries | ConvertTo-Json -Depth 5 -Compress
+	$actualJson = $actualEntries | ConvertTo-Json -Depth 5 -Compress
+	if ($expectedJson -ne $actualJson) {
+		throw "$Name differs from its canonical publish source"
+	}
+	return $expectedEntries.Count
 }
 
 function Read-Json {
@@ -358,6 +483,11 @@ function New-Checklist {
 		"rules explain active base settlement/game history",
 		"bonus start popup from base trigger",
 		"bonus start popup from bonus buy",
+		"read-only Replay Mode hides every paid control",
+		"replay GET makes zero wallet/session/event writes",
+		"Replay Play and Play Again reproduce the saved event",
+		"K 5+ 0.48x / Q 5+ 0.36x / J 7+ 0.56x Paytable contract",
+		"published frontend passed mandatory Chromium E2E",
 		"visual checklist preserved"
 	)
 
@@ -384,6 +514,9 @@ function New-Report {
 		[string[]]$ChangedFiles,
 		[string[]]$ReleaseFiles
 	)
+
+	[string[]]$changedFileList = @($ChangedFiles | Where-Object { $_ })
+	[string[]]$releaseFileList = @($ReleaseFiles | Where-Object { $_ })
 
 	$lines = @(
 		"# Golden Goal Rush Stake Release Report",
@@ -448,40 +581,97 @@ function New-Report {
 	$lines += "- BOOK_AMOUNT_MULTIPLIER = 100"
 	$lines += "- payout = amount * payoutMultiplier"
 	$lines += "- payoutMultiplier = finalWin / 100"
-	$lines += '- $1 bet + finalWin 9 => $0.09 payout'
+	$lines += '- $1 bet + finalWin 48 => $0.48 payout (production K 5+ example)'
 	$lines += "- No fake frontend win normalization is allowed in RGS mode."
 
 	$lines += ""
+	$lines += "## QA Evidence"
+	$lines += "- Static/numerical report: ``artifacts/stake-qa/report.json``"
+	$lines += "- Paytable contract: ``artifacts/stake-qa/paytable-contract.json``"
+	$lines += "- Browser report: ``artifacts/stake-qa/e2e-report.json``"
+	$lines += "- Replay network proof: ``artifacts/stake-qa/replay-network-proof.json``"
+	$lines += "- Replay/viewport screenshots: ``artifacts/stake-qa/e2e-screenshots/``"
+
+	$lines += ""
 	$lines += "## Changed Files"
-	if ($ChangedFiles.Count) {
-		foreach ($file in $ChangedFiles) { $lines += "- ``$file``" }
+	if ($changedFileList.Length -gt 0) {
+		foreach ($file in $changedFileList) { $lines += "- ``$file``" }
 	} else {
 		$lines += "- none"
 	}
 
 	$lines += ""
 	$lines += "## Release Files"
-	foreach ($file in ($ReleaseFiles | Select-Object -First 250)) { $lines += "- ``$file``" }
-	if ($ReleaseFiles.Count -gt 250) { $lines += "- ... $($ReleaseFiles.Count - 250) more files" }
+	foreach ($file in ($releaseFileList | Select-Object -First 250)) { $lines += "- ``$file``" }
+	if ($releaseFileList.Length -gt 250) { $lines += "- ... $($releaseFileList.Length - 250) more files" }
 
 	return $lines
 }
 
 Write-Host "Golden Goal Rush Stake release pipeline" -ForegroundColor Cyan
 
+$gitTopLevel = Get-GitValue -Arguments @("rev-parse", "--show-toplevel")
 $gitBranch = Get-GitValue -Arguments @("rev-parse", "--abbrev-ref", "HEAD")
 $gitSha = Get-GitValue -Arguments @("rev-parse", "HEAD")
-Add-Check -Group "Release Preflight" -Name "Current branch is main" -Passed ($gitBranch -eq "main") -Detail $gitBranch
-
-if (-not $SkipBuild) {
-	Invoke-Checked -WorkingDirectory $Root -FilePath "node" -Arguments @("--check", $FrontendBuilder)
-	Invoke-Checked -WorkingDirectory $MathRoot -FilePath "python" -Arguments @("-m", "py_compile", "game_config.py", "game_calculations.py", "game_executables.py", "game_events.py", "optimization.py", "run.py")
-	Invoke-Checked -WorkingDirectory $MathRoot -FilePath "python" -Arguments @("run.py", "smoke", "--spins", "1500", "--seed", "7")
-
-	$syncArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $SyncScript, "-BuildFrontend", "-RefreshMath", "-SkipComplianceGate")
-	if ($ReuseBooks) { $syncArgs += "-ReuseBooks" }
-	Invoke-Checked -WorkingDirectory $Root -FilePath $PowerShellExe -Arguments $syncArgs
+$gitRemote = Get-GitValue -Arguments @("config", "--get", "remote.origin.url")
+$resolvedGitRoot = [System.IO.Path]::GetFullPath($gitTopLevel).TrimEnd('\', '/')
+$resolvedRoot = [System.IO.Path]::GetFullPath($Root).TrimEnd('\', '/')
+if ($resolvedGitRoot -ne $resolvedRoot) {
+	throw "Git provenance root mismatch: expected '$resolvedRoot', actual '$resolvedGitRoot'"
 }
+if ($gitBranch -ne "main") { throw "Release requires branch 'main'; actual branch is '$gitBranch'" }
+if ($gitSha -notmatch '^[0-9a-fA-F]{40,64}$') { throw "Release requires a valid Git commit SHA; actual value is '$gitSha'" }
+if ([string]::IsNullOrWhiteSpace($gitRemote)) { throw "Release requires a configured origin remote" }
+$initialGitStatus = Get-GitValue -Arguments @("status", "--porcelain=v1", "--untracked-files=all")
+if (-not [string]::IsNullOrWhiteSpace($initialGitStatus)) {
+	throw "Release requires a clean Git tree before generation. Commit or archive these changes first:`n$initialGitStatus"
+}
+Add-Check -Group "Release Preflight" -Name "Git repository root is authoritative" -Passed $true -Detail $gitTopLevel
+Add-Check -Group "Release Preflight" -Name "Current branch is main" -Passed $true -Detail $gitBranch
+Add-Check -Group "Release Preflight" -Name "Commit SHA is available" -Passed $true -Detail $gitSha
+Add-Check -Group "Release Preflight" -Name "Origin remote is configured" -Passed $true -Detail $gitRemote
+Add-Check -Group "Release Preflight" -Name "Working tree is initially clean" -Passed $true -Detail "tracked and untracked source checked"
+
+$legacyUploadPaths = @(
+	(Join-Path $Root "stake-upload"),
+	(Join-Path $Root ".stake-audit"),
+	(Join-Path $Root "apps\lines\golden-goal-rush-frontend-stake.zip"),
+	(Join-Path $MathRoot "stake_math_upload_clean"),
+	(Join-Path $MathRoot "golden-goal-rush-math-stake-clean.zip"),
+	(Join-Path $MathPublish "golden-goal-rush-math-upload.zip")
+)
+$legacyStillActive = @($legacyUploadPaths | Where-Object { Test-Path -LiteralPath $_ })
+if ($legacyStillActive.Count -gt 0) {
+	throw "Legacy upload-shaped artifacts must be archived before release:`n$($legacyStillActive -join "`n")"
+}
+Add-Check -Group "Release Preflight" -Name "Legacy upload-shaped paths are absent" -Passed $true -Detail "archived under historical/non-uploadable-stake-artifacts"
+
+New-Item -ItemType Directory -Force -Path $ImplementationEvidenceRoot | Out-Null
+$existingCanonicalZips = @(Get-ChildItem -LiteralPath $ImplementationEvidenceRoot -File -Filter "golden-goal-rush_*.zip" -ErrorAction SilentlyContinue)
+if ($existingCanonicalZips.Count -gt 0) {
+	throw "Canonical evidence directory already contains a release ZIP; archive it before creating another: $($existingCanonicalZips.FullName -join '; ')"
+}
+$releaseRootEntries = @()
+if (Test-Path -LiteralPath $ReleaseRoot -PathType Container) {
+	$releaseRootEntries = @(Get-ChildItem -LiteralPath $ReleaseRoot -Force)
+}
+if ($releaseRootEntries.Count -gt 0) {
+	throw "stake-release must be empty before release; archive all prior candidates first: $($releaseRootEntries.FullName -join '; ')"
+}
+
+Invoke-Checked -WorkingDirectory $Root -FilePath "node" -Arguments @("--check", $FrontendBuilder)
+Invoke-Checked -WorkingDirectory $MathRoot -FilePath "python" -Arguments @("-m", "py_compile", "game_config.py", "game_calculations.py", "game_executables.py", "game_events.py", "optimization.py", "run.py")
+Invoke-Checked -WorkingDirectory $MathRoot -FilePath "python" -Arguments @("run.py", "smoke", "--spins", "1500", "--seed", "7")
+
+$syncArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $SyncScript, "-BuildFrontend", "-RefreshMath")
+if ($ReuseBooks) { $syncArgs += "-ReuseBooks" }
+Invoke-Checked -WorkingDirectory $Root -FilePath $PowerShellExe -Arguments $syncArgs
+
+$postGenerationGitStatus = Get-GitValue -Arguments @("status", "--porcelain=v1", "--untracked-files=all")
+if (-not [string]::IsNullOrWhiteSpace($postGenerationGitStatus)) {
+	throw "Release generation changed tracked or untracked source files. Commit regenerated canonical artifacts and rerun from a clean tree:`n$postGenerationGitStatus"
+}
+Add-Check -Group "Release Preflight" -Name "Working tree remains clean after generation" -Passed $true -Detail "generated artifacts reproduce committed sources"
 
 $indexPath = Join-Path $FrontendDest "index.html"
 $auditPath = Join-Path $MathDest "RTP_AUDIT.json"
@@ -489,7 +679,12 @@ $mathConfigPath = Join-Path $MathDest "game_config.json"
 if (-not (Test-Path -LiteralPath $indexPath -PathType Leaf)) { throw "Missing built frontend index.html: $indexPath" }
 if (-not (Test-Path -LiteralPath $auditPath -PathType Leaf)) { throw "Missing math audit: $auditPath" }
 if (-not (Test-Path -LiteralPath $mathConfigPath -PathType Leaf)) { throw "Missing math config: $mathConfigPath" }
-Invoke-Checked -WorkingDirectory $Root -FilePath "node" -Arguments @($StakeQaScript, "all")
+Invoke-Checked -WorkingDirectory $Root -FilePath "node" -Arguments @(
+	$PaytableVerifier,
+	"--html", $indexPath,
+	"--math", $mathConfigPath,
+	"--report", (Join-Path $ImplementationEvidenceRoot "paytable-contract-release.json")
+)
 
 $html = Get-Content -LiteralPath $indexPath -Raw
 $audit = Read-Json -Path $auditPath
@@ -506,7 +701,8 @@ Add-MarkerCheck -Group "A URL / Launch validation" -Name "lang/language required
 Add-MarkerCheck -Group "A URL / Launch validation" -Name "device/deviceType required" -Content $html -Marker "hasLaunchParam('device', 'deviceType')"
 Add-MarkerCheck -Group "A URL / Launch validation" -Name "fatal overlay exists" -Content $html -Marker "fatal-error-title"
 Add-MarkerCheck -Group "A URL / Launch validation" -Name "runtime URL changes are blocked" -Content $html -Marker "function checkLaunchUrlIntegrity"
-Add-MarkerCheck -Group "A URL / Launch validation" -Name "unsupported launch params fatal instead of fallback" -Content $html -Marker "The game URL contains unsupported launch parameters"
+Add-MarkerCheck -Group "A URL / Launch validation" -Name "replay launch is supported" -Content $html -Marker "id=`"replay-overlay`""
+Add-MarkerCheck -Group "A URL / Launch validation" -Name "replay request carries language" -Content $html -Marker "language: UrlState.lang()"
 Add-MarkerCheck -Group "A URL / Launch validation" -Name "RGS startup aborts on invalid launch" -Content $html -Marker "if (!validateLaunchUrl()) return;"
 
 Add-MarkerCheck -Group "B RGS Authenticate" -Name "wallet authenticate endpoint" -Content $html -Marker "/wallet/authenticate"
@@ -569,6 +765,40 @@ Add-MarkerCheck -Group "J Stake Feedback UI" -Name "social casino balance wordin
 Add-MarkerCheck -Group "J Stake Feedback UI" -Name "mobile fullscreen dvh exists" -Content $html -Marker "height: 100dvh"
 Add-MarkerCheck -Group "J Stake Feedback UI" -Name "stage fit transform variable exists" -Content $html -Marker "--stage-fit-transform"
 
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "authenticate bet config normalizer exists" -Content $html -Marker "function normalizeBetConfig"
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "authenticate bet config applier exists" -Content $html -Marker "function applyBetConfig"
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "bet levels read from authenticate config" -Content $html -Marker "firstArrayConfig(config, ['betLevels', 'availableBetLevels', 'betAmounts', 'bets', 'levels', 'denominations'])"
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "default bet read from authenticate config" -Content $html -Marker "firstMoneyConfig(config, ['defaultBetLevel', 'defaultBet', 'defaultBetAmount', 'betLevel', 'betAmount', 'minBet'])"
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "wallet authenticate feeds active bet config" -Content $html -Marker "syncBetLevels(data.config, data)"
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "wallet play uses active API bet levels" -Content $html -Marker "activeBetConfig.apiLevels"
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "demo bet fallback excluded from RGS/replay" -Content $html -Marker "if (!UrlState.requiresRgs() && !Replay.configured()) applyBetConfig"
+
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "Game Info mode metadata exists" -Content $html -Marker "const PLAYER_MODE_META = {"
+foreach ($modeName in @("Base Game", "Feature Spins", "Rainbow Spin", "Golden Chance", "All That Glitters", "End of the Rainbow")) {
+	Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "Game Info explains mode '$modeName'" -Content $html -Marker $modeName
+}
+foreach ($marker in @("Main Spin button", "Bonus Buy panel", "3 Scatter tickets", "4 Scatter tickets", "5 Scatter tickets only", "Cost multiplier:", "Feature Multiplier:", "Golden Cells persist", "guaranteed Golden Arc", "boosted Golden Arc chance", "Base Game and Rainbow Spin can trigger Free Spins", "Base Play and Rainbow Spin can trigger Free Spins", "Feature-panel Free Spins do not add additional Free Spins")) {
+	Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "Game Info detail marker '$marker'" -Content $html -Marker $marker
+}
+
+Add-SocialLanguageChecks -Group "K Stake 2026 Review Items" -Content $html
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "social rules generated separately" -Content $html -Marker "function buildSocialRulesBodyHtml()"
+
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "dedicated replay overlay exists" -Content $html -Marker "id=`"replay-overlay`""
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "dedicated Replay Play/Play Again button exists" -Content $html -Marker "id=`"replay-action`""
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "explicit replay lifecycle exists" -Content $html -Marker "stage.dataset.replayState = status"
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "replay request carries language" -Content $html -Marker "language: UrlState.lang()"
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "replay request carries lang alias" -Content $html -Marker "lang: UrlState.lang()"
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "replay mode name uses game metadata" -Content $html -Marker "playerModeName(rgsRoundMode(round))"
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "display-only Replay Bet label exists" -Content $html -Marker "'REPLAY BET'"
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "replay currency display exists" -Content $html -Marker "id=`"replay-currency`""
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "replay playback avoids progress/wallet mutation" -Content $html -Marker "trackProgress: false"
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "Play Again starts cached replay" -Content $html -Marker "action.onclick = () => play();"
+Add-Check -Group "K Stake 2026 Review Items" -Name "semantic frontend/production Paytable contract passed" -Passed (Test-Path -LiteralPath (Join-Path $ImplementationEvidenceRoot "paytable-contract-release.json") -PathType Leaf) -Detail "9 symbols; all thresholds; numeric and formatted values"
+Add-Check -Group "K Stake 2026 Review Items" -Name "K 5+ production payout is 0.48x" -Passed ([math]::Abs([double]$mathConfig.paytable.k.cluster5 - 0.48) -lt 0.0000001) -Detail ([string]$mathConfig.paytable.k.cluster5)
+Add-Check -Group "K Stake 2026 Review Items" -Name "Q 5+ production payout is 0.36x" -Passed ([math]::Abs([double]$mathConfig.paytable.q.cluster5 - 0.36) -lt 0.0000001) -Detail ([string]$mathConfig.paytable.q.cluster5)
+Add-Check -Group "K Stake 2026 Review Items" -Name "J 7+ production payout is 0.56x" -Passed ([math]::Abs(([double]$mathConfig.paytable.j.cluster5 * [double]$mathConfig.paytable.j.cluster7Boost) - 0.56) -lt 0.0000001) -Detail ([string]([double]$mathConfig.paytable.j.cluster5 * [double]$mathConfig.paytable.j.cluster7Boost))
+
 foreach ($prop in $audit.PSObject.Properties) {
 	$mode = $prop.Name
 	$m = $prop.Value
@@ -605,77 +835,17 @@ Add-Check -Group "I Visual Approval" -Name "title logo asset exists" -Passed (Te
 Add-Check -Group "I Visual Approval" -Name "tile/background asset exists" -Passed (Test-Path -LiteralPath (Join-Path $AssetRoot "slot-background.webp") -PathType Leaf) -Detail "slot-background.webp"
 Add-Check -Group "I Visual Approval" -Name "scatter asset exists" -Passed (Test-Path -LiteralPath (Join-Path $AssetRoot "scatter.webp") -PathType Leaf) -Detail "scatter.webp"
 
-$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-$releaseName = "golden-goal-rush_front-$(Sanitize-Name $frontVersion)_math-$(Sanitize-Name $mathVersion)_$timestamp"
-$releaseDir = Join-Path $ReleaseRoot $releaseName
-New-Item -ItemType Directory -Force -Path $ReleaseRoot | Out-Null
-if (Test-Path -LiteralPath $releaseDir) { Remove-Item -LiteralPath $releaseDir -Recurse -Force }
-New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
-
-Copy-DirectoryClean -Source $FrontendDest -Destination (Join-Path $releaseDir "frontend")
-Copy-DirectoryClean -Source $MathDest -Destination (Join-Path $releaseDir "math")
-$generatedPublishDest = Join-Path $releaseDir "generated\publish_files"
-Copy-DirectoryClean -Source $MathPublish -Destination $generatedPublishDest
-Get-ChildItem -LiteralPath $generatedPublishDest -Filter "*.zip" -File -ErrorAction SilentlyContinue | Remove-Item -Force
-Copy-DirectoryClean -Source (Join-Path $MathRoot "library\configs") -Destination (Join-Path $releaseDir "generated\configs")
-New-Item -ItemType Directory -Force -Path (Join-Path $releaseDir "artifacts") | Out-Null
-Copy-Item -LiteralPath $PreviewHtml -Destination (Join-Path $releaseDir "artifacts\preview.html") -Force
-
-$releaseFiles = Get-RelativeFileList -Path $releaseDir -Base $releaseDir
-$releaseFilesWithReports = @($releaseFiles + @("manifest.json", "stake-approval-checklist.md", "stake-release-report.md")) | Sort-Object -Unique
+$qaReportPath = Join-Path $QaArtifactRoot "report.json"
+$qaE2eReportPath = Join-Path $QaArtifactRoot "e2e-report.json"
+$qaPaytableReportPath = Join-Path $QaArtifactRoot "paytable-contract.json"
+$qaNetworkProofPath = Join-Path $QaArtifactRoot "replay-network-proof.json"
+Add-Check -Group "Release Evidence" -Name "Stake QA report exists" -Passed (Test-Path -LiteralPath $qaReportPath -PathType Leaf) -Detail $qaReportPath
+Add-Check -Group "Release Evidence" -Name "mandatory browser E2E report exists" -Passed (Test-Path -LiteralPath $qaE2eReportPath -PathType Leaf) -Detail $qaE2eReportPath
+Add-Check -Group "Release Evidence" -Name "numerical Paytable report exists" -Passed (Test-Path -LiteralPath $qaPaytableReportPath -PathType Leaf) -Detail $qaPaytableReportPath
+Add-Check -Group "Release Evidence" -Name "replay network proof exists" -Passed (Test-Path -LiteralPath $qaNetworkProofPath -PathType Leaf) -Detail $qaNetworkProofPath
 $failedChecks = @($script:Checks | Where-Object { -not $_.Passed })
 $overallPass = $failedChecks.Count -eq 0
 $status = if ($overallPass) { "PASS" } else { "FAIL" }
-
-$manifest = [pscustomobject]@{
-	gameId = "golden_goal_rush"
-	gameName = [string]$mathConfig.gameName
-	timestamp = (Get-Date -Format o)
-	gitBranch = $gitBranch
-	gitCommitSha = $gitSha
-	frontVersion = $frontVersion
-	mathVersion = $mathVersion
-	buildCommand = if ($ReuseBooks) { "npm run stake:release -- -ReuseBooks" } else { "npm run stake:release" }
-	releaseFolder = $releaseDir
-	checkStatus = $status
-	checksPassed = @($script:Checks | Where-Object { $_.Passed }).Count
-	checksFailed = $failedChecks.Count
-	failedChecks = @($failedChecks | ForEach-Object { "$($_.Group): $($_.Name)" })
-	rtpSummary = $audit
-	baseLookupAnalysis = $analysis
-	bookContract = $bookContract
-	copiedFiles = $releaseFilesWithReports
-}
-
-$manifestPath = Join-Path $releaseDir "manifest.json"
-$manifest | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
-
-$changedFiles = Get-ChangedFiles
-$reportLines = New-Report -Status $status -GitBranch $gitBranch -GitSha $gitSha -FrontVersion $frontVersion -MathVersion $mathVersion -Audit $audit -Analysis $analysis -BookContract $bookContract -ChangedFiles $changedFiles -ReleaseFiles $releaseFilesWithReports
-$reportLines | Set-Content -LiteralPath (Join-Path $releaseDir "stake-release-report.md") -Encoding UTF8
-(New-Checklist -OverallPass $overallPass) | Set-Content -LiteralPath (Join-Path $releaseDir "stake-approval-checklist.md") -Encoding UTF8
-
-$zipPath = $null
-if (-not $NoZip) {
-	$zipPath = Join-Path $ReleaseRoot ($releaseName + ".zip")
-	if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
-	for ($attempt = 1; $attempt -le 3; $attempt += 1) {
-		try {
-			Compress-Archive -Path (Join-Path $releaseDir "*") -DestinationPath $zipPath -Force
-			break
-		}
-		catch {
-			if ($attempt -eq 3) { throw }
-			Start-Sleep -Seconds 2
-		}
-	}
-}
-
-Write-Host ""
-Write-Host "Release folder: $releaseDir" -ForegroundColor Cyan
-if ($zipPath) { Write-Host "Zip archive:    $zipPath" -ForegroundColor Cyan }
-Write-Host "Status:         $status" -ForegroundColor ($(if ($overallPass) { "Green" } else { "Red" }))
-
 if (-not $overallPass) {
 	Write-Host ""
 	Write-Host "Failed checks:" -ForegroundColor Red
@@ -683,4 +853,230 @@ if (-not $overallPass) {
 		Write-Host "  - $($check.Group): $($check.Name) ($($check.Detail))" -ForegroundColor Red
 	}
 	throw "Stake release pipeline failed ($($failedChecks.Count) check(s)). Do not upload this release."
+}
+
+$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+$releaseName = "golden-goal-rush_front-$(Sanitize-Name $frontVersion)_math-$(Sanitize-Name $mathVersion)_git-$($gitSha.Substring(0, 12))_$timestamp"
+$zipPath = Join-Path $ImplementationEvidenceRoot ($releaseName + ".zip")
+$stageDir = Join-Path $ShortWorkRoot "stage"
+$extractDir = Join-Path $ShortWorkRoot "extract"
+$temporaryZip = Join-Path $ShortWorkRoot ($releaseName + ".partial.zip")
+$exactZipQaRoot = Join-Path $ImplementationEvidenceRoot "exact-zip-qa"
+$entryHashesPath = Join-Path $ImplementationEvidenceRoot "release-entry-hashes.json"
+$externalManifestPath = Join-Path $ImplementationEvidenceRoot "release-manifest.json"
+$releaseSucceeded = $false
+
+New-Item -ItemType Directory -Force -Path $ShortWorkRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $ReleaseRoot | Out-Null
+
+try {
+	Reset-ShortDirectory -Path $stageDir
+	Reset-ShortDirectory -Path $extractDir
+	if (Test-Path -LiteralPath $temporaryZip) { Remove-Item -LiteralPath $temporaryZip -Force }
+
+	Copy-DirectoryClean -Source $FrontendDest -Destination (Join-Path $stageDir "frontend")
+	Copy-DirectoryClean -Source $MathDest -Destination (Join-Path $stageDir "math")
+	$generatedPublishDest = Join-Path $stageDir "generated\publish_files"
+	Copy-DirectoryClean -Source $MathPublish -Destination $generatedPublishDest
+	Get-ChildItem -LiteralPath $generatedPublishDest -Filter "*.zip" -File -ErrorAction SilentlyContinue | Remove-Item -Force
+	Copy-DirectoryClean -Source (Join-Path $MathRoot "library\configs") -Destination (Join-Path $stageDir "generated\configs")
+
+	$stageArtifacts = Join-Path $stageDir "artifacts"
+	New-Item -ItemType Directory -Force -Path $stageArtifacts | Out-Null
+	Copy-Item -LiteralPath $PreviewHtml -Destination (Join-Path $stageArtifacts "preview.html") -Force
+	Copy-DirectoryClean -Source $QaArtifactRoot -Destination (Join-Path $stageArtifacts "stake-qa")
+	$implementationArtifactDestination = Join-Path $stageArtifacts "implementation"
+	New-Item -ItemType Directory -Force -Path $implementationArtifactDestination | Out-Null
+	foreach ($evidenceName in @(
+		"source-generated-map.json",
+		"release-implementation-notes.md",
+		"git-provenance.json",
+		"paytable-contract-publish.json",
+		"paytable-contract-release.json"
+	)) {
+		$evidenceSource = Join-Path $ImplementationEvidenceRoot $evidenceName
+		if (Test-Path -LiteralPath $evidenceSource -PathType Leaf) {
+			Copy-Item -LiteralPath $evidenceSource -Destination (Join-Path $implementationArtifactDestination $evidenceName) -Force
+		}
+	}
+
+	$frontendFileCount = Assert-DirectoryMatches -Expected $FrontendDest -Actual (Join-Path $stageDir "frontend") -Name "Staged frontend"
+	$mathFileCount = Assert-DirectoryMatches -Expected $MathDest -Actual (Join-Path $stageDir "math") -Name "Staged math"
+	Add-Check -Group "Release Packaging" -Name "staged frontend matches canonical publish frontend" -Passed $true -Detail "$frontendFileCount files"
+	Add-Check -Group "Release Packaging" -Name "staged math matches canonical publish math" -Passed $true -Detail "$mathFileCount files"
+
+	$changedFiles = Get-ChangedFiles
+	$releaseFilesBeforeReports = Get-RelativeFileList -Path $stageDir -Base $stageDir
+	$reportLines = New-Report -Status "PASS" -GitBranch $gitBranch -GitSha $gitSha -FrontVersion $frontVersion -MathVersion $mathVersion -Audit $audit -Analysis $analysis -BookContract $bookContract -ChangedFiles $changedFiles -ReleaseFiles $releaseFilesBeforeReports
+	$reportLines | Set-Content -LiteralPath (Join-Path $stageDir "stake-release-report.md") -Encoding UTF8
+	(New-Checklist -OverallPass $true) | Set-Content -LiteralPath (Join-Path $stageDir "stake-approval-checklist.md") -Encoding UTF8
+
+	$payloadEntries = @(Get-FileHashEntries -Path $stageDir -Base $stageDir)
+	$payloadHashPath = Join-Path $stageDir "payload-hashes.json"
+	[pscustomobject]@{
+		schemaVersion = 1
+		generatedAt = (Get-Date -Format o)
+		excludes = @("payload-hashes.json", "release-manifest.json")
+		entries = $payloadEntries
+	} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $payloadHashPath -Encoding UTF8
+
+	$manifest = [pscustomobject]@{
+		schemaVersion = 2
+		gameId = "golden_goal_rush"
+		gameName = [string]$mathConfig.gameName
+		timestamp = (Get-Date -Format o)
+		git = [pscustomobject]@{
+			root = $gitTopLevel
+			branch = $gitBranch
+			commitSha = $gitSha
+			remote = $gitRemote
+			cleanBeforeGeneration = $true
+			cleanAfterGeneration = $true
+		}
+		frontVersion = $frontVersion
+		mathVersion = $mathVersion
+		buildCommand = if ($ReuseBooks) { "npm run stake:release -- -ReuseBooks" } else { "npm run stake:release" }
+		canonicalFrontend = "publish/frontend"
+		canonicalMath = "publish/math"
+		canonicalZip = ("artifacts/stake-final-implementation-20260712-164933/" + $releaseName + ".zip")
+		checkStatus = "PASS"
+		checksPassed = @($script:Checks | Where-Object { $_.Passed }).Count
+		checksFailed = 0
+		payloadHashFile = "payload-hashes.json"
+		payloadHashFileSha256 = (Get-FileHash -LiteralPath $payloadHashPath -Algorithm SHA256).Hash.ToLowerInvariant()
+		rtpSummary = $audit
+		baseLookupAnalysis = $analysis
+		bookContract = $bookContract
+	}
+	$manifestPath = Join-Path $stageDir "release-manifest.json"
+	$manifest | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+
+	$stageEntries = @(Get-FileHashEntries -Path $stageDir -Base $stageDir)
+	[pscustomobject]@{
+		schemaVersion = 1
+		generatedAt = (Get-Date -Format o)
+		archiveFileName = ($releaseName + ".zip")
+		entryCount = $stageEntries.Count
+		entries = $stageEntries
+	} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $entryHashesPath -Encoding UTF8
+
+	Compress-Archive -Path (Join-Path $stageDir "*") -DestinationPath $temporaryZip -CompressionLevel Optimal -Force
+	if (-not (Test-Path -LiteralPath $temporaryZip -PathType Leaf)) { throw "Temporary release ZIP was not created" }
+
+	Add-Type -AssemblyName System.IO.Compression.FileSystem
+	$archive = [System.IO.Compression.ZipFile]::OpenRead($temporaryZip)
+	try {
+		$archiveEntries = @($archive.Entries | Where-Object { -not $_.FullName.EndsWith('/') } | ForEach-Object { $_.FullName.Replace('\', '/') } | Sort-Object)
+	}
+	finally {
+		$archive.Dispose()
+	}
+	$expectedArchiveEntries = @($stageEntries | ForEach-Object { $_.path } | Sort-Object)
+	if (($archiveEntries | ConvertTo-Json -Compress) -ne ($expectedArchiveEntries | ConvertTo-Json -Compress)) {
+		throw "ZIP entry list differs from staged release payload"
+	}
+	foreach ($requiredPath in @("frontend/index.html", "math/game_config.json", "release-manifest.json", "payload-hashes.json", "stake-release-report.md")) {
+		if ($archiveEntries -notcontains $requiredPath) { throw "ZIP is missing required entry: $requiredPath" }
+	}
+
+	Move-Item -LiteralPath $temporaryZip -Destination $zipPath
+	Expand-Archive -LiteralPath $zipPath -DestinationPath $extractDir -Force
+	$extractedEntries = @(Get-FileHashEntries -Path $extractDir -Base $extractDir)
+	if (($stageEntries | ConvertTo-Json -Depth 6 -Compress) -ne ($extractedEntries | ConvertTo-Json -Depth 6 -Compress)) {
+		throw "Extracted ZIP content hashes differ from staged content hashes"
+	}
+	Assert-DirectoryMatches -Expected $FrontendDest -Actual (Join-Path $extractDir "frontend") -Name "Extracted frontend" | Out-Null
+	Assert-DirectoryMatches -Expected $MathDest -Actual (Join-Path $extractDir "math") -Name "Extracted math" | Out-Null
+
+	if (Test-Path -LiteralPath $exactZipQaRoot) {
+		Assert-ChildPath -Child $exactZipQaRoot -Parent $ImplementationEvidenceRoot
+		Remove-Item -LiteralPath $exactZipQaRoot -Recurse -Force
+	}
+	New-Item -ItemType Directory -Force -Path $exactZipQaRoot | Out-Null
+	Invoke-Checked -WorkingDirectory $Root -FilePath "node" -Arguments @(
+		$PaytableVerifier,
+		"--html", (Join-Path $extractDir "frontend\index.html"),
+		"--math", (Join-Path $extractDir "math\game_config.json"),
+		"--report", (Join-Path $exactZipQaRoot "paytable-contract.json")
+	)
+
+	$previousQaFrontendRoot = $env:STAKE_QA_FRONTEND_ROOT
+	$previousQaFrontendEntry = $env:STAKE_QA_FRONTEND_ENTRY
+	$previousQaMathConfig = $env:STAKE_QA_MATH_CONFIG
+	$previousQaArtifactDir = $env:STAKE_QA_ARTIFACT_DIR
+	$previousQaRequireE2e = $env:STAKE_QA_REQUIRE_E2E
+	try {
+		$env:STAKE_QA_FRONTEND_ROOT = Join-Path $extractDir "frontend"
+		$env:STAKE_QA_FRONTEND_ENTRY = "index.html"
+		$env:STAKE_QA_MATH_CONFIG = Join-Path $extractDir "math\game_config.json"
+		$env:STAKE_QA_ARTIFACT_DIR = $exactZipQaRoot
+		$env:STAKE_QA_REQUIRE_E2E = "1"
+		Invoke-Checked -WorkingDirectory $Root -FilePath "node" -Arguments @($StakeQaScript, "all")
+	}
+	finally {
+		$env:STAKE_QA_FRONTEND_ROOT = $previousQaFrontendRoot
+		$env:STAKE_QA_FRONTEND_ENTRY = $previousQaFrontendEntry
+		$env:STAKE_QA_MATH_CONFIG = $previousQaMathConfig
+		$env:STAKE_QA_ARTIFACT_DIR = $previousQaArtifactDir
+		$env:STAKE_QA_REQUIRE_E2E = $previousQaRequireE2e
+	}
+
+	$zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+	$externalManifest = [pscustomobject]@{
+		schemaVersion = 2
+		generatedAt = (Get-Date -Format o)
+		status = "PASS"
+		canonicalZipPath = $zipPath
+		zipBytes = (Get-Item -LiteralPath $zipPath).Length
+		zipSha256 = $zipHash
+		entryCount = $stageEntries.Count
+		entryHashesPath = $entryHashesPath
+		extractedPathUsedForVerification = $extractDir
+		exactZipQaReport = Join-Path $exactZipQaRoot "report.json"
+		gitBranch = $gitBranch
+		gitCommitSha = $gitSha
+		frontVersion = $frontVersion
+		mathVersion = $mathVersion
+	}
+	$externalManifest | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $externalManifestPath -Encoding UTF8
+
+	$pointerPath = Join-Path $ReleaseRoot "CURRENT_RELEASE_POINTER.txt"
+	$pointerText = @(
+		"NO ZIP IS DUPLICATED IN THIS DIRECTORY.",
+		"Canonical upload ZIP: $zipPath",
+		"SHA-256: $zipHash",
+		"Manifest: $externalManifestPath",
+		"This pointer prevents multiple upload-shaped copies from existing."
+	) -join [Environment]::NewLine
+	$pointerText | Set-Content -LiteralPath $pointerPath -Encoding UTF8
+
+	$currentEvidenceZips = @(Get-ChildItem -LiteralPath $ImplementationEvidenceRoot -File -Filter "golden-goal-rush_*.zip")
+	$currentReleaseRootZips = @(Get-ChildItem -LiteralPath $ReleaseRoot -File -Filter "*.zip" -ErrorAction SilentlyContinue)
+	if ($currentEvidenceZips.Count -ne 1 -or $currentReleaseRootZips.Count -ne 0) {
+		throw "Current release guard failed: expected exactly one canonical ZIP and no duplicate ZIP in stake-release"
+	}
+	$releaseSucceeded = $true
+
+	Write-Host ""
+	Write-Host "Canonical ZIP:  $zipPath" -ForegroundColor Cyan
+	Write-Host "SHA-256:        $zipHash" -ForegroundColor Cyan
+	Write-Host "Entry count:    $($stageEntries.Count)" -ForegroundColor Cyan
+	Write-Host "Exact-ZIP QA:   $exactZipQaRoot" -ForegroundColor Cyan
+	Write-Host "Status:         PASS" -ForegroundColor Green
+}
+finally {
+	if (-not $releaseSucceeded) {
+		if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
+		foreach ($partialName in @("CURRENT_RELEASE_POINTER.txt")) {
+			$partialPath = Join-Path $ReleaseRoot $partialName
+			if (Test-Path -LiteralPath $partialPath) { Remove-Item -LiteralPath $partialPath -Force }
+		}
+	}
+	foreach ($cleanupPath in @($stageDir, $extractDir)) {
+		if (Test-Path -LiteralPath $cleanupPath) {
+			Assert-ChildPath -Child $cleanupPath -Parent $ShortWorkRoot
+			Remove-Item -LiteralPath $cleanupPath -Recurse -Force
+		}
+	}
+	if (Test-Path -LiteralPath $temporaryZip) { Remove-Item -LiteralPath $temporaryZip -Force }
 }

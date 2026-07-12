@@ -41,13 +41,16 @@ def scatter_positions(board: list[list[dict[str, str]]]) -> list[dict[str, int]]
 
 
 def symbols_connect(target: str, candidate: str) -> bool:
-    if candidate == target:
-        return True
-    if candidate == WILD_SYMBOL and target in NORMAL_SYMBOLS:
-        return True
-    if target == WILD_SYMBOL and candidate in NORMAL_SYMBOLS:
-        return True
-    return False
+    """Return whether *candidate* participates in *target*'s cluster.
+
+    Wilds are substitutes, never a cluster target of their own.  Keeping the
+    relationship directional makes the ownership rule explicit: every paying
+    symbol is evaluated independently over cells containing that symbol or a
+    Wild.  A Wild may therefore help simultaneous clusters of different
+    symbols, but a Wild-only component never pays.
+    """
+
+    return target in NORMAL_SYMBOLS and candidate in {target, WILD_SYMBOL}
 
 
 def pay_for(symbol: str, count: int, multiplier: int = 1) -> int:
@@ -58,54 +61,82 @@ def pay_for(symbol: str, count: int, multiplier: int = 1) -> int:
     return int(round(pay * size_boost * multiplier * 100))
 
 
-def find_clusters(board: list[list[dict[str, str]]], multiplier: int = 1) -> list[ClusterWin]:
-    symbols = board_symbols(board)
+def _find_clusters_for_targets(
+    symbols: list[list[str]],
+    targets: tuple[str, ...] | list[str],
+    multiplier: int,
+) -> list[ClusterWin]:
+    """Find clusters using target-specific visitation state.
+
+    The previous implementation shared one ``seen`` matrix between all
+    symbols.  A losing component encountered early in board order could mark a
+    Wild as seen and prevent a later paying component from using it.  Each
+    target now has its own visitation state, so discovery cannot depend on
+    either board scan order or paying-symbol iteration order.
+    """
+
     cols = len(symbols)
     rows = VISIBLE_ROWS
-    seen = [[False for _ in range(rows)] for _ in range(cols)]
-    clusters: list[ClusterWin] = []
+    clusters: list[tuple[tuple[tuple[int, int], ...], ClusterWin]] = []
 
-    for col in range(cols):
-        for row in range(rows):
-            target = symbols[col][row]
-            if seen[col][row] or target not in NORMAL_SYMBOLS:
-                continue
+    # A set removes a duplicated caller-supplied target; sorting makes the
+    # result stable even when tests deliberately reverse the target order.
+    paying_targets = sorted(
+        {
+            target
+            for target in targets
+            if target in NORMAL_SYMBOLS and float(SYMBOL_MATH.get(target, {}).get("pay", 0.0)) > 0
+        }
+    )
+    for target in paying_targets:
+        seen = [[False for _ in range(rows)] for _ in range(cols)]
+        for col in range(cols):
+            for row in range(rows):
+                if seen[col][row] or symbols[col][row] != target:
+                    continue
 
-            stack = [(col, row)]
-            cells: list[tuple[int, int]] = []
-            seen[col][row] = True
-            while stack:
-                current_col, current_row = stack.pop()
-                cells.append((current_col, current_row))
-                for dc, dr in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                    next_col = current_col + dc
-                    next_row = current_row + dr
-                    if next_col < 0 or next_col >= cols or next_row < 0 or next_row >= rows:
-                        continue
-                    if seen[next_col][next_row]:
-                        continue
-                    if symbols_connect(target, symbols[next_col][next_row]):
-                        seen[next_col][next_row] = True
-                        stack.append((next_col, next_row))
+                stack = [(col, row)]
+                seen[col][row] = True
+                cells: set[tuple[int, int]] = set()
+                while stack:
+                    current_col, current_row = stack.pop()
+                    cells.add((current_col, current_row))
+                    for dc, dr in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                        next_col = current_col + dc
+                        next_row = current_row + dr
+                        if next_col < 0 or next_col >= cols or next_row < 0 or next_row >= rows:
+                            continue
+                        if seen[next_col][next_row]:
+                            continue
+                        if symbols_connect(target, symbols[next_col][next_row]):
+                            seen[next_col][next_row] = True
+                            stack.append((next_col, next_row))
 
-            if len(cells) < MIN_CLUSTER:
-                continue
+                ordered_cells = tuple(sorted(cells))
+                if len(ordered_cells) < MIN_CLUSTER:
+                    continue
 
-            win = pay_for(target, len(cells), multiplier)
-            if win <= 0:
-                continue
+                win = pay_for(target, len(ordered_cells), multiplier)
+                if win <= 0:
+                    continue
 
-            clusters.append(
-                ClusterWin(
+                cluster = ClusterWin(
                     symbol=target,
-                    kind=len(cells),
+                    kind=len(ordered_cells),
                     win=win,
-                    positions=[{"reel": c, "col": c, "row": r} for c, r in cells],
+                    positions=[{"reel": c, "col": c, "row": r} for c, r in ordered_cells],
                     multiplier=multiplier,
                 )
-            )
+                clusters.append((ordered_cells, cluster))
 
-    return clusters
+    # Reading-order position first keeps serialized win order deterministic;
+    # symbol is an explicit tie-breaker when clusters share a substituting Wild.
+    clusters.sort(key=lambda item: (item[0][0], item[1].symbol, item[0]))
+    return [cluster for _, cluster in clusters]
+
+
+def find_clusters(board: list[list[dict[str, str]]], multiplier: int = 1) -> list[ClusterWin]:
+    return _find_clusters_for_targets(board_symbols(board), list(NORMAL_SYMBOLS), multiplier)
 
 
 def win_level_for_amount(amount: int) -> int:

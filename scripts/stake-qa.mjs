@@ -1,16 +1,25 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, extname, join, relative } from 'node:path';
+import { dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 const mode = (process.argv[2] || 'all').toLowerCase();
-const artifactRoot = join(root, 'artifacts', 'stake-qa', new Date().toISOString().replace(/[:.]/g, '-'));
+const artifactRoot = process.env.STAKE_QA_ARTIFACT_DIR
+	|| join(root, 'artifacts', 'stake-qa', new Date().toISOString().replace(/[:.]/g, '-'));
+
+const targetOverride = (name, fallback) => process.env[name]
+	? resolve(root, process.env[name])
+	: fallback;
 
 const paths = {
 	builder: join(root, 'apps', 'cluster', 'scripts', 'build-preview-html.mjs'),
 	preview: join(root, 'apps', 'cluster', 'preview.html'),
+	productionMathContract: join(root, 'apps', 'cluster', 'scripts', 'production-math-contract.mjs'),
+	generatedMathConfig: join(root, 'math', 'games', 'golden_goal_rush', 'library', 'configs', 'game_config.json'),
+	publishedMathConfig: targetOverride('STAKE_QA_MATH_CONFIG', join(root, 'publish', 'math', 'game_config.json')),
+	publishedFrontend: targetOverride('STAKE_QA_FRONTEND_HTML', join(root, 'publish', 'frontend', 'index.html')),
 	currency: join(root, 'packages', 'utils-shared', 'currency.js'),
 	amount: join(root, 'packages', 'utils-shared', 'amount.ts'),
 	stateUi: join(root, 'packages', 'state-shared', 'src', 'stateUi.svelte.ts'),
@@ -21,6 +30,50 @@ const paths = {
 };
 
 const checks = [];
+let paytableEvidence = null;
+const SOCIAL_FORBIDDEN_VALUES = [
+	'Bet Replay',
+	'Base Bet',
+	'Cost Multiplier',
+	'Total Bet Cost',
+	'Payout Multiplier',
+	'Total Win',
+	'Bonus Buy',
+	'Buy Bonus',
+	'Auto-Bet',
+	'Auto Bet',
+	'Bet',
+	'Wager',
+	'Gamble',
+	'Purchase',
+	'Paid',
+	'Pay out',
+	'Payout',
+	'Rebet',
+	'Cash',
+	'Credit',
+	'Currency',
+];
+const SOCIAL_REQUIRED_VALUES = [
+	'Play Replay',
+	'Base Play',
+	'Feature Multiplier',
+	'Play Cost',
+	'Final Multiplier',
+	'Final Play Amount',
+	'Replay Play',
+	'BONUS / FEATURE',
+	'AUTO-PLAY',
+	'PLAY',
+];
+const PLAYER_MODE_NAMES = [
+	'Base Game',
+	'Feature Spins',
+	'Rainbow Spin',
+	'Golden Chance',
+	'All That Glitters',
+	'End of the Rainbow',
+];
 
 function read(path) {
 	return readFileSync(path, 'utf8');
@@ -63,12 +116,59 @@ function expectNotContains(group, name, content, marker) {
 	expect(group, name, !contains(content, marker), `forbidden marker: ${marker}`);
 }
 
+function extractBalancedObject(content, marker) {
+	const start = content.indexOf(marker);
+	if (start < 0) return '';
+	const brace = content.indexOf('{', start);
+	if (brace < 0) return '';
+	let depth = 0;
+	for (let i = brace; i < content.length; i += 1) {
+		const ch = content[i];
+		if (ch === '{') depth += 1;
+		if (ch === '}') {
+			depth -= 1;
+			if (depth === 0) return content.slice(brace, i + 1);
+		}
+	}
+	return '';
+}
+
+function escapeRegExp(value) {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function stringValuesFromObjectLiteral(block) {
+	return [...block.matchAll(/:\s*'([^']*)'/g)].map((match) => match[1]).join(' ');
+}
+
+function socialForbiddenHits(text) {
+	return SOCIAL_FORBIDDEN_VALUES.filter((phrase) => new RegExp(`\\b${escapeRegExp(phrase).replaceAll('\\ ', '\\s+')}\\b`, 'i').test(text));
+}
+
 function runSyntaxCheck() {
 	const result = spawnSync(process.execPath, ['--check', paths.builder], {
 		cwd: root,
 		encoding: 'utf8',
 	});
 	expect('syntax', 'preview builder passes node --check', result.status === 0, result.stderr || result.stdout);
+	const generated = spawnSync(process.execPath, [paths.builder, '--check'], {
+		cwd: root,
+		encoding: 'utf8',
+	});
+	expect('generated-artifacts', 'preview.html exactly matches deterministic builder output', generated.status === 0, generated.stderr || generated.stdout);
+	if (existsSync(paths.preview)) {
+		const preview = read(paths.preview);
+		const inlineScripts = [...preview.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
+		expect('generated-artifacts', 'generated preview contains inline application JavaScript', inlineScripts.length > 0, `scripts=${inlineScripts.length}`);
+		for (const [index, script] of inlineScripts.entries()) {
+			const inlineCheck = spawnSync(process.execPath, ['--check', '-'], {
+				cwd: root,
+				encoding: 'utf8',
+				input: script,
+			});
+			expect('generated-artifacts', `generated inline script ${index + 1} parses`, inlineCheck.status === 0, inlineCheck.stderr || inlineCheck.stdout);
+		}
+	}
 }
 
 async function runCurrencyChecks() {
@@ -122,6 +222,167 @@ async function runCurrencyChecks() {
 	expect('currency', 'XGC display symbol is GC', currencyDisplaySymbol('XGC') === 'GC', currencyDisplaySymbol('XGC'));
 	expect('currency', 'social casino insufficient copy uses Balance', insufficientFundsMessage('XSC', false) === 'Insufficient Balance', insufficientFundsMessage('XSC', false));
 	expect('currency', 'fiat insufficient copy uses Funds', insufficientFundsMessage('EUR', false) === 'Insufficient Funds', insufficientFundsMessage('EUR', false));
+}
+
+const API_AMOUNT_MULTIPLIER = 1_000_000;
+
+function sameNumber(left, right) {
+	return Math.round(Number(left) * 100_000_000) === Math.round(Number(right) * 100_000_000);
+}
+
+function connectedClusterSize(grid, target, wild = 'wild') {
+	const cols = Array.isArray(grid) ? grid.length : 0;
+	const rows = cols && Array.isArray(grid[0]) ? grid[0].length : 0;
+	const starts = [];
+	for (let col = 0; col < cols; col += 1) {
+		for (let row = 0; row < rows; row += 1) {
+			if (grid[col]?.[row] === target) starts.push([col, row]);
+		}
+	}
+	let largest = 0;
+	const globallySeen = new Set();
+	for (const start of starts) {
+		const startKey = `${start[0]},${start[1]}`;
+		if (globallySeen.has(startKey)) continue;
+		const stack = [start];
+		const seen = new Set([startKey]);
+		let count = 0;
+		while (stack.length) {
+			const [col, row] = stack.pop();
+			count += 1;
+			if (grid[col]?.[row] === target) globallySeen.add(`${col},${row}`);
+			for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+				const nextCol = col + dc;
+				const nextRow = row + dr;
+				if (nextCol < 0 || nextCol >= cols || nextRow < 0 || nextRow >= rows) continue;
+				const key = `${nextCol},${nextRow}`;
+				if (seen.has(key)) continue;
+				const symbol = grid[nextCol]?.[nextRow];
+				if (symbol !== target && symbol !== wild) continue;
+				seen.add(key);
+				stack.push([nextCol, nextRow]);
+			}
+		}
+		largest = Math.max(largest, count);
+	}
+	return largest;
+}
+
+async function runPaytableChecks() {
+	const group = 'paytable-contract';
+	for (const [name, path] of [
+		['production math contract module', paths.productionMathContract],
+		['generated production math config', paths.generatedMathConfig],
+		['published production math config', paths.publishedMathConfig],
+	]) {
+		expect(group, `${name} exists`, existsSync(path), rel(path));
+	}
+	if (![paths.productionMathContract, paths.generatedMathConfig, paths.publishedMathConfig].every(existsSync)) return;
+
+	let contract;
+	try {
+		contract = await import(pathToFileURL(paths.productionMathContract).href + `?qa=${Date.now()}`);
+		pass(group, 'production math contract imports without drift/schema errors', rel(paths.productionMathContract));
+	} catch (error) {
+		fail(group, 'production math contract imports without drift/schema errors', error?.stack || error?.message || String(error));
+		return;
+	}
+
+	let generatedConfig;
+	let publishedConfig;
+	try {
+		generatedConfig = JSON.parse(read(paths.generatedMathConfig));
+		publishedConfig = JSON.parse(read(paths.publishedMathConfig));
+	} catch (error) {
+		fail(group, 'production math configs contain valid JSON', error?.message || String(error));
+		return;
+	}
+
+	expect(
+		group,
+		'generated and published Paytable JSON are identical',
+		JSON.stringify(generatedConfig.paytable) === JSON.stringify(publishedConfig.paytable),
+		`${rel(paths.generatedMathConfig)} === ${rel(paths.publishedMathConfig)}`,
+	);
+	expect(
+		group,
+		'generated and published cluster rules are identical',
+		JSON.stringify(generatedConfig.cluster) === JSON.stringify(publishedConfig.cluster),
+		`${rel(paths.generatedMathConfig)} === ${rel(paths.publishedMathConfig)}`,
+	);
+
+	const matrix = [];
+	for (const symbol of contract.PAYING_SYMBOLS) {
+		const raw = publishedConfig.paytable?.[symbol];
+		const ui = contract.PRODUCTION_PAYTABLE?.[symbol];
+		expect(group, `${symbol} is present in published math and UI contract`, !!raw && !!ui, symbol);
+		if (!raw || !ui) continue;
+		for (const threshold of contract.CLUSTER_THRESHOLDS) {
+			const productionValue = threshold.boostKey ? Number(raw.cluster5) * Number(raw[threshold.boostKey]) : Number(raw.cluster5);
+			const contractValue = Number(ui[threshold.valueKey]);
+			const matches = sameNumber(productionValue, contractValue);
+			expect(group, `${symbol} ${threshold.label} matches published production math numerically`, matches, `${contractValue} === ${productionValue}`);
+			matrix.push({
+				symbol,
+				threshold: threshold.label,
+				production: productionValue,
+				frontendContract: contractValue,
+				formatted: matches ? contract.formatPaytableMultiplier(contractValue) : null,
+				result: matches ? 'PASS' : 'FAIL',
+			});
+		}
+	}
+
+	const apiPayout = (symbol, size, cascade = 1) => Math.round(
+		API_AMOUNT_MULTIPLIER * contract.payoutForCluster(symbol, size, cascade),
+	);
+	expect(group, 'K 5 symbols at $1 and 1x pays $0.48', apiPayout('k', 5) === 480_000, `${apiPayout('k', 5)} API units`);
+	expect(group, 'Q 5 symbols at $1 and 1x pays $0.36', apiPayout('q', 5) === 360_000, `${apiPayout('q', 5)} API units`);
+	expect(group, 'J 7 symbols at $1 and 1x pays $0.56', apiPayout('j', 7) === 560_000, `${apiPayout('j', 7)} API units`);
+
+	const wildGrid = Array.from({ length: 6 }, () => Array(5).fill('scatter'));
+	for (const [col, row] of [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1]]) wildGrid[col][row] = 'j';
+	wildGrid[3][1] = 'wild';
+	const wildClusterSize = connectedClusterSize(wildGrid, 'j');
+	expect(group, 'six J plus one connecting Wild counts as a seven-symbol J cluster', wildClusterSize === 7, `cluster size=${wildClusterSize}`);
+	expect(group, 'six J plus one connecting Wild pays $0.56 at $1 and 1x', apiPayout('j', wildClusterSize) === 560_000, `${apiPayout('j', wildClusterSize)} API units`);
+	expect(group, 'later 2x cascade applies after base threshold pay', apiPayout('j', 7, 2) === 1_120_000, `${apiPayout('j', 7, 2)} API units`);
+
+	for (const [value, expected] of [[0.48, '0.48'], [2.88, '2.88'], [3.84, '3.84'], [1, '1']]) {
+		expect(group, `Paytable formatter preserves ${expected}`, contract.formatPaytableMultiplier(value) === expected, contract.formatPaytableMultiplier(value));
+	}
+
+	const builder = read(paths.builder);
+	expectContains(group, 'frontend builder consumes production Paytable contract', builder, 'PRODUCTION_PAYTABLE');
+	expectContains(group, 'frontend builder consumes shared Paytable formatter', builder, 'formatPaytableMultiplier');
+	expectContains(group, 'frontend exposes generated Paytable for numerical DOM audit', builder, '__ggrPaytable');
+
+	if (existsSync(paths.preview)) {
+		pass(group, 'generated preview exists for Paytable audit', rel(paths.preview));
+	} else {
+		fail(group, 'generated preview exists for Paytable audit', rel(paths.preview));
+	}
+	if (existsSync(paths.preview) && existsSync(paths.publishedFrontend)) {
+		expect(group, 'publish/frontend/index.html exactly matches generated preview.html', read(paths.preview) === read(paths.publishedFrontend), `${rel(paths.preview)} === ${rel(paths.publishedFrontend)}`);
+	} else {
+		fail(group, 'published frontend exists for generated-artifact drift audit', rel(paths.publishedFrontend));
+	}
+
+	paytableEvidence = {
+		generatedMathConfig: rel(paths.generatedMathConfig),
+		publishedMathConfig: rel(paths.publishedMathConfig),
+		generatedFrontend: rel(paths.preview),
+		publishedFrontend: rel(paths.publishedFrontend),
+		apiAmountMultiplier: API_AMOUNT_MULTIPLIER,
+		matrix,
+		mandatoryExamples: {
+			k5ApiAmount: apiPayout('k', 5),
+			q5ApiAmount: apiPayout('q', 5),
+			j7ApiAmount: apiPayout('j', 7),
+			j6PlusWildClusterSize: wildClusterSize,
+			j6PlusWildApiAmount: apiPayout('j', wildClusterSize),
+		},
+	};
 }
 
 function runCurrencySourceChecks() {
@@ -227,6 +488,82 @@ function runI18nChecks() {
 	}
 }
 
+function runBetConfigChecks() {
+	const builder = read(paths.builder);
+	expectContains('bet-config', 'dev fallback bet levels are isolated', builder, 'const DEV_BET_LEVELS = [');
+	expectContains('bet-config', 'active bet config source exists', builder, 'let activeBetConfig');
+	expectContains('bet-config', 'authenticate bet config normalizer exists', builder, 'function normalizeBetConfig');
+	expectContains('bet-config', 'authenticate bet config applier exists', builder, 'function applyBetConfig');
+	expectContains('bet-config', 'authenticate bet levels are accepted from response config', builder, "firstArrayConfig(config, ['betLevels', 'availableBetLevels', 'betAmounts', 'bets', 'levels', 'denominations'])");
+	expectContains('bet-config', 'authenticate default bet is accepted from response config', builder, "firstMoneyConfig(config, ['defaultBetLevel', 'defaultBet', 'defaultBetAmount', 'betLevel', 'betAmount', 'minBet'])");
+	expectContains('bet-config', 'authenticate currency is accepted from config/balance', builder, 'config.currency || config.defaultCurrency || balanceCurrency');
+	expectContains('bet-config', 'RGS authenticate without levels uses response default only', builder, "if (source === 'authenticate' && !levels.length && defaultBet !== null)");
+	expectContains('bet-config', 'wallet response feeds bet config', builder, "syncBetLevels(data.config, data)");
+	expectContains('bet-config', 'wallet play uses active bet api levels', builder, 'activeBetConfig.apiLevels');
+	expectContains('bet-config', 'plus/minus controls move through active bet ladder', builder, 'state.bet = BETS[state.betIdx]');
+	expectContains('bet-config', 'preview API exposes active bet config', builder, 'getBetConfig: () => activeBetConfig');
+	expectContains('bet-config', 'demo fallback only applies outside RGS/replay', builder, "if (!UrlState.requiresRgs() && !Replay.configured()) applyBetConfig");
+}
+
+function runSocialWordingChecks() {
+	const builder = read(paths.builder);
+	const sweeps = extractBalancedObject(builder, 'sweeps_en:');
+	const socialValues = stringValuesFromObjectLiteral(sweeps);
+	expect('social-copy', 'sweeps_en language resource is present', sweeps.length > 0, `chars=${sweeps.length}`);
+	for (const forbidden of SOCIAL_FORBIDDEN_VALUES) {
+		expect('social-copy', `sweeps_en values avoid "${forbidden}"`, !socialForbiddenHits(socialValues).includes(forbidden), forbidden);
+	}
+	for (const required of SOCIAL_REQUIRED_VALUES) {
+		expectContains('social-copy', `sweeps_en value includes "${required}"`, socialValues, required);
+	}
+	expectContains('social-copy', 'social UI applies language at runtime', builder, 'function applyLanguage()');
+	expectContains('social-copy', 'social rules body is generated separately', builder, 'function buildSocialRulesBodyHtml()');
+	expectContains('social-copy', 'social rules use Feature panel wording', builder, "socialTrigger: 'Feature panel");
+	expectContains('social-copy', 'social rules use play amount wording', builder, 'play amount');
+	expectContains('social-copy', 'social replay label mapping includes Play Cost', builder, "replayTotalCost: 'Play Cost'");
+	expectContains('social-copy', 'social replay label mapping includes Final Play Amount', builder, "replayTotalWin: 'Final Play Amount'");
+}
+
+function runGameInfoChecks() {
+	const builder = read(paths.builder);
+	const preview = existsSync(paths.preview) ? read(paths.preview) : builder;
+	expectContains('game-info', 'player mode metadata source exists', builder, 'const PLAYER_MODE_META = {');
+	expectContains('game-info', 'rules render all player modes from metadata', builder, 'Object.values(PLAYER_MODE_META).map');
+	for (const name of PLAYER_MODE_NAMES) {
+		expectContains('game-info', `Game Info explains mode "${name}"`, preview, name);
+	}
+	for (const marker of [
+		'Main Spin button',
+		'Bonus Buy panel',
+		'3 Scatter tickets',
+		'4 Scatter tickets',
+		'5 Scatter tickets only',
+		'Feature panel',
+	]) {
+		expectContains('game-info', `Game Info includes access/trigger "${marker}"`, builder + preview, marker);
+	}
+	for (const marker of [
+		'Cost multiplier:',
+		'Feature Multiplier:',
+		'Golden Cells persist',
+		'guaranteed Golden Arc',
+		'boosted Golden Arc chance',
+		'not available from the feature panel',
+	]) {
+		expectContains('game-info', `Game Info includes feature detail "${marker}"`, builder + preview, marker);
+	}
+	for (const marker of [
+		'<div class="pt-head">Retriggers</div>',
+		'Base Game and Rainbow Spin can trigger Free Spins',
+		'Base Play and Rainbow Spin can trigger Free Spins',
+		'No retrigger inside this single-spin mode.',
+		'The current math book does not create additional Free Spins inside this tier.',
+		'Feature-panel Free Spins do not add additional Free Spins',
+	]) {
+		expectContains('game-info', `Game Info includes retrigger rule "${marker}"`, builder + preview, marker);
+	}
+}
+
 function runMajorActionChecks() {
 	const builder = read(paths.builder);
 	const autoStart = read(paths.autoStart);
@@ -244,7 +581,7 @@ function runMajorActionChecks() {
 	// The generic gate future major actions (e.g. Double Chance) must use.
 	expectContains('major-actions', 'confirmMajorAction gate exists', builder, 'function confirmMajorAction(');
 	expectContains('major-actions', 'confirmMajorAction modal exists', builder, 'id="modal-major-confirm"');
-	expectContains('major-actions', 'confirmMajorAction is part of the public preview API', builder, 'confirmMajorAction, formatCurrency');
+	expectNotContains('major-actions', 'production frontend does not expose the mutable preview API', builder, 'window.__ggr =');
 	expectContains('major-actions', 'confirmMajorAction treats dismissal as cancel', builder, 'observer = new MutationObserver(');
 }
 
@@ -259,6 +596,38 @@ function runInterruptedRoundChecks() {
 	expectContains('interrupted-round', 'interrupted round modal is persistent', builder, 'data-persistent="true"');
 	expect('interrupted-round', 'resume message appears before bonus playback starts', messageCall > resumeStart && messageCall < spinningStart, `messageCall=${messageCall}, spinningStart=${spinningStart}`);
 	expectContains('interrupted-round', 'persistent modal ignores backdrop close', builder, '!m.dataset.persistent');
+}
+
+function runReplayChecks() {
+	const builder = read(paths.builder);
+	expectContains('replay', 'dedicated replay overlay exists', builder, 'id="replay-overlay"');
+	expectContains('replay', 'dedicated replay action exists', builder, 'id="replay-action"');
+	expectContains('replay', 'explicit replay lifecycle state exists', builder, 'data-replay-state');
+	for (const lifecycle of ['loading', 'ready', 'running', 'completed', 'error']) {
+		expectContains('replay', `replay lifecycle includes ${lifecycle}`, builder, `${lifecycle}:`);
+	}
+	expectContains('replay', 'replay fetch uses Stake replay endpoint', builder, "'/bet/replay/'");
+	expectContains('replay', 'replay request includes language parameter', builder, 'language: UrlState.lang()');
+	expectContains('replay', 'replay request includes lang parameter', builder, 'lang: UrlState.lang()');
+	expectContains('replay', 'replay metadata function exists', builder, 'function replayMetadata(round)');
+	expectContains('replay', 'replay mode name comes from player mode metadata', builder, 'playerModeName(rgsRoundMode(round))');
+	expectContains('replay', 'Replay Bet label is explicit and display-only', builder, "'REPLAY BET'");
+	expectContains('replay', 'Replay Play and Play Again labels are dedicated', builder, "status === 'completed' ? 'Play Again' : 'Replay Play'");
+	expectContains('replay', 'normal replay controls are made inert/disabled', builder, 'function makeUnavailableInReplay(element)');
+	expectContains('replay', 'replay response is schema validated', builder, 'function validateReplayEvents(events)');
+	expectContains('replay', 'replay request has a timeout controller', builder, 'new AbortController()');
+	expectContains('replay', 'replay saved data is frozen', builder, 'deepFreezeReplayData');
+	expectContains('replay', 'replay uses RGS book renderer', builder, "playRgsBookRound({ round: playbackRound }");
+	expectContains('replay', 'replay playback does not track/save bonus progress', builder, 'trackProgress: false');
+	expectContains('replay', 'dedicated replay action starts cached playback', builder, 'action.onclick = () => play();');
+	expectNotContains('replay', 'production frontend exposes no mutable gameplay API', builder, 'window.__ggr =');
+	expectNotContains('replay', 'production frontend contains no demo win mutator', builder, 'demoWin');
+	expectNotContains('replay', 'production frontend contains no demo feature mutator', builder, 'demoFeature');
+	expectContains('replay', 'normal spin action is logically guarded in replay', builder, 'if (state.replay');
+	expectNotContains('replay', 'replay is no longer blocked as unsupported launch parameter', builder, 'The game URL contains unsupported launch parameters');
+	expectNotContains('replay', 'old replay unsupported comment removed', builder, 'This build does not implement replay rendering');
+	expectNotContains('replay', 'replay has no local fallback round generator', builder, 'localReplayRound');
+	expectNotContains('replay', 'replay has no fallback board generator', builder, 'replayFallbackBoard');
 }
 
 async function runMobileChecks() {
@@ -292,17 +661,42 @@ function runE2eChecks(selectedMode) {
 		encoding: 'utf8',
 		stdio: ['ignore', 'inherit', 'inherit'],
 		env: { ...process.env, STAKE_QA_ARTIFACT_DIR: artifactRoot },
-		timeout: 15 * 60 * 1000,
+		timeout: Number(process.env.STAKE_QA_E2E_TIMEOUT_MS) || 30 * 60 * 1000,
 	});
 	if (result.status === 0) {
 		pass('e2e', 'browser end-to-end suite', `mode=${e2eMode}, report: e2e-report.json`);
 		return;
 	}
-	if (result.status === 3 && process.env.STAKE_QA_REQUIRE_E2E !== '1') {
+	const e2eRequired = mode === 'e2e'
+		|| process.env.STAKE_QA_REQUIRE_E2E === '1'
+		|| process.env.CI === 'true'
+		|| process.env.CI === '1';
+	if (result.status === 3 && !e2eRequired) {
 		skip('e2e', 'browser end-to-end suite', 'Playwright/Chromium not available. Install with: npm i -D playwright && npx playwright install chromium. Set STAKE_QA_REQUIRE_E2E=1 to make this a hard failure.');
 		return;
 	}
 	fail('e2e', 'browser end-to-end suite', `stake-qa-e2e exited with status ${result.status}`);
+}
+
+function runMathIntegrityChecks() {
+	const args = [
+		'-m', 'unittest', 'discover',
+		'-s', join('math', 'games', 'golden_goal_rush', 'tests'),
+		'-p', 'test_*.py',
+		'-v',
+	];
+	const result = spawnSync('python', args, {
+		cwd: root,
+		encoding: 'utf8',
+		stdio: ['ignore', 'pipe', 'pipe'],
+		timeout: Number(process.env.STAKE_QA_MATH_TIMEOUT_MS) || 2 * 60 * 1000,
+	});
+	const output = `${result.stdout || ''}${result.stderr || ''}`.trim();
+	if (result.status === 0) {
+		pass('math-integrity', 'production Python Wild/cluster regression suite', output.split('\n').slice(-2).join(' | '));
+		return;
+	}
+	fail('math-integrity', 'production Python Wild/cluster regression suite', `status=${result.status}; ${output.slice(-2000)}`);
 }
 
 function runRulesChecks() {
@@ -348,14 +742,20 @@ function runExistingBehaviorChecks() {
 	expectContains('regression-markers', 'math config still exports symbol weights', mathConfig, 'SYMBOL_MATH');
 }
 
-const E2E_MODES = new Set(['all', 'currency', 'insufficient-funds', 'major-actions', 'interrupted-round', 'mobile', 'rules']);
+const E2E_MODES = new Set(['all', 'currency', 'insufficient-funds', 'major-actions', 'interrupted-round', 'mobile', 'rules', 'bet-config', 'social', 'replay', 'paytable']);
 async function run(selectedMode) {
 	runSyntaxCheck();
+	if (selectedMode === 'all' || selectedMode === 'math-integrity') runMathIntegrityChecks();
+	if (selectedMode === 'all' || selectedMode === 'paytable') await runPaytableChecks();
 	if (selectedMode === 'all' || selectedMode === 'currency') {
 		await runCurrencyChecks();
 		runCurrencySourceChecks();
 	}
 	if (selectedMode === 'all' || selectedMode === 'i18n') runI18nChecks();
+	if (selectedMode === 'all' || selectedMode === 'bet-config') runBetConfigChecks();
+	if (selectedMode === 'all' || selectedMode === 'social') runSocialWordingChecks();
+	if (selectedMode === 'all' || selectedMode === 'rules' || selectedMode === 'game-info') runGameInfoChecks();
+	if (selectedMode === 'all' || selectedMode === 'replay') runReplayChecks();
 	if (selectedMode === 'all' || selectedMode === 'major-actions') runMajorActionChecks();
 	if (selectedMode === 'all' || selectedMode === 'interrupted-round') runInterruptedRoundChecks();
 	if (selectedMode === 'all' || selectedMode === 'mobile') await runMobileChecks();
@@ -374,6 +774,12 @@ mkdirSync(artifactRoot, { recursive: true });
 const report = {
 	mode,
 	root,
+	targets: {
+		frontend: paths.publishedFrontend,
+		mathConfig: paths.publishedMathConfig,
+		canonicalPreview: paths.preview,
+		canonicalGeneratedMathConfig: paths.generatedMathConfig,
+	},
 	checks,
 	summary: {
 		pass: checks.filter((check) => check.status === 'PASS').length,
@@ -382,12 +788,14 @@ const report = {
 	},
 };
 writeFileSync(join(artifactRoot, 'report.json'), JSON.stringify(report, null, 2));
+if (paytableEvidence) writeFileSync(join(artifactRoot, 'paytable-contract.json'), JSON.stringify(paytableEvidence, null, 2));
 
 for (const check of checks) {
 	const prefix = check.status === 'PASS' ? 'PASS' : check.status === 'SKIP' ? 'SKIP' : 'FAIL';
 	console.log(`${prefix} [${check.group}] ${check.name}${check.detail ? ` - ${check.detail}` : ''}`);
 }
 console.log(`Stake QA report: ${rel(join(artifactRoot, 'report.json'))}`);
+if (paytableEvidence) console.log(`Paytable contract evidence: ${rel(join(artifactRoot, 'paytable-contract.json'))}`);
 
 if (report.summary.fail > 0) {
 	console.error(`Stake QA failed: ${report.summary.fail} failing check(s).`);
