@@ -3,6 +3,7 @@
 # dependencies
 node_modules
 artifacts/
+.stake-audit/
 .pnp
 .pnp.js
 
