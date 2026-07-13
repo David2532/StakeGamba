@@ -4,7 +4,7 @@ export const createInterruptible = () => {
 
 	let resolveList: Resolve[] = [];
 
-	const add = (targetToWait: () => Promise<any>) =>
+	const add = (targetToWait: () => Promise<unknown>) =>
 		new Promise<ResolveArgs>(async (resolve) => {
 			resolveList.push(resolve);
 			await targetToWait();
