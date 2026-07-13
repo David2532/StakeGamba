@@ -19,7 +19,7 @@ export function createEnhanceBoardPreSpin<TReel extends Reel<any, any>>({
 
 		await Promise.all(
 			board.map((reel, reelIndex) => {
-				// @ts-ignore Ignored because paddingReel is not required by createCascadingReel
+				// @ts-expect-error paddingReel is not required by the cascading reel specialization.
 				return reel.preSpin({ isTurboBeforeAll, preSpinPaddingReel: paddingBoard?.[reelIndex] });
 			}),
 		);
