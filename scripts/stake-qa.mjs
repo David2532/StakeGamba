@@ -17,6 +17,7 @@ const paths = {
 	builder: join(root, 'apps', 'cluster', 'scripts', 'build-preview-html.mjs'),
 	preview: join(root, 'apps', 'cluster', 'preview.html'),
 	productionMathContract: join(root, 'apps', 'cluster', 'scripts', 'production-math-contract.mjs'),
+	e2e: join(root, 'scripts', 'stake-qa-e2e.mjs'),
 	generatedMathConfig: join(root, 'math', 'games', 'golden_goal_rush', 'library', 'configs', 'game_config.json'),
 	publishedMathConfig: targetOverride('STAKE_QA_MATH_CONFIG', join(root, 'publish', 'math', 'game_config.json')),
 	publishedFrontend: targetOverride('STAKE_QA_FRONTEND_HTML', join(root, 'publish', 'frontend', 'index.html')),
@@ -490,6 +491,7 @@ function runI18nChecks() {
 
 function runBetConfigChecks() {
 	const builder = read(paths.builder);
+	const e2e = read(paths.e2e);
 	expectContains('bet-config', 'dev fallback bet levels are isolated', builder, 'const DEV_BET_LEVELS = [');
 	expectContains('bet-config', 'active bet config source exists', builder, 'let activeBetConfig');
 	expectContains('bet-config', 'authenticate bet config normalizer exists', builder, 'function normalizeBetConfig');
@@ -501,7 +503,8 @@ function runBetConfigChecks() {
 	expectContains('bet-config', 'wallet response feeds bet config', builder, "syncBetLevels(data.config, data)");
 	expectContains('bet-config', 'wallet play uses active bet api levels', builder, 'activeBetConfig.apiLevels');
 	expectContains('bet-config', 'plus/minus controls move through active bet ladder', builder, 'state.bet = BETS[state.betIdx]');
-	expectContains('bet-config', 'preview API exposes active bet config', builder, 'getBetConfig: () => activeBetConfig');
+	expectContains('bet-config', 'QA-only runtime exposes cloned active bet config', e2e, 'getBetConfig: () => cloneReplayData(activeBetConfig)');
+	expectContains('bet-config', 'production frontend only exposes the QA instrumentation hook marker', builder, '/*__STAKE_QA_RUNTIME_HOOK__*/');
 	expectContains('bet-config', 'demo fallback only applies outside RGS/replay', builder, "if (!UrlState.requiresRgs() && !Replay.configured()) applyBetConfig");
 }
 

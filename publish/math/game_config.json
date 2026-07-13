@@ -1,7 +1,7 @@
 {
   "gameId": "golden_goal_rush",
   "gameName": "Golden Goal Rush",
-  "version": "0.2.1-cluster",
+  "version": "0.2.2-cluster",
   "layout": {
     "reels": 6,
     "visibleRows": 5,
@@ -81,6 +81,7 @@
   "cluster": {
     "minCluster": 5,
     "wildSubstitutes": true,
+    "wildEvaluation": "Each normal paying symbol is evaluated independently over its symbol and orthogonally connected Wilds. Wild-only groups do not pay; one Wild may support simultaneous clusters of different normal symbols, and removal coordinates are de-duplicated.",
     "winningCellsBecomeGolden": true,
     "cascadeMultiplier": "increments by 1 after each cascade in a spin"
   },
@@ -133,9 +134,9 @@
       "buyBonus": false,
       "rtp_target": 0.9645,
       "description": "Normal 6x5 cluster/cascade base spin",
-      "rtp_achieved": 0.9645,
+      "rtp_achieved": 0.964498,
       "rtp_capped_for_diversity": false,
-      "max_win": 10000.0
+      "max_win": 3895.42
     },
     "hunt": {
       "cost": 4.2,

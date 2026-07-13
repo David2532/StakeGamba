@@ -276,15 +276,18 @@ used to recalculate or invent an RGS result.
 
 ## 10. Final QA evidence for this Stake response
 
-Populate these paths from the final clean release run; do not replace them with
-older evidence:
+Final feature-branch evidence from the full-math publish run:
 
-- Combined QA report: **TBD - `artifacts/stake-qa/<final-timestamp>/report.json`**
-- Browser report: **TBD - `artifacts/stake-qa/<final-timestamp>/e2e-report.json`**
-- Replay screenshots: **TBD - `artifacts/stake-qa/<final-timestamp>/e2e-screenshots/`**
-- Final release report: **TBD - `stake-release/<final-release>/stake-release-report.md`**
-- Final approval checklist: **TBD - `stake-release/<final-release>/stake-approval-checklist.md`**
-- Final release manifest/ZIP: **TBD - `stake-release/<final-release>/manifest.json` and matching `.zip`**
+- Combined QA report: `artifacts/stake-qa/2026-07-13T09-30-56-416Z/report.json`
+- Browser report: `artifacts/stake-qa/2026-07-13T09-30-56-416Z/e2e-report.json`
+- Replay screenshots: `artifacts/stake-qa/2026-07-13T09-30-56-416Z/e2e-screenshots/`
+- Replay network proof: `artifacts/stake-qa/2026-07-13T09-30-56-416Z/replay-network-proof.json`
+- Paytable contract evidence: `artifacts/stake-qa/2026-07-13T09-30-56-416Z/paytable-contract.json`
+- Final release report/checklist/manifest/ZIP: intentionally not generated on
+  this feature branch. `scripts/stake-release-pipeline.ps1` keeps its hard
+  `main` branch guard; run `npm run stake:release` on `main` after merge to
+  create `stake-release/<final-release>/stake-release-report.md`,
+  `stake-approval-checklist.md`, `manifest.json`, and the matching `.zip`.
 
 The final evidence must include Base and bonus/free-spin replay runs, all
 required viewports, the observed replay GET URL, a forbidden wallet/session
@@ -309,6 +312,7 @@ artifacts did not change.
 npm run stake:qa          # static + functional + browser e2e, one report
 npm run stake:qa:e2e      # browser e2e only
 npm run stake:publish     # authoritative math -> frontend -> publish snapshot
+npm run stake:publish:full-math # regenerate full math -> frontend -> publish snapshot
 npm run stake:release     # final validated release folder, reports and ZIP
 ```
 

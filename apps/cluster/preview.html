@@ -1639,8 +1639,10 @@
 	.replay-start { width:100%; margin-top:22px; padding:15px 18px; border:0; border-radius:12px; cursor:pointer; color:#1b2032;
 		background:linear-gradient(90deg,#ffe600,#ff9c0a); box-shadow:0 4px 0 #9a6f1e; font-size:22px; font-weight:1000; }
 	.replay-note { margin:16px 0 0; color:#8d91a8; font-size:13px; text-align:center; line-height:1.45; }
-	.replay-control-panel { display:none; position:relative; align-items:center; justify-content:space-between; gap:18px;
-		width:520px; min-height:calc(76px * var(--stage-inv-scale,1)); padding:10px 14px 10px 20px; border:2px solid #d5a23b; border-radius:15px;
+	.replay-control-panel { display:none; position:relative; align-items:center; justify-content:space-between; gap:calc(18px * var(--stage-inv-scale,1));
+		width:calc(520px * var(--stage-inv-scale,1)); min-height:calc(76px * var(--stage-inv-scale,1));
+		padding:calc(10px * var(--stage-inv-scale,1)) calc(14px * var(--stage-inv-scale,1)) calc(10px * var(--stage-inv-scale,1)) calc(20px * var(--stage-inv-scale,1));
+		border:2px solid #d5a23b; border-radius:15px;
 		background:linear-gradient(180deg,rgba(28,25,15,.98),rgba(6,7,10,.98));
 		box-shadow:inset 0 0 0 2px #050505,0 0 18px rgba(255,194,48,.28),0 6px 16px rgba(0,0,0,.7); }
 	.replay-control-copy { min-width:0; display:grid; gap:4px; color:#fff; font-family:Inter,Arial,sans-serif; }
@@ -1653,6 +1655,8 @@
 		font-size:calc(18px * var(--stage-inv-scale,1)); font-weight:1000; letter-spacing:.5px; cursor:pointer; }
 	.replay-action:hover { filter:brightness(1.07); transform:translateY(-1px); }
 	.replay-action:active { transform:translateY(2px); box-shadow:0 1px 0 #8c621a; }
+	.replay-action:focus,
+	.replay-action:focus-visible { outline:calc(4px * var(--stage-inv-scale,1)) solid #fff; outline-offset:calc(3px * var(--stage-inv-scale,1)); }
 	.replay-action[hidden] { display:none !important; }
 	.replay-overlay { position:absolute; inset:0; z-index:92; display:none; place-items:center; padding:28px;
 		background:rgba(0,0,0,.84); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); pointer-events:auto; }
@@ -1675,12 +1679,33 @@
 	.stage.replay-mode #btn-spin,
 	.stage.replay-mode #bet-controls { display:none !important; }
 	.stage.replay-mode .meters { width:570px; left:calc(315px + var(--stage-x-shift,0px)); grid-template-columns:repeat(2,minmax(0,1fr)); }
-	.stage.replay-mode .controls { justify-content:center; align-items:center; gap:12px; }
+	.stage.replay-mode .controls { bottom:0; justify-content:center; align-items:center; gap:calc(12px * var(--stage-inv-scale,1)); }
 	.stage.replay-mode #btn-turbo { margin-right:0; }
 	.stage.replay-mode[data-replay-state="running"] .replay-action,
 	.stage.replay-mode[data-replay-state="loading"] .replay-action,
 	.stage.replay-mode[data-replay-state="error"] .replay-action { display:none !important; }
 	.stage.replay-mode[data-replay-state="error"] .replay-control-panel { opacity:.55; pointer-events:none; }
+	@media (min-width: 701px) and (orientation: portrait) {
+		.stage.replay-mode .controls { bottom:calc(12px * var(--stage-inv-scale,1)); }
+	}
+	@media (max-height: 520px) and (orientation: landscape) {
+		.stage.replay-mode .replay-control-panel {
+			width:calc(390px * var(--stage-inv-scale,1));
+			min-height:calc(44px * var(--stage-inv-scale,1));
+			padding:calc(3px * var(--stage-inv-scale,1)) calc(8px * var(--stage-inv-scale,1));
+			gap:calc(8px * var(--stage-inv-scale,1));
+		}
+		.stage.replay-mode .replay-control-copy { gap:calc(2px * var(--stage-inv-scale,1)); }
+		.stage.replay-mode .replay-control-copy strong { font-size:calc(11px * var(--stage-inv-scale,1)); letter-spacing:.8px; }
+		.stage.replay-mode .replay-control-copy small { font-size:calc(10px * var(--stage-inv-scale,1)); }
+		.stage.replay-mode .replay-currency-code { min-width:calc(32px * var(--stage-inv-scale,1)); padding:calc(1px * var(--stage-inv-scale,1)) calc(5px * var(--stage-inv-scale,1)); }
+		.stage.replay-mode .replay-action {
+			min-width:calc(128px * var(--stage-inv-scale,1));
+			min-height:calc(36px * var(--stage-inv-scale,1));
+			padding:calc(5px * var(--stage-inv-scale,1)) calc(8px * var(--stage-inv-scale,1));
+			font-size:calc(13px * var(--stage-inv-scale,1));
+		}
+	}
 	.notice-copy { color:#f1e4c6; font-size:15px; line-height:1.5; text-align:center; }
 	.notice-copy strong { color:#ffe49a; }
 	.interrupted-copy { max-width:500px; color:#f1e4c6; font-size:16px; line-height:1.5; text-align:center; }
@@ -1770,15 +1795,15 @@
 	.stage.mobile-portrait .feature-item img { width: calc(16px * var(--stage-inv-scale, 1)); height: calc(16px * var(--stage-inv-scale, 1)); }
 	.stage.mobile-portrait .feature-item span { font-size: calc(6px * var(--stage-inv-scale, 1)); }
 	.stage.mobile-portrait.replay-mode .meters {
-		left:50%; width:calc(min(94vw,570px) * var(--stage-inv-scale,1)); transform:translateX(-50%);
+		left:50%; width:min(calc(94vw * var(--stage-inv-scale,1)),calc(570px * var(--stage-inv-scale,1))); transform:translateX(-50%);
 	}
 	.stage.mobile-portrait.replay-mode .replay-control-panel {
-		order:-1; width:calc(min(94vw,430px) * var(--stage-inv-scale,1)); min-height:calc(68px * var(--stage-inv-scale,1));
+		order:-1; width:min(calc(94vw * var(--stage-inv-scale,1)),calc(430px * var(--stage-inv-scale,1))); min-height:calc(68px * var(--stage-inv-scale,1));
 		padding:calc(7px * var(--stage-inv-scale,1)) calc(9px * var(--stage-inv-scale,1)); gap:calc(7px * var(--stage-inv-scale,1));
 	}
 	.stage.mobile-portrait.replay-mode .replay-control-copy { gap:calc(2px * var(--stage-inv-scale,1)); }
 	.stage.mobile-portrait.replay-mode .replay-control-copy strong { font-size:calc(12px * var(--stage-inv-scale,1)); }
-	.stage.mobile-portrait.replay-mode .replay-control-copy small { font-size:calc(9px * var(--stage-inv-scale,1)); white-space:normal; }
+	.stage.mobile-portrait.replay-mode .replay-control-copy small { font-size:calc(11px * var(--stage-inv-scale,1)); white-space:normal; }
 	.stage.mobile-portrait.replay-mode .replay-currency-code { min-width:calc(36px * var(--stage-inv-scale,1)); margin-left:calc(3px * var(--stage-inv-scale,1)); padding:calc(2px * var(--stage-inv-scale,1)) calc(5px * var(--stage-inv-scale,1)); }
 	.stage.mobile-portrait.replay-mode .replay-action { min-width:calc(130px * var(--stage-inv-scale,1)); min-height:calc(48px * var(--stage-inv-scale,1)); padding:calc(7px * var(--stage-inv-scale,1)); font-size:calc(14px * var(--stage-inv-scale,1)); }
 
@@ -2099,9 +2124,9 @@ const SYMBOLS = {"ten":{"weight":22,"pay":0.24,"src":"src/assets/golden-goal-rus
 const PRODUCTION_PAYTABLE = {"ten":{"cluster5":0.24,"cluster7Boost":2,"cluster9Boost":4,"cluster12Boost":8,"cluster7":0.48,"cluster9":0.96,"cluster12":1.92},"j":{"cluster5":0.28,"cluster7Boost":2,"cluster9Boost":4,"cluster12Boost":8,"cluster7":0.56,"cluster9":1.12,"cluster12":2.24},"q":{"cluster5":0.36,"cluster7Boost":2,"cluster9Boost":4,"cluster12Boost":8,"cluster7":0.72,"cluster9":1.44,"cluster12":2.88},"k":{"cluster5":0.48,"cluster7Boost":2,"cluster9Boost":4,"cluster12Boost":8,"cluster7":0.96,"cluster9":1.92,"cluster12":3.84},"a":{"cluster5":0.62,"cluster7Boost":2,"cluster9Boost":4,"cluster12Boost":8,"cluster7":1.24,"cluster9":2.48,"cluster12":4.96},"football":{"cluster5":0.82,"cluster7Boost":2,"cluster9Boost":4,"cluster12Boost":8,"cluster7":1.64,"cluster9":3.28,"cluster12":6.56},"whistle":{"cluster5":1.05,"cluster7Boost":2,"cluster9Boost":4,"cluster12Boost":8,"cluster7":2.1,"cluster9":4.2,"cluster12":8.4},"trophy":{"cluster5":1.35,"cluster7Boost":2,"cluster9Boost":4,"cluster12Boost":8,"cluster7":2.7,"cluster9":5.4,"cluster12":10.8},"jersey":{"cluster5":1.85,"cluster7Boost":2,"cluster9Boost":4,"cluster12Boost":8,"cluster7":3.7,"cluster9":7.4,"cluster12":14.8}};
 const FORMATTED_PRODUCTION_PAYTABLE = {"ten":{"cluster5":"0.24","cluster7":"0.48","cluster9":"0.96","cluster12":"1.92"},"j":{"cluster5":"0.28","cluster7":"0.56","cluster9":"1.12","cluster12":"2.24"},"q":{"cluster5":"0.36","cluster7":"0.72","cluster9":"1.44","cluster12":"2.88"},"k":{"cluster5":"0.48","cluster7":"0.96","cluster9":"1.92","cluster12":"3.84"},"a":{"cluster5":"0.62","cluster7":"1.24","cluster9":"2.48","cluster12":"4.96"},"football":{"cluster5":"0.82","cluster7":"1.64","cluster9":"3.28","cluster12":"6.56"},"whistle":{"cluster5":"1.05","cluster7":"2.1","cluster9":"4.2","cluster12":"8.4"},"trophy":{"cluster5":"1.35","cluster7":"2.7","cluster9":"5.4","cluster12":"10.8"},"jersey":{"cluster5":"1.85","cluster7":"3.7","cluster9":"7.4","cluster12":"14.8"}};
 const PRODUCTION_PAYING_SYMBOLS = ["ten","j","q","k","a","football","whistle","trophy","jersey"];
-const CLUSTER_THRESHOLDS = [{"size":5,"label":"5+","valueKey":"cluster5","boostKey":null},{"size":7,"label":"7+","valueKey":"cluster7","boostKey":"cluster7Boost"},{"size":9,"label":"9+","valueKey":"cluster9","boostKey":"cluster9Boost"},{"size":12,"label":"12+","valueKey":"cluster12","boostKey":"cluster12Boost"}];
+const CLUSTER_THRESHOLDS = [{"label":"5-6","min":5,"max":6,"valueKey":"cluster5","boostKey":null},{"label":"7-8","min":7,"max":8,"valueKey":"cluster7","boostKey":"cluster7Boost"},{"label":"9-11","min":9,"max":11,"valueKey":"cluster9","boostKey":"cluster9Boost"},{"label":"12+","min":12,"max":null,"valueKey":"cluster12","boostKey":"cluster12Boost"}];
 const PRODUCTION_GAME_ID = "golden_goal_rush";
-const PRODUCTION_MATH_VERSION = "0.2.1-cluster";
+const PRODUCTION_MATH_VERSION = "0.2.2-cluster";
 const PRODUCTION_BET_MODES = ["base","hunt","rainbow","bonus_tier1","bonus"];
 const COIN_ASSETS = {"bronze":"src/assets/golden-goal-rush/special/bronze.webp","silver":"src/assets/golden-goal-rush/special/silber.webp","gold":"src/assets/golden-goal-rush/special/gold.webp"};
 const MULT_ASSETS = {"2":"src/assets/golden-goal-rush/special/x2.webp","3":"src/assets/golden-goal-rush/special/x3.webp","4":"src/assets/golden-goal-rush/special/x4.webp","5":"src/assets/golden-goal-rush/special/x5.webp","10":"src/assets/golden-goal-rush/special/x10.webp"};
@@ -2144,7 +2169,7 @@ const LANGUAGE_RESOURCES = {
 		paytableTitle: 'PAY TABLE',
 		paytableIntro: 'Payouts are multipliers of the active bet. Wins begin with <b>5 orthogonally connected matching symbols</b>; substituting Wilds are included in the displayed cluster size.',
 		paytableHead: 'Symbol Pays <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small>',
-		paytableNote: '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Wild substitutes for normal paying symbols and counts in the cluster. The cascade multiplier starts at 1× and increases after each successful cascade, so a later floating cluster amount can exceed the base table value. A floating amount is that win step; the WIN meter is cumulative for the complete round.',
+		paytableNote: '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each paying symbol is evaluated independently with orthogonally connected Wilds. A Wild may support more than one distinct symbol cluster, counts toward each supported cluster, and appears only once within a single win. The tumble removes the union of all winning positions. The cascade multiplier starts at 1× and increases after each successful cascade, so a later floating cluster amount can exceed the base table value. A floating amount is that win step; the WIN meter is cumulative for the complete round.',
 		rulesDesc: 'Cluster wins, coins, multipliers and free spins',
 		autoConfirm: 'Start Auto-Bet for',
 		bonusNoteAffordable: 'Prices scale with your current bet. Tier 3 can only trigger naturally.',
@@ -2180,7 +2205,7 @@ const LANGUAGE_RESOURCES = {
 		paytableTitle: 'SYMBOL TABLE',
 		paytableIntro: 'Values are multipliers of the active play amount. Awards begin with <b>5 orthogonally connected matching symbols</b>; substituting Wilds are included in the displayed cluster size.',
 		paytableHead: 'Symbol Values <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small>',
-		paytableNote: '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Wild substitutes for normal symbols and counts in the cluster. The cascade multiplier starts at 1× and increases after each successful cascade, so a later floating cluster amount can exceed the base table value. A floating amount is that award step; the WIN meter is cumulative for the complete round.',
+		paytableNote: '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each paying symbol is evaluated independently with orthogonally connected Wilds. A Wild may support more than one distinct symbol cluster, counts toward each supported cluster, and appears only once within a single award. The tumble removes the union of all winning positions. The cascade multiplier starts at 1× and increases after each successful cascade, so a later floating cluster amount can exceed the base table value. A floating amount is that award step; the WIN meter is cumulative for the complete round.',
 		rulesDesc: 'Cluster awards, coins, multipliers and free spins',
 		autoConfirm: 'Start Auto-Play for',
 		bonusNoteAffordable: 'Feature amounts scale with your current play amount. Tier 3 can only trigger naturally.',
@@ -2269,6 +2294,15 @@ const ck = (c, r) => c + ',' + r;
 const apiAmountToMoney = (amount) => Math.round(((Number(amount) || 0) / API_AMOUNT_MULTIPLIER) * 100) / 100;
 const moneyToApiAmount = (amount) => Math.round((Number(amount) || 0) * API_AMOUNT_MULTIPLIER);
 const moneyRound = (amount) => Math.round((Number(amount) || 0) * 100) / 100;
+const BOOK_MULTIPLIER_SCALE = 100;
+const replayApiAmountToMoney = (amount) => Number(amount) / API_AMOUNT_MULTIPLIER;
+const replayBookUnitsToMultiplier = (amount) => Number(amount) / BOOK_MULTIPLIER_SCALE;
+function requireReplaySafeInteger(value, label, { positive = false } = {}) {
+	if (typeof value !== 'number' || !Number.isSafeInteger(value) || (positive ? value <= 0 : value < 0)) {
+		throw new Error(label + ' must be a ' + (positive ? 'positive' : 'non-negative') + ' integer');
+	}
+	return value;
+}
 const DEV_BET_CONFIG = {
 	source: 'dev-fallback',
 	currency: DEFAULT_CURRENCY,
@@ -2420,6 +2454,7 @@ const UrlState = (() => {
 			const value = get('lang', 'language') || 'en';
 			return value === 'br' ? 'pt' : value;
 		},
+		currencyRaw: () => get('currency').toUpperCase(),
 		currency: () => (get('currency') || DEFAULT_CURRENCY).toUpperCase(),
 		device: () => get('device', 'deviceType').toLowerCase(),
 		game: () => get('game', 'gameName', 'slug') || 'golden-goal-rush',
@@ -2435,6 +2470,7 @@ const UrlState = (() => {
 	};
 })();
 state.currency = UrlState.currency();
+if (UrlState.replay()) state.currency = UrlState.currencyRaw();
 
 function isSocialPlay() {
 	return UrlState.social() || normalizeCurrency(state.currency) === 'XGC' || normalizeCurrency(state.currency) === 'XSC';
@@ -2618,7 +2654,7 @@ function setReplayLifecycle(status, meta = null, detail = '') {
 		error: 'REPLAY ERROR',
 	};
 	if (statusLabel) statusLabel.textContent = labels[status] || 'REPLAY';
-	if (currency) currency.textContent = normalizeCurrency(state.currency || UrlState.currency());
+	if (currency) currency.textContent = normalizeCurrency(state.currency || (UrlState.replay() ? UrlState.currencyRaw() : UrlState.currency()));
 	if (summary && meta) summary.textContent = String(meta.mode || 'Base').toUpperCase() + ' · Replay Bet ' + formatCurrency(meta.baseBet);
 	if (summary && status === 'loading') summary.textContent = 'Saved round · read-only';
 	if (action) {
@@ -2626,7 +2662,7 @@ function setReplayLifecycle(status, meta = null, detail = '') {
 		action.hidden = !available;
 		action.disabled = !available;
 		action.textContent = status === 'completed' ? 'Play Again' : 'Replay Play';
-		action.setAttribute('aria-label', status === 'completed' ? 'Play Again saved replay' : 'Play saved replay');
+		action.setAttribute('aria-label', status === 'completed' ? 'Play Again saved replay' : 'Replay Play saved round');
 	}
 	if (overlay) overlay.setAttribute('aria-hidden', status === 'loading' || status === 'error' ? 'false' : 'true');
 	if (status === 'loading') {
@@ -2686,6 +2722,10 @@ function validateLaunchUrl() {
 		if (!UrlState.hasLaunchParam('version', 'gameVersion')) missing.push('version');
 		if (!UrlState.hasLaunchParam('mode', 'betMode')) missing.push('mode');
 		if (!UrlState.hasLaunchParam('event', 'eventID', 'eventId', 'betID', 'betId')) missing.push('event');
+		if (!UrlState.hasLaunchParam('amount', 'bet', 'stake')) missing.push('amount');
+		if (!UrlState.hasLaunchParam('currency')) missing.push('currency');
+		if (!UrlState.hasLaunchParam('lang', 'language')) missing.push('lang');
+		if (!UrlState.hasLaunchParam('device', 'deviceType')) missing.push('device');
 		if (missing.length) {
 			replayError('Invalid replay launch', 'Missing required Stake Engine replay parameters: ' + missing.join(', ') + '.');
 			return false;
@@ -2704,11 +2744,9 @@ function validateLaunchUrl() {
 			const url = new URL(lowerRaw.startsWith('http://') || lowerRaw.startsWith('https://') ? raw : 'https://' + raw);
 			if (!/^https?:$/.test(url.protocol) || !url.hostname || url.username || url.password || url.search || url.hash) malformed.push('rgs_url');
 		} catch (error) { malformed.push('rgs_url'); }
-		if (UrlState.hasLaunchParam('amount', 'bet', 'stake')) {
-			const amount = Number(rawConfigAmount(UrlState.amount()));
-			if (!Number.isFinite(amount) || amount <= 0) malformed.push('amount');
-		}
-		if (UrlState.hasLaunchParam('currency') && !/^[A-Z]{2,8}$/.test(UrlState.currency())) malformed.push('currency');
+		const amount = Number(rawConfigAmount(UrlState.amount()));
+		if (!Number.isSafeInteger(amount) || amount <= 0) malformed.push('amount');
+		if (!/^[A-Z]{2,8}$/.test(UrlState.currencyRaw())) malformed.push('currency');
 		if (UrlState.hasLaunchParam('lang', 'language') && !/^[a-z]{2}(-[a-z]{2})?$/i.test(UrlState.lang())) malformed.push('lang');
 		if (UrlState.hasLaunchParam('device', 'deviceType') && !/^(desktop|mobile|tablet)$/i.test(UrlState.device())) malformed.push('device');
 		if (malformed.length) {
@@ -3320,6 +3358,7 @@ let POOL = buildPool();
 const randKey = () => POOL[(Math.random() * POOL.length) | 0];
 
 function newGrid(opts = {}) {
+	if (state.replay || UrlState.replay()) return false;
 	POOL = buildPool(opts);
 	state.grid = Array.from({ length: COLS }, () => Array.from({ length: ROWS }, randKey));
 	if (opts.forceRainbow && !state.grid.flat().includes('rainbow')) {
@@ -3328,6 +3367,7 @@ function newGrid(opts = {}) {
 	for (let i = 0; i < (opts.forceScatters || 0); i += 1) {
 		state.grid[i % COLS][(i / COLS) | 0] = 'scatter';
 	}
+	return true;
 }
 
 function cellEl(col, row) { return board.children[row * COLS + col]; }
@@ -3453,11 +3493,14 @@ function applyBetFromRound(round) {
 	updateMeters();
 }
 function rgsRoundPayoutMoney(round) {
-	const raw = Number(round && round.payout);
-	if (Number.isFinite(raw)) return Math.abs(raw) >= 1000 ? apiAmountToMoney(raw) : roundMoney(raw);
-	const mult = Number(round && round.payoutMultiplier);
-	if (!Number.isFinite(mult)) return null;
-	return roundMoney((mult > 1000 ? mult / 100 : mult) * state.bet);
+	const raw = round && round.payout;
+	if (raw !== undefined && raw !== null) {
+		if (typeof raw !== 'number' || !Number.isSafeInteger(raw) || raw < 0) return null;
+		return replayApiAmountToMoney(raw);
+	}
+	const bookUnits = round && round.payoutMultiplier;
+	if (typeof bookUnits !== 'number' || !Number.isSafeInteger(bookUnits) || bookUnits < 0) return null;
+	return moneyRound(replayBookUnitsToMultiplier(bookUnits) * state.bet);
 }
 function bookAmountToMoney(amount) {
 	return roundMoney((Number(amount) || 0) * state.bet / 100);
@@ -3550,7 +3593,10 @@ function shouldRenderSafeRgsBase(events) {
 }
 function shouldRenderRgsRound(events) {
 	const list = Array.isArray(events) ? events : [];
-	return Rgs.configured() && list.some((event) => event && event.type === 'reveal' && event.board);
+	return Rgs.configured()
+		&& list.length > 0
+		&& list.every((event) => event && REPLAY_EVENT_TYPES.has(event.type))
+		&& list.some((event) => event.type === 'reveal' && event.board);
 }
 function setGridFromRgsBoard(rawBoard) {
 	const boardData = Array.isArray(rawBoard) ? rawBoard : [];
@@ -3981,6 +4027,13 @@ function validateReplayEvents(events) {
 	if (!Array.isArray(events) || !events.length) throw new Error('Replay response contains no round-state events');
 	let revealCount = 0;
 	let previousIndex = -1;
+	let runningBookUnits = 0;
+	const maxBookUnits = Math.round(Number(CONFIG.maxWinMultiplier) * BOOK_MULTIPLIER_SCALE);
+	const assertBookUnits = (value, label) => {
+		const units = requireReplaySafeInteger(value, label);
+		if (units > maxBookUnits) throw new Error(label + ' exceeds the configured max win');
+		return units;
+	};
 	events.forEach((event, position) => {
 		if (!event || typeof event !== 'object' || Array.isArray(event) || typeof event.type !== 'string') {
 			throw new Error('Replay event ' + position + ' is malformed');
@@ -4002,26 +4055,61 @@ function validateReplayEvents(events) {
 			if (!Array.isArray(event.wins) || !event.wins.length) throw new Error('Replay win event ' + eventIndex + ' has no wins');
 			let sumOfWins = 0;
 			event.wins.forEach((win, winIndex) => {
-				if (!Number.isFinite(Number(win && win.win)) || Number(win.win) < 0) throw new Error('Replay win event ' + eventIndex + ' has an invalid authoritative win');
-				sumOfWins += Number(win.win);
+				const winAmount = assertBookUnits(win && win.win, 'Replay win ' + winIndex + ' in event ' + eventIndex);
+				sumOfWins += winAmount;
 				if (!Array.isArray(win.positions) || !win.positions.length) throw new Error('Replay win event ' + eventIndex + ' has no winning positions');
-				win.positions.forEach((item) => validateReplayPosition(item, 'Replay win ' + winIndex + ' in event ' + eventIndex));
+				const uniquePositions = new Set();
+				win.positions.forEach((item) => {
+					validateReplayPosition(item, 'Replay win ' + winIndex + ' in event ' + eventIndex);
+					const col = Number(item && (item.col ?? item.column ?? item.reel));
+					const row = Number(item && item.row);
+					const key = col + ',' + row;
+					if (uniquePositions.has(key)) throw new Error('Replay win ' + winIndex + ' in event ' + eventIndex + ' repeats a winning position');
+					uniquePositions.add(key);
+				});
 			});
-			if (!Number.isFinite(Number(event.totalWin)) || Math.abs(Number(event.totalWin) - sumOfWins) > 0.000001) {
+			const stepTotal = assertBookUnits(event.totalWin, 'Replay win event ' + eventIndex + ' totalWin');
+			if (stepTotal !== sumOfWins) {
 				throw new Error('Replay win event ' + eventIndex + ' totalWin differs from wins[].win');
+			}
+			runningBookUnits += stepTotal;
+			if (runningBookUnits > maxBookUnits) throw new Error('Replay cumulative win exceeds the configured max win');
+			if (event.runningTotalWin !== undefined
+				&& assertBookUnits(event.runningTotalWin, 'Replay win event ' + eventIndex + ' runningTotalWin') !== runningBookUnits) {
+				throw new Error('Replay win event ' + eventIndex + ' runningTotalWin is inconsistent');
 			}
 		}
 		if (event.type === 'goldenReveal') {
 			if (!Array.isArray(event.rewards)) throw new Error('Replay Golden Cell reveal event ' + eventIndex + ' is incomplete');
 			event.rewards.forEach((item) => validateReplayPosition(item, 'Replay Golden Cell reveal event ' + eventIndex));
 		}
-		if (['setWin', 'setTotalWin', 'updateTumbleWin', 'goldenAward', 'freeSpinEnd', 'finalWin'].includes(event.type)
-			&& !Number.isFinite(Number(event.amount))) throw new Error('Replay event ' + eventIndex + ' has an invalid amount');
+		if (event.type === 'goldenAward') {
+			const award = assertBookUnits(event.amount, 'Replay Golden Cell award event ' + eventIndex + ' amount');
+			runningBookUnits += award;
+			if (runningBookUnits > maxBookUnits) throw new Error('Replay cumulative win exceeds the configured max win');
+			if (event.totalWin === undefined
+				|| assertBookUnits(event.totalWin, 'Replay Golden Cell award event ' + eventIndex + ' totalWin') !== runningBookUnits) {
+				throw new Error('Replay Golden Cell award event ' + eventIndex + ' totalWin is inconsistent');
+			}
+		}
+		if (['setWin', 'setTotalWin', 'updateTumbleWin'].includes(event.type)) {
+			if (assertBookUnits(event.amount, 'Replay event ' + eventIndex + ' amount') !== runningBookUnits) {
+				throw new Error('Replay event ' + eventIndex + ' cumulative amount is inconsistent');
+			}
+		}
+		if (event.type === 'freeSpinEnd'
+			&& assertBookUnits(event.amount, 'Replay free-spin end event ' + eventIndex + ' amount') !== runningBookUnits) {
+			throw new Error('Replay free-spin end event ' + eventIndex + ' amount is inconsistent');
+		}
+		if (event.type === 'finalWin'
+			&& assertBookUnits(event.amount, 'Replay finalWin event ' + eventIndex + ' amount') !== runningBookUnits) {
+			throw new Error('Replay finalWin differs from the cumulative event total');
+		}
 	});
 	if (!revealCount) throw new Error('Replay response has no board reveal data');
 	const final = [...events].reverse().find((event) => event.type === 'finalWin');
 	if (!final) throw new Error('Replay response is missing the authoritative finalWin event');
-	return final;
+	return { final, runningBookUnits };
 }
 function replayModeIdentity(mode) {
 	const key = String(mode || '').trim().toLowerCase();
@@ -4049,35 +4137,37 @@ function normalizeReplayPayload(data) {
 	if (responseEvent !== undefined && String(responseEvent) !== String(UrlState.event())) throw new Error('Replay response event does not match the launch event');
 	const stateValue = source.state ?? source.events ?? payload.state ?? payload.events;
 	const events = normalizeRgsEvents(stateValue);
-	const final = validateReplayEvents(events);
-	const launchAmount = UrlState.hasLaunchParam('amount', 'bet', 'stake') ? UrlState.amount() : null;
+	const { final, runningBookUnits } = validateReplayEvents(events);
+	const launchAmount = requireReplaySafeInteger(Number(UrlState.amount()), 'Replay launch amount', { positive: true });
 	const responseAmount = source.amount ?? source.betAmount ?? payload.amount ?? payload.betAmount;
-	const amount = responseAmount ?? launchAmount;
-	const baseBet = configAmountToMoney(amount);
-	if (!baseBet || baseBet <= 0) throw new Error('Replay response and launch URL do not provide a usable Replay Bet Amount');
-	const finalMultiplier = Number(final.amount) / 100;
-	let payoutMultiplier = Number(source.payoutMultiplier ?? payload.payoutMultiplier);
-	if (Number.isFinite(payoutMultiplier)) {
-		if (Math.abs(payoutMultiplier - finalMultiplier) <= 0.000001) {
-			// Official replay responses use a money multiplier.
-		} else if (Math.abs(payoutMultiplier - Number(final.amount)) <= 0.000001) {
-			// Direct published books store hundredths; normalize before rendering.
-			payoutMultiplier /= 100;
-		} else {
-			throw new Error('Replay payoutMultiplier differs from the authoritative finalWin event');
-		}
-	} else {
-		payoutMultiplier = finalMultiplier;
+	const amount = responseAmount === undefined || responseAmount === null
+		? launchAmount
+		: requireReplaySafeInteger(responseAmount, 'Replay response amount', { positive: true });
+	if (amount !== launchAmount) throw new Error('Replay response amount does not match the launch amount');
+	const baseBet = replayApiAmountToMoney(amount);
+	const payoutMultiplierBookUnits = requireReplaySafeInteger(
+		source.payoutMultiplier ?? payload.payoutMultiplier,
+		'Replay payoutMultiplier',
+	);
+	if (payoutMultiplierBookUnits !== runningBookUnits || payoutMultiplierBookUnits !== final.amount) {
+		throw new Error('Replay payoutMultiplier differs from the authoritative finalWin event');
 	}
-	const costMultiplier = Number(source.costMultiplier ?? payload.costMultiplier ?? modeMeta(launchMode).costMultiplier ?? 1);
-	if (!Number.isFinite(costMultiplier) || costMultiplier <= 0) throw new Error('Replay response contains an invalid costMultiplier');
+	const payoutMultiplier = replayBookUnitsToMultiplier(payoutMultiplierBookUnits);
+	const rawCostMultiplier = source.costMultiplier ?? payload.costMultiplier ?? modeMeta(launchMode).costMultiplier ?? 1;
+	if (typeof rawCostMultiplier !== 'number' || !Number.isFinite(rawCostMultiplier) || rawCostMultiplier <= 0) {
+		throw new Error('Replay response contains an invalid costMultiplier');
+	}
+	const costMultiplier = rawCostMultiplier;
 	const explicitPayout = source.payout ?? payload.payout;
 	if (explicitPayout !== undefined && explicitPayout !== null) {
-		const payoutMoney = Math.abs(Number(explicitPayout)) >= 1000 ? apiAmountToMoney(explicitPayout) : roundMoney(explicitPayout);
-		const finalMoney = roundMoney(baseBet * finalMultiplier);
-		if (!Number.isFinite(payoutMoney) || Math.abs(payoutMoney - finalMoney) > 0.01) throw new Error('Replay payout differs from the authoritative finalWin event');
+		const payoutApiAmount = requireReplaySafeInteger(explicitPayout, 'Replay payout');
+		const expectedPayoutApiAmount = Math.round(amount * payoutMultiplierBookUnits / BOOK_MULTIPLIER_SCALE);
+		if (payoutApiAmount !== expectedPayoutApiAmount) throw new Error('Replay payout differs from the authoritative finalWin event');
 	}
-	const currency = normalizeCurrency(source.currency || source.currencyCode || payload.currency || payload.currencyCode || UrlState.currency());
+	const launchCurrency = normalizeCurrency(UrlState.currencyRaw());
+	const responseCurrency = normalizeCurrency(source.currency || source.currencyCode || payload.currency || payload.currencyCode || '');
+	if (responseCurrency && responseCurrency !== launchCurrency) throw new Error('Replay response currency does not match the launch currency');
+	const currency = responseCurrency || launchCurrency;
 	if (!/^[A-Z]{2,8}$/.test(currency)) throw new Error('Replay response contains an invalid currency');
 	return {
 		round: {
@@ -4087,21 +4177,21 @@ function normalizeReplayPayload(data) {
 			amount,
 			currency,
 			costMultiplier,
-			payoutMultiplier,
+			payoutMultiplier: payoutMultiplierBookUnits,
+			payout: Math.round(amount * payoutMultiplierBookUnits / BOOK_MULTIPLIER_SCALE),
 			state: { events: cloneReplayData(events) },
 		},
+		meta: { baseBet, payoutMultiplier },
 	};
 }
 function replayMetadata(round) {
 	const events = normalizeRgsEvents(round && round.state);
 	const meta = modeMeta(rgsRoundMode(round));
-	const baseBet = configAmountToMoney(round && round.amount) || configAmountToMoney(UrlState.amount()) || 0;
+	const baseBet = replayApiAmountToMoney(round && round.amount);
 	const costMultiplier = Number(round && round.costMultiplier) || Number(meta.costMultiplier) || 1;
 	const totalCost = moneyRound(baseBet * costMultiplier);
 	const totalWin = rgsDisplayWinMoney(round, events) || 0;
-	let payoutMultiplier = Number(round && round.payoutMultiplier);
-	if (Number.isFinite(payoutMultiplier) && payoutMultiplier > 1000) payoutMultiplier = payoutMultiplier / 100;
-	if (!Number.isFinite(payoutMultiplier) || payoutMultiplier <= 0) payoutMultiplier = totalCost > 0 ? totalWin / totalCost : 0;
+	const payoutMultiplier = replayBookUnitsToMultiplier(round && round.payoutMultiplier);
 	return {
 		mode: playerModeName(rgsRoundMode(round)),
 		baseBet,
@@ -4714,21 +4804,28 @@ function updateMeters() {
 }
 
 function findClusters() {
-	const seen = Array.from({ length: COLS }, () => Array(ROWS).fill(false));
 	const clusters = [];
-	for (let c = 0; c < COLS; c += 1) for (let r = 0; r < ROWS; r += 1) {
-		const key = state.grid[c][r];
-		if (seen[c][r] || SYMBOLS[key].wild || SYMBOLS[key].scatter) continue;
-		const stack = [[c, r]]; const cells = []; seen[c][r] = true;
-		while (stack.length) {
-			const [cc, rr] = stack.pop(); cells.push([cc, rr]);
-			for (const [dc, dr] of [[1,0],[-1,0],[0,1],[0,-1]]) {
-				const nc = cc + dc, nr = rr + dr;
-				if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS || seen[nc][nr]) continue;
-				if (symbolsConnect(key, state.grid[nc][nr])) { seen[nc][nr] = true; stack.push([nc, nr]); }
+	const payingSymbols = Object.keys(SYMBOLS).filter((key) => SYMBOLS[key].pay > 0 && !SYMBOLS[key].wild && !SYMBOLS[key].scatter);
+	for (const key of payingSymbols) {
+		const seen = Array.from({ length: COLS }, () => Array(ROWS).fill(false));
+		for (let c = 0; c < COLS; c += 1) for (let r = 0; r < ROWS; r += 1) {
+			if (seen[c][r] || state.grid[c][r] !== key) continue;
+			const stack = [[c, r]];
+			const cells = [];
+			seen[c][r] = true;
+			while (stack.length) {
+				const [cc, rr] = stack.pop(); cells.push([cc, rr]);
+				for (const [dc, dr] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+					const nc = cc + dc, nr = rr + dr;
+					if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS || seen[nc][nr]) continue;
+					if (state.grid[nc][nr] === key || SYMBOLS[state.grid[nc][nr]]?.wild) {
+						seen[nc][nr] = true;
+						stack.push([nc, nr]);
+					}
+				}
 			}
+			if (cells.length >= MIN_CLUSTER) clusters.push({ key, cells });
 		}
-		if (cells.length >= MIN_CLUSTER) clusters.push({ key, cells });
 	}
 	return clusters;
 }
@@ -4953,13 +5050,14 @@ function finishSpinDebug(spinDebug, result) {
 
 // Cluster pays + cascades. Every winning position becomes a Golden Cell.
 async function resolveCascades(spinDebug = null) {
+	if (state.replay || UrlState.replay()) return 0;
 	let multiplier = 1;
 	let cascade = 0;
 	while (state.win < capWin()) {
 		const clusters = findClusters();
 		if (!clusters.length) break;
 		cascade += 1;
-		const flat = clusters.flatMap((cl) => cl.cells);
+		const flat = [...new Map(clusters.flatMap((cl) => cl.cells).map((cell) => [ck(cell[0], cell[1]), cell])).values()];
 		const rawWins = clusters.map((cl) => ({
 			symbol: cl.key,
 			amount: payFor(cl.key, cl.cells.length) * state.bet * multiplier,
@@ -5202,7 +5300,7 @@ function setWalletBusy(busy) {
 }
 async function spin(buy, internalFreeSpin = false) {
 	if (state.fatal) return;
-	if (state.replay && !internalFreeSpin) return;
+	if (state.replay || UrlState.replay()) return false;
 	// Free Spins are driven by startFreeSpins(). Manual clicks during the bonus
 	// must not skip animations or start extra spins between loop iterations.
 	if (state.mode === 'free' && !internalFreeSpin) return;
@@ -5682,7 +5780,14 @@ function showBuyConfirm(o, price) {
 	};
 }
 $('btn-bonus').addEventListener('click', () => { if (!state.fatal && !state.replay && !state.spinning && !state.walletBusy && state.mode === 'base') { buildBonusBuy(); openModal('modal-bonusbuy'); } });
-window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); spin(); } });
+window.addEventListener('keydown', (event) => {
+	if (event.code !== 'Space' || event.repeat) return;
+	const target = event.target instanceof Element ? event.target : null;
+	const interactive = target?.closest('button,a[href],input,select,textarea,[contenteditable="true"],[role="button"]');
+	if (interactive || state.replay || UrlState.replay()) return;
+	event.preventDefault();
+	spin();
+});
 
 // ---- modals: open / close ----
 function openModal(id) {
@@ -5839,47 +5944,13 @@ fitViewport();
 setTimeout(fitViewport, 50);
 setTimeout(fitViewport, 300);
 
-// Lightweight preview API — lets you trigger a guaranteed win to preview the
-// cluster/cascade/win-banner presentation (open console: __ggr.demoWin()).
-window.__ggr = {
-	state, spin, startFreeSpins, buildBonusBuy, CONFIG, confirmMajorAction, formatCurrency, Replay,
-	getBetConfig: () => activeBetConfig,
-	setGrid: (g) => { if (state.replay) return false; state.grid = g; paint(); return true; },
-	demoWin: async () => {
-		if (state.replay || state.spinning) return false;
-		state.spinning = true; $('btn-spin').classList.add('busy');
-		state.golden.clear(); state.reveals.clear(); setWin(0);
-		newGrid({ noRainbow: true });
-		for (let c = 0; c < 4; c += 1) for (let r = 0; r < 3; r += 1) state.grid[c][r] = 'football';
-		paint({ drops: fullDropMap() });
-		await wait(420);
-		const base = await resolveCascades();
-		state.balance += state.win; updateMeters();
-		state.golden.clear(); state.reveals.clear(); paint();
-		$('btn-spin').classList.remove('busy'); state.spinning = false;
-		return base;
-	},
-	// Golden cells + Rainbow -> full coin feature (coins, multipliers, collector).
-	demoFeature: async () => {
-		if (state.replay || state.spinning) return false;
-		state.spinning = true; $('btn-spin').classList.add('busy');
-		state.golden.clear(); state.reveals.clear(); setWin(0);
-		newGrid({ noRainbow: true });
-		for (let c = 0; c < 5; c += 1) for (let r = 0; r < 3; r += 1) state.grid[c][r] = 'football';
-		state.grid[5][4] = 'rainbow';
-		paint({ drops: fullDropMap() }); await wait(420);
-		const base = await resolveCascades();
-		let fw = 0;
-		if (state.golden.size) fw = await runFeature(base);
-		setWin(base + fw); state.balance += state.win; updateMeters();
-		const goldenCount = state.golden.size;
-		state.golden.clear(); state.reveals.clear(); paint();
-		$('btn-spin').classList.remove('busy'); state.spinning = false;
-		return { base, featureWin: fw, goldenCount, win: state.win };
-	},
-};
+// Production intentionally exposes no gameplay state or mutation functions.
+// The E2E server replaces this inert marker in-memory with test-only
+// instrumentation while serving QA; the generated/published HTML keeps only
+// this comment and therefore has no raw-spin, demo-win, or state mutation API.
+/*__STAKE_QA_RUNTIME_HOOK__*/
 window.__ggrPaytable = Object.freeze(JSON.parse(JSON.stringify(PRODUCTION_PAYTABLE)));
-window.__ggrBuild = '24166ef8cc123fd522217e2e388dfdfb2391b3e29004a80dd1e9677af8dc4e19';
+window.__ggrBuild = 'c6321011f43f32d376da39ed991b5cde388f8438330332b7cc674bbf7628e675';
 console.log('Golden Goal Rush build', window.__ggrBuild);
 window.__ggrReady = true;
 </script>

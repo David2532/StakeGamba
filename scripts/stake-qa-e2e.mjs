@@ -520,6 +520,7 @@ const gameState = (page) => page.evaluate(() => ({
 	mode: window.__stakeQa.state.mode,
 	balance: window.__stakeQa.state.balance,
 	bet: window.__stakeQa.state.bet,
+	win: window.__stakeQa.state.win,
 	currency: window.__stakeQa.state.currency,
 }));
 // The free-spins intro attaches its continue handler ~520ms after it opens;

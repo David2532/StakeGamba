@@ -56,31 +56,7 @@ jobs:
         if: steps.lint.outcome == 'success'
         continue-on-error: true
         shell: bash
-        run: |
-          build_one() {
-            local package="$1"
-            set +e
-            timeout --signal=TERM 12m pnpm --filter "${package}" run build > "build-${package}.log" 2>&1
-            local code=$?
-            echo "${code}" > "build-${package}.status"
-            return 0
-          }
-
-          build_one pixi-svelte & pixi_pid=$!
-          build_one cluster & cluster_pid=$!
-          build_one lines & lines_pid=$!
-
-          wait "${pixi_pid}"
-          wait "${cluster_pid}"
-          wait "${lines_pid}"
-
-          status=0
-          for package in pixi-svelte cluster lines; do
-            code="$(cat "build-${package}.status")"
-            echo "${package}: exit ${code}"
-            if [ "${code}" -ne 0 ]; then status=1; fi
-          done
-          exit "${status}"
+        run: npm run build > build.log 2>&1
 
       - name: Report result on pull request
         if: always() && github.event_name == 'pull_request'
@@ -94,7 +70,6 @@ jobs:
             const marker = '<!-- stake-compliance-ci -->';
             const lintOutcome = process.env.LINT_OUTCOME || 'skipped';
             const buildOutcome = process.env.BUILD_OUTCOME || 'skipped';
-            const packages = ['pixi-svelte', 'cluster', 'lines'];
             let title = '✅ Stake Compliance CI passed';
             let details = 'Lint and build completed successfully.';
             const compact = (path) => {
@@ -117,27 +92,12 @@ jobs:
               const output = selected.length ? selected.join('\n') : lines.slice(-200).join('\n');
               return output.slice(-50000);
             };
-            const tail = (path, lineCount = 100) => {
-              if (!fs.existsSync(path)) return '(no log file produced)';
-              const lines = fs.readFileSync(path, 'utf8').split(/\r?\n/);
-              return lines.slice(-lineCount).join('\n').slice(-16000);
-            };
-            const packageStatus = (name) => {
-              const path = `build-${name}.status`;
-              return fs.existsSync(path) ? Number(fs.readFileSync(path, 'utf8').trim()) : null;
-            };
             if (lintOutcome !== 'success') {
               title = '❌ Stake Compliance CI: lint failed';
               details = compact('lint.log');
             } else if (buildOutcome !== 'success') {
               title = '❌ Stake Compliance CI: build failed';
-              const statuses = packages.map((name) => ({ name, code: packageStatus(name) }));
-              const failed = statuses.filter(({ code }) => code !== 0);
-              details = [
-                ...statuses.map(({ name, code }) => `${name}: exit ${code ?? 'missing'}`),
-                '',
-                ...failed.map(({ name }) => `===== ${name} =====\n${tail(`build-${name}.log`)}`),
-              ].join('\n').slice(-50000);
+              details = compact('build.log');
             }
             const body = `${marker}\n### ${title}\n\n- Lint: **${lintOutcome}**\n- Build: **${buildOutcome}**\n\n\`\`\`text\n${details}\n\`\`\``;
             const { owner, repo } = context.repo;
