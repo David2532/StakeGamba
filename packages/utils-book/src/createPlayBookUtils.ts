@@ -2,6 +2,9 @@ import { sequence } from 'utils-shared/sequence';
 
 import type { BookEventHandlerMap, GetBookEventFromMap, GetBookEventContextFromMap } from './types';
 
+// The factory preserves the concrete event and context types through the map;
+// `any` is intentional here so callers can supply every valid handler-map specialization.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createPlayBookUtils<TBookEventHandlerMap extends BookEventHandlerMap<any, any>>({
 	bookEventHandlerMap,
 	debug,
