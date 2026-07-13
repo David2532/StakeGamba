@@ -16,6 +16,7 @@ $LegacyPublishRoot = Join-Path $PublishRoot "golden-goal-rush"
 $FrontendPreviewHtml = Join-Path $Root "apps\cluster\preview.html"
 $FrontendPreviewBuilder = Join-Path $Root "apps\cluster\scripts\build-preview-html.mjs"
 $StakeQaScript = Join-Path $Root "scripts\stake-qa.mjs"
+$StakeDocumentationScript = Join-Path $Root "scripts\verify-stake-documentation.mjs"
 $PaytableVerifier = Join-Path $Root "scripts\verify-stake-paytable.mjs"
 $PaytableGateTest = Join-Path $Root "scripts\test-stake-paytable-gate.mjs"
 $ImplementationEvidenceRoot = Join-Path $Root "artifacts\stake-final-implementation-20260712-164933"
@@ -615,6 +616,9 @@ function Invoke-StakeQa {
 	if (-not (Test-Path -LiteralPath $StakeQaScript -PathType Leaf)) {
 		throw "Missing Stake QA script: $StakeQaScript"
 	}
+	if (-not (Test-Path -LiteralPath $StakeDocumentationScript -PathType Leaf)) {
+		throw "Missing Stake documentation gate script: $StakeDocumentationScript"
+	}
 	Write-Host "Running mandatory Stake QA checks against publish\frontend"
 	$previousRequireE2e = $env:STAKE_QA_REQUIRE_E2E
 	$previousFrontendRoot = $env:STAKE_QA_FRONTEND_ROOT
@@ -624,6 +628,8 @@ function Invoke-StakeQa {
 		$env:STAKE_QA_FRONTEND_ROOT = $FrontendDest
 		$env:STAKE_QA_FRONTEND_ENTRY = "index.html"
 		Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @($StakeQaScript, "all")
+		Write-Host "Running mandatory Stake documentation and publish-manifest gate"
+		Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @($StakeDocumentationScript, "--write", "--check")
 	}
 	finally {
 		$env:STAKE_QA_REQUIRE_E2E = $previousRequireE2e

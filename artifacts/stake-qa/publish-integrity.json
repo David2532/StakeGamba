@@ -1,0 +1,34 @@
+{
+  "testedCommit": {
+    "sha": "resolved-by-git-rev-parse-HEAD-during-stake-qa-docs",
+    "source": "git rev-parse HEAD at documentation-gate runtime"
+  },
+  "githubActionsRunId": "29239817090",
+  "evidenceDirectory": "artifacts/stake-qa/2026-07-13T11-24-32-904Z",
+  "frontend": {
+    "uploadFolder": "publish/frontend",
+    "buildId": "e5a3eaf118eb4f89aa83c0315cc6adc1acd2d1f7ef479879eb21d0b80f566b8e",
+    "indexSha256": "a37f86b5b77aa7f0916c844b51ca642ac8a8fa7024b6525d54b12eb538125ea3",
+    "manifestSha256": "50623f727f52e7523a03e71f05b1a087b9e14c63324773f5cab6e47cc25032e9"
+  },
+  "math": {
+    "uploadFolder": "publish/math",
+    "version": "0.2.2-cluster",
+    "gameConfigSha256": "6610ab4eb02209603d8715c0645edd90cb5aa1ad51aa5ba0774ff5586e70b775",
+    "manifestSha256": "1dc61a44ca65a7f66df6eff595c99769e37af9a12bd145352772a222f3d882c4"
+  },
+  "report": {
+    "path": "artifacts/stake-qa/2026-07-13T11-24-32-904Z/report.json",
+    "mode": "all",
+    "pass": 304,
+    "fail": 0,
+    "skip": 0
+  },
+  "e2e": {
+    "path": "artifacts/stake-qa/2026-07-13T11-24-32-904Z/e2e-report.json",
+    "mode": "all",
+    "pass": 1364,
+    "fail": 0,
+    "skip": 0
+  }
+}

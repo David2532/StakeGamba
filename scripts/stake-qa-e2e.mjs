@@ -455,6 +455,27 @@ const bonusReplayRound = () => {
 	};
 };
 
+const cloneRound = (round) => JSON.parse(JSON.stringify(round));
+const withoutPayoutMultiplier = (round) => {
+	const clone = cloneRound(round);
+	delete clone.payoutMultiplier;
+	return clone;
+};
+const bonusTier1ReplayRound = () => {
+	const round = cloneRound(bonusReplayRound());
+	round.mode = 'bonus_tier1';
+	round.costMultiplier = 31;
+	round.betID = 'stake-qa-replay-bonus-tier1';
+	return round;
+};
+const rainbowReplayRound = () => {
+	const round = cloneRound(authoritativeClusterReplayRound({ symbol: 'L2', positions: columnPositions(0), bookUnits: 48 }));
+	round.mode = 'rainbow';
+	round.costMultiplier = 6;
+	round.betID = 'stake-qa-replay-rainbow';
+	return round;
+};
+
 const authoritativeClusterReplayRound = ({ symbol, positions, bookUnits }) => {
 	const board = quietBoard();
 	for (const position of positions) board[position.col][position.row] = position.symbol || symbol;
@@ -1425,7 +1446,7 @@ async function testReplay(browser, base) {
 		{
 			name: 'bonus',
 			mode: 'bonus',
-			round: bonusReplayRound,
+			round: () => withoutPayoutMultiplier(bonusReplayRound()),
 			expectedWin: '$1.12',
 			expectedBoard: boardFingerprint(boardWithColumn('L1')),
 			expectedFloats: ['+$0.63', '+$0.49'],
@@ -1701,6 +1722,36 @@ async function testReplay(browser, base) {
 		await context.close();
 	}
 
+	const payoutMultiplierVariants = [
+		{ name: 'bonus-without-payout-multiplier', mode: 'bonus', round: () => withoutPayoutMultiplier(bonusReplayRound()), expectedWin: '$1.12', expectedMultiplier: 1.12 },
+		{ name: 'bonus-tier1-null-payout-multiplier', mode: 'bonus_tier1', round: () => ({ ...bonusTier1ReplayRound(), payoutMultiplier: null }), expectedWin: '$1.12', expectedMultiplier: 1.12 },
+		{ name: 'rainbow-with-payout-multiplier', mode: 'rainbow', round: rainbowReplayRound, expectedWin: '$0.48', expectedMultiplier: 0.48 },
+	];
+	for (const variant of payoutMultiplierVariants) {
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		const calls = await mockReplayRgs(context, () => ({ round: variant.round() }));
+		const page = await openPreview(context, base, replayQuery({ mode: variant.mode, event: `stake-qa-${variant.name}` }));
+		await waitForReplayState(page, 'ready');
+		const ready = await page.evaluate(() => ({
+			state: document.getElementById('stage')?.dataset.replayState,
+			winText: document.getElementById('meter-win')?.textContent?.trim(),
+			totalWin: window.__stakeQa.Replay.current?.meta?.totalWin,
+			payoutMultiplier: window.__stakeQa.Replay.current?.meta?.payoutMultiplier,
+			actionText: document.getElementById('replay-action')?.textContent?.trim(),
+		}));
+		expect(group, `${variant.name} reconstructs replay payout multiplier from finalWin when needed`, ready.state === 'ready' && ready.actionText === 'Replay Play' && Math.abs(ready.totalWin - variant.expectedMultiplier) <= 0.000001 && Math.abs(ready.payoutMultiplier - variant.expectedMultiplier) <= 0.000001, JSON.stringify(ready));
+		await page.click('#replay-action');
+		await waitForReplayState(page, 'completed', 30_000);
+		const complete = await replayUiAudit(page);
+		expect(group, `${variant.name} completes with authoritative replay win`, complete.winText === variant.expectedWin, JSON.stringify(complete));
+		expect(group, `${variant.name} makes one replay GET and no forbidden call`, calls.replay.length === 1 && calls.forbidden.length === 0, JSON.stringify(calls));
+		const frame = await screenshot(page, `replay-${variant.name}-completed`);
+		pass(group, `${variant.name} completed screenshot saved`, frame);
+		replayNetworkEvidence.push({ scenario: variant.name, viewport: 'desktop-1280x720', replayRequests: calls.replay, forbiddenRequests: calls.forbidden });
+		replayValidationEvidence.push({ case: variant.name, expected: 'completed', actual: complete, replayRequests: calls.replay.length, forbiddenRequests: calls.forbidden.length });
+		await context.close();
+	}
+
 	// Stake.us currencies remain formatted via the shared currency metadata.
 	const socialContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 	const socialCalls = await mockReplayRgs(socialContext, () => ({ round: { ...baseReplayRound(), currency: 'XSC' } }));
@@ -1758,10 +1809,6 @@ async function testReplay(browser, base) {
 		{
 			name: 'negative-payout-multiplier',
 			response: () => ({ round: { ...baseReplayRound(), payoutMultiplier: -125 } }),
-		},
-		{
-			name: 'missing-payout-multiplier',
-			response: () => { const round = baseReplayRound(); delete round.payoutMultiplier; return { round }; },
 		},
 		{
 			name: 'inconsistent-payout-multiplier',

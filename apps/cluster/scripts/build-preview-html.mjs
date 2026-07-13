@@ -3131,10 +3131,11 @@ function normalizeReplayPayload(data) {
 		: requireReplaySafeInteger(responseAmount, 'Replay response amount', { positive: true });
 	if (amount !== launchAmount) throw new Error('Replay response amount does not match the launch amount');
 	const baseBet = replayApiAmountToMoney(amount);
-	const payoutMultiplierBookUnits = requireReplaySafeInteger(
-		source.payoutMultiplier ?? payload.payoutMultiplier,
-		'Replay payoutMultiplier',
-	);
+	const rawPayoutMultiplier = source.payoutMultiplier ?? payload.payoutMultiplier;
+	let payoutMultiplierBookUnits = final.amount;
+	if (rawPayoutMultiplier !== undefined && rawPayoutMultiplier !== null) {
+		payoutMultiplierBookUnits = requireReplaySafeInteger(rawPayoutMultiplier, 'Replay payoutMultiplier');
+	}
 	if (payoutMultiplierBookUnits !== runningBookUnits || payoutMultiplierBookUnits !== final.amount) {
 		throw new Error('Replay payoutMultiplier differs from the authoritative finalWin event');
 	}
