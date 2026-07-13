@@ -11,6 +11,8 @@ on:
 
 permissions:
   contents: read
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: stake-compliance-${{ github.ref }}
@@ -43,7 +45,56 @@ jobs:
         run: pnpm install --no-frozen-lockfile --reporter=silent
 
       - name: Lint workspace
-        run: npm run lint
+        id: lint
+        continue-on-error: true
+        shell: bash
+        run: npm run lint > lint.log 2>&1
 
       - name: Build workspace
-        run: npm run build
+        id: build
+        if: steps.lint.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: npm run build > build.log 2>&1
+
+      - name: Report result on pull request
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- stake-compliance-ci -->';
+            const lintOutcome = process.env.LINT_OUTCOME || 'skipped';
+            const buildOutcome = process.env.BUILD_OUTCOME || 'skipped';
+            let title = '✅ Stake Compliance CI passed';
+            let details = 'Lint and build completed successfully.';
+            const tail = (path) => {
+              if (!fs.existsSync(path)) return '(no log file produced)';
+              const lines = fs.readFileSync(path, 'utf8').split(/\r?\n/);
+              return lines.slice(-120).join('\n').slice(-30000);
+            };
+            if (lintOutcome !== 'success') {
+              title = '❌ Stake Compliance CI: lint failed';
+              details = tail('lint.log');
+            } else if (buildOutcome !== 'success') {
+              title = '❌ Stake Compliance CI: build failed';
+              details = tail('build.log');
+            }
+            const body = `${marker}\n### ${title}\n\n- Lint: **${lintOutcome}**\n- Build: **${buildOutcome}**\n\n\`\`\`text\n${details}\n\`\`\``;
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+            const existing = comments.find((comment) => comment.user?.type === 'Bot' && comment.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+      - name: Enforce result
+        if: steps.lint.outcome != 'success' || steps.build.outcome != 'success'
+        shell: bash
+        run: exit 1
