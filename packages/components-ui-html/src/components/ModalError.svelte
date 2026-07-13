@@ -4,24 +4,25 @@
 	import { stateModal } from 'state-shared';
 
 	import BaseContent from './BaseContent.svelte';
+
+	const formatError = (value: unknown) => {
+		if (value instanceof Error) return `${value.name}: ${value.message}`;
+		if (typeof value === 'string') return value;
+		if (value === null || value === undefined) return 'unknown error';
+		try {
+			return JSON.stringify(value);
+		} catch {
+			return String(value);
+		}
+	};
 </script>
 
 {#if stateModal.modal?.name === 'error'}
 	<Popup zIndex={zIndex.modal} persistent onclose={() => (stateModal.modal = null)}>
 		<BaseContent maxWidth="100%">
-			{@const error = stateModal.modal?.error}
 			<span>Sorry, something went wrong.</span>
 			<div class="scrollY error-text">
-				{#if error}
-					{#if error?.error && error?.message}
-						<span>{JSON.stringify(error.error || 'unknown')}</span>
-						<p>{JSON.stringify(error.message || 'unknown')}</p>
-					{:else}
-						<p>{error}</p>
-					{/if}
-				{:else}
-					<span>unknown error</span>
-				{/if}
+				<p>{formatError(stateModal.modal.error)}</p>
 			</div>
 		</BaseContent>
 	</Popup>
