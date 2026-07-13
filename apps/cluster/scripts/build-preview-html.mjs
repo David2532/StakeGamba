@@ -1289,6 +1289,20 @@ function requireReplaySafeInteger(value, label, { positive = false } = {}) {
 	}
 	return value;
 }
+function replayPayoutMultiplierCandidates(value) {
+	const candidates = [];
+	const push = (candidate) => {
+		if (Number.isSafeInteger(candidate) && candidate >= 0 && !candidates.includes(candidate)) candidates.push(candidate);
+	};
+	const numeric = typeof value === 'number'
+		? value
+		: (typeof value === 'string' && value.trim() !== '' ? Number(value.trim()) : NaN);
+	if (!Number.isFinite(numeric) || numeric < 0) return candidates;
+	if (Number.isSafeInteger(numeric)) push(numeric);
+	const scaled = Math.round(numeric * BOOK_MULTIPLIER_SCALE);
+	if (Math.abs((numeric * BOOK_MULTIPLIER_SCALE) - scaled) <= 1e-9) push(scaled);
+	return candidates;
+}
 const DEV_BET_CONFIG = {
 	source: 'dev-fallback',
 	currency: DEFAULT_CURRENCY,
@@ -3135,7 +3149,13 @@ function normalizeReplayPayload(data) {
 	const rawPayoutMultiplier = source.payoutMultiplier ?? payload.payoutMultiplier;
 	let payoutMultiplierBookUnits = final.amount;
 	if (rawPayoutMultiplier !== undefined && rawPayoutMultiplier !== null) {
-		payoutMultiplierBookUnits = requireReplaySafeInteger(rawPayoutMultiplier, 'Replay payoutMultiplier');
+		const candidates = replayPayoutMultiplierCandidates(rawPayoutMultiplier);
+		const matchingCandidate = candidates.find((candidate) => candidate === runningBookUnits && candidate === final.amount);
+		if (matchingCandidate === undefined) {
+			if (!candidates.length) throw new Error('Replay payoutMultiplier must be a non-negative integer or multiplier number');
+			throw new Error('Replay payoutMultiplier differs from the authoritative finalWin event');
+		}
+		payoutMultiplierBookUnits = matchingCandidate;
 	}
 	if (payoutMultiplierBookUnits !== runningBookUnits || payoutMultiplierBookUnits !== final.amount) {
 		throw new Error('Replay payoutMultiplier differs from the authoritative finalWin event');

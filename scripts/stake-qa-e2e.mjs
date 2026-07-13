@@ -461,6 +461,10 @@ const withoutPayoutMultiplier = (round) => {
 	delete clone.payoutMultiplier;
 	return clone;
 };
+const withPayoutMultiplier = (round, payoutMultiplier) => ({
+	...cloneRound(round),
+	payoutMultiplier,
+});
 const bonusTier1ReplayRound = () => {
 	const round = cloneRound(bonusReplayRound());
 	round.mode = 'bonus_tier1';
@@ -1725,6 +1729,8 @@ async function testReplay(browser, base) {
 	const payoutMultiplierVariants = [
 		{ name: 'bonus-without-payout-multiplier', mode: 'bonus', round: () => withoutPayoutMultiplier(bonusReplayRound()), expectedWin: '$1.12', expectedMultiplier: 1.12 },
 		{ name: 'bonus-tier1-null-payout-multiplier', mode: 'bonus_tier1', round: () => ({ ...bonusTier1ReplayRound(), payoutMultiplier: null }), expectedWin: '$1.12', expectedMultiplier: 1.12 },
+		{ name: 'bonus-decimal-payout-multiplier', mode: 'bonus', round: () => withPayoutMultiplier(bonusReplayRound(), 1.12), expectedWin: '$1.12', expectedMultiplier: 1.12 },
+		{ name: 'bonus-tier1-string-decimal-payout-multiplier', mode: 'bonus_tier1', round: () => withPayoutMultiplier(bonusTier1ReplayRound(), '1.12'), expectedWin: '$1.12', expectedMultiplier: 1.12 },
 		{ name: 'bonus-alias-all-that-glitters-without-payout-multiplier', mode: 'all_that_glitters', expectedMode: 'bonus', round: () => withoutPayoutMultiplier(bonusReplayRound()), expectedWin: '$1.12', expectedMultiplier: 1.12 },
 		{ name: 'bonus-tier1-alias-golden-chance-without-payout-multiplier', mode: 'golden_chance', expectedMode: 'bonus_tier1', round: () => withoutPayoutMultiplier(bonusTier1ReplayRound()), expectedWin: '$1.12', expectedMultiplier: 1.12 },
 		{ name: 'rainbow-with-payout-multiplier', mode: 'rainbow', round: rainbowReplayRound, expectedWin: '$0.48', expectedMultiplier: 0.48 },
@@ -1812,7 +1818,7 @@ async function testReplay(browser, base) {
 		},
 		{
 			name: 'non-number-payout-multiplier',
-			response: () => ({ round: { ...baseReplayRound(), payoutMultiplier: '125' } }),
+			response: () => ({ round: { ...baseReplayRound(), payoutMultiplier: 'not-a-number' } }),
 		},
 		{
 			name: 'negative-payout-multiplier',

@@ -175,9 +175,9 @@ const requirementSeeds = [
 	['Replay Network', 'Replay makes no wallet play request', 'Read-only replay', 'Replay Play and Play Again never call wallet play.', baseImplementation, 'playReplayRound; mockReplayRgs', 'scripts/stake-qa.mjs replay', 'scripts/stake-qa-e2e.mjs replay', 'Stake Compliance CI / Forbidden-network gate', 'publish/frontend/index.html'],
 	['Replay Network', 'Replay makes no end-round request', 'Read-only replay', 'Replay does not mutate round state through end-round.', baseImplementation, 'playReplayRound; mockReplayRgs', 'scripts/stake-qa.mjs replay', 'scripts/stake-qa-e2e.mjs replay', 'Stake Compliance CI / Forbidden-network gate', 'publish/frontend/index.html'],
 	['Replay Network', 'Replay makes no event-save request', 'Read-only replay', 'Replay does not save events or mutate server state.', baseImplementation, 'playReplayRound; mockReplayRgs', 'scripts/stake-qa.mjs replay', 'scripts/stake-qa-e2e.mjs replay', 'Stake Compliance CI / Forbidden-network gate', 'publish/frontend/index.html'],
-	['Replay Contract', 'Bonus Replay without payoutMultiplier', 'Optional payoutMultiplier', 'bonus replay may omit payoutMultiplier; validated finalWin reconstructs the result.', baseImplementation, 'normalizeReplayPayload; validateReplayEvents', 'scripts/stake-qa.mjs replay', 'scripts/stake-qa-e2e.mjs replay', 'Stake Compliance CI / Replay contract gate', 'publish/frontend/index.html'],
-	['Replay Contract', 'Bonus Tier 1 Replay without payoutMultiplier', 'Optional payoutMultiplier', 'bonus_tier1 replay may omit or null payoutMultiplier; validated finalWin reconstructs the result.', baseImplementation, 'normalizeReplayPayload; validateReplayEvents', 'scripts/stake-qa.mjs replay', 'scripts/stake-qa-e2e.mjs replay', 'Stake Compliance CI / Replay contract gate', 'publish/frontend/index.html'],
-	['Replay Contract', 'Rainbow Replay remains working', 'Regression preservation', 'rainbow replay with a present payoutMultiplier still passes strict cross-validation.', baseImplementation, 'normalizeReplayPayload; replayModeIdentity', 'scripts/stake-qa.mjs replay', 'scripts/stake-qa-e2e.mjs replay', 'Stake Compliance CI / Replay contract gate', 'publish/frontend/index.html'],
+	['Replay Contract', 'Bonus Replay without payoutMultiplier', 'Optional payoutMultiplier', 'bonus replay may omit payoutMultiplier or provide a finalWin-matching decimal multiplier; validated finalWin remains authoritative.', baseImplementation, 'normalizeReplayPayload; validateReplayEvents; replayPayoutMultiplierCandidates', 'scripts/stake-qa.mjs replay', 'scripts/stake-qa-e2e.mjs replay', 'Stake Compliance CI / Replay contract gate', 'publish/frontend/index.html'],
+	['Replay Contract', 'Bonus Tier 1 Replay without payoutMultiplier', 'Optional payoutMultiplier', 'bonus_tier1 replay may omit/null payoutMultiplier or provide a finalWin-matching decimal multiplier; validated finalWin remains authoritative.', baseImplementation, 'normalizeReplayPayload; validateReplayEvents; replayPayoutMultiplierCandidates', 'scripts/stake-qa.mjs replay', 'scripts/stake-qa-e2e.mjs replay', 'Stake Compliance CI / Replay contract gate', 'publish/frontend/index.html'],
+	['Replay Contract', 'Rainbow Replay remains working', 'Regression preservation', 'rainbow replay with a present payoutMultiplier still passes strict finalWin cross-validation.', baseImplementation, 'normalizeReplayPayload; replayModeIdentity', 'scripts/stake-qa.mjs replay', 'scripts/stake-qa-e2e.mjs replay', 'Stake Compliance CI / Replay contract gate', 'publish/frontend/index.html'],
 	['Replay Contract', 'Event ID 0 remains valid', 'Replay event id', 'Event ID 0 is preserved as a valid replay round/event identifier.', baseImplementation, 'UrlState.event; rgsEventIndex', 'scripts/stake-qa.mjs replay', 'scripts/stake-qa-e2e.mjs replay', 'Stake Compliance CI / Replay contract gate', 'publish/frontend/index.html'],
 	['Currency', 'KRW formatting works', 'KRW replay', 'KRW replay uses integer-style display and shared currency metadata.', baseImplementation, 'formatCurrency; normalizeCurrency', 'scripts/stake-qa.mjs currency', 'scripts/stake-qa-e2e.mjs replay', 'Stake Compliance CI / Currency gate', 'publish/frontend/index.html'],
 	['Math', 'Paytable values match published math', 'Paytable contract', 'Visible paytable values are generated from production math and validated against publish/math.', 'math/games/golden_goal_rush/library/configs/game_config.py; apps/cluster/scripts/build-preview-html.mjs', 'renderPaytable; paytableContract', 'scripts/stake-qa.mjs paytable', 'scripts/stake-qa-e2e.mjs paytable', 'Stake Compliance CI / Paytable contract gate', 'publish/math/game_config.json; publish/frontend/index.html'],
@@ -334,7 +334,7 @@ flowchart LR
 | /event/save | POST | No production replay use | Replay launch and replay playback | none for replay | no mutation | blocked in replay tests | replay forbidden-network E2E |
 | /bet/replay/{game}/{version}/{mode}/{event} | GET | Replay launch including Event ID 0 | Paid play mutation | events, finalWin, amount, currency, optional payoutMultiplier | loading to ready | replay error overlay, no fallback | stake:qa replay |
 
-Visible wins come from authoritative RGS events. \`finalWin\` is authoritative for replay result book units. A present \`payoutMultiplier\` is a cross-check only; absent or null values are reconstructed from validated \`finalWin\`; contradictory present values are rejected.
+Visible wins come from authoritative RGS events. \`finalWin\` is authoritative for replay result book units. A present \`payoutMultiplier\` is a cross-check only; integer book-unit values and decimal multiplier values are accepted only when they resolve exactly to validated \`finalWin\`; absent or null values are reconstructed from validated \`finalWin\`; contradictory present values are rejected.
 `;
 
 	const replay = `# Stake replay contract
@@ -343,7 +343,7 @@ Supported launch parameters: game, version, mode, event, amount, currency, langu
 
 Accepted modes and aliases: base, rainbow, rainbow_spin, hunt, feature, feature_spins, bonus_tier1, tier1, golden_chance, bonus, tier2, bonus_tier2 and all_that_glitters. Event ID 0 is valid.
 
-API amount units are integer micro-units. Book multiplier units are integer hundredths of the bet multiplier. Explicit payout is an API amount and must match \`amount * finalWin / 100\`.
+API amount units are integer micro-units. Book multiplier units are integer hundredths of the bet multiplier. Replay \`payoutMultiplier\` may arrive as integer book units or as a decimal/string multiplier, but it is normalized only if it exactly matches \`finalWin\`. Explicit payout is an API amount and must match \`amount * finalWin / 100\`.
 
 Event wrappers may be \`round.state\`, \`round.events\`, \`replay.round\`, \`bet\` or \`eventRound\`. Supported events include reveal, tumbleBoard, winInfo, goldenReveal, goldenAward, goldenClear, setWin, setTotalWin, updateTumbleWin, updateFreeSpin, freeSpinTrigger, freeSpinEnd and finalWin. Boards are six columns by five rows. Positions use col/column/reel plus row.
 
@@ -353,7 +353,7 @@ Validation rules:
 - winInfo totals must equal the sum of wins.
 - runningTotalWin, setWin, setTotalWin, updateTumbleWin and freeSpinEnd must match the cumulative total.
 - wins above configured Max Win are rejected.
-- present payoutMultiplier is strictly cross-validated.
+- present payoutMultiplier is normalized from integer book units or decimal multiplier form and strictly cross-validated.
 - absent or null payoutMultiplier is reconstructed from finalWin.
 - explicit payout is strictly cross-validated.
 - replay never authenticates, never sends wallet play, never sends end-round and never saves events.
@@ -362,7 +362,7 @@ Validation rules:
 
 ## Current regression coverage
 
-\`bonus\` and \`bonus_tier1\` responses may omit \`payoutMultiplier\`. \`rainbow\` may include it. All variants use validated \`finalWin\` as the authoritative source, and present values remain strict cross-checks.
+\`bonus\` and \`bonus_tier1\` responses may omit \`payoutMultiplier\` or provide legacy decimal/string multiplier values. \`rainbow\` may include it. All variants use validated \`finalWin\` as the authoritative source, and present values remain strict cross-checks.
 
 ## Valid envelope examples
 
@@ -390,7 +390,7 @@ Validation rules:
 {"round":{"game":"golden-goal-rush","version":"1","mode":"base","amount":1000000,"currency":"XSC","payout":1250000,"payoutMultiplier":125,"state":[{"index":0,"type":"reveal","board":"6x5 board"},{"index":1,"type":"finalWin","amount":125}]}}
 \`\`\`
 
-Rejected envelopes include negative finalWin, fractional finalWin, string finalWin, conflicting payoutMultiplier, conflicting explicit payout, malformed event sequence, wrong mode, wrong amount and wrong currency. These cases are covered by ${rel(resolve(ctx.evidenceDir, 'replay-validation-cases.json'))}.
+Rejected envelopes include negative finalWin, fractional finalWin, string finalWin, non-numeric payoutMultiplier, conflicting payoutMultiplier, conflicting explicit payout, malformed event sequence, wrong mode, wrong amount and wrong currency. These cases are covered by ${rel(resolve(ctx.evidenceDir, 'replay-validation-cases.json'))}.
 `;
 
 	const math = `# Stake math and paytable contract
@@ -509,7 +509,7 @@ Unsupported modes: Modes outside base, rainbow, hunt, bonus_tier1 and bonus are 
 
 Intentionally unavailable retriggers: Retrigger behavior remains limited to production math configuration and documented mode rules.
 
-Optional response fields: replay payoutMultiplier may be absent or null; when present it is a strict cross-check. Known RGS payload variants include round, bet, eventRound and replay.round wrappers.
+Optional response fields: replay payoutMultiplier may be absent, null, integer book units, or a decimal/string multiplier; when present it is accepted only as a strict finalWin cross-check. Known RGS payload variants include round, bet, eventRound and replay.round wrappers.
 
 Current readiness risk: no repo-owned blocker is recorded by this document. If any mandatory gate fails, the final verdict becomes NOT READY until the failing evidence is replaced.
 `;
@@ -518,7 +518,7 @@ Current readiness risk: no repo-owned blocker is recorded by this document. If a
 
 Stake team,
 
-The current build fixes the Replay payoutMultiplier contract and preserves the prior Replay UI corrections. Bonus and Bonus Tier 1 replay responses may omit or null \`payoutMultiplier\`; the game now uses validated \`finalWin\` as the authoritative replay result and still rejects any present contradictory \`payoutMultiplier\` or explicit payout. Rainbow replay remains covered as the comparison case with a present cross-checked \`payoutMultiplier\`.
+The current build fixes the Replay payoutMultiplier contract and preserves the prior Replay UI corrections. Bonus and Bonus Tier 1 replay responses may omit/null \`payoutMultiplier\` or provide legacy decimal/string multiplier values; the game now uses validated \`finalWin\` as the authoritative replay result and still rejects any present contradictory \`payoutMultiplier\` or explicit payout. Rainbow replay remains covered as the comparison case with a present cross-checked \`payoutMultiplier\`.
 
 Replay remains read-only: no authenticate, wallet play, end-round or event-save request is made during Replay launch, Replay Play or Play Again. Event ID 0, KRW formatting, Stake.us XSC display and Paytable values are covered by the current QA evidence.
 

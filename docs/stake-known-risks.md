@@ -10,12 +10,12 @@ Unsupported modes: Modes outside base, rainbow, hunt, bonus_tier1 and bonus are 
 
 Intentionally unavailable retriggers: Retrigger behavior remains limited to production math configuration and documented mode rules.
 
-Optional response fields: replay payoutMultiplier may be absent or null; when present it is a strict cross-check. Known RGS payload variants include round, bet, eventRound and replay.round wrappers.
+Optional response fields: replay payoutMultiplier may be absent, null, integer book units, or a decimal/string multiplier; when present it is accepted only as a strict finalWin cross-check. Known RGS payload variants include round, bet, eventRound and replay.round wrappers.
 
 Current readiness risk: no repo-owned blocker is recorded by this document. If any mandatory gate fails, the final verdict becomes NOT READY until the failing evidence is replaced.
 
 ## Validation context
 
-- Frontend build ID: `d160b28c37abf6713535c464866544b6a8c3c957087cb9d2e808374b235f16c5`
+- Frontend build ID: `348cbfd4f1e28202a96f3aee3b5cb3349a1279474d4f6e19f3f16c3642eb857e`
 - Math version: `0.2.2-cluster`
-- Evidence directory: `artifacts/stake-qa/2026-07-13T11-53-50-381Z`
+- Evidence directory: `artifacts/stake-qa/2026-07-13T12-26-21-463Z`

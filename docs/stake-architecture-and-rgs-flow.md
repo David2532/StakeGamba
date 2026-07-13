@@ -64,10 +64,10 @@ flowchart LR
 | /event/save | POST | No production replay use | Replay launch and replay playback | none for replay | no mutation | blocked in replay tests | replay forbidden-network E2E |
 | /bet/replay/{game}/{version}/{mode}/{event} | GET | Replay launch including Event ID 0 | Paid play mutation | events, finalWin, amount, currency, optional payoutMultiplier | loading to ready | replay error overlay, no fallback | stake:qa replay |
 
-Visible wins come from authoritative RGS events. `finalWin` is authoritative for replay result book units. A present `payoutMultiplier` is a cross-check only; absent or null values are reconstructed from validated `finalWin`; contradictory present values are rejected.
+Visible wins come from authoritative RGS events. `finalWin` is authoritative for replay result book units. A present `payoutMultiplier` is a cross-check only; integer book-unit values and decimal multiplier values are accepted only when they resolve exactly to validated `finalWin`; absent or null values are reconstructed from validated `finalWin`; contradictory present values are rejected.
 
 ## Validation context
 
-- Frontend build ID: `d160b28c37abf6713535c464866544b6a8c3c957087cb9d2e808374b235f16c5`
+- Frontend build ID: `348cbfd4f1e28202a96f3aee3b5cb3349a1279474d4f6e19f3f16c3642eb857e`
 - Math version: `0.2.2-cluster`
-- Evidence directory: `artifacts/stake-qa/2026-07-13T11-53-50-381Z`
+- Evidence directory: `artifacts/stake-qa/2026-07-13T12-26-21-463Z`

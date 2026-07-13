@@ -5,7 +5,7 @@
 3. Regenerate the standard publish output with `npm run stake:publish`.
 4. Run full math publish with `npm run stake:publish:full-math` when math/config/lookup/book/cluster/Wild semantics changed.
 5. Verify folders exist: `Test-Path publish/frontend` and `Test-Path publish/math`.
-6. Inspect `publish/frontend/index.html` for build ID `d160b28c37abf6713535c464866544b6a8c3c957087cb9d2e808374b235f16c5`.
+6. Inspect `publish/frontend/index.html` for build ID `348cbfd4f1e28202a96f3aee3b5cb3349a1279474d4f6e19f3f16c3642eb857e`.
 7. Inspect `publish/math/game_config.json` for math version `0.2.2-cluster`.
 8. Verify hashes with `npm run stake:qa:docs`.
 9. Upload frontend folder exactly: `publish/frontend`.
@@ -15,6 +15,6 @@ Do not upload repo source folders, prior artifacts, screenshots, local `node_mod
 
 ## Validation context
 
-- Frontend build ID: `d160b28c37abf6713535c464866544b6a8c3c957087cb9d2e808374b235f16c5`
+- Frontend build ID: `348cbfd4f1e28202a96f3aee3b5cb3349a1279474d4f6e19f3f16c3642eb857e`
 - Math version: `0.2.2-cluster`
-- Evidence directory: `artifacts/stake-qa/2026-07-13T11-53-50-381Z`
+- Evidence directory: `artifacts/stake-qa/2026-07-13T12-26-21-463Z`
