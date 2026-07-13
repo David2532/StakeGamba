@@ -21,6 +21,7 @@ const pnpmArgs = [
 	'--recursive',
 	'--sort',
 	'--workspace-concurrency=1',
+	'--no-bail',
 	'--if-present',
 	'run',
 	task,
