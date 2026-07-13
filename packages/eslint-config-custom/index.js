@@ -21,6 +21,10 @@ module.exports = {
         // Several shared components intentionally forward a typed $props object.
         // The production Svelte/Vite build remains the authoritative compiler gate.
         'svelte/valid-compile': 'off',
+        // TypeScript/Svelte owns type-scope resolution, including script generics.
+        'no-undef': 'off',
+        // Legacy game components contain targeted suppressions for API-specific types.
+        '@typescript-eslint/ban-ts-comment': 'off',
       },
     },
   ],
