@@ -2,7 +2,7 @@ type ModalEmpty = null;
 
 type ModalError = {
 	name: 'error';
-	error: any;
+	error: unknown;
 };
 
 type ModalBetMenu = {

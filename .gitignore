@@ -3,6 +3,7 @@
 # dependencies
 node_modules
 artifacts/
+.stake-audit/
 .pnp
 .pnp.js
 
@@ -65,3 +66,4 @@ packages/e2e/math-testing/__pycache__/*
 # publish/debug; only the compressed .zst books are shipped/tracked.
 math/games/*/library/books/*.jsonl
 math/games/*/__pycache__/
+math/games/*/tests/__pycache__/

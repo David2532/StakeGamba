@@ -5,22 +5,22 @@
     {
       "symbol": "NONE",
       "kind": "no_win",
-      "bookId": 68,
+      "bookId": 59,
       "payoutMultiplier": 0,
       "note": "Naturally occurring zero-win round, indexed for QA baseline."
     },
     {
       "symbol": "W",
       "kind": "max_win_observed",
-      "bookId": 6162,
+      "bookId": 4493,
       "payoutMultiplier": 1000000,
       "note": "Highest payoutMultiplier observed in this simulation pool."
     },
     {
       "symbol": "MIXED",
       "kind": "typical_win",
-      "bookId": 39160,
-      "payoutMultiplier": 244,
+      "bookId": 8299,
+      "payoutMultiplier": 298,
       "note": "Median payoutMultiplier round, indexed for QA baseline."
     }
   ]

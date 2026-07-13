@@ -3,7 +3,6 @@ param(
 	[switch]$BuildFrontend,
 	[switch]$ReuseBooks,
 	[switch]$ArchiveLegacy,
-	[switch]$SkipComplianceGate,
 	[switch]$SkipFrontendStalenessCheck,
 	[switch]$CheckMathStaleness,
 	[switch]$SkipMathStalenessCheck
@@ -17,6 +16,10 @@ $LegacyPublishRoot = Join-Path $PublishRoot "golden-goal-rush"
 $FrontendPreviewHtml = Join-Path $Root "apps\cluster\preview.html"
 $FrontendPreviewBuilder = Join-Path $Root "apps\cluster\scripts\build-preview-html.mjs"
 $StakeQaScript = Join-Path $Root "scripts\stake-qa.mjs"
+$StakeDocumentationScript = Join-Path $Root "scripts\verify-stake-documentation.mjs"
+$PaytableVerifier = Join-Path $Root "scripts\verify-stake-paytable.mjs"
+$PaytableGateTest = Join-Path $Root "scripts\test-stake-paytable-gate.mjs"
+$ImplementationEvidenceRoot = Join-Path $Root "artifacts\stake-final-implementation-20260712-164933"
 $FrontendAssetSource = Join-Path $Root "apps\cluster\src\assets\golden-goal-rush"
 $FrontendStaticSource = Join-Path $Root "apps\cluster\static"
 $FrontendDest = Join-Path $PublishRoot "frontend"
@@ -258,6 +261,176 @@ function Copy-FrontendUploadFiles {
 	Copy-Item -LiteralPath $FrontendAssetSource -Destination (Join-Path $assetDestRoot "golden-goal-rush") -Recurse -Force
 }
 
+function Get-BalancedObjectText {
+	param(
+		[string]$Content,
+		[string]$Marker
+	)
+
+	$start = $Content.IndexOf($Marker)
+	if ($start -lt 0) { return "" }
+	$brace = $Content.IndexOf("{", $start)
+	if ($brace -lt 0) { return "" }
+	$depth = 0
+	for ($i = $brace; $i -lt $Content.Length; $i++) {
+		$ch = $Content[$i]
+		if ($ch -eq "{") { $depth++ }
+		elseif ($ch -eq "}") {
+			$depth--
+			if ($depth -eq 0) { return $Content.Substring($brace, $i - $brace + 1) }
+		}
+	}
+	return ""
+}
+
+function Convert-ToContractDecimal {
+	param(
+		[object]$Value,
+		[string]$Context
+	)
+
+	if ($null -eq $Value) {
+		throw "Missing numerical value: $Context"
+	}
+	$invariant = [System.Globalization.CultureInfo]::InvariantCulture
+	$text = [System.Convert]::ToString($Value, $invariant)
+	$number = [decimal]0
+	if (-not [decimal]::TryParse(
+		$text,
+		[System.Globalization.NumberStyles]::Float,
+		$invariant,
+		[ref]$number
+	)) {
+		throw "Invalid numerical value for ${Context}: '$text'"
+	}
+	return $number
+}
+
+function Test-FrontendMathContract {
+	$publishedFrontend = Join-Path $FrontendDest "index.html"
+	$publishedMathConfig = Join-Path $MathDest "game_config.json"
+	$generatedMathConfig = Join-Path $MathRoot "library\configs\game_config.json"
+
+	$previewHash = (Get-FileHash -LiteralPath $FrontendPreviewHtml -Algorithm SHA256).Hash
+	$publishedFrontendHash = (Get-FileHash -LiteralPath $publishedFrontend -Algorithm SHA256).Hash
+	if ($previewHash -ne $publishedFrontendHash) {
+		throw "FRONTEND DRIFT: publish/frontend/index.html is not byte-identical to apps/cluster/preview.html"
+	}
+
+	$generatedMathHash = (Get-FileHash -LiteralPath $generatedMathConfig -Algorithm SHA256).Hash
+	$publishedMathHash = (Get-FileHash -LiteralPath $publishedMathConfig -Algorithm SHA256).Hash
+	if ($generatedMathHash -ne $publishedMathHash) {
+		throw "MATH DRIFT: publish/math/game_config.json is not byte-identical to the generated production math config"
+	}
+
+	$html = Get-Content -LiteralPath $publishedFrontend -Raw
+	$embeddedJson = Get-BalancedObjectText -Content $html -Marker "const PRODUCTION_PAYTABLE ="
+	if ([string]::IsNullOrWhiteSpace($embeddedJson)) {
+		throw "FRONTEND/MATH CONTRACT: generated frontend does not embed PRODUCTION_PAYTABLE"
+	}
+
+	try {
+		$embeddedPaytable = $embeddedJson | ConvertFrom-Json
+	}
+	catch {
+		throw "FRONTEND/MATH CONTRACT: embedded PRODUCTION_PAYTABLE is not valid JSON: $($_.Exception.Message)"
+	}
+	$mathConfig = Get-Content -LiteralPath $publishedMathConfig -Raw | ConvertFrom-Json
+	if ($null -eq $mathConfig.paytable) {
+		throw "FRONTEND/MATH CONTRACT: publish/math/game_config.json has no paytable"
+	}
+
+	$failures = New-Object System.Collections.Generic.List[string]
+	$mathSymbols = @($mathConfig.paytable.PSObject.Properties.Name | Sort-Object)
+	$frontendSymbols = @($embeddedPaytable.PSObject.Properties.Name | Sort-Object)
+	foreach ($difference in @(Compare-Object -ReferenceObject $mathSymbols -DifferenceObject $frontendSymbols)) {
+		if ($difference.SideIndicator -eq "<=") {
+			$failures.Add("paying symbol '$($difference.InputObject)' is missing from the frontend Paytable") | Out-Null
+		}
+		else {
+			$failures.Add("frontend Paytable contains symbol '$($difference.InputObject)' that is absent from production math") | Out-Null
+		}
+	}
+
+	foreach ($symbol in $mathSymbols) {
+		$mathProperty = $mathConfig.paytable.PSObject.Properties[$symbol]
+		$frontendProperty = $embeddedPaytable.PSObject.Properties[$symbol]
+		if ($null -eq $mathProperty -or $null -eq $frontendProperty) { continue }
+
+		$mathEntry = $mathProperty.Value
+		$frontendEntry = $frontendProperty.Value
+		try {
+			$cluster5 = Convert-ToContractDecimal -Value $mathEntry.cluster5 -Context "production $symbol.cluster5"
+			$cluster7Boost = Convert-ToContractDecimal -Value $mathEntry.cluster7Boost -Context "production $symbol.cluster7Boost"
+			$cluster9Boost = Convert-ToContractDecimal -Value $mathEntry.cluster9Boost -Context "production $symbol.cluster9Boost"
+			$cluster12Boost = Convert-ToContractDecimal -Value $mathEntry.cluster12Boost -Context "production $symbol.cluster12Boost"
+			$expected = [ordered]@{
+				cluster5 = $cluster5
+				cluster7Boost = $cluster7Boost
+				cluster9Boost = $cluster9Boost
+				cluster12Boost = $cluster12Boost
+				cluster7 = $cluster5 * $cluster7Boost
+				cluster9 = $cluster5 * $cluster9Boost
+				cluster12 = $cluster5 * $cluster12Boost
+			}
+			foreach ($field in $expected.Keys) {
+				$actualProperty = $frontendEntry.PSObject.Properties[$field]
+				if ($null -eq $actualProperty) {
+					$failures.Add("frontend Paytable is missing $symbol.$field") | Out-Null
+					continue
+				}
+				$actual = Convert-ToContractDecimal -Value $actualProperty.Value -Context "frontend $symbol.$field"
+				if ($actual -ne $expected[$field]) {
+					$failures.Add("frontend $symbol.$field=$actual differs from production $($expected[$field])") | Out-Null
+				}
+			}
+		}
+		catch {
+			$failures.Add($_.Exception.Message) | Out-Null
+		}
+	}
+
+	if ($failures.Count -gt 0) {
+		throw "FRONTEND/MATH CONTRACT FAILED:`n - $($failures -join "`n - ")"
+	}
+
+	if (-not (Test-Path -LiteralPath $PaytableVerifier -PathType Leaf)) {
+		throw "Missing semantic Paytable verifier: $PaytableVerifier"
+	}
+	if (-not (Test-Path -LiteralPath $PaytableGateTest -PathType Leaf)) {
+		throw "Missing stale-fixture Paytable gate test: $PaytableGateTest"
+	}
+	New-Item -ItemType Directory -Force -Path $ImplementationEvidenceRoot | Out-Null
+	$contractReport = Join-Path $ImplementationEvidenceRoot "paytable-contract-publish.json"
+	Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @(
+		$PaytableVerifier,
+		"--html", $publishedFrontend,
+		"--math", $publishedMathConfig,
+		"--report", $contractReport
+	)
+	Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @($PaytableGateTest)
+
+	Write-Host "Frontend publish snapshot and production Paytable are numerically identical." -ForegroundColor Green
+}
+
+function Get-JsStringValues {
+	param([string]$Content)
+	$values = New-Object System.Collections.Generic.List[string]
+	foreach ($match in [regex]::Matches($Content, ":\s*'([^']*)'")) {
+		$values.Add($match.Groups[1].Value) | Out-Null
+	}
+	return ($values -join " ")
+}
+
+function Test-TextContainsWordOrPhrase {
+	param(
+		[string]$Text,
+		[string]$Phrase
+	)
+	$pattern = "\b" + [regex]::Escape($Phrase) + "\b"
+	return [regex]::IsMatch($Text, $pattern, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+}
+
 # ---------------------------------------------------------------------------
 # Stake compliance gate: asserts that the packaged frontend/math actually
 # satisfy every point Stake raised in the approval thread. Fails the pipeline
@@ -271,7 +444,8 @@ function Test-StakeCompliance {
 	$feChecks = @(
 		# Stake: "page crashes and displays an error when we change the URL"
 		@{ Name = "URL-Guard: validateLaunchUrl vorhanden"; Marker = "function validateLaunchUrl" },
-		@{ Name = "URL-Guard: replay=true blockiert (kein Demo-Fallback)"; Marker = "The game URL contains unsupported launch parameters" },
+		@{ Name = "Replay: replay=true wird unterstuetzt"; Marker = "id=`"replay-overlay`"" },
+		@{ Name = "Replay: language Parameter im Replay-Request"; Marker = "language: UrlState.lang()" },
 		@{ Name = "URL-Guard: URL-Aenderung zur Laufzeit erkannt"; Marker = "function checkLaunchUrlIntegrity" },
 		@{ Name = "URL-Guard: currency Pflichtparameter"; Marker = "hasLaunchParam('currency')" },
 		@{ Name = "URL-Guard: lang/language Pflichtparameter"; Marker = "hasLaunchParam('lang', 'language')" },
@@ -304,6 +478,41 @@ function Test-StakeCompliance {
 		@{ Name = "Mobile Fullscreen nutzt dvh"; Marker = "height: 100dvh" },
 		@{ Name = "Mobile Stage Fit Variable vorhanden"; Marker = "--stage-fit-transform" },
 		@{ Name = "Rules: Buttons & Controls vorhanden"; Marker = "Buttons &amp; Controls" },
+		# Stake 2026-07-08: authenticate-driven bet configuration.
+		@{ Name = "Authenticate-BetConfig: Normalizer vorhanden"; Marker = "function normalizeBetConfig" },
+		@{ Name = "Authenticate-BetConfig: Applier vorhanden"; Marker = "function applyBetConfig" },
+		@{ Name = "Authenticate-BetConfig: Bet Levels aus Config"; Marker = "firstArrayConfig(config, ['betLevels', 'availableBetLevels', 'betAmounts', 'bets', 'levels', 'denominations'])" },
+		@{ Name = "Authenticate-BetConfig: Default Bet aus Config"; Marker = "firstMoneyConfig(config, ['defaultBetLevel', 'defaultBet', 'defaultBetAmount', 'betLevel', 'betAmount', 'minBet'])" },
+		@{ Name = "Authenticate-BetConfig: Wallet Response synchronisiert Levels"; Marker = "syncBetLevels(data.config, data)" },
+		@{ Name = "Authenticate-BetConfig: Play nutzt API-Level"; Marker = "activeBetConfig.apiLevels" },
+		@{ Name = "Authenticate-BetConfig: Demo-Fallback nicht in RGS/Replay"; Marker = "if (!UrlState.requiresRgs() && !Replay.configured()) applyBetConfig" },
+		# Stake 2026-07-08: expanded Game Info modes/retriggers.
+		@{ Name = "Game Info: Mode-Metadaten vorhanden"; Marker = "const PLAYER_MODE_META = {" },
+		@{ Name = "Game Info: Base Game erklaert"; Marker = "Base Game" },
+		@{ Name = "Game Info: Feature Spins erklaert"; Marker = "Feature Spins" },
+		@{ Name = "Game Info: Rainbow Spin erklaert"; Marker = "Rainbow Spin" },
+		@{ Name = "Game Info: Golden Chance erklaert"; Marker = "Golden Chance" },
+		@{ Name = "Game Info: All That Glitters erklaert"; Marker = "All That Glitters" },
+		@{ Name = "Game Info: End of the Rainbow erklaert"; Marker = "End of the Rainbow" },
+		@{ Name = "Game Info: Main Spin Trigger erklaert"; Marker = "Main Spin button" },
+		@{ Name = "Game Info: Bonus Buy/Feature Trigger erklaert"; Marker = "Bonus Buy panel" },
+		@{ Name = "Game Info: Scatter Trigger erklaert"; Marker = "3 Scatter tickets" },
+		@{ Name = "Game Info: Cost Multiplier erklaert"; Marker = "Cost multiplier:" },
+		@{ Name = "Game Info: Social Feature Multiplier erklaert"; Marker = "Feature Multiplier:" },
+		@{ Name = "Game Info: Retrigger Abschnitt vorhanden"; Marker = "<div class=`"pt-head`">Retriggers</div>" },
+		@{ Name = "Game Info: Normal Retrigger Bedingungen"; Marker = "Base Game and Rainbow Spin can trigger Free Spins" },
+		@{ Name = "Game Info: Social Retrigger Bedingungen"; Marker = "Base Play and Rainbow Spin can trigger Free Spins" },
+		@{ Name = "Game Info: Feature-Free-Spins ohne Retrigger"; Marker = "Feature-panel Free Spins do not add additional Free Spins" },
+		# Stake 2026-07-08: replay support.
+		@{ Name = "Replay: explizite Lifecycle-States vorhanden"; Marker = "stage.dataset.replayState = status" },
+		@{ Name = "Replay: dedizierter Replay/Play-Again Button vorhanden"; Marker = "id=`"replay-action`"" },
+		@{ Name = "Replay: lang Alias im Replay-Request"; Marker = "lang: UrlState.lang()" },
+		@{ Name = "Replay: Mode-Name aus Game-Metadaten"; Marker = "playerModeName(rgsRoundMode(round))" },
+		@{ Name = "Replay: display-only Replay Bet vorhanden"; Marker = "'REPLAY BET'" },
+		@{ Name = "Replay: Win Amount bleibt sichtbar"; Marker = "data-meter=`"win`"" },
+		@{ Name = "Replay: Currency Anzeige vorhanden"; Marker = "id=`"replay-currency`"" },
+		@{ Name = "Replay: kein Progress/Walet-Mutate"; Marker = "trackProgress: false" },
+		@{ Name = "Replay: Play Again startet gecachte Wiedergabe"; Marker = "action.onclick = () => play();" },
 		# Stake: no local win simulation in production
 		@{ Name = "Positiver Wallet-Payout ist Display-Quelle"; Marker = "if (walletPayout !== null && walletPayout > 0) return walletPayout;" },
 		@{ Name = "Lokale Free Spins nur ohne RGS"; Marker = "allowLocalFreeSpins = !Rgs.configured()" },
@@ -316,6 +525,28 @@ function Test-StakeCompliance {
 	}
 	if ($html -match "roundNeedsEnd[^\r\n]*payoutMultiplier") {
 		$failures += "FRONTEND: End-Round-Entscheidung darf payout/payoutMultiplier nicht verwenden"
+	}
+	$sweepsBlock = Get-BalancedObjectText -Content $html -Marker "sweeps_en:"
+	$socialText = Get-JsStringValues -Content $sweepsBlock
+	if ($socialText.Length -eq 0) {
+		$failures += "FRONTEND: sweeps_en Sprachressource fuer Social Mode konnte nicht geprueft werden"
+	}
+	foreach ($term in @(
+		"Bet Replay", "Base Bet", "Cost Multiplier", "Total Bet Cost", "Payout Multiplier", "Total Win",
+		"Bonus Buy", "Buy Bonus", "Auto-Bet", "Auto Bet", "Bet", "Wager", "Gamble", "Purchase",
+		"Paid", "Pay out", "Payout", "Rebet", "Cash", "Credit", "Currency"
+	)) {
+		if (Test-TextContainsWordOrPhrase -Text $socialText -Phrase $term) {
+			$failures += "FRONTEND: Social Mode/sweeps_en enthaelt eingeschraenkten Begriff '$term'"
+		}
+	}
+	foreach ($term in @(
+		"Play Replay", "Base Play", "Feature Multiplier", "Play Cost", "Final Multiplier",
+		"Final Play Amount", "Replay Play", "BONUS / FEATURE", "AUTO-PLAY", "PLAY"
+	)) {
+		if (-not $socialText.Contains($term)) {
+			$failures += "FRONTEND: Social Mode/sweeps_en Ersatzbegriff fehlt: '$term'"
+		}
 	}
 
 	$auditPath = Join-Path $MathDest "RTP_AUDIT.json"
@@ -378,15 +609,33 @@ function Test-StakeCompliance {
 		foreach ($failure in $failures) { Write-Host "  - $failure" -ForegroundColor Red }
 		throw "Compliance gate failed ($($failures.Count) Punkt(e)). Dieses Paket NICHT hochladen."
 	}
-	Write-Host "Stake compliance gate: alle $($feChecks.Count + 8) Checks bestanden." -ForegroundColor Green
+	Write-Host "Stake compliance gate: alle Frontend-/Math-Checks bestanden." -ForegroundColor Green
 }
 
 function Invoke-StakeQa {
 	if (-not (Test-Path -LiteralPath $StakeQaScript -PathType Leaf)) {
 		throw "Missing Stake QA script: $StakeQaScript"
 	}
-	Write-Host "Running Stake QA checks"
-	Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @($StakeQaScript, "all")
+	if (-not (Test-Path -LiteralPath $StakeDocumentationScript -PathType Leaf)) {
+		throw "Missing Stake documentation gate script: $StakeDocumentationScript"
+	}
+	Write-Host "Running mandatory Stake QA checks against publish\frontend"
+	$previousRequireE2e = $env:STAKE_QA_REQUIRE_E2E
+	$previousFrontendRoot = $env:STAKE_QA_FRONTEND_ROOT
+	$previousFrontendEntry = $env:STAKE_QA_FRONTEND_ENTRY
+	try {
+		$env:STAKE_QA_REQUIRE_E2E = "1"
+		$env:STAKE_QA_FRONTEND_ROOT = $FrontendDest
+		$env:STAKE_QA_FRONTEND_ENTRY = "index.html"
+		Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @($StakeQaScript, "all")
+		Write-Host "Running mandatory Stake documentation and publish-manifest gate"
+		Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @($StakeDocumentationScript, "--write", "--check")
+	}
+	finally {
+		$env:STAKE_QA_REQUIRE_E2E = $previousRequireE2e
+		$env:STAKE_QA_FRONTEND_ROOT = $previousFrontendRoot
+		$env:STAKE_QA_FRONTEND_ENTRY = $previousFrontendEntry
+	}
 }
 
 function Write-UploadReadme {
@@ -434,18 +683,9 @@ function Invoke-LegacyArchive {
 
 Write-Host "Syncing Stake publish snapshot..."
 
-if ($BuildFrontend) {
-	if (-not (Test-Path -LiteralPath $FrontendPreviewBuilder -PathType Leaf)) {
-		throw "Missing preview builder: $FrontendPreviewBuilder"
-	}
-	Write-Host "Building frontend preview HTML"
-	Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @($FrontendPreviewBuilder)
-}
-
-if (-not $SkipFrontendStalenessCheck) {
-	Test-FrontendSourceReady
-}
-
+# Production math must be refreshed and copied first. The frontend builder
+# imports this exact generated/published contract, so reversing this order can
+# package a fresh math config with a stale Paytable.
 if ($RefreshMath) {
 	Write-Host "Refreshing math publish files"
 	$pythonArgs = @("run.py", "publish", "--spins", "80000", "--bonus-spins", "40000", "--seed", "1")
@@ -463,22 +703,34 @@ if (Test-Path -LiteralPath $LegacyPublishRoot) {
 	Assert-ChildPath -Child $LegacyPublishRoot -Parent $PublishRoot
 	Remove-Item -LiteralPath $LegacyPublishRoot -Recurse -Force
 }
-Reset-Directory -Path $FrontendDest
 Reset-Directory -Path $MathDest
 
+Write-Host "Copying authoritative math upload files"
+Copy-MathUploadFiles
+Test-MathUploadContents
+
+if (-not (Test-Path -LiteralPath $FrontendPreviewBuilder -PathType Leaf)) {
+	throw "Missing preview builder: $FrontendPreviewBuilder"
+}
+if ($BuildFrontend) {
+	Write-Host "Building frontend preview HTML from published production math"
+	Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @($FrontendPreviewBuilder)
+}
+Test-FrontendSourceReady
+if (-not $SkipFrontendStalenessCheck) {
+	Write-Host "Checking deterministic frontend build freshness"
+	Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @($FrontendPreviewBuilder, "--check")
+}
+
+Reset-Directory -Path $FrontendDest
 Write-Host "Copying frontend preview"
 Copy-FrontendUploadFiles
 
-Write-Host "Copying math upload files"
-Copy-MathUploadFiles
-
 Test-FrontendUploadContents
-Test-MathUploadContents
+Test-FrontendMathContract
 Invoke-StakeQa
 
-if (-not $SkipComplianceGate) {
-	Test-StakeCompliance
-}
+Test-StakeCompliance
 
 Write-UploadReadme
 

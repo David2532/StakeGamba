@@ -2,235 +2,235 @@
   "base": {
     "simulationCount": 80000,
     "cost": 1.0,
-    "rawRtp": 1.97643,
+    "rawRtp": 1.892839,
     "targetRtp": 0.9645,
-    "achievedRtp": 0.9645,
+    "achievedRtp": 0.964498,
     "cappedForDiversity": false,
-    "hitRateWeighted": 0.334044,
-    "effectiveSampleSize": 79972.0,
+    "hitRateWeighted": 0.361294,
+    "effectiveSampleSize": 79943.5,
     "topWeightShare": 1.3e-05,
-    "maxPayoutMultiplierObserved": 10000.0,
-    "etl40Share": 0.586856,
-    "cvar01x": 373.897,
+    "maxPayoutMultiplierObserved": 3895.42,
+    "etl40Share": 0.546255,
+    "cvar01x": 330.576,
     "tailConstrained": false,
     "tailMet": true,
     "tailDamping": 1.0,
     "maxWinWeight": 53,
-    "maxWinTotalWeight": 1000011360,
-    "maxWinOdds": 18868138.868,
+    "maxWinTotalWeight": 999993715,
+    "maxWinOdds": 18867805.943,
     "maxWinAchievabilityMet": true,
     "winDistribution": [
       {
         "range": "0x",
-        "weightShare": 0.665956
+        "weightShare": 0.638706
       },
       {
         "range": "0-1x",
-        "weightShare": 0.268091
+        "weightShare": 0.284845
       },
       {
         "range": "1-5x",
-        "weightShare": 0.051952
+        "weightShare": 0.061251
       },
       {
         "range": "5-20x",
-        "weightShare": 0.006626
+        "weightShare": 0.007347
       },
       {
         "range": "20-50x",
-        "weightShare": 0.00428
+        "weightShare": 0.004609
       },
       {
         "range": "50x+",
-        "weightShare": 0.003095
+        "weightShare": 0.003242
       }
     ]
   },
   "hunt": {
     "simulationCount": 40000,
     "cost": 4.2,
-    "rawRtp": 2.332144,
+    "rawRtp": 2.654101,
     "targetRtp": 0.9645,
     "achievedRtp": 0.9645,
     "cappedForDiversity": false,
-    "hitRateWeighted": 0.269777,
-    "effectiveSampleSize": 39641.4,
+    "hitRateWeighted": 0.293601,
+    "effectiveSampleSize": 39541.6,
     "topWeightShare": 2.6e-05,
     "maxPayoutMultiplierObserved": 10000.0,
-    "etl40Share": 0.166329,
-    "cvar01x": 90.428,
+    "etl40Share": 0.133577,
+    "cvar01x": 83.02,
     "tailConstrained": false,
     "tailMet": true,
     "tailDamping": 1.0,
     "maxWinWeight": 53,
-    "maxWinTotalWeight": 999996799,
-    "maxWinOdds": 18867864.132,
+    "maxWinTotalWeight": 1000010503,
+    "maxWinOdds": 18868122.698,
     "maxWinAchievabilityMet": true,
     "winDistribution": [
       {
         "range": "0x",
-        "weightShare": 0.730223
+        "weightShare": 0.706399
       },
       {
         "range": "0-1x",
-        "weightShare": 0.084461
+        "weightShare": 0.093481
       },
       {
         "range": "1-5x",
-        "weightShare": 0.052143
+        "weightShare": 0.058271
       },
       {
         "range": "5-20x",
-        "weightShare": 0.077453
+        "weightShare": 0.084627
       },
       {
         "range": "20-50x",
-        "weightShare": 0.038466
+        "weightShare": 0.040433
       },
       {
         "range": "50x+",
-        "weightShare": 0.017254
+        "weightShare": 0.016787
       }
     ]
   },
   "rainbow": {
     "simulationCount": 40000,
     "cost": 6.0,
-    "rawRtp": 2.737186,
+    "rawRtp": 2.881928,
     "targetRtp": 0.9645,
     "achievedRtp": 0.9645,
     "cappedForDiversity": false,
-    "hitRateWeighted": 0.269036,
-    "effectiveSampleSize": 39462.9,
+    "hitRateWeighted": 0.294019,
+    "effectiveSampleSize": 39246.7,
     "topWeightShare": 2.6e-05,
     "maxPayoutMultiplierObserved": 10000.0,
-    "etl40Share": 0.12816,
-    "cvar01x": 74.5,
+    "etl40Share": 0.086338,
+    "cvar01x": 62.224,
     "tailConstrained": false,
     "tailMet": true,
     "tailDamping": 1.0,
     "maxWinWeight": 53,
-    "maxWinTotalWeight": 1000000299,
-    "maxWinOdds": 18867930.17,
+    "maxWinTotalWeight": 999988722,
+    "maxWinOdds": 18867711.736,
     "maxWinAchievabilityMet": true,
     "winDistribution": [
       {
         "range": "0x",
-        "weightShare": 0.730964
+        "weightShare": 0.705981
       },
       {
         "range": "0-1x",
-        "weightShare": 0.020471
+        "weightShare": 0.021227
       },
       {
         "range": "1-5x",
-        "weightShare": 0.061879
+        "weightShare": 0.067377
       },
       {
         "range": "5-20x",
-        "weightShare": 0.105765
+        "weightShare": 0.119891
       },
       {
         "range": "20-50x",
-        "weightShare": 0.056325
+        "weightShare": 0.06142
       },
       {
         "range": "50x+",
-        "weightShare": 0.024597
+        "weightShare": 0.024104
       }
     ]
   },
   "bonus_tier1": {
     "simulationCount": 40000,
     "cost": 31.0,
-    "rawRtp": 1.667471,
+    "rawRtp": 1.823933,
     "targetRtp": 0.9645,
     "achievedRtp": 0.9645,
     "cappedForDiversity": false,
-    "hitRateWeighted": 0.95103,
-    "effectiveSampleSize": 39667.4,
+    "hitRateWeighted": 0.969428,
+    "effectiveSampleSize": 39514.8,
     "topWeightShare": 2.6e-05,
     "maxPayoutMultiplierObserved": 10000.0,
-    "etl40Share": 0.063325,
-    "cvar01x": 60.629,
+    "etl40Share": 0.043216,
+    "cvar01x": 51.776,
     "tailConstrained": false,
     "tailMet": true,
     "tailDamping": 1.0,
-    "maxWinWeight": 110,
-    "maxWinTotalWeight": 1000000343,
-    "maxWinOdds": 9090912.209,
+    "maxWinWeight": 53,
+    "maxWinTotalWeight": 999999742,
+    "maxWinOdds": 18867919.66,
     "maxWinAchievabilityMet": true,
     "winDistribution": [
       {
         "range": "0x",
-        "weightShare": 0.04897
+        "weightShare": 0.030572
       },
       {
         "range": "0-1x",
-        "weightShare": 0.225727
+        "weightShare": 0.193588
       },
       {
         "range": "1-5x",
-        "weightShare": 0.356273
+        "weightShare": 0.386943
       },
       {
         "range": "5-20x",
-        "weightShare": 0.133667
+        "weightShare": 0.135429
       },
       {
         "range": "20-50x",
-        "weightShare": 0.113821
+        "weightShare": 0.124453
       },
       {
         "range": "50x+",
-        "weightShare": 0.121542
+        "weightShare": 0.129014
       }
     ]
   },
   "bonus": {
     "simulationCount": 40000,
     "cost": 95.0,
-    "rawRtp": 1.3571,
+    "rawRtp": 1.57405,
     "targetRtp": 0.9645,
     "achievedRtp": 0.964498,
     "cappedForDiversity": false,
-    "hitRateWeighted": 0.989538,
-    "effectiveSampleSize": 39733.1,
+    "hitRateWeighted": 0.994663,
+    "effectiveSampleSize": 39373.5,
     "topWeightShare": 2.6e-05,
     "maxPayoutMultiplierObserved": 10000.0,
-    "etl40Share": 0.03718,
-    "cvar01x": 49.402,
+    "etl40Share": 0.014842,
+    "cvar01x": 37.525,
     "tailConstrained": false,
     "tailMet": true,
     "tailDamping": 1.0,
-    "maxWinWeight": 45150,
-    "maxWinTotalWeight": 999999776,
-    "maxWinOdds": 22148.389,
+    "maxWinWeight": 5800,
+    "maxWinTotalWeight": 999999995,
+    "maxWinOdds": 172413.792,
     "maxWinAchievabilityMet": true,
     "winDistribution": [
       {
         "range": "0x",
-        "weightShare": 0.010462
+        "weightShare": 0.005337
       },
       {
         "range": "0-1x",
-        "weightShare": 0.088861
+        "weightShare": 0.063095
       },
       {
         "range": "1-5x",
-        "weightShare": 0.32616
+        "weightShare": 0.329634
       },
       {
         "range": "5-20x",
-        "weightShare": 0.138486
+        "weightShare": 0.143684
       },
       {
         "range": "20-50x",
-        "weightShare": 0.143871
+        "weightShare": 0.14794
       },
       {
         "range": "50x+",
-        "weightShare": 0.29216
+        "weightShare": 0.310311
       }
     ]
   }

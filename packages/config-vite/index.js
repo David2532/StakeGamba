@@ -20,7 +20,10 @@ export default () =>
 		css: {
 			preprocessorOptions: {
 				scss: {
-					api: 'modern-compiler',
+					// `modern-compiler` leaves sass-embedded worker processes alive after
+					// SvelteKit's production build has printed its final output, which
+					// makes CI hit the outer timeout even though the bundle succeeded.
+					api: 'modern',
 				},
 			},
 		},

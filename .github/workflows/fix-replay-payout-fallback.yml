@@ -1,0 +1,122 @@
+name: Fix Bonus Replay Payout Fallback
+
+on:
+  push:
+    branches:
+      - agent/stake-compliance-final
+    paths:
+      - .github/workflows/fix-replay-payout-fallback.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/stake-compliance-final
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.5.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Patch replay normalization and regression tests
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          builder_path = Path('apps/cluster/scripts/build-preview-html.mjs')
+          builder = builder_path.read_text(encoding='utf-8')
+          old = """\tconst payoutMultiplierBookUnits = requireReplaySafeInteger(
+          \t\tsource.payoutMultiplier ?? payload.payoutMultiplier,
+          \t\t'Replay payoutMultiplier',
+          \t);
+          \tif (payoutMultiplierBookUnits !== runningBookUnits || payoutMultiplierBookUnits !== final.amount) {
+          \t\tthrow new Error('Replay payoutMultiplier differs from the authoritative finalWin event');
+          \t}
+          """
+          new = """\tconst rawPayoutMultiplier = source.payoutMultiplier ?? payload.payoutMultiplier;
+          \tconst payoutMultiplierBookUnits = rawPayoutMultiplier === undefined || rawPayoutMultiplier === null
+          \t\t? runningBookUnits
+          \t\t: requireReplaySafeInteger(rawPayoutMultiplier, 'Replay payoutMultiplier');
+          \tif (payoutMultiplierBookUnits !== runningBookUnits || payoutMultiplierBookUnits !== final.amount) {
+          \t\tthrow new Error('Replay payoutMultiplier differs from the authoritative finalWin event');
+          \t}
+          """
+          if old not in builder:
+              raise SystemExit('Expected replay payoutMultiplier block not found')
+          builder_path.write_text(builder.replace(old, new, 1), encoding='utf-8')
+
+          test_path = Path('scripts/stake-qa-e2e.mjs')
+          test = test_path.read_text(encoding='utf-8')
+          fixture_line = "\t\tpayoutMultiplier: 112,\n"
+          if fixture_line not in test:
+              raise SystemExit('Expected bonus replay payoutMultiplier fixture not found')
+          test = test.replace(fixture_line, '', 1)
+
+          old_error_case = """\t\t{
+          \t\t\tname: 'missing-payout-multiplier',
+          \t\t\tresponse: () => { const round = baseReplayRound(); delete round.payoutMultiplier; return { round }; },
+          \t\t},
+          """
+          if old_error_case not in test:
+              raise SystemExit('Expected missing payoutMultiplier error case not found')
+          test = test.replace(old_error_case, '', 1)
+
+          marker = "\t// Stake.us currencies remain formatted via the shared currency metadata.\n"
+          success_cases = """\t// Stake bonus books may omit payoutMultiplier. The validated finalWin event is
+          \t// authoritative in that case; an explicitly supplied multiplier must still match.
+          \tfor (const mode of ['bonus', 'bonus_tier1']) {
+          \t\tconst context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+          \t\tconst calls = await mockReplayRgs(context, () => {
+          \t\t\tconst round = bonusReplayRound();
+          \t\t\tround.mode = mode;
+          \t\t\tdelete round.payoutMultiplier;
+          \t\t\treturn { round };
+          \t\t});
+          \t\tconst page = await openPreview(context, base, replayQuery({ mode, event: `stake-qa-${mode}-missing-payout-multiplier` }));
+          \t\tawait waitForReplayState(page, 'ready');
+          \t\tconst audit = await replayUiAudit(page);
+          \t\texpect(group, `${mode} replay accepts omitted payoutMultiplier and uses finalWin`, audit.state === 'ready' && calls.replay.length === 1 && calls.forbidden.length === 0, JSON.stringify({ audit, calls }));
+          \t\treplayValidationEvidence.push({ case: `${mode}-missing-payout-multiplier`, expected: 'ready', actual: audit, replayRequests: calls.replay.length, forbiddenRequests: calls.forbidden.length });
+          \t\tawait context.close();
+          \t}
+
+          """
+          if marker not in test:
+              raise SystemExit('Expected replay success insertion marker not found')
+          test_path.write_text(test.replace(marker, success_cases + marker, 1), encoding='utf-8')
+          PY
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --reporter=silent
+
+      - name: Regenerate standalone frontend
+        run: node apps/cluster/scripts/build-preview-html.mjs
+
+      - name: Run focused Replay E2E
+        run: npm run stake:qa:e2e -- replay
+
+      - name: Run lint and build
+        run: |
+          npm run lint
+          npm run build
+
+      - name: Commit and push fix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/cluster/scripts/build-preview-html.mjs apps/cluster/preview.html scripts/stake-qa-e2e.mjs
+          git commit -m "Fix bonus replay without payoutMultiplier"
+          git push origin HEAD:agent/stake-compliance-final

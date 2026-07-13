@@ -1,0 +1,116 @@
+name: Stake Compliance CI
+
+on:
+  push:
+    branches:
+      - agent/stake-compliance-final
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: stake-compliance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NODE_NO_WARNINGS: "1"
+      NODE_OPTIONS: "--max-old-space-size=6144"
+      NPM_CONFIG_LOGLEVEL: error
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.5.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile --reporter=silent
+
+      - name: Lint workspace
+        id: lint
+        continue-on-error: true
+        shell: bash
+        run: npm run lint > lint.log 2>&1
+
+      - name: Build workspace
+        id: build
+        if: steps.lint.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: npm run build > build.log 2>&1
+
+      - name: Report result on pull request
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- stake-compliance-ci -->';
+            const lintOutcome = process.env.LINT_OUTCOME || 'skipped';
+            const buildOutcome = process.env.BUILD_OUTCOME || 'skipped';
+            let title = '✅ Stake Compliance CI passed';
+            let details = 'Lint and build completed successfully.';
+            const compact = (path) => {
+              if (!fs.existsSync(path)) return '(no log file produced)';
+              const lines = fs.readFileSync(path, 'utf8').split(/\r?\n/);
+              const selected = [];
+              for (const line of lines) {
+                const trimmed = line.trim();
+                const keep =
+                  trimmed.startsWith('::group::') ||
+                  trimmed.startsWith('/') ||
+                  /^\d+:\d+\s+error\b/.test(trimmed) ||
+                  /^✖\s/.test(trimmed) ||
+                  /^Summary:/.test(trimmed) ||
+                  /^ERROR\b/.test(trimmed) ||
+                  /FATAL ERROR/.test(trimmed) ||
+                  /ERR_PNPM_/.test(trimmed);
+                if (keep) selected.push(line);
+              }
+              const output = selected.length ? selected.join('\n') : lines.slice(-200).join('\n');
+              return output.slice(-50000);
+            };
+            if (lintOutcome !== 'success') {
+              title = '❌ Stake Compliance CI: lint failed';
+              details = compact('lint.log');
+            } else if (buildOutcome !== 'success') {
+              title = '❌ Stake Compliance CI: build failed';
+              details = compact('build.log');
+            }
+            const body = `${marker}\n### ${title}\n\n- Lint: **${lintOutcome}**\n- Build: **${buildOutcome}**\n\n\`\`\`text\n${details}\n\`\`\``;
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+            const existing = comments.find((comment) => comment.user?.type === 'Bot' && comment.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+      - name: Enforce result
+        if: steps.lint.outcome != 'success' || steps.build.outcome != 'success'
+        shell: bash
+        run: exit 1

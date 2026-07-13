@@ -7,8 +7,8 @@ export type EmitterEventBase = {
 export function createEventEmitter<TEmitterEvent extends EmitterEventBase>() {
 	type EmitterEventType = TEmitterEvent['type'];
 	type EmitterEventOfType<T> = Extract<TEmitterEvent, { type: T }>;
-	type EmitterEventHandler = (emitterEvent: TEmitterEvent) => any;
-	type EmitterEventHandlerOfType<T> = (emitterEvent: EmitterEventOfType<T>) => any;
+	type EmitterEventHandler = (emitterEvent: TEmitterEvent) => unknown;
+	type EmitterEventHandlerOfType<T> = (emitterEvent: EmitterEventOfType<T>) => unknown;
 	type EmitterEventHandlerMap = { [T in EmitterEventType]: EmitterEventHandlerOfType<T> };
 
 	const subscriptions = new Set<EmitterEventHandler>();
