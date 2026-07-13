@@ -4,10 +4,10 @@ import { spawnSync } from 'node:child_process';
 
 const workingDirectory = process.cwd();
 const target = resolve(workingDirectory, process.argv[2] || 'src');
-const configuredBatchSize = Number(process.env.ESLINT_BATCH_SIZE || 20);
+const configuredBatchSize = Number(process.env.ESLINT_BATCH_SIZE || 5);
 const batchSize = Number.isInteger(configuredBatchSize) && configuredBatchSize > 0
 	? configuredBatchSize
-	: 20;
+	: 5;
 const supportedExtensions = new Set(['.js', '.mjs', '.cjs', '.ts', '.svelte']);
 const ignoredDirectories = new Set(['node_modules', '.svelte-kit', 'dist', 'build', 'coverage']);
 
@@ -16,12 +16,18 @@ function extensionOf(path) {
 	return match ? match[1].toLowerCase() : '';
 }
 
+function isGeneratedFixtureDirectory(path) {
+	const normalized = relative(workingDirectory, path).replaceAll('\\', '/');
+	return normalized === 'src/stories/data' || normalized.includes('/stories/data');
+}
+
 function collectFiles(directory) {
 	const files = [];
 	for (const entry of readdirSync(directory, { withFileTypes: true })) {
 		if (entry.isDirectory()) {
-			if (!ignoredDirectories.has(entry.name)) {
-				files.push(...collectFiles(resolve(directory, entry.name)));
+			const childDirectory = resolve(directory, entry.name);
+			if (!ignoredDirectories.has(entry.name) && !isGeneratedFixtureDirectory(childDirectory)) {
+				files.push(...collectFiles(childDirectory));
 			}
 			continue;
 		}
