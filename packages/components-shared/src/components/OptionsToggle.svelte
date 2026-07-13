@@ -10,8 +10,8 @@
 				{
 					disabledDown: boolean;
 					disabledUp: boolean;
-					toggleDown: () => any;
-					toggleUp: () => any;
+					toggleDown: () => void;
+					toggleUp: () => void;
 				},
 			]
 		>;
