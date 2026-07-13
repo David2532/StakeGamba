@@ -17,7 +17,7 @@ const timeoutMs = Number.isFinite(configuredTimeout) && configuredTimeout > 0
 	? Math.floor(configuredTimeout)
 	: defaultTimeout;
 
-const args = [
+const pnpmArgs = [
 	'--recursive',
 	'--sort',
 	'--workspace-concurrency=1',
@@ -35,23 +35,35 @@ const env = {
 // the compatibility switch until the shared config is migrated to flat config.
 if (task === 'lint') env.ESLINT_USE_FLAT_CONFIG = 'false';
 
-const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-console.log(`[workspace:${task}] ${command} ${args.join(' ')}`);
+const isWindows = process.platform === 'win32';
+// pnpm.cmd is a Windows command script and cannot be executed directly by
+// child_process.spawn() on current Node.js versions. Invoke it through the
+// configured command processor instead of enabling spawn's shell option.
+const command = isWindows ? (process.env.ComSpec || 'cmd.exe') : 'pnpm';
+const commandArgs = isWindows
+	? ['/d', '/c', 'pnpm.cmd', ...pnpmArgs]
+	: pnpmArgs;
+const displayCommand = isWindows
+	? `pnpm.cmd ${pnpmArgs.join(' ')}`
+	: `pnpm ${pnpmArgs.join(' ')}`;
+
+console.log(`[workspace:${task}] ${displayCommand}`);
 console.log(`[workspace:${task}] timeout=${timeoutMs}ms`);
 
-const child = spawn(command, args, {
+const child = spawn(command, commandArgs, {
 	cwd: root,
 	env,
 	stdio: 'inherit',
-	detached: process.platform !== 'win32',
+	detached: !isWindows,
 	shell: false,
+	windowsHide: true,
 });
 
 let finished = false;
 
 function killTree() {
 	if (!child.pid) return;
-	if (process.platform === 'win32') {
+	if (isWindows) {
 		spawnSync('taskkill.exe', ['/PID', String(child.pid), '/T', '/F'], {
 			stdio: 'ignore',
 			windowsHide: true,
