@@ -1,11 +1,12 @@
 import { Howl } from 'howler';
 
 import { type LoadedAudio } from 'pixi-svelte';
-import { waitForTimeout } from 'utils-shared/wait';
 
 import type { StopOptions, FadeOptions, GetSound, GetSoundMap, RateOptions } from './types';
 
-function createPlayer<TSoundName extends string, TPlay extends Function>(playerOptions: {
+type AnyPlay = (...args: never[]) => unknown;
+
+function createPlayer<TSoundName extends string, TPlay extends AnyPlay>(playerOptions: {
 	loadedAudio: LoadedAudio<TSoundName>;
 	loop: boolean;
 	howl: Howl;
@@ -20,7 +21,7 @@ function createPlayer<TSoundName extends string, TPlay extends Function>(playerO
 
 	type SoundMap = Record<TSoundName, Sound>;
 
-	let soundMap = {} as SoundMap;
+	const soundMap = {} as SoundMap;
 	let playerVolume = 1;
 
 	const newSound = (soundName: TSoundName) =>
@@ -62,7 +63,7 @@ function createPlayer<TSoundName extends string, TPlay extends Function>(playerO
 		if (existingSound) {
 			existingSound.soundVolume = fadeOptions.to;
 
-			//Adjust the whole player volume	howl
+			// Adjust the whole player volume through Howler.
 			playerOptions.howl.fade(
 				fadeOptions.from * playerVolume * existingSound.soundConfig.volume,
 				fadeOptions.to * playerVolume * existingSound.soundConfig.volume,
@@ -82,10 +83,6 @@ function createPlayer<TSoundName extends string, TPlay extends Function>(playerO
 	const volume = (volume: number) => {
 		playerVolume = volume;
 
-		//Adjust the whole player volume
-		// howl.volume(playerVolume);
-
-		//adjust volume per sound
 		(Object.values(soundMap) as Sound[]).forEach((sound) => {
 			playerOptions.howl.volume(
 				playerVolume * sound.soundVolume * sound.soundConfig.volume,
@@ -109,7 +106,7 @@ function createPlayer<TSoundName extends string, TPlay extends Function>(playerO
 	};
 }
 
-export type Player<TSoundName extends string, TPlay extends Function> = ReturnType<
+export type Player<TSoundName extends string, TPlay extends AnyPlay> = ReturnType<
 	typeof createPlayer<TSoundName, TPlay>
 >;
 
