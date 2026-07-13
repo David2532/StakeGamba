@@ -4,6 +4,8 @@ import { waitForResolve } from 'utils-shared/wait';
 import { stateSlots } from './stateSlots.svelte';
 import type { Reel, GetRawSymbolFromReel } from './types';
 
+// Every concrete reel specialization is preserved through TReel.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createEnhanceBoardSpin<TReel extends Reel<any, any>>({
 	board,
 }: {
