@@ -56,7 +56,14 @@ jobs:
         if: steps.lint.outcome == 'success'
         continue-on-error: true
         shell: bash
-        run: npm run build > build.log 2>&1
+        run: |
+          status=0
+          for package in pixi-svelte cluster lines; do
+            log="build-${package}.log"
+            echo "Building ${package}..."
+            pnpm --filter "${package}" run build > "${log}" 2>&1 || status=1
+          done
+          exit "${status}"
 
       - name: Report result on pull request
         if: always() && github.event_name == 'pull_request'
@@ -76,8 +83,7 @@ jobs:
               if (!fs.existsSync(path)) return '(no log file produced)';
               const lines = fs.readFileSync(path, 'utf8').split(/\r?\n/);
               const selected = [];
-              for (let index = 0; index < lines.length; index += 1) {
-                const line = lines[index];
+              for (const line of lines) {
                 const trimmed = line.trim();
                 const keep =
                   trimmed.startsWith('::group::') ||
@@ -93,12 +99,20 @@ jobs:
               const output = selected.length ? selected.join('\n') : lines.slice(-200).join('\n');
               return output.slice(-50000);
             };
+            const tail = (path, lineCount = 240) => {
+              if (!fs.existsSync(path)) return '(no log file produced)';
+              const lines = fs.readFileSync(path, 'utf8').split(/\r?\n/);
+              return lines.slice(-lineCount).join('\n').slice(-30000);
+            };
             if (lintOutcome !== 'success') {
               title = '❌ Stake Compliance CI: lint failed';
               details = compact('lint.log');
             } else if (buildOutcome !== 'success') {
               title = '❌ Stake Compliance CI: build failed';
-              details = compact('build.log');
+              details = ['pixi-svelte', 'cluster', 'lines']
+                .map((name) => `===== ${name} =====\n${tail(`build-${name}.log`)}`)
+                .join('\n\n')
+                .slice(-50000);
             }
             const body = `${marker}\n### ${title}\n\n- Lint: **${lintOutcome}**\n- Build: **${buildOutcome}**\n\n\`\`\`text\n${details}\n\`\`\``;
             const { owner, repo } = context.repo;
