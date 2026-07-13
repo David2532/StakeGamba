@@ -5,10 +5,12 @@ export const createInterruptible = () => {
 	let resolveList: Resolve[] = [];
 
 	const add = (targetToWait: () => Promise<unknown>) =>
-		new Promise<ResolveArgs>(async (resolve) => {
+		new Promise<ResolveArgs>((resolve, reject) => {
 			resolveList.push(resolve);
-			await targetToWait();
-			resolve({ interrupted: false });
+			targetToWait().then(
+				() => resolve({ interrupted: false }),
+				(error) => reject(error),
+			);
 		});
 
 	const clear = () => (resolveList = []);
