@@ -3111,6 +3111,7 @@ function normalizeReplayPayload(data) {
 	const source = (payload.round || payload.bet || payload.eventRound || payload);
 	if (!source || typeof source !== 'object' || Array.isArray(source)) throw new Error('Replay response does not contain a round object');
 	const launchMode = UrlState.launchMode();
+	const replayMode = replayModeIdentity(launchMode);
 	const responseMode = source.mode ?? payload.mode;
 	if (responseMode && replayModeIdentity(responseMode) !== replayModeIdentity(launchMode)) {
 		throw new Error('Replay response mode does not match the launch mode');
@@ -3140,7 +3141,7 @@ function normalizeReplayPayload(data) {
 		throw new Error('Replay payoutMultiplier differs from the authoritative finalWin event');
 	}
 	const payoutMultiplier = replayBookUnitsToMultiplier(payoutMultiplierBookUnits);
-	const rawCostMultiplier = source.costMultiplier ?? payload.costMultiplier ?? modeMeta(launchMode).costMultiplier ?? 1;
+	const rawCostMultiplier = source.costMultiplier ?? payload.costMultiplier ?? modeMeta(replayMode).costMultiplier ?? 1;
 	if (typeof rawCostMultiplier !== 'number' || !Number.isFinite(rawCostMultiplier) || rawCostMultiplier <= 0) {
 		throw new Error('Replay response contains an invalid costMultiplier');
 	}
@@ -3160,7 +3161,7 @@ function normalizeReplayPayload(data) {
 		round: {
 			...cloneReplayData(source),
 			active: false,
-			mode: launchMode,
+			mode: replayMode,
 			amount,
 			currency,
 			costMultiplier,
@@ -3300,7 +3301,7 @@ const Replay = (() => {
 		stage.classList.add('spinning');
 		try {
 			const playbackRound = cloneReplayData(current.round);
-			const displayedWin = await playRgsBookRound({ round: playbackRound }, ++spinSeq, { replay: true, skipBonusIntro: false, trackProgress: false });
+			const displayedWin = await playRgsBookRound({ round: playbackRound }, ++spinSeq, { replay: true, skipBonusIntro: true, trackProgress: false });
 			if (JSON.stringify(current.round) !== current.signature) throw new Error('Saved replay data changed during playback');
 			if (Math.abs(displayedWin - current.meta.totalWin) > 0.01) throw new Error('Displayed replay total differs from the authoritative saved result');
 			setWin(current.meta.totalWin);

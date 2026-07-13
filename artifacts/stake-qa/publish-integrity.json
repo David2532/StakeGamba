@@ -4,12 +4,12 @@
     "source": "git rev-parse HEAD at documentation-gate runtime"
   },
   "githubActionsRunId": "29239817090",
-  "evidenceDirectory": "artifacts/stake-qa/2026-07-13T11-24-32-904Z",
+  "evidenceDirectory": "artifacts/stake-qa/2026-07-13T11-53-50-381Z",
   "frontend": {
     "uploadFolder": "publish/frontend",
-    "buildId": "e5a3eaf118eb4f89aa83c0315cc6adc1acd2d1f7ef479879eb21d0b80f566b8e",
-    "indexSha256": "a37f86b5b77aa7f0916c844b51ca642ac8a8fa7024b6525d54b12eb538125ea3",
-    "manifestSha256": "50623f727f52e7523a03e71f05b1a087b9e14c63324773f5cab6e47cc25032e9"
+    "buildId": "d160b28c37abf6713535c464866544b6a8c3c957087cb9d2e808374b235f16c5",
+    "indexSha256": "1fc49907b5bbec677cf903aa934448d007b028544943b353ec79907e3251657c",
+    "manifestSha256": "6cf61e19c0096bac35169ccab36736fcdd6147e2324e5e6c0dbdae13460af9c8"
   },
   "math": {
     "uploadFolder": "publish/math",
@@ -18,16 +18,16 @@
     "manifestSha256": "1dc61a44ca65a7f66df6eff595c99769e37af9a12bd145352772a222f3d882c4"
   },
   "report": {
-    "path": "artifacts/stake-qa/2026-07-13T11-24-32-904Z/report.json",
+    "path": "artifacts/stake-qa/2026-07-13T11-53-50-381Z/report.json",
     "mode": "all",
     "pass": 304,
     "fail": 0,
     "skip": 0
   },
   "e2e": {
-    "path": "artifacts/stake-qa/2026-07-13T11-24-32-904Z/e2e-report.json",
+    "path": "artifacts/stake-qa/2026-07-13T11-53-50-381Z/e2e-report.json",
     "mode": "all",
-    "pass": 1364,
+    "pass": 1377,
     "fail": 0,
     "skip": 0
   }

@@ -26,6 +26,6 @@ Full math regeneration is mandatory when production math files, cluster logic, P
 
 ## Validation context
 
-- Frontend build ID: `e5a3eaf118eb4f89aa83c0315cc6adc1acd2d1f7ef479879eb21d0b80f566b8e`
+- Frontend build ID: `d160b28c37abf6713535c464866544b6a8c3c957087cb9d2e808374b235f16c5`
 - Math version: `0.2.2-cluster`
-- Evidence directory: `artifacts/stake-qa/2026-07-13T11-24-32-904Z`
+- Evidence directory: `artifacts/stake-qa/2026-07-13T11-53-50-381Z`

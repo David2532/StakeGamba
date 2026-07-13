@@ -1725,6 +1725,8 @@ async function testReplay(browser, base) {
 	const payoutMultiplierVariants = [
 		{ name: 'bonus-without-payout-multiplier', mode: 'bonus', round: () => withoutPayoutMultiplier(bonusReplayRound()), expectedWin: '$1.12', expectedMultiplier: 1.12 },
 		{ name: 'bonus-tier1-null-payout-multiplier', mode: 'bonus_tier1', round: () => ({ ...bonusTier1ReplayRound(), payoutMultiplier: null }), expectedWin: '$1.12', expectedMultiplier: 1.12 },
+		{ name: 'bonus-alias-all-that-glitters-without-payout-multiplier', mode: 'all_that_glitters', expectedMode: 'bonus', round: () => withoutPayoutMultiplier(bonusReplayRound()), expectedWin: '$1.12', expectedMultiplier: 1.12 },
+		{ name: 'bonus-tier1-alias-golden-chance-without-payout-multiplier', mode: 'golden_chance', expectedMode: 'bonus_tier1', round: () => withoutPayoutMultiplier(bonusTier1ReplayRound()), expectedWin: '$1.12', expectedMultiplier: 1.12 },
 		{ name: 'rainbow-with-payout-multiplier', mode: 'rainbow', round: rainbowReplayRound, expectedWin: '$0.48', expectedMultiplier: 0.48 },
 	];
 	for (const variant of payoutMultiplierVariants) {
@@ -1737,13 +1739,19 @@ async function testReplay(browser, base) {
 			winText: document.getElementById('meter-win')?.textContent?.trim(),
 			totalWin: window.__stakeQa.Replay.current?.meta?.totalWin,
 			payoutMultiplier: window.__stakeQa.Replay.current?.meta?.payoutMultiplier,
+			roundMode: window.__stakeQa.Replay.current?.round?.mode,
 			actionText: document.getElementById('replay-action')?.textContent?.trim(),
 		}));
-		expect(group, `${variant.name} reconstructs replay payout multiplier from finalWin when needed`, ready.state === 'ready' && ready.actionText === 'Replay Play' && Math.abs(ready.totalWin - variant.expectedMultiplier) <= 0.000001 && Math.abs(ready.payoutMultiplier - variant.expectedMultiplier) <= 0.000001, JSON.stringify(ready));
+		expect(group, `${variant.name} reconstructs replay payout multiplier from finalWin when needed`, ready.state === 'ready' && ready.actionText === 'Replay Play' && ready.roundMode === (variant.expectedMode || variant.mode) && Math.abs(ready.totalWin - variant.expectedMultiplier) <= 0.000001 && Math.abs(ready.payoutMultiplier - variant.expectedMultiplier) <= 0.000001, JSON.stringify(ready));
 		await page.click('#replay-action');
 		await waitForReplayState(page, 'completed', 30_000);
 		const complete = await replayUiAudit(page);
+		const overlays = await page.evaluate(() => ({
+			intro: document.getElementById('bonus-intro')?.classList.contains('show') || false,
+			summary: document.getElementById('bonus-summary')?.classList.contains('show') || false,
+		}));
 		expect(group, `${variant.name} completes with authoritative replay win`, complete.winText === variant.expectedWin, JSON.stringify(complete));
+		expect(group, `${variant.name} has no blocking bonus intro or summary overlay in replay`, !overlays.intro && !overlays.summary, JSON.stringify(overlays));
 		expect(group, `${variant.name} makes one replay GET and no forbidden call`, calls.replay.length === 1 && calls.forbidden.length === 0, JSON.stringify(calls));
 		const frame = await screenshot(page, `replay-${variant.name}-completed`);
 		pass(group, `${variant.name} completed screenshot saved`, frame);
