@@ -57,12 +57,19 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
+          build_one() {
+            local package="$1"
+            timeout --signal=TERM 12m pnpm --filter "${package}" run build > "build-${package}.log" 2>&1
+          }
+
+          build_one pixi-svelte & pixi_pid=$!
+          build_one cluster & cluster_pid=$!
+          build_one lines & lines_pid=$!
+
           status=0
-          for package in pixi-svelte cluster lines; do
-            log="build-${package}.log"
-            echo "Building ${package}..."
-            pnpm --filter "${package}" run build > "${log}" 2>&1 || status=1
-          done
+          wait "${pixi_pid}" || status=1
+          wait "${cluster_pid}" || status=1
+          wait "${lines_pid}" || status=1
           exit "${status}"
 
       - name: Report result on pull request
