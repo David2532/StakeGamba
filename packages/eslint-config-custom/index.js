@@ -9,6 +9,16 @@ module.exports = {
   ],
   plugins: ['@typescript-eslint'],
   ignorePatterns: ['*.cjs'],
+  rules: {
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        argsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+      },
+    ],
+  },
   overrides: [
     {
       files: ['*.svelte'],
