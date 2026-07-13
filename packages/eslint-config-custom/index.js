@@ -18,13 +18,22 @@ module.exports = {
         extraFileExtensions: ['.svelte'],
       },
       rules: {
-        // Several shared components intentionally forward a typed $props object.
-        // The production Svelte/Vite build remains the authoritative compiler gate.
+        // The production Svelte/Vite build is the authoritative compiler gate.
         'svelte/valid-compile': 'off',
         // TypeScript/Svelte owns type-scope resolution, including script generics.
         'no-undef': 'off',
+        // Svelte snippets and reactive expressions can look unused to legacy ESLint.
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-unused-expressions': 'off',
         // Legacy game components contain targeted suppressions for API-specific types.
         '@typescript-eslint/ban-ts-comment': 'off',
+      },
+    },
+    {
+      files: ['*.stories.svelte'],
+      rules: {
+        // Story fixtures intentionally accept heterogeneous event payloads.
+        '@typescript-eslint/no-explicit-any': 'off',
       },
     },
   ],
