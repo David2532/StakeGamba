@@ -24,6 +24,7 @@ jobs:
     timeout-minutes: 30
     env:
       NODE_NO_WARNINGS: "1"
+      NODE_OPTIONS: "--max-old-space-size=6144"
       NPM_CONFIG_LOGLEVEL: error
 
     steps:
@@ -71,17 +72,33 @@ jobs:
             const buildOutcome = process.env.BUILD_OUTCOME || 'skipped';
             let title = '✅ Stake Compliance CI passed';
             let details = 'Lint and build completed successfully.';
-            const tail = (path) => {
+            const compact = (path) => {
               if (!fs.existsSync(path)) return '(no log file produced)';
               const lines = fs.readFileSync(path, 'utf8').split(/\r?\n/);
-              return lines.slice(-120).join('\n').slice(-30000);
+              const selected = [];
+              for (let index = 0; index < lines.length; index += 1) {
+                const line = lines[index];
+                const trimmed = line.trim();
+                const keep =
+                  trimmed.startsWith('::group::') ||
+                  trimmed.startsWith('/') ||
+                  /^\d+:\d+\s+error\b/.test(trimmed) ||
+                  /^✖\s/.test(trimmed) ||
+                  /^Summary:/.test(trimmed) ||
+                  /^ERROR\b/.test(trimmed) ||
+                  /FATAL ERROR/.test(trimmed) ||
+                  /ERR_PNPM_/.test(trimmed);
+                if (keep) selected.push(line);
+              }
+              const output = selected.length ? selected.join('\n') : lines.slice(-200).join('\n');
+              return output.slice(-50000);
             };
             if (lintOutcome !== 'success') {
               title = '❌ Stake Compliance CI: lint failed';
-              details = tail('lint.log');
+              details = compact('lint.log');
             } else if (buildOutcome !== 'success') {
               title = '❌ Stake Compliance CI: build failed';
-              details = tail('build.log');
+              details = compact('build.log');
             }
             const body = `${marker}\n### ${title}\n\n- Lint: **${lintOutcome}**\n- Build: **${buildOutcome}**\n\n\`\`\`text\n${details}\n\`\`\``;
             const { owner, repo } = context.repo;
