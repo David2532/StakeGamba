@@ -20,6 +20,9 @@ jobs:
   lint-and-build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      NODE_NO_WARNINGS: "1"
+      NPM_CONFIG_LOGLEVEL: error
 
     steps:
       - name: Checkout
@@ -37,7 +40,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --no-frozen-lockfile --reporter=silent
 
       - name: Lint workspace
         run: npm run lint
