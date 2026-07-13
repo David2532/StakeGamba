@@ -3,6 +3,8 @@ import { stateBet } from 'state-shared';
 import type { Reel, GetRawSymbolFromReel } from './types';
 import { stateSlots } from './stateSlots.svelte';
 
+// Every concrete reel specialization is preserved through TReel.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createEnhanceBoardPreSpin<TReel extends Reel<any, any>>({
 	board,
 }: {
