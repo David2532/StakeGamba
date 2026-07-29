@@ -51,10 +51,10 @@ Validation rules:
 {"round":{"game":"golden-goal-rush","version":"1","mode":"base","amount":1000000,"currency":"XSC","payout":1250000,"payoutMultiplier":125,"state":[{"index":0,"type":"reveal","board":"6x5 board"},{"index":1,"type":"finalWin","amount":125}]}}
 ```
 
-Rejected envelopes include negative finalWin, fractional finalWin, string finalWin, non-numeric payoutMultiplier, conflicting payoutMultiplier, conflicting explicit payout, malformed event sequence, wrong mode, wrong amount and wrong currency. These cases are covered by artifacts/stake-qa/2026-07-13T12-26-21-463Z/replay-validation-cases.json.
+Rejected envelopes include negative finalWin, fractional finalWin, string finalWin, non-numeric payoutMultiplier, conflicting payoutMultiplier, conflicting explicit payout, malformed event sequence, wrong mode, wrong amount and wrong currency. These cases are covered by artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-validation-cases.json.
 
 ## Validation context
 
-- Frontend build ID: `348cbfd4f1e28202a96f3aee3b5cb3349a1279474d4f6e19f3f16c3642eb857e`
+- Frontend build ID: `74dc84abea7750ed76fc4adc1623125e8773cde2b98fd357f529921d8b4a06e7`
 - Math version: `0.2.2-cluster`
-- Evidence directory: `artifacts/stake-qa/2026-07-13T12-26-21-463Z`
+- Evidence directory: `artifacts/stake-qa/2026-07-29T15-12-53-801Z`

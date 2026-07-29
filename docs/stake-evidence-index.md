@@ -4,19 +4,19 @@
 | --- | --- |
 | Tested commit SHA | resolved by `git rev-parse HEAD` during `npm run stake:qa:docs` |
 | GitHub Actions run ID | 29239817090 |
-| Frontend build ID | 348cbfd4f1e28202a96f3aee3b5cb3349a1279474d4f6e19f3f16c3642eb857e |
+| Frontend build ID | 74dc84abea7750ed76fc4adc1623125e8773cde2b98fd357f529921d8b4a06e7 |
 | Math version | 0.2.2-cluster |
 | Test command | `node scripts/stake-qa.mjs replay`; full final command list in PR #26 |
-| Evidence directory | artifacts/stake-qa/2026-07-13T12-26-21-463Z |
+| Evidence directory | artifacts/stake-qa/2026-07-29T15-12-53-801Z |
 | Frontend manifest | artifacts/stake-qa/publish-frontend-manifest.json |
 | Math manifest | artifacts/stake-qa/publish-math-manifest.json |
 | Publish integrity | artifacts/stake-qa/publish-integrity.json |
-| Network proof | artifacts/stake-qa/2026-07-13T12-26-21-463Z/replay-network-proof.json |
-| Screenshot path | artifacts/stake-qa/2026-07-13T12-26-21-463Z/e2e-screenshots |
+| Network proof | artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json |
+| Screenshot path | artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-screenshots |
 
-Frontend index SHA-256: `a03f43480a8eefc43cbef15146fe07e0613ed17d3148baf9a3a25ba9261cf248`
+Frontend index SHA-256: `bd2f7e54e1c79a03e34db9902df2f9873a551b52a3c1a8377bde56399f43f219`
 
-Frontend manifest SHA-256: `c4a749616d018a051d429f9e863ae1c4939db71c771ad50f29eeccafb3c06ca2`
+Frontend manifest SHA-256: `afe0f18a1389f9b807927bbf7ee44bb814142c7a6f92d25b319ade3870e1343b`
 
 Math game_config SHA-256: `6610ab4eb02209603d8715c0645edd90cb5aa1ad51aa5ba0774ff5586e70b775`
 
@@ -26,6 +26,6 @@ The requirement-level machine index is `artifacts/stake-qa/stake-requirements-tr
 
 ## Validation context
 
-- Frontend build ID: `348cbfd4f1e28202a96f3aee3b5cb3349a1279474d4f6e19f3f16c3642eb857e`
+- Frontend build ID: `74dc84abea7750ed76fc4adc1623125e8773cde2b98fd357f529921d8b4a06e7`
 - Math version: `0.2.2-cluster`
-- Evidence directory: `artifacts/stake-qa/2026-07-13T12-26-21-463Z`
+- Evidence directory: `artifacts/stake-qa/2026-07-29T15-12-53-801Z`

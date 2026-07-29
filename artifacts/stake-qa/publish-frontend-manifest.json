@@ -1,7 +1,7 @@
 {
   "root": "publish/frontend",
   "fileCount": 215,
-  "sha256": "c4a749616d018a051d429f9e863ae1c4939db71c771ad50f29eeccafb3c06ca2",
+  "sha256": "afe0f18a1389f9b807927bbf7ee44bb814142c7a6f92d25b319ade3870e1343b",
   "files": [
     {
       "path": "publish/frontend/assets/audio/sounds.ac3",
@@ -570,8 +570,8 @@
     },
     {
       "path": "publish/frontend/index.html",
-      "bytes": 288152,
-      "sha256": "a03f43480a8eefc43cbef15146fe07e0613ed17d3148baf9a3a25ba9261cf248"
+      "bytes": 296435,
+      "sha256": "bd2f7e54e1c79a03e34db9902df2f9873a551b52a3c1a8377bde56399f43f219"
     },
     {
       "path": "publish/frontend/loader.gif",

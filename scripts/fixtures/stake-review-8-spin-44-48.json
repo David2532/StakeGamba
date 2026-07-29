@@ -1,0 +1,29 @@
+{
+  "name": "Stake review style 8-spin feature",
+  "assumption": "The exact Stake payload was not available locally; this fixture preserves the documented integer-unit contract and the supplied $44.48 feature total.",
+  "initialBalanceApi": 1021420000,
+  "baseAmountApi": 1000000,
+  "featureTotalBookUnits": 4448,
+  "events": [
+    { "index": 0, "type": "reveal", "board": [] },
+    { "index": 1, "type": "freeSpinTrigger", "totalFs": 8 },
+    { "index": 2, "type": "updateFreeSpin", "amount": 0, "total": 8 },
+    { "index": 3, "type": "setTotalWin", "amount": 0 },
+    { "index": 4, "type": "updateFreeSpin", "amount": 1, "total": 8 },
+    { "index": 5, "type": "setTotalWin", "amount": 348 },
+    { "index": 6, "type": "updateFreeSpin", "amount": 2, "total": 8 },
+    { "index": 7, "type": "setTotalWin", "amount": 1368 },
+    { "index": 8, "type": "updateFreeSpin", "amount": 3, "total": 8 },
+    { "index": 9, "type": "setTotalWin", "amount": 2068 },
+    { "index": 10, "type": "updateFreeSpin", "amount": 4, "total": 8 },
+    { "index": 11, "type": "setTotalWin", "amount": 2548 },
+    { "index": 12, "type": "updateFreeSpin", "amount": 5, "total": 8 },
+    { "index": 13, "type": "setTotalWin", "amount": 3448 },
+    { "index": 14, "type": "updateFreeSpin", "amount": 6, "total": 8 },
+    { "index": 15, "type": "setTotalWin", "amount": 3648 },
+    { "index": 16, "type": "updateFreeSpin", "amount": 7, "total": 8 },
+    { "index": 17, "type": "setTotalWin", "amount": 4448 },
+    { "index": 18, "type": "freeSpinEnd", "amount": 4448 },
+    { "index": 19, "type": "finalWin", "amount": 4448 }
+  ]
+}

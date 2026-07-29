@@ -25,6 +25,13 @@ import {
 	PRODUCTION_PAYTABLE,
 	formatPaytableMultiplier,
 } from './production-math-contract.mjs';
+import {
+	STAKE_SOCIAL_RESTRICTED_TERMS,
+	formatMaxWinMultiplier,
+	socialRestrictedHits,
+	summarizeFeatureEvents,
+	reconcileWalletBalance,
+} from './stake-compliance-contract.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -38,6 +45,7 @@ const frontendBuildId = createHash('sha256')
 	.update(readFileSync(BUILDER))
 	.update(readFileSync(join(__dirname, 'ggr-config.mjs')))
 	.update(readFileSync(join(__dirname, 'production-math-contract.mjs')))
+	.update(readFileSync(join(__dirname, 'stake-compliance-contract.mjs')))
 	.update(source)
 	.update(JSON.stringify(PRODUCTION_GAME_CONFIG))
 	.digest('hex');
@@ -942,7 +950,7 @@ ${featureItems}
 			<div class="replay-control-panel" id="replay-controls" aria-live="polite" aria-label="Replay controls" hidden>
 				<div class="replay-control-copy">
 					<strong id="replay-status">LOADING REPLAY</strong>
-					<small><span id="replay-summary">Saved round &middot; read-only</span><span class="replay-currency-code" id="replay-currency">USD</span></small>
+					<small><span id="replay-summary">Saved round &middot; read-only</span><span class="replay-currency-code" id="replay-currency" aria-hidden="true" hidden></span></small>
 				</div>
 				<button type="button" class="replay-action" id="replay-action" data-testid="replay-action" hidden>Replay Play</button>
 			</div>
@@ -1033,7 +1041,7 @@ ${featureItems}
 ${controlRuleRows}
 					</div>
 					<div class="pt-note">If the game is reloaded while a base-game round is still active, the round is immediately settled with Stake Engine and the result is available in game history. Active Bonus Buy bonus rounds resume from the saved round state with the purchased balance and bet preserved.</div>
-					<div class="pt-note">RTP 96.45% &middot; Max win ${CONFIG.maxWinMultiplier.toLocaleString()}&times; bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
+					<div class="pt-note">RTP 96.45% &middot; Max win ${formatMaxWinMultiplier(CONFIG.maxWinMultiplier)}&times; bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
 				</div>
 			</div>
 		</div>
@@ -1118,6 +1126,10 @@ const COIN_ASSETS = ${JSON.stringify(COIN_ASSETS)};
 const MULT_ASSETS = ${JSON.stringify(MULT_ASSETS)};
 const COLLECTOR_ASSET = ${JSON.stringify(COLLECTOR_ASSET)};
 const AUDIO_ASSETS = ${JSON.stringify(AUDIO_ASSETS)};
+const STAKE_SOCIAL_RESTRICTED_TERMS = ${JSON.stringify(STAKE_SOCIAL_RESTRICTED_TERMS)};
+const socialRestrictedHits = ${socialRestrictedHits.toString()};
+const summarizeFeatureEvents = ${summarizeFeatureEvents.toString()};
+const reconcileWalletBalance = ${reconcileWalletBalance.toString()};
 const ASSETS = ${JSON.stringify(assets)};
 const PLAYER_MODE_META = ${JSON.stringify(PLAYER_MODE_META)};
 const CONTROL_RULES = ${JSON.stringify(controlRules)};
@@ -1173,6 +1185,17 @@ const LANGUAGE_RESOURCES = {
 		replayTotalWin: 'Total Win',
 		replayNote: 'This is a replay of a previous bet round. No bets will be placed.',
 		replayComplete: 'Replay Complete',
+		replayLoading: 'LOADING REPLAY',
+		replayReady: 'READY TO REPLAY',
+		replayRunning: 'REPLAY RUNNING',
+		replayCompleted: 'REPLAY COMPLETED',
+		replayError: 'REPLAY ERROR',
+		replayLoadingDetail: 'Retrieving the saved round from the game service.',
+		replayErrorDetail: 'The saved replay could not be loaded.',
+		replaySummaryLoading: 'Saved round · read-only',
+		replayAction: 'Replay Play',
+		replayAgainAction: 'Play Again',
+		replayStageAria: 'Golden Goal Rush bet replay',
 	},
 	sweeps_en: {
 		balanceLabel: 'BALANCE',
@@ -1191,7 +1214,7 @@ const LANGUAGE_RESOURCES = {
 		paytableTitle: 'SYMBOL TABLE',
 		paytableIntro: 'Values are multipliers of the active play amount. Awards begin with <b>5 orthogonally connected matching symbols</b>; substituting Wilds are included in the displayed cluster size.',
 		paytableHead: 'Symbol Values <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small>',
-		paytableNote: '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each paying symbol is evaluated independently with orthogonally connected Wilds. A Wild may support more than one distinct symbol cluster, counts toward each supported cluster, and appears only once within a single award. The tumble removes the union of all winning positions. The cascade multiplier starts at 1× and increases after each successful cascade, so a later floating cluster amount can exceed the base table value. A floating amount is that award step; the WIN meter is cumulative for the complete round.',
+		paytableNote: '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each symbol group is checked independently with orthogonally connected Wilds. A Wild may support more than one distinct symbol group, counts in each supported group, and appears only once within one award. The tumble removes the union of all winning positions. The cascade multiplier starts at 1× and increases after each successful cascade, so a later floating award can exceed the base table value. A floating amount is that award step; the WIN meter is cumulative for the complete round.',
 		rulesDesc: 'Cluster awards, coins, multipliers and free spins',
 		autoConfirm: 'Start Auto-Play for',
 		bonusNoteAffordable: 'Feature amounts scale with your current play amount. Tier 3 can only trigger naturally.',
@@ -1209,13 +1232,23 @@ const LANGUAGE_RESOURCES = {
 		replayTotalWin: 'Final Play Amount',
 		replayNote: 'This is a replay of a previous play round. No new play will be placed.',
 		replayComplete: 'Replay Complete',
+		replayLoading: 'LOADING PLAY REPLAY',
+		replayReady: 'READY TO PLAY REPLAY',
+		replayRunning: 'PLAY REPLAY RUNNING',
+		replayCompleted: 'PLAY REPLAY COMPLETED',
+		replayError: 'PLAY REPLAY ERROR',
+		replayLoadingDetail: 'Retrieving the saved play from the game service.',
+		replayErrorDetail: 'The saved play replay could not be loaded.',
+		replaySummaryLoading: 'Saved play · view only',
+		replayAction: 'Replay Play',
+		replayAgainAction: 'Play Again',
+		replayStageAria: 'Golden Goal Rush play replay',
 	},
 };
-const SOCIAL_RESTRICTED_PHRASES = ['Bet Replay', 'Base Bet', 'Total Bet Cost', 'Payout Multiplier', 'Bonus Buy', 'Auto-Bet'];
+const SOCIAL_RESTRICTED_PHRASES = STAKE_SOCIAL_RESTRICTED_TERMS;
 const SOCIAL_RESOURCE_TEXT = Object.values(LANGUAGE_RESOURCES.sweeps_en).join(' ');
-for (const phrase of SOCIAL_RESTRICTED_PHRASES) {
-	if (SOCIAL_RESOURCE_TEXT.includes(phrase)) console.error('[GGR social-copy] restricted phrase in sweeps_en', phrase);
-}
+const SOCIAL_RESOURCE_HITS = socialRestrictedHits(SOCIAL_RESOURCE_TEXT);
+if (SOCIAL_RESOURCE_HITS.length) console.error('[GGR social-copy] restricted phrase in sweeps_en', SOCIAL_RESOURCE_HITS);
 
 const state = {
 	balance: 1000, bet: 1, betIdx: 9, currency: DEFAULT_CURRENCY, grid: [], spinning: false, walletBusy: false, turbo: false, auto: false, autoRemaining: 0, selectedAutoSpins: null,
@@ -1261,6 +1294,7 @@ function waitBase(ms, raw = false) {
 }
 const wait = (ms) => waitBase(ms, false);
 const fmt = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const formatMaxWinMultiplier = (value) => new Intl.NumberFormat('en-US', { useGrouping: true, maximumFractionDigits: 20 }).format(Number(value));
 const normalizeCurrency = (currency) => String(currency || '').trim().toUpperCase();
 function currencyMeta(currency) { return CURRENCY_META[normalizeCurrency(currency)] || null; }
 function formatCurrency(amount, currency = state.currency) {
@@ -1539,8 +1573,8 @@ function buildSocialRulesBodyHtml() {
 		+ '<div class="pt-head">Retriggers</div>'
 		+ '<div class="pt-feat"><img src="' + SYMBOLS.scatter.src + '" alt="Retrigger" /><div><b>RETRIGGERS</b>Base Play and Rainbow Spin can trigger Free Spins with 3, 4 or 5 Scatter tickets. Feature-panel Free Spins do not add additional Free Spins in the current math book.</div></div>'
 		+ '<div class="pt-head">Buttons &amp; Controls</div>' + controlRulesGuideHtml(true)
-		+ '<div class="pt-note">If the game is refreshed while a base-game round is still active, the round is immediately settled with Stake Engine and the result is available in game history. Active feature rounds resume from the saved round state with the selected balance and play amount preserved.</div>'
-		+ '<div class="pt-note">RTP 96.45% &middot; Max award ' + CONFIG.maxWinMultiplier.toLocaleString() + 'x play amount &middot; All awards use the play amount. Malfunction voids all awards and plays.</div>';
+		+ '<div class="pt-note">If the game is refreshed while a base-game round is still active, the round is completed by the game service and the result is available in game history. Active feature rounds resume from the saved round state with the selected balance and play amount preserved.</div>'
+		+ '<div class="pt-note">RTP 96.45% &middot; Max award ' + formatMaxWinMultiplier(CONFIG.maxWinMultiplier) + 'x play amount &middot; All awards use the play amount. Malfunction voids all awards and plays.</div>';
 }
 let normalRulesHtml = '';
 function applyLanguage() {
@@ -1617,7 +1651,7 @@ function enterReplayUi() {
 	state.replay = true;
 	stopAutoSpin();
 	stage.classList.add('replay-mode');
-	stage.setAttribute('aria-label', 'Golden Goal Rush bet replay');
+	stage.setAttribute('aria-label', t('replayStageAria'));
 	const controls = $('replay-controls');
 	if (controls) {
 		controls.hidden = false;
@@ -1632,7 +1666,7 @@ function enterReplayUi() {
 		replayBetLabel.removeAttribute('data-i18n');
 	}
 	const turbo = $('btn-turbo');
-	if (turbo) turbo.setAttribute('aria-label', 'Replay speed');
+	if (turbo) turbo.setAttribute('aria-label', t('replayStageAria') + ' speed');
 	updateLocks();
 }
 
@@ -1647,30 +1681,36 @@ function setReplayLifecycle(status, meta = null, detail = '') {
 	const overlayTitle = $('replay-overlay-title');
 	const overlayDetail = $('replay-overlay-detail');
 	const labels = {
-		loading: 'LOADING REPLAY',
-		ready: 'READY TO REPLAY',
-		running: 'REPLAY RUNNING',
-		completed: 'REPLAY COMPLETED',
-		error: 'REPLAY ERROR',
+		loading: t('replayLoading'),
+		ready: t('replayReady'),
+		running: t('replayRunning'),
+		completed: t('replayCompleted'),
+		error: t('replayError'),
 	};
-	if (statusLabel) statusLabel.textContent = labels[status] || 'REPLAY';
-	if (currency) currency.textContent = normalizeCurrency(state.currency || (UrlState.replay() ? UrlState.currencyRaw() : UrlState.currency()));
-	if (summary && meta) summary.textContent = String(meta.mode || 'Base').toUpperCase() + ' · Replay Bet ' + formatCurrency(meta.baseBet);
-	if (summary && status === 'loading') summary.textContent = 'Saved round · read-only';
+	if (statusLabel) statusLabel.textContent = labels[status] || t('replayTitle');
+	// formatCurrency already renders the approved display form (GC/SC). Keep
+	// the legacy node for layout/test compatibility but never show raw XGC/XSC.
+	if (currency) {
+		currency.textContent = '';
+		currency.hidden = true;
+		currency.setAttribute('aria-hidden', 'true');
+	}
+	if (summary && meta) summary.textContent = String(meta.mode || 'Base').toUpperCase() + ' · ' + t('replayBaseBet') + ' ' + formatCurrency(meta.baseBet);
+	if (summary && status === 'loading') summary.textContent = t('replaySummaryLoading');
 	if (action) {
 		const available = status === 'ready' || status === 'completed';
 		action.hidden = !available;
 		action.disabled = !available;
-		action.textContent = status === 'completed' ? 'Play Again' : 'Replay Play';
-		action.setAttribute('aria-label', status === 'completed' ? 'Play Again saved replay' : 'Replay Play saved round');
+		action.textContent = status === 'completed' ? t('replayAgainAction') : t('replayAction');
+		action.setAttribute('aria-label', status === 'completed' ? t('replayAgainAction') : t('replayAction'));
 	}
 	if (overlay) overlay.setAttribute('aria-hidden', status === 'loading' || status === 'error' ? 'false' : 'true');
 	if (status === 'loading') {
-		if (overlayTitle) overlayTitle.textContent = 'Loading Replay';
-		if (overlayDetail) overlayDetail.textContent = detail || 'Retrieving the saved round from Stake Engine.';
+		if (overlayTitle) overlayTitle.textContent = t('replayLoading');
+		if (overlayDetail) overlayDetail.textContent = detail || t('replayLoadingDetail');
 	} else if (status === 'error') {
-		if (overlayTitle) overlayTitle.textContent = 'Replay Error';
-		if (overlayDetail) overlayDetail.textContent = detail || 'The saved replay could not be loaded.';
+		if (overlayTitle) overlayTitle.textContent = t('replayError');
+		if (overlayDetail) overlayDetail.textContent = detail || t('replayErrorDetail');
 	}
 }
 
@@ -2561,6 +2601,7 @@ function rgsFeatureSummary(events) {
 	const hasFreeSpinEnd = list.some((event) => event && event.type === 'freeSpinEnd');
 	const hasCompleteRgsFeature = hasUpdateFreeSpin || hasFreeSpinEnd;
 	const hasConfirmedFreeSpinFeature = hasFreeSpinTrigger && hasCompleteRgsFeature;
+	const featureStats = hasCompleteRgsFeature ? summarizeFeatureEvents(list) : { ok: false, error: 'No complete feature book' };
 	return {
 		hasFreeSpinTrigger,
 		hasUpdateFreeSpin,
@@ -2569,6 +2610,7 @@ function rgsFeatureSummary(events) {
 		hasConfirmedFreeSpinFeature,
 		finalWin: final ? Number(final.amount) || 0 : 0,
 		willStartVisualFeature: hasConfirmedFreeSpinFeature,
+		featureStats,
 	};
 }
 function rgsRevealHasConfirmedScatterTrigger(events, revealPos) {
@@ -2666,8 +2708,7 @@ async function bonusIntroRgs(totalFreeSpins, title = 'Golden Chance') {
 	el.setAttribute('aria-hidden', 'false');
 	el.classList.remove('out'); el.classList.add('show');
 	Sound.freeSpins(); coinShower(18);
-	await wait(state.turbo ? 320 : 520);
-	await new Promise((resolve) => {
+	const dismiss = new Promise((resolve) => {
 		let done = false;
 		let replayTimer = null;
 		const close = () => {
@@ -2685,6 +2726,8 @@ async function bonusIntroRgs(totalFreeSpins, title = 'Golden Chance') {
 		window.addEventListener('keydown', onKey);
 		if (state.replayPlaying) replayTimer = setTimeout(close, state.turbo ? 380 : 900);
 	});
+	await wait(state.turbo ? 320 : 520);
+	await dismiss;
 	el.classList.add('out'); await wait(420); el.classList.remove('show', 'out');
 	el.setAttribute('aria-hidden', 'true');
 	Sound.stopFreeSpins();
@@ -2845,6 +2888,7 @@ async function playRgsBookRound(rgsPlay, spinId, options = {}) {
 	const hasAuthoritativePayout = expected !== null;
 	const startIndex = Math.max(0, Number(options.startIndex) || 0);
 	const skipBonusIntro = !!options.skipBonusIntro;
+	const isReplay = !!options.replay;
 	const trackProgress = !!options.trackProgress && Rgs.configured() && rgsRoundIsBonus(round);
 	let runningWin = 0;
 	let visibleRgsWinShown = false;
@@ -2927,7 +2971,18 @@ async function playRgsBookRound(rgsPlay, spinId, options = {}) {
 		} else if (event.type === 'freeSpinEnd') {
 			const total = bookAmountToMoney(event.amount);
 			state.fsWin = total;
-			await bonusSummary(total, state.fsTotal || 0, total);
+			const stats = featureInfo.featureStats;
+			if (!stats || !stats.ok) throw new Error('RGS feature summary is not reconcilable: ' + (stats && stats.error || 'missing statistics'));
+			// The summary is presentation-only. Start it without awaiting the
+			// Continue/timeout path so an active round can settle immediately.
+			if (!isReplay) {
+				void bonusSummary(
+					total,
+					stats.spinsPlayed,
+					bookAmountToMoney(stats.bestSpinUnits),
+					{ blocking: false },
+				);
+			}
 			state.mode = 'base'; state.tier = 0; state.fsLeft = 0; state.fsTotal = 0; updateFsCounter();
 		} else if (event.type === 'finalWin') {
 			rgsFinalFromState = bookAmountToMoney(event.amount);
@@ -4306,6 +4361,16 @@ function setWalletBusy(busy) {
 	if (spinBtn) spinBtn.classList.toggle('busy', state.spinning || state.walletBusy);
 	updateLocks();
 }
+function applyAuthoritativeWalletBalance({ active, walletBalanceAfterPlay, walletBalanceAfterEndRound }) {
+	const rawAmount = reconcileWalletBalance({
+		active: !!active,
+		playBalance: walletBalanceAfterPlay && walletBalanceAfterPlay.rawAmount,
+		endRoundBalance: walletBalanceAfterEndRound && walletBalanceAfterEndRound.rawAmount,
+	});
+	state.balance = apiAmountToMoney(rawAmount);
+	updateMeters();
+	return state.balance;
+}
 async function spin(buy, internalFreeSpin = false) {
 	if (state.fatal) return;
 	if (state.replay || UrlState.replay()) return false;
@@ -4360,7 +4425,13 @@ async function spin(buy, internalFreeSpin = false) {
 		const renderSafeRgsBase = Rgs.configured() && rgsPlay && shouldRenderSafeRgsBase(rgsEvents);
 		const renderRgsRound = Rgs.configured() && rgsPlay && shouldRenderRgsRound(rgsEvents);
 		if ((USE_RGS_STATE_RENDERER || renderSafeRgsBase || renderRgsRound) && Rgs.configured() && rgsPlay) {
-			state.balance = roundMoney(state.balance - cost);
+			if (!walletBalanceAfterPlay) {
+				fatalError('Stake Engine settlement failed', 'The play response did not include the authoritative post-debit balance.');
+				setWalletBusy(false);
+				$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
+				return;
+			}
+			state.balance = walletBalanceAfterPlay.amount;
 			state.reveals.clear();
 			setWin(0); updateMeters();
 			const displayedWin = await playRgsBookRound(rgsPlay, spinId);
@@ -4378,9 +4449,18 @@ async function spin(buy, internalFreeSpin = false) {
 					return;
 				}
 			}
-			if (walletBalanceAfterEndRound) state.balance = walletBalanceAfterEndRound.amount;
-			else if (walletBalanceAfterPlay) state.balance = walletBalanceAfterPlay.amount;
-			else state.balance = roundMoney(balanceBefore - cost + displayedWin);
+			try {
+				applyAuthoritativeWalletBalance({
+					active: roundNeedsEnd,
+					walletBalanceAfterPlay,
+					walletBalanceAfterEndRound,
+				});
+			} catch (error) {
+				fatalError('Stake Engine settlement failed', error.message);
+				setWalletBusy(false);
+				$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
+				return;
+			}
 			if (displayedWin > 0) await showBanner(displayedWin);
 			setWalletBusy(false);
 			updateMeters();
@@ -4419,8 +4499,6 @@ async function spin(buy, internalFreeSpin = false) {
 				}
 			}
 			Rgs.setBalanceDeferred(false);
-			if (walletBalanceAfterEndRound) state.balance = walletBalanceAfterEndRound.amount;
-			else if (walletBalanceAfterPlay) state.balance = walletBalanceAfterPlay.amount;
 			fatalError('Unsupported Stake Engine round', 'The game received a RGS round state it cannot display safely. No local fallback was used.');
 			setWalletBusy(false);
 			$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
@@ -4526,11 +4604,23 @@ async function spin(buy, internalFreeSpin = false) {
 	if (state.mode === 'base') { state.golden.clear(); state.reveals.clear(); paint(); } // repaint to remove golden frames
 	if (roundNeedsEnd) {
 		Rgs.setBalanceDeferred(true);
-		await Rgs.endRound({ spinId });
+		const endRoundResult = await Rgs.endRound({ spinId });
 		walletBalanceAfterEndRound = Rgs.consumePendingBalance();
 		Rgs.setBalanceDeferred(false);
-		if (rgsVisualSync && walletBalanceAfterEndRound) {
-			const walletWin = Math.max(0, roundMoney(walletBalanceAfterEndRound.amount - balanceAfterBet));
+		if (endRoundResult && endRoundResult.blocked) {
+			fatalError('Stake Engine settlement failed', 'The round could not be settled with Stake Engine. Please relaunch the game.');
+			if (paidRound) setWalletBusy(false);
+			return;
+		}
+		if (rgsVisualSync) {
+			try {
+				applyAuthoritativeWalletBalance({ active: true, walletBalanceAfterPlay, walletBalanceAfterEndRound });
+			} catch (error) {
+				fatalError('Stake Engine settlement failed', error.message);
+				if (paidRound) setWalletBusy(false);
+				return;
+			}
+			const walletWin = Math.max(0, roundMoney(state.balance - balanceAfterBet));
 			baseWin = walletWin;
 			featureWin = 0;
 			setWin(walletWin);
@@ -4593,8 +4683,8 @@ async function retrigger(sc) {
 	t.classList.remove('show');
 	document.querySelectorAll('#board .cell.scatter-antic').forEach((e) => e.classList.remove('scatter-antic'));
 }
-function bonusSummary(total, spins, best) {
-	return new Promise((resolve) => {
+function bonusSummary(total, spins, best, { blocking = true } = {}) {
+	const presentation = new Promise((resolve) => {
 		const el = $('bonus-summary'); const btn = $('bs-continue');
 		$('bs-total').textContent = formatCurrency(0); $('bs-spins').textContent = spins; $('bs-best').textContent = formatCurrency(best);
 		el.classList.add('show');
@@ -4607,6 +4697,7 @@ function bonusSummary(total, spins, best) {
 		btn.onclick = close;
 		setTimeout(close, state.replayPlaying ? (state.turbo ? 500 : 1200) : (state.turbo ? 2600 : 8000)); // fallback so auto-play / replay never hangs
 	});
+	return blocking ? presentation : Promise.resolve();
 }
 async function startFreeSpins(tier, walletManaged = false) {
 	if (state.replay || UrlState.replay()) return false;
@@ -4722,8 +4813,13 @@ function showBuyConfirm(o, price) {
 				}
 				const walletManaged = !!rgsPlay;
 				const roundNeedsEnd = !!(rgsPlay && rgsPlay.__needsEndRound);
-				if (walletBalanceAfterPlay) state.balance = walletBalanceAfterPlay.amount;
-				else state.balance = roundMoney(state.balance - price);
+				if (walletManaged) {
+					if (!walletBalanceAfterPlay) {
+						fatalError('Stake Engine settlement failed', 'The play response did not include the authoritative post-debit balance.');
+						return;
+					}
+					state.balance = walletBalanceAfterPlay.amount;
+				} else state.balance = roundMoney(state.balance - price);
 				updateMeters();
 				// RGS/Stake mode: the purchased round must render only from the RGS
 				// book/payout, exactly like a normal spin (see playRgsBookRound).
@@ -4762,9 +4858,16 @@ function showBuyConfirm(o, price) {
 							return;
 						}
 					}
-					if (walletBalanceAfterEndRound) state.balance = walletBalanceAfterEndRound.amount;
-					else if (walletBalanceAfterPlay) state.balance = walletBalanceAfterPlay.amount;
-					else if (displayedWin > 0) state.balance = roundMoney(state.balance + displayedWin);
+					try {
+						applyAuthoritativeWalletBalance({
+							active: roundNeedsEnd,
+							walletBalanceAfterPlay,
+							walletBalanceAfterEndRound,
+						});
+					} catch (error) {
+						fatalError('Stake Engine settlement failed', error.message);
+						return;
+					}
 					if (displayedWin > 0) await showBanner(displayedWin);
 				} else {
 					await startFreeSpins(o.id === 'tier1' ? 1 : 2, walletManaged);

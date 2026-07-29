@@ -10,7 +10,7 @@ Upload frontend: `publish/frontend`
 
 Upload math: `publish/math`
 
-Frontend build ID: `348cbfd4f1e28202a96f3aee3b5cb3349a1279474d4f6e19f3f16c3642eb857e`
+Frontend build ID: `74dc84abea7750ed76fc4adc1623125e8773cde2b98fd357f529921d8b4a06e7`
 
 Math version: `0.2.2-cluster`
 
@@ -20,6 +20,6 @@ QA status: READY when the PR body points to the final commit and all listed gate
 
 ## Validation context
 
-- Frontend build ID: `348cbfd4f1e28202a96f3aee3b5cb3349a1279474d4f6e19f3f16c3642eb857e`
+- Frontend build ID: `74dc84abea7750ed76fc4adc1623125e8773cde2b98fd357f529921d8b4a06e7`
 - Math version: `0.2.2-cluster`
-- Evidence directory: `artifacts/stake-qa/2026-07-13T12-26-21-463Z`
+- Evidence directory: `artifacts/stake-qa/2026-07-29T15-12-53-801Z`

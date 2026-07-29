@@ -35,6 +35,7 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'no
 import { dirname, extname, join, normalize, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { socialRestrictedHits } from '../apps/cluster/scripts/stake-compliance-contract.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
@@ -64,29 +65,6 @@ const pass = (group, name, detail = '') => record(group, name, 'PASS', detail);
 const fail = (group, name, detail = '') => record(group, name, 'FAIL', detail);
 const expect = (group, name, condition, detail = '') => (condition ? pass(group, name, detail) : fail(group, name, detail));
 const wants = (name) => mode === 'all' || mode === name;
-const SOCIAL_FORBIDDEN_RENDERED = [
-	'Bet Replay',
-	'Base Bet',
-	'Cost Multiplier',
-	'Total Bet Cost',
-	'Payout Multiplier',
-	'Total Win',
-	'Bonus Buy',
-	'Buy Bonus',
-	'Auto-Bet',
-	'Auto Bet',
-	'Bet',
-	'Wager',
-	'Gamble',
-	'Purchase',
-	'Paid',
-	'Pay out',
-	'Payout',
-	'Rebet',
-	'Cash',
-	'Credit',
-	'Currency',
-];
 const QA_RUNTIME_MARKER = '/*__STAKE_QA_RUNTIME_HOOK__*/';
 const QA_RUNTIME_INSTRUMENTATION = `
 Object.defineProperty(window, '__stakeQa', {
@@ -122,9 +100,7 @@ Object.defineProperty(window, '__stakeQa', {
 	}),
 });
 `;
-const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const socialForbiddenHits = (text) => SOCIAL_FORBIDDEN_RENDERED
-	.filter((phrase) => new RegExp(`\\b${escapeRegExp(phrase)}\\b`, 'i').test(text));
+const socialForbiddenHits = (text) => socialRestrictedHits(text);
 
 // ---------------------------------------------------------------------------
 // Playwright / Chromium resolution. The repo does not vendor Playwright, so we
@@ -526,6 +502,7 @@ async function openPreview(context, base, query = '') {
 	page.on('console', (message) => {
 		if (message.type() === 'error') startupErrors.push(`console: ${message.text()}`);
 	});
+	page.__stakeQaStartupErrors = startupErrors;
 	page.setDefaultTimeout(20_000);
 	await page.goto(`${base}/${frontendEntry}${query}`, { waitUntil: 'load' });
 	try {
@@ -873,53 +850,69 @@ async function testBetConfig(browser, base) {
 // ---------------------------------------------------------------------------
 async function testSocialWording(browser, base) {
 	const group = 'social-e2e';
-	const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-	const page = await openPreview(context, base, '?currency=XSC&social=true');
-	const hud = await page.evaluate(() => ({
-		betMeter: document.querySelector('[data-meter="bet"] .meter-label')?.textContent?.trim(),
-		betPanel: document.getElementById('bet-display-label')?.textContent?.trim(),
-		spin: document.querySelector('#btn-spin span')?.textContent?.trim(),
-		bonusAria: document.getElementById('btn-bonus')?.getAttribute('aria-label'),
-		autoAria: document.getElementById('btn-auto')?.getAttribute('aria-label'),
-	}));
-	expect(group, 'HUD bet label becomes PLAY', hud.betMeter === 'PLAY' && hud.betPanel === 'PLAY', JSON.stringify(hud));
-	expect(group, 'main button becomes PLAY', hud.spin === 'PLAY', JSON.stringify(hud));
-	expect(group, 'major action aria labels use social wording', hud.bonusAria === 'Feature' && hud.autoAria === 'Auto-Play', JSON.stringify(hud));
+	const runCase = async ({ currency, screenshotSuffix }) => {
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		const page = await openPreview(context, base, `?currency=${currency}&social=true`);
+		const hud = await page.evaluate(() => ({
+			betMeter: document.querySelector('[data-meter="bet"] .meter-label')?.textContent?.trim(),
+			betPanel: document.getElementById('bet-display-label')?.textContent?.trim(),
+			spin: document.querySelector('#btn-spin span')?.textContent?.trim(),
+			bonusAria: document.getElementById('btn-bonus')?.getAttribute('aria-label'),
+			autoAria: document.getElementById('btn-auto')?.getAttribute('aria-label'),
+		}));
+		expect(group, `${currency} HUD labels become PLAY`, hud.betMeter === 'PLAY' && hud.betPanel === 'PLAY' && hud.spin === 'PLAY', JSON.stringify(hud));
+		expect(group, `${currency} major action aria labels use social wording`, hud.bonusAria === 'Feature' && hud.autoAria === 'Auto-Play', JSON.stringify(hud));
 
-	await page.click('#btn-auto');
-	await page.waitForFunction(() => document.getElementById('modal-autospin')?.classList.contains('open'));
-	const autoTitle = await meterText(page, 'autospin-title');
-	await page.click('[data-auto-count="25"]');
-	const autoConfirm = await page.evaluate(() => document.getElementById('auto-confirm')?.textContent || '');
-	expect(group, 'auto modal title is social-safe', autoTitle === 'AUTO-PLAY', autoTitle);
-	expect(group, 'auto confirm says Auto-Play, not Auto-Bet', autoConfirm.includes('Start Auto-Play for 25') && !autoConfirm.includes('Auto-Bet'), autoConfirm.trim());
-	await page.evaluate(() => document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')));
+		await page.click('#btn-auto');
+		await page.waitForFunction(() => document.getElementById('modal-autospin')?.classList.contains('open'));
+		const autoTitle = await meterText(page, 'autospin-title');
+		await page.click('[data-auto-count="25"]');
+		const autoConfirm = await page.evaluate(() => document.getElementById('auto-confirm')?.textContent || '');
+		expect(group, `${currency} auto modal is social-safe`, autoTitle === 'AUTO-PLAY' && autoConfirm.includes('Start Auto-Play for 25') && !autoConfirm.includes('Auto-Bet'), `${autoTitle} ${autoConfirm.trim()}`);
+		await page.evaluate(() => document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')));
 
-	await page.click('#btn-bonus');
-	await page.waitForFunction(() => document.getElementById('modal-bonusbuy')?.classList.contains('open'));
-	const bonus = await page.evaluate(() => ({
-		title: document.getElementById('bonusbuy-title')?.textContent?.trim(),
-		text: document.getElementById('modal-bonusbuy')?.innerText || '',
-	}));
-	expect(group, 'bonus modal title is social-safe', bonus.title === 'BONUS / FEATURE', bonus.title);
-	const bonusHits = socialForbiddenHits(bonus.text);
-	expect(group, 'bonus modal avoids restricted Social Mode copy', bonusHits.length === 0, `hits=${bonusHits.join(',') || 'none'}; ${bonus.text.replace(/\s+/g, ' ').slice(0, 160)}`);
-	await page.evaluate(() => document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')));
+		await page.click('#btn-bonus');
+		await page.waitForFunction(() => document.getElementById('modal-bonusbuy')?.classList.contains('open'));
+		const bonus = await page.evaluate(() => ({
+			title: document.getElementById('bonusbuy-title')?.textContent?.trim(),
+			text: document.getElementById('modal-bonusbuy')?.innerText || '',
+		}));
+		const bonusHits = socialForbiddenHits(bonus.text);
+		expect(group, `${currency} feature modal avoids restricted copy`, bonus.title === 'BONUS / FEATURE' && bonusHits.length === 0, `hits=${bonusHits.join(',') || 'none'}; ${bonus.text.replace(/\s+/g, ' ').slice(0, 160)}`);
+		await page.evaluate(() => document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')));
 
-	await page.click('#btn-info');
-	await page.waitForFunction(() => document.getElementById('modal-rules')?.classList.contains('open'));
-	const rulesAudit = await page.evaluate(() => ({
-		text: document.getElementById('modal-rules')?.innerText || '',
-		heads: [...document.querySelectorAll('#modal-rules .pt-head')].map((el) => el.textContent.trim()),
-		controls: [...document.querySelectorAll('#modal-rules .control-rule')].map((el) => el.textContent.trim()),
-	}));
-	const hits = socialForbiddenHits(rulesAudit.text);
-	expect(group, 'social rules avoid restricted Stake.us phrases', hits.length === 0, `hits=${hits.join(',') || 'none'}`);
-	expect(group, 'social rules include detailed mode explanations', rulesAudit.heads.includes('Game Modes') && rulesAudit.text.includes('Base Play') && rulesAudit.text.includes('Feature Multiplier') && rulesAudit.text.includes('3 Scatter tickets'), JSON.stringify(rulesAudit.heads));
-	expect(group, 'social rules explain retrigger conditions', rulesAudit.heads.includes('Retriggers') && rulesAudit.text.includes('Base Play and Rainbow Spin can trigger Free Spins') && rulesAudit.text.includes('Feature-panel Free Spins do not add additional Free Spins'), rulesAudit.text.replace(/\s+/g, ' ').slice(0, 220));
-	expect(group, 'social rules still include button explanations', rulesAudit.heads.includes('Buttons & Controls') && rulesAudit.controls.some((row) => row.includes('Auto-Play')), JSON.stringify(rulesAudit.heads));
-	await screenshot(page, 'social-wording');
-	await context.close();
+		await page.click('#btn-menu');
+		await page.waitForFunction(() => document.getElementById('modal-menu')?.classList.contains('open'));
+		await page.click('[data-open="modal-paytable"]');
+		await page.waitForFunction(() => document.getElementById('modal-paytable')?.classList.contains('open'));
+		const paytable = await page.evaluate(() => {
+			const body = document.querySelector('#modal-paytable .modal-body');
+			if (body) body.scrollTop = body.scrollHeight;
+			const root = document.getElementById('modal-paytable');
+			const attrs = [...root.querySelectorAll('[aria-label],[title],[alt],[role],[aria-live]')].map((el) => Object.entries({ aria: el.getAttribute('aria-label'), title: el.getAttribute('title'), alt: el.getAttribute('alt'), role: el.getAttribute('role'), live: el.getAttribute('aria-live') }).filter(([, value]) => value).map(([, value]) => value).join(' ')).join(' ');
+			return { text: root.innerText || '', attrs, scrollTop: body?.scrollTop || 0, scrollHeight: body?.scrollHeight || 0 };
+		});
+		const paytableHits = socialForbiddenHits(`${paytable.text} ${paytable.attrs}`);
+		expect(group, `${currency} scrolled paytable has no restricted visible or accessible copy`, paytableHits.length === 0 && paytable.scrollHeight >= paytable.scrollTop, `hits=${paytableHits.join(',') || 'none'} scroll=${paytable.scrollTop}/${paytable.scrollHeight}`);
+		await screenshot(page, `social-paytable-${screenshotSuffix}-scrolled`);
+		await page.evaluate(() => document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')));
+
+		await page.click('#btn-info');
+		await page.waitForFunction(() => document.getElementById('modal-rules')?.classList.contains('open'));
+		const rulesAudit = await page.evaluate(() => ({
+			text: document.getElementById('modal-rules')?.innerText || '',
+			heads: [...document.querySelectorAll('#modal-rules .pt-head')].map((el) => el.textContent.trim()),
+			controls: [...document.querySelectorAll('#modal-rules .control-rule')].map((el) => el.textContent.trim()),
+		}));
+		const hits = socialForbiddenHits(rulesAudit.text);
+		expect(group, `${currency} rules avoid restricted phrases`, hits.length === 0, `hits=${hits.join(',') || 'none'}`);
+		expect(group, `${currency} rules include mode and button explanations`, rulesAudit.heads.includes('Game Modes') && rulesAudit.text.includes('Base Play') && rulesAudit.text.includes('Feature Multiplier') && rulesAudit.heads.includes('Buttons & Controls') && rulesAudit.controls.some((row) => row.includes('Auto-Play')), JSON.stringify(rulesAudit.heads));
+		expect(group, `${currency} rules explain retrigger conditions`, rulesAudit.heads.includes('Retriggers') && rulesAudit.text.includes('Base Play and Rainbow Spin can trigger Free Spins') && rulesAudit.text.includes('Feature-panel Free Spins do not add additional Free Spins'), rulesAudit.text.replace(/\s+/g, ' ').slice(0, 220));
+		await screenshot(page, `social-wording-${screenshotSuffix}`);
+		await context.close();
+	};
+	await runCase({ currency: 'XSC', screenshotSuffix: 'xsc' });
+	await runCase({ currency: 'XGC', screenshotSuffix: 'xgc' });
 }
 
 async function testInsufficientFunds(browser, base) {
@@ -1766,18 +1759,48 @@ async function testReplay(browser, base) {
 		await context.close();
 	}
 
-	// Stake.us currencies remain formatted via the shared currency metadata.
-	const socialContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-	const socialCalls = await mockReplayRgs(socialContext, () => ({ round: { ...baseReplayRound(), currency: 'XSC' } }));
-	const socialPage = await openPreview(socialContext, base, replayQuery({ mode: 'base', event: 'stake-qa-social-replay', currency: 'XSC', extra: '&social=true' }));
-	await waitForReplayState(socialPage, 'ready');
-	const socialReady = await replayUiAudit(socialPage);
-	expect(group, 'Stake.us replay displays XSC as SC', `${socialReady.betCurrency} ${socialReady.betText}`.includes('SC') && `${socialReady.betCurrency} ${socialReady.betText}`.includes('1.00'), JSON.stringify(socialReady));
-	expect(group, 'Stake.us replay remains read-only', socialCalls.replay.length === 1 && socialCalls.forbidden.length === 0, JSON.stringify(socialCalls));
-	replayNetworkEvidence.push({ scenario: 'social-xsc', viewport: 'desktop-1280x720', replayRequests: socialCalls.replay, forbiddenRequests: socialCalls.forbidden });
-	const socialShot = await screenshot(socialPage, 'replay-social-xsc-ready-1280x720');
-	pass(group, 'Stake.us replay screenshot saved', socialShot);
-	await socialContext.close();
+	// Social replay must be safe for both supported Stake social currencies across
+	// every visible lifecycle state, including accessible names and live regions.
+	for (const currency of ['XSC', 'XGC']) {
+		const socialContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		const socialCalls = await mockReplayRgs(socialContext, () => ({ round: { ...baseReplayRound(), currency } }));
+		const socialPage = await openPreview(socialContext, base, replayQuery({ mode: 'base', event: `stake-qa-social-replay-${currency.toLowerCase()}`, currency, extra: '&social=true' }));
+		const socialVisibleAudit = async (lifecycle) => {
+			const audit = await socialPage.evaluate(() => {
+				const visible = (el) => {
+					if (!el) return false;
+					const style = getComputedStyle(el);
+					const rect = el.getBoundingClientRect();
+					return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+				};
+				const root = document.body;
+				const visibleAttrs = [...root.querySelectorAll('[aria-label],[title],[alt],[role],[aria-live]')]
+					.filter(visible)
+					.map((el) => [el.getAttribute('aria-label'), el.getAttribute('title'), el.getAttribute('alt'), el.getAttribute('role'), el.getAttribute('aria-live')].filter(Boolean).join(' ')).join(' ');
+				return { text: root.innerText || '', attrs: visibleAttrs, rawCodes: `${root.innerText || ''} ${visibleAttrs}`.match(/\bX(?:G|S)C\b/g) || [] };
+			});
+			const hits = socialForbiddenHits(`${audit.text} ${audit.attrs}`);
+			expect(group, `${currency} replay ${lifecycle} has no restricted visible/accessibility copy`, hits.length === 0 && audit.rawCodes.length === 0, `hits=${hits.join(',') || 'none'} raw=${audit.rawCodes.join(',') || 'none'}`);
+			return audit;
+		};
+		await waitForReplayState(socialPage, 'ready');
+		const socialReady = await replayUiAudit(socialPage);
+		const socialCode = currency === 'XSC' ? 'SC' : 'GC';
+		expect(group, `${currency} replay formats social amount without raw code`, `${socialReady.betCurrency} ${socialReady.betText}`.includes(socialCode) && !`${socialReady.betCurrency} ${socialReady.betText}`.includes(currency), JSON.stringify(socialReady));
+		await socialVisibleAudit('ready');
+		await screenshot(socialPage, `replay-social-${currency.toLowerCase()}-ready-1280x720`);
+		await socialPage.click('#replay-action');
+		await waitForReplayState(socialPage, 'running');
+		await socialVisibleAudit('running');
+		await waitForReplayState(socialPage, 'completed', 30_000);
+		const socialComplete = await replayUiAudit(socialPage);
+		expect(group, `${currency} replay completes with Play Again`, socialComplete.actionText === 'Play Again' && socialComplete.actionAccessibleName === 'Play Again', JSON.stringify(socialComplete));
+		await socialVisibleAudit('completed');
+		expect(group, `${currency} replay remains read-only`, socialCalls.replay.length === 1 && socialCalls.forbidden.length === 0, JSON.stringify(socialCalls));
+		replayNetworkEvidence.push({ scenario: `social-${currency.toLowerCase()}`, viewport: 'desktop-1280x720', replayRequests: socialCalls.replay, forbiddenRequests: socialCalls.forbidden });
+		await screenshot(socialPage, `replay-social-${currency.toLowerCase()}-completed-1280x720`);
+		await socialContext.close();
+	}
 
 	// Error matrix: transport errors, malformed/empty payloads and invalid round
 	// contracts must remain replay-specific failures with no local demo fallback.
@@ -2019,6 +2042,71 @@ async function testRgsRoundStates(browser, base) {
 	}));
 	expect(group, 'unsupported normal RGS event state fails visibly with no local/random fallback', unsupported.state.fatal && !unsupported.state.spinning && unsupported.state.win === 0 && /Unsupported Stake Engine round/i.test(unsupported.title || '') && /No local fallback/i.test(unsupported.detail || '') && unsupportedCalls.play.length === 1, JSON.stringify(unsupported));
 	await unsupportedContext.close();
+
+	// Stake-review regression: settlement must finish before the completion
+	// presentation is dismissed, and Best Spin must be an individual spin.
+	const featureEvents = [
+		{ index: 0, type: 'reveal', board: quietBoard(), gameType: 'basegame' },
+		{ index: 1, type: 'freeSpinTrigger', totalFs: 8, tier: 1, positions: [] },
+		{ index: 2, type: 'updateFreeSpin', amount: 0, total: 8, tier: 1 },
+		{ index: 3, type: 'setTotalWin', amount: 0 },
+		{ index: 4, type: 'updateFreeSpin', amount: 1, total: 8, tier: 1 },
+		{ index: 5, type: 'setTotalWin', amount: 348 },
+		{ index: 6, type: 'updateFreeSpin', amount: 2, total: 8, tier: 1 },
+		{ index: 7, type: 'setTotalWin', amount: 1368 },
+		{ index: 8, type: 'updateFreeSpin', amount: 3, total: 8, tier: 1 },
+		{ index: 9, type: 'setTotalWin', amount: 2068 },
+		{ index: 10, type: 'updateFreeSpin', amount: 4, total: 8, tier: 1 },
+		{ index: 11, type: 'setTotalWin', amount: 2548 },
+		{ index: 12, type: 'updateFreeSpin', amount: 5, total: 8, tier: 1 },
+		{ index: 13, type: 'setTotalWin', amount: 3448 },
+		{ index: 14, type: 'updateFreeSpin', amount: 6, total: 8, tier: 1 },
+		{ index: 15, type: 'setTotalWin', amount: 3648 },
+		{ index: 16, type: 'updateFreeSpin', amount: 7, total: 8, tier: 1 },
+		{ index: 17, type: 'setTotalWin', amount: 4448 },
+		{ index: 18, type: 'freeSpinEnd', amount: 4448 },
+		{ index: 19, type: 'finalWin', amount: 4448 },
+	];
+	const featureContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+	const featureCalls = await mockRgs(featureContext, {
+		authenticate: () => ({ balance: balanceOf(1021.42, 'USD'), round: null }),
+		play: () => ({ balance: balanceOf(1020.42, 'USD'), round: { active: true, amount: API, mode: 'bonus_tier1', payout: 0, payoutMultiplier: 4448, state: featureEvents } }),
+		endRound: () => ({ balance: balanceOf(1064.90, 'USD'), round: { active: false, amount: API, mode: 'bonus_tier1', payout: 44480000, payoutMultiplier: 4448 } }),
+	});
+	const featurePage = await openPreview(featureContext, base, rgsQuery('USD'));
+	await featurePage.waitForFunction(() => window.__stakeQa.state.walletBusy === false);
+	await featurePage.evaluate(() => window.__stakeQa.setTurbo(true));
+	await featurePage.click('#btn-spin');
+	await featurePage.waitForSelector('#bonus-intro.show');
+	await featurePage.waitForTimeout(300);
+	await featurePage.click('#bonus-intro');
+	try {
+		await featurePage.waitForFunction(() => window.__stakeQa.state.spinning === false && window.__stakeQa.state.walletBusy === false, null, { timeout: 45_000 });
+	} catch (error) {
+		const diagnostics = await featurePage.evaluate(() => ({
+			state: window.__stakeQa.state,
+			stage: document.getElementById('stage')?.dataset.replayState || null,
+			fatal: document.getElementById('fatal-error')?.textContent?.trim() || null,
+			calls: window.__stakeQa.Rgs?.calls || null,
+		})).catch(() => null);
+		throw new Error(`${error?.message || error} | feature diagnostics=${JSON.stringify(diagnostics)} | pageErrors=${JSON.stringify(featurePage.__stakeQaStartupErrors || [])}`);
+	}
+	await featurePage.waitForFunction(() => document.getElementById('bs-total')?.textContent?.includes('$44.48'), null, { timeout: 20_000 });
+	const featureAudit = await featurePage.evaluate(() => ({
+		balance: window.__stakeQa.state.balance,
+		win: window.__stakeQa.state.win,
+		spins: document.getElementById('bs-spins')?.textContent?.trim(),
+		best: document.getElementById('bs-best')?.textContent?.trim(),
+		total: document.getElementById('bs-total')?.textContent?.trim(),
+		summaryVisible: document.getElementById('bonus-summary')?.classList.contains('show'),
+	}));
+	expect(group, '8-spin $44.48 feature sends one play and one end-round', featureCalls.play.length === 1 && featureCalls.endRound.length === 1, JSON.stringify(featureCalls));
+	expect(group, 'active feature settlement does not wait for Continue', featureAudit.summaryVisible && featureAudit.balance === 1064.9, JSON.stringify(featureAudit));
+	expect(group, '8-spin summary total and visible WIN are authoritative', featureAudit.total === '$44.48' && featureAudit.win === 44.48, JSON.stringify(featureAudit));
+	expect(group, '8-spin summary shows true best individual spin', featureAudit.spins === '8' && featureAudit.best === '$10.20' && featureAudit.best !== featureAudit.total, JSON.stringify(featureAudit));
+	const featureShot = await screenshot(featurePage, 'feature-summary-44-48-best-spin');
+	pass(group, 'feature completion summary screenshot saved', featureShot);
+	await featureContext.close();
 }
 
 // ---------------------------------------------------------------------------

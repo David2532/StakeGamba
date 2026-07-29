@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSy
 import { dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { STAKE_SOCIAL_RESTRICTED_TERMS, socialRestrictedHits } from '../apps/cluster/scripts/stake-compliance-contract.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
@@ -32,29 +33,7 @@ const paths = {
 
 const checks = [];
 let paytableEvidence = null;
-const SOCIAL_FORBIDDEN_VALUES = [
-	'Bet Replay',
-	'Base Bet',
-	'Cost Multiplier',
-	'Total Bet Cost',
-	'Payout Multiplier',
-	'Total Win',
-	'Bonus Buy',
-	'Buy Bonus',
-	'Auto-Bet',
-	'Auto Bet',
-	'Bet',
-	'Wager',
-	'Gamble',
-	'Purchase',
-	'Paid',
-	'Pay out',
-	'Payout',
-	'Rebet',
-	'Cash',
-	'Credit',
-	'Currency',
-];
+const SOCIAL_FORBIDDEN_VALUES = STAKE_SOCIAL_RESTRICTED_TERMS;
 const SOCIAL_REQUIRED_VALUES = [
 	'Play Replay',
 	'Base Play',
@@ -143,7 +122,7 @@ function stringValuesFromObjectLiteral(block) {
 }
 
 function socialForbiddenHits(text) {
-	return SOCIAL_FORBIDDEN_VALUES.filter((phrase) => new RegExp(`\\b${escapeRegExp(phrase).replaceAll('\\ ', '\\s+')}\\b`, 'i').test(text));
+	return socialRestrictedHits(text);
 }
 
 function runSyntaxCheck() {
@@ -615,7 +594,10 @@ function runReplayChecks() {
 	expectContains('replay', 'replay metadata function exists', builder, 'function replayMetadata(round)');
 	expectContains('replay', 'replay mode name comes from player mode metadata', builder, 'playerModeName(rgsRoundMode(round))');
 	expectContains('replay', 'Replay Bet label is explicit and display-only', builder, "'REPLAY BET'");
-	expectContains('replay', 'Replay Play and Play Again labels are dedicated', builder, "status === 'completed' ? 'Play Again' : 'Replay Play'");
+	expectContains('replay', 'Replay Play and Play Again labels are dedicated', builder, "status === 'completed' ? t('replayAgainAction') : t('replayAction')");
+	expectContains('replay', 'replay lifecycle uses localized labels', builder, "replayLoadingDetail");
+	expectContains('replay', 'replay currency code is hidden and aria-hidden', builder, "currency.setAttribute('aria-hidden', 'true')");
+	expectContains('replay', 'replay completion presentation is non-blocking for RGS settlement', builder, "{ blocking: false }");
 	expectContains('replay', 'normal replay controls are made inert/disabled', builder, 'function makeUnavailableInReplay(element)');
 	expectContains('replay', 'replay response is schema validated', builder, 'function validateReplayEvents(events)');
 	expectContains('replay', 'replay request has a timeout controller', builder, 'new AbortController()');
