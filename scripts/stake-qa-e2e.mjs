@@ -955,10 +955,32 @@ async function testSocialWording(browser, base) {
 		await page.waitForFunction(() => document.getElementById('modal-menu')?.classList.contains('open'));
 		await page.click('[data-open="modal-paytable"]');
 		await page.waitForFunction(() => document.getElementById('modal-paytable')?.classList.contains('open'));
-		await page.waitForTimeout(350);
+		await page.waitForFunction(() => {
+			const root = document.getElementById('modal-paytable');
+			const panel = root?.querySelector('.modal');
+			const body = root?.querySelector('.modal-body');
+			return root?.classList.contains('open')
+				&& Number(getComputedStyle(panel).opacity) >= 0.99
+				&& body?.clientHeight > 0;
+		});
+		await page.evaluate(() => {
+			const body = document.querySelector('#modal-paytable .modal-body');
+			body?.scrollTo({ top: body.scrollHeight, behavior: 'instant' });
+		});
+		await page.waitForFunction(() => {
+			const body = document.querySelector('#modal-paytable .modal-body');
+			const footer = document.getElementById('paytable-note');
+			const footerRect = footer?.getBoundingClientRect();
+			const bodyRect = body?.getBoundingClientRect();
+			return !!body
+				&& Math.abs(body.scrollTop + body.clientHeight - body.scrollHeight) <= 2
+				&& !!footerRect
+				&& !!bodyRect
+				&& footerRect.top >= bodyRect.top
+				&& footerRect.bottom <= bodyRect.bottom;
+		});
 		const paytable = await page.evaluate(() => {
 			const body = document.querySelector('#modal-paytable .modal-body');
-			if (body) body.scrollTop = body.scrollHeight;
 			const root = document.getElementById('modal-paytable');
 			const panel = root?.querySelector('.modal');
 			const attrs = [...root.querySelectorAll('[aria-label],[title],[alt],[role],[aria-live]')].map((el) => Object.entries({ aria: el.getAttribute('aria-label'), title: el.getAttribute('title'), alt: el.getAttribute('alt'), role: el.getAttribute('role'), live: el.getAttribute('aria-live') }).filter(([, value]) => value).map(([, value]) => value).join(' ')).join(' ');
