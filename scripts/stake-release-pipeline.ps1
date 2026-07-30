@@ -1,5 +1,8 @@
 param(
-	[switch]$ReuseBooks
+	[switch]$ReuseBooks,
+	[switch]$AllowCandidateBranch,
+	[string]$ExpectedCommit = "",
+	[string]$AllowedUntrackedPrefix = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -619,16 +622,28 @@ $resolvedRoot = [System.IO.Path]::GetFullPath($Root).TrimEnd('\', '/')
 if ($resolvedGitRoot -ne $resolvedRoot) {
 	throw "Git provenance root mismatch: expected '$resolvedRoot', actual '$resolvedGitRoot'"
 }
-if ($gitBranch -ne "main") { throw "Release requires branch 'main'; actual branch is '$gitBranch'" }
+if ($gitBranch -ne "main" -and -not $AllowCandidateBranch) {
+	throw "Release requires branch 'main' unless -AllowCandidateBranch is supplied explicitly; actual branch is '$gitBranch'"
+}
 if ($gitSha -notmatch '^[0-9a-fA-F]{40,64}$') { throw "Release requires a valid Git commit SHA; actual value is '$gitSha'" }
+if (-not [string]::IsNullOrWhiteSpace($ExpectedCommit) -and $gitSha -ne $ExpectedCommit) {
+	throw "Release commit mismatch: expected '$ExpectedCommit', actual '$gitSha'"
+}
 if ([string]::IsNullOrWhiteSpace($gitRemote)) { throw "Release requires a configured origin remote" }
 $initialGitStatus = Get-GitValue -Arguments @("status", "--porcelain=v1", "--untracked-files=all")
-if (-not [string]::IsNullOrWhiteSpace($initialGitStatus)) {
-	throw "Release requires a clean Git tree before generation. Commit or archive these changes first:`n$initialGitStatus"
+$unexpectedGitStatus = @($initialGitStatus -split "`r?`n" | Where-Object {
+	$line = $_
+	(-not [string]::IsNullOrWhiteSpace($line)) -and -not (
+		(-not [string]::IsNullOrWhiteSpace($AllowedUntrackedPrefix)) -and $line -like "?? $AllowedUntrackedPrefix*"
+	)
+})
+if ($unexpectedGitStatus.Count -gt 0) {
+	throw "Release requires a clean Git tree before generation. Commit or archive these changes first:`n$($unexpectedGitStatus -join "`n")"
 }
 Add-Check -Group "Release Preflight" -Name "Git repository root is authoritative" -Passed $true -Detail $gitTopLevel
-Add-Check -Group "Release Preflight" -Name "Current branch is main" -Passed $true -Detail $gitBranch
+Add-Check -Group "Release Preflight" -Name "Current branch is authorized" -Passed $true -Detail $gitBranch
 Add-Check -Group "Release Preflight" -Name "Commit SHA is available" -Passed $true -Detail $gitSha
+if (-not [string]::IsNullOrWhiteSpace($ExpectedCommit)) { Add-Check -Group "Release Preflight" -Name "Commit SHA matches requested candidate" -Passed $true -Detail $ExpectedCommit }
 Add-Check -Group "Release Preflight" -Name "Origin remote is configured" -Passed $true -Detail $gitRemote
 Add-Check -Group "Release Preflight" -Name "Working tree is initially clean" -Passed $true -Detail "tracked and untracked source checked"
 
