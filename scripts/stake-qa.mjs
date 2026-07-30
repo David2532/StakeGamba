@@ -2,7 +2,10 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSy
 import { dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { STAKE_SOCIAL_RESTRICTED_TERMS, socialRestrictedHits } from '../apps/cluster/scripts/stake-compliance-contract.mjs';
+import {
+	STAKE_PLAYER_VISIBLE_RESTRICTED_TERMS,
+	playerVisibleRestrictedHits,
+} from '../apps/cluster/scripts/stake-compliance-contract.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
@@ -31,6 +34,9 @@ const paths = {
 	amount: join(root, 'packages', 'utils-shared', 'amount.ts'),
 	stateUi: join(root, 'packages', 'state-shared', 'src', 'stateUi.svelte.ts'),
 	i18nDerived: join(root, 'packages', 'components-ui-html', 'src', 'i18n', 'i18nDerived.ts'),
+	pixiI18nDerived: join(root, 'packages', 'components-ui-pixi', 'src', 'i18n', 'i18nDerived.ts'),
+	defaultGameRules: join(root, 'packages', 'state-shared', 'src', 'constants.ts'),
+	defaultSymbolTable: join(root, 'packages', 'components-ui-html', 'src', 'components', 'ModalPayTable.svelte'),
 	autoStart: join(root, 'packages', 'components-ui-html', 'src', 'components', 'AutoSpinsStartButton.svelte'),
 	clusterPreviewSource: join(root, 'apps', 'cluster', 'src', 'components', 'GoldenGoalRushFinalPreview.svelte'),
 	linesPreviewSource: join(root, 'apps', 'lines', 'src', 'components', 'GoldenGoalRushSixByFivePreview.svelte'),
@@ -38,8 +44,8 @@ const paths = {
 
 const checks = [];
 let paytableEvidence = null;
-const SOCIAL_FORBIDDEN_VALUES = STAKE_SOCIAL_RESTRICTED_TERMS;
-const SOCIAL_REQUIRED_VALUES = [
+const PLAYER_VISIBLE_FORBIDDEN_VALUES = STAKE_PLAYER_VISIBLE_RESTRICTED_TERMS;
+const PLAYER_SAFE_REQUIRED_VALUES = [
 	'Play Replay',
 	'Base Play',
 	'Feature Multiplier',
@@ -52,7 +58,7 @@ const SOCIAL_REQUIRED_VALUES = [
 	'PLAY',
 ];
 const PLAYER_MODE_NAMES = [
-	'Base Game',
+	'Base Play',
 	'Feature Spins',
 	'Rainbow Spin',
 	'Golden Chance',
@@ -126,8 +132,8 @@ function stringValuesFromObjectLiteral(block) {
 	return [...block.matchAll(/:\s*'([^']*)'/g)].map((match) => match[1]).join(' ');
 }
 
-function socialForbiddenHits(text) {
-	return socialRestrictedHits(text);
+function playerVisibleForbiddenHits(text) {
+	return playerVisibleRestrictedHits(text);
 }
 
 function runSyntaxCheck() {
@@ -206,7 +212,7 @@ async function runCurrencyChecks() {
 	expect('currency', 'XSC display symbol is SC', currencyDisplaySymbol('XSC') === 'SC', currencyDisplaySymbol('XSC'));
 	expect('currency', 'XGC display symbol is GC', currencyDisplaySymbol('XGC') === 'GC', currencyDisplaySymbol('XGC'));
 	expect('currency', 'social casino insufficient copy uses Balance', insufficientFundsMessage('XSC', false) === 'Insufficient Balance', insufficientFundsMessage('XSC', false));
-	expect('currency', 'fiat insufficient copy uses Funds', insufficientFundsMessage('EUR', false) === 'Insufficient Funds', insufficientFundsMessage('EUR', false));
+	expect('currency', 'fiat insufficient copy also uses globally safe Balance wording', insufficientFundsMessage('EUR', false) === 'Insufficient Balance', insufficientFundsMessage('EUR', false));
 }
 
 const API_AMOUNT_MULTIPLIER = 1_000_000;
@@ -462,7 +468,7 @@ function runI18nChecks() {
 	const autoStart = read(paths.autoStart);
 
 	expectContains('i18n', 'preview has Insufficient Balance title path', builder, "'Insufficient Balance'");
-	expectContains('i18n', 'preview has Insufficient Funds title path', builder, "'Insufficient Funds'");
+	expectNotContains('i18n', 'preview has no player-visible Insufficient Funds title path', builder, "'Insufficient Funds'");
 	expectContains('i18n', 'preview social flag is considered', builder, 'UrlState.social()');
 	expectContains('i18n', 'preview initializes display currency from URL', builder, 'state.currency = UrlState.currency();');
 	expectContains('i18n', 'shared UI derives insufficient copy from currency helper', i18n, 'insufficientFundsMessage(stateBet.currency, stateUrlDerived.social())');
@@ -494,26 +500,72 @@ function runBetConfigChecks() {
 
 function runSocialWordingChecks() {
 	const builder = read(paths.builder);
+	const sharedVisibleSources = [
+		read(paths.i18nDerived),
+		read(paths.pixiI18nDerived),
+		read(paths.defaultGameRules),
+		read(paths.defaultSymbolTable),
+		read(paths.clusterPreviewSource),
+		read(paths.linesPreviewSource),
+	].join('\n');
+	const standard = extractBalancedObject(builder, '\n\ten: {');
 	const sweeps = extractBalancedObject(builder, 'sweeps_en:');
-	const socialValues = stringValuesFromObjectLiteral(sweeps);
+	const standardValues = stringValuesFromObjectLiteral(standard);
+	const sweepsValues = stringValuesFromObjectLiteral(sweeps);
 	const requiredFooter = '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each eligible symbol is evaluated independently with orthogonally connected Wilds. A Wild may support multiple distinct symbol clusters, counts toward each supported cluster, and appears only once within a single award. The tumble removes all awarded positions. The cascade multiplier starts at 1× and increases after each successful cascade. A floating amount shows that award step; the WIN meter is cumulative for the complete round.';
-	expect('social-copy', 'sweeps_en language resource is present', sweeps.length > 0, `chars=${sweeps.length}`);
-	for (const forbidden of SOCIAL_FORBIDDEN_VALUES) {
-		expect('social-copy', `sweeps_en values avoid "${forbidden}"`, !socialForbiddenHits(socialValues).includes(forbidden), forbidden);
+	expect('player-copy', 'default en language resource is present', standard.length > 0, `chars=${standard.length}`);
+	expect('player-copy', 'sweeps_en language resource is present', sweeps.length > 0, `chars=${sweeps.length}`);
+	for (const [resourceName, resourceValues] of [['en', standardValues], ['sweeps_en', sweepsValues]]) {
+		const hits = playerVisibleForbiddenHits(resourceValues);
+		expect('player-copy', `${resourceName} values contain zero restricted terms`, hits.length === 0, hits.join(', '));
+		for (const required of PLAYER_SAFE_REQUIRED_VALUES) {
+			expectContains('player-copy', `${resourceName} value includes "${required}"`, resourceValues, required);
+		}
 	}
-	for (const required of SOCIAL_REQUIRED_VALUES) {
-		expectContains('social-copy', `sweeps_en value includes "${required}"`, socialValues, required);
+	for (const fixture of ['PAY TABLE', 'Payouts', 'Symbol Pays', 'paying', 'standalone pay', 'standalone bet', 'Bonus Buy', 'Auto-Bet', 'Replay Bet']) {
+		const hits = playerVisibleForbiddenHits(fixture);
+		expect('player-copy', `restricted-term detector rejects "${fixture}"`, hits.length > 0, hits.join(', '));
 	}
-	expectContains('social-copy', 'social UI applies language at runtime', builder, 'function applyLanguage()');
-	expectContains('social-copy', 'social rules body is generated separately', builder, 'function buildSocialRulesBodyHtml()');
-	expectContains('social-copy', 'social rules use Feature panel wording', builder, "socialTrigger: 'Feature panel");
-	expectContains('social-copy', 'social rules use play amount wording', builder, 'play amount');
-	expectContains('social-copy', 'social replay label mapping includes Play Cost', builder, "replayTotalCost: 'Play Cost'");
-	expectContains('social-copy', 'social replay label mapping includes Final Play Amount', builder, "replayTotalWin: 'Final Play Amount'");
-	expectContains('social-copy', 'social Symbol Table uses the approved neutral footer verbatim', socialValues, requiredFooter);
-	expect('social-copy', 'approved Social footer has no restricted term', socialForbiddenHits(requiredFooter).length === 0, socialForbiddenHits(requiredFooter).join(', '));
-	expectContains('social-copy', 'authenticate jurisdiction is authoritative for Social mode', builder, "typeof data.config.jurisdiction?.socialCasino === 'boolean'");
-	expectContains('social-copy', 'authoritative jurisdiction updates Social state', builder, 'state.socialCasino = data.config.jurisdiction.socialCasino');
+	expectContains('player-copy', 'UI applies language at runtime', builder, 'function applyLanguage()');
+	expectContains('player-copy', 'all modes share the player-safe Rules source', builder, 'function buildPlayerSafeRulesBodyHtml()');
+	expectContains('player-copy', 'Rules use Feature panel wording', builder, "socialTrigger: 'Feature panel");
+	expectContains('player-copy', 'Rules use play amount wording', builder, 'play amount');
+	expectContains('player-copy', 'Replay label mapping includes Play Cost', builder, "replayTotalCost: 'Play Cost'");
+	expectContains('player-copy', 'Replay label mapping includes Final Play Amount', builder, "replayTotalWin: 'Final Play Amount'");
+	expectContains('player-copy', 'both language resources use the approved neutral footer verbatim', standardValues + sweepsValues, requiredFooter);
+	expect('player-copy', 'approved footer has no restricted term', playerVisibleForbiddenHits(requiredFooter).length === 0, playerVisibleForbiddenHits(requiredFooter).join(', '));
+	expectContains('player-copy', 'authenticate jurisdiction remains authoritative for Social display metadata', builder, "typeof data.config.jurisdiction?.socialCasino === 'boolean'");
+	expectContains('player-copy', 'authoritative jurisdiction updates Social state', builder, 'state.socialCasino = data.config.jurisdiction.socialCasino');
+	expectNotContains('player-copy', 'default source contains no PAY TABLE heading', builder, '>PAY TABLE<');
+	expectNotContains('player-copy', 'default source contains no Replay Bet literal', builder, "'REPLAY BET'");
+	for (const restrictedLiteral of [
+		"'BET'",
+		"'BET MENU'",
+		"'SELECT YOUR BET'",
+		"'BUY BONUS'",
+		"'PAYTABLE'",
+		"'AUTO SPIN'",
+		'PAY TABLE |',
+		'ADD YOUR PAY TABLE',
+		'CLUSTER PAYS',
+		'text="PAYS"',
+		'text="BET"',
+		'Malfunction voids all pays and plays',
+		'Auto Spin is',
+	]) {
+		expectNotContains('player-copy', `shared visible sources omit "${restrictedLiteral}"`, sharedVisibleSources, restrictedLiteral);
+	}
+	for (const safeLiteral of [
+		"'PLAY'",
+		"'PLAY MENU'",
+		"'SELECT YOUR PLAY AMOUNT'",
+		"'BONUS / FEATURE'",
+		"'SYMBOL TABLE'",
+		"'AUTO-PLAY'",
+		'Malfunction voids all wins and plays',
+	]) {
+		expectContains('player-copy', `shared visible sources include "${safeLiteral}"`, sharedVisibleSources, safeLiteral);
+	}
 }
 
 function runGameInfoChecks() {
@@ -525,8 +577,8 @@ function runGameInfoChecks() {
 		expectContains('game-info', `Game Info explains mode "${name}"`, preview, name);
 	}
 	for (const marker of [
-		'Main Spin button',
-		'Bonus Buy panel',
+		'Main Play button',
+		'Feature panel',
 		'3 Scatter tickets',
 		'4 Scatter tickets',
 		'5 Scatter tickets only',
@@ -546,7 +598,6 @@ function runGameInfoChecks() {
 	}
 	for (const marker of [
 		'<div class="pt-head">Retriggers</div>',
-		'Base Game and Rainbow Spin can trigger Free Spins',
 		'Base Play and Rainbow Spin can trigger Free Spins',
 		'No retrigger inside this single-spin mode.',
 		'The current math book does not create additional Free Spins inside this tier.',
@@ -603,7 +654,7 @@ function runReplayChecks() {
 	expectContains('replay', 'replay request includes lang parameter', builder, 'lang: UrlState.lang()');
 	expectContains('replay', 'replay metadata function exists', builder, 'function replayMetadata(round)');
 	expectContains('replay', 'replay mode name comes from player mode metadata', builder, 'playerModeName(rgsRoundMode(round))');
-	expectContains('replay', 'Replay Bet label is explicit and display-only', builder, "'REPLAY BET'");
+	expectContains('replay', 'Replay Play Amount label is explicit and display-only', builder, "'REPLAY PLAY'");
 	expectContains('replay', 'Replay Play and Play Again labels are dedicated', builder, "status === 'completed' ? t('replayAgainAction') : t('replayAction')");
 	expectContains('replay', 'replay lifecycle uses localized labels', builder, "replayLoadingDetail");
 	for (const label of ['REPLAY COMPLETED', 'REPLAY ERROR', 'REPLAY RUNNING', 'READY TO REPLAY', 'LOADING REPLAY']) {
@@ -723,7 +774,7 @@ function runRulesChecks() {
 		expectContains('rules', `rules describe ${key}`, preview, `data-control-key="${key}"`);
 	}
 	expectContains('rules', 'rules preserve RTP text', builder, 'RTP 96.45%');
-	expectContains('rules', 'rules preserve malfunction text', builder, 'Malfunction voids all pays and plays');
+	expectContains('rules', 'rules preserve approved malfunction text', builder, 'Malfunction voids all wins and plays');
 }
 
 function runExistingBehaviorChecks() {

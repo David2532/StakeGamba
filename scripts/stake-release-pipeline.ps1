@@ -102,14 +102,14 @@ function Test-TextContainsWordOrPhrase {
 	return [regex]::IsMatch($Text, $pattern, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
 }
 
-function Add-SocialLanguageChecks {
+function Add-PlayerLanguageChecks {
 	param(
 		[string]$Group,
 		[string]$Content
 	)
-	$sweepsBlock = Get-BalancedObjectText -Content $Content -Marker "sweeps_en:"
-	$socialText = Get-JsStringValues -Content $sweepsBlock
-	Add-Check -Group $Group -Name "sweeps_en language resource is extractable" -Passed ($socialText.Length -gt 0) -Detail "chars=$($socialText.Length)"
+	$languageBlock = Get-BalancedObjectText -Content $Content -Marker "const LANGUAGE_RESOURCES = {"
+	$playerText = Get-JsStringValues -Content $languageBlock
+	Add-Check -Group $Group -Name "complete player language resource is extractable" -Passed ($playerText.Length -gt 0) -Detail "chars=$($playerText.Length)"
 
 	foreach ($term in @(
 		"Bet Replay", "Base Bet", "Cost Multiplier", "Total Bet Cost", "Payout Multiplier", "Total Win",
@@ -119,14 +119,14 @@ function Add-SocialLanguageChecks {
 		"Buy", "Bought", "At the cost of", "Cost of", "Rebet", "Credit", "Deposit", "Withdraw",
 		"Fund", "Currency"
 	)) {
-		Add-Check -Group $Group -Name "sweeps_en avoids restricted term '$term'" -Passed (-not (Test-TextContainsWordOrPhrase -Text $socialText -Phrase $term)) -Detail $term
+		Add-Check -Group $Group -Name "all player language avoids restricted term '$term'" -Passed (-not (Test-TextContainsWordOrPhrase -Text $playerText -Phrase $term)) -Detail $term
 	}
 
 	foreach ($term in @(
 		"Play Replay", "Base Play", "Feature Multiplier", "Play Cost", "Final Multiplier",
 		"Final Play Amount", "Replay Play", "BONUS / FEATURE", "AUTO-PLAY", "PLAY"
 	)) {
-		Add-Check -Group $Group -Name "sweeps_en includes required substitute '$term'" -Passed ($socialText.Contains($term)) -Detail $term
+		Add-Check -Group $Group -Name "all player language includes required substitute '$term'" -Passed ($playerText.Contains($term)) -Detail $term
 	}
 }
 
@@ -787,10 +787,10 @@ Add-MarkerCheck -Group "G Bonus Start Popup" -Name "RGS bonus intro function" -C
 Add-MarkerCheck -Group "G Bonus Start Popup" -Name "popup used for RGS free-spin trigger" -Content $html -Marker "if (!skipBonusIntro) await bonusIntroRgs"
 Add-MarkerCheck -Group "G Bonus Start Popup" -Name "popup used for bonus buy" -Content $html -Marker "await bonusIntroRgs(CONFIG.tiers[tier].spins)"
 
-Add-MarkerCheck -Group "H Rules / Info Modal" -Name "base reload settlement explained" -Content $html -Marker "immediately settled with Stake Engine"
+Add-MarkerCheck -Group "H Rules / Info Modal" -Name "base reload settlement explained" -Content $html -Marker "round is completed by the game service"
 Add-MarkerCheck -Group "H Rules / Info Modal" -Name "game history explained" -Content $html -Marker "game history"
-Add-MarkerCheck -Group "H Rules / Info Modal" -Name "active bonus resume explained" -Content $html -Marker "Active Bonus Buy bonus rounds resume"
-Add-MarkerCheck -Group "H Rules / Info Modal" -Name "bonus buy rules present" -Content $html -Marker "Bonus Buy"
+Add-MarkerCheck -Group "H Rules / Info Modal" -Name "active feature resume explained" -Content $html -Marker "Active feature rounds resume"
+Add-MarkerCheck -Group "H Rules / Info Modal" -Name "feature rules present" -Content $html -Marker "BONUS / FEATURE"
 Add-MarkerCheck -Group "H Rules / Info Modal" -Name "buttons and controls rules present" -Content $html -Marker "Buttons &amp; Controls"
 Add-MarkerCheck -Group "H Rules / Info Modal" -Name "RTP text matches audit" -Content $html -Marker "RTP $baseRtpText"
 
@@ -811,15 +811,15 @@ Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "wallet play uses activ
 Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "demo bet fallback excluded from RGS/replay" -Content $html -Marker "if (!UrlState.requiresRgs() && !Replay.configured()) applyBetConfig"
 
 Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "Game Info mode metadata exists" -Content $html -Marker "const PLAYER_MODE_META = {"
-foreach ($modeName in @("Base Game", "Feature Spins", "Rainbow Spin", "Golden Chance", "All That Glitters", "End of the Rainbow")) {
+foreach ($modeName in @("Base Play", "Feature Spins", "Rainbow Spin", "Golden Chance", "All That Glitters", "End of the Rainbow")) {
 	Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "Game Info explains mode '$modeName'" -Content $html -Marker $modeName
 }
-foreach ($marker in @("Main Spin button", "Bonus Buy panel", "3 Scatter tickets", "4 Scatter tickets", "5 Scatter tickets only", "Cost multiplier:", "Feature Multiplier:", "Golden Cells persist", "guaranteed Golden Arc", "boosted Golden Arc chance", "Base Game and Rainbow Spin can trigger Free Spins", "Base Play and Rainbow Spin can trigger Free Spins", "Feature-panel Free Spins do not add additional Free Spins")) {
+foreach ($marker in @("Main Play button", "Feature panel", "3 Scatter tickets", "4 Scatter tickets", "5 Scatter tickets only", "Cost multiplier:", "Feature Multiplier:", "Golden Cells persist", "guaranteed Golden Arc", "boosted Golden Arc chance", "Base Play and Rainbow Spin can trigger Free Spins", "Feature-panel Free Spins do not add additional Free Spins")) {
 	Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "Game Info detail marker '$marker'" -Content $html -Marker $marker
 }
 
-Add-SocialLanguageChecks -Group "K Stake 2026 Review Items" -Content $html
-Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "social rules generated separately" -Content $html -Marker "function buildSocialRulesBodyHtml()"
+Add-PlayerLanguageChecks -Group "K Stake 2026 Review Items" -Content $html
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "all modes use player-safe rules" -Content $html -Marker "function buildPlayerSafeRulesBodyHtml()"
 
 Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "dedicated replay overlay exists" -Content $html -Marker "id=`"replay-overlay`""
 Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "dedicated Replay Play/Play Again button exists" -Content $html -Marker "id=`"replay-action`""
@@ -827,7 +827,7 @@ Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "explicit replay lifecy
 Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "replay request carries language" -Content $html -Marker "language: UrlState.lang()"
 Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "replay request carries lang alias" -Content $html -Marker "lang: UrlState.lang()"
 Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "replay mode name uses game metadata" -Content $html -Marker "playerModeName(rgsRoundMode(round))"
-Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "display-only Replay Bet label exists" -Content $html -Marker "'REPLAY BET'"
+Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "display-only Replay Play Amount label exists" -Content $html -Marker "'REPLAY PLAY'"
 Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "replay currency display exists" -Content $html -Marker "id=`"replay-currency`""
 Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "replay playback avoids progress/wallet mutation" -Content $html -Marker "trackProgress: false"
 Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "Play Again starts cached replay" -Content $html -Marker "action.onclick = () => play();"

@@ -63,8 +63,8 @@ export const CONFIG = {
 	// Prices are tuned so every buy returns ~96% (avg feature win / 0.96),
 	// measured against ggr-sim.mjs so a purchase is never a rip-off.
 	bonusBuy: [
-		{ id: 'hunt', label: 'Feature Spins', mult: 4.2, desc: 'One paid spin with boosted feature chance' },
-		{ id: 'rainbow', label: 'Rainbow Spin', mult: 6, desc: 'One paid spin with a guaranteed Golden Arc' },
+		{ id: 'hunt', label: 'Feature Spins', mult: 4.2, desc: 'One play with boosted feature chance' },
+		{ id: 'rainbow', label: 'Rainbow Spin', mult: 6, desc: 'One play with a guaranteed Golden Arc' },
 		{ id: 'tier1', label: 'Golden Chance', mult: 31, desc: 'Start 8 Free Spins (Tier 1)' },
 		{ id: 'tier2', label: 'All That Glitters', mult: 95, desc: 'Start 12 Free Spins (Tier 2)' },
 	],

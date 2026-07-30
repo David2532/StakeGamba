@@ -26,9 +26,9 @@ import {
 	formatPaytableMultiplier,
 } from './production-math-contract.mjs';
 import {
-	STAKE_SOCIAL_RESTRICTED_TERMS,
+	STAKE_PLAYER_VISIBLE_RESTRICTED_TERMS,
 	formatMaxWinMultiplier,
-	socialRestrictedHits,
+	playerVisibleRestrictedHits,
 	summarizeFeatureEvents,
 	reconcileWalletBalance,
 } from './stake-compliance-contract.mjs';
@@ -82,23 +82,23 @@ const assets = {
 
 const PLAYER_MODE_META = {
 	base: {
-		name: 'Base Game',
+		name: 'Base Play',
 		socialName: 'Base Play',
 		costMultiplier: 1,
-		trigger: 'Main Spin button',
+		trigger: 'Main Play button',
 		socialTrigger: 'Main Play button',
-		description: 'Standard paid spin on the 6x5 cluster grid. Winning clusters cascade and mark Golden Cells.',
+		description: 'Standard play on the 6x5 cluster grid. Winning clusters cascade and mark Golden Cells.',
 		socialDescription: 'Standard play on the 6x5 cluster grid. Winning clusters cascade and mark Golden Cells.',
-		retrigger: 'Not a bonus mode. Scatter tickets can trigger Free Spins from the paid spin.',
+		retrigger: 'Not a feature sequence. Scatter tickets can trigger Free Spins from the play.',
 		socialRetrigger: 'Not a feature sequence. Scatter tickets can trigger Free Spins from the play.',
 	},
 	hunt: {
 		name: 'Feature Spins',
 		socialName: 'Feature Spins',
 		costMultiplier: CONFIG.bonusBuy.find((o) => o.id === 'hunt')?.mult ?? 4.2,
-		trigger: 'Bonus Buy panel',
+		trigger: 'Feature panel',
 		socialTrigger: 'Feature panel',
-		description: 'One paid spin with boosted Golden Arc chance. Free-spin triggers are disabled for this mode.',
+		description: 'One play with boosted Golden Arc chance. Free-spin triggers are disabled for this mode.',
 		socialDescription: 'One play with boosted Golden Arc chance. Free-spin triggers are disabled for this mode.',
 		retrigger: 'No retrigger inside this single-spin mode.',
 		socialRetrigger: 'No extra sequence is added inside this single-play mode.',
@@ -107,9 +107,9 @@ const PLAYER_MODE_META = {
 		name: 'Rainbow Spin',
 		socialName: 'Rainbow Spin',
 		costMultiplier: CONFIG.bonusBuy.find((o) => o.id === 'rainbow')?.mult ?? 6,
-		trigger: 'Bonus Buy panel',
+		trigger: 'Feature panel',
 		socialTrigger: 'Feature panel',
-		description: 'One paid spin with a guaranteed Golden Arc. Scatter tickets can still award Free Spins.',
+		description: 'One play with a guaranteed Golden Arc. Scatter tickets can still award Free Spins.',
 		socialDescription: 'One play with a guaranteed Golden Arc. Scatter tickets can still award Free Spins.',
 		retrigger: 'The Rainbow Spin itself does not retrigger; a scatter award starts the matching Free Spins tier.',
 		socialRetrigger: 'The Rainbow Spin itself does not add more plays; a scatter award starts the matching Free Spins tier.',
@@ -118,7 +118,7 @@ const PLAYER_MODE_META = {
 		name: CONFIG.tiers[1].name,
 		socialName: CONFIG.tiers[1].name,
 		costMultiplier: CONFIG.bonusBuy.find((o) => o.id === 'tier1')?.mult ?? 31,
-		trigger: 'Bonus Buy panel or 3 Scatter tickets',
+		trigger: 'Feature panel or 3 Scatter tickets',
 		socialTrigger: 'Feature panel or 3 Scatter tickets',
 		description: `${CONFIG.tiers[1].spins} Free Spins. Golden Cells persist during the sequence and reset after reveal.`,
 		socialDescription: `${CONFIG.tiers[1].spins} Free Spins. Golden Cells persist during the sequence and reset after reveal.`,
@@ -129,7 +129,7 @@ const PLAYER_MODE_META = {
 		name: CONFIG.tiers[2].name,
 		socialName: CONFIG.tiers[2].name,
 		costMultiplier: CONFIG.bonusBuy.find((o) => o.id === 'tier2')?.mult ?? 95,
-		trigger: 'Bonus Buy panel or 4 Scatter tickets',
+		trigger: 'Feature panel or 4 Scatter tickets',
 		socialTrigger: 'Feature panel or 4 Scatter tickets',
 		description: `${CONFIG.tiers[2].spins} Free Spins. Golden Cells persist after reveal, increasing the chance of later Arc awards.`,
 		socialDescription: `${CONFIG.tiers[2].spins} Free Spins. Golden Cells persist after reveal, increasing the chance of later Arc awards.`,
@@ -199,7 +199,7 @@ const meterRows = meters
 				${icon === 'currency'
 					? `<span class="meter-currency-symbol" id="meter-${id}-currency" aria-hidden="true"></span>`
 					: `<img class="meter-asset-icon" src="${assets[icon]}" alt="" />`}
-				<div><div class="meter-label" data-i18n="${labelKey}">${labelKey === 'betLabel' ? 'BET' : labelKey === 'winLabel' ? 'WIN' : 'BALANCE'}</div><div class="meter-value" id="meter-${id}">0.00</div></div>
+				<div><div class="meter-label" data-i18n="${labelKey}">${labelKey === 'betLabel' ? 'PLAY' : labelKey === 'winLabel' ? 'WIN' : 'BALANCE'}</div><div class="meter-value" id="meter-${id}">0.00</div></div>
 			</div>`,
 	)
 	.join('\n');
@@ -217,14 +217,14 @@ const featureItems = features
 	.join('\n');
 
 const controlRules = [
-	['spin', 'Spin', 'Play', assets.spinButton, 'Starts a single paid spin with the selected bet.', 'Starts one play with the selected amount.'],
-	['auto-bet', 'Auto-Bet', 'Auto-Play', assets.autoSpinButton, 'Opens the Auto-Bet spin amount selection. Auto-Bet starts only after selecting an amount and confirming.', 'Opens the Auto-Play amount selection. Auto-Play starts only after selecting an amount and confirming.'],
-	['turbo', 'Turbo', 'Turbo', assets.turboButton, 'Toggles faster spin animations if available.', 'Toggles faster animations if available.'],
-	['bonus-buy', 'Bonus Buy / Buy Feature', 'Bonus / Feature', assets.bonusButton, 'Opens the Bonus Buy confirmation. The feature is purchased only after confirmation.', 'Opens the feature confirmation. The feature starts only after confirmation.'],
-	['bet-minus', 'Bet Minus', 'Play Minus', assets.minusButton, 'Decreases the selected bet.', 'Decreases the selected play amount.'],
-	['bet-plus', 'Bet Plus', 'Play Plus', assets.plusButton, 'Increases the selected bet.', 'Increases the selected play amount.'],
-	['bet-selector', 'Bet Selector / Bet Panel', 'Play Selector / Play Panel', assets.controlPanel, 'Shows the selected bet value and available bet step controls.', 'Shows the selected play amount and available amount steps.'],
-	['info-rules', 'Info / Rules', 'Info / Rules', assets.infoButton, 'Opens game rules, paytable, feature descriptions and button explanations.', 'Opens game rules, symbol values, feature descriptions and button explanations.'],
+	['spin', 'Play', 'Play', assets.spinButton, 'Starts one play with the selected amount.', 'Starts one play with the selected amount.'],
+	['auto-bet', 'Auto-Play', 'Auto-Play', assets.autoSpinButton, 'Opens the Auto-Play amount selection. Auto-Play starts only after selecting an amount and confirming.', 'Opens the Auto-Play amount selection. Auto-Play starts only after selecting an amount and confirming.'],
+	['turbo', 'Turbo', 'Turbo', assets.turboButton, 'Toggles faster animations if available.', 'Toggles faster animations if available.'],
+	['bonus-buy', 'Bonus / Feature', 'Bonus / Feature', assets.bonusButton, 'Opens the feature confirmation. The feature starts only after confirmation.', 'Opens the feature confirmation. The feature starts only after confirmation.'],
+	['bet-minus', 'Play Minus', 'Play Minus', assets.minusButton, 'Decreases the selected play amount.', 'Decreases the selected play amount.'],
+	['bet-plus', 'Play Plus', 'Play Plus', assets.plusButton, 'Increases the selected play amount.', 'Increases the selected play amount.'],
+	['bet-selector', 'Play Selector / Play Panel', 'Play Selector / Play Panel', assets.controlPanel, 'Shows the selected play amount and available amount steps.', 'Shows the selected play amount and available amount steps.'],
+	['info-rules', 'Info / Rules', 'Info / Rules', assets.infoButton, 'Opens game rules, symbol values, feature descriptions and button explanations.', 'Opens game rules, symbol values, feature descriptions and button explanations.'],
 	['settings', 'Settings', 'Settings', assets.settingsButton, 'Opens settings such as sound or game options.', 'Opens settings such as sound or game options.'],
 	['menu', 'Menu', 'Menu', assets.menuButton, 'Opens the main menu.', 'Opens the main menu.'],
 	['sound-music', 'Sound / Music', 'Sound / Music', assets.menuButton, 'Toggles sound and music from the menu or settings panel.', 'Toggles sound and music from the menu or settings panel.'],
@@ -936,10 +936,10 @@ ${meterRows}
 			<button type="button" class="asset-button menu" id="btn-menu" aria-label="Menu">
 				<img class="button-art" src="${assets.menuButton}" alt="" />
 			</button>
-			<button type="button" class="asset-button bonus" id="btn-bonus" aria-label="Buy Bonus">
+			<button type="button" class="asset-button bonus" id="btn-bonus" aria-label="Feature">
 				<img class="button-art" src="${assets.bonusButton}" alt="" />
 			</button>
-			<button type="button" class="asset-button" id="btn-auto" aria-label="Auto Spin">
+			<button type="button" class="asset-button" id="btn-auto" aria-label="Auto-Play">
 				<img class="button-art" src="${assets.autoSpinButton}" alt="" />
 			</button>
 			<div class="feature-control" aria-label="Golden Goal Rush feature logic preview">
@@ -951,21 +951,21 @@ ${featureItems}
 			<div class="replay-control-panel" id="replay-controls" aria-live="polite" aria-label="Replay controls" hidden>
 				<div class="replay-control-copy">
 					<strong id="replay-status">LOADING REPLAY</strong>
-					<small><span id="replay-summary">Saved round &middot; read-only</span><span class="replay-currency-code" id="replay-currency" aria-hidden="true" hidden></span></small>
+					<small><span id="replay-summary">Saved play &middot; view only</span><span class="replay-currency-code" id="replay-currency" aria-hidden="true" hidden></span></small>
 				</div>
 				<button type="button" class="replay-action" id="replay-action" data-testid="replay-action" hidden>Replay Play</button>
 			</div>
-			<button type="button" class="spin-button" id="btn-spin" aria-label="Spin">
-				<img class="spin-art" src="${assets.spinButton}" alt="" /><span>SPIN</span>
+			<button type="button" class="spin-button" id="btn-spin" aria-label="Play">
+				<img class="spin-art" src="${assets.spinButton}" alt="" /><span>PLAY</span>
 			</button>
 			<button type="button" class="asset-button turbo" id="btn-turbo" aria-label="Turbo">
 				<img class="button-art" src="${assets.turboButton}" alt="" />
 			</button>
-			<div class="bet-controls" id="bet-controls" aria-label="Bet controls">
+			<div class="bet-controls" id="bet-controls" aria-label="Play controls">
 				<img class="button-art" src="${assets.controlPanel}" alt="" />
-				<button type="button" id="btn-bet-minus" aria-label="Decrease bet"><img src="${assets.minusButton}" alt="" /></button>
-				<div class="bet-display"><span id="bet-display-label" data-i18n="betLabel">BET</span><strong id="bet-display">1.00</strong></div>
-				<button type="button" id="btn-bet-plus" aria-label="Increase bet"><img src="${assets.plusButton}" alt="" /></button>
+				<button type="button" id="btn-bet-minus" aria-label="Decrease play amount"><img src="${assets.minusButton}" alt="" /></button>
+				<div class="bet-display"><span id="bet-display-label" data-i18n="betLabel">PLAY</span><strong id="bet-display">1.00</strong></div>
+				<button type="button" id="btn-bet-plus" aria-label="Increase play amount"><img src="${assets.plusButton}" alt="" /></button>
 			</div>
 			<button type="button" class="icon-button info" id="btn-info" aria-label="Info"><img class="button-art" src="${assets.infoButton}" alt="" /></button>
 			<button type="button" class="icon-button settings" id="btn-settings" aria-label="Settings"><img class="button-art" src="${assets.settingsButton}" alt="" /></button>
@@ -976,7 +976,7 @@ ${featureItems}
 			<div class="modal">
 				<div class="modal-header"><div class="modal-title">MENU</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
-					<button class="menu-item" data-open="modal-paytable"><span class="mi-ico">PT</span><span class="mi-text"><span class="mi-label" id="menu-paytable-label">Pay Table</span><span class="mi-desc" id="menu-paytable-desc">Symbol payouts and cluster sizes</span></span><span class="mi-arrow">&rsaquo;</span></button>
+					<button class="menu-item" data-open="modal-paytable"><span class="mi-ico">ST</span><span class="mi-text"><span class="mi-label" id="menu-paytable-label">Symbol Table</span><span class="mi-desc" id="menu-paytable-desc">Symbol values and cluster sizes</span></span><span class="mi-arrow">&rsaquo;</span></button>
 					<button class="menu-item" data-open="modal-rules"><span class="mi-ico">?</span><span class="mi-text"><span class="mi-label">Rules &amp; Features</span><span class="mi-desc" id="menu-rules-desc">Cluster wins, coins, multipliers and free spins</span></span><span class="mi-arrow">&rsaquo;</span></button>
 					<button class="menu-item" data-open="modal-settings"><span class="mi-ico">SET</span><span class="mi-text"><span class="mi-label">Settings</span><span class="mi-desc">Stadium audio and turbo mode</span></span><span class="mi-arrow">&rsaquo;</span></button>
 					<button class="menu-item" id="menu-sound"><span class="mi-ico">SFX</span><span class="mi-text"><span class="mi-label">Sound</span><span class="mi-desc">Toggle music and effects</span></span><span class="mi-pill" id="menu-sound-state">ON</span></button>
@@ -1002,12 +1002,12 @@ ${featureItems}
 		<!-- ===== Paytable modal ===== -->
 		<div class="modal-backdrop" id="modal-paytable" data-modal>
 			<div class="modal">
-				<div class="modal-header"><div class="modal-title" id="paytable-title">PAY TABLE</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-header"><div class="modal-title" id="paytable-title">SYMBOL TABLE</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
-					<p class="pt-intro" id="paytable-intro">Payouts are multipliers of the active bet. Wins begin with <b>5 orthogonally connected matching symbols</b>; substituting Wilds count in the cluster size.</p>
-					<div class="pt-head" id="paytable-head">Symbol Pays <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small></div>
+					<p class="pt-intro" id="paytable-intro">Values are multipliers of the active play amount. Awards begin with <b>5 orthogonally connected matching symbols</b>; substituting Wilds are included in the displayed cluster size.</p>
+					<div class="pt-head" id="paytable-head">Symbol Values <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small></div>
 					<div class="pt-grid" id="pt-grid"></div>
-					<div class="pt-note" id="paytable-note">5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. The cascade multiplier begins at 1× and rises after each successful cascade. Floating amounts are individual win steps; WIN is the cumulative round result.</div>
+					<div class="pt-note" id="paytable-note">5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each eligible symbol is evaluated independently with orthogonally connected Wilds. A Wild may support multiple distinct symbol clusters, counts toward each supported cluster, and appears only once within a single award. The tumble removes all awarded positions. The cascade multiplier starts at 1× and increases after each successful cascade. A floating amount shows that award step; the WIN meter is cumulative for the complete round.</div>
 				</div>
 			</div>
 		</div>
@@ -1017,32 +1017,32 @@ ${featureItems}
 			<div class="modal">
 				<div class="modal-header"><div class="modal-title">RULES &amp; FEATURES</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body" id="rules-body">
-					<p class="pt-intro">Golden Goal Rush is a 6&times;5 <b>cluster-pays</b> game. Land <b>5 or more matching symbols connected horizontally or vertically</b> to win. The 5+/7+/9+/12+ bands mean 5–6, 7–8, 9–11, and 12 or more symbols. Winning symbols are removed and new ones cascade in. The cascade multiplier starts at 1&times; and increments after each successful cascade.</p>
+					<p class="pt-intro">Golden Goal Rush is a 6&times;5 <b>cluster-awards</b> game. Land <b>5 or more matching symbols connected horizontally or vertically</b> to receive an award. The 5+/7+/9+/12+ bands mean 5–6, 7–8, 9–11, and 12 or more symbols. Awarded symbols are removed and new ones cascade in. The cascade multiplier starts at 1&times; and increments after each successful cascade.</p>
 					<div class="pt-head">Core Game</div>
-					<div class="pt-feat"><img src="${SYMBOLS.wild.src}" alt="Wild" /><div><b>WILD</b>Substitutes for every normal paying symbol to help complete clusters and is included in the displayed cluster size. Does not replace the Scatter.</div></div>
+					<div class="pt-feat"><img src="${SYMBOLS.wild.src}" alt="Wild" /><div><b>WILD</b>Substitutes for every normal eligible symbol to help complete clusters and is included in the displayed cluster size. Does not replace the Scatter.</div></div>
 					<div class="pt-feat"><div class="pt-chip"></div><div><b>WIN AMOUNTS</b>Each floating cluster amount is the award for that specific cascade step, including its cascade multiplier. The WIN meter is the cumulative authoritative result for the full round.</div></div>
 					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Scatter" /><div><b>SCATTER &mdash; VIP TICKET</b>3, 4 or 5 trigger Free Spins Tier 1 / 2 / 3.</div></div>
 					<div class="pt-feat"><div class="pt-chip"></div><div><b>GOLDEN CELLS</b>Every winning position turns into a Golden Cell for the rest of the spin sequence.</div></div>
 					<div class="pt-head">Golden Goal Feature</div>
 					<div class="pt-feat"><img src="${SYMBOLS.rainbow.src}" alt="Golden Arc" /><div><b>GOLDEN ARC (RAINBOW)</b>While an Arc is on the board it activates all Golden Cells, revealing Coins, Multiplier Badges and Collector Cups.</div></div>
-					<div class="pt-feat"><img src="${COIN_ASSETS.gold}" alt="Coins" /><div><b>SPONSOR COINS</b>Bronze ${CONFIG.bronzeValues[0]}&ndash;${CONFIG.bronzeValues[CONFIG.bronzeValues.length-1]}&times;, Silver ${CONFIG.silverValues[0]}&ndash;${CONFIG.silverValues[CONFIG.silverValues.length-1]}&times;, Gold ${CONFIG.goldValues[0]}&ndash;${CONFIG.goldValues[CONFIG.goldValues.length-1]}&times; the bet.</div></div>
+					<div class="pt-feat"><img src="${COIN_ASSETS.gold}" alt="Coins" /><div><b>SPONSOR COINS</b>Bronze ${CONFIG.bronzeValues[0]}&ndash;${CONFIG.bronzeValues[CONFIG.bronzeValues.length-1]}&times;, Silver ${CONFIG.silverValues[0]}&ndash;${CONFIG.silverValues[CONFIG.silverValues.length-1]}&times;, Gold ${CONFIG.goldValues[0]}&ndash;${CONFIG.goldValues[CONFIG.goldValues.length-1]}&times; the play amount.</div></div>
 					<div class="pt-feat"><img src="${MULT_ASSETS[5]}" alt="Multiplier Badge" /><div><b>MULTIPLIER BADGE</b>Multiplies adjacent coins by ${CONFIG.multiplierValues.map((v) => 'x' + v).join(', ')}.</div></div>
 					<div class="pt-feat"><img src="${COLLECTOR_ASSET}" alt="Collector Cup" /><div><b>COLLECTOR CUP</b>Collects the value of every visible coin (top-to-bottom, left-to-right). After the last cup the Golden Cells reveal again, repeating while new cups appear.</div></div>
-					<div class="pt-head">Free Spins &amp; Bonus Buy</div>
+					<div class="pt-head">Free Spins &amp; Features</div>
 					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Free Spins" /><div><b>FREE SPINS</b>
 						${Object.entries(CONFIG.tiers).map(([t, v]) => 'Tier ' + t + ' &mdash; ' + v.name + ': ' + v.spins + ' spins' + (v.guaranteedRainbow ? ', guaranteed Arc each spin' : '') + '.').join('<br>')}</div></div>
-					<div class="pt-feat"><img src="${assets.bonusButton}" alt="Bonus Buy" /><div><b>BONUS BUY</b>
-						${CONFIG.bonusBuy.map((o) => o.label + ' &mdash; ' + o.mult + '&times; bet').join('<br>')}<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
+					<div class="pt-feat"><img src="${assets.bonusButton}" alt="Feature" /><div><b>BONUS / FEATURE</b>
+						${CONFIG.bonusBuy.map((o) => o.label + ' &mdash; ' + o.mult + '&times; play amount').join('<br>')}<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
 					<div class="pt-head">Game Modes</div>
 					${Object.values(PLAYER_MODE_META).map((mode) => `<div class="pt-feat"><div class="pt-chip"></div><div><b>${mode.name}</b>${mode.description}<br><small>Trigger: ${mode.trigger}. Cost multiplier: ${mode.costMultiplier}&times;. ${mode.retrigger}</small></div></div>`).join('\n\t\t\t\t\t')}
 					<div class="pt-head">Retriggers</div>
-					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Retrigger" /><div><b>RETRIGGERS</b>Base Game and Rainbow Spin can trigger Free Spins with 3, 4 or 5 Scatter tickets. Purchased Free Spins do not generate additional Free Spins in the current math book.</div></div>
+					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Retrigger" /><div><b>RETRIGGERS</b>Base Play and Rainbow Spin can trigger Free Spins with 3, 4 or 5 Scatter tickets. Feature-panel Free Spins do not add additional Free Spins in the current math book.</div></div>
 					<div class="pt-head">Buttons &amp; Controls</div>
 					<div class="controls-guide">
 ${controlRuleRows}
 					</div>
-					<div class="pt-note">If the game is reloaded while a base-game round is still active, the round is immediately settled with Stake Engine and the result is available in game history. Active Bonus Buy bonus rounds resume from the saved round state with the purchased balance and bet preserved.</div>
-					<div class="pt-note">RTP 96.45% &middot; Max win ${formatMaxWinMultiplier(CONFIG.maxWinMultiplier)}&times; bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
+					<div class="pt-note">If the game is refreshed while a base-game round is still active, the round is completed by the game service and the result is available in game history. Active feature rounds resume from the saved round state with the selected balance and play amount preserved.</div>
+					<div class="pt-note">RTP 96.45% &middot; Max award ${formatMaxWinMultiplier(CONFIG.maxWinMultiplier)}&times; play amount &middot; All awards use the play amount. Malfunction voids all wins and plays.</div>
 				</div>
 			</div>
 		</div>
@@ -1050,7 +1050,7 @@ ${controlRuleRows}
 		<!-- ===== Auto-Bet modal ===== -->
 		<div class="modal-backdrop" id="modal-autospin" data-modal>
 			<div class="modal">
-				<div class="modal-header"><div class="modal-title" id="autospin-title">AUTO-BET</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-header"><div class="modal-title" id="autospin-title">AUTO-PLAY</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
 					<div class="auto-options" id="auto-options"></div>
 					<div class="auto-confirm" id="auto-confirm" aria-live="polite"></div>
@@ -1063,7 +1063,7 @@ ${controlRuleRows}
 			<div class="replay-overlay-card">
 				<div class="replay-spinner" aria-hidden="true"></div>
 				<div class="replay-overlay-title" id="replay-overlay-title">Loading Replay</div>
-				<div class="replay-overlay-detail" id="replay-overlay-detail">Retrieving the saved round from Stake Engine.</div>
+				<div class="replay-overlay-detail" id="replay-overlay-detail">Retrieving the saved play from the game service.</div>
 			</div>
 		</div>
 
@@ -1103,7 +1103,7 @@ ${controlRuleRows}
 		<!-- ===== Bonus Buy modal ===== -->
 		<div class="modal-backdrop" id="modal-bonusbuy" data-modal>
 			<div class="modal">
-				<div class="modal-header"><div class="modal-title" id="bonusbuy-title">BONUS BUY</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-header"><div class="modal-title" id="bonusbuy-title">BONUS / FEATURE</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
 					<div class="bonusbuy-hero"><img src="${assets.featureBanner}" alt="" /><div class="bonusbuy-title">Golden Goal Rush</div></div>
 					<div class="bb-list" id="bonusbuy-list"></div>
@@ -1127,8 +1127,8 @@ const COIN_ASSETS = ${JSON.stringify(COIN_ASSETS)};
 const MULT_ASSETS = ${JSON.stringify(MULT_ASSETS)};
 const COLLECTOR_ASSET = ${JSON.stringify(COLLECTOR_ASSET)};
 const AUDIO_ASSETS = ${JSON.stringify(AUDIO_ASSETS)};
-const STAKE_SOCIAL_RESTRICTED_TERMS = ${JSON.stringify(STAKE_SOCIAL_RESTRICTED_TERMS)};
-const socialRestrictedHits = ${socialRestrictedHits.toString()};
+const STAKE_PLAYER_VISIBLE_RESTRICTED_TERMS = ${JSON.stringify(STAKE_PLAYER_VISIBLE_RESTRICTED_TERMS)};
+const playerVisibleRestrictedHits = ${playerVisibleRestrictedHits.toString()};
 const summarizeFeatureEvents = ${summarizeFeatureEvents.toString()};
 const reconcileWalletBalance = ${reconcileWalletBalance.toString()};
 const ASSETS = ${JSON.stringify(assets)};
@@ -1154,49 +1154,49 @@ const LANGUAGE_RESOURCES = {
 	en: {
 		balanceLabel: 'BALANCE',
 		winLabel: 'WIN',
-		betLabel: 'BET',
-		spinButton: 'SPIN',
-		buyBonusAria: 'Buy Bonus',
-		autoAria: 'Auto Spin',
-		betControlsAria: 'Bet controls',
-		decreaseBetAria: 'Decrease bet',
-		increaseBetAria: 'Increase bet',
-		autoTitle: 'AUTO-BET',
-		bonusBuyTitle: 'BONUS BUY',
-		paytableLabel: 'Pay Table',
-		paytableDesc: 'Symbol payouts and cluster sizes',
-		paytableTitle: 'PAY TABLE',
-		paytableIntro: 'Payouts are multipliers of the active bet. Wins begin with <b>5 orthogonally connected matching symbols</b>; substituting Wilds are included in the displayed cluster size.',
-		paytableHead: 'Symbol Pays <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small>',
-		paytableNote: '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each paying symbol is evaluated independently with orthogonally connected Wilds. A Wild may support more than one distinct symbol cluster, counts toward each supported cluster, and appears only once within a single win. The tumble removes the union of all winning positions. The cascade multiplier starts at 1× and increases after each successful cascade, so a later floating cluster amount can exceed the base table value. A floating amount is that win step; the WIN meter is cumulative for the complete round.',
-		rulesDesc: 'Cluster wins, coins, multipliers and free spins',
-		autoConfirm: 'Start Auto-Bet for',
-		bonusNoteAffordable: 'Prices scale with your current bet. Tier 3 can only trigger naturally.',
+		betLabel: 'PLAY',
+		spinButton: 'PLAY',
+		buyBonusAria: 'Feature',
+		autoAria: 'Auto-Play',
+		betControlsAria: 'Play controls',
+		decreaseBetAria: 'Decrease play amount',
+		increaseBetAria: 'Increase play amount',
+		autoTitle: 'AUTO-PLAY',
+		bonusBuyTitle: 'BONUS / FEATURE',
+		paytableLabel: 'Symbol Table',
+		paytableDesc: 'Symbol values and cluster sizes',
+		paytableTitle: 'SYMBOL TABLE',
+		paytableIntro: 'Values are multipliers of the active play amount. Awards begin with <b>5 orthogonally connected matching symbols</b>; substituting Wilds are included in the displayed cluster size.',
+		paytableHead: 'Symbol Values <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small>',
+		paytableNote: '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each eligible symbol is evaluated independently with orthogonally connected Wilds. A Wild may support multiple distinct symbol clusters, counts toward each supported cluster, and appears only once within a single award. The tumble removes all awarded positions. The cascade multiplier starts at 1× and increases after each successful cascade. A floating amount shows that award step; the WIN meter is cumulative for the complete round.',
+		rulesDesc: 'Cluster awards, coins, multipliers and free spins',
+		autoConfirm: 'Start Auto-Play for',
+		bonusNoteAffordable: 'Feature amounts scale with your current play amount. Tier 3 can only trigger naturally.',
 		bonusNoteDisabled: 'Greyed options exceed your balance. Tier 3 can only trigger naturally.',
-		buyConfirmVerb: 'Buy',
-		balanceAfterPurchase: 'Balance after purchase',
-		replayTitle: 'Bet Replay',
+		buyConfirmVerb: 'Start',
+		balanceAfterPurchase: 'Balance after feature',
+		replayTitle: 'Play Replay',
 		startReplay: 'Start Replay',
-		replayEvent: 'Replay Event',
+		replayEvent: 'Replay Play',
 		replayMode: 'Mode',
-		replayBaseBet: 'Base Bet',
-		replayCostMultiplier: 'Cost Multiplier',
-		replayTotalCost: 'Total Bet Cost',
-		replayPayoutMultiplier: 'Payout Multiplier',
-		replayTotalWin: 'Total Win',
-		replayNote: 'This is a replay of a previous bet round. No bets will be placed.',
+		replayBaseBet: 'Base Play',
+		replayCostMultiplier: 'Feature Multiplier',
+		replayTotalCost: 'Play Cost',
+		replayPayoutMultiplier: 'Final Multiplier',
+		replayTotalWin: 'Final Play Amount',
+		replayNote: 'This is a replay of a previous play round. No new play will be placed.',
 		replayComplete: 'Replay Complete',
 		replayLoading: 'LOADING REPLAY',
 		replayReady: 'READY TO REPLAY',
 		replayRunning: 'REPLAY RUNNING',
 		replayCompleted: 'REPLAY COMPLETED',
 		replayError: 'REPLAY ERROR',
-		replayLoadingDetail: 'Retrieving the saved round from the game service.',
-		replayErrorDetail: 'The saved replay could not be loaded.',
-		replaySummaryLoading: 'Saved round · read-only',
+		replayLoadingDetail: 'Retrieving the saved play from the game service.',
+		replayErrorDetail: 'The saved play replay could not be loaded.',
+		replaySummaryLoading: 'Saved play · view only',
 		replayAction: 'Replay Play',
 		replayAgainAction: 'Play Again',
-		replayStageAria: 'Golden Goal Rush bet replay',
+		replayStageAria: 'Golden Goal Rush play replay',
 	},
 	sweeps_en: {
 		balanceLabel: 'BALANCE',
@@ -1246,10 +1246,10 @@ const LANGUAGE_RESOURCES = {
 		replayStageAria: 'Golden Goal Rush play replay',
 	},
 };
-const SOCIAL_RESTRICTED_PHRASES = STAKE_SOCIAL_RESTRICTED_TERMS;
-const SOCIAL_RESOURCE_TEXT = Object.values(LANGUAGE_RESOURCES.sweeps_en).join(' ');
-const SOCIAL_RESOURCE_HITS = socialRestrictedHits(SOCIAL_RESOURCE_TEXT);
-if (SOCIAL_RESOURCE_HITS.length) console.error('[GGR social-copy] restricted phrase in sweeps_en', SOCIAL_RESOURCE_HITS);
+for (const [resourceName, resource] of Object.entries(LANGUAGE_RESOURCES)) {
+	const restrictedHits = playerVisibleRestrictedHits(Object.values(resource).join(' '));
+	if (restrictedHits.length) console.error('[GGR player-copy] restricted phrase in language resource', resourceName, restrictedHits);
+}
 
 const state = {
 	balance: 1000, bet: 1, betIdx: 9, currency: DEFAULT_CURRENCY, grid: [], spinning: false, walletBusy: false, turbo: false, auto: false, autoRemaining: 0, selectedAutoSpins: null,
@@ -1547,7 +1547,7 @@ function controlRulesGuideHtml(social = isSocialPlay()) {
 			+ '<div><b>' + name + '</b>' + desc + '</div></div>';
 	}).join('') + '</div>';
 }
-function buildSocialRulesBodyHtml() {
+function buildPlayerSafeRulesBodyHtml() {
 	const modeKeys = ['base', 'hunt', 'rainbow', 'bonus_tier1', 'bonus', 'bonus_tier3'];
 	const modeRows = modeKeys.map((key) => {
 		const meta = PLAYER_MODE_META[key];
@@ -1578,7 +1578,6 @@ function buildSocialRulesBodyHtml() {
 		+ '<div class="pt-note">If the game is refreshed while a base-game round is still active, the round is completed by the game service and the result is available in game history. Active feature rounds resume from the saved round state with the selected balance and play amount preserved.</div>'
 		+ '<div class="pt-note">RTP 96.45% &middot; Max award ' + formatMaxWinMultiplier(CONFIG.maxWinMultiplier) + 'x play amount &middot; All awards use the play amount. Malfunction voids all awards and plays.</div>';
 }
-let normalRulesHtml = '';
 function applyLanguage() {
 	const social = isSocialPlay();
 	document.documentElement.dataset.social = social ? 'true' : 'false';
@@ -1618,8 +1617,7 @@ function applyLanguage() {
 	setText('replay-end-title', t('replayComplete'));
 	const rulesBody = $('rules-body');
 	if (rulesBody) {
-		if (!normalRulesHtml) normalRulesHtml = rulesBody.innerHTML;
-		rulesBody.innerHTML = social ? buildSocialRulesBodyHtml() : normalRulesHtml;
+		rulesBody.innerHTML = buildPlayerSafeRulesBodyHtml();
 	}
 }
 
@@ -1664,7 +1662,7 @@ function enterReplayUi() {
 	makeUnavailableInReplay(document.querySelector('.feature-control'));
 	const replayBetLabel = document.querySelector('.meter[data-meter="bet"] .meter-label');
 	if (replayBetLabel) {
-		replayBetLabel.textContent = isSocialPlay() ? 'REPLAY PLAY' : 'REPLAY BET';
+		replayBetLabel.textContent = 'REPLAY PLAY';
 		replayBetLabel.removeAttribute('data-i18n');
 	}
 	const turbo = $('btn-turbo');
@@ -1732,7 +1730,7 @@ function replayError(title, detail) {
 	state.grid = [];
 	board.innerHTML = '';
 	stage.classList.remove('spinning', 'bonus-mode', 'win-focus', 'antic', 'skip-mode');
-	setReplayLifecycle('error', null, (title ? title + '. ' : '') + (detail || 'Please relaunch the replay from Stake Engine.'));
+	setReplayLifecycle('error', null, 'The saved play could not be loaded or validated. Please relaunch the replay from the game host.');
 	console.error('[GGR replay error]', { title, detail });
 }
 
@@ -1755,7 +1753,7 @@ function fatalError(title, detail = '') {
 		stage.appendChild(overlay);
 	}
 	overlay.querySelector('.fatal-error-title').textContent = title;
-	overlay.querySelector('.fatal-error-detail').textContent = detail || 'Please relaunch the game from Stake Engine.';
+	overlay.querySelector('.fatal-error-detail').textContent = detail || 'Please relaunch the game from the game host.';
 	overlay.classList.add('show');
 	overlay.setAttribute('aria-hidden', 'false');
 	console.error('[GGR fatal]', { title, detail });
@@ -1815,7 +1813,7 @@ function validateLaunchUrl() {
 	if (!/^[A-Z]{2,8}$/.test(currency)) missing.push('valid currency');
 	if (!/^(desktop|mobile|tablet)$/i.test(device)) missing.push('valid device');
 	if (missing.length) {
-		fatalError('Invalid game launch', 'The game URL is missing or has invalid Stake Engine launch parameters: ' + missing.join(', ') + '. Please relaunch the game.');
+		fatalError('Invalid game launch', 'The game URL is missing or has invalid game-service launch parameters: ' + missing.join(', ') + '. Please relaunch the game.');
 		return false;
 	}
 	return true;
@@ -1823,7 +1821,7 @@ function validateLaunchUrl() {
 function checkLaunchUrlIntegrity() {
 	if (!UrlState.requiresRgs()) return;
 	if (window.location.href !== initialLaunchUrl) {
-		fatalError('Game launch URL changed', 'The launch URL changed after the game started. Please relaunch the game from Stake Engine.');
+		fatalError('Game launch URL changed', 'The launch URL changed after the game started. Please relaunch the game from the game host.');
 	}
 }
 window.addEventListener('popstate', checkLaunchUrlIntegrity);
@@ -1837,12 +1835,8 @@ window.addEventListener('hashchange', checkLaunchUrlIntegrity);
 	};
 });
 
-function isStakeUsBalanceLabel(currency = state.currency) {
-	const code = normalizeCurrency(currency);
-	return UrlState.social() || code === 'XGC' || code === 'XSC';
-}
-function insufficientFundsTitle(currency = state.currency) {
-	return isStakeUsBalanceLabel(currency) ? 'Insufficient Balance' : 'Insufficient Funds';
+function insufficientBalanceTitle() {
+	return 'Insufficient Balance';
 }
 function showNotice(title, body) {
 	const titleEl = $('notice-title');
@@ -1854,7 +1848,7 @@ function showNotice(title, body) {
 	openModal('modal-notification');
 }
 function showInsufficientFunds(requiredAmount = state.bet) {
-	const title = insufficientFundsTitle();
+	const title = insufficientBalanceTitle();
 	const needed = Math.max(0, roundMoney(requiredAmount - state.balance));
 	const detail = needed > 0
 		? 'Your balance is too low for this action. Required: <strong>' + formatCurrency(requiredAmount) + '</strong>. Available: <strong>' + formatCurrency(state.balance) + '</strong>.'
@@ -2091,7 +2085,7 @@ const Rgs = (() => {
 	const failRequest = (reason, error) => {
 		if (error) warnRgs('[RGS] ' + reason, error);
 		if (error && UrlState.requiresRgs() && isFatalRgsError(error)) {
-			fatalError('Stake Engine connection error', 'The game launch session is invalid or expired. Please relaunch the game from Stake Engine.');
+			fatalError('Game service connection error', 'The game launch session is invalid or expired. Please relaunch the game from the game host.');
 		}
 		if (error) setCooldown(isRateLimitedError(error) ? 2200 : 1200);
 		return false;
@@ -2178,7 +2172,7 @@ const Rgs = (() => {
 		}).catch((error) => {
 			console.warn('[RGS] authenticate failed', error);
 			if (UrlState.requiresRgs()) {
-				fatalError('Stake Engine connection error', 'The game could not authenticate with Stake Engine. Please relaunch the game.');
+				fatalError('Game service connection error', 'The game could not authenticate with the game service. Please relaunch the game.');
 			}
 			authenticatePromise = null;
 			return false;
@@ -2370,7 +2364,7 @@ async function resumeLaunchRound() {
 		Rgs.setBalanceDeferred(false);
 		if (endRoundResult && endRoundResult.blocked) {
 			stopAutoSpin();
-			fatalError('Stake Engine settlement failed', 'The resumed bonus round could not be settled. Please relaunch the game.');
+			fatalError('Game service settlement failed', 'The resumed feature round could not be completed. Please relaunch the game.');
 			return;
 		}
 		try {
@@ -2380,7 +2374,7 @@ async function resumeLaunchRound() {
 				walletBalanceAfterEndRound,
 			});
 		} catch (error) {
-			fatalError('Stake Engine settlement failed', error.message);
+			fatalError('Game service settlement failed', 'The authoritative balance could not be applied. Please relaunch the game.');
 			return;
 		}
 		if (displayedWin > 0) await showBanner(displayedWin);
@@ -4438,7 +4432,7 @@ async function spin(buy, internalFreeSpin = false) {
 		walletBalanceAfterPlay = Rgs.consumePendingBalance();
 		if (Rgs.configured() && !rgsPlay) {
 			stopAutoSpin();
-			fatalError('Stake Engine request failed', 'The game could not start a wallet round. Please relaunch the game from Stake Engine.');
+			fatalError('Game service request failed', 'The game could not start a wallet round. Please relaunch the game from the game host.');
 			if (paidRound) setWalletBusy(false);
 			$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
 			updateMeters();
@@ -4451,7 +4445,7 @@ async function spin(buy, internalFreeSpin = false) {
 		const renderRgsRound = Rgs.configured() && rgsPlay && shouldRenderRgsRound(rgsEvents);
 		if ((USE_RGS_STATE_RENDERER || renderSafeRgsBase || renderRgsRound) && Rgs.configured() && rgsPlay) {
 			if (!walletBalanceAfterPlay) {
-				fatalError('Stake Engine settlement failed', 'The play response did not include the authoritative post-debit balance.');
+				fatalError('Game service settlement failed', 'The play response did not include the authoritative updated balance.');
 				setWalletBusy(false);
 				$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
 				return;
@@ -4467,7 +4461,7 @@ async function spin(buy, internalFreeSpin = false) {
 				Rgs.setBalanceDeferred(false);
 				if (endRoundResult && endRoundResult.blocked) {
 					stopAutoSpin();
-					fatalError('Stake Engine settlement failed', 'The round could not be settled with Stake Engine. Please relaunch the game.');
+					fatalError('Game service settlement failed', 'The round could not be completed by the game service. Please relaunch the game.');
 					setWalletBusy(false);
 					updateMeters();
 					$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
@@ -4481,7 +4475,7 @@ async function spin(buy, internalFreeSpin = false) {
 					walletBalanceAfterEndRound,
 				});
 			} catch (error) {
-				fatalError('Stake Engine settlement failed', error.message);
+				fatalError('Game service settlement failed', 'The authoritative balance could not be applied. Please relaunch the game.');
 				setWalletBusy(false);
 				$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
 				return;
@@ -4516,7 +4510,7 @@ async function spin(buy, internalFreeSpin = false) {
 				walletBalanceAfterEndRound = Rgs.consumePendingBalance();
 				if (endRoundResult && endRoundResult.blocked) {
 					Rgs.setBalanceDeferred(false);
-					fatalError('Stake Engine settlement failed', 'The round could not be settled after an unsupported RGS state. Please relaunch the game.');
+					fatalError('Game service settlement failed', 'The round could not be completed after an unsupported game-service state. Please relaunch the game.');
 					setWalletBusy(false);
 					$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
 					updateMeters();
@@ -4524,7 +4518,7 @@ async function spin(buy, internalFreeSpin = false) {
 				}
 			}
 			Rgs.setBalanceDeferred(false);
-			fatalError('Unsupported Stake Engine round', 'The game received a RGS round state it cannot display safely. No local fallback was used.');
+			fatalError('Unsupported game-service round', 'The game received a round state it cannot display safely. No local fallback was used.');
 			setWalletBusy(false);
 			$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
 			updateMeters();
@@ -4633,7 +4627,7 @@ async function spin(buy, internalFreeSpin = false) {
 		walletBalanceAfterEndRound = Rgs.consumePendingBalance();
 		Rgs.setBalanceDeferred(false);
 		if (endRoundResult && endRoundResult.blocked) {
-			fatalError('Stake Engine settlement failed', 'The round could not be settled with Stake Engine. Please relaunch the game.');
+			fatalError('Game service settlement failed', 'The round could not be completed by the game service. Please relaunch the game.');
 			if (paidRound) setWalletBusy(false);
 			return;
 		}
@@ -4641,7 +4635,7 @@ async function spin(buy, internalFreeSpin = false) {
 			try {
 				applyAuthoritativeWalletBalance({ active: true, walletBalanceAfterPlay, walletBalanceAfterEndRound });
 			} catch (error) {
-				fatalError('Stake Engine settlement failed', error.message);
+				fatalError('Game service settlement failed', 'The authoritative balance could not be applied. Please relaunch the game.');
 				if (paidRound) setWalletBusy(false);
 				return;
 			}
@@ -4783,12 +4777,10 @@ function buildBonusBuy() {
 		const price = Math.round(o.mult * state.bet * 100) / 100;
 		const afford = state.balance >= price; if (!afford) anyDisabled = true;
 		const m = BB_META[o.id] || { asset: SYMBOLS.football.src, accent: '#d5a23b', tag: 'Bonus' };
-		const desc = isSocialPlay()
-			? (o.id === 'hunt' ? 'One play with boosted feature chance'
-				: o.id === 'rainbow' ? 'One play with a guaranteed Golden Arc'
-				: o.id === 'tier1' ? 'Start 8 Free Spins (Tier 1)'
-				: o.id === 'tier2' ? 'Start 12 Free Spins (Tier 2)'
-				: o.desc)
+		const desc = o.id === 'hunt' ? 'One play with boosted feature chance'
+			: o.id === 'rainbow' ? 'One play with a guaranteed Golden Arc'
+			: o.id === 'tier1' ? 'Start 8 Free Spins (Tier 1)'
+			: o.id === 'tier2' ? 'Start 12 Free Spins (Tier 2)'
 			: o.desc;
 		return '<button class="bb-opt' + (afford ? '' : ' disabled') + '" data-buy="' + o.id + '" style="--bb-accent:' + m.accent + '" aria-disabled="' + (afford ? 'false' : 'true') + '">' +
 			'<span class="bb-ico"><img src="' + m.asset + '" alt="" /></span>' +
@@ -4835,14 +4827,14 @@ function showBuyConfirm(o, price) {
 				const rgsPlay = await Rgs.play(state.bet, Rgs.modeFor(o), { spinId: purchaseSpinId });
 				const walletBalanceAfterPlay = Rgs.consumePendingBalance();
 				if (Rgs.configured() && !rgsPlay) {
-					fatalError('Stake Engine request failed', 'The bonus buy could not start a wallet round. Please relaunch the game from Stake Engine.');
+					fatalError('Game service request failed', 'The feature could not start a game round. Please relaunch the game.');
 					return;
 				}
 				const walletManaged = !!rgsPlay;
 				const roundNeedsEnd = !!(rgsPlay && rgsPlay.__needsEndRound);
 				if (walletManaged) {
 					if (!walletBalanceAfterPlay) {
-						fatalError('Stake Engine settlement failed', 'The play response did not include the authoritative post-debit balance.');
+						fatalError('Game service settlement failed', 'The play response did not include the authoritative updated balance.');
 						return;
 					}
 					state.balance = walletBalanceAfterPlay.amount;
@@ -4863,11 +4855,11 @@ function showBuyConfirm(o, price) {
 						if (roundNeedsEnd) {
 							const endRoundResult = await Rgs.endRound({ spinId: purchaseSpinId, recovery: 'unrenderable-bonus-buy' });
 							if (endRoundResult && endRoundResult.blocked) {
-								fatalError('Stake Engine settlement failed', 'The unsupported bonus buy round could not be settled. Please relaunch the game.');
+								fatalError('Game service settlement failed', 'The unsupported feature round could not be completed. Please relaunch the game.');
 								return;
 							}
 						}
-						fatalError('Unsupported Stake Engine round', 'The bonus buy returned a RGS round state the game cannot display safely. No local fallback was used.');
+						fatalError('Unsupported game-service round', 'The feature returned a round state the game cannot display safely. No local fallback was used.');
 						return;
 					}
 					await bonusIntroRgs(CONFIG.tiers[tier].spins);
@@ -4881,7 +4873,7 @@ function showBuyConfirm(o, price) {
 						const endRoundResult = await Rgs.endRound({ spinId: purchaseSpinId });
 						walletBalanceAfterEndRound = Rgs.consumePendingBalance();
 						if (endRoundResult && endRoundResult.blocked) {
-							fatalError('Stake Engine settlement failed', 'The bonus buy round could not be settled. Please relaunch the game.');
+							fatalError('Game service settlement failed', 'The feature round could not be completed. Please relaunch the game.');
 							return;
 						}
 					}
@@ -4892,7 +4884,7 @@ function showBuyConfirm(o, price) {
 							walletBalanceAfterEndRound,
 						});
 					} catch (error) {
-						fatalError('Stake Engine settlement failed', error.message);
+						fatalError('Game service settlement failed', 'The authoritative balance could not be applied. Please relaunch the game.');
 						return;
 					}
 					if (displayedWin > 0) await showBanner(displayedWin);

@@ -8,11 +8,11 @@
  *
  *   currency            HUD balance/bet/win formatting per currency (EUR, USD,
  *                       XSC, XGC, JPY, DKK, CLP) straight from the DOM.
- *   insufficient-funds  bet > balance blocks spin / auto-bet / bonus buy with
- *                       "Insufficient Funds" (fiat) or "Insufficient Balance"
- *                       (Stake.us / XSC / XGC) and fires NO /wallet/play call.
- *   major-actions       Auto-Bet never starts on a single click (amount
- *                       selection 10/25/50/100/200/∞ + Confirm), Bonus Buy
+ *   insufficient-funds  play amount > balance blocks Play / Auto-Play /
+ *                       Feature with "Insufficient Balance" and fires no
+ *                       /wallet/play call.
+ *   major-actions       Auto-Play never starts on a single click (amount
+ *                       selection 10/25/50/100/200/∞ + Confirm), Feature
  *                       requires Confirm, confirmMajorAction() guard works.
  *   interrupted-round   refresh mid-bonus (mocked RGS active bonus round)
  *                       shows the resume message, blocks all actions while
@@ -35,7 +35,7 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'no
 import { dirname, extname, join, normalize, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { socialRestrictedHits } from '../apps/cluster/scripts/stake-compliance-contract.mjs';
+import { playerVisibleRestrictedHits } from '../apps/cluster/scripts/stake-compliance-contract.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
@@ -121,7 +121,32 @@ Object.defineProperty(window, '__stakeQa', {
 	}),
 });
 `;
-const socialForbiddenHits = (text) => socialRestrictedHits(text);
+const playerVisibleForbiddenHits = (text) => playerVisibleRestrictedHits(text);
+
+async function visibleSurfaceAudit(page) {
+	return page.evaluate(() => {
+		const visible = (el) => {
+			if (!el) return false;
+			const style = getComputedStyle(el);
+			const rect = el.getBoundingClientRect();
+			return style.display !== 'none'
+				&& style.visibility !== 'hidden'
+				&& Number(style.opacity) !== 0
+				&& rect.width > 0
+				&& rect.height > 0;
+		};
+		const attrs = [...document.querySelectorAll('[aria-label],[title],[alt]')]
+			.filter(visible)
+			.flatMap((el) => [el.getAttribute('aria-label'), el.getAttribute('title'), el.getAttribute('alt')].filter(Boolean))
+			.join(' ');
+		const text = document.body.innerText || '';
+		return {
+			text,
+			attrs,
+			rawSocialCodes: `${text} ${attrs}`.match(/\bX(?:G|S)C\b/g) || [],
+		};
+	});
+}
 
 // ---------------------------------------------------------------------------
 // Playwright / Chromium resolution. The repo does not vendor Playwright, so we
@@ -231,11 +256,22 @@ async function mockRgs(context, handlers) {
 		} catch {
 			body = {};
 		}
-		const reply = (data) => route.fulfill({
-			status: 200,
-			contentType: 'application/json',
-			body: JSON.stringify({ status: { statusCode: 'SUCCESS' }, ...data }),
-		});
+		const reply = async (pendingData) => {
+			const data = await pendingData;
+			if (data?.response) {
+				const response = data.response;
+				return route.fulfill({
+					status: response.status ?? 200,
+					contentType: response.contentType ?? 'application/json',
+					body: typeof response.body === 'string' ? response.body : JSON.stringify(response.body ?? {}),
+				});
+			}
+			return route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ status: { statusCode: 'SUCCESS' }, ...(data || {}) }),
+			});
+		};
 		if (path === '/wallet/authenticate') {
 			calls.authenticate.push(body);
 			calls.order.push('authenticate');
@@ -823,7 +859,7 @@ async function testCurrency(browser, base) {
 }
 
 // ---------------------------------------------------------------------------
-// 2. Insufficient Funds / Insufficient Balance — spin, auto-bet, bonus buy
+// 2. Insufficient Balance — Play, Auto-Play and Feature
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 // 1b. Authenticate-driven bet configuration
@@ -873,17 +909,24 @@ async function testBetConfig(browser, base) {
 }
 
 // ---------------------------------------------------------------------------
-// 1c. Stake.us / social wording on live UI
+// 1c. Globally safe player wording on first render and every live UI mode
 // ---------------------------------------------------------------------------
 async function testSocialWording(browser, base) {
-	const group = 'social-e2e';
-	const runCase = async ({ currency, screenshotSuffix }) => {
-		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+	const group = 'terminology-e2e';
+	const runCase = async ({
+		currency,
+		screenshotSuffix,
+		socialCasino,
+		launchCurrency = currency,
+		queryExtra = '',
+		viewport = { width: 1280, height: 720 },
+	}) => {
+		const context = await browser.newContext({ viewport });
 		const calls = await mockRgs(context, {
 			authenticate: () => ({
 				balance: balanceOf(1000, currency),
 				config: {
-					jurisdiction: { socialCasino: true },
+					jurisdiction: { socialCasino },
 					minBet: API,
 					maxBet: 1000 * API,
 					stepBet: API,
@@ -894,30 +937,22 @@ async function testSocialWording(browser, base) {
 				round: null,
 			}),
 		});
-		const page = await openPreview(context, base, rgsQuery('USD'));
-		await page.waitForFunction(() => window.__stakeQa.state.walletBusy === false && window.__stakeQa.state.socialCasino === true);
+		const page = await openPreview(context, base, rgsQuery(launchCurrency, queryExtra));
+		await page.waitForFunction(
+			(expectedSocial) => window.__stakeQa.state.walletBusy === false && window.__stakeQa.state.socialCasino === expectedSocial,
+			socialCasino,
+		);
 		const authority = await page.evaluate(() => ({
 			socialCasino: window.__stakeQa.state.socialCasino,
 			currency: window.__stakeQa.state.currency,
 			urlSocial: new URL(location.href).searchParams.has('social'),
 		}));
-		expect(group, `${currency} social mode comes from Authenticate jurisdiction and balance currency`, calls.authenticate.length === 1 && authority.socialCasino && authority.currency === currency && !authority.urlSocial, JSON.stringify({ authority, calls }));
+		expect(group, `${screenshotSuffix} mode comes from Authenticate jurisdiction and balance`, calls.authenticate.length === 1 && authority.socialCasino === socialCasino && authority.currency === currency, JSON.stringify({ authority, calls }));
 		const auditVisibleSurface = async (label) => {
-			const audit = await page.evaluate(() => {
-				const visible = (el) => {
-					const style = getComputedStyle(el);
-					const rect = el.getBoundingClientRect();
-					return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) !== 0 && rect.width > 0 && rect.height > 0;
-				};
-				const attrs = [...document.querySelectorAll('[aria-label],[title],[alt]')]
-					.filter(visible)
-					.flatMap((el) => [el.getAttribute('aria-label'), el.getAttribute('title'), el.getAttribute('alt')].filter(Boolean))
-					.join(' ');
-				const text = document.body.innerText || '';
-				return { text, attrs, rawCodes: `${text} ${attrs}`.match(/\bX(?:G|S)C\b/g) || [] };
-			});
-			const hits = socialForbiddenHits(`${audit.text} ${audit.attrs}`);
-			expect(group, `${currency} ${label} has no restricted visible/accessibility copy or raw social code`, hits.length === 0 && audit.rawCodes.length === 0, `hits=${hits.join(',') || 'none'} raw=${audit.rawCodes.join(',') || 'none'}`);
+			const audit = await visibleSurfaceAudit(page);
+			const hits = playerVisibleForbiddenHits(`${audit.text} ${audit.attrs}`);
+			const socialCodeSafe = !['XGC', 'XSC'].includes(currency) || audit.rawSocialCodes.length === 0;
+			expect(group, `${screenshotSuffix} ${label} has no restricted visible/accessibility copy`, hits.length === 0 && socialCodeSafe, `hits=${hits.join(',') || 'none'} raw=${audit.rawSocialCodes.join(',') || 'none'}`);
 			return audit;
 		};
 		const hud = await page.evaluate(() => ({
@@ -927,8 +962,8 @@ async function testSocialWording(browser, base) {
 			bonusAria: document.getElementById('btn-bonus')?.getAttribute('aria-label'),
 			autoAria: document.getElementById('btn-auto')?.getAttribute('aria-label'),
 		}));
-		expect(group, `${currency} HUD labels become PLAY`, hud.betMeter === 'PLAY' && hud.betPanel === 'PLAY' && hud.spin === 'PLAY', JSON.stringify(hud));
-		expect(group, `${currency} major action aria labels use social wording`, hud.bonusAria === 'Feature' && hud.autoAria === 'Auto-Play', JSON.stringify(hud));
+		expect(group, `${screenshotSuffix} HUD labels use PLAY globally`, hud.betMeter === 'PLAY' && hud.betPanel === 'PLAY' && hud.spin === 'PLAY', JSON.stringify(hud));
+		expect(group, `${screenshotSuffix} major-action accessibility labels are globally safe`, hud.bonusAria === 'Feature' && hud.autoAria === 'Auto-Play', JSON.stringify(hud));
 		await auditVisibleSurface('HUD');
 
 		await page.click('#btn-auto');
@@ -936,7 +971,7 @@ async function testSocialWording(browser, base) {
 		const autoTitle = await meterText(page, 'autospin-title');
 		await page.click('[data-auto-count="25"]');
 		const autoConfirm = await page.evaluate(() => document.getElementById('auto-confirm')?.textContent || '');
-		expect(group, `${currency} auto modal is social-safe`, autoTitle === 'AUTO-PLAY' && autoConfirm.includes('Start Auto-Play for 25') && !autoConfirm.includes('Auto-Bet'), `${autoTitle} ${autoConfirm.trim()}`);
+		expect(group, `${screenshotSuffix} auto modal is globally safe`, autoTitle === 'AUTO-PLAY' && autoConfirm.includes('Start Auto-Play for 25') && !autoConfirm.includes('Auto-Bet'), `${autoTitle} ${autoConfirm.trim()}`);
 		await auditVisibleSurface('Auto-Play dialog');
 		await page.evaluate(() => document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')));
 
@@ -946,8 +981,8 @@ async function testSocialWording(browser, base) {
 			title: document.getElementById('bonusbuy-title')?.textContent?.trim(),
 			text: document.getElementById('modal-bonusbuy')?.innerText || '',
 		}));
-		const bonusHits = socialForbiddenHits(bonus.text);
-		expect(group, `${currency} feature modal avoids restricted copy`, bonus.title === 'BONUS / FEATURE' && bonusHits.length === 0, `hits=${bonusHits.join(',') || 'none'}; ${bonus.text.replace(/\s+/g, ' ').slice(0, 160)}`);
+		const bonusHits = playerVisibleForbiddenHits(bonus.text);
+		expect(group, `${screenshotSuffix} feature modal avoids restricted copy`, bonus.title === 'BONUS / FEATURE' && bonusHits.length === 0, `hits=${bonusHits.join(',') || 'none'}; ${bonus.text.replace(/\s+/g, ' ').slice(0, 160)}`);
 		await auditVisibleSurface('Feature dialog');
 		await page.evaluate(() => document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')));
 
@@ -988,6 +1023,7 @@ async function testSocialWording(browser, base) {
 			const footerRect = footer?.getBoundingClientRect();
 			const bodyRect = body?.getBoundingClientRect();
 			return {
+				title: root?.querySelector('.modal-title')?.textContent?.trim() || '',
 				text: root.innerText || '',
 				attrs,
 				footer: footer?.textContent?.trim() || '',
@@ -998,11 +1034,12 @@ async function testSocialWording(browser, base) {
 				clientHeight: body?.clientHeight || 0,
 			};
 		});
-		const paytableHits = socialForbiddenHits(`${paytable.text} ${paytable.attrs}`);
+		const paytableHits = playerVisibleForbiddenHits(`${paytable.text} ${paytable.attrs}`);
 		const expectedFooter = '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each eligible symbol is evaluated independently with orthogonally connected Wilds. A Wild may support multiple distinct symbol clusters, counts toward each supported cluster, and appears only once within a single award. The tumble removes all awarded positions. The cascade multiplier starts at 1× and increases after each successful cascade. A floating amount shows that award step; the WIN meter is cumulative for the complete round.';
-		expect(group, `${currency} fully scrolled Symbol Table footer is exact, visible and unrestricted`, paytableHits.length === 0 && paytable.footer === expectedFooter && paytable.footerVisible && paytable.panelOpacity >= 0.99 && Math.abs(paytable.scrollTop + paytable.clientHeight - paytable.scrollHeight) <= 2, `hits=${paytableHits.join(',') || 'none'} scroll=${paytable.scrollTop}/${paytable.scrollHeight} footerVisible=${paytable.footerVisible} panelOpacity=${paytable.panelOpacity}`);
+		expect(group, `${screenshotSuffix} fully scrolled Symbol Table title/footer are exact, visible and unrestricted`, paytable.title === 'SYMBOL TABLE' && !paytable.text.includes('PAY TABLE') && paytableHits.length === 0 && paytable.footer === expectedFooter && paytable.footerVisible && paytable.panelOpacity >= 0.99 && Math.abs(paytable.scrollTop + paytable.clientHeight - paytable.scrollHeight) <= 2, `title=${paytable.title} hits=${paytableHits.join(',') || 'none'} scroll=${paytable.scrollTop}/${paytable.scrollHeight} footerVisible=${paytable.footerVisible} panelOpacity=${paytable.panelOpacity}`);
 		await auditVisibleSurface('fully scrolled Symbol Table');
-		await screenshot(page, `social-paytable-${screenshotSuffix}-scrolled`);
+		const symbolTableShot = await screenshot(page, `symbol-table-${screenshotSuffix}-scrolled`);
+		pass(group, `${screenshotSuffix} exact Symbol Table screenshot saved`, symbolTableShot);
 		await page.evaluate(() => document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')));
 
 		await page.click('#btn-info');
@@ -1020,16 +1057,97 @@ async function testSocialWording(browser, base) {
 				controls: [...document.querySelectorAll('#modal-rules .control-rule')].map((el) => el.textContent.trim()),
 			};
 		});
-		const hits = socialForbiddenHits(`${rulesAudit.text} ${rulesAudit.attrs}`);
-		expect(group, `${currency} rules avoid restricted phrases`, hits.length === 0, `hits=${hits.join(',') || 'none'}`);
-		expect(group, `${currency} rules include mode and button explanations`, rulesAudit.heads.includes('Game Modes') && rulesAudit.text.includes('Base Play') && rulesAudit.text.includes('Feature Multiplier') && rulesAudit.heads.includes('Buttons & Controls') && rulesAudit.controls.some((row) => row.includes('Auto-Play')), JSON.stringify(rulesAudit.heads));
-		expect(group, `${currency} rules explain retrigger conditions`, rulesAudit.heads.includes('Retriggers') && rulesAudit.text.includes('Base Play and Rainbow Spin can trigger Free Spins') && rulesAudit.text.includes('Feature-panel Free Spins do not add additional Free Spins'), rulesAudit.text.replace(/\s+/g, ' ').slice(0, 220));
+		const hits = playerVisibleForbiddenHits(`${rulesAudit.text} ${rulesAudit.attrs}`);
+		expect(group, `${screenshotSuffix} rules avoid restricted phrases`, hits.length === 0, `hits=${hits.join(',') || 'none'}`);
+		expect(group, `${screenshotSuffix} rules include mode and button explanations`, rulesAudit.heads.includes('Game Modes') && rulesAudit.text.includes('Base Play') && rulesAudit.text.includes('Feature Multiplier') && rulesAudit.heads.includes('Buttons & Controls') && rulesAudit.controls.some((row) => row.includes('Auto-Play')), JSON.stringify(rulesAudit.heads));
+		expect(group, `${screenshotSuffix} rules explain retrigger conditions`, rulesAudit.heads.includes('Retriggers') && rulesAudit.text.includes('Base Play and Rainbow Spin can trigger Free Spins') && rulesAudit.text.includes('Feature-panel Free Spins do not add additional Free Spins'), rulesAudit.text.replace(/\s+/g, ' ').slice(0, 220));
 		await auditVisibleSurface('Rules, Features, modes, symbols and controls');
-		await screenshot(page, `social-wording-${screenshotSuffix}`);
+		await screenshot(page, `player-wording-${screenshotSuffix}`);
 		await context.close();
 	};
-	await runCase({ currency: 'XSC', screenshotSuffix: 'xsc' });
-	await runCase({ currency: 'XGC', screenshotSuffix: 'xgc' });
+	await runCase({ currency: 'EUR', screenshotSuffix: 'default', socialCasino: false });
+	await runCase({ currency: 'MXN', screenshotSuffix: 'social-false-mxn', socialCasino: false, queryExtra: '&social=false' });
+	await runCase({ currency: 'XSC', screenshotSuffix: 'xsc', socialCasino: true, launchCurrency: 'USD' });
+	await runCase({ currency: 'XGC', screenshotSuffix: 'xgc', socialCasino: true, launchCurrency: 'USD' });
+	await runCase({
+		currency: 'EUR',
+		screenshotSuffix: 'default-mobile-390x844',
+		socialCasino: false,
+		viewport: { width: 390, height: 844 },
+	});
+
+	let releaseDelayedAuth;
+	const delayedAuthGate = new Promise((resolveDelayedAuth) => { releaseDelayedAuth = resolveDelayedAuth; });
+	const delayedContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+	const delayedCalls = await mockRgs(delayedContext, {
+		authenticate: async () => {
+			await delayedAuthGate;
+			return {
+				balance: balanceOf(1000, 'USD'),
+				config: {
+					jurisdiction: { socialCasino: false },
+					defaultBetLevel: API,
+					betLevels: [API],
+					betModes: { base: {}, hunt: {}, rainbow: {}, bonus_tier1: {}, bonus: {} },
+				},
+				round: null,
+			};
+		},
+	});
+	const delayedPage = await openPreview(delayedContext, base, rgsQuery('USD', '&social=true'));
+	const preAuthState = await gameState(delayedPage);
+	const preAuthSurface = await visibleSurfaceAudit(delayedPage);
+	const preAuthHits = playerVisibleForbiddenHits(`${preAuthSurface.text} ${preAuthSurface.attrs}`);
+	expect(group, 'first render before delayed Authenticate has zero restricted visible/accessibility terms', preAuthState.walletBusy && preAuthHits.length === 0, `state=${JSON.stringify(preAuthState)} hits=${preAuthHits.join(',') || 'none'}`);
+	await delayedPage.evaluate(() => {
+		document.getElementById('modal-paytable')?.classList.add('open');
+		const body = document.querySelector('#modal-paytable .modal-body');
+		body?.scrollTo({ top: body.scrollHeight, behavior: 'instant' });
+	});
+	await delayedPage.waitForTimeout(350);
+	const preAuthTable = await delayedPage.evaluate(() => {
+		const root = document.getElementById('modal-paytable');
+		const body = root?.querySelector('.modal-body');
+		const footer = document.getElementById('paytable-note');
+		return {
+			title: root?.querySelector('.modal-title')?.textContent?.trim() || '',
+			text: root?.innerText || '',
+			footer: footer?.textContent?.trim() || '',
+			atBottom: !!body && Math.abs(body.scrollTop + body.clientHeight - body.scrollHeight) <= 2,
+		};
+	});
+	const preAuthTableHits = playerVisibleForbiddenHits(preAuthTable.text);
+	expect(group, 'first-render static Symbol Table is safe before language/auth switching completes', preAuthTable.title === 'SYMBOL TABLE' && preAuthTable.footer.includes('Each eligible symbol') && preAuthTable.atBottom && preAuthTableHits.length === 0, JSON.stringify({ preAuthTable, preAuthTableHits }));
+	const preAuthShot = await screenshot(delayedPage, 'symbol-table-first-render-delayed-auth-scrolled');
+	pass(group, 'first-render delayed-auth Symbol Table screenshot saved', preAuthShot);
+	await delayedPage.evaluate(() => document.querySelectorAll('[data-modal]').forEach((modal) => modal.classList.remove('open')));
+	releaseDelayedAuth();
+	await delayedPage.waitForFunction(() => window.__stakeQa.state.walletBusy === false && window.__stakeQa.state.socialCasino === false);
+	const postAuthSurface = await visibleSurfaceAudit(delayedPage);
+	const postAuthHits = playerVisibleForbiddenHits(`${postAuthSurface.text} ${postAuthSurface.attrs}`);
+	expect(group, 'post-auth social=true URL overridden by normal jurisdiction remains globally safe', delayedCalls.authenticate.length === 1 && postAuthHits.length === 0, `hits=${postAuthHits.join(',') || 'none'}`);
+	await delayedContext.close();
+
+	const failedContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+	const failedCalls = await mockRgs(failedContext, {
+		authenticate: () => ({
+			response: {
+				status: 500,
+				body: { error: { message: 'Stake payout bet purchase failure must never reach the player' } },
+			},
+		}),
+	});
+	const failedPage = await openPreview(failedContext, base, rgsQuery('USD', '&social=false'));
+	await failedPage.waitForFunction(() => document.getElementById('fatal-error')?.classList.contains('show'));
+	const failedSurface = await visibleSurfaceAudit(failedPage);
+	const failedHits = playerVisibleForbiddenHits(`${failedSurface.text} ${failedSurface.attrs}`);
+	const failedFatal = await failedPage.evaluate(() => ({
+		title: document.querySelector('#fatal-error .fatal-error-title')?.textContent?.trim() || '',
+		detail: document.querySelector('#fatal-error .fatal-error-detail')?.textContent?.trim() || '',
+	}));
+	expect(group, 'failed Authenticate exposes only generic safe player copy', failedCalls.authenticate.length === 1 && failedFatal.title === 'Game service connection error' && failedHits.length === 0, JSON.stringify({ failedFatal, failedHits }));
+	await screenshot(failedPage, 'failed-auth-player-safe');
+	await failedContext.close();
 }
 
 async function testInsufficientFunds(browser, base) {
@@ -1082,12 +1200,12 @@ async function testInsufficientFunds(browser, base) {
 		await context.close();
 	};
 
-	await runCase({ currency: 'EUR', extra: '', expectedTitle: 'Insufficient Funds' });
+	await runCase({ currency: 'EUR', extra: '', expectedTitle: 'Insufficient Balance' });
 	await runCase({ currency: 'XSC', extra: '&social=true', expectedTitle: 'Insufficient Balance' });
 }
 
 // ---------------------------------------------------------------------------
-// 3. Major actions need selection + confirmation (Auto-Bet, Bonus Buy, guard)
+// 3. Major actions need selection + confirmation (Auto-Play, Feature, guard)
 // ---------------------------------------------------------------------------
 async function testMajorActions(browser, base) {
 	const group = 'major-actions-e2e';
@@ -1098,19 +1216,19 @@ async function testMajorActions(browser, base) {
 	await page.click('#btn-auto');
 	await page.waitForFunction(() => document.getElementById('modal-autospin')?.classList.contains('open'));
 	let state = await gameState(page);
-	expect(group, 'auto-bet click opens selection only', state.auto === false && state.spinning === false, JSON.stringify(state));
+	expect(group, 'Auto-Play click opens selection only', state.auto === false && state.spinning === false, JSON.stringify(state));
 	const options = await page.evaluate(() =>
 		[...document.querySelectorAll('#auto-options [data-auto-count]')].map((el) => el.textContent.trim()));
-	expect(group, 'auto-bet options are 10/25/50/100/200/∞', JSON.stringify(options) === JSON.stringify(['10', '25', '50', '100', '200', '∞']), options.join(','));
-	await screenshot(page, 'auto-bet-selection');
+	expect(group, 'Auto-Play options are 10/25/50/100/200/∞', JSON.stringify(options) === JSON.stringify(['10', '25', '50', '100', '200', '∞']), options.join(','));
+	await screenshot(page, 'auto-play-selection');
 
 	// Selecting an amount only reveals the confirmation step.
 	await page.click('[data-auto-count="25"]');
 	await page.waitForSelector('#auto-confirm.show');
 	const confirmText = await page.evaluate(() => document.getElementById('auto-confirm')?.textContent || '');
 	state = await gameState(page);
-	expect(group, 'selection shows confirm step, auto still off', state.auto === false && confirmText.includes('Start Auto-Bet for 25'), confirmText.trim());
-	await screenshot(page, 'auto-bet-confirm');
+	expect(group, 'selection shows safe confirm step, auto still off', state.auto === false && confirmText.includes('Start Auto-Play for 25') && playerVisibleForbiddenHits(confirmText).length === 0, confirmText.trim());
+	await screenshot(page, 'auto-play-confirm');
 
 	// Cancel keeps auto-bet off.
 	await page.click('#auto-cancel');
@@ -1127,29 +1245,29 @@ async function testMajorActions(browser, base) {
 	await page.waitForSelector('#auto-confirm.show');
 	await page.click('#auto-confirm-start');
 	await page.waitForFunction(() => window.__stakeQa.state.auto === true);
-	pass(group, 'confirm starts auto-bet', 'state.auto === true after Confirm');
+	pass(group, 'confirm starts Auto-Play', 'state.auto === true after Confirm');
 	await page.click('#btn-auto'); // toggle back off (stop is not a major action)
 	await page.waitForFunction(() => window.__stakeQa.state.auto === false);
 	await page.waitForFunction(() => window.__stakeQa.state.spinning === false, null, { timeout: 90_000 });
 	await page.click('#btn-turbo');
 
-	// Bonus buy: first click opens the offer list, choosing an offer opens the
+	// Feature: first click opens the offer list, choosing an offer opens the
 	// confirm step, Cancel returns to the list without buying.
 	const balanceBeforeBuy = (await gameState(page)).balance;
 	await page.click('#btn-bonus');
 	await page.waitForFunction(() => document.getElementById('modal-bonusbuy')?.classList.contains('open'));
 	state = await gameState(page);
-	expect(group, 'bonus buy click opens list only', state.spinning === false && state.mode === 'base', JSON.stringify(state));
+	expect(group, 'Feature click opens list only', state.spinning === false && state.mode === 'base', JSON.stringify(state));
 	await page.click('[data-buy="tier1"]');
 	await page.waitForSelector('#bb-confirm');
 	const bbQuestion = await page.evaluate(() => document.querySelector('.bb-confirm .c-q')?.textContent || '');
 	state = await gameState(page);
-	expect(group, 'bonus buy shows confirm with price', /Buy[\s\S]*for/.test(bbQuestion) && state.mode === 'base' && state.spinning === false, bbQuestion.replace(/\s+/g, ' ').trim());
-	await screenshot(page, 'bonus-buy-confirm');
+	expect(group, 'Feature shows safe confirm with amount', /^Start[\s\S]*for/.test(bbQuestion.trim()) && playerVisibleForbiddenHits(bbQuestion).length === 0 && state.mode === 'base' && state.spinning === false, bbQuestion.replace(/\s+/g, ' ').trim());
+	await screenshot(page, 'feature-confirm');
 	await page.click('#bb-cancel');
 	await page.waitForSelector('[data-buy="tier1"]');
 	state = await gameState(page);
-	expect(group, 'bonus buy cancel buys nothing', state.mode === 'base' && state.spinning === false && state.balance === balanceBeforeBuy, `balance ${state.balance} === ${balanceBeforeBuy}, ${JSON.stringify(state)}`);
+	expect(group, 'Feature cancel starts nothing', state.mode === 'base' && state.spinning === false && state.balance === balanceBeforeBuy, `balance ${state.balance} === ${balanceBeforeBuy}, ${JSON.stringify(state)}`);
 	await page.click('.modal-close', { timeout: 5000 }).catch(() => {});
 	await page.evaluate(() => document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')));
 
@@ -1157,7 +1275,7 @@ async function testMajorActions(browser, base) {
 	// (e.g. Double Chance) must use — Confirm resolves true, everything else false.
 	const gate = await page.evaluate(async () => {
 		const results = {};
-		let pending = window.__stakeQa.confirmMajorAction({ title: 'DOUBLE CHANCE', body: 'Enable Double Chance for a higher bet?' });
+		let pending = window.__stakeQa.confirmMajorAction({ title: 'DOUBLE CHANCE', body: 'Enable Double Chance for a higher play amount?' });
 		await new Promise((r) => setTimeout(r, 80));
 		results.modalOpen = document.getElementById('modal-major-confirm').classList.contains('open');
 		results.title = document.getElementById('major-confirm-title').textContent;
@@ -1497,9 +1615,9 @@ async function testPaytable(browser, base) {
 	const format = (value) => Number(value).toFixed(8).replace(/\.0+$/, '').replace(/(\.\d*?[1-9])0+$/, '$1');
 	for (const [symbol, source] of Object.entries(productionMathConfig.paytable || {})) {
 		const row = audit.rows.find((item) => item.symbol === symbol);
-		expect(group, `${symbol} paying symbol is rendered in Paytable DOM`, !!row, JSON.stringify(audit.rows.map((item) => item.symbol)));
+		expect(group, `${symbol} eligible symbol is rendered in Symbol Table DOM`, !!row, JSON.stringify(audit.rows.map((item) => item.symbol)));
 		const runtime = audit.contract?.[symbol];
-		expect(group, `${symbol} paying symbol exists in browser contract`, !!runtime, JSON.stringify(runtime));
+		expect(group, `${symbol} eligible symbol exists in browser contract`, !!runtime, JSON.stringify(runtime));
 		for (const threshold of thresholds) {
 			const expected = threshold.boost ? Number(source.cluster5) * Number(source[threshold.boost]) : Number(source.cluster5);
 			const runtimeValue = Number(runtime?.[threshold.value]);
@@ -1532,7 +1650,7 @@ async function testPaytable(browser, base) {
 		body.scrollTop = body.scrollHeight;
 		return { before, after: body.scrollTop, max: body.scrollHeight - body.clientHeight, note: document.getElementById('paytable-note')?.textContent?.trim() || '' };
 	});
-	expect(group, 'mobile Paytable scroll reaches all explanatory content', !!mobileScroll && mobileScroll.max > 0 && mobileScroll.after >= mobileScroll.max - 1 && mobileScroll.note.includes('union of all winning positions'), JSON.stringify(mobileScroll));
+	expect(group, 'mobile Symbol Table scroll reaches all explanatory content', !!mobileScroll && mobileScroll.max > 0 && mobileScroll.after >= mobileScroll.max - 1 && mobileScroll.note.includes('Each eligible symbol is evaluated independently'), JSON.stringify(mobileScroll));
 	const mobileShot = await screenshot(mobilePage, 'paytable-production-contract-390x844-scrolled');
 	pass(group, 'actual mobile Paytable screenshot saved', mobileShot);
 	await mobileContext.close();
@@ -1618,11 +1736,11 @@ async function testReplay(browser, base) {
 				expect(group, `${label} normal ${control} is hidden and non-interactive`, !detail.visible && detail.blocked, JSON.stringify(detail));
 			}
 			expect(group, `${label} WIN is visible`, ready.winVisible, JSON.stringify(ready));
-			expect(group, `${label} Replay Bet is visible and display-only`, ready.betVisible && ready.betDisplayOnly && ready.betLabel === 'REPLAY BET', JSON.stringify(ready));
-			expect(group, `${label} replay bet/currency format is $1.00`, `${ready.betCurrency} ${ready.betText}`.includes('$') && `${ready.betCurrency} ${ready.betText}`.includes('1.00'), JSON.stringify(ready));
+			expect(group, `${label} Replay Play Amount is visible and display-only`, ready.betVisible && ready.betDisplayOnly && ready.betLabel === 'REPLAY PLAY', JSON.stringify(ready));
+			expect(group, `${label} replay play-amount format is $1.00`, `${ready.betCurrency} ${ready.betText}`.includes('$') && `${ready.betCurrency} ${ready.betText}`.includes('1.00'), JSON.stringify(ready));
 			expect(group, `${label} dedicated Replay Play control is visible, accessible and hittable at center/edges`, ready.actionVisible && ready.actionHittable && !ready.actionDisabled && ready.actionRole === 'button' && ready.actionText === 'Replay Play' && /Replay Play/i.test(ready.actionAccessibleName), JSON.stringify(ready));
 			expect(group, `${label} board and every required replay element are inside viewport and unclipped`, ready.boardVisible && ready.allRequiredInsideViewport && ready.allRequiredUnclipped && ready.panelDescendants.every((item) => item.insideViewport && item.visibleFraction >= 0.9999), JSON.stringify(ready));
-			expect(group, `${label} replay panel does not overlap WIN or Replay Bet`, ready.panelOverlapWin === 0 && ready.panelOverlapBet === 0, `winOverlap=${ready.panelOverlapWin} betOverlap=${ready.panelOverlapBet}`);
+			expect(group, `${label} replay panel does not overlap WIN or Replay Play Amount`, ready.panelOverlapWin === 0 && ready.panelOverlapBet === 0, `winOverlap=${ready.panelOverlapWin} playAmountOverlap=${ready.panelOverlapBet}`);
 			expect(group, `${label} replay layout has no page scrollbars and required text remains readable`, !ready.scrollX && !ready.scrollY && ready.textSizes.every((item) => item.size >= 10), JSON.stringify(ready.textSizes));
 			const forbiddenTabStops = ['btn-spin', 'btn-auto', 'btn-bonus', 'btn-bet-minus', 'btn-bet-plus'];
 			expect(group, `${label} normal paid controls are absent from keyboard navigation`, !ready.tabbableIds.some((id) => forbiddenTabStops.includes(id)), ready.tabbableIds.join(','));
@@ -1922,7 +2040,7 @@ async function testReplay(browser, base) {
 						currency: window.__stakeQa.Replay.current?.round?.currency || null,
 					};
 				});
-				const hits = socialForbiddenHits(`${audit.text} ${audit.attrs}`);
+				const hits = playerVisibleForbiddenHits(`${audit.text} ${audit.attrs}`);
 				expect(group, `${currency} ${socialMode.mode} replay ${lifecycle} has no restricted visible/accessibility copy or raw code`, hits.length === 0 && audit.rawCodes.length === 0, `hits=${hits.join(',') || 'none'} raw=${audit.rawCodes.join(',') || 'none'}`);
 				return audit;
 			};
@@ -1978,22 +2096,48 @@ async function testReplay(browser, base) {
 		const text = document.body.innerText || '';
 		return { text, attrs, status: document.getElementById('replay-status')?.textContent?.trim(), rawCodes: `${text} ${attrs}`.match(/\bX(?:G|S)C\b/g) || [] };
 	});
-	const socialErrorHits = socialForbiddenHits(`${socialError.text} ${socialError.attrs}`);
+	const socialErrorHits = playerVisibleForbiddenHits(`${socialError.text} ${socialError.attrs}`);
 	expect(group, 'XGC Social Replay error is fail-closed and social-safe', socialError.status === 'REPLAY ERROR' && socialErrorHits.length === 0 && socialError.rawCodes.length === 0 && socialErrorCalls.replay.length === 1 && socialErrorCalls.forbidden.length === 0, JSON.stringify({ socialError, socialErrorHits, socialErrorCalls }));
 	await screenshot(socialErrorPage, 'replay-social-xgc-error-1280x720');
 	replayNetworkEvidence.push({ scenario: 'social-xgc-error', viewport: 'desktop-1280x720', replayRequests: socialErrorCalls.replay, forbiddenRequests: socialErrorCalls.forbidden });
 	await socialErrorContext.close();
 
 	const mxnContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-	const mxnCalls = await mockReplayRgs(mxnContext, () => ({ round: { ...baseReplayRound(), currency: 'MXN' } }));
+	let releaseMxnReplay;
+	const mxnReplayGate = new Promise((resolveMxnReplay) => { releaseMxnReplay = resolveMxnReplay; });
+	const mxnCalls = await mockReplayRgs(mxnContext, async () => {
+		await mxnReplayGate;
+		return { round: { ...baseReplayRound(), currency: 'MXN' } };
+	});
 	const mxnPage = await openPreview(mxnContext, base, replayQuery({ mode: 'base', event: 'stake-qa-normal-mxn-regression', currency: 'MXN' }));
+	await waitForReplayState(mxnPage, 'loading');
+	const mxnLoadingSurface = await visibleSurfaceAudit(mxnPage);
+	const mxnLoadingHits = playerVisibleForbiddenHits(`${mxnLoadingSurface.text} ${mxnLoadingSurface.attrs}`);
+	expect(group, 'normal MXN Replay loading state is globally safe', mxnLoadingHits.length === 0, mxnLoadingHits.join(', '));
+	releaseMxnReplay();
 	await waitForReplayState(mxnPage, 'ready');
+	const mxnReady = await replayUiAudit(mxnPage);
+	const mxnReadySurface = await visibleSurfaceAudit(mxnPage);
+	const mxnReadyHits = playerVisibleForbiddenHits(`${mxnReadySurface.text} ${mxnReadySurface.attrs}`);
+	expect(group, 'normal MXN Replay ready state uses Replay Play Amount', mxnReady.betLabel === 'REPLAY PLAY' && mxnReady.actionText === 'Replay Play' && mxnReadyHits.length === 0, JSON.stringify({ mxnReady, mxnReadyHits }));
 	await mxnPage.evaluate(() => window.__stakeQa.setTurbo(true));
 	await mxnPage.click('#replay-action');
+	await waitForReplayState(mxnPage, 'running');
+	const mxnRunningSurface = await visibleSurfaceAudit(mxnPage);
+	const mxnRunningHits = playerVisibleForbiddenHits(`${mxnRunningSurface.text} ${mxnRunningSurface.attrs}`);
+	expect(group, 'normal MXN Replay running state is globally safe', mxnRunningHits.length === 0, mxnRunningHits.join(', '));
 	await waitForReplayState(mxnPage, 'completed', 30_000);
 	const mxnReplay = await replayUiAudit(mxnPage);
-	expect(group, 'normal MXN Replay retains non-social terminology and formatting', mxnReplay.statusText === 'REPLAY COMPLETED' && mxnReplay.betLabel === 'REPLAY BET' && `${mxnReplay.betCurrency} ${mxnReplay.betText}`.includes('MX$') && mxnCalls.replay.length === 1 && mxnCalls.forbidden.length === 0, JSON.stringify({ mxnReplay, mxnCalls }));
+	const mxnSurface = await visibleSurfaceAudit(mxnPage);
+	const mxnRestrictedHits = playerVisibleForbiddenHits(`${mxnSurface.text} ${mxnSurface.attrs}`);
+	expect(group, 'normal MXN Replay uses globally safe terminology and retains MX$ formatting', mxnReplay.statusText === 'REPLAY COMPLETED' && mxnReplay.betLabel === 'REPLAY PLAY' && mxnRestrictedHits.length === 0 && `${mxnReplay.betCurrency} ${mxnReplay.betText}`.includes('MX$') && mxnCalls.replay.length === 1 && mxnCalls.forbidden.length === 0, JSON.stringify({ mxnReplay, mxnRestrictedHits, mxnCalls }));
 	await screenshot(mxnPage, 'replay-normal-mxn-completed-1280x720');
+	await mxnPage.click('#replay-action');
+	await waitForReplayState(mxnPage, 'running');
+	await waitForReplayState(mxnPage, 'completed', 30_000);
+	const mxnAgainSurface = await visibleSurfaceAudit(mxnPage);
+	const mxnAgainHits = playerVisibleForbiddenHits(`${mxnAgainSurface.text} ${mxnAgainSurface.attrs}`);
+	expect(group, 'normal MXN Play Again remains safe and reuses one immutable request', mxnAgainHits.length === 0 && mxnCalls.replay.length === 1 && mxnCalls.forbidden.length === 0, JSON.stringify({ mxnAgainHits, mxnCalls }));
 	replayNetworkEvidence.push({ scenario: 'normal-mxn-regression', viewport: 'desktop-1280x720', replayRequests: mxnCalls.replay, forbiddenRequests: mxnCalls.forbidden });
 	await mxnContext.close();
 
@@ -2101,8 +2245,11 @@ async function testReplay(browser, base) {
 				floats: document.querySelectorAll('.cluster-float').length,
 			};
 		});
+		const errorSurface = await visibleSurfaceAudit(page);
+		const errorRestrictedHits = playerVisibleForbiddenHits(`${errorSurface.text} ${errorSurface.attrs}`);
 		expect(group, `${errorCase.name} shows replay-specific error state`, errorAudit.state === 'error' && errorAudit.overlay && /replay|invalid|missing|unavailable|failed|error/i.test(errorAudit.status || ''), JSON.stringify(errorAudit));
 		expect(group, `${errorCase.name} cannot start or fall back to demo output`, !errorAudit.action && !errorAudit.current && Number(errorAudit.win) === 0 && errorAudit.floats === 0, JSON.stringify(errorAudit));
+		expect(group, `${errorCase.name} error state exposes zero restricted terms`, errorRestrictedHits.length === 0, errorRestrictedHits.join(', '));
 		expect(group, `${errorCase.name} produces zero forbidden calls`, calls.forbidden.length === 0, JSON.stringify(calls));
 		replayValidationEvidence.push({ case: errorCase.name, expected: 'error', actual: errorAudit, replayRequests: calls.replay.length, forbiddenRequests: calls.forbidden.length });
 		replayNetworkEvidence.push({ scenario: `error-${errorCase.name}`, viewport: 'desktop-1280x720', replayRequests: calls.replay, forbiddenRequests: calls.forbidden });
@@ -2135,7 +2282,9 @@ async function testReplay(browser, base) {
 		const page = await openPreview(context, base, `?${params.toString()}`);
 		await page.waitForFunction(() => ['ready', 'error'].includes(document.getElementById('stage')?.dataset.replayState), null, { timeout: 20_000 });
 		const audit = await pageSafeReplayError(page);
-		expect(group, `${launchCase.name} produces a replay-specific error before network`, audit.state === 'error' && /replay|missing|invalid|malformed/i.test(audit.status || '') && !audit.current && Number(audit.win) === 0 && calls.replay.length === 0 && calls.forbidden.length === 0, JSON.stringify({ audit, calls }));
+		const launchSurface = await visibleSurfaceAudit(page);
+		const launchRestrictedHits = playerVisibleForbiddenHits(`${launchSurface.text} ${launchSurface.attrs}`);
+		expect(group, `${launchCase.name} produces a safe replay-specific error before network`, audit.state === 'error' && /replay|missing|invalid|malformed/i.test(audit.status || '') && !audit.current && Number(audit.win) === 0 && launchRestrictedHits.length === 0 && calls.replay.length === 0 && calls.forbidden.length === 0, JSON.stringify({ audit, launchRestrictedHits, calls }));
 		replayValidationEvidence.push({ case: launchCase.name, expected: 'error-before-network', actual: audit, replayRequests: calls.replay.length, forbiddenRequests: calls.forbidden.length });
 		await context.close();
 	}
@@ -2234,7 +2383,7 @@ async function testRgsRoundStates(browser, base) {
 			title: document.querySelector('#fatal-error .fatal-error-title')?.textContent?.trim(),
 			detail: document.querySelector('#fatal-error .fatal-error-detail')?.textContent?.trim(),
 		}));
-		expect(group, `${invalidEndBalance.name} active End-Round balance fails closed without local credit`, audit.fatal && audit.balance === 1021.42 && audit.localWalletCredits === 0 && calls.play.length === 1 && calls.endRound.length === 1 && /settlement failed/i.test(audit.title || '') && /end-round balance/i.test(audit.detail || ''), JSON.stringify({ audit, calls }));
+		expect(group, `${invalidEndBalance.name} active End-Round balance fails closed without local credit`, audit.fatal && audit.balance === 1021.42 && audit.localWalletCredits === 0 && calls.play.length === 1 && calls.endRound.length === 1 && /settlement failed/i.test(audit.title || '') && /authoritative balance/i.test(audit.detail || ''), JSON.stringify({ audit, calls }));
 		const invariant = {
 			mode: 'base',
 			active: true,
@@ -2295,7 +2444,7 @@ async function testRgsRoundStates(browser, base) {
 		detail: document.querySelector('#fatal-error .fatal-error-detail')?.textContent?.trim(),
 		state: { fatal: window.__stakeQa.state.fatal, spinning: window.__stakeQa.state.spinning, win: window.__stakeQa.state.win },
 	}));
-	expect(group, 'unsupported normal RGS event state fails visibly with no local/random fallback', unsupported.state.fatal && !unsupported.state.spinning && unsupported.state.win === 0 && /Unsupported Stake Engine round/i.test(unsupported.title || '') && /No local fallback/i.test(unsupported.detail || '') && unsupportedCalls.play.length === 1, JSON.stringify(unsupported));
+	expect(group, 'unsupported normal RGS event state fails visibly with no local/random fallback', unsupported.state.fatal && !unsupported.state.spinning && unsupported.state.win === 0 && /Unsupported game-service round/i.test(unsupported.title || '') && /No local fallback/i.test(unsupported.detail || '') && unsupportedCalls.play.length === 1, JSON.stringify(unsupported));
 	await unsupportedContext.close();
 
 	// Stake-review regression: settlement must finish before the completion

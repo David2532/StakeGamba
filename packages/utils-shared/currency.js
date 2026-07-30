@@ -67,5 +67,4 @@ export const isStakeUsCurrency = (currency) => {
 	return code === 'XGC' || code === 'XSC';
 };
 
-export const insufficientFundsMessage = (currency, social = false) =>
-	social || isStakeUsCurrency(currency) ? 'Insufficient Balance' : 'Insufficient Funds';
+export const insufficientFundsMessage = () => 'Insufficient Balance';

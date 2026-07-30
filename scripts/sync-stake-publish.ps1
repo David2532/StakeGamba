@@ -459,7 +459,7 @@ function Test-StakeCompliance {
 		@{ Name = "Resume-Index aus round.event"; Marker = "function rgsResumeIndex" },
 		# Stake: base-mode active round settled immediately + rules text
 		@{ Name = "Aktive Base-Runde wird sofort settled"; Marker = "recoverActiveRound" },
-		@{ Name = "Game Rules: Auto-Settlement-Text"; Marker = "immediately settled with Stake Engine" },
+		@{ Name = "Game Rules: Auto-Settlement-Text"; Marker = "round is completed by the game service" },
 		@{ Name = "Game Rules: Game-History-Hinweis"; Marker = "game history" },
 		# Stake: pop-up when the bonus round starts (base trigger + buy)
 		@{ Name = "Bonus-Start-Popup (RGS-Pfad)"; Marker = "bonusIntroRgs" },
@@ -471,9 +471,8 @@ function Test-StakeCompliance {
 		@{ Name = "Auto-Bet-Confirm-Modal vorhanden"; Marker = "id=`"modal-autospin`"" },
 		@{ Name = "Auto-Bet-Optionen auf Stake-Liste begrenzt"; Marker = "const AUTO_SPIN_OPTIONS = [10, 25, 50, 100, 200, Infinity]" },
 		@{ Name = "Auto-Bet startet erst nach Confirm"; Marker = "function confirmAutoSpin(count)" },
-		@{ Name = "Insufficient Balance/Funds Dialog vorhanden"; Marker = "function showInsufficientFunds" },
-		@{ Name = "Social Casino Balance Wording vorhanden"; Marker = "Insufficient Balance" },
-		@{ Name = "Fiat Funds Wording vorhanden"; Marker = "Insufficient Funds" },
+		@{ Name = "Insufficient-Balance-Dialog vorhanden"; Marker = "function showInsufficientFunds" },
+		@{ Name = "Global sicheres Balance-Wording vorhanden"; Marker = "Insufficient Balance" },
 		# Stake: mobile/fullscreen and rules controls.
 		@{ Name = "Mobile Fullscreen nutzt dvh"; Marker = "height: 100dvh" },
 		@{ Name = "Mobile Stage Fit Variable vorhanden"; Marker = "--stage-fit-transform" },
@@ -488,27 +487,26 @@ function Test-StakeCompliance {
 		@{ Name = "Authenticate-BetConfig: Demo-Fallback nicht in RGS/Replay"; Marker = "if (!UrlState.requiresRgs() && !Replay.configured()) applyBetConfig" },
 		# Stake 2026-07-08: expanded Game Info modes/retriggers.
 		@{ Name = "Game Info: Mode-Metadaten vorhanden"; Marker = "const PLAYER_MODE_META = {" },
-		@{ Name = "Game Info: Base Game erklaert"; Marker = "Base Game" },
+		@{ Name = "Game Info: Base Play erklaert"; Marker = "Base Play" },
 		@{ Name = "Game Info: Feature Spins erklaert"; Marker = "Feature Spins" },
 		@{ Name = "Game Info: Rainbow Spin erklaert"; Marker = "Rainbow Spin" },
 		@{ Name = "Game Info: Golden Chance erklaert"; Marker = "Golden Chance" },
 		@{ Name = "Game Info: All That Glitters erklaert"; Marker = "All That Glitters" },
 		@{ Name = "Game Info: End of the Rainbow erklaert"; Marker = "End of the Rainbow" },
-		@{ Name = "Game Info: Main Spin Trigger erklaert"; Marker = "Main Spin button" },
-		@{ Name = "Game Info: Bonus Buy/Feature Trigger erklaert"; Marker = "Bonus Buy panel" },
+		@{ Name = "Game Info: Main Play Trigger erklaert"; Marker = "Main Play button" },
+		@{ Name = "Game Info: Feature Trigger erklaert"; Marker = "Feature panel" },
 		@{ Name = "Game Info: Scatter Trigger erklaert"; Marker = "3 Scatter tickets" },
 		@{ Name = "Game Info: Cost Multiplier erklaert"; Marker = "Cost multiplier:" },
 		@{ Name = "Game Info: Social Feature Multiplier erklaert"; Marker = "Feature Multiplier:" },
 		@{ Name = "Game Info: Retrigger Abschnitt vorhanden"; Marker = "<div class=`"pt-head`">Retriggers</div>" },
-		@{ Name = "Game Info: Normal Retrigger Bedingungen"; Marker = "Base Game and Rainbow Spin can trigger Free Spins" },
-		@{ Name = "Game Info: Social Retrigger Bedingungen"; Marker = "Base Play and Rainbow Spin can trigger Free Spins" },
+		@{ Name = "Game Info: Retrigger Bedingungen"; Marker = "Base Play and Rainbow Spin can trigger Free Spins" },
 		@{ Name = "Game Info: Feature-Free-Spins ohne Retrigger"; Marker = "Feature-panel Free Spins do not add additional Free Spins" },
 		# Stake 2026-07-08: replay support.
 		@{ Name = "Replay: explizite Lifecycle-States vorhanden"; Marker = "stage.dataset.replayState = status" },
 		@{ Name = "Replay: dedizierter Replay/Play-Again Button vorhanden"; Marker = "id=`"replay-action`"" },
 		@{ Name = "Replay: lang Alias im Replay-Request"; Marker = "lang: UrlState.lang()" },
 		@{ Name = "Replay: Mode-Name aus Game-Metadaten"; Marker = "playerModeName(rgsRoundMode(round))" },
-		@{ Name = "Replay: display-only Replay Bet vorhanden"; Marker = "'REPLAY BET'" },
+		@{ Name = "Replay: display-only Replay Play Amount vorhanden"; Marker = "'REPLAY PLAY'" },
 		@{ Name = "Replay: Win Amount bleibt sichtbar"; Marker = "data-meter=`"win`"" },
 		@{ Name = "Replay: Currency Anzeige vorhanden"; Marker = "id=`"replay-currency`"" },
 		@{ Name = "Replay: kein Progress/Walet-Mutate"; Marker = "trackProgress: false" },
@@ -526,26 +524,29 @@ function Test-StakeCompliance {
 	if ($html -match "roundNeedsEnd[^\r\n]*payoutMultiplier") {
 		$failures += "FRONTEND: End-Round-Entscheidung darf payout/payoutMultiplier nicht verwenden"
 	}
-	$sweepsBlock = Get-BalancedObjectText -Content $html -Marker "sweeps_en:"
-	$socialText = Get-JsStringValues -Content $sweepsBlock
-	if ($socialText.Length -eq 0) {
-		$failures += "FRONTEND: sweeps_en Sprachressource fuer Social Mode konnte nicht geprueft werden"
+	$languageBlock = Get-BalancedObjectText -Content $html -Marker "const LANGUAGE_RESOURCES = {"
+	$playerText = Get-JsStringValues -Content $languageBlock
+	if ($playerText.Length -eq 0) {
+		$failures += "FRONTEND: Globale Player-Sprachressourcen konnten nicht geprueft werden"
 	}
 	foreach ($term in @(
 		"Bet Replay", "Base Bet", "Cost Multiplier", "Total Bet Cost", "Payout Multiplier", "Total Win",
 		"Bonus Buy", "Buy Bonus", "Auto-Bet", "Auto Bet", "Bet", "Wager", "Gamble", "Purchase",
-		"Paid", "Pay out", "Payout", "Rebet", "Cash", "Credit", "Currency"
+		"Pay", "Pays", "Paid", "Paying", "Pay out", "Paid out", "Pays out", "Payout", "Payouts",
+		"Betting", "Bets", "Place your bets", "Bet/s", "Stake", "Cash", "Payer", "Money",
+		"Buy", "Bought", "At the cost of", "Cost of", "Rebet", "Credit", "Deposit", "Withdraw",
+		"Fund", "Currency"
 	)) {
-		if (Test-TextContainsWordOrPhrase -Text $socialText -Phrase $term) {
-			$failures += "FRONTEND: Social Mode/sweeps_en enthaelt eingeschraenkten Begriff '$term'"
+		if (Test-TextContainsWordOrPhrase -Text $playerText -Phrase $term) {
+			$failures += "FRONTEND: Globale Player-Texte enthalten eingeschraenkten Begriff '$term'"
 		}
 	}
 	foreach ($term in @(
 		"Play Replay", "Base Play", "Feature Multiplier", "Play Cost", "Final Multiplier",
 		"Final Play Amount", "Replay Play", "BONUS / FEATURE", "AUTO-PLAY", "PLAY"
 	)) {
-		if (-not $socialText.Contains($term)) {
-			$failures += "FRONTEND: Social Mode/sweeps_en Ersatzbegriff fehlt: '$term'"
+		if (-not $playerText.Contains($term)) {
+			$failures += "FRONTEND: Globaler Ersatzbegriff fehlt: '$term'"
 		}
 	}
 
@@ -641,17 +642,21 @@ function Invoke-StakeQa {
 function Write-UploadReadme {
 	$stamp = Get-Date -Format o
 	$text = @(
-		"GOLDEN GOAL RUSH - STAKE UPLOAD PAKET",
-		"=====================================",
+		"GOLDEN GOAL RUSH - TECHNISCHER KANDIDAT",
+		"========================================",
 		"",
-		"Dieser Ordner (publish\) ist die EINZIGE Upload-Quelle und wird bei jedem",
-		"Pipeline-Lauf komplett neu erzeugt. Nichts hier manuell aendern.",
+		"STATUS: MANUAL_REVIEW_REQUIRED",
+		"NICHT HOCHLADEN ODER FREIGEBEN, bevor ein Mensch die exakten extrahierten",
+		"Artefakte geprueft und einen hash-gebundenen Review-Datensatz signiert hat.",
+		"",
+		"Dieser Ordner (publish\) ist die technische Kandidatenquelle und wird bei",
+		"jedem Pipeline-Lauf komplett neu erzeugt. Nichts hier manuell aendern.",
 		"",
 		"  publish\frontend  ->  Stake Engine: Files -> Import Files -> 'Front End'",
 		"  publish\math      ->  Stake Engine: Files -> Import Files -> 'Math'",
 		"",
-		"Danach im Portal 'Publish Game' klicken und im Approval-Tab die neue",
-		"Front- und Math-Version im Review-Request auswaehlen.",
+		"Erst nach einem bestandenen manuellen Review der exakten Artefakt-Hashes:",
+		"im Portal die neue Front- und Math-Version im Review-Request auswaehlen.",
 		"",
 		"Alle anderen Ordner im Repo sind Build-Interna und werden NIE hochgeladen:",
 		"  math\games\golden_goal_rush\library\...  (Books/Lookups/Audit-Quelle)",
@@ -739,11 +744,11 @@ if ($ArchiveLegacy) {
 }
 
 Write-Host ""
-Write-Host "UPLOAD-PAKET BEREIT -- einziger Upload-Ordner ist 'publish\':" -ForegroundColor Green
+Write-Host "TECHNISCHER KANDIDAT ERZEUGT -- STATUS: MANUAL_REVIEW_REQUIRED" -ForegroundColor Yellow
+Write-Host "NICHT HOCHLADEN ODER FREIGEBEN, bis der exakte extrahierte Kandidat manuell geprueft wurde." -ForegroundColor Yellow
 Write-Host "  1) $FrontendDest"
-Write-Host "     -> Stake Engine: Files -> Import Files -> 'Front End'"
+Write-Host "     -> Kandidat fuer Stake Engine 'Front End'"
 Write-Host "  2) $MathDest"
-Write-Host "     -> Stake Engine: Files -> Import Files -> 'Math'"
-Write-Host "  3) Portal: 'Publish Game' klicken, dann im Approval-Tab die neue"
-Write-Host "     Front-/Math-Version im Review-Request auswaehlen."
+Write-Host "     -> Kandidat fuer Stake Engine 'Math'"
+Write-Host "  3) Naechster Schritt: hash-gebundener menschlicher Screenshot-Review"
 Write-Host "  (Details: publish\LIES_MICH_UPLOAD.txt)"

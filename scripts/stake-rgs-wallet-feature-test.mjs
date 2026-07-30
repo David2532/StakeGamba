@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
 	reconcileWalletBalance,
-	socialRestrictedHits,
+	playerVisibleRestrictedHits,
 	summarizeFeatureEvents,
 } from '../apps/cluster/scripts/stake-compliance-contract.mjs';
 
@@ -32,11 +32,13 @@ assert.throws(() => reconcileWalletBalance({ active: true, playBalance, endRound
 assert.throws(() => reconcileWalletBalance({ active: true, playBalance, endRoundBalance: -1 }), /end-round balance/);
 assert.throws(() => reconcileWalletBalance({ active: true, playBalance, endRoundBalance: postPayout + 0.5 }), /end-round balance/);
 assert.throws(() => reconcileWalletBalance({ active: false, endRoundBalance: postPayout }), /play balance/);
-assert.deepEqual(socialRestrictedHits('Each paying symbol and raw XGC code'), ['paying']);
+assert.deepEqual(playerVisibleRestrictedHits('Each paying symbol and raw XGC code'), ['paying']);
 assert.deepEqual(
-	socialRestrictedHits('Place your bets; the purchase pays out cash at the cost of one credit.'),
+	playerVisibleRestrictedHits('Place your bets; the purchase pays out cash at the cost of one credit.'),
 	['pays out', 'place your bets', 'bets', 'cash', 'pays', 'purchase', 'at the cost of', 'cost of', 'credit'],
 );
+assert.deepEqual(playerVisibleRestrictedHits('payment overpay betterment'), []);
+assert.deepEqual(playerVisibleRestrictedHits('betting'), ['betting']);
 
 const settlementModes = ['base', 'hunt', 'rainbow', 'bonus_tier1', 'bonus'];
 const balanceInvariants = settlementModes.flatMap((mode) => ([

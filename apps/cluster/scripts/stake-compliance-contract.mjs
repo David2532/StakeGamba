@@ -1,6 +1,9 @@
 // Central, testable contracts shared by the generated frontend and QA.
-
-export const STAKE_SOCIAL_RESTRICTED_TERMS = Object.freeze([
+//
+// These terms are forbidden on every player-visible path. Keeping this
+// contract global prevents the default/pre-auth UI from briefly exposing
+// wording that would only be replaced after Social-mode detection.
+export const STAKE_PLAYER_VISIBLE_RESTRICTED_TERMS = Object.freeze([
 	'win feature',
 	'pay out',
 	'paid out',
@@ -46,9 +49,9 @@ export function formatMaxWinMultiplier(value) {
 	}).format(Number(value));
 }
 
-export function socialRestrictedHits(text) {
+export function playerVisibleRestrictedHits(text) {
 	const normalized = String(text || '');
-	return STAKE_SOCIAL_RESTRICTED_TERMS.filter((term) => {
+	return STAKE_PLAYER_VISIBLE_RESTRICTED_TERMS.filter((term) => {
 		const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/[\s-]+/g, '[\\s-]+');
 		return new RegExp(`(^|[^\\p{L}\\p{N}_])${escaped}(?=$|[^\\p{L}\\p{N}_])`, 'iu').test(normalized);
 	});

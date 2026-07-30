@@ -44,7 +44,7 @@ const DEFAULT_BET_MODE_META = {
 		text: {
 			title: 'DOUBLE BOOST',
 			dialog:
-				'Double the chance to trigger the FREE SPINS round when activated for 1.2x the player bet amount. DOUBLE BOOST remains active until disabled by the player.',
+				'Double the chance to trigger the FREE SPINS round when activated for 1.2x the player play amount. DOUBLE BOOST remains active until disabled by the player.',
 			description: 'Greatly increase your chance of landing a bonus symbol each spin.',
 			button: 'ACTIVATE',
 			betAmountLabel: 'DOUBLE BOOST',
@@ -73,7 +73,7 @@ const DEFAULT_BET_MODE_META = {
 		text: {
 			title: 'SUPER BOOST',
 			dialog:
-				'1 in 20 chance to trigger the FREE SPINS round when activated for 5x the player bet amount. Guarantees 1 or more Scatter symbols every spin. SUPER BOOST remains active until disabled by the player.',
+				'1 in 20 chance to trigger the FREE SPINS round when activated for 5x the player play amount. Guarantees 1 or more Scatter symbols every spin. SUPER BOOST remains active until disabled by the player.',
 			description: 'Guaranteed to land at least 1+ bonus symbol each spin.',
 			button: 'ACTIVATE',
 			betAmountLabel: 'SUPER BOOST',
@@ -102,7 +102,7 @@ const DEFAULT_BET_MODE_META = {
 		text: {
 			title: 'SAMURAI SPIN',
 			dialog:
-				'All game features are boosted when activated for 25x the player bet amount. SAMURAI SPIN remains active until disabled by the player.',
+				'All game features are boosted when activated for 25x the player play amount. SAMURAI SPIN remains active until disabled by the player.',
 			description: 'SAMURAI SPIN is AWESOME! ',
 			button: 'ACTIVATE',
 			betAmountLabel: 'SAMURAI SPIN',
@@ -131,11 +131,11 @@ const DEFAULT_BET_MODE_META = {
 		text: {
 			title: 'BONUS',
 			dialog:
-				'Triggers FREE SPINS feature when activated for 100x the player bet amount. The Global Multiplier can reach up to 64x and remains active for the duration of FREE SPINS.',
+				'Triggers FREE SPINS feature when activated for 100x the player play amount. The Global Multiplier can reach up to 64x and remains active for the duration of FREE SPINS.',
 			description: 'Each spin may have a random multiplier applied to winning lines.',
-			button: 'BUY',
-			tickerIdle: 'PLACE YOUR BET',
-			tickerSpin: 'BONUS BUY ACTIVATED',
+			button: 'ACTIVATE',
+			tickerIdle: 'SELECT YOUR PLAY AMOUNT',
+			tickerSpin: 'BONUS FEATURE ACTIVATED',
 			bannerText: 'example banner text',
 		},
 	},
@@ -159,11 +159,11 @@ const DEFAULT_BET_MODE_META = {
 		text: {
 			title: 'SUPER BONUS',
 			dialog:
-				'Triggers FREE SPINS feature when activated for 200x the player bet amount. The Global Multiplier can reach up to 256x and remains active for the duration of FREE SPINS.',
+				'Triggers FREE SPINS feature when activated for 200x the player play amount. The Global Multiplier can reach up to 256x and remains active for the duration of FREE SPINS.',
 			description: 'Enter the mothership! Land values and multiply them with action symbols.',
-			button: 'BUY',
-			tickerIdle: 'PLACE YOUR BET',
-			tickerSpin: 'SUPER BONUS BUY ACTIVATED',
+			button: 'ACTIVATE',
+			tickerIdle: 'SELECT YOUR PLAY AMOUNT',
+			tickerSpin: 'SUPER BONUS FEATURE ACTIVATED',
 			bannerText: 'example banner text',
 		},
 	},
@@ -200,7 +200,7 @@ const DEFAULT_GAME_RULE_META = {
 			],
 			rows: 3,
 			columns: 1,
-			title: 'PAYTABLE',
+			title: 'SYMBOL TABLE',
 		},
 		{
 			containers: [
@@ -301,7 +301,7 @@ const DEFAULT_GAME_RULE_META = {
 			containers: [
 				{
 					title: '',
-					text: 'All symbols pay from left to right. Starting from the left most reel. Only symbols on adjacent reels will be a valid win way. This does not apply to Scatter. ',
+					text: 'All symbols award wins from left to right, starting from the leftmost reel. Only symbols on adjacent reels form a valid win way. This does not apply to Scatter. ',
 					image: 'https://staging-1-0.twist-game.app/_app/immutable/assets/winWays.be45a8a4.png',
 					imagePosition: 'top',
 					row: 0,
@@ -318,7 +318,7 @@ const DEFAULT_GAME_RULE_META = {
 			containers: [
 				{
 					title: '',
-					text: 'The normal mode of this game has a theoretical expected return of 97.0%.\n\nThe player also has the option to select an ANTE BET mode. This costs 1.25x the underlying bet. The ANTE BET mode has a theoretical expected return of 97.0%. The ANTE BET doubles the chance of FREE SPINS.\n\nThe player also has the option to buy FREE SPINS. This costs 100x the underlying bet. The FREE SPINS buy mode has a theoretical expected return of 97.0%. \n\nThe player has the option to buy a SUPER SPIN. This costs 25x the underlying bet. The SUPER SPIN buy mode has a theoretical expected return of 97.0%. In SUPER SPIN one spin is initially awarded. On each spin stacked Wild Symbols are on Reel Strips\n\n The maximum win in each Bet Mode is 5000x the underlining bet.',
+					text: 'The normal mode of this game has a theoretical expected return of 97.0%.\n\nThe player may select an ANTE PLAY mode. This costs 1.25x the underlying play amount. ANTE PLAY has a theoretical expected return of 97.0% and doubles the chance of FREE SPINS.\n\nThe player may activate FREE SPINS for 100x the underlying play amount. This feature mode has a theoretical expected return of 97.0%.\n\nThe player may activate a SUPER SPIN for 25x the underlying play amount. This mode has a theoretical expected return of 97.0%. In SUPER SPIN one spin is initially awarded. On each spin stacked Wild Symbols are on Reel Strips.\n\nThe maximum win in each Play Mode is 5000x the underlying play amount.',
 					image: 'https://staging-1-0.twist-game.app/_app/immutable/assets/rtp97.d2febd7d.svg',
 					imagePosition: 'top',
 					row: 0,
@@ -327,13 +327,13 @@ const DEFAULT_GAME_RULE_META = {
 			],
 			rows: 1,
 			columns: 1,
-			title: 'BET MODES',
+			title: 'PLAY MODES',
 		},
 		{
 			containers: [
 				{
 					title: '',
-					text: 'Malfunction voids all pays and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted bets. The theoretical expected return is calculated over many spins. Movement of reels are not representative of any physical device, and is for illustrative purposes only. TM and \u00a9 2023 Twist Gaming.',
+					text: 'Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any incomplete plays. The theoretical expected return is calculated over many spins. Movement of reels is not representative of any physical device and is for illustrative purposes only. TM and \u00a9 2023 Twist Gaming.',
 					image: '',
 					row: 0,
 					column: 0,
@@ -347,7 +347,7 @@ const DEFAULT_GAME_RULE_META = {
 			containers: [
 				{
 					title: '',
-					text: 'SPIN BUTTON | Initiates the Betting Round.',
+					text: 'SPIN BUTTON | Initiates the play round.',
 					image:
 						'https://staging-1-0.twist-game.app/_app/immutable/assets/gameRuleSpin.daacc43a.webp',
 					imagePosition: 'left',
@@ -383,7 +383,7 @@ const DEFAULT_GAME_RULE_META = {
 				},
 				{
 					title: '',
-					text: 'PAY TABLE | View the Paytable to see Symbol Values.',
+					text: 'SYMBOL TABLE | View the Symbol Table to see Symbol Values.',
 					image:
 						'https://staging-1-0.twist-game.app/_app/immutable/assets/gameRuleDown.716ec429.webp',
 					imagePosition: 'left',
@@ -438,7 +438,7 @@ const DEFAULT_GAME_RULE_META = {
 				},
 				{
 					title: '',
-					text: 'INCREASE | Increase your Bet Amount',
+					text: 'INCREASE | Increase your Play Amount',
 					image:
 						'https://staging-1-0.twist-game.app/_app/immutable/assets/gameRuleDown.716ec429.webp',
 					imagePosition: 'left',
@@ -447,7 +447,7 @@ const DEFAULT_GAME_RULE_META = {
 				},
 				{
 					title: '',
-					text: 'DECREASE | Decrease your Bet Amount',
+					text: 'DECREASE | Decrease your Play Amount',
 					image:
 						'https://staging-1-0.twist-game.app/_app/immutable/assets/gameRuleDown.716ec429.webp',
 					imagePosition: 'left',

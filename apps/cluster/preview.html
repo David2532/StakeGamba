@@ -1871,7 +1871,7 @@
 			<div class="meter" data-meter="bet">
 				<img class="panel-art" src="src/assets/golden-goal-rush/hud-extracted/meter-panel-c.webp" alt="" />
 				<span class="meter-currency-symbol" id="meter-bet-currency" aria-hidden="true"></span>
-				<div><div class="meter-label" data-i18n="betLabel">BET</div><div class="meter-value" id="meter-bet">0.00</div></div>
+				<div><div class="meter-label" data-i18n="betLabel">PLAY</div><div class="meter-value" id="meter-bet">0.00</div></div>
 			</div>
 		</div>
 
@@ -1879,10 +1879,10 @@
 			<button type="button" class="asset-button menu" id="btn-menu" aria-label="Menu">
 				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/menu-button.webp" alt="" />
 			</button>
-			<button type="button" class="asset-button bonus" id="btn-bonus" aria-label="Buy Bonus">
+			<button type="button" class="asset-button bonus" id="btn-bonus" aria-label="Feature">
 				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/bonus-button.webp" alt="" />
 			</button>
-			<button type="button" class="asset-button" id="btn-auto" aria-label="Auto Spin">
+			<button type="button" class="asset-button" id="btn-auto" aria-label="Auto-Play">
 				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/autospin-button.webp" alt="" />
 			</button>
 			<div class="feature-control" aria-label="Golden Goal Rush feature logic preview">
@@ -1896,21 +1896,21 @@
 			<div class="replay-control-panel" id="replay-controls" aria-live="polite" aria-label="Replay controls" hidden>
 				<div class="replay-control-copy">
 					<strong id="replay-status">LOADING REPLAY</strong>
-					<small><span id="replay-summary">Saved round &middot; read-only</span><span class="replay-currency-code" id="replay-currency" aria-hidden="true" hidden></span></small>
+					<small><span id="replay-summary">Saved play &middot; view only</span><span class="replay-currency-code" id="replay-currency" aria-hidden="true" hidden></span></small>
 				</div>
 				<button type="button" class="replay-action" id="replay-action" data-testid="replay-action" hidden>Replay Play</button>
 			</div>
-			<button type="button" class="spin-button" id="btn-spin" aria-label="Spin">
-				<img class="spin-art" src="src/assets/golden-goal-rush/hud-extracted/spin-button-active.webp" alt="" /><span>SPIN</span>
+			<button type="button" class="spin-button" id="btn-spin" aria-label="Play">
+				<img class="spin-art" src="src/assets/golden-goal-rush/hud-extracted/spin-button-active.webp" alt="" /><span>PLAY</span>
 			</button>
 			<button type="button" class="asset-button turbo" id="btn-turbo" aria-label="Turbo">
 				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/turbo-button.webp" alt="" />
 			</button>
-			<div class="bet-controls" id="bet-controls" aria-label="Bet controls">
+			<div class="bet-controls" id="bet-controls" aria-label="Play controls">
 				<img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/control-panel-wide.webp" alt="" />
-				<button type="button" id="btn-bet-minus" aria-label="Decrease bet"><img src="src/assets/golden-goal-rush/hud-extracted/minus-button.webp" alt="" /></button>
-				<div class="bet-display"><span id="bet-display-label" data-i18n="betLabel">BET</span><strong id="bet-display">1.00</strong></div>
-				<button type="button" id="btn-bet-plus" aria-label="Increase bet"><img src="src/assets/golden-goal-rush/hud-extracted/plus-button.webp" alt="" /></button>
+				<button type="button" id="btn-bet-minus" aria-label="Decrease play amount"><img src="src/assets/golden-goal-rush/hud-extracted/minus-button.webp" alt="" /></button>
+				<div class="bet-display"><span id="bet-display-label" data-i18n="betLabel">PLAY</span><strong id="bet-display">1.00</strong></div>
+				<button type="button" id="btn-bet-plus" aria-label="Increase play amount"><img src="src/assets/golden-goal-rush/hud-extracted/plus-button.webp" alt="" /></button>
 			</div>
 			<button type="button" class="icon-button info" id="btn-info" aria-label="Info"><img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/info-button.webp" alt="" /></button>
 			<button type="button" class="icon-button settings" id="btn-settings" aria-label="Settings"><img class="button-art" src="src/assets/golden-goal-rush/hud-extracted/settings-button.webp" alt="" /></button>
@@ -1921,7 +1921,7 @@
 			<div class="modal">
 				<div class="modal-header"><div class="modal-title">MENU</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
-					<button class="menu-item" data-open="modal-paytable"><span class="mi-ico">PT</span><span class="mi-text"><span class="mi-label" id="menu-paytable-label">Pay Table</span><span class="mi-desc" id="menu-paytable-desc">Symbol payouts and cluster sizes</span></span><span class="mi-arrow">&rsaquo;</span></button>
+					<button class="menu-item" data-open="modal-paytable"><span class="mi-ico">ST</span><span class="mi-text"><span class="mi-label" id="menu-paytable-label">Symbol Table</span><span class="mi-desc" id="menu-paytable-desc">Symbol values and cluster sizes</span></span><span class="mi-arrow">&rsaquo;</span></button>
 					<button class="menu-item" data-open="modal-rules"><span class="mi-ico">?</span><span class="mi-text"><span class="mi-label">Rules &amp; Features</span><span class="mi-desc" id="menu-rules-desc">Cluster wins, coins, multipliers and free spins</span></span><span class="mi-arrow">&rsaquo;</span></button>
 					<button class="menu-item" data-open="modal-settings"><span class="mi-ico">SET</span><span class="mi-text"><span class="mi-label">Settings</span><span class="mi-desc">Stadium audio and turbo mode</span></span><span class="mi-arrow">&rsaquo;</span></button>
 					<button class="menu-item" id="menu-sound"><span class="mi-ico">SFX</span><span class="mi-text"><span class="mi-label">Sound</span><span class="mi-desc">Toggle music and effects</span></span><span class="mi-pill" id="menu-sound-state">ON</span></button>
@@ -1947,12 +1947,12 @@
 		<!-- ===== Paytable modal ===== -->
 		<div class="modal-backdrop" id="modal-paytable" data-modal>
 			<div class="modal">
-				<div class="modal-header"><div class="modal-title" id="paytable-title">PAY TABLE</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-header"><div class="modal-title" id="paytable-title">SYMBOL TABLE</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
-					<p class="pt-intro" id="paytable-intro">Payouts are multipliers of the active bet. Wins begin with <b>5 orthogonally connected matching symbols</b>; substituting Wilds count in the cluster size.</p>
-					<div class="pt-head" id="paytable-head">Symbol Pays <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small></div>
+					<p class="pt-intro" id="paytable-intro">Values are multipliers of the active play amount. Awards begin with <b>5 orthogonally connected matching symbols</b>; substituting Wilds are included in the displayed cluster size.</p>
+					<div class="pt-head" id="paytable-head">Symbol Values <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small></div>
 					<div class="pt-grid" id="pt-grid"></div>
-					<div class="pt-note" id="paytable-note">5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. The cascade multiplier begins at 1× and rises after each successful cascade. Floating amounts are individual win steps; WIN is the cumulative round result.</div>
+					<div class="pt-note" id="paytable-note">5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each eligible symbol is evaluated independently with orthogonally connected Wilds. A Wild may support multiple distinct symbol clusters, counts toward each supported cluster, and appears only once within a single award. The tumble removes all awarded positions. The cascade multiplier starts at 1× and increases after each successful cascade. A floating amount shows that award step; the WIN meter is cumulative for the complete round.</div>
 				</div>
 			</div>
 		</div>
@@ -1962,64 +1962,64 @@
 			<div class="modal">
 				<div class="modal-header"><div class="modal-title">RULES &amp; FEATURES</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body" id="rules-body">
-					<p class="pt-intro">Golden Goal Rush is a 6&times;5 <b>cluster-pays</b> game. Land <b>5 or more matching symbols connected horizontally or vertically</b> to win. The 5+/7+/9+/12+ bands mean 5–6, 7–8, 9–11, and 12 or more symbols. Winning symbols are removed and new ones cascade in. The cascade multiplier starts at 1&times; and increments after each successful cascade.</p>
+					<p class="pt-intro">Golden Goal Rush is a 6&times;5 <b>cluster-awards</b> game. Land <b>5 or more matching symbols connected horizontally or vertically</b> to receive an award. The 5+/7+/9+/12+ bands mean 5–6, 7–8, 9–11, and 12 or more symbols. Awarded symbols are removed and new ones cascade in. The cascade multiplier starts at 1&times; and increments after each successful cascade.</p>
 					<div class="pt-head">Core Game</div>
-					<div class="pt-feat"><img src="src/assets/golden-goal-rush/wild.webp" alt="Wild" /><div><b>WILD</b>Substitutes for every normal paying symbol to help complete clusters and is included in the displayed cluster size. Does not replace the Scatter.</div></div>
+					<div class="pt-feat"><img src="src/assets/golden-goal-rush/wild.webp" alt="Wild" /><div><b>WILD</b>Substitutes for every normal eligible symbol to help complete clusters and is included in the displayed cluster size. Does not replace the Scatter.</div></div>
 					<div class="pt-feat"><div class="pt-chip"></div><div><b>WIN AMOUNTS</b>Each floating cluster amount is the award for that specific cascade step, including its cascade multiplier. The WIN meter is the cumulative authoritative result for the full round.</div></div>
 					<div class="pt-feat"><img src="src/assets/golden-goal-rush/scatter.webp" alt="Scatter" /><div><b>SCATTER &mdash; VIP TICKET</b>3, 4 or 5 trigger Free Spins Tier 1 / 2 / 3.</div></div>
 					<div class="pt-feat"><div class="pt-chip"></div><div><b>GOLDEN CELLS</b>Every winning position turns into a Golden Cell for the rest of the spin sequence.</div></div>
 					<div class="pt-head">Golden Goal Feature</div>
 					<div class="pt-feat"><img src="src/assets/golden-goal-rush/special/symbol_rainbow.webp" alt="Golden Arc" /><div><b>GOLDEN ARC (RAINBOW)</b>While an Arc is on the board it activates all Golden Cells, revealing Coins, Multiplier Badges and Collector Cups.</div></div>
-					<div class="pt-feat"><img src="src/assets/golden-goal-rush/special/gold.webp" alt="Coins" /><div><b>SPONSOR COINS</b>Bronze 0.2&ndash;4&times;, Silver 5&ndash;20&times;, Gold 25&ndash;500&times; the bet.</div></div>
+					<div class="pt-feat"><img src="src/assets/golden-goal-rush/special/gold.webp" alt="Coins" /><div><b>SPONSOR COINS</b>Bronze 0.2&ndash;4&times;, Silver 5&ndash;20&times;, Gold 25&ndash;500&times; the play amount.</div></div>
 					<div class="pt-feat"><img src="src/assets/golden-goal-rush/special/x5.webp" alt="Multiplier Badge" /><div><b>MULTIPLIER BADGE</b>Multiplies adjacent coins by x2, x3, x4, x5, x10.</div></div>
 					<div class="pt-feat"><img src="src/assets/golden-goal-rush/special/symbol_collector.webp" alt="Collector Cup" /><div><b>COLLECTOR CUP</b>Collects the value of every visible coin (top-to-bottom, left-to-right). After the last cup the Golden Cells reveal again, repeating while new cups appear.</div></div>
-					<div class="pt-head">Free Spins &amp; Bonus Buy</div>
+					<div class="pt-head">Free Spins &amp; Features</div>
 					<div class="pt-feat"><img src="src/assets/golden-goal-rush/scatter.webp" alt="Free Spins" /><div><b>FREE SPINS</b>
 						Tier 1 &mdash; Golden Chance: 8 spins.<br>Tier 2 &mdash; All That Glitters: 12 spins.<br>Tier 3 &mdash; End of the Rainbow: 12 spins, guaranteed Arc each spin.</div></div>
-					<div class="pt-feat"><img src="src/assets/golden-goal-rush/hud-extracted/bonus-button.webp" alt="Bonus Buy" /><div><b>BONUS BUY</b>
-						Feature Spins &mdash; 4.2&times; bet<br>Rainbow Spin &mdash; 6&times; bet<br>Golden Chance &mdash; 31&times; bet<br>All That Glitters &mdash; 95&times; bet<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
+					<div class="pt-feat"><img src="src/assets/golden-goal-rush/hud-extracted/bonus-button.webp" alt="Feature" /><div><b>BONUS / FEATURE</b>
+						Feature Spins &mdash; 4.2&times; play amount<br>Rainbow Spin &mdash; 6&times; play amount<br>Golden Chance &mdash; 31&times; play amount<br>All That Glitters &mdash; 95&times; play amount<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
 					<div class="pt-head">Game Modes</div>
-					<div class="pt-feat"><div class="pt-chip"></div><div><b>Base Game</b>Standard paid spin on the 6x5 cluster grid. Winning clusters cascade and mark Golden Cells.<br><small>Trigger: Main Spin button. Cost multiplier: 1&times;. Not a bonus mode. Scatter tickets can trigger Free Spins from the paid spin.</small></div></div>
-					<div class="pt-feat"><div class="pt-chip"></div><div><b>Feature Spins</b>One paid spin with boosted Golden Arc chance. Free-spin triggers are disabled for this mode.<br><small>Trigger: Bonus Buy panel. Cost multiplier: 4.2&times;. No retrigger inside this single-spin mode.</small></div></div>
-					<div class="pt-feat"><div class="pt-chip"></div><div><b>Rainbow Spin</b>One paid spin with a guaranteed Golden Arc. Scatter tickets can still award Free Spins.<br><small>Trigger: Bonus Buy panel. Cost multiplier: 6&times;. The Rainbow Spin itself does not retrigger; a scatter award starts the matching Free Spins tier.</small></div></div>
-					<div class="pt-feat"><div class="pt-chip"></div><div><b>Golden Chance</b>8 Free Spins. Golden Cells persist during the sequence and reset after reveal.<br><small>Trigger: Bonus Buy panel or 3 Scatter tickets. Cost multiplier: 31&times;. The current math book does not create additional Free Spins inside this tier.</small></div></div>
-					<div class="pt-feat"><div class="pt-chip"></div><div><b>All That Glitters</b>12 Free Spins. Golden Cells persist after reveal, increasing the chance of later Arc awards.<br><small>Trigger: Bonus Buy panel or 4 Scatter tickets. Cost multiplier: 95&times;. The current math book does not create additional Free Spins inside this tier.</small></div></div>
+					<div class="pt-feat"><div class="pt-chip"></div><div><b>Base Play</b>Standard play on the 6x5 cluster grid. Winning clusters cascade and mark Golden Cells.<br><small>Trigger: Main Play button. Cost multiplier: 1&times;. Not a feature sequence. Scatter tickets can trigger Free Spins from the play.</small></div></div>
+					<div class="pt-feat"><div class="pt-chip"></div><div><b>Feature Spins</b>One play with boosted Golden Arc chance. Free-spin triggers are disabled for this mode.<br><small>Trigger: Feature panel. Cost multiplier: 4.2&times;. No retrigger inside this single-spin mode.</small></div></div>
+					<div class="pt-feat"><div class="pt-chip"></div><div><b>Rainbow Spin</b>One play with a guaranteed Golden Arc. Scatter tickets can still award Free Spins.<br><small>Trigger: Feature panel. Cost multiplier: 6&times;. The Rainbow Spin itself does not retrigger; a scatter award starts the matching Free Spins tier.</small></div></div>
+					<div class="pt-feat"><div class="pt-chip"></div><div><b>Golden Chance</b>8 Free Spins. Golden Cells persist during the sequence and reset after reveal.<br><small>Trigger: Feature panel or 3 Scatter tickets. Cost multiplier: 31&times;. The current math book does not create additional Free Spins inside this tier.</small></div></div>
+					<div class="pt-feat"><div class="pt-chip"></div><div><b>All That Glitters</b>12 Free Spins. Golden Cells persist after reveal, increasing the chance of later Arc awards.<br><small>Trigger: Feature panel or 4 Scatter tickets. Cost multiplier: 95&times;. The current math book does not create additional Free Spins inside this tier.</small></div></div>
 					<div class="pt-feat"><div class="pt-chip"></div><div><b>End of the Rainbow</b>12 Free Spins with a guaranteed Golden Arc each spin. This tier is not available from the feature panel.<br><small>Trigger: 5 Scatter tickets only. Cost multiplier: 1&times;. The current math book does not create additional Free Spins inside this tier.</small></div></div>
 					<div class="pt-head">Retriggers</div>
-					<div class="pt-feat"><img src="src/assets/golden-goal-rush/scatter.webp" alt="Retrigger" /><div><b>RETRIGGERS</b>Base Game and Rainbow Spin can trigger Free Spins with 3, 4 or 5 Scatter tickets. Purchased Free Spins do not generate additional Free Spins in the current math book.</div></div>
+					<div class="pt-feat"><img src="src/assets/golden-goal-rush/scatter.webp" alt="Retrigger" /><div><b>RETRIGGERS</b>Base Play and Rainbow Spin can trigger Free Spins with 3, 4 or 5 Scatter tickets. Feature-panel Free Spins do not add additional Free Spins in the current math book.</div></div>
 					<div class="pt-head">Buttons &amp; Controls</div>
 					<div class="controls-guide">
-					<div class="control-rule" data-control-key="spin" data-normal-name="Spin" data-social-name="Play" data-normal-desc="Starts a single paid spin with the selected bet." data-social-desc="Starts one play with the selected amount.">
-						<img src="src/assets/golden-goal-rush/hud-extracted/spin-button-active.webp" alt="Spin" />
-						<div><b>Spin</b>Starts a single paid spin with the selected bet.</div>
+					<div class="control-rule" data-control-key="spin" data-normal-name="Play" data-social-name="Play" data-normal-desc="Starts one play with the selected amount." data-social-desc="Starts one play with the selected amount.">
+						<img src="src/assets/golden-goal-rush/hud-extracted/spin-button-active.webp" alt="Play" />
+						<div><b>Play</b>Starts one play with the selected amount.</div>
 					</div>
-					<div class="control-rule" data-control-key="auto-bet" data-normal-name="Auto-Bet" data-social-name="Auto-Play" data-normal-desc="Opens the Auto-Bet spin amount selection. Auto-Bet starts only after selecting an amount and confirming." data-social-desc="Opens the Auto-Play amount selection. Auto-Play starts only after selecting an amount and confirming.">
-						<img src="src/assets/golden-goal-rush/hud-extracted/autospin-button.webp" alt="Auto-Bet" />
-						<div><b>Auto-Bet</b>Opens the Auto-Bet spin amount selection. Auto-Bet starts only after selecting an amount and confirming.</div>
+					<div class="control-rule" data-control-key="auto-bet" data-normal-name="Auto-Play" data-social-name="Auto-Play" data-normal-desc="Opens the Auto-Play amount selection. Auto-Play starts only after selecting an amount and confirming." data-social-desc="Opens the Auto-Play amount selection. Auto-Play starts only after selecting an amount and confirming.">
+						<img src="src/assets/golden-goal-rush/hud-extracted/autospin-button.webp" alt="Auto-Play" />
+						<div><b>Auto-Play</b>Opens the Auto-Play amount selection. Auto-Play starts only after selecting an amount and confirming.</div>
 					</div>
-					<div class="control-rule" data-control-key="turbo" data-normal-name="Turbo" data-social-name="Turbo" data-normal-desc="Toggles faster spin animations if available." data-social-desc="Toggles faster animations if available.">
+					<div class="control-rule" data-control-key="turbo" data-normal-name="Turbo" data-social-name="Turbo" data-normal-desc="Toggles faster animations if available." data-social-desc="Toggles faster animations if available.">
 						<img src="src/assets/golden-goal-rush/hud-extracted/turbo-button.webp" alt="Turbo" />
-						<div><b>Turbo</b>Toggles faster spin animations if available.</div>
+						<div><b>Turbo</b>Toggles faster animations if available.</div>
 					</div>
-					<div class="control-rule" data-control-key="bonus-buy" data-normal-name="Bonus Buy / Buy Feature" data-social-name="Bonus / Feature" data-normal-desc="Opens the Bonus Buy confirmation. The feature is purchased only after confirmation." data-social-desc="Opens the feature confirmation. The feature starts only after confirmation.">
-						<img src="src/assets/golden-goal-rush/hud-extracted/bonus-button.webp" alt="Bonus Buy / Buy Feature" />
-						<div><b>Bonus Buy / Buy Feature</b>Opens the Bonus Buy confirmation. The feature is purchased only after confirmation.</div>
+					<div class="control-rule" data-control-key="bonus-buy" data-normal-name="Bonus / Feature" data-social-name="Bonus / Feature" data-normal-desc="Opens the feature confirmation. The feature starts only after confirmation." data-social-desc="Opens the feature confirmation. The feature starts only after confirmation.">
+						<img src="src/assets/golden-goal-rush/hud-extracted/bonus-button.webp" alt="Bonus / Feature" />
+						<div><b>Bonus / Feature</b>Opens the feature confirmation. The feature starts only after confirmation.</div>
 					</div>
-					<div class="control-rule" data-control-key="bet-minus" data-normal-name="Bet Minus" data-social-name="Play Minus" data-normal-desc="Decreases the selected bet." data-social-desc="Decreases the selected play amount.">
-						<img src="src/assets/golden-goal-rush/hud-extracted/minus-button.webp" alt="Bet Minus" />
-						<div><b>Bet Minus</b>Decreases the selected bet.</div>
+					<div class="control-rule" data-control-key="bet-minus" data-normal-name="Play Minus" data-social-name="Play Minus" data-normal-desc="Decreases the selected play amount." data-social-desc="Decreases the selected play amount.">
+						<img src="src/assets/golden-goal-rush/hud-extracted/minus-button.webp" alt="Play Minus" />
+						<div><b>Play Minus</b>Decreases the selected play amount.</div>
 					</div>
-					<div class="control-rule" data-control-key="bet-plus" data-normal-name="Bet Plus" data-social-name="Play Plus" data-normal-desc="Increases the selected bet." data-social-desc="Increases the selected play amount.">
-						<img src="src/assets/golden-goal-rush/hud-extracted/plus-button.webp" alt="Bet Plus" />
-						<div><b>Bet Plus</b>Increases the selected bet.</div>
+					<div class="control-rule" data-control-key="bet-plus" data-normal-name="Play Plus" data-social-name="Play Plus" data-normal-desc="Increases the selected play amount." data-social-desc="Increases the selected play amount.">
+						<img src="src/assets/golden-goal-rush/hud-extracted/plus-button.webp" alt="Play Plus" />
+						<div><b>Play Plus</b>Increases the selected play amount.</div>
 					</div>
-					<div class="control-rule" data-control-key="bet-selector" data-normal-name="Bet Selector / Bet Panel" data-social-name="Play Selector / Play Panel" data-normal-desc="Shows the selected bet value and available bet step controls." data-social-desc="Shows the selected play amount and available amount steps.">
-						<img src="src/assets/golden-goal-rush/hud-extracted/control-panel-wide.webp" alt="Bet Selector / Bet Panel" />
-						<div><b>Bet Selector / Bet Panel</b>Shows the selected bet value and available bet step controls.</div>
+					<div class="control-rule" data-control-key="bet-selector" data-normal-name="Play Selector / Play Panel" data-social-name="Play Selector / Play Panel" data-normal-desc="Shows the selected play amount and available amount steps." data-social-desc="Shows the selected play amount and available amount steps.">
+						<img src="src/assets/golden-goal-rush/hud-extracted/control-panel-wide.webp" alt="Play Selector / Play Panel" />
+						<div><b>Play Selector / Play Panel</b>Shows the selected play amount and available amount steps.</div>
 					</div>
-					<div class="control-rule" data-control-key="info-rules" data-normal-name="Info / Rules" data-social-name="Info / Rules" data-normal-desc="Opens game rules, paytable, feature descriptions and button explanations." data-social-desc="Opens game rules, symbol values, feature descriptions and button explanations.">
+					<div class="control-rule" data-control-key="info-rules" data-normal-name="Info / Rules" data-social-name="Info / Rules" data-normal-desc="Opens game rules, symbol values, feature descriptions and button explanations." data-social-desc="Opens game rules, symbol values, feature descriptions and button explanations.">
 						<img src="src/assets/golden-goal-rush/hud-extracted/info-button.webp" alt="Info / Rules" />
-						<div><b>Info / Rules</b>Opens game rules, paytable, feature descriptions and button explanations.</div>
+						<div><b>Info / Rules</b>Opens game rules, symbol values, feature descriptions and button explanations.</div>
 					</div>
 					<div class="control-rule" data-control-key="settings" data-normal-name="Settings" data-social-name="Settings" data-normal-desc="Opens settings such as sound or game options." data-social-desc="Opens settings such as sound or game options.">
 						<img src="src/assets/golden-goal-rush/hud-extracted/settings-button.webp" alt="Settings" />
@@ -2046,8 +2046,8 @@
 						<div><b>Close Modal</b>Closes the current dialog without applying unconfirmed actions.</div>
 					</div>
 					</div>
-					<div class="pt-note">If the game is reloaded while a base-game round is still active, the round is immediately settled with Stake Engine and the result is available in game history. Active Bonus Buy bonus rounds resume from the saved round state with the purchased balance and bet preserved.</div>
-					<div class="pt-note">RTP 96.45% &middot; Max win 10,000&times; bet &middot; All wins are a multiple of the bet. Malfunction voids all pays and plays.</div>
+					<div class="pt-note">If the game is refreshed while a base-game round is still active, the round is completed by the game service and the result is available in game history. Active feature rounds resume from the saved round state with the selected balance and play amount preserved.</div>
+					<div class="pt-note">RTP 96.45% &middot; Max award 10,000&times; play amount &middot; All awards use the play amount. Malfunction voids all wins and plays.</div>
 				</div>
 			</div>
 		</div>
@@ -2055,7 +2055,7 @@
 		<!-- ===== Auto-Bet modal ===== -->
 		<div class="modal-backdrop" id="modal-autospin" data-modal>
 			<div class="modal">
-				<div class="modal-header"><div class="modal-title" id="autospin-title">AUTO-BET</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-header"><div class="modal-title" id="autospin-title">AUTO-PLAY</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
 					<div class="auto-options" id="auto-options"></div>
 					<div class="auto-confirm" id="auto-confirm" aria-live="polite"></div>
@@ -2068,7 +2068,7 @@
 			<div class="replay-overlay-card">
 				<div class="replay-spinner" aria-hidden="true"></div>
 				<div class="replay-overlay-title" id="replay-overlay-title">Loading Replay</div>
-				<div class="replay-overlay-detail" id="replay-overlay-detail">Retrieving the saved round from Stake Engine.</div>
+				<div class="replay-overlay-detail" id="replay-overlay-detail">Retrieving the saved play from the game service.</div>
 			</div>
 		</div>
 
@@ -2108,7 +2108,7 @@
 		<!-- ===== Bonus Buy modal ===== -->
 		<div class="modal-backdrop" id="modal-bonusbuy" data-modal>
 			<div class="modal">
-				<div class="modal-header"><div class="modal-title" id="bonusbuy-title">BONUS BUY</div><button class="modal-close" data-close>&times;</button></div>
+				<div class="modal-header"><div class="modal-title" id="bonusbuy-title">BONUS / FEATURE</div><button class="modal-close" data-close>&times;</button></div>
 				<div class="modal-body">
 					<div class="bonusbuy-hero"><img src="src/assets/golden-goal-rush/hud-extracted/feature-banner-wide.webp" alt="" /><div class="bonusbuy-title">Golden Goal Rush</div></div>
 					<div class="bb-list" id="bonusbuy-list"></div>
@@ -2132,10 +2132,10 @@ const COIN_ASSETS = {"bronze":"src/assets/golden-goal-rush/special/bronze.webp",
 const MULT_ASSETS = {"2":"src/assets/golden-goal-rush/special/x2.webp","3":"src/assets/golden-goal-rush/special/x3.webp","4":"src/assets/golden-goal-rush/special/x4.webp","5":"src/assets/golden-goal-rush/special/x5.webp","10":"src/assets/golden-goal-rush/special/x10.webp"};
 const COLLECTOR_ASSET = "src/assets/golden-goal-rush/special/symbol_collector.webp";
 const AUDIO_ASSETS = {"music":"src/assets/golden-goal-rush/audio/background-music.mp3","roar":"src/assets/golden-goal-rush/audio/stadium-roar.mp3","reelEnd":"src/assets/golden-goal-rush/audio/reel-end.mp3","ping":"src/assets/golden-goal-rush/audio/ping.mp3","rainbowReveal":"src/assets/golden-goal-rush/audio/rainbow-reveal.mp3","scatter":"src/assets/golden-goal-rush/audio/scatter-metal.mp3","clusterBurst":"src/assets/golden-goal-rush/audio/cluster-burst.mp3"};
-const STAKE_SOCIAL_RESTRICTED_TERMS = ["win feature","pay out","paid out","pays out","payout","payouts","paying","stake","betting","total bet","place your bets","bet/s","bet","bets","cash","payer","pay","pays","paid","money","buy bonus","bonus buy","buy","bought","purchase","at the cost of","cost of","rebet","credit","gamble","wager","deposit","withdraw","be awarded to player’s accounts","currency","fund"];
-const socialRestrictedHits = function socialRestrictedHits(text) {
+const STAKE_PLAYER_VISIBLE_RESTRICTED_TERMS = ["win feature","pay out","paid out","pays out","payout","payouts","paying","stake","betting","total bet","place your bets","bet/s","bet","bets","cash","payer","pay","pays","paid","money","buy bonus","bonus buy","buy","bought","purchase","at the cost of","cost of","rebet","credit","gamble","wager","deposit","withdraw","be awarded to player’s accounts","currency","fund"];
+const playerVisibleRestrictedHits = function playerVisibleRestrictedHits(text) {
 	const normalized = String(text || '');
-	return STAKE_SOCIAL_RESTRICTED_TERMS.filter((term) => {
+	return STAKE_PLAYER_VISIBLE_RESTRICTED_TERMS.filter((term) => {
 		const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/[\s-]+/g, '[\\s-]+');
 		return new RegExp(`(^|[^\\p{L}\\p{N}_])${escaped}(?=$|[^\\p{L}\\p{N}_])`, 'iu').test(normalized);
 	});
@@ -2199,9 +2199,9 @@ const reconcileWalletBalance = function reconcileWalletBalance({ active, playBal
 	return selected;
 };
 const ASSETS = {"background":"src/assets/golden-goal-rush/slot-background.webp","headerLogo":"src/assets/golden-goal-rush/logo-horizontal-tight.webp","football":"src/assets/golden-goal-rush/fussball.webp","collector":"src/assets/golden-goal-rush/special/symbol_collector.webp","multiplier":"src/assets/golden-goal-rush/special/symbol_multiplier.webp","trophy":"src/assets/golden-goal-rush/pokal.webp","featureBanner":"src/assets/golden-goal-rush/hud-extracted/feature-banner-wide.webp","meterPanelA":"src/assets/golden-goal-rush/hud-extracted/meter-panel-a.webp","meterPanelB":"src/assets/golden-goal-rush/hud-extracted/meter-panel-b.webp","meterPanelC":"src/assets/golden-goal-rush/hud-extracted/meter-panel-c.webp","controlPanel":"src/assets/golden-goal-rush/hud-extracted/control-panel-wide.webp","featurePanel":"src/assets/golden-goal-rush/hud-extracted/feature-panel.webp","menuButton":"src/assets/golden-goal-rush/hud-extracted/menu-button.webp","bonusButton":"src/assets/golden-goal-rush/hud-extracted/bonus-button.webp","autoSpinButton":"src/assets/golden-goal-rush/hud-extracted/autospin-button.webp","turboButton":"src/assets/golden-goal-rush/hud-extracted/turbo-button.webp","spinButton":"src/assets/golden-goal-rush/hud-extracted/spin-button-active.webp","minusButton":"src/assets/golden-goal-rush/hud-extracted/minus-button.webp","plusButton":"src/assets/golden-goal-rush/hud-extracted/plus-button.webp","infoButton":"src/assets/golden-goal-rush/hud-extracted/info-button.webp","settingsButton":"src/assets/golden-goal-rush/hud-extracted/settings-button.webp"};
-const PLAYER_MODE_META = {"base":{"name":"Base Game","socialName":"Base Play","costMultiplier":1,"trigger":"Main Spin button","socialTrigger":"Main Play button","description":"Standard paid spin on the 6x5 cluster grid. Winning clusters cascade and mark Golden Cells.","socialDescription":"Standard play on the 6x5 cluster grid. Winning clusters cascade and mark Golden Cells.","retrigger":"Not a bonus mode. Scatter tickets can trigger Free Spins from the paid spin.","socialRetrigger":"Not a feature sequence. Scatter tickets can trigger Free Spins from the play."},"hunt":{"name":"Feature Spins","socialName":"Feature Spins","costMultiplier":4.2,"trigger":"Bonus Buy panel","socialTrigger":"Feature panel","description":"One paid spin with boosted Golden Arc chance. Free-spin triggers are disabled for this mode.","socialDescription":"One play with boosted Golden Arc chance. Free-spin triggers are disabled for this mode.","retrigger":"No retrigger inside this single-spin mode.","socialRetrigger":"No extra sequence is added inside this single-play mode."},"rainbow":{"name":"Rainbow Spin","socialName":"Rainbow Spin","costMultiplier":6,"trigger":"Bonus Buy panel","socialTrigger":"Feature panel","description":"One paid spin with a guaranteed Golden Arc. Scatter tickets can still award Free Spins.","socialDescription":"One play with a guaranteed Golden Arc. Scatter tickets can still award Free Spins.","retrigger":"The Rainbow Spin itself does not retrigger; a scatter award starts the matching Free Spins tier.","socialRetrigger":"The Rainbow Spin itself does not add more plays; a scatter award starts the matching Free Spins tier."},"bonus_tier1":{"name":"Golden Chance","socialName":"Golden Chance","costMultiplier":31,"trigger":"Bonus Buy panel or 3 Scatter tickets","socialTrigger":"Feature panel or 3 Scatter tickets","description":"8 Free Spins. Golden Cells persist during the sequence and reset after reveal.","socialDescription":"8 Free Spins. Golden Cells persist during the sequence and reset after reveal.","retrigger":"The current math book does not create additional Free Spins inside this tier.","socialRetrigger":"The current math book does not add extra Free Spins inside this tier."},"bonus":{"name":"All That Glitters","socialName":"All That Glitters","costMultiplier":95,"trigger":"Bonus Buy panel or 4 Scatter tickets","socialTrigger":"Feature panel or 4 Scatter tickets","description":"12 Free Spins. Golden Cells persist after reveal, increasing the chance of later Arc awards.","socialDescription":"12 Free Spins. Golden Cells persist after reveal, increasing the chance of later Arc awards.","retrigger":"The current math book does not create additional Free Spins inside this tier.","socialRetrigger":"The current math book does not add extra Free Spins inside this tier."},"bonus_tier3":{"name":"End of the Rainbow","socialName":"End of the Rainbow","costMultiplier":1,"trigger":"5 Scatter tickets only","socialTrigger":"5 Scatter tickets only","description":"12 Free Spins with a guaranteed Golden Arc each spin. This tier is not available from the feature panel.","socialDescription":"12 Free Spins with a guaranteed Golden Arc each spin. This tier is not available from the feature panel.","retrigger":"The current math book does not create additional Free Spins inside this tier.","socialRetrigger":"The current math book does not add extra Free Spins inside this tier."}};
-const CONTROL_RULES = [["spin","Spin","Play","src/assets/golden-goal-rush/hud-extracted/spin-button-active.webp","Starts a single paid spin with the selected bet.","Starts one play with the selected amount."],["auto-bet","Auto-Bet","Auto-Play","src/assets/golden-goal-rush/hud-extracted/autospin-button.webp","Opens the Auto-Bet spin amount selection. Auto-Bet starts only after selecting an amount and confirming.","Opens the Auto-Play amount selection. Auto-Play starts only after selecting an amount and confirming."],["turbo","Turbo","Turbo","src/assets/golden-goal-rush/hud-extracted/turbo-button.webp","Toggles faster spin animations if available.","Toggles faster animations if available."],["bonus-buy","Bonus Buy / Buy Feature","Bonus / Feature","src/assets/golden-goal-rush/hud-extracted/bonus-button.webp","Opens the Bonus Buy confirmation. The feature is purchased only after confirmation.","Opens the feature confirmation. The feature starts only after confirmation."],["bet-minus","Bet Minus","Play Minus","src/assets/golden-goal-rush/hud-extracted/minus-button.webp","Decreases the selected bet.","Decreases the selected play amount."],["bet-plus","Bet Plus","Play Plus","src/assets/golden-goal-rush/hud-extracted/plus-button.webp","Increases the selected bet.","Increases the selected play amount."],["bet-selector","Bet Selector / Bet Panel","Play Selector / Play Panel","src/assets/golden-goal-rush/hud-extracted/control-panel-wide.webp","Shows the selected bet value and available bet step controls.","Shows the selected play amount and available amount steps."],["info-rules","Info / Rules","Info / Rules","src/assets/golden-goal-rush/hud-extracted/info-button.webp","Opens game rules, paytable, feature descriptions and button explanations.","Opens game rules, symbol values, feature descriptions and button explanations."],["settings","Settings","Settings","src/assets/golden-goal-rush/hud-extracted/settings-button.webp","Opens settings such as sound or game options.","Opens settings such as sound or game options."],["menu","Menu","Menu","src/assets/golden-goal-rush/hud-extracted/menu-button.webp","Opens the main menu.","Opens the main menu."],["sound-music","Sound / Music","Sound / Music","src/assets/golden-goal-rush/hud-extracted/menu-button.webp","Toggles sound and music from the menu or settings panel.","Toggles sound and music from the menu or settings panel."],["collect","Collect","Collect","src/assets/golden-goal-rush/special/symbol_collector.webp","Collects bonus feature values depending on the active Golden Goal feature.","Collects feature values depending on the active Golden Goal feature."],["free-spins","Free Spins / Feature Button","Free Spins / Feature Button","src/assets/golden-goal-rush/hud-extracted/feature-panel.webp","Shows feature state for collect, multiplier and free spins during active feature play.","Shows feature state for collect, multiplier and free spins during active feature play."],["close-modal","Close Modal","Close Modal","src/assets/golden-goal-rush/hud-extracted/info-button.webp","Closes the current dialog without applying unconfirmed actions.","Closes the current dialog without applying unconfirmed actions."]];
-const CONFIG = {"blankWeight":88,"bronzeWeight":60,"silverWeight":11,"goldWeight":1.5,"multiplierWeight":8,"collectorWeight":3,"rainbowWeight":0.12,"scatterWeight":2,"huntBoost":40,"bronzeValues":[0.2,0.5,1,2,3,4],"silverValues":[5,10,15,20],"goldValues":[25,50,100,250,500],"multiplierValues":[2,3,4,5,10],"maxCollectorCycles":4,"maxWinMultiplier":10000,"tiers":{"1":{"name":"Golden Chance","spins":8,"persistGolden":true,"persistAfterReveal":false,"guaranteedRainbow":false,"rainbowBoost":3,"reduceBronze":false},"2":{"name":"All That Glitters","spins":12,"persistGolden":true,"persistAfterReveal":true,"guaranteedRainbow":false,"rainbowBoost":3,"reduceBronze":false},"3":{"name":"End of the Rainbow","spins":12,"persistGolden":true,"persistAfterReveal":true,"guaranteedRainbow":true,"rainbowBoost":1,"reduceBronze":true}},"bonusBuy":[{"id":"hunt","label":"Feature Spins","mult":4.2,"desc":"One paid spin with boosted feature chance"},{"id":"rainbow","label":"Rainbow Spin","mult":6,"desc":"One paid spin with a guaranteed Golden Arc"},{"id":"tier1","label":"Golden Chance","mult":31,"desc":"Start 8 Free Spins (Tier 1)"},{"id":"tier2","label":"All That Glitters","mult":95,"desc":"Start 12 Free Spins (Tier 2)"}]};
+const PLAYER_MODE_META = {"base":{"name":"Base Play","socialName":"Base Play","costMultiplier":1,"trigger":"Main Play button","socialTrigger":"Main Play button","description":"Standard play on the 6x5 cluster grid. Winning clusters cascade and mark Golden Cells.","socialDescription":"Standard play on the 6x5 cluster grid. Winning clusters cascade and mark Golden Cells.","retrigger":"Not a feature sequence. Scatter tickets can trigger Free Spins from the play.","socialRetrigger":"Not a feature sequence. Scatter tickets can trigger Free Spins from the play."},"hunt":{"name":"Feature Spins","socialName":"Feature Spins","costMultiplier":4.2,"trigger":"Feature panel","socialTrigger":"Feature panel","description":"One play with boosted Golden Arc chance. Free-spin triggers are disabled for this mode.","socialDescription":"One play with boosted Golden Arc chance. Free-spin triggers are disabled for this mode.","retrigger":"No retrigger inside this single-spin mode.","socialRetrigger":"No extra sequence is added inside this single-play mode."},"rainbow":{"name":"Rainbow Spin","socialName":"Rainbow Spin","costMultiplier":6,"trigger":"Feature panel","socialTrigger":"Feature panel","description":"One play with a guaranteed Golden Arc. Scatter tickets can still award Free Spins.","socialDescription":"One play with a guaranteed Golden Arc. Scatter tickets can still award Free Spins.","retrigger":"The Rainbow Spin itself does not retrigger; a scatter award starts the matching Free Spins tier.","socialRetrigger":"The Rainbow Spin itself does not add more plays; a scatter award starts the matching Free Spins tier."},"bonus_tier1":{"name":"Golden Chance","socialName":"Golden Chance","costMultiplier":31,"trigger":"Feature panel or 3 Scatter tickets","socialTrigger":"Feature panel or 3 Scatter tickets","description":"8 Free Spins. Golden Cells persist during the sequence and reset after reveal.","socialDescription":"8 Free Spins. Golden Cells persist during the sequence and reset after reveal.","retrigger":"The current math book does not create additional Free Spins inside this tier.","socialRetrigger":"The current math book does not add extra Free Spins inside this tier."},"bonus":{"name":"All That Glitters","socialName":"All That Glitters","costMultiplier":95,"trigger":"Feature panel or 4 Scatter tickets","socialTrigger":"Feature panel or 4 Scatter tickets","description":"12 Free Spins. Golden Cells persist after reveal, increasing the chance of later Arc awards.","socialDescription":"12 Free Spins. Golden Cells persist after reveal, increasing the chance of later Arc awards.","retrigger":"The current math book does not create additional Free Spins inside this tier.","socialRetrigger":"The current math book does not add extra Free Spins inside this tier."},"bonus_tier3":{"name":"End of the Rainbow","socialName":"End of the Rainbow","costMultiplier":1,"trigger":"5 Scatter tickets only","socialTrigger":"5 Scatter tickets only","description":"12 Free Spins with a guaranteed Golden Arc each spin. This tier is not available from the feature panel.","socialDescription":"12 Free Spins with a guaranteed Golden Arc each spin. This tier is not available from the feature panel.","retrigger":"The current math book does not create additional Free Spins inside this tier.","socialRetrigger":"The current math book does not add extra Free Spins inside this tier."}};
+const CONTROL_RULES = [["spin","Play","Play","src/assets/golden-goal-rush/hud-extracted/spin-button-active.webp","Starts one play with the selected amount.","Starts one play with the selected amount."],["auto-bet","Auto-Play","Auto-Play","src/assets/golden-goal-rush/hud-extracted/autospin-button.webp","Opens the Auto-Play amount selection. Auto-Play starts only after selecting an amount and confirming.","Opens the Auto-Play amount selection. Auto-Play starts only after selecting an amount and confirming."],["turbo","Turbo","Turbo","src/assets/golden-goal-rush/hud-extracted/turbo-button.webp","Toggles faster animations if available.","Toggles faster animations if available."],["bonus-buy","Bonus / Feature","Bonus / Feature","src/assets/golden-goal-rush/hud-extracted/bonus-button.webp","Opens the feature confirmation. The feature starts only after confirmation.","Opens the feature confirmation. The feature starts only after confirmation."],["bet-minus","Play Minus","Play Minus","src/assets/golden-goal-rush/hud-extracted/minus-button.webp","Decreases the selected play amount.","Decreases the selected play amount."],["bet-plus","Play Plus","Play Plus","src/assets/golden-goal-rush/hud-extracted/plus-button.webp","Increases the selected play amount.","Increases the selected play amount."],["bet-selector","Play Selector / Play Panel","Play Selector / Play Panel","src/assets/golden-goal-rush/hud-extracted/control-panel-wide.webp","Shows the selected play amount and available amount steps.","Shows the selected play amount and available amount steps."],["info-rules","Info / Rules","Info / Rules","src/assets/golden-goal-rush/hud-extracted/info-button.webp","Opens game rules, symbol values, feature descriptions and button explanations.","Opens game rules, symbol values, feature descriptions and button explanations."],["settings","Settings","Settings","src/assets/golden-goal-rush/hud-extracted/settings-button.webp","Opens settings such as sound or game options.","Opens settings such as sound or game options."],["menu","Menu","Menu","src/assets/golden-goal-rush/hud-extracted/menu-button.webp","Opens the main menu.","Opens the main menu."],["sound-music","Sound / Music","Sound / Music","src/assets/golden-goal-rush/hud-extracted/menu-button.webp","Toggles sound and music from the menu or settings panel.","Toggles sound and music from the menu or settings panel."],["collect","Collect","Collect","src/assets/golden-goal-rush/special/symbol_collector.webp","Collects bonus feature values depending on the active Golden Goal feature.","Collects feature values depending on the active Golden Goal feature."],["free-spins","Free Spins / Feature Button","Free Spins / Feature Button","src/assets/golden-goal-rush/hud-extracted/feature-panel.webp","Shows feature state for collect, multiplier and free spins during active feature play.","Shows feature state for collect, multiplier and free spins during active feature play."],["close-modal","Close Modal","Close Modal","src/assets/golden-goal-rush/hud-extracted/info-button.webp","Closes the current dialog without applying unconfirmed actions.","Closes the current dialog without applying unconfirmed actions."]];
+const CONFIG = {"blankWeight":88,"bronzeWeight":60,"silverWeight":11,"goldWeight":1.5,"multiplierWeight":8,"collectorWeight":3,"rainbowWeight":0.12,"scatterWeight":2,"huntBoost":40,"bronzeValues":[0.2,0.5,1,2,3,4],"silverValues":[5,10,15,20],"goldValues":[25,50,100,250,500],"multiplierValues":[2,3,4,5,10],"maxCollectorCycles":4,"maxWinMultiplier":10000,"tiers":{"1":{"name":"Golden Chance","spins":8,"persistGolden":true,"persistAfterReveal":false,"guaranteedRainbow":false,"rainbowBoost":3,"reduceBronze":false},"2":{"name":"All That Glitters","spins":12,"persistGolden":true,"persistAfterReveal":true,"guaranteedRainbow":false,"rainbowBoost":3,"reduceBronze":false},"3":{"name":"End of the Rainbow","spins":12,"persistGolden":true,"persistAfterReveal":true,"guaranteedRainbow":true,"rainbowBoost":1,"reduceBronze":true}},"bonusBuy":[{"id":"hunt","label":"Feature Spins","mult":4.2,"desc":"One play with boosted feature chance"},{"id":"rainbow","label":"Rainbow Spin","mult":6,"desc":"One play with a guaranteed Golden Arc"},{"id":"tier1","label":"Golden Chance","mult":31,"desc":"Start 8 Free Spins (Tier 1)"},{"id":"tier2","label":"All That Glitters","mult":95,"desc":"Start 12 Free Spins (Tier 2)"}]};
 const CURRENCY_META = {"USD":{"symbol":"$","decimals":2,"symbolAfter":false},"CAD":{"symbol":"CA$","decimals":2,"symbolAfter":false},"JPY":{"symbol":"¥","decimals":0,"symbolAfter":false},"EUR":{"symbol":"€","decimals":2,"symbolAfter":false},"RUB":{"symbol":"₽","decimals":2,"symbolAfter":false},"CNY":{"symbol":"CN¥","decimals":2,"symbolAfter":false},"PHP":{"symbol":"₱","decimals":2,"symbolAfter":false},"INR":{"symbol":"₹","decimals":2,"symbolAfter":false},"IDR":{"symbol":"Rp","decimals":0,"symbolAfter":false},"KRW":{"symbol":"₩","decimals":0,"symbolAfter":false},"BRL":{"symbol":"R$","decimals":2,"symbolAfter":false},"MXN":{"symbol":"MX$","decimals":2,"symbolAfter":false},"DKK":{"symbol":"KR","decimals":2,"symbolAfter":true},"PLN":{"symbol":"zł","decimals":2,"symbolAfter":true},"VND":{"symbol":"₫","decimals":0,"symbolAfter":true},"TRY":{"symbol":"₺","decimals":2,"symbolAfter":false},"CLP":{"symbol":"CLP","decimals":0,"symbolAfter":true},"ARS":{"symbol":"ARS","decimals":2,"symbolAfter":true},"PEN":{"symbol":"S/","decimals":2,"symbolAfter":false},"NGN":{"symbol":"₦","decimals":2,"symbolAfter":false},"SAR":{"symbol":"SAR","decimals":2,"symbolAfter":true},"ILS":{"symbol":"ILS","decimals":2,"symbolAfter":true},"AED":{"symbol":"AED","decimals":2,"symbolAfter":true},"TWD":{"symbol":"NT$","decimals":2,"symbolAfter":false},"NOK":{"symbol":"kr","decimals":2,"symbolAfter":false},"KWD":{"symbol":"KD","decimals":2,"symbolAfter":false},"JOD":{"symbol":"JD","decimals":2,"symbolAfter":false},"CRC":{"symbol":"₡","decimals":2,"symbolAfter":false},"TND":{"symbol":"TND","decimals":2,"symbolAfter":true},"SGD":{"symbol":"SG$","decimals":2,"symbolAfter":false},"MYR":{"symbol":"RM","decimals":2,"symbolAfter":false},"OMR":{"symbol":"OMR","decimals":2,"symbolAfter":true},"QAR":{"symbol":"QAR","decimals":2,"symbolAfter":true},"BHD":{"symbol":"BD","decimals":2,"symbolAfter":false},"XGC":{"symbol":"GC","decimals":2,"symbolAfter":true},"XSC":{"symbol":"SC","decimals":2,"symbolAfter":true}};
 const COLS = 6, ROWS = 5, MIN_CLUSTER = 5;
 const DEV_BET_LEVELS = [
@@ -2221,49 +2221,49 @@ const LANGUAGE_RESOURCES = {
 	en: {
 		balanceLabel: 'BALANCE',
 		winLabel: 'WIN',
-		betLabel: 'BET',
-		spinButton: 'SPIN',
-		buyBonusAria: 'Buy Bonus',
-		autoAria: 'Auto Spin',
-		betControlsAria: 'Bet controls',
-		decreaseBetAria: 'Decrease bet',
-		increaseBetAria: 'Increase bet',
-		autoTitle: 'AUTO-BET',
-		bonusBuyTitle: 'BONUS BUY',
-		paytableLabel: 'Pay Table',
-		paytableDesc: 'Symbol payouts and cluster sizes',
-		paytableTitle: 'PAY TABLE',
-		paytableIntro: 'Payouts are multipliers of the active bet. Wins begin with <b>5 orthogonally connected matching symbols</b>; substituting Wilds are included in the displayed cluster size.',
-		paytableHead: 'Symbol Pays <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small>',
-		paytableNote: '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each paying symbol is evaluated independently with orthogonally connected Wilds. A Wild may support more than one distinct symbol cluster, counts toward each supported cluster, and appears only once within a single win. The tumble removes the union of all winning positions. The cascade multiplier starts at 1× and increases after each successful cascade, so a later floating cluster amount can exceed the base table value. A floating amount is that win step; the WIN meter is cumulative for the complete round.',
-		rulesDesc: 'Cluster wins, coins, multipliers and free spins',
-		autoConfirm: 'Start Auto-Bet for',
-		bonusNoteAffordable: 'Prices scale with your current bet. Tier 3 can only trigger naturally.',
+		betLabel: 'PLAY',
+		spinButton: 'PLAY',
+		buyBonusAria: 'Feature',
+		autoAria: 'Auto-Play',
+		betControlsAria: 'Play controls',
+		decreaseBetAria: 'Decrease play amount',
+		increaseBetAria: 'Increase play amount',
+		autoTitle: 'AUTO-PLAY',
+		bonusBuyTitle: 'BONUS / FEATURE',
+		paytableLabel: 'Symbol Table',
+		paytableDesc: 'Symbol values and cluster sizes',
+		paytableTitle: 'SYMBOL TABLE',
+		paytableIntro: 'Values are multipliers of the active play amount. Awards begin with <b>5 orthogonally connected matching symbols</b>; substituting Wilds are included in the displayed cluster size.',
+		paytableHead: 'Symbol Values <small>cluster 5+ &middot; 7+ &middot; 9+ &middot; 12+</small>',
+		paytableNote: '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each eligible symbol is evaluated independently with orthogonally connected Wilds. A Wild may support multiple distinct symbol clusters, counts toward each supported cluster, and appears only once within a single award. The tumble removes all awarded positions. The cascade multiplier starts at 1× and increases after each successful cascade. A floating amount shows that award step; the WIN meter is cumulative for the complete round.',
+		rulesDesc: 'Cluster awards, coins, multipliers and free spins',
+		autoConfirm: 'Start Auto-Play for',
+		bonusNoteAffordable: 'Feature amounts scale with your current play amount. Tier 3 can only trigger naturally.',
 		bonusNoteDisabled: 'Greyed options exceed your balance. Tier 3 can only trigger naturally.',
-		buyConfirmVerb: 'Buy',
-		balanceAfterPurchase: 'Balance after purchase',
-		replayTitle: 'Bet Replay',
+		buyConfirmVerb: 'Start',
+		balanceAfterPurchase: 'Balance after feature',
+		replayTitle: 'Play Replay',
 		startReplay: 'Start Replay',
-		replayEvent: 'Replay Event',
+		replayEvent: 'Replay Play',
 		replayMode: 'Mode',
-		replayBaseBet: 'Base Bet',
-		replayCostMultiplier: 'Cost Multiplier',
-		replayTotalCost: 'Total Bet Cost',
-		replayPayoutMultiplier: 'Payout Multiplier',
-		replayTotalWin: 'Total Win',
-		replayNote: 'This is a replay of a previous bet round. No bets will be placed.',
+		replayBaseBet: 'Base Play',
+		replayCostMultiplier: 'Feature Multiplier',
+		replayTotalCost: 'Play Cost',
+		replayPayoutMultiplier: 'Final Multiplier',
+		replayTotalWin: 'Final Play Amount',
+		replayNote: 'This is a replay of a previous play round. No new play will be placed.',
 		replayComplete: 'Replay Complete',
 		replayLoading: 'LOADING REPLAY',
 		replayReady: 'READY TO REPLAY',
 		replayRunning: 'REPLAY RUNNING',
 		replayCompleted: 'REPLAY COMPLETED',
 		replayError: 'REPLAY ERROR',
-		replayLoadingDetail: 'Retrieving the saved round from the game service.',
-		replayErrorDetail: 'The saved replay could not be loaded.',
-		replaySummaryLoading: 'Saved round · read-only',
+		replayLoadingDetail: 'Retrieving the saved play from the game service.',
+		replayErrorDetail: 'The saved play replay could not be loaded.',
+		replaySummaryLoading: 'Saved play · view only',
 		replayAction: 'Replay Play',
 		replayAgainAction: 'Play Again',
-		replayStageAria: 'Golden Goal Rush bet replay',
+		replayStageAria: 'Golden Goal Rush play replay',
 	},
 	sweeps_en: {
 		balanceLabel: 'BALANCE',
@@ -2313,10 +2313,10 @@ const LANGUAGE_RESOURCES = {
 		replayStageAria: 'Golden Goal Rush play replay',
 	},
 };
-const SOCIAL_RESTRICTED_PHRASES = STAKE_SOCIAL_RESTRICTED_TERMS;
-const SOCIAL_RESOURCE_TEXT = Object.values(LANGUAGE_RESOURCES.sweeps_en).join(' ');
-const SOCIAL_RESOURCE_HITS = socialRestrictedHits(SOCIAL_RESOURCE_TEXT);
-if (SOCIAL_RESOURCE_HITS.length) console.error('[GGR social-copy] restricted phrase in sweeps_en', SOCIAL_RESOURCE_HITS);
+for (const [resourceName, resource] of Object.entries(LANGUAGE_RESOURCES)) {
+	const restrictedHits = playerVisibleRestrictedHits(Object.values(resource).join(' '));
+	if (restrictedHits.length) console.error('[GGR player-copy] restricted phrase in language resource', resourceName, restrictedHits);
+}
 
 const state = {
 	balance: 1000, bet: 1, betIdx: 9, currency: DEFAULT_CURRENCY, grid: [], spinning: false, walletBusy: false, turbo: false, auto: false, autoRemaining: 0, selectedAutoSpins: null,
@@ -2614,7 +2614,7 @@ function controlRulesGuideHtml(social = isSocialPlay()) {
 			+ '<div><b>' + name + '</b>' + desc + '</div></div>';
 	}).join('') + '</div>';
 }
-function buildSocialRulesBodyHtml() {
+function buildPlayerSafeRulesBodyHtml() {
 	const modeKeys = ['base', 'hunt', 'rainbow', 'bonus_tier1', 'bonus', 'bonus_tier3'];
 	const modeRows = modeKeys.map((key) => {
 		const meta = PLAYER_MODE_META[key];
@@ -2645,7 +2645,6 @@ function buildSocialRulesBodyHtml() {
 		+ '<div class="pt-note">If the game is refreshed while a base-game round is still active, the round is completed by the game service and the result is available in game history. Active feature rounds resume from the saved round state with the selected balance and play amount preserved.</div>'
 		+ '<div class="pt-note">RTP 96.45% &middot; Max award ' + formatMaxWinMultiplier(CONFIG.maxWinMultiplier) + 'x play amount &middot; All awards use the play amount. Malfunction voids all awards and plays.</div>';
 }
-let normalRulesHtml = '';
 function applyLanguage() {
 	const social = isSocialPlay();
 	document.documentElement.dataset.social = social ? 'true' : 'false';
@@ -2685,8 +2684,7 @@ function applyLanguage() {
 	setText('replay-end-title', t('replayComplete'));
 	const rulesBody = $('rules-body');
 	if (rulesBody) {
-		if (!normalRulesHtml) normalRulesHtml = rulesBody.innerHTML;
-		rulesBody.innerHTML = social ? buildSocialRulesBodyHtml() : normalRulesHtml;
+		rulesBody.innerHTML = buildPlayerSafeRulesBodyHtml();
 	}
 }
 
@@ -2731,7 +2729,7 @@ function enterReplayUi() {
 	makeUnavailableInReplay(document.querySelector('.feature-control'));
 	const replayBetLabel = document.querySelector('.meter[data-meter="bet"] .meter-label');
 	if (replayBetLabel) {
-		replayBetLabel.textContent = isSocialPlay() ? 'REPLAY PLAY' : 'REPLAY BET';
+		replayBetLabel.textContent = 'REPLAY PLAY';
 		replayBetLabel.removeAttribute('data-i18n');
 	}
 	const turbo = $('btn-turbo');
@@ -2799,7 +2797,7 @@ function replayError(title, detail) {
 	state.grid = [];
 	board.innerHTML = '';
 	stage.classList.remove('spinning', 'bonus-mode', 'win-focus', 'antic', 'skip-mode');
-	setReplayLifecycle('error', null, (title ? title + '. ' : '') + (detail || 'Please relaunch the replay from Stake Engine.'));
+	setReplayLifecycle('error', null, 'The saved play could not be loaded or validated. Please relaunch the replay from the game host.');
 	console.error('[GGR replay error]', { title, detail });
 }
 
@@ -2822,7 +2820,7 @@ function fatalError(title, detail = '') {
 		stage.appendChild(overlay);
 	}
 	overlay.querySelector('.fatal-error-title').textContent = title;
-	overlay.querySelector('.fatal-error-detail').textContent = detail || 'Please relaunch the game from Stake Engine.';
+	overlay.querySelector('.fatal-error-detail').textContent = detail || 'Please relaunch the game from the game host.';
 	overlay.classList.add('show');
 	overlay.setAttribute('aria-hidden', 'false');
 	console.error('[GGR fatal]', { title, detail });
@@ -2882,7 +2880,7 @@ function validateLaunchUrl() {
 	if (!/^[A-Z]{2,8}$/.test(currency)) missing.push('valid currency');
 	if (!/^(desktop|mobile|tablet)$/i.test(device)) missing.push('valid device');
 	if (missing.length) {
-		fatalError('Invalid game launch', 'The game URL is missing or has invalid Stake Engine launch parameters: ' + missing.join(', ') + '. Please relaunch the game.');
+		fatalError('Invalid game launch', 'The game URL is missing or has invalid game-service launch parameters: ' + missing.join(', ') + '. Please relaunch the game.');
 		return false;
 	}
 	return true;
@@ -2890,7 +2888,7 @@ function validateLaunchUrl() {
 function checkLaunchUrlIntegrity() {
 	if (!UrlState.requiresRgs()) return;
 	if (window.location.href !== initialLaunchUrl) {
-		fatalError('Game launch URL changed', 'The launch URL changed after the game started. Please relaunch the game from Stake Engine.');
+		fatalError('Game launch URL changed', 'The launch URL changed after the game started. Please relaunch the game from the game host.');
 	}
 }
 window.addEventListener('popstate', checkLaunchUrlIntegrity);
@@ -2904,12 +2902,8 @@ window.addEventListener('hashchange', checkLaunchUrlIntegrity);
 	};
 });
 
-function isStakeUsBalanceLabel(currency = state.currency) {
-	const code = normalizeCurrency(currency);
-	return UrlState.social() || code === 'XGC' || code === 'XSC';
-}
-function insufficientFundsTitle(currency = state.currency) {
-	return isStakeUsBalanceLabel(currency) ? 'Insufficient Balance' : 'Insufficient Funds';
+function insufficientBalanceTitle() {
+	return 'Insufficient Balance';
 }
 function showNotice(title, body) {
 	const titleEl = $('notice-title');
@@ -2921,7 +2915,7 @@ function showNotice(title, body) {
 	openModal('modal-notification');
 }
 function showInsufficientFunds(requiredAmount = state.bet) {
-	const title = insufficientFundsTitle();
+	const title = insufficientBalanceTitle();
 	const needed = Math.max(0, roundMoney(requiredAmount - state.balance));
 	const detail = needed > 0
 		? 'Your balance is too low for this action. Required: <strong>' + formatCurrency(requiredAmount) + '</strong>. Available: <strong>' + formatCurrency(state.balance) + '</strong>.'
@@ -3158,7 +3152,7 @@ const Rgs = (() => {
 	const failRequest = (reason, error) => {
 		if (error) warnRgs('[RGS] ' + reason, error);
 		if (error && UrlState.requiresRgs() && isFatalRgsError(error)) {
-			fatalError('Stake Engine connection error', 'The game launch session is invalid or expired. Please relaunch the game from Stake Engine.');
+			fatalError('Game service connection error', 'The game launch session is invalid or expired. Please relaunch the game from the game host.');
 		}
 		if (error) setCooldown(isRateLimitedError(error) ? 2200 : 1200);
 		return false;
@@ -3245,7 +3239,7 @@ const Rgs = (() => {
 		}).catch((error) => {
 			console.warn('[RGS] authenticate failed', error);
 			if (UrlState.requiresRgs()) {
-				fatalError('Stake Engine connection error', 'The game could not authenticate with Stake Engine. Please relaunch the game.');
+				fatalError('Game service connection error', 'The game could not authenticate with the game service. Please relaunch the game.');
 			}
 			authenticatePromise = null;
 			return false;
@@ -3437,7 +3431,7 @@ async function resumeLaunchRound() {
 		Rgs.setBalanceDeferred(false);
 		if (endRoundResult && endRoundResult.blocked) {
 			stopAutoSpin();
-			fatalError('Stake Engine settlement failed', 'The resumed bonus round could not be settled. Please relaunch the game.');
+			fatalError('Game service settlement failed', 'The resumed feature round could not be completed. Please relaunch the game.');
 			return;
 		}
 		try {
@@ -3447,7 +3441,7 @@ async function resumeLaunchRound() {
 				walletBalanceAfterEndRound,
 			});
 		} catch (error) {
-			fatalError('Stake Engine settlement failed', error.message);
+			fatalError('Game service settlement failed', 'The authoritative balance could not be applied. Please relaunch the game.');
 			return;
 		}
 		if (displayedWin > 0) await showBanner(displayedWin);
@@ -5505,7 +5499,7 @@ async function spin(buy, internalFreeSpin = false) {
 		walletBalanceAfterPlay = Rgs.consumePendingBalance();
 		if (Rgs.configured() && !rgsPlay) {
 			stopAutoSpin();
-			fatalError('Stake Engine request failed', 'The game could not start a wallet round. Please relaunch the game from Stake Engine.');
+			fatalError('Game service request failed', 'The game could not start a wallet round. Please relaunch the game from the game host.');
 			if (paidRound) setWalletBusy(false);
 			$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
 			updateMeters();
@@ -5518,7 +5512,7 @@ async function spin(buy, internalFreeSpin = false) {
 		const renderRgsRound = Rgs.configured() && rgsPlay && shouldRenderRgsRound(rgsEvents);
 		if ((USE_RGS_STATE_RENDERER || renderSafeRgsBase || renderRgsRound) && Rgs.configured() && rgsPlay) {
 			if (!walletBalanceAfterPlay) {
-				fatalError('Stake Engine settlement failed', 'The play response did not include the authoritative post-debit balance.');
+				fatalError('Game service settlement failed', 'The play response did not include the authoritative updated balance.');
 				setWalletBusy(false);
 				$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
 				return;
@@ -5534,7 +5528,7 @@ async function spin(buy, internalFreeSpin = false) {
 				Rgs.setBalanceDeferred(false);
 				if (endRoundResult && endRoundResult.blocked) {
 					stopAutoSpin();
-					fatalError('Stake Engine settlement failed', 'The round could not be settled with Stake Engine. Please relaunch the game.');
+					fatalError('Game service settlement failed', 'The round could not be completed by the game service. Please relaunch the game.');
 					setWalletBusy(false);
 					updateMeters();
 					$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
@@ -5548,7 +5542,7 @@ async function spin(buy, internalFreeSpin = false) {
 					walletBalanceAfterEndRound,
 				});
 			} catch (error) {
-				fatalError('Stake Engine settlement failed', error.message);
+				fatalError('Game service settlement failed', 'The authoritative balance could not be applied. Please relaunch the game.');
 				setWalletBusy(false);
 				$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
 				return;
@@ -5583,7 +5577,7 @@ async function spin(buy, internalFreeSpin = false) {
 				walletBalanceAfterEndRound = Rgs.consumePendingBalance();
 				if (endRoundResult && endRoundResult.blocked) {
 					Rgs.setBalanceDeferred(false);
-					fatalError('Stake Engine settlement failed', 'The round could not be settled after an unsupported RGS state. Please relaunch the game.');
+					fatalError('Game service settlement failed', 'The round could not be completed after an unsupported game-service state. Please relaunch the game.');
 					setWalletBusy(false);
 					$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
 					updateMeters();
@@ -5591,7 +5585,7 @@ async function spin(buy, internalFreeSpin = false) {
 				}
 			}
 			Rgs.setBalanceDeferred(false);
-			fatalError('Unsupported Stake Engine round', 'The game received a RGS round state it cannot display safely. No local fallback was used.');
+			fatalError('Unsupported game-service round', 'The game received a round state it cannot display safely. No local fallback was used.');
 			setWalletBusy(false);
 			$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
 			updateMeters();
@@ -5700,7 +5694,7 @@ async function spin(buy, internalFreeSpin = false) {
 		walletBalanceAfterEndRound = Rgs.consumePendingBalance();
 		Rgs.setBalanceDeferred(false);
 		if (endRoundResult && endRoundResult.blocked) {
-			fatalError('Stake Engine settlement failed', 'The round could not be settled with Stake Engine. Please relaunch the game.');
+			fatalError('Game service settlement failed', 'The round could not be completed by the game service. Please relaunch the game.');
 			if (paidRound) setWalletBusy(false);
 			return;
 		}
@@ -5708,7 +5702,7 @@ async function spin(buy, internalFreeSpin = false) {
 			try {
 				applyAuthoritativeWalletBalance({ active: true, walletBalanceAfterPlay, walletBalanceAfterEndRound });
 			} catch (error) {
-				fatalError('Stake Engine settlement failed', error.message);
+				fatalError('Game service settlement failed', 'The authoritative balance could not be applied. Please relaunch the game.');
 				if (paidRound) setWalletBusy(false);
 				return;
 			}
@@ -5850,12 +5844,10 @@ function buildBonusBuy() {
 		const price = Math.round(o.mult * state.bet * 100) / 100;
 		const afford = state.balance >= price; if (!afford) anyDisabled = true;
 		const m = BB_META[o.id] || { asset: SYMBOLS.football.src, accent: '#d5a23b', tag: 'Bonus' };
-		const desc = isSocialPlay()
-			? (o.id === 'hunt' ? 'One play with boosted feature chance'
-				: o.id === 'rainbow' ? 'One play with a guaranteed Golden Arc'
-				: o.id === 'tier1' ? 'Start 8 Free Spins (Tier 1)'
-				: o.id === 'tier2' ? 'Start 12 Free Spins (Tier 2)'
-				: o.desc)
+		const desc = o.id === 'hunt' ? 'One play with boosted feature chance'
+			: o.id === 'rainbow' ? 'One play with a guaranteed Golden Arc'
+			: o.id === 'tier1' ? 'Start 8 Free Spins (Tier 1)'
+			: o.id === 'tier2' ? 'Start 12 Free Spins (Tier 2)'
 			: o.desc;
 		return '<button class="bb-opt' + (afford ? '' : ' disabled') + '" data-buy="' + o.id + '" style="--bb-accent:' + m.accent + '" aria-disabled="' + (afford ? 'false' : 'true') + '">' +
 			'<span class="bb-ico"><img src="' + m.asset + '" alt="" /></span>' +
@@ -5902,14 +5894,14 @@ function showBuyConfirm(o, price) {
 				const rgsPlay = await Rgs.play(state.bet, Rgs.modeFor(o), { spinId: purchaseSpinId });
 				const walletBalanceAfterPlay = Rgs.consumePendingBalance();
 				if (Rgs.configured() && !rgsPlay) {
-					fatalError('Stake Engine request failed', 'The bonus buy could not start a wallet round. Please relaunch the game from Stake Engine.');
+					fatalError('Game service request failed', 'The feature could not start a game round. Please relaunch the game.');
 					return;
 				}
 				const walletManaged = !!rgsPlay;
 				const roundNeedsEnd = !!(rgsPlay && rgsPlay.__needsEndRound);
 				if (walletManaged) {
 					if (!walletBalanceAfterPlay) {
-						fatalError('Stake Engine settlement failed', 'The play response did not include the authoritative post-debit balance.');
+						fatalError('Game service settlement failed', 'The play response did not include the authoritative updated balance.');
 						return;
 					}
 					state.balance = walletBalanceAfterPlay.amount;
@@ -5930,11 +5922,11 @@ function showBuyConfirm(o, price) {
 						if (roundNeedsEnd) {
 							const endRoundResult = await Rgs.endRound({ spinId: purchaseSpinId, recovery: 'unrenderable-bonus-buy' });
 							if (endRoundResult && endRoundResult.blocked) {
-								fatalError('Stake Engine settlement failed', 'The unsupported bonus buy round could not be settled. Please relaunch the game.');
+								fatalError('Game service settlement failed', 'The unsupported feature round could not be completed. Please relaunch the game.');
 								return;
 							}
 						}
-						fatalError('Unsupported Stake Engine round', 'The bonus buy returned a RGS round state the game cannot display safely. No local fallback was used.');
+						fatalError('Unsupported game-service round', 'The feature returned a round state the game cannot display safely. No local fallback was used.');
 						return;
 					}
 					await bonusIntroRgs(CONFIG.tiers[tier].spins);
@@ -5948,7 +5940,7 @@ function showBuyConfirm(o, price) {
 						const endRoundResult = await Rgs.endRound({ spinId: purchaseSpinId });
 						walletBalanceAfterEndRound = Rgs.consumePendingBalance();
 						if (endRoundResult && endRoundResult.blocked) {
-							fatalError('Stake Engine settlement failed', 'The bonus buy round could not be settled. Please relaunch the game.');
+							fatalError('Game service settlement failed', 'The feature round could not be completed. Please relaunch the game.');
 							return;
 						}
 					}
@@ -5959,7 +5951,7 @@ function showBuyConfirm(o, price) {
 							walletBalanceAfterEndRound,
 						});
 					} catch (error) {
-						fatalError('Stake Engine settlement failed', error.message);
+						fatalError('Game service settlement failed', 'The authoritative balance could not be applied. Please relaunch the game.');
 						return;
 					}
 					if (displayedWin > 0) await showBanner(displayedWin);
@@ -6155,7 +6147,7 @@ setTimeout(fitViewport, 300);
 // this comment and therefore has no raw-spin, demo-win, or state mutation API.
 /*__STAKE_QA_RUNTIME_HOOK__*/
 window.__ggrPaytable = Object.freeze(JSON.parse(JSON.stringify(PRODUCTION_PAYTABLE)));
-window.__ggrBuild = '5b25803666079e6480ee230d2f6190ac886ba9248e2d8420d369c3a364fc8916';
+window.__ggrBuild = '4e3d9cbf7a765be528eb59f61098e13bd551e54a1d810d870518463b3d5d6f5b';
 console.log('Golden Goal Rush build', window.__ggrBuild);
 window.__ggrReady = true;
 </script>
