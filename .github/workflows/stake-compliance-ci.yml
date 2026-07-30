@@ -71,7 +71,7 @@ jobs:
         run: npm run stake:qa:wallet && npm run stake:qa:paytable && npm run stake:qa:math
 
       - name: Documentation and evidence gate
-        run: npm run stake:qa:docs:write && npm run stake:qa:docs
+        run: npm run stake:qa:docs
 
       - name: Clean regeneration gate
         shell: bash
