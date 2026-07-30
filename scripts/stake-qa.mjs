@@ -1,12 +1,17 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { STAKE_SOCIAL_RESTRICTED_TERMS, socialRestrictedHits } from '../apps/cluster/scripts/stake-compliance-contract.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 const mode = (process.argv[2] || 'all').toLowerCase();
+const startedAt = new Date().toISOString();
+const testedCommitSha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+if (!/^[0-9a-f]{40}$/i.test(testedCommitSha)) {
+	throw new Error(`Stake QA requires a full immutable Git commit SHA, received: ${testedCommitSha || '(empty)'}`);
+}
 const artifactRoot = process.env.STAKE_QA_ARTIFACT_DIR
 	|| join(root, 'artifacts', 'stake-qa', new Date().toISOString().replace(/[:.]/g, '-'));
 
@@ -759,6 +764,13 @@ mkdirSync(artifactRoot, { recursive: true });
 const report = {
 	mode,
 	root,
+	identity: {
+		testedCommitSha,
+		startedAt,
+		completedAt: new Date().toISOString(),
+		githubActionsRunId: process.env.GITHUB_RUN_ID || null,
+		githubActionsRunAttempt: process.env.GITHUB_RUN_ATTEMPT || null,
+	},
 	targets: {
 		frontend: paths.publishedFrontend,
 		mathConfig: paths.publishedMathConfig,

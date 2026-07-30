@@ -64,6 +64,16 @@ function manifestFor(dir) {
 	return { root: rel(dir), fileCount: files.length, sha256: digest, files };
 }
 
+function requiredString(value, field) {
+	if (typeof value !== 'string' || !value.trim()) throw new Error(`Missing required evidence field: ${field}`);
+	return value;
+}
+
+function requiredCount(value, field) {
+	if (!Number.isInteger(value) || value < 0) throw new Error(`Missing or invalid evidence count: ${field}`);
+	return value;
+}
+
 function context() {
 	const evidenceDir = latestEvidenceDir();
 	const report = readJson(resolve(evidenceDir, 'report.json'));
@@ -74,12 +84,20 @@ function context() {
 	const mathConfig = readJson(mathConfigFile);
 	const frontendManifest = manifestFor(resolve(root, 'publish', 'frontend'));
 	const mathManifest = manifestFor(resolve(root, 'publish', 'math'));
+	const testedCommitSha = requiredString(report.identity?.testedCommitSha, 'report.identity.testedCommitSha');
+	if (!/^[0-9a-f]{40}$/i.test(testedCommitSha)) throw new Error(`Invalid tested commit SHA: ${testedCommitSha}`);
+	if (testedCommitSha !== git('rev-parse', 'HEAD')) throw new Error(`Evidence commit ${testedCommitSha} does not match checked-out commit`);
+	const startedAt = requiredString(report.identity?.startedAt, 'report.identity.startedAt');
+	const completedAt = requiredString(report.identity?.completedAt, 'report.identity.completedAt');
+	if (Number.isNaN(Date.parse(startedAt)) || Number.isNaN(Date.parse(completedAt)) || Date.parse(completedAt) < Date.parse(startedAt)) {
+		throw new Error('Stake QA evidence has impossible start/end timestamps.');
+	}
 	const integrity = {
 		testedCommit: {
-			sha: 'resolved-by-git-rev-parse-HEAD-during-stake-qa-docs',
-			source: 'git rev-parse HEAD at documentation-gate runtime',
+			sha: testedCommitSha,
+			source: 'scripts/stake-qa.mjs report.identity.testedCommitSha',
 		},
-		githubActionsRunId: process.env.GITHUB_RUN_ID || '29239817090',
+		githubActionsRunId: report.identity.githubActionsRunId || null,
 		evidenceDirectory: rel(evidenceDir),
 		frontend: {
 			uploadFolder: 'publish/frontend',
@@ -96,16 +114,18 @@ function context() {
 		report: {
 			path: rel(resolve(evidenceDir, 'report.json')),
 			mode: report.mode,
-			pass: report.summary?.pass ?? 0,
-			fail: report.summary?.fail ?? 0,
-			skip: report.summary?.skip ?? 0,
+			pass: requiredCount(report.summary?.pass, 'report.summary.pass'),
+			fail: requiredCount(report.summary?.fail, 'report.summary.fail'),
+			skip: requiredCount(report.summary?.skip, 'report.summary.skip'),
+			startedAt,
+			completedAt,
 		},
 		e2e: e2eReport ? {
 			path: rel(resolve(evidenceDir, 'e2e-report.json')),
 			mode: e2eReport.mode,
-			pass: e2eReport.summary?.pass ?? 0,
-			fail: e2eReport.summary?.fail ?? 0,
-			skip: e2eReport.summary?.skip ?? 0,
+			pass: requiredCount(e2eReport.summary?.pass, 'e2eReport.summary.pass'),
+			fail: requiredCount(e2eReport.summary?.fail, 'e2eReport.summary.fail'),
+			skip: requiredCount(e2eReport.summary?.skip ?? 0, 'e2eReport.summary.skip'),
 		} : null,
 	};
 	return { evidenceDir, report, e2eReport, frontendManifest, mathManifest, integrity, mathConfig };
@@ -458,8 +478,8 @@ Fast PR/push pipeline runs install, lint, build and standard Stake QA. Full math
 
 | Field | Value |
 | --- | --- |
-| Tested commit SHA | resolved by \`git rev-parse HEAD\` during \`npm run stake:qa:docs\` |
-| GitHub Actions run ID | ${ctx.integrity.githubActionsRunId} |
+| Tested commit SHA | ${ctx.integrity.testedCommit.sha} |
+| GitHub Actions run ID | ${ctx.integrity.githubActionsRunId || 'Local execution (no GitHub Actions run ID)'} |
 | Frontend build ID | ${ctx.integrity.frontend.buildId} |
 | Math version | ${ctx.integrity.math.version} |
 | Test command | \`node scripts/stake-qa.mjs replay\`; full final command list in PR #26 |
@@ -560,7 +580,7 @@ QA status: READY when the PR body points to the final commit and all listed gate
 function trace(ctx, rows) {
 	return {
 		schemaVersion: 1,
-		testedCommitSha: 'resolved-by-git-rev-parse-HEAD-during-stake-qa-docs',
+		testedCommitSha: ctx.integrity.testedCommit.sha,
 		githubActionsRunId: ctx.integrity.githubActionsRunId,
 		frontendBuildId: ctx.integrity.frontend.buildId,
 		mathVersion: ctx.integrity.math.version,
@@ -569,13 +589,13 @@ function trace(ctx, rows) {
 			requirementId: row.id,
 			category: row.category,
 			concern: row.concern,
-			testedCommitSha: 'resolved-by-git-rev-parse-HEAD-during-stake-qa-docs',
+			testedCommitSha: ctx.integrity.testedCommit.sha,
 			githubActionsRunId: ctx.integrity.githubActionsRunId,
 			frontendBuildId: ctx.integrity.frontend.buildId,
 			mathVersion: ctx.integrity.math.version,
 			testCommand: row.unitOrContractTest,
-			testStartTimestamp: rel(ctx.evidenceDir).split('/').pop(),
-			testEndTimestamp: rel(ctx.evidenceDir).split('/').pop(),
+			testStartTimestamp: ctx.integrity.report.startedAt,
+			testEndTimestamp: ctx.integrity.report.completedAt,
 			exitCode: 0,
 			evidenceFile: row.evidenceFile,
 			screenshotPath: rel(resolve(ctx.evidenceDir, 'e2e-screenshots')),
