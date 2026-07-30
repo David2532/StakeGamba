@@ -14,7 +14,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: authenticate is called only in paid RGS mode and fatal launch errors stop local fallback.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs rgs
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 2. Game did not send Play
@@ -29,7 +29,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: A paid spin sends the Stake play request before rendering authoritative events.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs wallet
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 3. Game did not send End-Round
@@ -44,7 +44,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Inactive or completed rounds call end-round exactly when Stake active-state rules require it.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs wallet
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 4. Play and End-Round returned errors
@@ -59,7 +59,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Transport and API errors surface a fatal state with no local simulated recovery.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs wallet
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 5. Connections remained open and the game became stuck
@@ -74,7 +74,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: RGS requests use bounded lifecycle handling and clear state transitions.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs wallet
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 6. End-Round appeared inconsistently
@@ -89,7 +89,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: End-round is determined from round.active and completion state, not display timing.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs interrupted-round
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 7. End-Round was incorrectly associated with winning or losing state
@@ -104,7 +104,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: round.active controls settlement behavior regardless of win/loss.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs interrupted-round
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 8. Visible winnings differed from the Play response
@@ -119,7 +119,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Visible wins are rendered from RGS events and payout fields, not local recalculation.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs paytable
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 9. Bonus purchase used a local simulation path
@@ -134,7 +134,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Bonus/Feature purchase routes through RGS play and never uses local RNG in RGS mode.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs major-actions
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 10. Bonus purchase could display a win disconnected from RGS
@@ -149,7 +149,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Bonus purchase display comes from authoritative RGS state and payout.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs major-actions
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 11. URL modification did not cause the required fatal error
@@ -164,7 +164,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Unsupported launch parameters fail closed with the Stake-required fatal message.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs regression
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 12. Active base-round settlement behavior
@@ -179,7 +179,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Active base rounds remain resumable or settle only through Stake-approved end-round flow.
 - Regression test: scripts/stake-qa.mjs interrupted-round; scripts/stake-qa-e2e.mjs interrupted-round
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 13. Interrupted bonus continuation behavior
@@ -194,7 +194,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Interrupted bonus rounds resume without charging again and continue from RGS state.
 - Regression test: scripts/stake-qa.mjs interrupted-round; scripts/stake-qa-e2e.mjs interrupted-round
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 14. Preserving selected amount after refresh
@@ -209,7 +209,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Selected amount is restored from RGS configuration and launch/session state after refresh.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs wallet
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 15. Preserving post-purchase balance
@@ -224,7 +224,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Balance after bonus purchase follows RGS wallet response and is not recomputed locally.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs wallet
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 16. Bonus-start popup
@@ -239,7 +239,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Bonus start popup is shown from authoritative bonus-trigger events.
 - Regression test: scripts/stake-qa.mjs rules; scripts/stake-qa-e2e.mjs major-actions
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 17. Currency symbols and abbreviations
@@ -254,7 +254,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: USD, KRW, SC/XSC and configured currencies use shared display metadata.
 - Regression test: scripts/stake-qa.mjs currency; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 18. Interrupted-round user message
@@ -269,7 +269,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Interrupted-round message explains continuation without implying a new charge.
 - Regression test: scripts/stake-qa.mjs interrupted-round; scripts/stake-qa-e2e.mjs interrupted-round
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 19. Auto action selection and confirmation
@@ -284,7 +284,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Auto action requires explicit confirmation according to configured major-action rules.
 - Regression test: scripts/stake-qa.mjs major-actions; scripts/stake-qa-e2e.mjs major-actions
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 20. Bonus/Feature action confirmation
@@ -299,7 +299,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Bonus/Feature purchase requires confirmation and RGS authority.
 - Regression test: scripts/stake-qa.mjs major-actions; scripts/stake-qa-e2e.mjs major-actions
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 21. Generic major-action confirmation
@@ -314,7 +314,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: All configured major actions use consistent confirmation UI and keyboard handling.
 - Regression test: scripts/stake-qa.mjs major-actions; scripts/stake-qa-e2e.mjs major-actions
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 22. Insufficient Funds wording
@@ -329,7 +329,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Insufficient-funds wording follows Stake copy for fiat/crypto modes.
 - Regression test: scripts/stake-qa.mjs insufficient-funds; scripts/stake-qa-e2e.mjs insufficient-funds
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 23. Stake.us Insufficient Balance wording
@@ -344,7 +344,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Stake.us social balance wording uses Insufficient Balance copy.
 - Regression test: scripts/stake-qa.mjs insufficient-funds; scripts/stake-qa-e2e.mjs insufficient-funds
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 24. Mobile fullscreen behavior
@@ -359,7 +359,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Mobile portrait and landscape fill the viewport without clipped Stake controls.
 - Regression test: scripts/stake-qa.mjs mobile; scripts/stake-qa-e2e.mjs mobile
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 25. Button icons and explanations in Game Info
@@ -374,7 +374,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Every Game Info button has an icon and a concise explanation.
 - Regression test: scripts/stake-qa.mjs rules; scripts/stake-qa-e2e.mjs rules
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 26. Dynamic minBet
@@ -389,7 +389,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: minBet comes from authenticate response and constrains UI/action state.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs wallet
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 27. Dynamic maxBet
@@ -404,7 +404,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: maxBet comes from authenticate response and constrains UI/action state.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs wallet
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 28. Dynamic stepBet
@@ -419,7 +419,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: stepBet comes from authenticate response and controls increment/decrement.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs wallet
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 29. Dynamic default bet level
@@ -434,7 +434,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Default bet level follows RGS authenticate configuration.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs wallet
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 30. Dynamic betLevels
@@ -449,7 +449,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: The bet selector is built from authenticate betLevels.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs wallet
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 31. Detailed mode descriptions
@@ -464,7 +464,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Rules document each mode and visible cost multiplier.
 - Regression test: scripts/stake-qa.mjs rules; scripts/stake-qa-e2e.mjs rules
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 32. Mode access and trigger conditions
@@ -479,7 +479,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Rules describe access and trigger conditions for base, rainbow, hunt, bonus_tier1 and bonus.
 - Regression test: scripts/stake-qa.mjs rules; scripts/stake-qa-e2e.mjs rules
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 33. Mode costs and multipliers
@@ -494,7 +494,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Rules and UI show configured costs and multipliers.
 - Regression test: scripts/stake-qa.mjs rules; scripts/stake-qa-e2e.mjs rules
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 34. Retrigger availability and conditions
@@ -509,7 +509,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Rules document retrigger availability and conditions consistent with math config.
 - Regression test: scripts/stake-qa.mjs rules; scripts/stake-qa-e2e.mjs rules
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 35. Social Mode restricted terminology
@@ -524,7 +524,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Restricted social terminology is absent from production UI copy.
 - Regression test: scripts/stake-qa.mjs all; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 36. Replay language parameter
@@ -539,7 +539,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Replay GET includes language and lang parameters from launch state.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 37. Replay initial cost/multiplier/final amount panel
@@ -554,7 +554,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Replay panel shows mode, replay bet, currency and final win from immutable replay data.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 38. Replay mode naming
@@ -569,7 +569,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Replay normalizes mode aliases and displays player-facing mode names.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 39. Replay event replay button
@@ -584,7 +584,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Replay Play and Play Again are dedicated replay controls that never trigger wallet play.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 40. Replay Popout S support
@@ -599,7 +599,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Replay accepts Stake launch variants and keeps the UI inside the popout viewport.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 41. Balance hidden in Replay
@@ -614,7 +614,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Balance is hidden, inert and non-interactive in replay.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 42. Spin button hidden in Replay
@@ -629,7 +629,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Spin button is hidden, disabled, inert and cannot be triggered in replay.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 43. Bet selector hidden in Replay
@@ -644,7 +644,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Bet selector and increment controls are hidden and inert in replay.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 44. Autoplay hidden in Replay
@@ -659,7 +659,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Autoplay button and modal are hidden and inert in replay.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 45. Win Amount visible
@@ -674,7 +674,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: WIN is visible and reflects authoritative final replay result.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 46. Replay Bet Amount visible
@@ -689,7 +689,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Replay Bet is visible, display-only and uses launch amount/currency.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 47. Currency visible
@@ -704,7 +704,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Replay currency is visible and formatted through shared currency metadata.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 48. Replay Play available
@@ -719,7 +719,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Replay Play is accessible, hittable and starts immutable saved-round playback.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 49. Play Again available
@@ -734,7 +734,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Play Again repeats the same immutable replay data without refetching.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 50. Space cannot trigger paid play
@@ -749,7 +749,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Space only activates the dedicated replay action and cannot start paid play.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 51. Enter cannot trigger paid play
@@ -764,7 +764,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Enter only activates the dedicated replay action and cannot start paid play.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 52. hidden controls are not focusable
@@ -779,7 +779,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Normal paid controls are removed from tab order in replay.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 53. hidden controls are not clickable
@@ -794,7 +794,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Normal paid controls cannot be clicked in replay.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 54. hidden controls are not hit-testable
@@ -809,7 +809,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Normal paid controls do not receive hit tests in replay.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 55. Replay makes no authenticate request
@@ -824,7 +824,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Replay launch fetches only the replay endpoint and never authenticates.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 56. Replay makes no wallet play request
@@ -839,7 +839,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Replay Play and Play Again never call wallet play.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 57. Replay makes no end-round request
@@ -854,7 +854,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Replay does not mutate round state through end-round.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 58. Replay makes no event-save request
@@ -869,7 +869,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Replay does not save events or mutate server state.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 59. Bonus Replay without payoutMultiplier
@@ -884,7 +884,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: bonus replay may omit payoutMultiplier or provide a finalWin-matching decimal multiplier; validated finalWin remains authoritative.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 60. Bonus Tier 1 Replay without payoutMultiplier
@@ -899,7 +899,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: bonus_tier1 replay may omit/null payoutMultiplier or provide a finalWin-matching decimal multiplier; validated finalWin remains authoritative.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 61. Rainbow Replay remains working
@@ -914,7 +914,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: rainbow replay with a present payoutMultiplier still passes strict finalWin cross-validation.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 62. Event ID 0 remains valid
@@ -929,7 +929,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Event ID 0 is preserved as a valid replay round/event identifier.
 - Regression test: scripts/stake-qa.mjs replay; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 63. KRW formatting works
@@ -944,7 +944,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: KRW replay uses integer-style display and shared currency metadata.
 - Regression test: scripts/stake-qa.mjs currency; scripts/stake-qa-e2e.mjs replay
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 64. Paytable values match published math
@@ -959,7 +959,7 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: Visible paytable values are generated from production math and validated against publish/math.
 - Regression test: scripts/stake-qa.mjs paytable; scripts/stake-qa-e2e.mjs paytable
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## 65. K/Q/J Paytable discrepancy
@@ -974,11 +974,11 @@ This chronology keeps superseded failures visible. Dates are the 2026-07-13 audi
 - Final implementation: K 5-6, Q 5-6 and J 7-8 use production math values: 0.48 / 0.36 / 0.56.
 - Regression test: scripts/stake-qa.mjs paytable; scripts/stake-qa-e2e.mjs paytable
 - Current status: PASS
-- Evidence path: artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json; artifacts/stake-qa/2026-07-29T15-12-53-801Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
+- Evidence path: artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json; artifacts/stake-qa/2026-07-30T08-59-08-860Z/replay-network-proof.json; artifacts/stake-qa/publish-integrity.json; artifacts/stake-qa/publish-frontend-manifest.json; artifacts/stake-qa/publish-math-manifest.json
 - Current commit SHA: resolved by `git rev-parse HEAD` during the documentation gate.
 
 ## Validation context
 
 - Frontend build ID: `74dc84abea7750ed76fc4adc1623125e8773cde2b98fd357f529921d8b4a06e7`
 - Math version: `0.2.2-cluster`
-- Evidence directory: `artifacts/stake-qa/2026-07-29T15-12-53-801Z`
+- Evidence directory: `artifacts/stake-qa/2026-07-30T08-59-08-860Z`

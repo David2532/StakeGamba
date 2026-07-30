@@ -1,10 +1,10 @@
 {
   "testedCommit": {
-    "sha": "resolved-by-git-rev-parse-HEAD-during-stake-qa-docs",
-    "source": "git rev-parse HEAD at documentation-gate runtime"
+    "sha": "baf48c146cf50d073e1a86688033283bf433cb03",
+    "source": "scripts/stake-qa.mjs report.identity.testedCommitSha"
   },
-  "githubActionsRunId": "29239817090",
-  "evidenceDirectory": "artifacts/stake-qa/2026-07-29T15-12-53-801Z",
+  "githubActionsRunId": null,
+  "evidenceDirectory": "artifacts/stake-qa/2026-07-30T08-59-08-860Z",
   "frontend": {
     "uploadFolder": "publish/frontend",
     "buildId": "74dc84abea7750ed76fc4adc1623125e8773cde2b98fd357f529921d8b4a06e7",
@@ -18,14 +18,16 @@
     "manifestSha256": "1dc61a44ca65a7f66df6eff595c99769e37af9a12bd145352772a222f3d882c4"
   },
   "report": {
-    "path": "artifacts/stake-qa/2026-07-29T15-12-53-801Z/report.json",
+    "path": "artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json",
     "mode": "all",
     "pass": 320,
     "fail": 0,
-    "skip": 0
+    "skip": 0,
+    "startedAt": "2026-07-30T08:59:08.841Z",
+    "completedAt": "2026-07-30T09:03:21.937Z"
   },
   "e2e": {
-    "path": "artifacts/stake-qa/2026-07-29T15-12-53-801Z/e2e-report.json",
+    "path": "artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json",
     "mode": "all",
     "pass": 1406,
     "fail": 0,

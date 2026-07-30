@@ -12,10 +12,10 @@ Intentionally unavailable retriggers: Retrigger behavior remains limited to prod
 
 Optional response fields: replay payoutMultiplier may be absent, null, integer book units, or a decimal/string multiplier; when present it is accepted only as a strict finalWin cross-check. Known RGS payload variants include round, bet, eventRound and replay.round wrappers.
 
-Current readiness risk: no repo-owned blocker is recorded by this document. If any mandatory gate fails, the final verdict becomes NOT READY until the failing evidence is replaced.
+Current release status: automated evidence may be complete, but this document does not authorize an upload or external approval. Any missing mandatory evidence, reviewer sign-off, or Stake decision blocks release progression.
 
 ## Validation context
 
 - Frontend build ID: `74dc84abea7750ed76fc4adc1623125e8773cde2b98fd357f529921d8b4a06e7`
 - Math version: `0.2.2-cluster`
-- Evidence directory: `artifacts/stake-qa/2026-07-29T15-12-53-801Z`
+- Evidence directory: `artifacts/stake-qa/2026-07-30T08-59-08-860Z`

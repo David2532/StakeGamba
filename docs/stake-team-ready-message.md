@@ -16,10 +16,10 @@ Math version: `0.2.2-cluster`
 
 Tested commit: resolved by `git rev-parse HEAD` during final validation.
 
-QA status: READY when the PR body points to the final commit and all listed gates remain green.
+QA status: automated checks passed for the recorded candidate. Human review, Stake upload, and Stake acceptance remain separate external decisions.
 
 ## Validation context
 
 - Frontend build ID: `74dc84abea7750ed76fc4adc1623125e8773cde2b98fd357f529921d8b4a06e7`
 - Math version: `0.2.2-cluster`
-- Evidence directory: `artifacts/stake-qa/2026-07-29T15-12-53-801Z`
+- Evidence directory: `artifacts/stake-qa/2026-07-30T08-59-08-860Z`

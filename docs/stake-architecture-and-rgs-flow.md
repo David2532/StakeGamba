@@ -70,4 +70,4 @@ Visible wins come from authoritative RGS events. `finalWin` is authoritative for
 
 - Frontend build ID: `74dc84abea7750ed76fc4adc1623125e8773cde2b98fd357f529921d8b4a06e7`
 - Math version: `0.2.2-cluster`
-- Evidence directory: `artifacts/stake-qa/2026-07-29T15-12-53-801Z`
+- Evidence directory: `artifacts/stake-qa/2026-07-30T08-59-08-860Z`
