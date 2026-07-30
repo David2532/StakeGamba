@@ -41,12 +41,13 @@ const BUILDER = fileURLToPath(import.meta.url);
 
 const source = readFileSync(COMPONENT, 'utf8');
 const style = source.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? '';
+const canonicalHashText = (value) => value.replace(/\r\n?/g, '\n');
 const frontendBuildId = createHash('sha256')
-	.update(readFileSync(BUILDER))
-	.update(readFileSync(join(__dirname, 'ggr-config.mjs')))
-	.update(readFileSync(join(__dirname, 'production-math-contract.mjs')))
-	.update(readFileSync(join(__dirname, 'stake-compliance-contract.mjs')))
-	.update(source)
+	.update(canonicalHashText(readFileSync(BUILDER, 'utf8')))
+	.update(canonicalHashText(readFileSync(join(__dirname, 'ggr-config.mjs'), 'utf8')))
+	.update(canonicalHashText(readFileSync(join(__dirname, 'production-math-contract.mjs'), 'utf8')))
+	.update(canonicalHashText(readFileSync(join(__dirname, 'stake-compliance-contract.mjs'), 'utf8')))
+	.update(canonicalHashText(source))
 	.update(JSON.stringify(PRODUCTION_GAME_CONFIG))
 	.digest('hex');
 
