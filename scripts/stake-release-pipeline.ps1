@@ -1081,7 +1081,10 @@ try {
 	Add-Type -AssemblyName System.IO.Compression.FileSystem
 	$archive = [System.IO.Compression.ZipFile]::OpenRead($temporaryZip)
 	try {
-		$archiveEntries = @($archive.Entries | Where-Object { -not $_.FullName.EndsWith('/') } | ForEach-Object { $_.FullName.Replace('\', '/') } | Sort-Object)
+		$archiveEntries = @($archive.Entries |
+			ForEach-Object { $_.FullName.Replace('\', '/') } |
+			Where-Object { -not $_.EndsWith('/') } |
+			Sort-Object)
 	}
 	finally {
 		$archive.Dispose()
