@@ -1,5 +1,7 @@
 # Stake feedback history
 
+> **Historical reference only:** The identities and PASS rows below record a superseded run. Current release truth exists only in the validated per-run evidence bundle and release attestation.
+
 This chronology keeps superseded failures visible. Dates are the 2026-07-13 audit reconstruction dates because the repository does not contain separate upstream review timestamps for each checklist item.
 
 ## 1. Game did not authenticate with RGS

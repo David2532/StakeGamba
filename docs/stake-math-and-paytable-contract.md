@@ -1,5 +1,7 @@
 # Stake math and paytable contract
 
+> **Historical reference only:** Any run identity in this document is superseded. Current release truth exists only in the validated per-run evidence bundle and release attestation.
+
 Single source chain:
 
 ```mermaid

@@ -1,5 +1,7 @@
 # Stake evidence index
 
+> **Historical reference only:** The identities and evidence paths below record a superseded run. Current release truth exists only in the validated per-run evidence bundle and release attestation.
+
 | Field | Value |
 | --- | --- |
 | Tested commit SHA | baf48c146cf50d073e1a86688033283bf433cb03 |

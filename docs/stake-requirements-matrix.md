@@ -1,5 +1,7 @@
 # Stake requirements matrix
 
+> **Historical reference only:** The identities and PASS rows below record a superseded run. Current release truth exists only in the validated per-run evidence bundle and release attestation.
+
 This matrix is generated and validated by `npm run stake:qa:docs`. Each PASS row must have implementation, tests, evidence, and publish artifact references where applicable.
 
 Frontend build ID: `74dc84abea7750ed76fc4adc1623125e8773cde2b98fd357f529921d8b4a06e7`

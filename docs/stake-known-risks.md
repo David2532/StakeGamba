@@ -1,5 +1,7 @@
 # Stake known risks and non-claims
 
+> **Historical reference only:** Any run identity in this document is superseded. Current release truth exists only in the validated per-run evidence bundle and release attestation.
+
 Verified behavior: RGS paid lifecycle, replay read-only networking, Replay UI visibility, optional replay payoutMultiplier handling, Event ID 0, KRW/XSC display, paytable contract values and publish folder hashing are covered by current evidence.
 
 Inferred behavior: External Stake production routing is expected to call the same documented endpoints and payload contracts. The repository validates the game side and mocked RGS behavior, not Stake infrastructure availability.

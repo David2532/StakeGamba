@@ -1,5 +1,7 @@
 # Stake team ready message
 
+> **Historical reference only:** This message records a superseded candidate and is not upload authorization. Current release truth exists only in the validated per-run evidence bundle and release attestation.
+
 Stake team,
 
 The current build fixes the Replay payoutMultiplier contract and preserves the prior Replay UI corrections. Bonus and Bonus Tier 1 replay responses may omit/null `payoutMultiplier` or provide legacy decimal/string multiplier values; the game now uses validated `finalWin` as the authoritative replay result and still rejects any present contradictory `payoutMultiplier` or explicit payout. Rainbow replay remains covered as the comparison case with a present cross-checked `payoutMultiplier`.

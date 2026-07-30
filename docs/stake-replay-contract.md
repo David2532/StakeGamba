@@ -1,5 +1,7 @@
 # Stake replay contract
 
+> **Historical reference only:** Any run identity in this document is superseded. Current release truth exists only in the validated per-run evidence bundle and release attestation.
+
 Supported launch parameters: game, version, mode, event, amount, currency, language/lang and Stake popout parameters. Mandatory parameters are game, version, mode and event. Optional parameters include language/lang, amount and currency when the RGS response supplies validated equivalents.
 
 Accepted modes and aliases: base, rainbow, rainbow_spin, hunt, feature, feature_spins, bonus_tier1, tier1, golden_chance, bonus, tier2, bonus_tier2 and all_that_glitters. Event ID 0 is valid.

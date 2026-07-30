@@ -1,5 +1,7 @@
 # Stake publish upload runbook
 
+> **Historical reference only:** Any example run identity in this document is superseded. Current release truth exists only in the validated per-run evidence bundle and release attestation.
+
 1. Synchronize branch `agent/stake-compliance-final` with the final PR commit.
 2. Confirm the tested commit with `git rev-parse HEAD`.
 3. Regenerate the standard publish output with `npm run stake:publish`.

@@ -1,5 +1,7 @@
 # Stake architecture and RGS flow
 
+> **Historical reference only:** Any run identity in this document is superseded. Current release truth exists only in the validated per-run evidence bundle and release attestation.
+
 Authoritative rule: RGS mode never uses local RNG for authoritative results. `round.active`, not win/loss, controls settlement. Replay mode never authenticates and never mutates wallet or session state.
 
 ## Lifecycle diagrams

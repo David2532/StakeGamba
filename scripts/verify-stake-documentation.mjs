@@ -230,6 +230,17 @@ function requirements(ctx) {
 	return requirementSeeds.map((seed, index) => {
 		const browser = /Replay|Responsive|UI|Currency|Game Info|Social|Wallet|RGS|Bonus|Launch|Bet Config/.test(seed[0]);
 		const artifact = /Publish|Math|Paytable|frontend|math/.test(`${seed[0]} ${seed[1]} ${seed[9]}`);
+		const contractPassed = ctx.integrity.report.mode === 'all'
+			&& ctx.integrity.report.pass > 0
+			&& ctx.integrity.report.fail === 0
+			&& ctx.integrity.report.skip === 0;
+		const browserPassed = !browser || (
+			ctx.integrity.e2e?.mode === 'all'
+			&& ctx.integrity.e2e.pass > 0
+			&& ctx.integrity.e2e.fail === 0
+			&& ctx.integrity.e2e.skip === 0
+		);
+		const derivedStatus = contractPassed && browserPassed ? 'PASS' : 'BLOCKED';
 		return {
 			id: `STAKE-${String(index + 1).padStart(3, '0')}`,
 			category: seed[0],
@@ -244,8 +255,8 @@ function requirements(ctx) {
 			pipelineJobAndStep: seed[8],
 			publishArtifactChecked: seed[9],
 			evidenceFile: artifact ? `${replayEvidence(ctx)}; ${publishEvidence(ctx)}` : replayEvidence(ctx),
-			testedCommitSha: 'resolved by git rev-parse HEAD during stake:qa:docs',
-			status: 'PASS',
+			testedCommitSha: ctx.integrity.testedCommit.sha,
+			status: derivedStatus,
 			notes: browser ? 'Browser evidence is required and indexed in the E2E report.' : 'Contract evidence is indexed by the generated trace.',
 		};
 	});
@@ -645,8 +656,7 @@ function validate(ctx, rows, docs) {
 		else {
 			const text = readFileSync(file, 'utf8');
 			if (forbiddenPlaceholders.test(text)) failures.push(`Placeholder token remains in ${doc}`);
-			if (!text.includes(ctx.integrity.frontend.buildId)) failures.push(`${doc} does not reference current frontend build ID`);
-			if (!text.includes(ctx.integrity.math.version)) failures.push(`${doc} does not reference current math version`);
+			if (!text.includes('Historical reference only')) failures.push(`${doc} is not clearly labelled as historical reference material`);
 		}
 	}
 	const ids = rows.map((row) => row.id);
@@ -668,7 +678,7 @@ function validate(ctx, rows, docs) {
 	if (!existsSync(resolve(root, 'publish', 'math', 'game_config.json'))) failures.push('publish/math/game_config.json is missing.');
 
 	const matrixFile = resolve(docsDir, 'stake-requirements-matrix.md');
-	const traceFile = resolve(artifactsDir, 'stake-requirements-trace.json');
+	const traceFile = resolve(ctx.evidenceDir, 'stake-requirements-trace.json');
 	if (existsSync(matrixFile) && existsSync(traceFile)) {
 		const matrixIds = parseMatrixIds(readFileSync(matrixFile, 'utf8'));
 		const traceIds = readJson(traceFile).requirements.map((row) => row.requirementId);
@@ -686,14 +696,19 @@ const rows = requirements(ctx);
 const docs = renderDocs(ctx, rows);
 const generatedTrace = trace(ctx, rows);
 
+// Runtime identity and manifests always live in the ignored per-run evidence
+// directory. Checks can therefore describe the tested commit without
+// rewriting tracked Markdown after the test and invalidating that identity.
+mkdirSync(ctx.evidenceDir, { recursive: true });
+writeIfNeeded(resolve(ctx.evidenceDir, 'stake-requirements-trace.json'), `${JSON.stringify(generatedTrace, null, 2)}\n`);
+writeIfNeeded(resolve(ctx.evidenceDir, 'publish-frontend-manifest.json'), `${JSON.stringify(ctx.frontendManifest, null, 2)}\n`);
+writeIfNeeded(resolve(ctx.evidenceDir, 'publish-math-manifest.json'), `${JSON.stringify(ctx.mathManifest, null, 2)}\n`);
+writeIfNeeded(resolve(ctx.evidenceDir, 'publish-integrity.json'), `${JSON.stringify(ctx.integrity, null, 2)}\n`);
+
 if (writeMode) {
 	mkdirSync(docsDir, { recursive: true });
 	mkdirSync(artifactsDir, { recursive: true });
 	for (const [name, text] of Object.entries(docs)) writeIfNeeded(resolve(docsDir, name), text);
-	writeIfNeeded(resolve(artifactsDir, 'stake-requirements-trace.json'), `${JSON.stringify(generatedTrace, null, 2)}\n`);
-	writeIfNeeded(resolve(artifactsDir, 'publish-frontend-manifest.json'), `${JSON.stringify(ctx.frontendManifest, null, 2)}\n`);
-	writeIfNeeded(resolve(artifactsDir, 'publish-math-manifest.json'), `${JSON.stringify(ctx.mathManifest, null, 2)}\n`);
-	writeIfNeeded(resolve(artifactsDir, 'publish-integrity.json'), `${JSON.stringify(ctx.integrity, null, 2)}\n`);
 }
 
 if (checkMode || writeMode) {
