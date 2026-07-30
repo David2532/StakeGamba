@@ -78,6 +78,14 @@ function context() {
 	const evidenceDir = latestEvidenceDir();
 	const report = readJson(resolve(evidenceDir, 'report.json'));
 	const e2eReport = existsSync(resolve(evidenceDir, 'e2e-report.json')) ? readJson(resolve(evidenceDir, 'e2e-report.json')) : null;
+	const mandatoryBrowserEvidence = [
+		'replay-network-proof.json',
+		'rgs-wallet-network-proof.json',
+		'balance-invariant-report.json',
+	];
+	for (const name of mandatoryBrowserEvidence) {
+		if (!existsSync(resolve(evidenceDir, name))) throw new Error(`Missing mandatory browser evidence: ${rel(resolve(evidenceDir, name))}`);
+	}
 	const frontendIndex = resolve(root, 'publish', 'frontend', 'index.html');
 	const mathConfigFile = resolve(root, 'publish', 'math', 'game_config.json');
 	const html = readFileSync(frontendIndex, 'utf8');
@@ -87,6 +95,16 @@ function context() {
 	const testedCommitSha = requiredString(report.identity?.testedCommitSha, 'report.identity.testedCommitSha');
 	if (!/^[0-9a-f]{40}$/i.test(testedCommitSha)) throw new Error(`Invalid tested commit SHA: ${testedCommitSha}`);
 	if (testedCommitSha !== git('rev-parse', 'HEAD')) throw new Error(`Evidence commit ${testedCommitSha} does not match checked-out commit`);
+	if (!e2eReport) throw new Error('Mandatory browser E2E report is missing.');
+	if (e2eReport.identity?.testedCommitSha !== testedCommitSha) {
+		throw new Error(`Browser evidence commit ${e2eReport.identity?.testedCommitSha || '(missing)'} does not match QA commit ${testedCommitSha}`);
+	}
+	for (const name of mandatoryBrowserEvidence) {
+		const record = readJson(resolve(evidenceDir, name));
+		if (record.testedCommitSha !== testedCommitSha) {
+			throw new Error(`${name} commit ${record.testedCommitSha || '(missing)'} does not match QA commit ${testedCommitSha}`);
+		}
+	}
 	const startedAt = requiredString(report.identity?.startedAt, 'report.identity.startedAt');
 	const completedAt = requiredString(report.identity?.completedAt, 'report.identity.completedAt');
 	if (Number.isNaN(Date.parse(startedAt)) || Number.isNaN(Date.parse(completedAt)) || Date.parse(completedAt) < Date.parse(startedAt)) {
@@ -133,7 +151,7 @@ function context() {
 
 const baseImplementation = 'apps/cluster/scripts/build-preview-html.mjs; apps/cluster/preview.html; publish/frontend/index.html';
 const baseTests = 'scripts/stake-qa.mjs; scripts/stake-qa-e2e.mjs';
-const replayEvidence = (ctx) => `${rel(resolve(ctx.evidenceDir, 'report.json'))}; ${rel(resolve(ctx.evidenceDir, 'e2e-report.json'))}; ${rel(resolve(ctx.evidenceDir, 'replay-network-proof.json'))}`;
+const replayEvidence = (ctx) => `${rel(resolve(ctx.evidenceDir, 'report.json'))}; ${rel(resolve(ctx.evidenceDir, 'e2e-report.json'))}; ${rel(resolve(ctx.evidenceDir, 'replay-network-proof.json'))}; ${rel(resolve(ctx.evidenceDir, 'rgs-wallet-network-proof.json'))}; ${rel(resolve(ctx.evidenceDir, 'balance-invariant-report.json'))}`;
 const publishEvidence = (ctx) => `${rel(resolve(artifactsDir, 'publish-integrity.json'))}; ${rel(resolve(artifactsDir, 'publish-frontend-manifest.json'))}; ${rel(resolve(artifactsDir, 'publish-math-manifest.json'))}`;
 
 const requirementSeeds = [
@@ -488,6 +506,8 @@ Fast PR/push pipeline runs install, lint, build and standard Stake QA. Full math
 | Math manifest | artifacts/stake-qa/publish-math-manifest.json |
 | Publish integrity | artifacts/stake-qa/publish-integrity.json |
 | Network proof | ${rel(resolve(ctx.evidenceDir, 'replay-network-proof.json'))} |
+| Wallet network proof | ${rel(resolve(ctx.evidenceDir, 'rgs-wallet-network-proof.json'))} |
+| Balance invariant report | ${rel(resolve(ctx.evidenceDir, 'balance-invariant-report.json'))} |
 | Screenshot path | ${rel(resolve(ctx.evidenceDir, 'e2e-screenshots'))} |
 
 Frontend index SHA-256: \`${ctx.integrity.frontend.indexSha256}\`

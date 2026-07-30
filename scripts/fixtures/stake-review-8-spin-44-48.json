@@ -1,7 +1,9 @@
 {
   "name": "Stake review style 8-spin feature",
-  "assumption": "The exact Stake payload was not available locally; this fixture preserves the documented integer-unit contract and the supplied $44.48 feature total.",
-  "initialBalanceApi": 1021420000,
+  "provenance": "Deterministic regression fixture reconstructed from the Stake review values supplied on 2026-07-30.",
+  "authenticateBalanceApi": 1021420000,
+  "playBalanceApi": 1021420000,
+  "endRoundBalanceApi": 1065900000,
   "baseAmountApi": 1000000,
   "featureTotalBookUnits": 4448,
   "events": [

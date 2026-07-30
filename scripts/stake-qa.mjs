@@ -496,6 +496,7 @@ function runSocialWordingChecks() {
 	const builder = read(paths.builder);
 	const sweeps = extractBalancedObject(builder, 'sweeps_en:');
 	const socialValues = stringValuesFromObjectLiteral(sweeps);
+	const requiredFooter = '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each eligible symbol is evaluated independently with orthogonally connected Wilds. A Wild may support multiple distinct symbol clusters, counts toward each supported cluster, and appears only once within a single award. The tumble removes all awarded positions. The cascade multiplier starts at 1× and increases after each successful cascade. A floating amount shows that award step; the WIN meter is cumulative for the complete round.';
 	expect('social-copy', 'sweeps_en language resource is present', sweeps.length > 0, `chars=${sweeps.length}`);
 	for (const forbidden of SOCIAL_FORBIDDEN_VALUES) {
 		expect('social-copy', `sweeps_en values avoid "${forbidden}"`, !socialForbiddenHits(socialValues).includes(forbidden), forbidden);
@@ -509,6 +510,10 @@ function runSocialWordingChecks() {
 	expectContains('social-copy', 'social rules use play amount wording', builder, 'play amount');
 	expectContains('social-copy', 'social replay label mapping includes Play Cost', builder, "replayTotalCost: 'Play Cost'");
 	expectContains('social-copy', 'social replay label mapping includes Final Play Amount', builder, "replayTotalWin: 'Final Play Amount'");
+	expectContains('social-copy', 'social Symbol Table uses the approved neutral footer verbatim', socialValues, requiredFooter);
+	expect('social-copy', 'approved Social footer has no restricted term', socialForbiddenHits(requiredFooter).length === 0, socialForbiddenHits(requiredFooter).join(', '));
+	expectContains('social-copy', 'authenticate jurisdiction is authoritative for Social mode', builder, "typeof data.config.jurisdiction?.socialCasino === 'boolean'");
+	expectContains('social-copy', 'authoritative jurisdiction updates Social state', builder, 'state.socialCasino = data.config.jurisdiction.socialCasino');
 }
 
 function runGameInfoChecks() {
@@ -601,6 +606,10 @@ function runReplayChecks() {
 	expectContains('replay', 'Replay Bet label is explicit and display-only', builder, "'REPLAY BET'");
 	expectContains('replay', 'Replay Play and Play Again labels are dedicated', builder, "status === 'completed' ? t('replayAgainAction') : t('replayAction')");
 	expectContains('replay', 'replay lifecycle uses localized labels', builder, "replayLoadingDetail");
+	for (const label of ['REPLAY COMPLETED', 'REPLAY ERROR', 'REPLAY RUNNING', 'READY TO REPLAY', 'LOADING REPLAY']) {
+		expectContains('replay', `Social replay includes minimal safe state "${label}"`, builder, label);
+	}
+	expectContains('replay', 'Social replay summary uses one formatted GC/SC amount', builder, "String(meta.mode || 'Base').toUpperCase() + ' · ' + formatCurrency(meta.baseBet)");
 	expectContains('replay', 'replay currency code is hidden and aria-hidden', builder, "currency.setAttribute('aria-hidden', 'true')");
 	expectContains('replay', 'replay completion presentation is non-blocking for RGS settlement', builder, "{ blocking: false }");
 	expectContains('replay', 'normal replay controls are made inert/disabled', builder, 'function makeUnavailableInReplay(element)');
@@ -719,12 +728,17 @@ function runRulesChecks() {
 
 function runExistingBehaviorChecks() {
 	const builder = read(paths.builder);
+	const preview = existsSync(paths.preview) ? read(paths.preview) : '';
 	const mathConfig = read(join(root, 'apps', 'cluster', 'scripts', 'ggr-config.mjs'));
 
 	expectContains('regression-markers', 'RGS authenticate function remains', builder, 'const authenticate = async () =>');
 	expectContains('regression-markers', 'RGS play endpoint remains', builder, '/wallet/play');
 	expectContains('regression-markers', 'RGS end-round endpoint remains', builder, '/wallet/end-round');
 	expectContains('regression-markers', 'round active end-round guard remains', builder, 'const roundNeedsEnd = (round) => !!round && round.active === true;');
+	expectContains('regression-markers', 'active rounds require authoritative end-round balance', preview, 'Active round is missing an authoritative end-round balance');
+	expectContains('regression-markers', 'wallet reconciliation helper remains', builder, 'function applyAuthoritativeWalletBalance');
+	expectContains('regression-markers', 'RGS local-wallet credit tracker remains', builder, 'localWalletCredits');
+	expectNotContains('regression-markers', 'active settlement never adds displayed win to local balance', builder, 'state.balance + displayedWin');
 	expectContains('regression-markers', 'RGS book renderer remains', builder, 'async function playRgsBookRound');
 	expectContains('regression-markers', 'bonus buy RGS render guard remains', builder, 'if (!shouldRenderRgsRound(rgsEvents))');
 	expectContains('regression-markers', 'local free spins stay demo-only', builder, 'allowLocalFreeSpins = !Rgs.configured()');

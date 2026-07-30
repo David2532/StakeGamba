@@ -11,6 +11,8 @@ export const STAKE_SOCIAL_RESTRICTED_TERMS = Object.freeze([
 	'stake',
 	'betting',
 	'total bet',
+	'place your bets',
+	'bet/s',
 	'bet',
 	'bets',
 	'cash',

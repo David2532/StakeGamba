@@ -39,6 +39,14 @@ import { socialRestrictedHits } from '../apps/cluster/scripts/stake-compliance-c
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
+const startedAt = new Date().toISOString();
+const testedCommitSha = spawnSync('git', ['rev-parse', 'HEAD'], {
+	cwd: root,
+	encoding: 'utf8',
+}).stdout.trim();
+if (!/^[0-9a-f]{40}$/i.test(testedCommitSha)) {
+	throw new Error(`Stake browser QA requires a full immutable Git commit SHA, received: ${testedCommitSha || '(empty)'}`);
+}
 const clusterRoot = join(root, 'apps', 'cluster');
 const frontendRoot = process.env.STAKE_QA_FRONTEND_ROOT
 	? resolve(root, process.env.STAKE_QA_FRONTEND_ROOT)
@@ -60,6 +68,8 @@ const replayNetworkEvidence = [];
 const replayValidationEvidence = [];
 const responsiveLayoutEvidence = [];
 const accessibilityEvidence = [];
+const walletNetworkEvidence = [];
+const balanceInvariantEvidence = [];
 const record = (group, name, status, detail = '') => checks.push({ group, name, status, detail });
 const pass = (group, name, detail = '') => record(group, name, 'PASS', detail);
 const fail = (group, name, detail = '') => record(group, name, 'FAIL', detail);
@@ -76,6 +86,17 @@ Object.defineProperty(window, '__stakeQa', {
 		Replay,
 		getBetConfig: () => cloneReplayData(activeBetConfig),
 		setTurbo: (enabled) => setTurbo(!!enabled),
+		spinRgsMode: async (mode) => {
+			const modeBuys = {
+				base: null,
+				hunt: { id: 'hunt', mult: modeMeta('hunt').costMultiplier },
+				rainbow: { id: 'rainbow', mult: modeMeta('rainbow').costMultiplier },
+				bonus_tier1: { id: 'tier1', mult: modeMeta('bonus_tier1').costMultiplier },
+				bonus: { id: 'tier2', mult: modeMeta('bonus').costMultiplier },
+			};
+			if (!Object.hasOwn(modeBuys, mode)) throw new Error('Unknown RGS mode: ' + mode);
+			return spin(modeBuys[mode]);
+		},
 		confirmMajorAction,
 		auditLocalClusters: (grid) => {
 			const previousGrid = state.grid;
@@ -200,7 +221,7 @@ const rgsQuery = (currency, extra = '') =>
 	`?sessionID=stake-qa-session&rgs_url=https://${RGS_HOST}&currency=${currency}&lang=en&device=desktop${extra}`;
 
 async function mockRgs(context, handlers) {
-	const calls = { authenticate: [], play: [], endRound: [], event: [], replay: [], other: [] };
+	const calls = { authenticate: [], play: [], endRound: [], event: [], replay: [], other: [], order: [] };
 	await context.route(`**://${RGS_HOST}/**`, async (route) => {
 		const request = route.request();
 		const path = new URL(request.url()).pathname;
@@ -217,18 +238,22 @@ async function mockRgs(context, handlers) {
 		});
 		if (path === '/wallet/authenticate') {
 			calls.authenticate.push(body);
+			calls.order.push('authenticate');
 			return reply(handlers.authenticate(body));
 		}
 		if (path === '/wallet/play') {
 			calls.play.push(body);
+			calls.order.push('play');
 			return reply(handlers.play ? handlers.play(body) : {});
 		}
 		if (path === '/wallet/end-round') {
 			calls.endRound.push(body);
+			calls.order.push('end-round');
 			return reply(handlers.endRound ? handlers.endRound(body) : {});
 		}
 		if (path === '/bet/event') {
 			calls.event.push(body);
+			calls.order.push('event-save');
 			return reply(handlers.event ? handlers.event(body) : {});
 		}
 		if (path.startsWith('/bet/replay/')) {
@@ -524,6 +549,8 @@ const gameState = (page) => page.evaluate(() => ({
 	bet: window.__stakeQa.state.bet,
 	win: window.__stakeQa.state.win,
 	currency: window.__stakeQa.state.currency,
+	socialCasino: window.__stakeQa.state.socialCasino,
+	localWalletCredits: window.__stakeQa.state.localWalletCredits,
 }));
 // The free-spins intro attaches its continue handler ~520ms after it opens;
 // keep nudging it (click + Enter) until it actually closes.
@@ -852,7 +879,47 @@ async function testSocialWording(browser, base) {
 	const group = 'social-e2e';
 	const runCase = async ({ currency, screenshotSuffix }) => {
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-		const page = await openPreview(context, base, `?currency=${currency}&social=true`);
+		const calls = await mockRgs(context, {
+			authenticate: () => ({
+				balance: balanceOf(1000, currency),
+				config: {
+					jurisdiction: { socialCasino: true },
+					minBet: API,
+					maxBet: 1000 * API,
+					stepBet: API,
+					defaultBetLevel: API,
+					betLevels: [API],
+					betModes: { base: {}, hunt: {}, rainbow: {}, bonus_tier1: {}, bonus: {} },
+				},
+				round: null,
+			}),
+		});
+		const page = await openPreview(context, base, rgsQuery('USD'));
+		await page.waitForFunction(() => window.__stakeQa.state.walletBusy === false && window.__stakeQa.state.socialCasino === true);
+		const authority = await page.evaluate(() => ({
+			socialCasino: window.__stakeQa.state.socialCasino,
+			currency: window.__stakeQa.state.currency,
+			urlSocial: new URL(location.href).searchParams.has('social'),
+		}));
+		expect(group, `${currency} social mode comes from Authenticate jurisdiction and balance currency`, calls.authenticate.length === 1 && authority.socialCasino && authority.currency === currency && !authority.urlSocial, JSON.stringify({ authority, calls }));
+		const auditVisibleSurface = async (label) => {
+			const audit = await page.evaluate(() => {
+				const visible = (el) => {
+					const style = getComputedStyle(el);
+					const rect = el.getBoundingClientRect();
+					return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) !== 0 && rect.width > 0 && rect.height > 0;
+				};
+				const attrs = [...document.querySelectorAll('[aria-label],[title],[alt]')]
+					.filter(visible)
+					.flatMap((el) => [el.getAttribute('aria-label'), el.getAttribute('title'), el.getAttribute('alt')].filter(Boolean))
+					.join(' ');
+				const text = document.body.innerText || '';
+				return { text, attrs, rawCodes: `${text} ${attrs}`.match(/\bX(?:G|S)C\b/g) || [] };
+			});
+			const hits = socialForbiddenHits(`${audit.text} ${audit.attrs}`);
+			expect(group, `${currency} ${label} has no restricted visible/accessibility copy or raw social code`, hits.length === 0 && audit.rawCodes.length === 0, `hits=${hits.join(',') || 'none'} raw=${audit.rawCodes.join(',') || 'none'}`);
+			return audit;
+		};
 		const hud = await page.evaluate(() => ({
 			betMeter: document.querySelector('[data-meter="bet"] .meter-label')?.textContent?.trim(),
 			betPanel: document.getElementById('bet-display-label')?.textContent?.trim(),
@@ -862,6 +929,7 @@ async function testSocialWording(browser, base) {
 		}));
 		expect(group, `${currency} HUD labels become PLAY`, hud.betMeter === 'PLAY' && hud.betPanel === 'PLAY' && hud.spin === 'PLAY', JSON.stringify(hud));
 		expect(group, `${currency} major action aria labels use social wording`, hud.bonusAria === 'Feature' && hud.autoAria === 'Auto-Play', JSON.stringify(hud));
+		await auditVisibleSurface('HUD');
 
 		await page.click('#btn-auto');
 		await page.waitForFunction(() => document.getElementById('modal-autospin')?.classList.contains('open'));
@@ -869,6 +937,7 @@ async function testSocialWording(browser, base) {
 		await page.click('[data-auto-count="25"]');
 		const autoConfirm = await page.evaluate(() => document.getElementById('auto-confirm')?.textContent || '');
 		expect(group, `${currency} auto modal is social-safe`, autoTitle === 'AUTO-PLAY' && autoConfirm.includes('Start Auto-Play for 25') && !autoConfirm.includes('Auto-Bet'), `${autoTitle} ${autoConfirm.trim()}`);
+		await auditVisibleSurface('Auto-Play dialog');
 		await page.evaluate(() => document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')));
 
 		await page.click('#btn-bonus');
@@ -879,35 +948,61 @@ async function testSocialWording(browser, base) {
 		}));
 		const bonusHits = socialForbiddenHits(bonus.text);
 		expect(group, `${currency} feature modal avoids restricted copy`, bonus.title === 'BONUS / FEATURE' && bonusHits.length === 0, `hits=${bonusHits.join(',') || 'none'}; ${bonus.text.replace(/\s+/g, ' ').slice(0, 160)}`);
+		await auditVisibleSurface('Feature dialog');
 		await page.evaluate(() => document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')));
 
 		await page.click('#btn-menu');
 		await page.waitForFunction(() => document.getElementById('modal-menu')?.classList.contains('open'));
 		await page.click('[data-open="modal-paytable"]');
 		await page.waitForFunction(() => document.getElementById('modal-paytable')?.classList.contains('open'));
+		await page.waitForTimeout(350);
 		const paytable = await page.evaluate(() => {
 			const body = document.querySelector('#modal-paytable .modal-body');
 			if (body) body.scrollTop = body.scrollHeight;
 			const root = document.getElementById('modal-paytable');
+			const panel = root?.querySelector('.modal');
 			const attrs = [...root.querySelectorAll('[aria-label],[title],[alt],[role],[aria-live]')].map((el) => Object.entries({ aria: el.getAttribute('aria-label'), title: el.getAttribute('title'), alt: el.getAttribute('alt'), role: el.getAttribute('role'), live: el.getAttribute('aria-live') }).filter(([, value]) => value).map(([, value]) => value).join(' ')).join(' ');
-			return { text: root.innerText || '', attrs, scrollTop: body?.scrollTop || 0, scrollHeight: body?.scrollHeight || 0 };
+			const footer = document.getElementById('paytable-note');
+			const footerRect = footer?.getBoundingClientRect();
+			const bodyRect = body?.getBoundingClientRect();
+			return {
+				text: root.innerText || '',
+				attrs,
+				footer: footer?.textContent?.trim() || '',
+				footerVisible: !!footerRect && !!bodyRect && footerRect.top >= bodyRect.top && footerRect.bottom <= bodyRect.bottom,
+				panelOpacity: Number(getComputedStyle(panel).opacity),
+				scrollTop: body?.scrollTop || 0,
+				scrollHeight: body?.scrollHeight || 0,
+				clientHeight: body?.clientHeight || 0,
+			};
 		});
 		const paytableHits = socialForbiddenHits(`${paytable.text} ${paytable.attrs}`);
-		expect(group, `${currency} scrolled paytable has no restricted visible or accessible copy`, paytableHits.length === 0 && paytable.scrollHeight >= paytable.scrollTop, `hits=${paytableHits.join(',') || 'none'} scroll=${paytable.scrollTop}/${paytable.scrollHeight}`);
+		const expectedFooter = '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each eligible symbol is evaluated independently with orthogonally connected Wilds. A Wild may support multiple distinct symbol clusters, counts toward each supported cluster, and appears only once within a single award. The tumble removes all awarded positions. The cascade multiplier starts at 1× and increases after each successful cascade. A floating amount shows that award step; the WIN meter is cumulative for the complete round.';
+		expect(group, `${currency} fully scrolled Symbol Table footer is exact, visible and unrestricted`, paytableHits.length === 0 && paytable.footer === expectedFooter && paytable.footerVisible && paytable.panelOpacity >= 0.99 && Math.abs(paytable.scrollTop + paytable.clientHeight - paytable.scrollHeight) <= 2, `hits=${paytableHits.join(',') || 'none'} scroll=${paytable.scrollTop}/${paytable.scrollHeight} footerVisible=${paytable.footerVisible} panelOpacity=${paytable.panelOpacity}`);
+		await auditVisibleSurface('fully scrolled Symbol Table');
 		await screenshot(page, `social-paytable-${screenshotSuffix}-scrolled`);
 		await page.evaluate(() => document.querySelectorAll('[data-modal]').forEach((m) => m.classList.remove('open')));
 
 		await page.click('#btn-info');
 		await page.waitForFunction(() => document.getElementById('modal-rules')?.classList.contains('open'));
-		const rulesAudit = await page.evaluate(() => ({
-			text: document.getElementById('modal-rules')?.innerText || '',
-			heads: [...document.querySelectorAll('#modal-rules .pt-head')].map((el) => el.textContent.trim()),
-			controls: [...document.querySelectorAll('#modal-rules .control-rule')].map((el) => el.textContent.trim()),
-		}));
-		const hits = socialForbiddenHits(rulesAudit.text);
+		await page.waitForTimeout(350);
+		const rulesAudit = await page.evaluate(() => {
+			const root = document.getElementById('modal-rules');
+			const attrs = [...root.querySelectorAll('[aria-label],[title],[alt]')]
+				.flatMap((el) => [el.getAttribute('aria-label'), el.getAttribute('title'), el.getAttribute('alt')].filter(Boolean))
+				.join(' ');
+			return {
+				text: root?.innerText || '',
+				attrs,
+				heads: [...document.querySelectorAll('#modal-rules .pt-head')].map((el) => el.textContent.trim()),
+				controls: [...document.querySelectorAll('#modal-rules .control-rule')].map((el) => el.textContent.trim()),
+			};
+		});
+		const hits = socialForbiddenHits(`${rulesAudit.text} ${rulesAudit.attrs}`);
 		expect(group, `${currency} rules avoid restricted phrases`, hits.length === 0, `hits=${hits.join(',') || 'none'}`);
 		expect(group, `${currency} rules include mode and button explanations`, rulesAudit.heads.includes('Game Modes') && rulesAudit.text.includes('Base Play') && rulesAudit.text.includes('Feature Multiplier') && rulesAudit.heads.includes('Buttons & Controls') && rulesAudit.controls.some((row) => row.includes('Auto-Play')), JSON.stringify(rulesAudit.heads));
 		expect(group, `${currency} rules explain retrigger conditions`, rulesAudit.heads.includes('Retriggers') && rulesAudit.text.includes('Base Play and Rainbow Spin can trigger Free Spins') && rulesAudit.text.includes('Feature-panel Free Spins do not add additional Free Spins'), rulesAudit.text.replace(/\s+/g, ' ').slice(0, 220));
+		await auditVisibleSurface('Rules, Features, modes, symbols and controls');
 		await screenshot(page, `social-wording-${screenshotSuffix}`);
 		await context.close();
 	};
@@ -1759,48 +1854,126 @@ async function testReplay(browser, base) {
 		await context.close();
 	}
 
-	// Social replay must be safe for both supported Stake social currencies across
-	// every visible lifecycle state, including accessible names and live regions.
-	for (const currency of ['XSC', 'XGC']) {
-		const socialContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-		const socialCalls = await mockReplayRgs(socialContext, () => ({ round: { ...baseReplayRound(), currency } }));
-		const socialPage = await openPreview(socialContext, base, replayQuery({ mode: 'base', event: `stake-qa-social-replay-${currency.toLowerCase()}`, currency, extra: '&social=true' }));
-		const socialVisibleAudit = async (lifecycle) => {
-			const audit = await socialPage.evaluate(() => {
-				const visible = (el) => {
-					if (!el) return false;
-					const style = getComputedStyle(el);
-					const rect = el.getBoundingClientRect();
-					return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
-				};
-				const root = document.body;
-				const visibleAttrs = [...root.querySelectorAll('[aria-label],[title],[alt],[role],[aria-live]')]
-					.filter(visible)
-					.map((el) => [el.getAttribute('aria-label'), el.getAttribute('title'), el.getAttribute('alt'), el.getAttribute('role'), el.getAttribute('aria-live')].filter(Boolean).join(' ')).join(' ');
-				return { text: root.innerText || '', attrs: visibleAttrs, rawCodes: `${root.innerText || ''} ${visibleAttrs}`.match(/\bX(?:G|S)C\b/g) || [] };
+	// Social Replay derives its presentation from the authoritative XGC/XSC
+	// replay currency. No manual social query parameter is used in these cases.
+	const socialReplayModes = [
+		{ mode: 'base', name: 'Base Play', round: baseReplayRound },
+		{ mode: 'hunt', name: 'Feature Spins', round: () => ({ ...baseReplayRound(), mode: 'hunt', costMultiplier: 4.2 }) },
+		{ mode: 'rainbow', name: 'Rainbow Spin', round: rainbowReplayRound },
+		{ mode: 'bonus_tier1', name: 'Golden Chance', round: bonusTier1ReplayRound },
+		{ mode: 'bonus', name: 'All That Glitters', round: () => withoutPayoutMultiplier(bonusReplayRound()) },
+	];
+	for (const currency of ['XGC', 'XSC']) {
+		for (const socialMode of socialReplayModes) {
+			const socialContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+			let releaseReplay;
+			const replayPending = new Promise((resolvePending) => { releaseReplay = resolvePending; });
+			const socialCalls = await mockReplayRgs(socialContext, async () => {
+				await replayPending;
+				return { round: { ...socialMode.round(), currency } };
 			});
-			const hits = socialForbiddenHits(`${audit.text} ${audit.attrs}`);
-			expect(group, `${currency} replay ${lifecycle} has no restricted visible/accessibility copy`, hits.length === 0 && audit.rawCodes.length === 0, `hits=${hits.join(',') || 'none'} raw=${audit.rawCodes.join(',') || 'none'}`);
-			return audit;
-		};
-		await waitForReplayState(socialPage, 'ready');
-		const socialReady = await replayUiAudit(socialPage);
-		const socialCode = currency === 'XSC' ? 'SC' : 'GC';
-		expect(group, `${currency} replay formats social amount without raw code`, `${socialReady.betCurrency} ${socialReady.betText}`.includes(socialCode) && !`${socialReady.betCurrency} ${socialReady.betText}`.includes(currency), JSON.stringify(socialReady));
-		await socialVisibleAudit('ready');
-		await screenshot(socialPage, `replay-social-${currency.toLowerCase()}-ready-1280x720`);
-		await socialPage.click('#replay-action');
-		await waitForReplayState(socialPage, 'running');
-		await socialVisibleAudit('running');
-		await waitForReplayState(socialPage, 'completed', 30_000);
-		const socialComplete = await replayUiAudit(socialPage);
-		expect(group, `${currency} replay completes with Play Again`, socialComplete.actionText === 'Play Again' && socialComplete.actionAccessibleName === 'Play Again', JSON.stringify(socialComplete));
-		await socialVisibleAudit('completed');
-		expect(group, `${currency} replay remains read-only`, socialCalls.replay.length === 1 && socialCalls.forbidden.length === 0, JSON.stringify(socialCalls));
-		replayNetworkEvidence.push({ scenario: `social-${currency.toLowerCase()}`, viewport: 'desktop-1280x720', replayRequests: socialCalls.replay, forbiddenRequests: socialCalls.forbidden });
-		await screenshot(socialPage, `replay-social-${currency.toLowerCase()}-completed-1280x720`);
-		await socialContext.close();
+			const socialPage = await openPreview(
+				socialContext,
+				base,
+				replayQuery({ mode: socialMode.mode, event: `stake-qa-social-replay-${currency.toLowerCase()}-${socialMode.mode}`, currency }),
+			);
+			const socialVisibleAudit = async (lifecycle) => {
+				const audit = await socialPage.evaluate(() => {
+					const visible = (el) => {
+						if (!el) return false;
+						const style = getComputedStyle(el);
+						const rect = el.getBoundingClientRect();
+						return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) !== 0 && rect.width > 0 && rect.height > 0;
+					};
+					const root = document.body;
+					const visibleAttrs = [...root.querySelectorAll('[aria-label],[title],[alt],[role],[aria-live]')]
+						.filter(visible)
+						.map((el) => [el.getAttribute('aria-label'), el.getAttribute('title'), el.getAttribute('alt'), el.getAttribute('role'), el.getAttribute('aria-live')].filter(Boolean).join(' ')).join(' ');
+					const text = root.innerText || '';
+					return {
+						text,
+						attrs: visibleAttrs,
+						rawCodes: `${text} ${visibleAttrs}`.match(/\bX(?:G|S)C\b/g) || [],
+						summary: document.getElementById('replay-summary')?.textContent?.trim() || '',
+						status: document.getElementById('replay-status')?.textContent?.trim() || '',
+						urlSocial: new URL(location.href).searchParams.has('social'),
+						currency: window.__stakeQa.Replay.current?.round?.currency || null,
+					};
+				});
+				const hits = socialForbiddenHits(`${audit.text} ${audit.attrs}`);
+				expect(group, `${currency} ${socialMode.mode} replay ${lifecycle} has no restricted visible/accessibility copy or raw code`, hits.length === 0 && audit.rawCodes.length === 0, `hits=${hits.join(',') || 'none'} raw=${audit.rawCodes.join(',') || 'none'}`);
+				return audit;
+			};
+			await waitForReplayState(socialPage, 'loading');
+			const socialLoading = await socialVisibleAudit('loading');
+			expect(group, `${currency} ${socialMode.mode} loading uses social-safe lifecycle copy without manual social parameter`, socialLoading.status === 'LOADING REPLAY' && !socialLoading.urlSocial, JSON.stringify(socialLoading));
+			releaseReplay();
+			await waitForReplayState(socialPage, 'ready');
+			await socialPage.evaluate(() => window.__stakeQa.setTurbo(true));
+			const socialReady = await replayUiAudit(socialPage);
+			const socialReadySurface = await socialVisibleAudit('ready');
+			const socialCode = currency === 'XSC' ? 'SC' : 'GC';
+			const expectedSummary = `${socialMode.name.toUpperCase()} · 1.00 ${socialCode}`;
+			expect(group, `${currency} ${socialMode.mode} replay currency is authoritative and formatted once`, socialReadySurface.currency === currency && socialReadySurface.summary === expectedSummary && `${socialReady.betCurrency} ${socialReady.betText}`.includes(socialCode) && !`${socialReady.betCurrency} ${socialReady.betText}`.includes(currency), JSON.stringify({ socialReady, socialReadySurface, expectedSummary }));
+			expect(group, `${currency} ${socialMode.mode} ready lifecycle is explicit`, socialReadySurface.status === 'READY TO REPLAY', JSON.stringify(socialReadySurface));
+			await socialPage.click('#replay-action');
+			await waitForReplayState(socialPage, 'running');
+			const socialRunning = await socialVisibleAudit('running');
+			expect(group, `${currency} ${socialMode.mode} running lifecycle is explicit`, socialRunning.status === 'REPLAY RUNNING', JSON.stringify(socialRunning));
+			await waitForReplayState(socialPage, 'completed', 30_000);
+			const socialComplete = await replayUiAudit(socialPage);
+			const socialCompletedSurface = await socialVisibleAudit('completed');
+			expect(group, `${currency} ${socialMode.mode} completes with minimal copy and Play Again`, socialCompletedSurface.status === 'REPLAY COMPLETED' && socialComplete.actionText === 'Play Again' && socialComplete.actionAccessibleName === 'Play Again', JSON.stringify({ socialComplete, socialCompletedSurface }));
+			if (socialMode.mode === 'bonus') {
+				await screenshot(socialPage, `replay-social-${currency.toLowerCase()}-completed-1280x720`);
+			}
+			await screenshot(socialPage, `replay-social-${currency.toLowerCase()}-${socialMode.mode}-completed-1280x720`);
+			await socialPage.click('#replay-action');
+			await waitForReplayState(socialPage, 'running');
+			await waitForReplayState(socialPage, 'completed', 30_000);
+			const playAgainSurface = await socialVisibleAudit('completed after Play Again');
+			expect(group, `${currency} ${socialMode.mode} Play Again reuses immutable replay without another request`, playAgainSurface.status === 'REPLAY COMPLETED' && socialCalls.replay.length === 1 && socialCalls.forbidden.length === 0, JSON.stringify(socialCalls));
+			replayNetworkEvidence.push({ scenario: `social-${currency.toLowerCase()}-${socialMode.mode}`, viewport: 'desktop-1280x720', replayRequests: socialCalls.replay, forbiddenRequests: socialCalls.forbidden });
+			replayValidationEvidence.push({ case: `social-${currency.toLowerCase()}-${socialMode.mode}`, expected: 'completed', actual: playAgainSurface, replayRequests: socialCalls.replay.length, forbiddenRequests: socialCalls.forbidden.length });
+			await socialContext.close();
+		}
 	}
+
+	const socialErrorContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+	const socialErrorCalls = await mockReplayRgs(socialErrorContext, () => ({ response: { status: 200, body: '{invalid-social-replay' } }));
+	const socialErrorPage = await openPreview(socialErrorContext, base, replayQuery({ mode: 'base', event: 'stake-qa-social-xgc-error', currency: 'XGC' }));
+	await waitForReplayState(socialErrorPage, 'error');
+	const socialError = await socialErrorPage.evaluate(() => {
+		const visible = (el) => {
+			const style = getComputedStyle(el);
+			const rect = el.getBoundingClientRect();
+			return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+		};
+		const attrs = [...document.querySelectorAll('[aria-label],[title],[alt]')]
+			.filter(visible)
+			.flatMap((el) => [el.getAttribute('aria-label'), el.getAttribute('title'), el.getAttribute('alt')].filter(Boolean))
+			.join(' ');
+		const text = document.body.innerText || '';
+		return { text, attrs, status: document.getElementById('replay-status')?.textContent?.trim(), rawCodes: `${text} ${attrs}`.match(/\bX(?:G|S)C\b/g) || [] };
+	});
+	const socialErrorHits = socialForbiddenHits(`${socialError.text} ${socialError.attrs}`);
+	expect(group, 'XGC Social Replay error is fail-closed and social-safe', socialError.status === 'REPLAY ERROR' && socialErrorHits.length === 0 && socialError.rawCodes.length === 0 && socialErrorCalls.replay.length === 1 && socialErrorCalls.forbidden.length === 0, JSON.stringify({ socialError, socialErrorHits, socialErrorCalls }));
+	await screenshot(socialErrorPage, 'replay-social-xgc-error-1280x720');
+	replayNetworkEvidence.push({ scenario: 'social-xgc-error', viewport: 'desktop-1280x720', replayRequests: socialErrorCalls.replay, forbiddenRequests: socialErrorCalls.forbidden });
+	await socialErrorContext.close();
+
+	const mxnContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+	const mxnCalls = await mockReplayRgs(mxnContext, () => ({ round: { ...baseReplayRound(), currency: 'MXN' } }));
+	const mxnPage = await openPreview(mxnContext, base, replayQuery({ mode: 'base', event: 'stake-qa-normal-mxn-regression', currency: 'MXN' }));
+	await waitForReplayState(mxnPage, 'ready');
+	await mxnPage.evaluate(() => window.__stakeQa.setTurbo(true));
+	await mxnPage.click('#replay-action');
+	await waitForReplayState(mxnPage, 'completed', 30_000);
+	const mxnReplay = await replayUiAudit(mxnPage);
+	expect(group, 'normal MXN Replay retains non-social terminology and formatting', mxnReplay.statusText === 'REPLAY COMPLETED' && mxnReplay.betLabel === 'REPLAY BET' && `${mxnReplay.betCurrency} ${mxnReplay.betText}`.includes('MX$') && mxnCalls.replay.length === 1 && mxnCalls.forbidden.length === 0, JSON.stringify({ mxnReplay, mxnCalls }));
+	await screenshot(mxnPage, 'replay-normal-mxn-completed-1280x720');
+	replayNetworkEvidence.push({ scenario: 'normal-mxn-regression', viewport: 'desktop-1280x720', replayRequests: mxnCalls.replay, forbiddenRequests: mxnCalls.forbidden });
+	await mxnContext.close();
 
 	// Error matrix: transport errors, malformed/empty payloads and invalid round
 	// contracts must remain replay-specific failures with no local demo fallback.
@@ -1964,9 +2137,9 @@ async function testRgsRoundStates(browser, base) {
 	const qCluster = localClusters.find((cluster) => cluster.key === 'q');
 	expect(group, 'local non-RGS cluster helper matches production Wild semantics', !!qCluster && qCluster.cells.length === 5 && new Set(qCluster.cells.map((cell) => cell.join(','))).size === 5, JSON.stringify(localClusters));
 	await localMathContext.close();
-	const normalRound = ({ active, bookUnits }) => ({
+	const normalRound = ({ active, bookUnits, roundMode = 'base' }) => ({
 		active,
-		mode: 'base',
+		mode: roundMode,
 		amount: API,
 		payout: Math.round(API * bookUnits / 100),
 		payoutMultiplier: bookUnits,
@@ -1974,28 +2147,88 @@ async function testRgsRoundStates(browser, base) {
 			? authoritativeClusterReplayRound({ symbol: 'L2', positions: columnPositions(0), bookUnits }).state
 			: amountBoundaryReplayRound(0).state,
 	});
-	for (const active of [true, false]) {
-		for (const bookUnits of [0, 48]) {
-			const name = `${active ? 'active' : 'inactive'}-${bookUnits ? 'win' : 'loss'}`;
+	const settlementModes = ['base', 'hunt', 'rainbow', 'bonus_tier1', 'bonus'];
+	for (const roundMode of settlementModes) {
+		for (const active of [true, false]) {
+			const bookUnits = 4448;
+			const name = `${roundMode}-${active ? 'active' : 'inactive'}`;
 			const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 			const calls = await mockRgs(context, {
-				authenticate: () => ({ balance: balanceOf(1000, 'USD'), round: null }),
-				play: () => ({ balance: balanceOf(active ? 999 : 999 + bookUnits / 100, 'USD'), round: normalRound({ active, bookUnits }) }),
-				endRound: () => ({ balance: balanceOf(999 + bookUnits / 100, 'USD'), round: { ...normalRound({ active: false, bookUnits }), state: undefined } }),
+				authenticate: () => ({ balance: balanceOf(1021.42, 'USD'), round: null }),
+				play: () => ({ balance: balanceOf(1021.42, 'USD'), round: normalRound({ active, bookUnits, roundMode }) }),
+				endRound: () => ({ balance: balanceOf(1065.90, 'USD'), round: { ...normalRound({ active: false, bookUnits, roundMode }), state: undefined } }),
 			});
 			const page = await openPreview(context, base, rgsQuery('USD'));
 			await page.waitForFunction(() => window.__stakeQa.state.walletBusy === false);
 			await page.evaluate(() => window.__stakeQa.setTurbo(true));
-			await page.click('#btn-spin');
+			await page.evaluate((modeName) => window.__stakeQa.spinRgsMode(modeName), roundMode);
 			await page.waitForFunction(() => window.__stakeQa.state.spinning === false && window.__stakeQa.state.walletBusy === false, null, { timeout: 45_000 });
 			const state = await gameState(page);
 			const winText = await meterText(page, 'meter-win');
-			expect(group, `${name} sends exactly one wallet play`, calls.play.length === 1, JSON.stringify(calls));
-			expect(group, `${name} end-round count follows round.active only`, calls.endRound.length === (active ? 1 : 0), JSON.stringify(calls));
+			const expectedBalance = active ? 1065.90 : 1021.42;
+			const expectedOrder = active ? ['authenticate', 'play', 'end-round'] : ['authenticate', 'play'];
+			expect(group, `${name} sends exactly one wallet play with the requested mode`, calls.play.length === 1 && calls.play[0]?.mode === roundMode, JSON.stringify(calls));
+			expect(group, `${name} end-round count and order follow round.active only`, calls.endRound.length === (active ? 1 : 0) && JSON.stringify(calls.order) === JSON.stringify(expectedOrder), JSON.stringify(calls));
 			expect(group, `${name} displays only the authoritative payout`, Math.abs(state.win - bookUnits / 100) <= 0.000001 && winText === `$${(bookUnits / 100).toFixed(2)}`, JSON.stringify({ state, winText }));
-			expect(group, `${name} applies the authoritative settled balance`, Math.abs(state.balance - (999 + bookUnits / 100)) <= 0.000001, JSON.stringify(state));
+			expect(group, `${name} applies only the authoritative ${active ? 'End-Round' : 'Play-response'} balance`, Math.abs(state.balance - expectedBalance) <= 0.000001 && state.localWalletCredits === 0, JSON.stringify(state));
+			const invariant = {
+				mode: roundMode,
+				active,
+				playCalls: calls.play.length,
+				endRoundCalls: calls.endRound.length,
+				requestOrder: calls.order,
+				playBalanceApi: balanceOf(1021.42, 'USD').amount,
+				endRoundBalanceApi: active ? balanceOf(1065.90, 'USD').amount : null,
+				expectedFinalBalance: expectedBalance.toFixed(2),
+				actualFinalBalance: state.balance.toFixed(2),
+				localWalletCredits: state.localWalletCredits,
+				status: calls.play.length === 1 && calls.endRound.length === (active ? 1 : 0) && Math.abs(state.balance - expectedBalance) <= 0.000001 && state.localWalletCredits === 0 ? 'PASS' : 'FAIL',
+			};
+			balanceInvariantEvidence.push(invariant);
+			walletNetworkEvidence.push({ scenario: name, calls, invariant });
 			await context.close();
 		}
+	}
+
+	for (const invalidEndBalance of [
+		{ name: 'missing', response: { round: { active: false } } },
+		{ name: 'non-integer', response: { balance: { amount: balanceOf(1065.90, 'USD').amount + 0.5, currency: 'USD' }, round: { active: false } } },
+	]) {
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		const calls = await mockRgs(context, {
+			authenticate: () => ({ balance: balanceOf(1021.42, 'USD'), round: null }),
+			play: () => ({ balance: balanceOf(1021.42, 'USD'), round: normalRound({ active: true, bookUnits: 4448 }) }),
+			endRound: () => invalidEndBalance.response,
+		});
+		const page = await openPreview(context, base, rgsQuery('USD'));
+		await page.waitForFunction(() => window.__stakeQa.state.walletBusy === false);
+		await page.evaluate(() => window.__stakeQa.setTurbo(true));
+		await page.click('#btn-spin');
+		await page.waitForFunction(() => document.getElementById('fatal-error')?.classList.contains('show'), null, { timeout: 45_000 });
+		const audit = await page.evaluate(() => ({
+			fatal: window.__stakeQa.state.fatal,
+			balance: window.__stakeQa.state.balance,
+			localWalletCredits: window.__stakeQa.state.localWalletCredits,
+			title: document.querySelector('#fatal-error .fatal-error-title')?.textContent?.trim(),
+			detail: document.querySelector('#fatal-error .fatal-error-detail')?.textContent?.trim(),
+		}));
+		expect(group, `${invalidEndBalance.name} active End-Round balance fails closed without local credit`, audit.fatal && audit.balance === 1021.42 && audit.localWalletCredits === 0 && calls.play.length === 1 && calls.endRound.length === 1 && /settlement failed/i.test(audit.title || '') && /end-round balance/i.test(audit.detail || ''), JSON.stringify({ audit, calls }));
+		const invariant = {
+			mode: 'base',
+			active: true,
+			case: `${invalidEndBalance.name}-end-round-balance`,
+			playCalls: calls.play.length,
+			endRoundCalls: calls.endRound.length,
+			requestOrder: calls.order,
+			playBalanceApi: balanceOf(1021.42, 'USD').amount,
+			endRoundBalanceApi: invalidEndBalance.response.balance?.amount ?? null,
+			actualFinalBalance: audit.balance.toFixed(2),
+			localWalletCredits: audit.localWalletCredits,
+			status: 'BLOCKED_AS_REQUIRED',
+		};
+		balanceInvariantEvidence.push(invariant);
+		walletNetworkEvidence.push({ scenario: `${invalidEndBalance.name}-end-round-balance`, calls, invariant });
+		await context.close();
 	}
 
 	const spaceContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
@@ -2070,8 +2303,8 @@ async function testRgsRoundStates(browser, base) {
 	const featureContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 	const featureCalls = await mockRgs(featureContext, {
 		authenticate: () => ({ balance: balanceOf(1021.42, 'USD'), round: null }),
-		play: () => ({ balance: balanceOf(1020.42, 'USD'), round: { active: true, amount: API, mode: 'bonus_tier1', payout: 0, payoutMultiplier: 4448, state: featureEvents } }),
-		endRound: () => ({ balance: balanceOf(1064.90, 'USD'), round: { active: false, amount: API, mode: 'bonus_tier1', payout: 44480000, payoutMultiplier: 4448 } }),
+		play: () => ({ balance: balanceOf(1021.42, 'USD'), round: { active: true, amount: API, mode: 'bonus_tier1', payout: 0, payoutMultiplier: 4448, state: featureEvents } }),
+		endRound: () => ({ balance: balanceOf(1065.90, 'USD'), round: { active: false, amount: API, mode: 'bonus_tier1', payout: 44480000, payoutMultiplier: 4448 } }),
 	});
 	const featurePage = await openPreview(featureContext, base, rgsQuery('USD'));
 	await featurePage.waitForFunction(() => window.__stakeQa.state.walletBusy === false);
@@ -2095,17 +2328,66 @@ async function testRgsRoundStates(browser, base) {
 	const featureAudit = await featurePage.evaluate(() => ({
 		balance: window.__stakeQa.state.balance,
 		win: window.__stakeQa.state.win,
+		localWalletCredits: window.__stakeQa.state.localWalletCredits,
+		hudBalance: document.getElementById('meter-balance')?.textContent?.trim(),
 		spins: document.getElementById('bs-spins')?.textContent?.trim(),
 		best: document.getElementById('bs-best')?.textContent?.trim(),
 		total: document.getElementById('bs-total')?.textContent?.trim(),
 		summaryVisible: document.getElementById('bonus-summary')?.classList.contains('show'),
 	}));
+	const featureOrderIsValid = featureCalls.order[0] === 'authenticate'
+		&& featureCalls.order[1] === 'play'
+		&& featureCalls.order.at(-1) === 'end-round'
+		&& featureCalls.order.slice(2, -1).every((entry) => entry === 'event-save');
 	expect(group, '8-spin $44.48 feature sends one play and one end-round', featureCalls.play.length === 1 && featureCalls.endRound.length === 1, JSON.stringify(featureCalls));
-	expect(group, 'active feature settlement does not wait for Continue', featureAudit.summaryVisible && featureAudit.balance === 1064.9, JSON.stringify(featureAudit));
+	expect(group, '8-spin request order is authenticate → play → optional event saves → end-round', featureOrderIsValid, JSON.stringify(featureCalls.order));
+	expect(group, 'active feature settlement does not wait for Continue', featureAudit.summaryVisible && featureAudit.balance === 1065.9 && featureAudit.hudBalance === '$1065.90', JSON.stringify(featureAudit));
 	expect(group, '8-spin summary total and visible WIN are authoritative', featureAudit.total === '$44.48' && featureAudit.win === 44.48, JSON.stringify(featureAudit));
 	expect(group, '8-spin summary shows true best individual spin', featureAudit.spins === '8' && featureAudit.best === '$10.20' && featureAudit.best !== featureAudit.total, JSON.stringify(featureAudit));
+	expect(group, '8-spin active settlement applies zero local wallet credits', featureAudit.localWalletCredits === 0, JSON.stringify(featureAudit));
 	const featureShot = await screenshot(featurePage, 'feature-summary-44-48-best-spin');
 	pass(group, 'feature completion summary screenshot saved', featureShot);
+	await featurePage.click('#bs-continue');
+	await featurePage.waitForFunction(() => !document.getElementById('bonus-summary')?.classList.contains('show'));
+	const afterContinue = await featurePage.evaluate(() => ({
+		balance: window.__stakeQa.state.balance,
+		win: window.__stakeQa.state.win,
+		localWalletCredits: window.__stakeQa.state.localWalletCredits,
+		hudBalance: document.getElementById('meter-balance')?.textContent?.trim(),
+		summaryTotal: document.getElementById('bs-total')?.textContent?.trim(),
+		summaryBest: document.getElementById('bs-best')?.textContent?.trim(),
+	}));
+	expect(group, 'Continue does not create a second payout or change authoritative results', featureCalls.endRound.length === 1
+		&& afterContinue.balance === 1065.9
+		&& afterContinue.hudBalance === '$1065.90'
+		&& afterContinue.win === 44.48
+		&& afterContinue.summaryTotal === '$44.48'
+		&& afterContinue.summaryBest === '$10.20'
+		&& afterContinue.localWalletCredits === 0, JSON.stringify({ afterContinue, featureCalls }));
+	const featureInvariant = {
+		scenario: 'stake-review-8-spin-44-48',
+		mode: 'bonus_tier1',
+		active: true,
+		authenticateBalanceApi: balanceOf(1021.42, 'USD').amount,
+		playBalanceApi: balanceOf(1021.42, 'USD').amount,
+		endRoundBalanceApi: balanceOf(1065.90, 'USD').amount,
+		authoritativeFinalWinBookUnits: 4448,
+		authoritativeFinalWinApi: 44480000,
+		featureSpins: 8,
+		bestSpinBookUnits: 1020,
+		playCalls: featureCalls.play.length,
+		endRoundCallsBeforeContinue: 1,
+		endRoundCallsAfterContinue: featureCalls.endRound.length,
+		requestOrder: featureCalls.order,
+		visibleWin: afterContinue.win.toFixed(2),
+		summaryTotal: afterContinue.summaryTotal,
+		bestSpin: afterContinue.summaryBest,
+		finalHudBalance: afterContinue.hudBalance,
+		localWalletCredits: afterContinue.localWalletCredits,
+		status: featureCalls.play.length === 1 && featureCalls.endRound.length === 1 && featureOrderIsValid && afterContinue.balance === 1065.9 && afterContinue.win === 44.48 && afterContinue.localWalletCredits === 0 ? 'PASS' : 'FAIL',
+	};
+	balanceInvariantEvidence.push(featureInvariant);
+	walletNetworkEvidence.push({ scenario: 'stake-review-8-spin-44-48', calls: featureCalls, invariant: featureInvariant });
 	await featureContext.close();
 }
 
@@ -2166,6 +2448,13 @@ async function main() {
 	};
 	writeFileSync(join(artifactRoot, 'e2e-report.json'), JSON.stringify({
 		mode,
+		identity: {
+			testedCommitSha,
+			startedAt,
+			completedAt: new Date().toISOString(),
+			githubActionsRunId: process.env.GITHUB_RUN_ID || null,
+			githubActionsRunAttempt: process.env.GITHUB_RUN_ATTEMPT || null,
+		},
 		target: relative(root, previewFile).replaceAll('\\', '/'),
 		frontendRoot: relative(root, frontendRoot).replaceAll('\\', '/'),
 		mathConfig: relative(root, publishedMathFile).replaceAll('\\', '/'),
@@ -2203,6 +2492,34 @@ async function main() {
 		keyboardEvidence: accessibilityEvidence,
 		checks: checks.filter((check) => /focused|keyboard|accessible|tab|hittable|focus|Space|Enter|pointer|touch/i.test(check.name)),
 	}, null, 2));
+	if (walletNetworkEvidence.length) {
+		writeFileSync(join(artifactRoot, 'rgs-wallet-network-proof.json'), JSON.stringify({
+			testedCommitSha,
+			target: relative(root, previewFile).replaceAll('\\', '/'),
+			apiUnitScale: 1_000_000,
+			requiredOrder: 'authenticate -> play -> zero or more event-save -> optional end-round only when round.active is true',
+			summary: {
+				scenarios: walletNetworkEvidence.length,
+				playCalls: walletNetworkEvidence.reduce((sum, item) => sum + item.calls.play.length, 0),
+				endRoundCalls: walletNetworkEvidence.reduce((sum, item) => sum + item.calls.endRound.length, 0),
+			},
+			scenarios: walletNetworkEvidence,
+		}, null, 2));
+	}
+	if (balanceInvariantEvidence.length) {
+		writeFileSync(join(artifactRoot, 'balance-invariant-report.json'), JSON.stringify({
+			testedCommitSha,
+			target: relative(root, previewFile).replaceAll('\\', '/'),
+			rule: 'Active rounds use only the integer /wallet/end-round balance; inactive rounds use only the integer /wallet/play balance; local wallet credits must remain zero in RGS mode.',
+			summary: {
+				rows: balanceInvariantEvidence.length,
+				pass: balanceInvariantEvidence.filter((item) => item.status === 'PASS').length,
+				blockedAsRequired: balanceInvariantEvidence.filter((item) => item.status === 'BLOCKED_AS_REQUIRED').length,
+				fail: balanceInvariantEvidence.filter((item) => item.status === 'FAIL').length,
+			},
+			invariants: balanceInvariantEvidence,
+		}, null, 2));
+	}
 	writeFileSync(join(artifactRoot, 'replay-implementation-notes.md'), [
 		'# Replay implementation verification',
 		'',
@@ -2215,6 +2532,7 @@ async function main() {
 	].join('\n'));
 	if (replayNetworkEvidence.length) {
 		writeFileSync(join(artifactRoot, 'replay-network-proof.json'), JSON.stringify({
+			testedCommitSha,
 			target: relative(root, previewFile).replaceAll('\\', '/'),
 			allowedMethod: 'GET',
 			allowedPathPrefix: '/bet/replay/',
@@ -2227,6 +2545,8 @@ async function main() {
 	}
 	console.log(`Stake QA e2e report: ${relative(root, join(artifactRoot, 'e2e-report.json'))} (screenshots: ${relative(root, shotDir)})`);
 	if (replayNetworkEvidence.length) console.log(`Replay network proof: ${relative(root, join(artifactRoot, 'replay-network-proof.json'))}`);
+	if (walletNetworkEvidence.length) console.log(`RGS wallet network proof: ${relative(root, join(artifactRoot, 'rgs-wallet-network-proof.json'))}`);
+	if (balanceInvariantEvidence.length) console.log(`Balance invariant report: ${relative(root, join(artifactRoot, 'balance-invariant-report.json'))}`);
 	if (summary.fail > 0) {
 		console.error(`Stake QA e2e failed: ${summary.fail} failing check(s).`);
 		process.exit(1);

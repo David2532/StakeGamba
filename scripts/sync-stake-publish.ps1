@@ -629,7 +629,7 @@ function Invoke-StakeQa {
 		$env:STAKE_QA_FRONTEND_ENTRY = "index.html"
 		Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @($StakeQaScript, "all")
 		Write-Host "Running mandatory Stake documentation and publish-manifest gate"
-		Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @($StakeDocumentationScript, "--write", "--check")
+		Invoke-CommandChecked -WorkingDirectory $Root -FilePath "node" -Arguments @($StakeDocumentationScript, "--check")
 	}
 	finally {
 		$env:STAKE_QA_REQUIRE_E2E = $previousRequireE2e

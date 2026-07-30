@@ -114,7 +114,10 @@ function Add-SocialLanguageChecks {
 	foreach ($term in @(
 		"Bet Replay", "Base Bet", "Cost Multiplier", "Total Bet Cost", "Payout Multiplier", "Total Win",
 		"Bonus Buy", "Buy Bonus", "Auto-Bet", "Auto Bet", "Bet", "Wager", "Gamble", "Purchase",
-		"Paid", "Pay out", "Payout", "Rebet", "Cash", "Credit", "Currency"
+		"Pay", "Pays", "Paid", "Paying", "Pay out", "Paid out", "Pays out", "Payout", "Payouts",
+		"Betting", "Bets", "Place your bets", "Bet/s", "Stake", "Cash", "Payer", "Money",
+		"Buy", "Bought", "At the cost of", "Cost of", "Rebet", "Credit", "Deposit", "Withdraw",
+		"Fund", "Currency"
 	)) {
 		Add-Check -Group $Group -Name "sweeps_en avoids restricted term '$term'" -Passed (-not (Test-TextContainsWordOrPhrase -Text $socialText -Phrase $term)) -Detail $term
 	}
@@ -257,6 +260,19 @@ function Get-FileHashEntries {
 			sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
 		}
 	} | Sort-Object path)
+}
+
+function Get-FileTreeDigest {
+	param([object[]]$Entries)
+	$json = ConvertTo-Json -InputObject @($Entries) -Depth 6 -Compress
+	$bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+	$sha = [System.Security.Cryptography.SHA256]::Create()
+	try {
+		return ([System.BitConverter]::ToString($sha.ComputeHash($bytes))).Replace("-", "").ToLowerInvariant()
+	}
+	finally {
+		$sha.Dispose()
+	}
 }
 
 function Assert-DirectoryMatches {
@@ -683,8 +699,14 @@ if ($ReuseBooks) { $syncArgs += "-ReuseBooks" }
 Invoke-Checked -WorkingDirectory $Root -FilePath $PowerShellExe -Arguments $syncArgs
 
 $postGenerationGitStatus = Get-GitValue -Arguments @("status", "--porcelain=v1", "--untracked-files=all")
-if (-not [string]::IsNullOrWhiteSpace($postGenerationGitStatus)) {
-	throw "Release generation changed tracked or untracked source files. Commit regenerated canonical artifacts and rerun from a clean tree:`n$postGenerationGitStatus"
+$unexpectedPostGenerationStatus = @($postGenerationGitStatus -split "`r?`n" | Where-Object {
+	$line = $_
+	(-not [string]::IsNullOrWhiteSpace($line)) -and -not (
+		(-not [string]::IsNullOrWhiteSpace($AllowedUntrackedPrefix)) -and $line -like "?? $AllowedUntrackedPrefix*"
+	)
+})
+if ($unexpectedPostGenerationStatus.Count -gt 0) {
+	throw "Release generation changed tracked or untracked source files. Commit regenerated canonical artifacts and rerun from a clean tree:`n$($unexpectedPostGenerationStatus -join "`n")"
 }
 Add-Check -Group "Release Preflight" -Name "Working tree remains clean after generation" -Passed $true -Detail "generated artifacts reproduce committed sources"
 
@@ -854,10 +876,14 @@ $qaReportPath = Join-Path $QaArtifactRoot "report.json"
 $qaE2eReportPath = Join-Path $QaArtifactRoot "e2e-report.json"
 $qaPaytableReportPath = Join-Path $QaArtifactRoot "paytable-contract.json"
 $qaNetworkProofPath = Join-Path $QaArtifactRoot "replay-network-proof.json"
+$qaWalletProofPath = Join-Path $QaArtifactRoot "rgs-wallet-network-proof.json"
+$qaBalanceInvariantPath = Join-Path $QaArtifactRoot "balance-invariant-report.json"
 Add-Check -Group "Release Evidence" -Name "Stake QA report exists" -Passed (Test-Path -LiteralPath $qaReportPath -PathType Leaf) -Detail $qaReportPath
 Add-Check -Group "Release Evidence" -Name "mandatory browser E2E report exists" -Passed (Test-Path -LiteralPath $qaE2eReportPath -PathType Leaf) -Detail $qaE2eReportPath
 Add-Check -Group "Release Evidence" -Name "numerical Paytable report exists" -Passed (Test-Path -LiteralPath $qaPaytableReportPath -PathType Leaf) -Detail $qaPaytableReportPath
 Add-Check -Group "Release Evidence" -Name "replay network proof exists" -Passed (Test-Path -LiteralPath $qaNetworkProofPath -PathType Leaf) -Detail $qaNetworkProofPath
+Add-Check -Group "Release Evidence" -Name "RGS wallet network proof exists" -Passed (Test-Path -LiteralPath $qaWalletProofPath -PathType Leaf) -Detail $qaWalletProofPath
+Add-Check -Group "Release Evidence" -Name "balance invariant report exists" -Passed (Test-Path -LiteralPath $qaBalanceInvariantPath -PathType Leaf) -Detail $qaBalanceInvariantPath
 $failedChecks = @($script:Checks | Where-Object { -not $_.Passed })
 $overallPass = $failedChecks.Count -eq 0
 $status = if ($overallPass) { "PASS" } else { "FAIL" }
@@ -871,13 +897,23 @@ if (-not $overallPass) {
 }
 
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-$releaseName = "golden-goal-rush_front-$(Sanitize-Name $frontVersion)_math-$(Sanitize-Name $mathVersion)_git-$($gitSha.Substring(0, 12))_$timestamp"
+$shortSha = $gitSha.Substring(0, 12)
+$releaseName = "golden-goal-rush_evidence_$shortSha"
 $zipPath = Join-Path $ImplementationEvidenceRoot ($releaseName + ".zip")
+$frontendZipPath = Join-Path $ReleaseRoot ("golden-goal-rush_frontend_$shortSha.zip")
+$mathZipPath = Join-Path $ReleaseRoot ("golden-goal-rush_math_$shortSha.zip")
+$checksumsPath = Join-Path $ReleaseRoot "SHA256SUMS"
+$attestationPath = Join-Path $ReleaseRoot "release-attestation.json"
 $stageDir = Join-Path $ShortWorkRoot "stage"
 $extractDir = Join-Path $ShortWorkRoot "extract"
+$uploadExtractDir = Join-Path $ShortWorkRoot "upload-extract"
 $temporaryZip = Join-Path $ShortWorkRoot ($releaseName + ".partial.zip")
+$temporaryFrontendZip = Join-Path $ShortWorkRoot ("golden-goal-rush_frontend_$shortSha.partial.zip")
+$temporaryMathZip = Join-Path $ShortWorkRoot ("golden-goal-rush_math_$shortSha.partial.zip")
 $exactZipQaRoot = Join-Path $ImplementationEvidenceRoot "exact-zip-qa"
 $entryHashesPath = Join-Path $ImplementationEvidenceRoot "release-entry-hashes.json"
+$frontendTreePath = Join-Path $ImplementationEvidenceRoot "frontend-file-tree.json"
+$mathTreePath = Join-Path $ImplementationEvidenceRoot "math-file-tree.json"
 $externalManifestPath = Join-Path $ImplementationEvidenceRoot "release-manifest.json"
 $releaseSucceeded = $false
 
@@ -887,7 +923,10 @@ New-Item -ItemType Directory -Force -Path $ReleaseRoot | Out-Null
 try {
 	Reset-ShortDirectory -Path $stageDir
 	Reset-ShortDirectory -Path $extractDir
+	Reset-ShortDirectory -Path $uploadExtractDir
 	if (Test-Path -LiteralPath $temporaryZip) { Remove-Item -LiteralPath $temporaryZip -Force }
+	if (Test-Path -LiteralPath $temporaryFrontendZip) { Remove-Item -LiteralPath $temporaryFrontendZip -Force }
+	if (Test-Path -LiteralPath $temporaryMathZip) { Remove-Item -LiteralPath $temporaryMathZip -Force }
 
 	Copy-DirectoryClean -Source $FrontendDest -Destination (Join-Path $stageDir "frontend")
 	Copy-DirectoryClean -Source $MathDest -Destination (Join-Path $stageDir "math")
@@ -919,6 +958,42 @@ try {
 	$mathFileCount = Assert-DirectoryMatches -Expected $MathDest -Actual (Join-Path $stageDir "math") -Name "Staged math"
 	Add-Check -Group "Release Packaging" -Name "staged frontend matches canonical publish frontend" -Passed $true -Detail "$frontendFileCount files"
 	Add-Check -Group "Release Packaging" -Name "staged math matches canonical publish math" -Passed $true -Detail "$mathFileCount files"
+
+	$frontendTreeEntries = @(Get-FileHashEntries -Path $FrontendDest -Base $FrontendDest)
+	$mathTreeEntries = @(Get-FileHashEntries -Path $MathDest -Base $MathDest)
+	$frontendTreeDigest = Get-FileTreeDigest -Entries $frontendTreeEntries
+	$mathTreeDigest = Get-FileTreeDigest -Entries $mathTreeEntries
+	[pscustomobject]@{
+		schemaVersion = 1
+		gitCommitSha = $gitSha
+		root = "publish/frontend"
+		treeSha256 = $frontendTreeDigest
+		fileCount = $frontendTreeEntries.Count
+		entries = $frontendTreeEntries
+	} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $frontendTreePath -Encoding UTF8
+	[pscustomobject]@{
+		schemaVersion = 1
+		gitCommitSha = $gitSha
+		root = "publish/math"
+		treeSha256 = $mathTreeDigest
+		fileCount = $mathTreeEntries.Count
+		entries = $mathTreeEntries
+	} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $mathTreePath -Encoding UTF8
+	Copy-Item -LiteralPath $frontendTreePath -Destination (Join-Path $stageArtifacts "frontend-file-tree.json") -Force
+	Copy-Item -LiteralPath $mathTreePath -Destination (Join-Path $stageArtifacts "math-file-tree.json") -Force
+
+	Compress-Archive -Path (Join-Path $FrontendDest "*") -DestinationPath $temporaryFrontendZip -CompressionLevel Optimal -Force
+	Compress-Archive -Path (Join-Path $MathDest "*") -DestinationPath $temporaryMathZip -CompressionLevel Optimal -Force
+	Move-Item -LiteralPath $temporaryFrontendZip -Destination $frontendZipPath
+	Move-Item -LiteralPath $temporaryMathZip -Destination $mathZipPath
+	Expand-Archive -LiteralPath $frontendZipPath -DestinationPath (Join-Path $uploadExtractDir "frontend") -Force
+	Expand-Archive -LiteralPath $mathZipPath -DestinationPath (Join-Path $uploadExtractDir "math") -Force
+	Assert-DirectoryMatches -Expected $FrontendDest -Actual (Join-Path $uploadExtractDir "frontend") -Name "Extracted canonical frontend archive" | Out-Null
+	Assert-DirectoryMatches -Expected $MathDest -Actual (Join-Path $uploadExtractDir "math") -Name "Extracted canonical math archive" | Out-Null
+	$frontendZipHash = (Get-FileHash -LiteralPath $frontendZipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+	$mathZipHash = (Get-FileHash -LiteralPath $mathZipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+	Add-Check -Group "Release Packaging" -Name "frontend archive extracts to the canonical frontend tree" -Passed $true -Detail $frontendTreeDigest
+	Add-Check -Group "Release Packaging" -Name "math archive extracts to the canonical math tree" -Passed $true -Detail $mathTreeDigest
 
 	$changedFiles = Get-ChangedFiles
 	$releaseFilesBeforeReports = Get-RelativeFileList -Path $stageDir -Base $stageDir
@@ -953,7 +1028,11 @@ try {
 		buildCommand = if ($ReuseBooks) { "npm run stake:release -- -ReuseBooks" } else { "npm run stake:release" }
 		canonicalFrontend = "publish/frontend"
 		canonicalMath = "publish/math"
-		canonicalZip = ("artifacts/stake-final-implementation-20260712-164933/" + $releaseName + ".zip")
+		canonicalFrontendZip = ("stake-release/" + [System.IO.Path]::GetFileName($frontendZipPath))
+		canonicalFrontendZipSha256 = $frontendZipHash
+		canonicalMathZip = ("stake-release/" + [System.IO.Path]::GetFileName($mathZipPath))
+		canonicalMathZipSha256 = $mathZipHash
+		evidenceZip = ("artifacts/stake-final-implementation-20260712-164933/" + $releaseName + ".zip")
 		checkStatus = "PASS"
 		checksPassed = @($script:Checks | Where-Object { $_.Passed }).Count
 		checksFailed = 0
@@ -965,6 +1044,27 @@ try {
 	}
 	$manifestPath = Join-Path $stageDir "release-manifest.json"
 	$manifest | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+	[pscustomobject]@{
+		schemaVersion = 1
+		gameId = "golden_goal_rush"
+		sourceCommitSha = $gitSha
+		checkedOutCommitSha = $gitSha
+		testedCommitSha = $gitSha
+		builtCommitSha = $gitSha
+		packagedCommitSha = $gitSha
+		frontend = [pscustomobject]@{
+			archive = [System.IO.Path]::GetFileName($frontendZipPath)
+			archiveSha256 = $frontendZipHash
+			treeSha256 = $frontendTreeDigest
+		}
+		math = [pscustomobject]@{
+			archive = [System.IO.Path]::GetFileName($mathZipPath)
+			archiveSha256 = $mathZipHash
+			treeSha256 = $mathTreeDigest
+		}
+		extractedArtifactRetest = "pending"
+		generatedAt = (Get-Date -Format o)
+	} | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $stageDir "release-attestation.json") -Encoding UTF8
 
 	$stageEntries = @(Get-FileHashEntries -Path $stageDir -Base $stageDir)
 	[pscustomobject]@{
@@ -1010,8 +1110,8 @@ try {
 	New-Item -ItemType Directory -Force -Path $exactZipQaRoot | Out-Null
 	Invoke-Checked -WorkingDirectory $Root -FilePath "node" -Arguments @(
 		$PaytableVerifier,
-		"--html", (Join-Path $extractDir "frontend\index.html"),
-		"--math", (Join-Path $extractDir "math\game_config.json"),
+		"--html", (Join-Path $uploadExtractDir "frontend\index.html"),
+		"--math", (Join-Path $uploadExtractDir "math\game_config.json"),
 		"--report", (Join-Path $exactZipQaRoot "paytable-contract.json")
 	)
 
@@ -1021,9 +1121,9 @@ try {
 	$previousQaArtifactDir = $env:STAKE_QA_ARTIFACT_DIR
 	$previousQaRequireE2e = $env:STAKE_QA_REQUIRE_E2E
 	try {
-		$env:STAKE_QA_FRONTEND_ROOT = Join-Path $extractDir "frontend"
+		$env:STAKE_QA_FRONTEND_ROOT = Join-Path $uploadExtractDir "frontend"
 		$env:STAKE_QA_FRONTEND_ENTRY = "index.html"
-		$env:STAKE_QA_MATH_CONFIG = Join-Path $extractDir "math\game_config.json"
+		$env:STAKE_QA_MATH_CONFIG = Join-Path $uploadExtractDir "math\game_config.json"
 		$env:STAKE_QA_ARTIFACT_DIR = $exactZipQaRoot
 		$env:STAKE_QA_REQUIRE_E2E = "1"
 		Invoke-Checked -WorkingDirectory $Root -FilePath "node" -Arguments @($StakeQaScript, "all")
@@ -1036,7 +1136,86 @@ try {
 		$env:STAKE_QA_REQUIRE_E2E = $previousQaRequireE2e
 	}
 
+	$exactQaEvidenceDestination = Join-Path $stageArtifacts "extracted-artifact-retest"
+	Copy-DirectoryClean -Source $exactZipQaRoot -Destination $exactQaEvidenceDestination
+	$bundledAttestationPath = Join-Path $stageDir "release-attestation.json"
+	$bundledAttestation = Read-Json -Path $bundledAttestationPath
+	$bundledAttestation.extractedArtifactRetest = "PASS"
+	$bundledAttestation | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $bundledAttestationPath -Encoding UTF8
+
+	# Finalize the evidence bundle only after the exact extracted upload
+	# archives passed QA. Recompute every payload hash after adding that proof.
+	foreach ($regeneratedEvidenceFile in @($payloadHashPath, $manifestPath)) {
+		if (Test-Path -LiteralPath $regeneratedEvidenceFile) { Remove-Item -LiteralPath $regeneratedEvidenceFile -Force }
+	}
+	$payloadEntries = @(Get-FileHashEntries -Path $stageDir -Base $stageDir)
+	[pscustomobject]@{
+		schemaVersion = 1
+		generatedAt = (Get-Date -Format o)
+		excludes = @("payload-hashes.json", "release-manifest.json")
+		entries = $payloadEntries
+	} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $payloadHashPath -Encoding UTF8
+	$manifest.payloadHashFileSha256 = (Get-FileHash -LiteralPath $payloadHashPath -Algorithm SHA256).Hash.ToLowerInvariant()
+	$manifest | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+	$stageEntries = @(Get-FileHashEntries -Path $stageDir -Base $stageDir)
+	[pscustomobject]@{
+		schemaVersion = 1
+		generatedAt = (Get-Date -Format o)
+		archiveFileName = ($releaseName + ".zip")
+		entryCount = $stageEntries.Count
+		entries = $stageEntries
+	} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $entryHashesPath -Encoding UTF8
+	Compress-Archive -Path (Join-Path $stageDir "*") -DestinationPath $temporaryZip -CompressionLevel Optimal -Force
+	Move-Item -LiteralPath $temporaryZip -Destination $zipPath -Force
+	Reset-ShortDirectory -Path $extractDir
+	Expand-Archive -LiteralPath $zipPath -DestinationPath $extractDir -Force
+	$extractedEntries = @(Get-FileHashEntries -Path $extractDir -Base $extractDir)
+	if (($stageEntries | ConvertTo-Json -Depth 6 -Compress) -ne ($extractedEntries | ConvertTo-Json -Depth 6 -Compress)) {
+		throw "Final evidence ZIP content hashes differ from staged evidence after extracted-artifact QA"
+	}
+
 	$zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+	$attestation = [pscustomobject]@{
+		schemaVersion = 1
+		gameId = "golden_goal_rush"
+		status = "PASS"
+		sourceCommitSha = $gitSha
+		checkedOutCommitSha = $gitSha
+		testedCommitSha = $gitSha
+		builtCommitSha = $gitSha
+		packagedCommitSha = $gitSha
+		gitBranch = $gitBranch
+		frontend = [pscustomobject]@{
+			path = $frontendZipPath
+			archiveSha256 = $frontendZipHash
+			treeSha256 = $frontendTreeDigest
+			fileCount = $frontendTreeEntries.Count
+		}
+		math = [pscustomobject]@{
+			path = $mathZipPath
+			archiveSha256 = $mathZipHash
+			treeSha256 = $mathTreeDigest
+			fileCount = $mathTreeEntries.Count
+		}
+		evidence = [pscustomobject]@{
+			path = $zipPath
+			archiveSha256 = $zipHash
+			entryCount = $stageEntries.Count
+		}
+		extractedArtifactRetest = [pscustomobject]@{
+			status = "PASS"
+			report = Join-Path $exactZipQaRoot "report.json"
+			frontendTreeSha256 = $frontendTreeDigest
+			mathTreeSha256 = $mathTreeDigest
+		}
+		generatedAt = (Get-Date -Format o)
+	}
+	$attestation | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $attestationPath -Encoding UTF8
+	@(
+		"$frontendZipHash  $([System.IO.Path]::GetFileName($frontendZipPath))",
+		"$mathZipHash  $([System.IO.Path]::GetFileName($mathZipPath))",
+		"$zipHash  $([System.IO.Path]::GetFileName($zipPath))"
+	) | Set-Content -LiteralPath $checksumsPath -Encoding ASCII
 	$externalManifest = [pscustomobject]@{
 		schemaVersion = 2
 		generatedAt = (Get-Date -Format o)
@@ -1044,6 +1223,12 @@ try {
 		canonicalZipPath = $zipPath
 		zipBytes = (Get-Item -LiteralPath $zipPath).Length
 		zipSha256 = $zipHash
+		frontendZipPath = $frontendZipPath
+		frontendZipSha256 = $frontendZipHash
+		frontendTreeSha256 = $frontendTreeDigest
+		mathZipPath = $mathZipPath
+		mathZipSha256 = $mathZipHash
+		mathTreeSha256 = $mathTreeDigest
 		entryCount = $stageEntries.Count
 		entryHashesPath = $entryHashesPath
 		extractedPathUsedForVerification = $extractDir
@@ -1057,41 +1242,53 @@ try {
 
 	$pointerPath = Join-Path $ReleaseRoot "CURRENT_RELEASE_POINTER.txt"
 	$pointerText = @(
-		"NO ZIP IS DUPLICATED IN THIS DIRECTORY.",
-		"Canonical upload ZIP: $zipPath",
-		"SHA-256: $zipHash",
+		"Canonical frontend upload ZIP: $frontendZipPath",
+		"Frontend SHA-256: $frontendZipHash",
+		"Canonical math upload ZIP: $mathZipPath",
+		"Math SHA-256: $mathZipHash",
+		"Evidence ZIP (not for Stake upload): $zipPath",
+		"Evidence SHA-256: $zipHash",
 		"Manifest: $externalManifestPath",
-		"This pointer prevents multiple upload-shaped copies from existing."
+		"Attestation: $attestationPath",
+		"Checksums: $checksumsPath"
 	) -join [Environment]::NewLine
 	$pointerText | Set-Content -LiteralPath $pointerPath -Encoding UTF8
 
 	$currentEvidenceZips = @(Get-ChildItem -LiteralPath $ImplementationEvidenceRoot -File -Filter "golden-goal-rush_*.zip")
 	$currentReleaseRootZips = @(Get-ChildItem -LiteralPath $ReleaseRoot -File -Filter "*.zip" -ErrorAction SilentlyContinue)
-	if ($currentEvidenceZips.Count -ne 1 -or $currentReleaseRootZips.Count -ne 0) {
-		throw "Current release guard failed: expected exactly one canonical ZIP and no duplicate ZIP in stake-release"
+	if ($currentEvidenceZips.Count -ne 1 -or $currentReleaseRootZips.Count -ne 2) {
+		throw "Current release guard failed: expected one evidence ZIP and exactly two canonical upload ZIPs"
 	}
 	$releaseSucceeded = $true
 
 	Write-Host ""
-	Write-Host "Canonical ZIP:  $zipPath" -ForegroundColor Cyan
-	Write-Host "SHA-256:        $zipHash" -ForegroundColor Cyan
+	Write-Host "Frontend ZIP:   $frontendZipPath" -ForegroundColor Cyan
+	Write-Host "Frontend SHA:   $frontendZipHash" -ForegroundColor Cyan
+	Write-Host "Math ZIP:       $mathZipPath" -ForegroundColor Cyan
+	Write-Host "Math SHA:       $mathZipHash" -ForegroundColor Cyan
+	Write-Host "Evidence ZIP:   $zipPath" -ForegroundColor Cyan
+	Write-Host "Evidence SHA:   $zipHash" -ForegroundColor Cyan
 	Write-Host "Entry count:    $($stageEntries.Count)" -ForegroundColor Cyan
 	Write-Host "Exact-ZIP QA:   $exactZipQaRoot" -ForegroundColor Cyan
 	Write-Host "Status:         PASS" -ForegroundColor Green
 }
 finally {
 	if (-not $releaseSucceeded) {
-		if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
+		foreach ($failedArtifact in @($zipPath, $frontendZipPath, $mathZipPath, $checksumsPath, $attestationPath)) {
+			if (Test-Path -LiteralPath $failedArtifact) { Remove-Item -LiteralPath $failedArtifact -Force }
+		}
 		foreach ($partialName in @("CURRENT_RELEASE_POINTER.txt")) {
 			$partialPath = Join-Path $ReleaseRoot $partialName
 			if (Test-Path -LiteralPath $partialPath) { Remove-Item -LiteralPath $partialPath -Force }
 		}
 	}
-	foreach ($cleanupPath in @($stageDir, $extractDir)) {
+	foreach ($cleanupPath in @($stageDir, $extractDir, $uploadExtractDir)) {
 		if (Test-Path -LiteralPath $cleanupPath) {
 			Assert-ChildPath -Child $cleanupPath -Parent $ShortWorkRoot
 			Remove-Item -LiteralPath $cleanupPath -Recurse -Force
 		}
 	}
 	if (Test-Path -LiteralPath $temporaryZip) { Remove-Item -LiteralPath $temporaryZip -Force }
+	if (Test-Path -LiteralPath $temporaryFrontendZip) { Remove-Item -LiteralPath $temporaryFrontendZip -Force }
+	if (Test-Path -LiteralPath $temporaryMathZip) { Remove-Item -LiteralPath $temporaryMathZip -Force }
 }
