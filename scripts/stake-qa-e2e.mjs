@@ -68,6 +68,7 @@ const productionBookRoot = process.env.STAKE_QA_MATH_BOOKS_ROOT
 	: join(root, 'math', 'games', 'golden_goal_rush', 'library', 'books');
 
 const checks = [];
+let loopbackNavigationRetries = 0;
 const replayNetworkEvidence = [];
 const replayValidationEvidence = [];
 const responsiveLayoutEvidence = [];
@@ -621,21 +622,31 @@ const amountBoundaryReplayRound = (bookUnits) => ({
 // Page helpers
 // ---------------------------------------------------------------------------
 async function openPreview(context, base, query = '') {
-	const page = await context.newPage();
-	const startupErrors = [];
-	page.on('pageerror', (error) => startupErrors.push(`pageerror: ${error?.message || error}`));
-	page.on('console', (message) => {
-		if (message.type() === 'error') startupErrors.push(`console: ${message.text()}`);
-	});
-	page.__stakeQaStartupErrors = startupErrors;
-	page.setDefaultTimeout(20_000);
-	await page.goto(`${base}/${frontendEntry}${query}`, { waitUntil: 'load' });
-	try {
-		await page.waitForFunction(() => window.__ggrReady === true);
-	} catch (error) {
-		throw new Error(`${error?.message || error}${startupErrors.length ? ` | ${startupErrors.join(' | ')}` : ''}`);
+	for (let attempt = 0; attempt < 2; attempt += 1) {
+		const page = await context.newPage();
+		const startupErrors = [];
+		page.on('pageerror', (error) => startupErrors.push(`pageerror: ${error?.message || error}`));
+		page.on('console', (message) => {
+			if (message.type() === 'error') startupErrors.push(`console: ${message.text()}`);
+		});
+		page.__stakeQaStartupErrors = startupErrors;
+		page.setDefaultTimeout(20_000);
+		try {
+			await page.goto(`${base}/${frontendEntry}${query}`, { waitUntil: 'load' });
+			await page.waitForFunction(() => window.__ggrReady === true);
+			return page;
+		} catch (error) {
+			await page.close().catch(() => {});
+			const message = `${error?.message || error}${startupErrors.length ? ` | ${startupErrors.join(' | ')}` : ''}`;
+			if (attempt === 0 && message.includes('ERR_NO_BUFFER_SPACE')) {
+				loopbackNavigationRetries += 1;
+				await new Promise((resolveRetry) => setTimeout(resolveRetry, 500));
+				continue;
+			}
+			throw new Error(message);
+		}
 	}
-	return page;
+	throw new Error('Preview navigation retry exhausted without a result');
 }
 const meterText = (page, id) => page.evaluate((elId) => document.getElementById(elId)?.textContent?.trim() ?? null, id);
 const modalOpen = (page, id) => page.evaluate((elId) => !!document.getElementById(elId)?.classList.contains('open'), id);
@@ -3147,6 +3158,9 @@ async function main() {
 		frontendRoot: relative(root, frontendRoot).replaceAll('\\', '/'),
 		mathConfig: relative(root, publishedMathFile).replaceAll('\\', '/'),
 		browser: browserVersion,
+		infrastructure: {
+			loopbackNavigationRetries,
+		},
 		summary,
 		checks,
 	}, null, 2));
