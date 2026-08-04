@@ -1868,8 +1868,8 @@
 	.intro-progress { width:100%; height:4px; accent-color:#f0c64d; }
 	.intro-progress-label { color:#d7c99f; font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
 	.cinematic-intro[data-scene="ready"] .intro-progress-wrap { display:none; }
-	.intro-skip { position:absolute; right:max(18px,env(safe-area-inset-right,0px)); top:max(18px,env(safe-area-inset-top,0px)); z-index:3; min-height:44px; border:0; padding:10px 12px; color:#eadfb9; background:transparent; cursor:pointer; font-family:Arial,sans-serif; font-size:11px; font-weight:800; letter-spacing:.14em; opacity:0; transition:opacity .2s ease,color .2s ease; }
-	.intro-skip.is-available { opacity:.9; }
+	.intro-skip { position:absolute; right:max(18px,env(safe-area-inset-right,0px)); top:max(18px,env(safe-area-inset-top,0px)); z-index:3; min-height:44px; border:0; padding:10px 12px; color:#eadfb9; background:transparent; cursor:pointer; font-family:Arial,sans-serif; font-size:11px; font-weight:800; letter-spacing:.14em; opacity:0; pointer-events:none; transition:opacity .2s ease,color .2s ease; }
+	.intro-skip.is-available { opacity:.9; pointer-events:auto; }
 	.intro-skip:hover { color:#fff3c8; }
 	@keyframes intro-camera { from { transform:scale(var(--intro-camera-from,1.14)); filter:brightness(.58) saturate(.84); } to { transform:scale(var(--intro-camera-to,1)); filter:brightness(.8) saturate(1); } }
 	@keyframes intro-exit { to { opacity:0; transform:scale(1.018); } }
@@ -2226,8 +2226,8 @@
 					<h1 class="intro-ready-title" id="intro-ready-title">THE STADIUM IS READY</h1>
 					<p class="intro-sound-prompt" id="intro-sound-prompt">Choose your matchday sound</p>
 					<div class="intro-actions">
-						<button class="intro-action" id="intro-enter-sound" type="button">PLAY WITH SOUND</button>
-						<button class="intro-action secondary" id="intro-enter-silent" type="button">PLAY SILENT</button>
+						<button class="intro-action" id="intro-enter-sound" type="button" aria-describedby="intro-sound-prompt">PLAY WITH SOUND</button>
+						<button class="intro-action secondary" id="intro-enter-silent" type="button" aria-describedby="intro-sound-prompt">PLAY SILENT</button>
 					</div>
 				</div>
 				<div class="intro-progress-wrap" id="intro-progress-wrap">
@@ -6313,6 +6313,7 @@ document.querySelectorAll('.toggle').forEach((t) => t.addEventListener('click', 
 // its handles when the player enters the game.
 const Intro = (() => {
 	const root = $('cinematic-intro');
+	const gameStage = $('stage');
 	const canvas = $('intro-atmosphere');
 	const sceneCopy = $('intro-scene-copy');
 	const progress = $('intro-progress');
@@ -6335,6 +6336,7 @@ const Intro = (() => {
 	let lightPulse = 0;
 	let lastFrameAt = 0;
 	let introAudio = null;
+	let previousStageAriaHidden = null;
 	const params = new URLSearchParams(window.location.search);
 	const override = String(params.get('intro') || '').toLowerCase();
 	const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -6525,7 +6527,7 @@ const Intro = (() => {
 		// The ready heading is the semantic title; do not repeat it as cinematic
 		// scene copy once the interactive controls are available.
 		if (sceneCopy) sceneCopy.textContent = '';
-		if (skip) { skip.hidden = true; skip.classList.remove('is-available'); }
+		if (skip) { skip.hidden = true; skip.tabIndex = -1; skip.classList.remove('is-available'); }
 		if (readyTitle) readyTitle.textContent = copy().ready;
 		if (soundPrompt) soundPrompt.textContent = copy().soundChoice;
 		if (enterSound) enterSound.textContent = copy().enterWithSound;
@@ -6545,6 +6547,11 @@ const Intro = (() => {
 		pauseResolvers.clear();
 		stopAtmosphere();
 		if (introAudio) { try { introAudio.pause(); introAudio.src = ''; } catch (error) {} introAudio = null; }
+		if (gameStage) {
+			gameStage.inert = false;
+			if (previousStageAriaHidden === null) gameStage.removeAttribute('aria-hidden');
+			else gameStage.setAttribute('aria-hidden', previousStageAriaHidden);
+		}
 		if (!root) return;
 		root.dataset.dismissReason = reason || 'entered';
 		if (immediate || reduced) { root.hidden = true; return; }
@@ -6574,6 +6581,11 @@ const Intro = (() => {
 		started = true;
 		if (!root) return false;
 		root.hidden = false;
+		if (gameStage) {
+			previousStageAriaHidden = gameStage.getAttribute('aria-hidden');
+			gameStage.setAttribute('aria-hidden', 'true');
+			gameStage.inert = true;
+		}
 		// Browsers do not allow media to start until a gesture. Keep all existing
 		// audio silent while the player makes the explicit start-screen choice.
 		setSound(false);
@@ -6581,8 +6593,9 @@ const Intro = (() => {
 		if (sceneCopy) sceneCopy.textContent = copy().loading;
 		if (skip) {
 			skip.textContent = copy().skip;
+			skip.tabIndex = -1;
 			skip.hidden = false;
-			after(INTRO_CONFIG.skip.afterMs, () => skip.classList.add('is-available'));
+			after(INTRO_CONFIG.skip.afterMs, () => { skip.tabIndex = 0; skip.classList.add('is-available'); });
 		}
 		beginAtmosphere();
 		const loaded = await preload();
@@ -6677,7 +6690,7 @@ setTimeout(fitViewport, 300);
 // this comment and therefore has no raw-spin, demo-win, or state mutation API.
 /*__STAKE_QA_RUNTIME_HOOK__*/
 window.__ggrPaytable = Object.freeze(JSON.parse(JSON.stringify(PRODUCTION_PAYTABLE)));
-window.__ggrBuild = '303e33c719b990ad7dbe667547993210a499f50822f39a3d46fb0fc3c42c292d';
+window.__ggrBuild = '84cff420b6d5d463d324186e338662a8b0149677a51768c59172cd947e65e3d3';
 console.log('Golden Goal Rush build', window.__ggrBuild);
 window.__ggrReady = true;
 </script>
