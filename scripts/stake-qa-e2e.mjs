@@ -27,7 +27,7 @@
  * 3 = Playwright/Chromium unavailable in this workspace (caller may skip).
  *
  * Usage: node scripts/stake-qa-e2e.mjs [all|currency|insufficient-funds|
- *        major-actions|interrupted-round|mobile|rules|bet-config|social|replay|rgs-round-states]
+ *        major-actions|interrupted-round|mobile|rules|bet-config|social|intro|replay|rgs-round-states]
  */
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
@@ -1804,7 +1804,104 @@ async function testRules(browser, base) {
 }
 
 // ---------------------------------------------------------------------------
-// 7. Paytable: generated DOM and browser-exposed values match publish/math
+// 7. Cinematic intro: real generated raster art, accessibility and transition
+// ---------------------------------------------------------------------------
+async function testIntro(browser, base) {
+	const group = 'intro-e2e';
+	const desktopContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+	const desktop = await openPreview(desktopContext, base, '?intro=always');
+	await desktop.waitForFunction(() => document.getElementById('cinematic-intro')?.dataset.scene === 'arrival', null, { timeout: 12_000 });
+	const arrival = await desktop.evaluate(() => {
+		const root = document.getElementById('cinematic-intro');
+		const art = document.getElementById('intro-desktop-art');
+		return {
+			visible: !!root && !root.hidden,
+			scene: root?.dataset.scene || '',
+			rasterReady: !!art && art.naturalWidth >= 1200 && art.naturalHeight >= 600,
+			rasterSource: art?.getAttribute('src') || '',
+			canvas: document.getElementById('intro-atmosphere')?.width > 0,
+		};
+	});
+	expect(group, 'desktop arrival uses a loaded original raster stadium scene and atmospheric canvas', arrival.visible && arrival.scene === 'arrival' && arrival.rasterReady && /intro\/stadium-arrival-desktop\.png$/.test(arrival.rasterSource) && arrival.canvas, JSON.stringify(arrival));
+	const arrivalShot = await screenshot(desktop, 'intro-desktop-arrival');
+	pass(group, 'desktop cinematic arrival screenshot saved', arrivalShot);
+	await desktop.waitForFunction(() => document.getElementById('cinematic-intro')?.dataset.scene === 'ready', null, { timeout: 12_000 });
+	await desktop.waitForTimeout(650);
+	const ready = await desktop.evaluate(() => {
+		const root = document.getElementById('cinematic-intro');
+		const progress = document.getElementById('intro-progress');
+		const sound = document.getElementById('intro-enter-sound');
+		const silent = document.getElementById('intro-enter-silent');
+		return {
+			scene: root?.dataset.scene || '',
+			progress: Number(progress?.value),
+			gameInert: document.getElementById('stage')?.inert === true && document.getElementById('stage')?.getAttribute('aria-hidden') === 'true',
+			soundName: sound?.getAttribute('aria-label') || sound?.textContent?.trim() || '',
+			silentName: silent?.getAttribute('aria-label') || silent?.textContent?.trim() || '',
+			soundHittable: !!sound && (() => { const box = sound.getBoundingClientRect(); return box.width >= 44 && box.height >= 44; })(),
+			soundBox: sound ? (() => { const box = sound.getBoundingClientRect(); return { width: box.width, height: box.height, display: getComputedStyle(sound).display, minHeight: getComputedStyle(sound).minHeight }; })() : null,
+			introRuleLoaded: [...document.styleSheets].some((sheet) => { try { return [...sheet.cssRules].some((rule) => rule.cssText.includes('.intro-action')); } catch (error) { return false; } }),
+		};
+	});
+	expect(group, 'ready screen reports genuine completed asset loading and exposes two accessible sound choices', ready.scene === 'ready' && ready.progress === 100 && ready.gameInert && /play with sound/i.test(ready.soundName) && /play silent/i.test(ready.silentName) && ready.soundHittable, JSON.stringify(ready));
+	const readyShot = await screenshot(desktop, 'intro-desktop-ready');
+	pass(group, 'desktop ready-screen screenshot saved', readyShot);
+	await desktop.locator('#intro-enter-silent').focus();
+	await desktop.keyboard.press('Enter');
+	await desktop.waitForFunction(() => document.getElementById('cinematic-intro')?.hidden === true, null, { timeout: 5_000 });
+	const transition = await desktop.evaluate(() => ({
+		stageVisible: !!document.getElementById('stage'),
+		introHidden: document.getElementById('cinematic-intro')?.hidden === true,
+		stageInteractive: document.getElementById('stage')?.inert === false && !document.getElementById('stage')?.hasAttribute('aria-hidden'),
+		boardCells: document.querySelectorAll('#board .cell').length,
+	}));
+	expect(group, 'keyboard Enter completes the cinematic transition to the actual playable board', transition.stageVisible && transition.introHidden && transition.stageInteractive && transition.boardCells > 0, JSON.stringify(transition));
+	const transitionShot = await screenshot(desktop, 'intro-desktop-game-transition');
+	pass(group, 'desktop post-intro real-game screenshot saved', transitionShot);
+	await desktopContext.close();
+
+	const mobileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+	const mobile = await openPreview(mobileContext, base, '?intro=ready');
+	await mobile.waitForFunction(() => document.getElementById('cinematic-intro')?.dataset.scene === 'ready', null, { timeout: 8_000 });
+	await mobile.waitForTimeout(650);
+	const mobileAudit = await mobile.evaluate(() => {
+		const art = document.getElementById('intro-mobile-art');
+		const button = document.getElementById('intro-enter-silent');
+		const root = document.getElementById('cinematic-intro');
+		const artStyle = art ? getComputedStyle(art) : null;
+		const box = button?.getBoundingClientRect();
+		return {
+			portraitAssetVisible: !!art && artStyle?.display !== 'none' && art.naturalWidth >= 500,
+			portraitArt: art ? { display: artStyle?.display, width: art.naturalWidth, height: art.naturalHeight } : null,
+			buttonInsideViewport: !!box && box.top >= 0 && box.bottom <= innerHeight && box.width >= 44 && box.height >= 44,
+			buttonBox: box ? { top: box.top, bottom: box.bottom, width: box.width, height: box.height, display: button ? getComputedStyle(button).display : '' } : null,
+			introHeight: root?.getBoundingClientRect().height || 0,
+			viewportHeight: innerHeight,
+		};
+	});
+	expect(group, 'mobile ready screen selects its raster portrait artwork without clipping the touch control', mobileAudit.portraitAssetVisible && mobileAudit.buttonInsideViewport && mobileAudit.introHeight >= mobileAudit.viewportHeight, JSON.stringify(mobileAudit));
+	const mobileShot = await screenshot(mobile, 'intro-mobile-ready-390x844');
+	pass(group, 'mobile cinematic ready-screen screenshot saved', mobileShot);
+	await mobileContext.close();
+
+	const reducedContext = await browser.newContext({ viewport: { width: 1280, height: 720 }, reducedMotion: 'reduce' });
+	const reduced = await openPreview(reducedContext, base, '?intro=always');
+	await reduced.waitForFunction(() => document.getElementById('cinematic-intro')?.dataset.scene === 'ready', null, { timeout: 5_000 });
+	expect(group, 'reduced-motion preference bypasses cinematic motion and keeps the ready screen usable', await reduced.locator('#intro-enter-silent').isVisible(), 'ready interaction visible');
+	await reducedContext.close();
+
+	const replayContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+	const replay = await openPreview(replayContext, base, '?replay=true&game=golden-goal-rush');
+	const replayAudit = await replay.evaluate(() => ({
+		introHidden: document.getElementById('cinematic-intro')?.hidden === true,
+		replayState: document.getElementById('stage')?.dataset.replayState || '',
+	}));
+	expect(group, 'replay routes skip the cinematic layer by default', replayAudit.introHidden, JSON.stringify(replayAudit));
+	await replayContext.close();
+}
+
+// ---------------------------------------------------------------------------
+// 8. Paytable: generated DOM and browser-exposed values match publish/math
 // ---------------------------------------------------------------------------
 async function testPaytable(browser, base) {
 	const group = 'paytable-e2e';
@@ -1869,7 +1966,7 @@ async function testPaytable(browser, base) {
 }
 
 // ---------------------------------------------------------------------------
-// 8. Replay: strict read-only Stake replay contract in real Chromium
+// 9. Replay: strict read-only Stake replay contract in real Chromium
 // ---------------------------------------------------------------------------
 async function testReplay(browser, base) {
 	const group = 'replay-e2e';
@@ -3137,6 +3234,7 @@ async function main() {
 		await guarded('interrupted-round', testInterruptedRound);
 		await guarded('mobile', testMobile);
 		await guarded('rules', testRules);
+		await guarded('intro', testIntro);
 		await guarded('paytable', testPaytable);
 		await guarded('replay', testReplay);
 		await guarded('rgs-round-states', testRgsRoundStates);

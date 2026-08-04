@@ -24,6 +24,7 @@ const targetOverride = (name, fallback) => process.env[name]
 
 const paths = {
 	builder: join(root, 'apps', 'cluster', 'scripts', 'build-preview-html.mjs'),
+	introConfig: join(root, 'apps', 'cluster', 'scripts', 'ggr-intro-config.mjs'),
 	preview: join(root, 'apps', 'cluster', 'preview.html'),
 	productionMathContract: join(root, 'apps', 'cluster', 'scripts', 'production-math-contract.mjs'),
 	e2e: join(root, 'scripts', 'stake-qa-e2e.mjs'),
@@ -147,6 +148,11 @@ function runSyntaxCheck() {
 		encoding: 'utf8',
 	});
 	expect('generated-artifacts', 'preview.html exactly matches deterministic builder output', generated.status === 0, generated.stderr || generated.stdout);
+	const introConfig = spawnSync(process.execPath, ['--check', paths.introConfig], {
+		cwd: root,
+		encoding: 'utf8',
+	});
+	expect('syntax', 'cinematic intro configuration parses', introConfig.status === 0, introConfig.stderr || introConfig.stdout);
 	if (existsSync(paths.preview)) {
 		const preview = read(paths.preview);
 		const inlineScripts = [...preview.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
@@ -781,6 +787,7 @@ function runExistingBehaviorChecks() {
 	const preview = existsSync(paths.preview) ? read(paths.preview) : '';
 	const mathConfig = read(join(root, 'apps', 'cluster', 'scripts', 'ggr-config.mjs'));
 	const e2e = read(paths.e2e);
+	const introConfig = read(paths.introConfig);
 
 	expectContains('regression-markers', 'RGS authenticate function remains', builder, 'const authenticate = async () =>');
 	expectContains('regression-markers', 'RGS play endpoint remains', builder, '/wallet/play');
@@ -799,9 +806,12 @@ function runExistingBehaviorChecks() {
 	expectContains('regression-markers', 'E2E production-book proof uses Node Zstd streaming', e2e, 'createZstdDecompress');
 	expectContains('regression-markers', 'E2E production-book proof defaults to the shipped math artifact', e2e, ': dirname(publishedMathFile);');
 	expectNotContains('regression-markers', 'E2E production-book proof never defaults to ignored local raw books', e2e, "join(root, 'math', 'games', 'golden_goal_rush', 'library', 'books')");
+	expectContains('intro', 'intro configuration is a separate validated source of truth', introConfig, 'export function validateIntroConfig');
+	expectContains('intro', 'intro is non-blocking after the operational launch flow begins', builder, 'resumeLaunchRound();\nIntro.start();');
+	expectContains('intro', 'intro replay bypass is encoded in the runtime controller', builder, 'INTRO_CONFIG.skipInReplay');
 }
 
-const E2E_MODES = new Set(['all', 'currency', 'insufficient-funds', 'major-actions', 'interrupted-round', 'mobile', 'rules', 'bet-config', 'social', 'replay', 'paytable']);
+const E2E_MODES = new Set(['all', 'currency', 'insufficient-funds', 'major-actions', 'interrupted-round', 'mobile', 'rules', 'bet-config', 'social', 'intro', 'replay', 'paytable']);
 async function run(selectedMode) {
 	runSyntaxCheck();
 	if (selectedMode === 'all' || selectedMode === 'math-integrity') runMathIntegrityChecks();

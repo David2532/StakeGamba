@@ -34,6 +34,7 @@
     "stake:qa:interrupted-round": "node apps/cluster/scripts/build-preview-html.mjs && node scripts/stake-qa.mjs interrupted-round",
     "stake:qa:insufficient-funds": "node apps/cluster/scripts/build-preview-html.mjs && node scripts/stake-qa.mjs insufficient-funds",
     "stake:qa:rules": "node apps/cluster/scripts/build-preview-html.mjs && node scripts/stake-qa.mjs rules",
+    "stake:qa:intro": "node apps/cluster/scripts/build-preview-html.mjs && cross-env STAKE_QA_REQUIRE_E2E=1 node scripts/stake-qa.mjs intro",
     "stake:qa:paytable": "node apps/cluster/scripts/build-preview-html.mjs && node scripts/stake-qa.mjs paytable",
     "stake:qa:regression": "node scripts/stake-qa.mjs regression",
     "stake:qa:e2e": "node apps/cluster/scripts/build-preview-html.mjs && cross-env STAKE_QA_REQUIRE_E2E=1 node scripts/stake-qa.mjs e2e",

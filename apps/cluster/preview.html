@@ -1835,6 +1835,56 @@
 	.stage.mobile-portrait.replay-mode .replay-currency-code { min-width:calc(36px * var(--stage-inv-scale,1)); margin-left:calc(3px * var(--stage-inv-scale,1)); padding:calc(2px * var(--stage-inv-scale,1)) calc(5px * var(--stage-inv-scale,1)); }
 	.stage.mobile-portrait.replay-mode .replay-action { min-width:calc(130px * var(--stage-inv-scale,1)); min-height:calc(48px * var(--stage-inv-scale,1)); padding:calc(7px * var(--stage-inv-scale,1)); font-size:calc(14px * var(--stage-inv-scale,1)); }
 
+	/* ===== Cinematic launch sequence ===========================================
+	   The main scenic imagery is raster artwork. Canvas only supplies the
+	   lightweight atmosphere (gold dust and real light falloff); it is never a
+	   substitute for the scene art. */
+	.cinematic-intro { position:fixed; inset:0; z-index:300; overflow:hidden; isolation:isolate; background:#020406; color:#fff; }
+	.cinematic-intro[hidden] { display:none !important; }
+	.cinematic-intro.is-leaving { pointer-events:none; animation:intro-exit .48s cubic-bezier(.2,.7,.2,1) both; }
+	.intro-backdrop, .intro-backdrop picture, .intro-backdrop img { position:absolute; inset:0; width:100%; height:100%; }
+	.intro-backdrop img { object-fit:cover; object-position:50% 50%; filter:brightness(.66) saturate(.92); transform:scale(var(--intro-camera-from,1.14)); will-change:transform,filter; }
+	.cinematic-intro[data-scene] .intro-backdrop img { animation:intro-camera var(--intro-scene-duration,1200ms) cubic-bezier(.22,.72,.12,1) both; }
+	.intro-backdrop .intro-mobile-art { display:none; }
+	.intro-atmosphere { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; mix-blend-mode:screen; }
+	.intro-vignette { position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(0,0,0,.56),transparent 36%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.82)); }
+	.intro-content { position:relative; z-index:2; display:grid; min-height:100%; place-items:center; padding:max(24px,env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px)); }
+	.intro-stage { width:min(720px,100%); display:grid; justify-items:center; text-align:center; }
+	.intro-wordmark { width:min(500px,82vw); opacity:0; transform:translateY(18px) scale(.96); filter:drop-shadow(0 9px 22px rgba(0,0,0,.88)); }
+	.cinematic-intro[data-scene="title"] .intro-wordmark,
+	.cinematic-intro[data-scene="ready"] .intro-wordmark { opacity:1; transform:none; transition:opacity .48s ease,transform .58s cubic-bezier(.16,.8,.24,1); }
+	.intro-scene-copy { min-height:1.4em; margin:18px 0 0; color:#f6dea0; font-family:Arial,sans-serif; font-size:clamp(11px,1.25vw,16px); font-weight:800; letter-spacing:.22em; text-shadow:0 2px 16px #000; }
+	.intro-ready { width:min(540px,100%); display:grid; justify-items:center; gap:16px; margin-top:28px; opacity:0; transform:translateY(18px); pointer-events:none; }
+	.cinematic-intro[data-scene="ready"] .intro-ready { opacity:1; transform:none; pointer-events:auto; transition:opacity .38s ease,transform .48s cubic-bezier(.16,.8,.24,1); }
+	.intro-ready-title { margin:0; color:#fff4cb; font-family:Arial Black,Impact,sans-serif; font-size:clamp(18px,3vw,29px); letter-spacing:.08em; text-shadow:0 3px 20px #000; }
+	.intro-sound-prompt { margin:0; color:#e3d3a4; font-size:14px; }
+	.intro-actions { width:min(500px,100%); display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+	.intro-action { min-height:58px; border:1px solid rgba(255,224,138,.78); border-radius:10px; padding:12px 16px; color:#241703; background:linear-gradient(180deg,#fff0a9,#d49a22); box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 9px 26px rgba(0,0,0,.38),0 0 20px rgba(229,175,48,.26); cursor:pointer; font-family:Arial Black,Impact,sans-serif; font-size:14px; letter-spacing:.08em; transition:transform .18s ease,filter .18s ease,box-shadow .18s ease; }
+	.intro-action:hover { transform:translateY(-2px); filter:brightness(1.06); box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 13px 30px rgba(0,0,0,.46),0 0 30px rgba(255,209,88,.38); }
+	.intro-action:active { transform:translateY(1px); }
+	.intro-action.secondary { color:#f8e6b0; background:rgba(4,9,13,.72); }
+	.intro-action:focus-visible, .intro-skip:focus-visible { outline:3px solid #fff; outline-offset:4px; }
+	.intro-progress-wrap { width:min(420px,82vw); display:grid; gap:8px; margin-top:18px; opacity:.98; }
+	.intro-progress { width:100%; height:4px; accent-color:#f0c64d; }
+	.intro-progress-label { color:#d7c99f; font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+	.cinematic-intro[data-scene="ready"] .intro-progress-wrap { display:none; }
+	.intro-skip { position:absolute; right:max(18px,env(safe-area-inset-right,0px)); top:max(18px,env(safe-area-inset-top,0px)); z-index:3; min-height:44px; border:0; padding:10px 12px; color:#eadfb9; background:transparent; cursor:pointer; font-family:Arial,sans-serif; font-size:11px; font-weight:800; letter-spacing:.14em; opacity:0; transition:opacity .2s ease,color .2s ease; }
+	.intro-skip.is-available { opacity:.9; }
+	.intro-skip:hover { color:#fff3c8; }
+	@keyframes intro-camera { from { transform:scale(var(--intro-camera-from,1.14)); filter:brightness(.58) saturate(.84); } to { transform:scale(var(--intro-camera-to,1)); filter:brightness(.8) saturate(1); } }
+	@keyframes intro-exit { to { opacity:0; transform:scale(1.018); } }
+	@media (max-width:700px) and (orientation:portrait) {
+		.intro-backdrop .intro-desktop-art { display:none; }
+		.intro-backdrop .intro-mobile-art { display:block; object-position:50% 50%; }
+		.intro-wordmark { width:min(430px,88vw); }
+		.intro-stage { align-content:center; }
+		.intro-actions { grid-template-columns:1fr; }
+		.intro-ready { margin-top:22px; }
+	}
+	@media (prefers-reduced-motion:reduce) {
+		.cinematic-intro *, .cinematic-intro *::before, .cinematic-intro *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+	}
+
 </style>
 </head>
 <body>
@@ -2158,6 +2208,35 @@
 			</div>
 		</div>
 	</section>
+	<section class="cinematic-intro" id="cinematic-intro" aria-label="Golden Goal Rush opening" aria-live="polite" hidden>
+		<div class="intro-backdrop" aria-hidden="true">
+			<picture>
+				<img class="intro-desktop-art" id="intro-desktop-art" src="src/assets/golden-goal-rush/intro/stadium-arrival-desktop.png" alt="" />
+				<img class="intro-mobile-art" id="intro-mobile-art" src="src/assets/golden-goal-rush/intro/stadium-arrival-mobile.png" alt="" />
+			</picture>
+		</div>
+		<canvas class="intro-atmosphere" id="intro-atmosphere" aria-hidden="true"></canvas>
+		<div class="intro-vignette" aria-hidden="true"></div>
+		<button class="intro-skip" id="intro-skip" type="button" hidden>SKIP INTRO</button>
+		<div class="intro-content">
+			<div class="intro-stage">
+				<img class="intro-wordmark" id="intro-wordmark" src="src/assets/golden-goal-rush/logo-horizontal-tight.webp" alt="Golden Goal Rush" />
+				<p class="intro-scene-copy" id="intro-scene-copy"></p>
+				<div class="intro-ready" id="intro-ready">
+					<h1 class="intro-ready-title" id="intro-ready-title">THE STADIUM IS READY</h1>
+					<p class="intro-sound-prompt" id="intro-sound-prompt">Choose your matchday sound</p>
+					<div class="intro-actions">
+						<button class="intro-action" id="intro-enter-sound" type="button">PLAY WITH SOUND</button>
+						<button class="intro-action secondary" id="intro-enter-silent" type="button">PLAY SILENT</button>
+					</div>
+				</div>
+				<div class="intro-progress-wrap" id="intro-progress-wrap">
+					<progress class="intro-progress" id="intro-progress" max="100" value="0">0%</progress>
+					<div class="intro-progress-label" id="intro-progress-label">PREPARING THE STADIUM · 0%</div>
+				</div>
+			</div>
+		</div>
+	</section>
 	</div>
 
 <script>
@@ -2173,6 +2252,7 @@ const COIN_ASSETS = {"bronze":"src/assets/golden-goal-rush/special/bronze.webp",
 const MULT_ASSETS = {"2":"src/assets/golden-goal-rush/special/x2.webp","3":"src/assets/golden-goal-rush/special/x3.webp","4":"src/assets/golden-goal-rush/special/x4.webp","5":"src/assets/golden-goal-rush/special/x5.webp","10":"src/assets/golden-goal-rush/special/x10.webp"};
 const COLLECTOR_ASSET = "src/assets/golden-goal-rush/special/symbol_collector.webp";
 const AUDIO_ASSETS = {"music":"src/assets/golden-goal-rush/audio/background-music.mp3","roar":"src/assets/golden-goal-rush/audio/stadium-roar.mp3","reelEnd":"src/assets/golden-goal-rush/audio/reel-end.mp3","ping":"src/assets/golden-goal-rush/audio/ping.mp3","rainbowReveal":"src/assets/golden-goal-rush/audio/rainbow-reveal.mp3","scatter":"src/assets/golden-goal-rush/audio/scatter-metal.mp3","clusterBurst":"src/assets/golden-goal-rush/audio/cluster-burst.mp3"};
+const INTRO_CONFIG = {"version":1,"theme":"stadium-night","themes":{"stadium-night":{"label":"Stadium night","accent":"gold","assetSet":"default"}},"runPolicy":"once-per-version","skipInReplay":true,"quality":{"lowMemoryDeviceThresholdGb":4,"maxParticleCount":96,"lowQualityParticleCount":24,"frameRateCap":60},"assets":{"desktopBackdrop":"src/assets/golden-goal-rush/intro/stadium-arrival-desktop.png","mobileBackdrop":"src/assets/golden-goal-rush/intro/stadium-arrival-mobile.png","fallbackBackdrop":"src/assets/golden-goal-rush/slot-background.webp","logo":"src/assets/golden-goal-rush/logo-horizontal-tight.webp","ambience":"src/assets/golden-goal-rush/audio/background-music.mp3","stadiumRoar":"src/assets/golden-goal-rush/audio/stadium-roar.mp3","revealAccent":"src/assets/golden-goal-rush/audio/rainbow-reveal.mp3"},"layers":[{"id":"stadium","role":"background","desktopAsset":"desktopBackdrop","mobileAsset":"mobileBackdrop","depth":0.28},{"id":"wordmark","role":"foreground","asset":"logo","depth":0.76}],"parallax":{"enabled":true,"pointerMaxOffsetPx":9,"touchMaxOffsetPx":0},"locales":{"en":{"loading":"Preparing the stadium","arrival":"UNDER THE FLOODLIGHTS","reveal":"THE GOLDEN GOAL AWAITS","logo":"A NIGHT MADE FOR MOMENTS","ready":"THE STADIUM IS READY","enter":"ENTER STADIUM","enterWithSound":"PLAY WITH SOUND","enterSilent":"PLAY SILENT","skip":"SKIP INTRO","soundChoice":"Choose your matchday sound","loaded":"Intro assets ready","degraded":"Some cinematic assets were unavailable. The game is ready."}},"skip":{"afterMs":1150,"behavior":"ready-screen","keyboard":["Escape"]},"mobile":{"usePortraitBackdrop":true,"cameraScale":1.08},"reducedMotion":{"enabled":true,"showReadyScreenImmediately":true,"particleCount":0},"scenes":[{"id":"arrival","kind":"cinematic","durationMs":1550,"transitionMs":480,"copyKey":"arrival","camera":{"scaleFrom":1.16,"scaleTo":1.06,"xPercent":50,"yPercent":53},"atmosphere":{"particles":"gold-dust","lightBurst":0.24,"ambience":"stadiumRoar"}},{"id":"reveal","kind":"cinematic","durationMs":1260,"transitionMs":390,"copyKey":"reveal","camera":{"scaleFrom":1.08,"scaleTo":1,"xPercent":50,"yPercent":50},"atmosphere":{"particles":"gold-dust","lightBurst":0.84,"ambience":"revealAccent"}},{"id":"title","kind":"title","durationMs":1050,"transitionMs":350,"copyKey":"logo","camera":{"scaleFrom":1.01,"scaleTo":1,"xPercent":50,"yPercent":48},"atmosphere":{"particles":"gold-dust","lightBurst":0.58,"ambience":"revealAccent"}},{"id":"ready","kind":"ready","durationMs":0,"transitionMs":280,"copyKey":"ready","camera":{"scaleFrom":1,"scaleTo":1,"xPercent":50,"yPercent":50},"atmosphere":{"particles":"gold-dust","lightBurst":0.36,"ambience":null}}]};
 const STAKE_PLAYER_VISIBLE_RESTRICTED_TERMS = ["win feature","pay out","paid out","pays out","payout","payouts","paying","stake","betting","total bet","place your bets","bet/s","bet","bets","cash","payer","pay","pays","paid","money","buy bonus","bonus buy","buy","bought","purchase","at the cost of","cost of","rebet","credit","gamble","wager","deposit","withdraw","be awarded to player’s accounts","currency","fund"];
 const playerVisibleRestrictedHits = function playerVisibleRestrictedHits(text) {
 	const normalized = String(text || '');
@@ -3462,6 +3542,9 @@ async function resumeLaunchRound() {
 	if (auth === false || state.fatal) { setWalletBusy(false); return; }
 	const round = auth && auth.round;
 	if (!round || round.active !== true || !rgsRoundIsBonus(round)) { setWalletBusy(false); return; }
+	// A restored feature is gameplay, not a presentation opportunity. Remove
+	// the visual layer before showing its mandatory interruption message.
+	Intro.dismiss('active-round-restore', { immediate:true });
 	const spinId = ++spinSeq;
 	const events = normalizeRgsEvents(round.state);
 	try {
@@ -6224,6 +6307,301 @@ document.querySelectorAll('.toggle').forEach((t) => t.addEventListener('click', 
 	}).join('');
 })();
 
+// ---- cinematic launch intro -------------------------------------------------
+// This controller owns only the optional presentation layer. It deliberately
+// never awaits RGS, replay, restore, or the playable board and it releases all
+// its handles when the player enters the game.
+const Intro = (() => {
+	const root = $('cinematic-intro');
+	const canvas = $('intro-atmosphere');
+	const sceneCopy = $('intro-scene-copy');
+	const progress = $('intro-progress');
+	const progressLabel = $('intro-progress-label');
+	const skip = $('intro-skip');
+	const enterSound = $('intro-enter-sound');
+	const enterSilent = $('intro-enter-silent');
+	const readyTitle = $('intro-ready-title');
+	const soundPrompt = $('intro-sound-prompt');
+	const desktopArt = $('intro-desktop-art');
+	const mobileArt = $('intro-mobile-art');
+	const wordmark = $('intro-wordmark');
+	const timers = new Set();
+	const pauseResolvers = new Set();
+	let raf = 0;
+	let disposed = false;
+	let started = false;
+	let scene = null;
+	let particles = [];
+	let lightPulse = 0;
+	let lastFrameAt = 0;
+	let introAudio = null;
+	const params = new URLSearchParams(window.location.search);
+	const override = String(params.get('intro') || '').toLowerCase();
+	const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const isLocalQaHost = /^(localhost|127.0.0.1|[::1])$/i.test(window.location.hostname);
+	const sessionKey = 'ggr-intro-session:' + INTRO_CONFIG.version + ':' + INTRO_CONFIG.theme;
+	const persistentKey = 'ggr-intro-version:' + INTRO_CONFIG.version + ':' + INTRO_CONFIG.theme;
+	function copy() {
+		const language = (UrlState.lang() || 'en').toLowerCase().split('-')[0];
+		return INTRO_CONFIG.locales[language] || INTRO_CONFIG.locales.en;
+	}
+	function sceneByKind(kind) { return INTRO_CONFIG.scenes.find((item) => item.kind === kind) || null; }
+	function setScene(next) {
+		if (!root || !next || disposed) return;
+		scene = next;
+		root.dataset.scene = next.id;
+		root.style.setProperty('--intro-scene-duration', Math.max(1, next.durationMs) + 'ms');
+		root.style.setProperty('--intro-camera-from', String(next.camera.scaleFrom));
+		root.style.setProperty('--intro-camera-to', String(next.camera.scaleTo));
+		root.style.setProperty('--intro-camera-x', String(next.camera.xPercent));
+		root.style.setProperty('--intro-camera-y', String(next.camera.yPercent));
+		const focalPoint = String(next.camera.xPercent) + '% ' + String(next.camera.yPercent) + '%';
+		if (desktopArt) desktopArt.style.objectPosition = focalPoint;
+		if (mobileArt) mobileArt.style.objectPosition = focalPoint;
+		if (sceneCopy) sceneCopy.textContent = copy()[next.copyKey] || '';
+		lightPulse = Number(next.atmosphere?.lightBurst) || 0;
+		// Restart only the image camera keyframe; the scene ids and timings remain
+		// data-driven and can be reordered in ggr-intro-config.mjs.
+		desktopArt?.classList.remove('intro-scene-refresh');
+		mobileArt?.classList.remove('intro-scene-refresh');
+		void root.offsetWidth;
+		desktopArt?.classList.add('intro-scene-refresh');
+		mobileArt?.classList.add('intro-scene-refresh');
+	}
+	function after(ms, callback) {
+		const id = window.setTimeout(() => { timers.delete(id); callback(); }, ms);
+		timers.add(id);
+		return id;
+	}
+	function pause(ms) {
+		return new Promise((resolve) => {
+			const complete = () => { pauseResolvers.delete(complete); resolve(); };
+			pauseResolvers.add(complete);
+			after(ms, complete);
+		});
+	}
+	function markSeen() {
+		try {
+			if (INTRO_CONFIG.runPolicy === 'per-session') sessionStorage.setItem(sessionKey, '1');
+			if (INTRO_CONFIG.runPolicy === 'once-per-version') localStorage.setItem(persistentKey, '1');
+		} catch (error) { /* storage is optional and must never block the game */ }
+	}
+	function shouldRun() {
+		if (!root || override === 'off' || INTRO_CONFIG.skipInReplay && (UrlState.replay() || Replay.configured())) return false;
+		if (override === 'always' || override === 'ready') return true;
+		// Local QA keeps its established direct-game routes. Browser tests can
+		// opt in explicitly with ?intro=always without special production code.
+		if (isLocalQaHost) return false;
+		try {
+			if (INTRO_CONFIG.runPolicy === 'per-session' && sessionStorage.getItem(sessionKey)) return false;
+			if (INTRO_CONFIG.runPolicy === 'once-per-version' && localStorage.getItem(persistentKey)) return false;
+		} catch (error) {}
+		return true;
+	}
+	function updateProgress(done, total, degraded) {
+		const percentage = total ? Math.round(done / total * 100) : 100;
+		if (progress) progress.value = percentage;
+		if (progressLabel) progressLabel.textContent = (degraded ? copy().degraded : copy().loading) + ' · ' + percentage + '%';
+	}
+	function waitForImage(element, fallback) {
+		return new Promise((resolve) => {
+			if (!element) { resolve(false); return; }
+			const complete = () => { element.removeEventListener('load', onLoad); element.removeEventListener('error', onError); resolve(true); };
+			const onLoad = () => complete();
+			const onError = () => {
+				element.removeEventListener('load', onLoad);
+				element.removeEventListener('error', onError);
+				if (fallback && element.src.indexOf(fallback) === -1) {
+					element.src = fallback;
+					element.addEventListener('load', () => resolve(false), { once:true });
+					element.addEventListener('error', () => resolve(false), { once:true });
+				} else resolve(false);
+			};
+			if (element.complete && element.naturalWidth > 0) { resolve(true); return; }
+			element.addEventListener('load', onLoad, { once:true });
+			element.addEventListener('error', onError, { once:true });
+		});
+	}
+	async function preload() {
+		const assets = [desktopArt, mobileArt, wordmark];
+		let done = 0;
+		let degraded = false;
+		updateProgress(done, assets.length, degraded);
+		for (const asset of assets) {
+			const ok = await waitForImage(asset, INTRO_CONFIG.assets.fallbackBackdrop);
+			degraded = degraded || !ok;
+			done += 1;
+			updateProgress(done, assets.length, degraded);
+		}
+		return !degraded;
+	}
+	function resizeCanvas() {
+		if (!canvas) return;
+		const ratio = Math.min(1.5, window.devicePixelRatio || 1);
+		const rect = canvas.getBoundingClientRect();
+		canvas.width = Math.max(1, Math.floor(rect.width * ratio));
+		canvas.height = Math.max(1, Math.floor(rect.height * ratio));
+		const lowMemory = Number(navigator.deviceMemory || 8) < INTRO_CONFIG.quality.lowMemoryDeviceThresholdGb;
+		const count = reduced ? INTRO_CONFIG.reducedMotion.particleCount : lowMemory ? INTRO_CONFIG.quality.lowQualityParticleCount : INTRO_CONFIG.quality.maxParticleCount;
+		particles = Array.from({ length: count }, () => ({ x: Math.random(), y: Math.random(), z: .25 + Math.random() * .75, drift: -.12 + Math.random() * .24, size: .6 + Math.random() * 1.8 }));
+	}
+	function drawFrame(timestamp) {
+		if (disposed || !canvas) return;
+		const cap = Math.max(24, Math.min(60, Number(INTRO_CONFIG.quality.frameRateCap) || 60));
+		const now = Number(timestamp) || performance.now();
+		const minFrameMs = 1000 / cap;
+		if (lastFrameAt && now - lastFrameAt < minFrameMs) { raf = requestAnimationFrame(drawFrame); return; }
+		const elapsed = lastFrameAt ? Math.min(34, now - lastFrameAt) : minFrameMs;
+		lastFrameAt = now;
+		const context = canvas.getContext('2d');
+		if (!context) return;
+		const width = canvas.width;
+		const height = canvas.height;
+		context.clearRect(0, 0, width, height);
+		const pulse = Math.max(0, Math.min(1, lightPulse));
+		if (pulse > 0) {
+			const glow = context.createRadialGradient(width * .5, height * .58, 0, width * .5, height * .58, Math.max(width, height) * .48);
+			glow.addColorStop(0, 'rgba(255,215,112,' + (pulse * .2) + ')');
+			glow.addColorStop(1, 'rgba(255,215,112,0)');
+			context.fillStyle = glow;
+			context.fillRect(0, 0, width, height);
+		}
+		for (const particle of particles) {
+			particle.y += (0.00005 + particle.z * 0.00018) * elapsed;
+			particle.x += particle.drift * 0.00008 * elapsed;
+			if (particle.y > 1.04) { particle.y = -.04; particle.x = Math.random(); }
+			if (particle.x < -.04) particle.x = 1.04;
+			if (particle.x > 1.04) particle.x = -.04;
+			context.fillStyle = 'rgba(255,218,118,' + (.16 + particle.z * .5) + ')';
+			context.beginPath();
+			context.arc(particle.x * width, particle.y * height, particle.size * particle.z * (window.devicePixelRatio || 1), 0, Math.PI * 2);
+			context.fill();
+		}
+		lightPulse *= .985;
+		raf = requestAnimationFrame(drawFrame);
+	}
+	function beginAtmosphere() {
+		if (!canvas || reduced) return;
+		resizeCanvas();
+		lastFrameAt = 0;
+		window.addEventListener('resize', resizeCanvas, { passive:true });
+		if (INTRO_CONFIG.parallax?.enabled) window.addEventListener('pointermove', applyParallax, { passive:true });
+		raf = requestAnimationFrame(drawFrame);
+	}
+	function stopAtmosphere() {
+		if (raf) cancelAnimationFrame(raf);
+		raf = 0;
+		lastFrameAt = 0;
+		window.removeEventListener('resize', resizeCanvas);
+		window.removeEventListener('pointermove', applyParallax);
+		if (desktopArt) desktopArt.style.removeProperty('translate');
+		if (mobileArt) mobileArt.style.removeProperty('translate');
+		if (canvas) { const context = canvas.getContext('2d'); context?.clearRect(0, 0, canvas.width, canvas.height); }
+	}
+	function applyParallax(event) {
+		if (disposed || !INTRO_CONFIG.parallax?.enabled || !root) return;
+		const rect = root.getBoundingClientRect();
+		if (!rect.width || !rect.height) return;
+		const maxOffset = Number(INTRO_CONFIG.parallax.pointerMaxOffsetPx) || 0;
+		const x = Math.max(-1, Math.min(1, (event.clientX - rect.left) / rect.width * 2 - 1)) * maxOffset;
+		const y = Math.max(-1, Math.min(1, (event.clientY - rect.top) / rect.height * 2 - 1)) * maxOffset;
+		if (desktopArt) desktopArt.style.translate = x * .28 + 'px ' + y * .16 + 'px';
+		if (mobileArt) mobileArt.style.translate = x * .12 + 'px ' + y * .08 + 'px';
+	}
+	function playAccent(name) {
+		if (!name || !state.sound || reduced) return;
+		const src = INTRO_CONFIG.assets[name];
+		if (!src) return;
+		if (introAudio) { try { introAudio.pause(); introAudio.src = ''; } catch (error) {} }
+		introAudio = new Audio(src);
+		introAudio.preload = 'auto';
+		introAudio.volume = name === 'stadiumRoar' ? .16 : .24;
+		introAudio.play().catch(() => {});
+	}
+	function showReady() {
+		const target = sceneByKind('ready');
+		if (!target || disposed) return;
+		setScene(target);
+		// The ready heading is the semantic title; do not repeat it as cinematic
+		// scene copy once the interactive controls are available.
+		if (sceneCopy) sceneCopy.textContent = '';
+		if (skip) { skip.hidden = true; skip.classList.remove('is-available'); }
+		if (readyTitle) readyTitle.textContent = copy().ready;
+		if (soundPrompt) soundPrompt.textContent = copy().soundChoice;
+		if (enterSound) enterSound.textContent = copy().enterWithSound;
+		if (enterSilent) enterSilent.textContent = copy().enterSilent;
+		after(280, () => enterSound?.focus({ preventScroll:true }));
+	}
+	function skipSequence() {
+		if (INTRO_CONFIG.skip.behavior === 'enter-silent') enter(false);
+		else showReady();
+	}
+	function dispose(reason, immediate = false) {
+		if (disposed) return;
+		disposed = true;
+		timers.forEach((id) => clearTimeout(id));
+		timers.clear();
+		pauseResolvers.forEach((resolve) => resolve());
+		pauseResolvers.clear();
+		stopAtmosphere();
+		if (introAudio) { try { introAudio.pause(); introAudio.src = ''; } catch (error) {} introAudio = null; }
+		if (!root) return;
+		root.dataset.dismissReason = reason || 'entered';
+		if (immediate || reduced) { root.hidden = true; return; }
+		root.classList.add('is-leaving');
+		after(500, () => { root.hidden = true; root.classList.remove('is-leaving'); });
+	}
+	function enter(withSound) {
+		markSeen();
+		setSound(!!withSound);
+		if (withSound) { Sound.prime(); playAccent('stadiumRoar'); }
+		dispose(withSound ? 'sound-start' : 'silent-start');
+	}
+	async function playSequence() {
+		for (const item of INTRO_CONFIG.scenes) {
+			if (disposed) return;
+			if (item.kind === 'ready') break;
+			setScene(item);
+			playAccent(item.atmosphere?.ambience);
+			await pause(Math.max(0, item.durationMs));
+			if (disposed) return;
+			await pause(Math.max(0, item.transitionMs));
+		}
+		showReady();
+	}
+	async function start() {
+		if (started || !shouldRun()) { if (root) root.hidden = true; return false; }
+		started = true;
+		if (!root) return false;
+		root.hidden = false;
+		// Browsers do not allow media to start until a gesture. Keep all existing
+		// audio silent while the player makes the explicit start-screen choice.
+		setSound(false);
+		root.dataset.scene = 'loading';
+		if (sceneCopy) sceneCopy.textContent = copy().loading;
+		if (skip) {
+			skip.textContent = copy().skip;
+			skip.hidden = false;
+			after(INTRO_CONFIG.skip.afterMs, () => skip.classList.add('is-available'));
+		}
+		beginAtmosphere();
+		const loaded = await preload();
+		if (disposed) return false;
+		if (!loaded && progressLabel) progressLabel.textContent = copy().degraded;
+		if (override === 'ready' || reduced && INTRO_CONFIG.reducedMotion.showReadyScreenImmediately) showReady();
+		else await playSequence();
+		return true;
+	}
+	if (skip) skip.addEventListener('click', skipSequence);
+	if (enterSound) enterSound.addEventListener('click', () => enter(true));
+	if (enterSilent) enterSilent.addEventListener('click', () => enter(false));
+	window.addEventListener('keydown', (event) => {
+		if (!started || disposed) return;
+		if (INTRO_CONFIG.skip.keyboard.includes(event.key) && skip && skip.classList.contains('is-available')) { event.preventDefault(); skipSequence(); }
+	});
+	return Object.freeze({ start, dismiss: (reason, options = {}) => dispose(reason, !!options.immediate), get active() { return started && !disposed; } });
+})();
+
 if (!UrlState.requiresRgs() && !Replay.configured()) applyBetConfig({ ...DEV_BET_CONFIG, currency: state.currency }, { preferDefault: true });
 applyLanguage();
 if (Replay.configured()) {
@@ -6236,7 +6614,10 @@ if (Replay.configured()) {
 	paint();
 }
 updateMeters(); updateLocks();
+// Start operational launch flows first. The cinematic is only visual and can
+// never defer authentication, saved-round restoration, or replay loading.
 resumeLaunchRound();
+Intro.start();
 
 // Scale the 1200x675 stage to fit any window so nothing (incl. the side
 // panels) is ever cut off — including fullscreen and mobile.
@@ -6296,7 +6677,7 @@ setTimeout(fitViewport, 300);
 // this comment and therefore has no raw-spin, demo-win, or state mutation API.
 /*__STAKE_QA_RUNTIME_HOOK__*/
 window.__ggrPaytable = Object.freeze(JSON.parse(JSON.stringify(PRODUCTION_PAYTABLE)));
-window.__ggrBuild = '0e886558abc62b72e7a1b7491d3b65bf1f31a8f9ab93c246d2ef4cfff76a8f3e';
+window.__ggrBuild = '303e33c719b990ad7dbe667547993210a499f50822f39a3d46fb0fc3c42c292d';
 console.log('Golden Goal Rush build', window.__ggrBuild);
 window.__ggrReady = true;
 </script>
