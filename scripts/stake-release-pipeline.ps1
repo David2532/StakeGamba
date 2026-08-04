@@ -760,7 +760,7 @@ Add-Check -Group "C Play / End-Round Flow" -Name "roundNeedsEnd line does not in
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "RGS book renderer exists" -Content $html -Marker "async function playRgsBookRound"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "display win from final book amount" -Content $html -Marker "finalBookWinMoney"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "book amount conversion stays x100" -Content $html -Marker "function bookAmountToMoney(amount)"
-Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "positive wallet payout is display source" -Content $html -Marker "if (walletPayout !== null && walletPayout > 0) return walletPayout;"
+Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "validated RGS amount contract is display source" -Content $html -Marker "return rgsRoundAmountContract(round, events).totalWin;"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "local free spins only without RGS" -Content $html -Marker "allowLocalFreeSpins = !Rgs.configured()"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "unsupported RGS state has no local fallback" -Content $html -Marker "No local fallback was used"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "positive RGS payout assertion" -Content $html -Marker "RGS payout > 0 but visible game shows no win"
@@ -769,7 +769,7 @@ Add-Check -Group "D Winnings / No Fake Wins" -Name "RGS amount contract examples
 Add-MarkerCheck -Group "E Bonus Buy / Bonus Mode" -Name "bonus buy mode mapper" -Content $html -Marker "const modeFor = (buy) =>"
 Add-MarkerCheck -Group "E Bonus Buy / Bonus Mode" -Name "bonus_tier1 mode used" -Content $html -Marker "bonus_tier1"
 Add-MarkerCheck -Group "E Bonus Buy / Bonus Mode" -Name "bonus mode used" -Content $html -Marker "return 'bonus';"
-Add-MarkerCheck -Group "E Bonus Buy / Bonus Mode" -Name "bonus buy requires renderable RGS round" -Content $html -Marker "if (!shouldRenderRgsRound(rgsEvents))"
+Add-MarkerCheck -Group "E Bonus Buy / Bonus Mode" -Name "bonus buy requires valid amount contract and renderable RGS round" -Content $html -Marker "if (rgsAmountContractError || !shouldRenderRgsRound(rgsEvents))"
 Add-MarkerCheck -Group "E Bonus Buy / Bonus Mode" -Name "bonus progress save events enabled" -Content $html -Marker "trackProgress: true"
 Add-MarkerCheck -Group "E Bonus Buy / Bonus Mode" -Name "demo-only local free spins branch retained" -Content $html -Marker "await startFreeSpins(o.id === 'tier1' ? 1 : 2, walletManaged)"
 
