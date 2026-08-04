@@ -1122,6 +1122,7 @@ try {
 	$previousQaFrontendEntry = $env:STAKE_QA_FRONTEND_ENTRY
 	$previousQaFrontendHtml = $env:STAKE_QA_FRONTEND_HTML
 	$previousQaMathConfig = $env:STAKE_QA_MATH_CONFIG
+	$previousQaMathBooksRoot = $env:STAKE_QA_MATH_BOOKS_ROOT
 	$previousQaArtifactDir = $env:STAKE_QA_ARTIFACT_DIR
 	$previousQaRequireE2e = $env:STAKE_QA_REQUIRE_E2E
 	try {
@@ -1129,6 +1130,7 @@ try {
 		$env:STAKE_QA_FRONTEND_ENTRY = "index.html"
 		$env:STAKE_QA_FRONTEND_HTML = Join-Path $uploadExtractDir "frontend\index.html"
 		$env:STAKE_QA_MATH_CONFIG = Join-Path $uploadExtractDir "math\game_config.json"
+		$env:STAKE_QA_MATH_BOOKS_ROOT = Join-Path $uploadExtractDir "math"
 		$env:STAKE_QA_ARTIFACT_DIR = $exactZipQaRoot
 		$env:STAKE_QA_REQUIRE_E2E = "1"
 		Invoke-Checked -WorkingDirectory $Root -FilePath "node" -Arguments @($StakeQaScript, "all")
@@ -1138,6 +1140,7 @@ try {
 		$env:STAKE_QA_FRONTEND_ENTRY = $previousQaFrontendEntry
 		$env:STAKE_QA_FRONTEND_HTML = $previousQaFrontendHtml
 		$env:STAKE_QA_MATH_CONFIG = $previousQaMathConfig
+		$env:STAKE_QA_MATH_BOOKS_ROOT = $previousQaMathBooksRoot
 		$env:STAKE_QA_ARTIFACT_DIR = $previousQaArtifactDir
 		$env:STAKE_QA_REQUIRE_E2E = $previousQaRequireE2e
 	}
@@ -1145,11 +1148,13 @@ try {
 	$expectedExtractedFrontend = [System.IO.Path]::GetFullPath((Join-Path $uploadExtractDir "frontend\index.html"))
 	$expectedExtractedFrontendRoot = [System.IO.Path]::GetFullPath((Join-Path $uploadExtractDir "frontend"))
 	$expectedExtractedMath = [System.IO.Path]::GetFullPath((Join-Path $uploadExtractDir "math\game_config.json"))
+	$expectedExtractedMathRoot = [System.IO.Path]::GetFullPath((Join-Path $uploadExtractDir "math"))
 	$exactQaReport = Read-Json -Path (Join-Path $exactZipQaRoot "report.json")
 	$exactE2eReport = Read-Json -Path (Join-Path $exactZipQaRoot "e2e-report.json")
 	$reportedStaticFrontend = [System.IO.Path]::GetFullPath([string]$exactQaReport.targets.frontend)
 	$reportedStaticMath = [System.IO.Path]::GetFullPath([string]$exactQaReport.targets.mathConfig)
 	$reportedE2eFrontendRoot = [System.IO.Path]::GetFullPath((Join-Path $Root ([string]$exactE2eReport.frontendRoot)))
+	$reportedE2eMathBooksRoot = [System.IO.Path]::GetFullPath((Join-Path $Root ([string]$exactE2eReport.mathBooksRoot)))
 	if ($reportedStaticFrontend -ne $expectedExtractedFrontend) {
 		throw "Extracted-artifact static QA targeted the wrong frontend: $reportedStaticFrontend"
 	}
@@ -1158,6 +1163,9 @@ try {
 	}
 	if ($reportedE2eFrontendRoot -ne $expectedExtractedFrontendRoot) {
 		throw "Extracted-artifact E2E targeted the wrong frontend root: $reportedE2eFrontendRoot"
+	}
+	if ($reportedE2eMathBooksRoot -ne $expectedExtractedMathRoot) {
+		throw "Extracted-artifact E2E targeted the wrong math books root: $reportedE2eMathBooksRoot"
 	}
 	if ([string]$exactQaReport.identity.testedCommitSha -ne $gitSha -or [string]$exactE2eReport.identity.testedCommitSha -ne $gitSha) {
 		throw "Extracted-artifact QA commit identity differs from the packaged commit"

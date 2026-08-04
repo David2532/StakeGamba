@@ -36,6 +36,7 @@ import { dirname, extname, join, normalize, relative, resolve } from 'node:path'
 import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { createZstdDecompress } from 'node:zlib';
 import { playerVisibleRestrictedHits } from '../apps/cluster/scripts/stake-compliance-contract.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -65,7 +66,7 @@ const shotDir = join(artifactRoot, 'e2e-screenshots');
 const productionMathConfig = JSON.parse(readFileSync(publishedMathFile, 'utf8'));
 const productionBookRoot = process.env.STAKE_QA_MATH_BOOKS_ROOT
 	? resolve(root, process.env.STAKE_QA_MATH_BOOKS_ROOT)
-	: join(root, 'math', 'games', 'golden_goal_rush', 'library', 'books');
+	: dirname(publishedMathFile);
 
 const checks = [];
 let loopbackNavigationRetries = 0;
@@ -142,9 +143,12 @@ const productionBookCache = new Map();
 async function readProductionBook(filename, expectedId) {
 	const cacheKey = `${filename}:${expectedId}`;
 	if (productionBookCache.has(cacheKey)) return cloneRound(productionBookCache.get(cacheKey));
-	const file = join(productionBookRoot, filename);
-	if (!existsSync(file)) throw new Error(`Production math book source is missing: ${relative(root, file)}`);
-	const input = createReadStream(file, { encoding: 'utf8' });
+	const shippedFilename = filename.endsWith('.zst') ? filename : `${filename}.zst`;
+	const file = join(productionBookRoot, shippedFilename);
+	if (!existsSync(file)) throw new Error(`Shipped production math book is missing: ${relative(root, file)}`);
+	const compressedInput = createReadStream(file);
+	const input = compressedInput.pipe(createZstdDecompress());
+	input.setEncoding('utf8');
 	const lines = createInterface({ input, crlfDelay: Infinity });
 	try {
 		for await (const line of lines) {
@@ -157,6 +161,7 @@ async function readProductionBook(filename, expectedId) {
 	} finally {
 		lines.close();
 		input.destroy();
+		compressedInput.destroy();
 	}
 	throw new Error(`Production book ${expectedId} was not found in ${relative(root, file)}`);
 }
@@ -3157,6 +3162,7 @@ async function main() {
 		target: relative(root, previewFile).replaceAll('\\', '/'),
 		frontendRoot: relative(root, frontendRoot).replaceAll('\\', '/'),
 		mathConfig: relative(root, publishedMathFile).replaceAll('\\', '/'),
+		mathBooksRoot: relative(root, productionBookRoot).replaceAll('\\', '/'),
 		browser: browserVersion,
 		infrastructure: {
 			loopbackNavigationRetries,
@@ -3167,6 +3173,7 @@ async function main() {
 	writeFileSync(join(artifactRoot, 'replay-validation-cases.json'), JSON.stringify({
 		target: relative(root, previewFile).replaceAll('\\', '/'),
 		mathConfig: relative(root, publishedMathFile).replaceAll('\\', '/'),
+		mathBooksRoot: relative(root, productionBookRoot).replaceAll('\\', '/'),
 		summary: {
 			cases: replayValidationEvidence.length,
 			failedChecks: checks.filter((check) => check.status === 'FAIL' && /replay|unit|currency|payout|win/i.test(check.name)).length,

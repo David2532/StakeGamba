@@ -780,6 +780,7 @@ function runExistingBehaviorChecks() {
 	const builder = read(paths.builder);
 	const preview = existsSync(paths.preview) ? read(paths.preview) : '';
 	const mathConfig = read(join(root, 'apps', 'cluster', 'scripts', 'ggr-config.mjs'));
+	const e2e = read(paths.e2e);
 
 	expectContains('regression-markers', 'RGS authenticate function remains', builder, 'const authenticate = async () =>');
 	expectContains('regression-markers', 'RGS play endpoint remains', builder, '/wallet/play');
@@ -795,6 +796,9 @@ function runExistingBehaviorChecks() {
 	expectContains('regression-markers', 'local free spins stay demo-only', builder, 'allowLocalFreeSpins = !Rgs.configured()');
 	expectContains('regression-markers', 'symbol math import remains in preview builder', builder, 'import { SYMBOL_MATH, CONFIG }');
 	expectContains('regression-markers', 'math config still exports symbol weights', mathConfig, 'SYMBOL_MATH');
+	expectContains('regression-markers', 'E2E production-book proof uses Node Zstd streaming', e2e, 'createZstdDecompress');
+	expectContains('regression-markers', 'E2E production-book proof defaults to the shipped math artifact', e2e, ': dirname(publishedMathFile);');
+	expectNotContains('regression-markers', 'E2E production-book proof never defaults to ignored local raw books', e2e, "join(root, 'math', 'games', 'golden_goal_rush', 'library', 'books')");
 }
 
 const E2E_MODES = new Set(['all', 'currency', 'insufficient-funds', 'major-actions', 'interrupted-round', 'mobile', 'rules', 'bet-config', 'social', 'replay', 'paytable']);
