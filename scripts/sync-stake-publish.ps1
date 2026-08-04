@@ -487,7 +487,7 @@ function Test-StakeCompliance {
 		@{ Name = "Authenticate-BetConfig: Demo-Fallback nicht in RGS/Replay"; Marker = "if (!UrlState.requiresRgs() && !Replay.configured()) applyBetConfig" },
 		# Stake 2026-07-08: expanded Game Info modes/retriggers.
 		@{ Name = "Game Info: Mode-Metadaten vorhanden"; Marker = "const PLAYER_MODE_META = {" },
-		@{ Name = "Game Info: Base Play erklaert"; Marker = "Base Play" },
+		@{ Name = "Game Info: Base Game erklaert"; Marker = "Base Game" },
 		@{ Name = "Game Info: Feature Spins erklaert"; Marker = "Feature Spins" },
 		@{ Name = "Game Info: Rainbow Spin erklaert"; Marker = "Rainbow Spin" },
 		@{ Name = "Game Info: Golden Chance erklaert"; Marker = "Golden Chance" },
@@ -496,10 +496,9 @@ function Test-StakeCompliance {
 		@{ Name = "Game Info: Main Play Trigger erklaert"; Marker = "Main Play button" },
 		@{ Name = "Game Info: Feature Trigger erklaert"; Marker = "Feature panel" },
 		@{ Name = "Game Info: Scatter Trigger erklaert"; Marker = "3 Scatter tickets" },
-		@{ Name = "Game Info: Cost Multiplier erklaert"; Marker = "Cost multiplier:" },
-		@{ Name = "Game Info: Social Feature Multiplier erklaert"; Marker = "Feature Multiplier:" },
+		@{ Name = "Game Info: Feature Multiplier erklaert"; Marker = "Feature Multiplier:" },
 		@{ Name = "Game Info: Retrigger Abschnitt vorhanden"; Marker = "<div class=`"pt-head`">Retriggers</div>" },
-		@{ Name = "Game Info: Retrigger Bedingungen"; Marker = "Base Play and Rainbow Spin can trigger Free Spins" },
+		@{ Name = "Game Info: Retrigger Bedingungen"; Marker = "Base Game and Rainbow Spin can trigger Free Spins" },
 		@{ Name = "Game Info: Feature-Free-Spins ohne Retrigger"; Marker = "Feature-panel Free Spins do not add additional Free Spins" },
 		# Stake 2026-07-08: replay support.
 		@{ Name = "Replay: explizite Lifecycle-States vorhanden"; Marker = "stage.dataset.replayState = status" },
@@ -512,7 +511,7 @@ function Test-StakeCompliance {
 		@{ Name = "Replay: kein Progress/Walet-Mutate"; Marker = "trackProgress: false" },
 		@{ Name = "Replay: Play Again startet gecachte Wiedergabe"; Marker = "action.onclick = () => play();" },
 		# Stake: no local win simulation in production
-		@{ Name = "Positiver Wallet-Payout ist Display-Quelle"; Marker = "if (walletPayout !== null && walletPayout > 0) return walletPayout;" },
+		@{ Name = "RGS-Rundenbeträge werden gegen Events validiert"; Marker = "function rgsRoundAmountContract(round, events)" },
 		@{ Name = "Lokale Free Spins nur ohne RGS"; Marker = "allowLocalFreeSpins = !Rgs.configured()" },
 		@{ Name = "Unrenderbare RGS-Runde -> Fehler statt Fallback"; Marker = "No local fallback was used" }
 	)
@@ -530,7 +529,7 @@ function Test-StakeCompliance {
 		$failures += "FRONTEND: Globale Player-Sprachressourcen konnten nicht geprueft werden"
 	}
 	foreach ($term in @(
-		"Bet Replay", "Base Bet", "Cost Multiplier", "Total Bet Cost", "Payout Multiplier", "Total Win",
+		"Bet Replay", "Base Bet", "Cost Multiplier", "Total Bet Cost", "Payout Multiplier",
 		"Bonus Buy", "Buy Bonus", "Auto-Bet", "Auto Bet", "Bet", "Wager", "Gamble", "Purchase",
 		"Pay", "Pays", "Paid", "Paying", "Pay out", "Paid out", "Pays out", "Payout", "Payouts",
 		"Betting", "Bets", "Place your bets", "Bet/s", "Stake", "Cash", "Payer", "Money",
@@ -542,8 +541,8 @@ function Test-StakeCompliance {
 		}
 	}
 	foreach ($term in @(
-		"Play Replay", "Base Play", "Feature Multiplier", "Play Cost", "Final Multiplier",
-		"Final Play Amount", "Replay Play", "BONUS / FEATURE", "AUTO-PLAY", "PLAY"
+		"Play Replay", "Base Play", "Feature Multiplier", "Final Multiplier",
+		"Final Play Amount", "Total Win", "Replay Play", "BONUS / FEATURE", "AUTO-PLAY", "PLAY"
 	)) {
 		if (-not $playerText.Contains($term)) {
 			$failures += "FRONTEND: Globaler Ersatzbegriff fehlt: '$term'"

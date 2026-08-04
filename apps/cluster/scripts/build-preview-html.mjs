@@ -82,8 +82,8 @@ const assets = {
 
 const PLAYER_MODE_META = {
 	base: {
-		name: 'Base Play',
-		socialName: 'Base Play',
+		name: 'Base Game',
+		socialName: 'Base Game',
 		costMultiplier: 1,
 		trigger: 'Main Play button',
 		socialTrigger: 'Main Play button',
@@ -148,6 +148,8 @@ const PLAYER_MODE_META = {
 		socialRetrigger: 'The current math book does not add extra Free Spins inside this tier.',
 	},
 };
+
+const FREE_SPIN_COUNTER_EXPLANATION = 'The counter identifies the current Free Spin. After the final counter value appears, cascades and Golden Cell awards may still finish as part of that same final Free Spin; they do not start an additional play or wallet request.';
 
 // Symbol pool for the demo engine. `pay` = base multiple for a 5-cluster.
 // Build the render symbol map from the shared math (weights/pays) + asset src.
@@ -276,7 +278,7 @@ const extraCss = `
 	.meters { top: calc(528px + var(--stage-y-shift, 0px)); left: calc(174px + var(--stage-x-shift, 0px)); }
 	.controls { left: calc(23px + var(--stage-x-shift, 0px)); }
 	.win-banner { top: calc(250px + var(--stage-y-shift, 0px)); }
-	.fs-counter { top: calc(118px + var(--stage-y-shift, 0px)); }
+	.fs-counter { top: calc(89px + var(--stage-y-shift, 0px)); }
 	.rt-toast { top: calc(200px + var(--stage-y-shift, 0px)); }
 	.asset-button.turbo { margin-right: 20px; }
 	.bet-controls { margin-right: 22px; }
@@ -488,13 +490,19 @@ const extraCss = `
 	@keyframes feat-pulse { 50%{transform:scale(1.22);filter:drop-shadow(0 0 12px #ffd96f);} }
 
 	/* ---- free spins counter ---- */
-	.fs-counter { position:absolute; top:118px; left:50%; transform:translateX(-50%); z-index:15; display:none;
-		padding:5px 24px 7px; border-radius:999px; border:2px solid #ffe49a; text-align:center;
+	.fs-counter { position:absolute; top:89px; left:50%; transform:translateX(-50%); z-index:15; display:none;
+		min-width:176px; padding:2px 18px 3px; border-radius:999px; border:2px solid #ffe49a; text-align:center;
 		background:linear-gradient(180deg,#1c1305,#0a0a0f); box-shadow:0 0 18px rgba(255,200,60,0.5);
 		color:#ffe49a; font-family:Inter,Arial,sans-serif; }
 	.fs-counter.show { display:block; }
-	.fs-counter .fs-name { font-size:11px; letter-spacing:2px; color:#ffd96f; }
-	.fs-counter .fs-big { font-size:21px; font-weight:1000; color:#fff; line-height:1.1; }
+	.fs-counter .fs-name { font-size:8px; line-height:1.05; letter-spacing:1.5px; color:#ffd96f; }
+	.fs-counter .fs-big { font-size:15px; font-weight:1000; color:#fff; line-height:1.05; }
+	@media (orientation: landscape) and (max-height: 500px) {
+		/* The logo and reel frame leave no vertical gap in short landscape
+		   viewports. Dock the counter in the unused upper-right stadium area
+		   so it never obscures either gameplay surface. */
+		.fs-counter { left:86%; }
+	}
 
 	/* ---- bonus buy ---- */
 	.bonusbuy-hero { position:relative; height:86px; margin:-2px 0 15px; border-radius:12px; overflow:hidden;
@@ -691,7 +699,11 @@ const extraCss = `
 	.replay-row.win strong { color:#20d884; }
 	.replay-start { width:100%; margin-top:22px; padding:15px 18px; border:0; border-radius:12px; cursor:pointer; color:#1b2032;
 		background:linear-gradient(90deg,#ffe600,#ff9c0a); box-shadow:0 4px 0 #9a6f1e; font-size:22px; font-weight:1000; }
+	.replay-start:focus,
+	.replay-start:focus-visible { outline:4px solid #fff; outline-offset:3px; }
 	.replay-note { margin:16px 0 0; color:#8d91a8; font-size:13px; text-align:center; line-height:1.45; }
+	.replay-metadata { display:none; margin-top:18px; text-align:left; }
+	.replay-metadata[aria-hidden="false"] { display:block; }
 	.replay-control-panel { display:none; position:relative; align-items:center; justify-content:space-between; gap:calc(18px * var(--stage-inv-scale,1));
 		width:calc(520px * var(--stage-inv-scale,1)); min-height:calc(76px * var(--stage-inv-scale,1));
 		padding:calc(10px * var(--stage-inv-scale,1)) calc(14px * var(--stage-inv-scale,1)) calc(10px * var(--stage-inv-scale,1)) calc(20px * var(--stage-inv-scale,1));
@@ -714,6 +726,8 @@ const extraCss = `
 	.replay-overlay { position:absolute; inset:0; z-index:92; display:none; place-items:center; padding:28px;
 		background:rgba(0,0,0,.84); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); pointer-events:auto; }
 	.stage.replay-mode[data-replay-state="loading"] .replay-overlay,
+	.stage.replay-mode[data-replay-state="ready"] .replay-overlay,
+	.stage.replay-mode[data-replay-state="completed"] .replay-overlay,
 	.stage.replay-mode[data-replay-state="error"] .replay-overlay { display:grid; }
 	.replay-overlay-card { width:min(560px,92vw); padding:30px; transform:scale(var(--stage-inv-scale,1)); border:2px solid #d5a23b;
 		border-radius:18px; background:linear-gradient(180deg,#1b170d,#060709); box-shadow:0 0 0 4px #050505,0 26px 70px #000,0 0 38px rgba(255,194,48,.26);
@@ -724,7 +738,13 @@ const extraCss = `
 	.replay-overlay-title { color:#ffe36e; font-size:26px; font-weight:1000; letter-spacing:1.4px; text-transform:uppercase; }
 	.replay-overlay-detail { margin-top:10px; color:#e8d9b5; font-size:15px; line-height:1.45; }
 	.stage.replay-mode[data-replay-state="error"] .replay-spinner { display:none; }
+	.stage.replay-mode[data-replay-state="ready"] .replay-spinner,
+	.stage.replay-mode[data-replay-state="completed"] .replay-spinner,
+	.stage.replay-mode[data-replay-state="ready"] .replay-overlay-detail,
+	.stage.replay-mode[data-replay-state="completed"] .replay-overlay-detail { display:none; }
 	.stage.replay-mode .replay-control-panel { display:flex; }
+	.stage.replay-mode[data-replay-state="ready"] .replay-control-panel,
+	.stage.replay-mode[data-replay-state="completed"] .replay-control-panel { display:none; }
 	.stage.replay-mode .meter[data-meter="balance"],
 	.stage.replay-mode #btn-bonus,
 	.stage.replay-mode #btn-auto,
@@ -742,6 +762,16 @@ const extraCss = `
 		.stage.replay-mode .controls { bottom:calc(12px * var(--stage-inv-scale,1)); }
 	}
 	@media (max-height: 520px) and (orientation: landscape) {
+		.replay-overlay { padding:6px; }
+		.replay-overlay-card { width:min(760px,94vw); padding:8px 16px; }
+		.replay-overlay-title { font-size:18px; }
+		.replay-metadata { margin-top:4px; }
+		.replay-card { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:18px; padding:6px 12px; }
+		.replay-row { min-width:0; padding:5px 0; font-size:13px; }
+		.replay-row strong { font-size:14px; }
+		.replay-row.highlight { margin:0; padding:5px 6px; }
+		.replay-start { margin-top:7px; padding:8px 14px; font-size:17px; }
+		.replay-note { margin-top:6px; font-size:10px; line-height:1.2; }
 		.stage.replay-mode .replay-control-panel {
 			width:calc(390px * var(--stage-inv-scale,1));
 			min-height:calc(44px * var(--stage-inv-scale,1));
@@ -1031,18 +1061,19 @@ ${featureItems}
 					<div class="pt-head">Free Spins &amp; Features</div>
 					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Free Spins" /><div><b>FREE SPINS</b>
 						${Object.entries(CONFIG.tiers).map(([t, v]) => 'Tier ' + t + ' &mdash; ' + v.name + ': ' + v.spins + ' spins' + (v.guaranteedRainbow ? ', guaranteed Arc each spin' : '') + '.').join('<br>')}</div></div>
+					<div class="pt-feat"><div class="pt-chip"></div><div><b>FREE SPIN COUNTER</b>${FREE_SPIN_COUNTER_EXPLANATION}</div></div>
 					<div class="pt-feat"><img src="${assets.bonusButton}" alt="Feature" /><div><b>BONUS / FEATURE</b>
 						${CONFIG.bonusBuy.map((o) => o.label + ' &mdash; ' + o.mult + '&times; play amount').join('<br>')}<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
 					<div class="pt-head">Game Modes</div>
-					${Object.values(PLAYER_MODE_META).map((mode) => `<div class="pt-feat"><div class="pt-chip"></div><div><b>${mode.name}</b>${mode.description}<br><small>Trigger: ${mode.trigger}. Cost multiplier: ${mode.costMultiplier}&times;. ${mode.retrigger}</small></div></div>`).join('\n\t\t\t\t\t')}
+					${Object.values(PLAYER_MODE_META).map((mode) => `<div class="pt-feat"><div class="pt-chip"></div><div><b>${mode.name}</b>${mode.description}<br><small>Access: ${mode.trigger}. Feature Multiplier: ${mode.costMultiplier}&times;. ${mode.retrigger}</small></div></div>`).join('\n\t\t\t\t\t')}
 					<div class="pt-head">Retriggers</div>
-					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Retrigger" /><div><b>RETRIGGERS</b>Base Play and Rainbow Spin can trigger Free Spins with 3, 4 or 5 Scatter tickets. Feature-panel Free Spins do not add additional Free Spins in the current math book.</div></div>
+					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Retrigger" /><div><b>RETRIGGERS</b>Base Game and Rainbow Spin can trigger Free Spins with 3, 4 or 5 Scatter tickets. Feature-panel Free Spins do not add additional Free Spins in the current math book.</div></div>
 					<div class="pt-head">Buttons &amp; Controls</div>
 					<div class="controls-guide">
 ${controlRuleRows}
 					</div>
 					<div class="pt-note">If the game is refreshed while a base-game round is still active, the round is completed by the game service and the result is available in game history. Active feature rounds resume from the saved round state with the selected balance and play amount preserved.</div>
-					<div class="pt-note">RTP 96.45% &middot; Max award ${formatMaxWinMultiplier(CONFIG.maxWinMultiplier)}&times; play amount &middot; All awards use the play amount. Malfunction voids all wins and plays.</div>
+					<div class="pt-note">RTP 96.45% &middot; Max award ${formatMaxWinMultiplier(CONFIG.maxWinMultiplier)}&times; play amount &middot; All awards use the play amount. Malfunction voids all wins and plays. A consistent internet connection is required. After a disconnection, reload the game to finish any incomplete round. Expected return is calculated over many plays. The display is illustrative and does not represent a physical device. Wins are settled from the authoritative amount received from the Remote Game Server, not from browser events.</div>
 				</div>
 			</div>
 		</div>
@@ -1058,12 +1089,24 @@ ${controlRuleRows}
 			</div>
 		</div>
 
-		<!-- Replay-only loading/error surface. Ready/Play Again controls live in the HUD. -->
+		<!-- Replay lifecycle and immutable saved-round summary. -->
 		<div class="replay-overlay" id="replay-overlay" data-testid="replay-overlay" role="status" aria-live="assertive" aria-hidden="true">
-			<div class="replay-overlay-card">
+			<div class="replay-overlay-card replay-modal">
 				<div class="replay-spinner" aria-hidden="true"></div>
 				<div class="replay-overlay-title" id="replay-overlay-title">Loading Replay</div>
 				<div class="replay-overlay-detail" id="replay-overlay-detail">Retrieving the saved play from the game service.</div>
+				<div class="replay-metadata" id="replay-metadata" data-testid="replay-metadata" aria-label="Replay details" aria-hidden="true">
+					<div class="replay-card">
+						<div class="replay-row"><span id="replay-mode-label">Mode</span><strong id="replay-mode-value" data-testid="replay-mode-value">-</strong></div>
+						<div class="replay-row"><span id="replay-basebet-label">Base Play</span><strong id="replay-basebet-value" data-testid="replay-base-play">-</strong></div>
+						<div class="replay-row"><span id="replay-cost-label">Feature Multiplier</span><strong id="replay-cost-value" data-testid="replay-feature-multiplier">-</strong></div>
+						<div class="replay-row highlight"><span id="replay-totalcost-label">Final Play Amount</span><strong id="replay-totalcost-value" data-testid="replay-final-play-amount">-</strong></div>
+						<div class="replay-row"><span id="replay-payout-label">Final Multiplier</span><strong id="replay-payout-value" data-testid="replay-final-multiplier">-</strong></div>
+						<div class="replay-row win"><span id="replay-totalwin-label">Total Win</span><strong id="replay-totalwin-value" data-testid="replay-total-win">-</strong></div>
+					</div>
+					<button type="button" class="replay-start" id="replay-start" data-testid="replay-start" hidden>Start Replay</button>
+					<p class="replay-note" id="replay-note">This is a replay of a previous play round. No new play will be placed.</p>
+				</div>
 			</div>
 		</div>
 
@@ -1133,6 +1176,7 @@ const summarizeFeatureEvents = ${summarizeFeatureEvents.toString()};
 const reconcileWalletBalance = ${reconcileWalletBalance.toString()};
 const ASSETS = ${JSON.stringify(assets)};
 const PLAYER_MODE_META = ${JSON.stringify(PLAYER_MODE_META)};
+const FREE_SPIN_COUNTER_EXPLANATION = ${JSON.stringify(FREE_SPIN_COUNTER_EXPLANATION)};
 const CONTROL_RULES = ${JSON.stringify(controlRules)};
 const CONFIG = ${JSON.stringify(CONFIG)};
 const CURRENCY_META = ${JSON.stringify(CURRENCY_META)};
@@ -1181,9 +1225,9 @@ const LANGUAGE_RESOURCES = {
 		replayMode: 'Mode',
 		replayBaseBet: 'Base Play',
 		replayCostMultiplier: 'Feature Multiplier',
-		replayTotalCost: 'Play Cost',
+		replayTotalCost: 'Final Play Amount',
 		replayPayoutMultiplier: 'Final Multiplier',
-		replayTotalWin: 'Final Play Amount',
+		replayTotalWin: 'Total Win',
 		replayNote: 'This is a replay of a previous play round. No new play will be placed.',
 		replayComplete: 'Replay Complete',
 		replayLoading: 'LOADING REPLAY',
@@ -1228,9 +1272,9 @@ const LANGUAGE_RESOURCES = {
 		replayMode: 'Mode',
 		replayBaseBet: 'Base Play',
 		replayCostMultiplier: 'Feature Multiplier',
-		replayTotalCost: 'Play Cost',
+		replayTotalCost: 'Final Play Amount',
 		replayPayoutMultiplier: 'Final Multiplier',
-		replayTotalWin: 'Final Play Amount',
+		replayTotalWin: 'Total Win',
 		replayNote: 'This is a replay of a previous play round. No new play will be placed.',
 		replayComplete: 'Replay Complete',
 		replayLoading: 'LOADING REPLAY',
@@ -1246,6 +1290,7 @@ const LANGUAGE_RESOURCES = {
 		replayStageAria: 'Golden Goal Rush play replay',
 	},
 };
+
 for (const [resourceName, resource] of Object.entries(LANGUAGE_RESOURCES)) {
 	const restrictedHits = playerVisibleRestrictedHits(Object.values(resource).join(' '));
 	if (restrictedHits.length) console.error('[GGR player-copy] restricted phrase in language resource', resourceName, restrictedHits);
@@ -1505,7 +1550,7 @@ const UrlState = (() => {
 	};
 })();
 state.currency = UrlState.currency();
-if (UrlState.replay()) state.currency = UrlState.currencyRaw();
+if (UrlState.replay()) state.currency = UrlState.currency();
 state.socialCasino = UrlState.social();
 
 function isSocialPlay() {
@@ -1537,7 +1582,7 @@ function playerModeName(mode) {
 function multiplierText(value) {
 	const n = Number(value);
 	if (!Number.isFinite(n)) return '0x';
-	return (Math.round(n * 100) / 100).toString() + 'x';
+	return (Math.round(n * 10000) / 10000).toString() + 'x';
 }
 function controlRulesGuideHtml(social = isSocialPlay()) {
 	return '<div class="controls-guide">' + CONTROL_RULES.map((rule) => {
@@ -1570,13 +1615,14 @@ function buildPlayerSafeRulesBodyHtml() {
 		+ '<div class="pt-feat"><img src="' + COLLECTOR_ASSET + '" alt="Collector Cup" /><div><b>COLLECTOR CUP</b>Collects the value of every visible coin. After the last cup the Golden Cells reveal again, repeating while new cups appear.</div></div>'
 		+ '<div class="pt-head">Free Spins &amp; Features</div>'
 		+ '<div class="pt-feat"><img src="' + SYMBOLS.scatter.src + '" alt="Free Spins" /><div><b>FREE SPINS</b>' + tierRows + '</div></div>'
+		+ '<div class="pt-feat"><div class="pt-chip"></div><div><b>FREE SPIN COUNTER</b>' + FREE_SPIN_COUNTER_EXPLANATION + '</div></div>'
 		+ '<div class="pt-feat"><img src="' + ASSETS.bonusButton + '" alt="Feature" /><div><b>BONUS / FEATURE</b>' + featureRows + '<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>'
 		+ '<div class="pt-head">Game Modes</div>' + modeRows
 		+ '<div class="pt-head">Retriggers</div>'
-		+ '<div class="pt-feat"><img src="' + SYMBOLS.scatter.src + '" alt="Retrigger" /><div><b>RETRIGGERS</b>Base Play and Rainbow Spin can trigger Free Spins with 3, 4 or 5 Scatter tickets. Feature-panel Free Spins do not add additional Free Spins in the current math book.</div></div>'
+		+ '<div class="pt-feat"><img src="' + SYMBOLS.scatter.src + '" alt="Retrigger" /><div><b>RETRIGGERS</b>Base Game and Rainbow Spin can trigger Free Spins with 3, 4 or 5 Scatter tickets. Feature-panel Free Spins do not add additional Free Spins in the current math book.</div></div>'
 		+ '<div class="pt-head">Buttons &amp; Controls</div>' + controlRulesGuideHtml(true)
 		+ '<div class="pt-note">If the game is refreshed while a base-game round is still active, the round is completed by the game service and the result is available in game history. Active feature rounds resume from the saved round state with the selected balance and play amount preserved.</div>'
-		+ '<div class="pt-note">RTP 96.45% &middot; Max award ' + formatMaxWinMultiplier(CONFIG.maxWinMultiplier) + 'x play amount &middot; All awards use the play amount. Malfunction voids all awards and plays.</div>';
+		+ '<div class="pt-note">RTP 96.45% &middot; Max award ' + formatMaxWinMultiplier(CONFIG.maxWinMultiplier) + 'x play amount &middot; All awards use the play amount. Malfunction voids all wins and plays. A consistent internet connection is required. After a disconnection, reload the game to finish any incomplete round. Expected return is calculated over many plays. The display is illustrative and does not represent a physical device. Wins are settled from the authoritative amount received from the Remote Game Server, not from browser events.</div>';
 }
 function applyLanguage() {
 	const social = isSocialPlay();
@@ -1674,12 +1720,14 @@ function setReplayLifecycle(status, meta = null, detail = '') {
 	enterReplayUi();
 	stage.dataset.replayState = status;
 	const action = $('replay-action');
+	const overlayAction = $('replay-start');
 	const statusLabel = $('replay-status');
 	const summary = $('replay-summary');
 	const currency = $('replay-currency');
 	const overlay = $('replay-overlay');
 	const overlayTitle = $('replay-overlay-title');
 	const overlayDetail = $('replay-overlay-detail');
+	const metadata = $('replay-metadata');
 	const labels = {
 		loading: t('replayLoading'),
 		ready: t('replayReady'),
@@ -1696,9 +1744,7 @@ function setReplayLifecycle(status, meta = null, detail = '') {
 		currency.setAttribute('aria-hidden', 'true');
 	}
 	if (summary && meta) {
-		summary.textContent = isSocialPlay()
-			? String(meta.mode || 'Base').toUpperCase() + ' · ' + formatCurrency(meta.baseBet)
-			: String(meta.mode || 'Base').toUpperCase() + ' · ' + t('replayBaseBet') + ' ' + formatCurrency(meta.baseBet);
+		summary.textContent = String(meta.mode || 'Base Game').toUpperCase() + ' · ' + formatCurrency(meta.baseBet);
 	}
 	if (summary && status === 'loading') summary.textContent = t('replaySummaryLoading');
 	if (action) {
@@ -1708,10 +1754,31 @@ function setReplayLifecycle(status, meta = null, detail = '') {
 		action.textContent = status === 'completed' ? t('replayAgainAction') : t('replayAction');
 		action.setAttribute('aria-label', status === 'completed' ? t('replayAgainAction') : t('replayAction'));
 	}
-	if (overlay) overlay.setAttribute('aria-hidden', status === 'loading' || status === 'error' ? 'false' : 'true');
+	const metadataAvailable = !!meta && (status === 'ready' || status === 'completed');
+	if (metadata) metadata.setAttribute('aria-hidden', metadataAvailable ? 'false' : 'true');
+	if (metadataAvailable) {
+		const setReplayValue = (id, value) => { const element = $(id); if (element) element.textContent = value; };
+		setReplayValue('replay-mode-value', meta.mode || 'Base Game');
+		setReplayValue('replay-basebet-value', formatCurrency(meta.baseBet));
+		setReplayValue('replay-cost-value', multiplierText(meta.costMultiplier));
+		setReplayValue('replay-totalcost-value', formatCurrency(meta.totalCost));
+		setReplayValue('replay-payout-value', multiplierText(meta.payoutMultiplier));
+		setReplayValue('replay-totalwin-value', formatCurrency(meta.totalWin));
+	}
+	if (overlayAction) {
+		overlayAction.hidden = !metadataAvailable;
+		overlayAction.disabled = !metadataAvailable;
+		overlayAction.textContent = status === 'completed' ? t('replayAgainAction') : t('startReplay');
+		overlayAction.setAttribute('aria-label', status === 'completed' ? t('replayAgainAction') : t('startReplay'));
+	}
+	if (overlay) overlay.setAttribute('aria-hidden', status === 'running' ? 'true' : 'false');
 	if (status === 'loading') {
 		if (overlayTitle) overlayTitle.textContent = t('replayLoading');
 		if (overlayDetail) overlayDetail.textContent = detail || t('replayLoadingDetail');
+	} else if (status === 'ready') {
+		if (overlayTitle) overlayTitle.textContent = t('replayTitle');
+	} else if (status === 'completed') {
+		if (overlayTitle) overlayTitle.textContent = t('replayCompleted');
 	} else if (status === 'error') {
 		if (overlayTitle) overlayTitle.textContent = t('replayError');
 		if (overlayDetail) overlayDetail.textContent = detail || t('replayErrorDetail');
@@ -1766,10 +1833,6 @@ function validateLaunchUrl() {
 		if (!UrlState.hasLaunchParam('version', 'gameVersion')) missing.push('version');
 		if (!UrlState.hasLaunchParam('mode', 'betMode')) missing.push('mode');
 		if (!UrlState.hasLaunchParam('event', 'eventID', 'eventId', 'betID', 'betId')) missing.push('event');
-		if (!UrlState.hasLaunchParam('amount', 'bet', 'stake')) missing.push('amount');
-		if (!UrlState.hasLaunchParam('currency')) missing.push('currency');
-		if (!UrlState.hasLaunchParam('lang', 'language')) missing.push('lang');
-		if (!UrlState.hasLaunchParam('device', 'deviceType')) missing.push('device');
 		if (missing.length) {
 			replayError('Invalid replay launch', 'Missing required Stake Engine replay parameters: ' + missing.join(', ') + '.');
 			return false;
@@ -1788,9 +1851,11 @@ function validateLaunchUrl() {
 			const url = new URL(lowerRaw.startsWith('http://') || lowerRaw.startsWith('https://') ? raw : 'https://' + raw);
 			if (!/^https?:$/.test(url.protocol) || !url.hostname || url.username || url.password || url.search || url.hash) malformed.push('rgs_url');
 		} catch (error) { malformed.push('rgs_url'); }
-		const amount = Number(rawConfigAmount(UrlState.amount()));
-		if (!Number.isSafeInteger(amount) || amount <= 0) malformed.push('amount');
-		if (!/^[A-Z]{2,8}$/.test(UrlState.currencyRaw())) malformed.push('currency');
+		if (UrlState.hasLaunchParam('amount', 'bet', 'stake')) {
+			const amount = Number(rawConfigAmount(UrlState.amount()));
+			if (!Number.isSafeInteger(amount) || amount <= 0) malformed.push('amount');
+		}
+		if (UrlState.hasLaunchParam('currency') && !/^[A-Z]{2,8}$/.test(UrlState.currencyRaw())) malformed.push('currency');
 		if (UrlState.hasLaunchParam('lang', 'language') && !/^[a-z]{2}(-[a-z]{2})?$/i.test(UrlState.lang())) malformed.push('lang');
 		if (UrlState.hasLaunchParam('device', 'deviceType') && !/^(desktop|mobile|tablet)$/i.test(UrlState.device())) malformed.push('device');
 		if (malformed.length) {
@@ -2334,6 +2399,22 @@ async function resumeLaunchRound() {
 	if (!round || round.active !== true || !rgsRoundIsBonus(round)) { setWalletBusy(false); return; }
 	const spinId = ++spinSeq;
 	const events = normalizeRgsEvents(round.state);
+	try {
+		rgsRoundAmountContract(round, events);
+	} catch (error) {
+		console.error('[RGS contract] rejected resumed round', { message: error && error.message, roundId: rgsRoundId(round) });
+		Rgs.setBalanceDeferred(true);
+		const endRoundResult = await Rgs.endRound({ spinId, recovery: 'inconsistent-resumed-round' });
+		Rgs.consumePendingBalance();
+		Rgs.setBalanceDeferred(false);
+		if (endRoundResult && endRoundResult.blocked) {
+			fatalError('Game service settlement failed', 'The inconsistent saved round could not be closed safely. Please relaunch the game.');
+		} else {
+			fatalError('Inconsistent game-service round', 'The saved round amounts did not agree with its authoritative event data. Nothing was reconstructed locally.');
+		}
+		setWalletBusy(false);
+		return;
+	}
 	const startIndex = rgsResumeIndex(round);
 	await showInterruptedRoundMessage();
 	if (state.fatal) { setWalletBusy(false); return; }
@@ -2561,17 +2642,54 @@ function finalBookWinMoney(events) {
 	const final = [...events].reverse().find((event) => event && event.type === 'finalWin');
 	return final ? bookAmountToMoney(final.amount) : 0;
 }
+function rgsRoundAmountContract(round, events) {
+	if (!round || typeof round !== 'object' || Array.isArray(round)) throw new Error('RGS round is missing');
+	// Normal wallet rounds and Replay use the same event-level arithmetic
+	// contract. This prevents a visually plausible winInfo sequence from
+	// drifting away from its running total or finalWin before settlement.
+	const validatedEvents = validateReplayEvents(Array.isArray(events) ? events : []);
+	const finalEvents = (Array.isArray(events) ? events : []).filter((event) => event && event.type === 'finalWin');
+	if (finalEvents.length !== 1) throw new Error('RGS round must contain exactly one authoritative finalWin event');
+	const finalBookUnits = finalEvents[0].amount;
+	if (typeof finalBookUnits !== 'number' || !Number.isSafeInteger(finalBookUnits) || finalBookUnits < 0) {
+		throw new Error('RGS finalWin must be a non-negative integer in book units');
+	}
+	const maxBookUnits = Math.round(Number(CONFIG.maxWinMultiplier) * BOOK_MULTIPLIER_SCALE);
+	if (finalBookUnits > maxBookUnits) throw new Error('RGS finalWin exceeds the configured max win');
+	if (validatedEvents.runningBookUnits !== finalBookUnits || validatedEvents.final.amount !== finalBookUnits) {
+		throw new Error('RGS event totals differ from the authoritative finalWin event');
+	}
+	const amount = round.amount;
+	if (typeof amount !== 'number' || !Number.isSafeInteger(amount) || amount <= 0) {
+		throw new Error('RGS round amount must be a positive integer in API units');
+	}
+	const rawPayout = round.payout;
+	if (rawPayout !== undefined && rawPayout !== null
+		&& (typeof rawPayout !== 'number' || !Number.isSafeInteger(rawPayout) || rawPayout < 0)) {
+		throw new Error('RGS payout must be a non-negative integer in API units');
+	}
+	const payoutPending = round.active === true && (rawPayout === undefined || rawPayout === null || rawPayout === 0);
+	const rawPayoutMultiplier = round.payoutMultiplier;
+	if (rawPayoutMultiplier !== undefined && rawPayoutMultiplier !== null) {
+		const candidates = replayPayoutMultiplierCandidates(rawPayoutMultiplier);
+		const unsettledZeroMultiplier = payoutPending && candidates.includes(0);
+		if (!candidates.includes(finalBookUnits) && !unsettledZeroMultiplier) {
+			throw new Error('RGS payoutMultiplier differs from the authoritative finalWin event');
+		}
+	}
+	const expectedPayoutApiAmount = Math.round(amount * finalBookUnits / BOOK_MULTIPLIER_SCALE);
+	if (rawPayout !== undefined && rawPayout !== null && rawPayout !== expectedPayoutApiAmount && !payoutPending) {
+		throw new Error('RGS payout differs from the authoritative finalWin event');
+	}
+	return {
+		finalBookUnits,
+		expectedPayoutApiAmount,
+		payoutPending,
+		totalWin: moneyRound(replayBookUnitsToMultiplier(finalBookUnits) * replayApiAmountToMoney(amount)),
+	};
+}
 function rgsDisplayWinMoney(round, events) {
-	const stateFinal = finalBookWinMoney(events);
-	const walletPayout = rgsRoundPayoutMoney(round);
-	// Stake wallet payout is authoritative whenever it is positive. Active
-	// rounds can still carry a payout in /wallet/play, and showing a smaller
-	// book finalWin makes the UI look disconnected from the RGS payload.
-	if (walletPayout !== null && walletPayout > 0) return walletPayout;
-	// During active rounds, round.payout can still be 0 until /wallet/end-round;
-	// then the RGS book finalWin is the best display source.
-	if (round && round.active === true && stateFinal > 0) return stateFinal;
-	return walletPayout !== null ? walletPayout : stateFinal;
+	return rgsRoundAmountContract(round, events).totalWin;
 }
 function rgsEventIndex(event, fallback) {
 	const raw = event && (event.index ?? event.eventIndex ?? event.idx);
@@ -3206,12 +3324,18 @@ function normalizeReplayPayload(data) {
 	const stateValue = source.state ?? source.events ?? payload.state ?? payload.events;
 	const events = normalizeRgsEvents(stateValue);
 	const { final, runningBookUnits } = validateReplayEvents(events);
-	const launchAmount = requireReplaySafeInteger(Number(UrlState.amount()), 'Replay launch amount', { positive: true });
+	const hasLaunchAmount = UrlState.hasLaunchParam('amount', 'bet', 'stake');
+	const launchAmount = hasLaunchAmount
+		? requireReplaySafeInteger(Number(UrlState.amount()), 'Replay launch amount', { positive: true })
+		: null;
 	const responseAmount = source.amount ?? source.betAmount ?? payload.amount ?? payload.betAmount;
+	if ((responseAmount === undefined || responseAmount === null) && launchAmount === null) {
+		throw new Error('Replay amount is missing from both the optional launch parameter and the saved round');
+	}
 	const amount = responseAmount === undefined || responseAmount === null
 		? launchAmount
 		: requireReplaySafeInteger(responseAmount, 'Replay response amount', { positive: true });
-	if (amount !== launchAmount) throw new Error('Replay response amount does not match the launch amount');
+	if (launchAmount !== null && amount !== launchAmount) throw new Error('Replay response amount does not match the launch amount');
 	const baseBet = replayApiAmountToMoney(amount);
 	const rawPayoutMultiplier = source.payoutMultiplier ?? payload.payoutMultiplier;
 	let payoutMultiplierBookUnits = final.amount;
@@ -3239,10 +3363,11 @@ function normalizeReplayPayload(data) {
 		const expectedPayoutApiAmount = Math.round(amount * payoutMultiplierBookUnits / BOOK_MULTIPLIER_SCALE);
 		if (payoutApiAmount !== expectedPayoutApiAmount) throw new Error('Replay payout differs from the authoritative finalWin event');
 	}
-	const launchCurrency = normalizeCurrency(UrlState.currencyRaw());
+	const hasLaunchCurrency = UrlState.hasLaunchParam('currency');
+	const launchCurrency = hasLaunchCurrency ? normalizeCurrency(UrlState.currencyRaw()) : '';
 	const responseCurrency = normalizeCurrency(source.currency || source.currencyCode || payload.currency || payload.currencyCode || '');
-	if (responseCurrency && responseCurrency !== launchCurrency) throw new Error('Replay response currency does not match the launch currency');
-	const currency = responseCurrency || launchCurrency;
+	if (launchCurrency && responseCurrency && responseCurrency !== launchCurrency) throw new Error('Replay response currency does not match the launch currency');
+	const currency = responseCurrency || launchCurrency || DEFAULT_CURRENCY;
 	if (!/^[A-Z]{2,8}$/.test(currency)) throw new Error('Replay response contains an invalid currency');
 	return {
 		round: {
@@ -3410,6 +3535,8 @@ const Replay = (() => {
 	};
 	const action = $('replay-action');
 	if (action) action.onclick = () => play();
+	const overlayAction = $('replay-start');
+	if (overlayAction) overlayAction.onclick = () => play();
 	return { configured, start, play, fetchReplayRound, get current() { return current; }, get status() { return status; } };
 })();
 
@@ -4441,8 +4568,17 @@ async function spin(buy, internalFreeSpin = false) {
 		walletManaged = !!rgsPlay;
 		roundNeedsEnd = !!(rgsPlay && rgsPlay.__needsEndRound);
 		const rgsEvents = normalizeRgsEvents(rgsPlay && rgsPlay.round && rgsPlay.round.state);
-		const renderSafeRgsBase = Rgs.configured() && rgsPlay && shouldRenderSafeRgsBase(rgsEvents);
-		const renderRgsRound = Rgs.configured() && rgsPlay && shouldRenderRgsRound(rgsEvents);
+		let rgsAmountContractError = null;
+		if (Rgs.configured() && rgsPlay) {
+			try {
+				rgsRoundAmountContract(rgsPlay.round, rgsEvents);
+			} catch (error) {
+				rgsAmountContractError = error;
+				console.error('[RGS contract] rejected play round', { message: error && error.message, roundId: rgsRoundId(rgsPlay.round) });
+			}
+		}
+		const renderSafeRgsBase = Rgs.configured() && rgsPlay && !rgsAmountContractError && shouldRenderSafeRgsBase(rgsEvents);
+		const renderRgsRound = Rgs.configured() && rgsPlay && !rgsAmountContractError && shouldRenderRgsRound(rgsEvents);
 		if ((USE_RGS_STATE_RENDERER || renderSafeRgsBase || renderRgsRound) && Rgs.configured() && rgsPlay) {
 			if (!walletBalanceAfterPlay) {
 				fatalError('Game service settlement failed', 'The play response did not include the authoritative updated balance.');
@@ -4518,7 +4654,11 @@ async function spin(buy, internalFreeSpin = false) {
 				}
 			}
 			Rgs.setBalanceDeferred(false);
-			fatalError('Unsupported game-service round', 'The game received a round state it cannot display safely. No local fallback was used.');
+			if (rgsAmountContractError) {
+				fatalError('Inconsistent game-service round', 'The round amounts did not agree with its authoritative event data. Nothing was reconstructed locally.');
+			} else {
+				fatalError('Unsupported game-service round', 'The game received a round state it cannot display safely. No local fallback was used.');
+			}
 			setWalletBusy(false);
 			$('btn-spin').classList.remove('busy'); state.spinning = false; clearSkip();
 			updateMeters();
@@ -4851,15 +4991,26 @@ function showBuyConfirm(o, price) {
 				if (Rgs.configured() && rgsPlay) {
 					const tier = o.id === 'tier1' ? 1 : 2;
 					const rgsEvents = normalizeRgsEvents(rgsPlay && rgsPlay.round && rgsPlay.round.state);
-					if (!shouldRenderRgsRound(rgsEvents)) {
+					let rgsAmountContractError = null;
+					try {
+						rgsRoundAmountContract(rgsPlay.round, rgsEvents);
+					} catch (error) {
+						rgsAmountContractError = error;
+						console.error('[RGS contract] rejected feature round', { message: error && error.message, roundId: rgsRoundId(rgsPlay.round) });
+					}
+					if (rgsAmountContractError || !shouldRenderRgsRound(rgsEvents)) {
 						if (roundNeedsEnd) {
-							const endRoundResult = await Rgs.endRound({ spinId: purchaseSpinId, recovery: 'unrenderable-bonus-buy' });
+							const endRoundResult = await Rgs.endRound({ spinId: purchaseSpinId, recovery: rgsAmountContractError ? 'inconsistent-bonus-buy' : 'unrenderable-bonus-buy' });
 							if (endRoundResult && endRoundResult.blocked) {
 								fatalError('Game service settlement failed', 'The unsupported feature round could not be completed. Please relaunch the game.');
 								return;
 							}
 						}
-						fatalError('Unsupported game-service round', 'The feature returned a round state the game cannot display safely. No local fallback was used.');
+						if (rgsAmountContractError) {
+							fatalError('Inconsistent game-service round', 'The feature amounts did not agree with its authoritative event data. Nothing was reconstructed locally.');
+						} else {
+							fatalError('Unsupported game-service round', 'The feature returned a round state the game cannot display safely. No local fallback was used.');
+						}
 						return;
 					}
 					await bonusIntroRgs(CONFIG.tiers[tier].spins);

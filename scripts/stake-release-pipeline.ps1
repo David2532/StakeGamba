@@ -112,7 +112,7 @@ function Add-PlayerLanguageChecks {
 	Add-Check -Group $Group -Name "complete player language resource is extractable" -Passed ($playerText.Length -gt 0) -Detail "chars=$($playerText.Length)"
 
 	foreach ($term in @(
-		"Bet Replay", "Base Bet", "Cost Multiplier", "Total Bet Cost", "Payout Multiplier", "Total Win",
+		"Bet Replay", "Base Bet", "Cost Multiplier", "Total Bet Cost", "Payout Multiplier",
 		"Bonus Buy", "Buy Bonus", "Auto-Bet", "Auto Bet", "Bet", "Wager", "Gamble", "Purchase",
 		"Pay", "Pays", "Paid", "Paying", "Pay out", "Paid out", "Pays out", "Payout", "Payouts",
 		"Betting", "Bets", "Place your bets", "Bet/s", "Stake", "Cash", "Payer", "Money",
@@ -123,8 +123,8 @@ function Add-PlayerLanguageChecks {
 	}
 
 	foreach ($term in @(
-		"Play Replay", "Base Play", "Feature Multiplier", "Play Cost", "Final Multiplier",
-		"Final Play Amount", "Replay Play", "BONUS / FEATURE", "AUTO-PLAY", "PLAY"
+		"Play Replay", "Base Play", "Feature Multiplier", "Final Multiplier",
+		"Final Play Amount", "Total Win", "Replay Play", "BONUS / FEATURE", "AUTO-PLAY", "PLAY"
 	)) {
 		Add-Check -Group $Group -Name "all player language includes required substitute '$term'" -Passed ($playerText.Contains($term)) -Detail $term
 	}
@@ -811,10 +811,10 @@ Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "wallet play uses activ
 Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "demo bet fallback excluded from RGS/replay" -Content $html -Marker "if (!UrlState.requiresRgs() && !Replay.configured()) applyBetConfig"
 
 Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "Game Info mode metadata exists" -Content $html -Marker "const PLAYER_MODE_META = {"
-foreach ($modeName in @("Base Play", "Feature Spins", "Rainbow Spin", "Golden Chance", "All That Glitters", "End of the Rainbow")) {
+foreach ($modeName in @("Base Game", "Feature Spins", "Rainbow Spin", "Golden Chance", "All That Glitters", "End of the Rainbow")) {
 	Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "Game Info explains mode '$modeName'" -Content $html -Marker $modeName
 }
-foreach ($marker in @("Main Play button", "Feature panel", "3 Scatter tickets", "4 Scatter tickets", "5 Scatter tickets only", "Cost multiplier:", "Feature Multiplier:", "Golden Cells persist", "guaranteed Golden Arc", "boosted Golden Arc chance", "Base Play and Rainbow Spin can trigger Free Spins", "Feature-panel Free Spins do not add additional Free Spins")) {
+foreach ($marker in @("Main Play button", "Feature panel", "3 Scatter tickets", "4 Scatter tickets", "5 Scatter tickets only", "Feature Multiplier:", "Golden Cells persist", "guaranteed Golden Arc", "boosted Golden Arc chance", "Base Game and Rainbow Spin can trigger Free Spins", "Feature-panel Free Spins do not add additional Free Spins")) {
 	Add-MarkerCheck -Group "K Stake 2026 Review Items" -Name "Game Info detail marker '$marker'" -Content $html -Marker $marker
 }
 

@@ -49,16 +49,16 @@ const PLAYER_SAFE_REQUIRED_VALUES = [
 	'Play Replay',
 	'Base Play',
 	'Feature Multiplier',
-	'Play Cost',
 	'Final Multiplier',
 	'Final Play Amount',
+	'Total Win',
 	'Replay Play',
 	'BONUS / FEATURE',
 	'AUTO-PLAY',
 	'PLAY',
 ];
 const PLAYER_MODE_NAMES = [
-	'Base Play',
+	'Base Game',
 	'Feature Spins',
 	'Rainbow Spin',
 	'Golden Chance',
@@ -530,8 +530,8 @@ function runSocialWordingChecks() {
 	expectContains('player-copy', 'all modes share the player-safe Rules source', builder, 'function buildPlayerSafeRulesBodyHtml()');
 	expectContains('player-copy', 'Rules use Feature panel wording', builder, "socialTrigger: 'Feature panel");
 	expectContains('player-copy', 'Rules use play amount wording', builder, 'play amount');
-	expectContains('player-copy', 'Replay label mapping includes Play Cost', builder, "replayTotalCost: 'Play Cost'");
-	expectContains('player-copy', 'Replay label mapping includes Final Play Amount', builder, "replayTotalWin: 'Final Play Amount'");
+	expectContains('player-copy', 'Replay label mapping includes Final Play Amount', builder, "replayTotalCost: 'Final Play Amount'");
+	expectContains('player-copy', 'Replay label mapping includes Total Win', builder, "replayTotalWin: 'Total Win'");
 	expectContains('player-copy', 'both language resources use the approved neutral footer verbatim', standardValues + sweepsValues, requiredFooter);
 	expect('player-copy', 'approved footer has no restricted term', playerVisibleForbiddenHits(requiredFooter).length === 0, playerVisibleForbiddenHits(requiredFooter).join(', '));
 	expectContains('player-copy', 'authenticate jurisdiction remains authoritative for Social display metadata', builder, "typeof data.config.jurisdiction?.socialCasino === 'boolean'");
@@ -587,7 +587,6 @@ function runGameInfoChecks() {
 		expectContains('game-info', `Game Info includes access/trigger "${marker}"`, builder + preview, marker);
 	}
 	for (const marker of [
-		'Cost multiplier:',
 		'Feature Multiplier:',
 		'Golden Cells persist',
 		'guaranteed Golden Arc',
@@ -598,7 +597,7 @@ function runGameInfoChecks() {
 	}
 	for (const marker of [
 		'<div class="pt-head">Retriggers</div>',
-		'Base Play and Rainbow Spin can trigger Free Spins',
+		'Base Game and Rainbow Spin can trigger Free Spins',
 		'No retrigger inside this single-spin mode.',
 		'The current math book does not create additional Free Spins inside this tier.',
 		'Feature-panel Free Spins do not add additional Free Spins',
@@ -660,7 +659,7 @@ function runReplayChecks() {
 	for (const label of ['REPLAY COMPLETED', 'REPLAY ERROR', 'REPLAY RUNNING', 'READY TO REPLAY', 'LOADING REPLAY']) {
 		expectContains('replay', `Social replay includes minimal safe state "${label}"`, builder, label);
 	}
-	expectContains('replay', 'Social replay summary uses one formatted GC/SC amount', builder, "String(meta.mode || 'Base').toUpperCase() + ' · ' + formatCurrency(meta.baseBet)");
+	expectContains('replay', 'Social replay summary uses one formatted GC/SC amount', builder, "String(meta.mode || 'Base Game').toUpperCase() + ' · ' + formatCurrency(meta.baseBet)");
 	expectContains('replay', 'replay currency code is hidden and aria-hidden', builder, "currency.setAttribute('aria-hidden', 'true')");
 	expectContains('replay', 'replay completion presentation is non-blocking for RGS settlement', builder, "{ blocking: false }");
 	expectContains('replay', 'normal replay controls are made inert/disabled', builder, 'function makeUnavailableInReplay(element)');
@@ -791,7 +790,8 @@ function runExistingBehaviorChecks() {
 	expectContains('regression-markers', 'RGS local-wallet credit tracker remains', builder, 'localWalletCredits');
 	expectNotContains('regression-markers', 'active settlement never adds displayed win to local balance', builder, 'state.balance + displayedWin');
 	expectContains('regression-markers', 'RGS book renderer remains', builder, 'async function playRgsBookRound');
-	expectContains('regression-markers', 'bonus buy RGS render guard remains', builder, 'if (!shouldRenderRgsRound(rgsEvents))');
+	expectContains('regression-markers', 'bonus buy RGS render guard remains', builder, 'if (rgsAmountContractError || !shouldRenderRgsRound(rgsEvents))');
+	expectContains('regression-markers', 'normal RGS amounts fail closed against finalWin', builder, 'function rgsRoundAmountContract(round, events)');
 	expectContains('regression-markers', 'local free spins stay demo-only', builder, 'allowLocalFreeSpins = !Rgs.configured()');
 	expectContains('regression-markers', 'symbol math import remains in preview builder', builder, 'import { SYMBOL_MATH, CONFIG }');
 	expectContains('regression-markers', 'math config still exports symbol weights', mathConfig, 'SYMBOL_MATH');

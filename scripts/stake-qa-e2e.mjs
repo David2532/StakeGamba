@@ -31,8 +31,9 @@
  */
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, extname, join, normalize, relative, resolve } from 'node:path';
+import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { playerVisibleRestrictedHits } from '../apps/cluster/scripts/stake-compliance-contract.mjs';
@@ -62,6 +63,9 @@ const artifactRoot = process.env.STAKE_QA_ARTIFACT_DIR
 	|| join(root, 'artifacts', 'stake-qa', new Date().toISOString().replace(/[:.]/g, '-'));
 const shotDir = join(artifactRoot, 'e2e-screenshots');
 const productionMathConfig = JSON.parse(readFileSync(publishedMathFile, 'utf8'));
+const productionBookRoot = process.env.STAKE_QA_MATH_BOOKS_ROOT
+	? resolve(root, process.env.STAKE_QA_MATH_BOOKS_ROOT)
+	: join(root, 'math', 'games', 'golden_goal_rush', 'library', 'books');
 
 const checks = [];
 const replayNetworkEvidence = [];
@@ -86,6 +90,16 @@ Object.defineProperty(window, '__stakeQa', {
 		Replay,
 		getBetConfig: () => cloneReplayData(activeBetConfig),
 		setTurbo: (enabled) => setTurbo(!!enabled),
+		showFreeSpinCounter: ({ tier = 2, current = 1, total = 12 } = {}) => {
+			if (!Number.isInteger(current) || !Number.isInteger(total) || current < 1 || total < 1 || current > total) {
+				throw new Error('Invalid QA Free Spin counter state');
+			}
+			state.mode = 'free';
+			state.tier = tier;
+			state.fsTotal = total;
+			state.fsLeft = total - current;
+			updateFsCounter();
+		},
 		spinRgsMode: async (mode) => {
 			const modeBuys = {
 				base: null,
@@ -122,6 +136,29 @@ Object.defineProperty(window, '__stakeQa', {
 });
 `;
 const playerVisibleForbiddenHits = (text) => playerVisibleRestrictedHits(text);
+
+const productionBookCache = new Map();
+async function readProductionBook(filename, expectedId) {
+	const cacheKey = `${filename}:${expectedId}`;
+	if (productionBookCache.has(cacheKey)) return cloneRound(productionBookCache.get(cacheKey));
+	const file = join(productionBookRoot, filename);
+	if (!existsSync(file)) throw new Error(`Production math book source is missing: ${relative(root, file)}`);
+	const input = createReadStream(file, { encoding: 'utf8' });
+	const lines = createInterface({ input, crlfDelay: Infinity });
+	try {
+		for await (const line of lines) {
+			const idMatch = /^\{"id":(\d+),/.exec(line);
+			if (Number(idMatch?.[1]) !== expectedId) continue;
+			const book = JSON.parse(line);
+			productionBookCache.set(cacheKey, book);
+			return cloneRound(book);
+		}
+	} finally {
+		lines.close();
+		input.destroy();
+	}
+	throw new Error(`Production book ${expectedId} was not found in ${relative(root, file)}`);
+}
 
 async function visibleSurfaceAudit(page) {
 	return page.evaluate(() => {
@@ -404,8 +441,9 @@ const interruptedBonusRound = () => ({
 	state: [
 		{ index: 0, type: 'reveal', board: quietBoard(), gameType: 'freegame' },
 		{ index: 1, type: 'updateFreeSpin', amount: 0, total: 2, tier: 1 },
-		{ index: 2, type: 'reveal', board: quietBoard(), gameType: 'freegame' },
-		{ index: 3, type: 'finalWin', amount: 250 },
+		{ index: 2, type: 'reveal', board: boardWithColumn('L2'), gameType: 'freegame' },
+		{ index: 3, type: 'winInfo', totalWin: 250, wins: [{ symbol: 'L2', count: 5, win: 250, positions: columnPositions(0) }] },
+		{ index: 4, type: 'finalWin', amount: 250 },
 	],
 });
 
@@ -517,17 +555,25 @@ const rainbowReplayRound = () => {
 	return round;
 };
 
-const authoritativeClusterReplayRound = ({ symbol, positions, bookUnits }) => {
+const authoritativeClusterReplayRound = ({
+	symbol,
+	positions,
+	bookUnits,
+	amount = API,
+	currency = 'USD',
+	mode = 'base',
+	payout = Math.round(amount * bookUnits / 100),
+}) => {
 	const board = quietBoard();
 	for (const position of positions) board[position.col][position.row] = position.symbol || symbol;
 	return {
 		active: false,
 		game: 'golden-goal-rush',
 		version: '1',
-		mode: 'base',
-		amount: API,
-		currency: 'USD',
-		payout: Math.round(API * bookUnits / 100),
+		mode,
+		amount,
+		currency,
+		payout,
 		payoutMultiplier: bookUnits,
 		state: [
 			{ index: 0, type: 'reveal', board, gameType: 'basegame' },
@@ -538,6 +584,24 @@ const authoritativeClusterReplayRound = ({ symbol, positions, bookUnits }) => {
 		],
 	};
 };
+
+const replayRoundFromProductionBook = (book, {
+	amount = API,
+	currency = 'USD',
+	eventId = book.id,
+} = {}) => ({
+	active: false,
+	game: 'golden-goal-rush',
+	version: '1',
+	mode: book.mode,
+	amount,
+	currency,
+	eventId,
+	betID: `stake-qa-production-book-${book.id}`,
+	payout: Math.round(amount * Number(book.payoutMultiplier) / 100),
+	payoutMultiplier: book.payoutMultiplier,
+	state: cloneRound(book.events),
+});
 
 const amountBoundaryReplayRound = (bookUnits) => ({
 	active: false,
@@ -618,7 +682,15 @@ const REPLAY_VIEWPORTS = [
 	{ name: 'tablet-768x1024', width: 768, height: 1024 },
 ];
 
-const replayQuery = ({ mode = 'base', event = 'stake-qa-event', currency = 'USD', extra = '' } = {}) => {
+const replayQuery = ({
+	mode = 'base',
+	event = 'stake-qa-event',
+	currency = 'USD',
+	amount = API,
+	language = 'en',
+	device = 'desktop',
+	extra = '',
+} = {}) => {
 	const params = new URLSearchParams({
 		replay: 'true',
 		rgs_url: `https://${RGS_HOST}`,
@@ -626,12 +698,18 @@ const replayQuery = ({ mode = 'base', event = 'stake-qa-event', currency = 'USD'
 		version: '1',
 		mode,
 		event,
-		amount: String(API),
+		amount: String(amount),
 		currency,
-		lang: 'en',
-		device: 'desktop',
+		lang: language,
+		device,
 	});
 	return `?${params.toString()}${extra}`;
+};
+
+const replayQueryWithout = (omitted, options = {}) => {
+	const params = new URLSearchParams(replayQuery(options).slice(1));
+	for (const name of omitted) params.delete(name);
+	return `?${params.toString()}`;
 };
 
 async function waitForReplayState(page, state, timeout = 20_000) {
@@ -640,6 +718,15 @@ async function waitForReplayState(page, state, timeout = 20_000) {
 		state,
 		{ timeout },
 	);
+}
+
+async function activateVisibleReplayAction(page, method = 'click') {
+	const selector = '#replay-start';
+	if (method === 'touch') await page.tap(selector);
+	else if (method === 'Space' || method === 'Enter') {
+		await page.focus(selector);
+		await page.keyboard.press(method);
+	} else await page.click(selector);
 }
 
 async function installReplayObserver(page) {
@@ -673,9 +760,11 @@ async function installReplayObserver(page) {
 			attributeFilter: ['class', 'data-replay-state'],
 		});
 		if (!window.__stakeQaReplayClickObserverInstalled) {
-			document.getElementById('replay-action')?.addEventListener('click', () => {
+			const countReplayAction = () => {
 				if (window.__stakeQaReplay) window.__stakeQaReplay.actionClicks += 1;
-			});
+			};
+			document.getElementById('replay-action')?.addEventListener('click', countReplayAction);
+			document.getElementById('replay-start')?.addEventListener('click', countReplayAction);
 			window.__stakeQaReplayClickObserverInstalled = true;
 		}
 		window.__stakeQaResetReplayEvidence = () => {
@@ -751,7 +840,9 @@ async function replayUiAudit(page) {
 				clippingAncestors,
 			};
 		};
-		const action = document.getElementById('replay-action');
+		const overlayAction = document.getElementById('replay-start');
+		const hudAction = document.getElementById('replay-action');
+		const action = visible(overlayAction) ? overlayAction : hudAction;
 		const actionRect = action?.getBoundingClientRect();
 		const actionPoints = actionRect ? [
 			[0.5, 0.5], [0.08, 0.08], [0.92, 0.08], [0.08, 0.92], [0.92, 0.92],
@@ -763,7 +854,10 @@ async function replayUiAudit(page) {
 		const win = document.querySelector('[data-meter="win"]');
 		const bet = document.querySelector('[data-meter="bet"]');
 		const panel = document.getElementById('replay-controls');
-		const requiredElements = [win, bet, panel, document.getElementById('replay-status'), document.getElementById('replay-summary'), document.getElementById('replay-currency')];
+		const metadata = document.getElementById('replay-metadata');
+		const requiredElements = [win, bet];
+		if (visible(panel)) requiredElements.push(panel, document.getElementById('replay-status'), document.getElementById('replay-summary'));
+		if (visible(metadata)) requiredElements.push(metadata, ...metadata.querySelectorAll('.replay-row,.replay-row span,.replay-row strong,.replay-start,.replay-note'));
 		if (visible(board)) requiredElements.push(board);
 		if (visible(action)) requiredElements.push(action);
 		const boxes = requiredElements.filter(Boolean).map(geometry);
@@ -801,6 +895,22 @@ async function replayUiAudit(page) {
 			actionRole: action?.getAttribute('role') || action?.tagName?.toLowerCase(),
 			actionAccessibleName: action?.getAttribute('aria-label') || action?.textContent?.trim() || '',
 			actionDisabled: !!action?.disabled,
+			metadataVisible: visible(metadata),
+			metadata: {
+				modeLabel: document.getElementById('replay-mode-label')?.textContent?.trim(),
+				mode: document.getElementById('replay-mode-value')?.textContent?.trim(),
+				basePlayLabel: document.getElementById('replay-basebet-label')?.textContent?.trim(),
+				basePlay: document.getElementById('replay-basebet-value')?.textContent?.trim(),
+				featureMultiplierLabel: document.getElementById('replay-cost-label')?.textContent?.trim(),
+				featureMultiplier: document.getElementById('replay-cost-value')?.textContent?.trim(),
+				finalPlayAmountLabel: document.getElementById('replay-totalcost-label')?.textContent?.trim(),
+				finalPlayAmount: document.getElementById('replay-totalcost-value')?.textContent?.trim(),
+				finalMultiplierLabel: document.getElementById('replay-payout-label')?.textContent?.trim(),
+				finalMultiplier: document.getElementById('replay-payout-value')?.textContent?.trim(),
+				totalWinLabel: document.getElementById('replay-totalwin-label')?.textContent?.trim(),
+				totalWin: document.getElementById('replay-totalwin-value')?.textContent?.trim(),
+			},
+			currentMeta: window.__stakeQa?.Replay?.current?.meta || null,
 			statusText: document.getElementById('replay-status')?.textContent?.trim(),
 			boardVisible: visible(board),
 			boxes,
@@ -913,6 +1023,44 @@ async function testBetConfig(browser, base) {
 // ---------------------------------------------------------------------------
 async function testSocialWording(browser, base) {
 	const group = 'terminology-e2e';
+	const staticContext = await browser.newContext({ viewport: { width: 1280, height: 720 }, javaScriptEnabled: false });
+	const staticPage = await staticContext.newPage();
+	await staticPage.goto(`${base}/${frontendEntry}`, { waitUntil: 'load' });
+	const staticFirstRender = await staticPage.evaluate(() => {
+		const roots = [
+			document.querySelector('.meters'),
+			document.querySelector('.controls'),
+			document.getElementById('modal-paytable'),
+			document.getElementById('modal-rules'),
+			document.getElementById('replay-overlay'),
+		].filter(Boolean);
+		const text = roots.map((root) => root.textContent || '').join(' ');
+		const attrs = roots.flatMap((root) => [root, ...root.querySelectorAll('[aria-label],[alt],[title]')])
+			.flatMap((element) => [element.getAttribute('aria-label'), element.getAttribute('alt'), element.getAttribute('title')].filter(Boolean))
+			.join(' ');
+		return {
+			text,
+			attrs,
+			visibleText: document.body.innerText || '',
+			title: document.querySelector('#modal-paytable .modal-title')?.textContent?.trim() || '',
+			footer: document.getElementById('paytable-note')?.textContent?.trim() || '',
+			replayLabels: [...document.querySelectorAll('#replay-metadata .replay-row span')].map((element) => element.textContent?.trim() || ''),
+		};
+	});
+	const staticHits = playerVisibleForbiddenHits(`${staticFirstRender.text} ${staticFirstRender.attrs}`);
+	expect(
+		group,
+		'true no-JavaScript first render and static player-copy shell contain zero restricted terms',
+		staticHits.length === 0
+			&& staticFirstRender.title === 'SYMBOL TABLE'
+			&& staticFirstRender.footer.includes('Each eligible symbol')
+			&& staticFirstRender.replayLabels.join('|') === 'Mode|Base Play|Feature Multiplier|Final Play Amount|Final Multiplier|Total Win',
+		JSON.stringify({ hits: staticHits, title: staticFirstRender.title, footer: staticFirstRender.footer, replayLabels: staticFirstRender.replayLabels, visibleText: staticFirstRender.visibleText.slice(0, 240) }),
+	);
+	const staticShot = await screenshot(staticPage, 'player-wording-static-no-js-first-render');
+	pass(group, 'true no-JavaScript first-render screenshot saved', staticShot);
+	await staticContext.close();
+
 	const runCase = async ({
 		currency,
 		screenshotSuffix,
@@ -1059,8 +1207,8 @@ async function testSocialWording(browser, base) {
 		});
 		const hits = playerVisibleForbiddenHits(`${rulesAudit.text} ${rulesAudit.attrs}`);
 		expect(group, `${screenshotSuffix} rules avoid restricted phrases`, hits.length === 0, `hits=${hits.join(',') || 'none'}`);
-		expect(group, `${screenshotSuffix} rules include mode and button explanations`, rulesAudit.heads.includes('Game Modes') && rulesAudit.text.includes('Base Play') && rulesAudit.text.includes('Feature Multiplier') && rulesAudit.heads.includes('Buttons & Controls') && rulesAudit.controls.some((row) => row.includes('Auto-Play')), JSON.stringify(rulesAudit.heads));
-		expect(group, `${screenshotSuffix} rules explain retrigger conditions`, rulesAudit.heads.includes('Retriggers') && rulesAudit.text.includes('Base Play and Rainbow Spin can trigger Free Spins') && rulesAudit.text.includes('Feature-panel Free Spins do not add additional Free Spins'), rulesAudit.text.replace(/\s+/g, ' ').slice(0, 220));
+		expect(group, `${screenshotSuffix} rules include mode and button explanations`, rulesAudit.heads.includes('Game Modes') && rulesAudit.text.includes('Base Game') && rulesAudit.text.includes('Feature Multiplier') && rulesAudit.heads.includes('Buttons & Controls') && rulesAudit.controls.some((row) => row.includes('Auto-Play')), JSON.stringify(rulesAudit.heads));
+		expect(group, `${screenshotSuffix} rules explain retrigger conditions`, rulesAudit.heads.includes('Retriggers') && rulesAudit.text.includes('Base Game and Rainbow Spin can trigger Free Spins') && rulesAudit.text.includes('Feature-panel Free Spins do not add additional Free Spins'), rulesAudit.text.replace(/\s+/g, ' ').slice(0, 220));
 		await auditVisibleSurface('Rules, Features, modes, symbols and controls');
 		await screenshot(page, `player-wording-${screenshotSuffix}`);
 		await context.close();
@@ -1455,6 +1603,54 @@ async function testMobile(browser, base) {
 		}
 		const shot = await screenshot(page, `mobile-${viewport.name}`);
 		pass(group, `${viewport.name} screenshot saved`, shot);
+		for (const current of [1, 12]) {
+			await page.evaluate((spin) => window.__stakeQa.showFreeSpinCounter({ tier: 2, current: spin, total: 12 }), current);
+			await page.waitForTimeout(100);
+			const counter = await page.evaluate(() => {
+				const rect = (element) => {
+					if (!element) return null;
+					const value = element.getBoundingClientRect();
+					return { left: value.left, top: value.top, right: value.right, bottom: value.bottom, width: value.width, height: value.height };
+				};
+				const intersectionArea = (first, second) => {
+					if (!first || !second) return 0;
+					return Math.max(0, Math.min(first.right, second.right) - Math.max(first.left, second.left))
+						* Math.max(0, Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top));
+				};
+				const element = document.getElementById('fs-counter');
+				const counterRect = rect(element);
+				const boardRect = rect(document.getElementById('board'));
+				const metersRect = rect(document.querySelector('.meters'));
+				const controlsRect = rect(document.querySelector('.controls'));
+				const logoRect = rect(document.querySelector('.logo-wordmark'));
+				return {
+					text: element?.textContent?.replace(/\s+/g, ' ').trim() || '',
+					visible: !!element && getComputedStyle(element).display !== 'none' && counterRect.width > 0 && counterRect.height > 0,
+					insideViewport: !!counterRect && counterRect.left >= -0.5 && counterRect.top >= -0.5 && counterRect.right <= innerWidth + 0.5 && counterRect.bottom <= innerHeight + 0.5,
+					rects: { counter: counterRect, board: boardRect, meters: metersRect, controls: controlsRect, logo: logoRect },
+					overlaps: {
+						board: intersectionArea(counterRect, boardRect),
+						meters: intersectionArea(counterRect, metersRect),
+						controls: intersectionArea(counterRect, controlsRect),
+						logo: intersectionArea(counterRect, logoRect),
+					},
+				};
+			});
+			expect(
+				group,
+				`${viewport.name} Free Spins counter ${current}/12 stays visible and clear of reels/HUD`,
+				counter.visible
+					&& counter.insideViewport
+					&& counter.text.includes(`SPIN ${current} / 12`)
+					&& counter.overlaps.board === 0
+					&& counter.overlaps.meters === 0
+					&& counter.overlaps.controls === 0,
+				JSON.stringify(counter),
+			);
+			responsiveLayoutEvidence.push({ scenario: `free-spin-counter-${current}-of-12`, viewport, lifecycle: 'free-spins', audit: counter });
+			const counterShot = await screenshot(page, `free-spin-counter-${current}-of-12-${viewport.name}`);
+			pass(group, `${viewport.name} Free Spins counter ${current}/12 screenshot saved`, counterShot);
+		}
 		await context.close();
 	}
 
@@ -1712,7 +1908,7 @@ async function testReplay(browser, base) {
 			const loading = await page.evaluate(() => {
 					const overlay = document.getElementById('replay-overlay');
 					const card = overlay?.querySelector('.replay-overlay-card');
-					const action = document.getElementById('replay-action');
+					const action = document.getElementById('replay-start');
 					const visible = (el) => !!el && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().width > 0;
 					const rect = card?.getBoundingClientRect();
 					return {
@@ -1738,14 +1934,23 @@ async function testReplay(browser, base) {
 			expect(group, `${label} WIN is visible`, ready.winVisible, JSON.stringify(ready));
 			expect(group, `${label} Replay Play Amount is visible and display-only`, ready.betVisible && ready.betDisplayOnly && ready.betLabel === 'REPLAY PLAY', JSON.stringify(ready));
 			expect(group, `${label} replay play-amount format is $1.00`, `${ready.betCurrency} ${ready.betText}`.includes('$') && `${ready.betCurrency} ${ready.betText}`.includes('1.00'), JSON.stringify(ready));
-			expect(group, `${label} dedicated Replay Play control is visible, accessible and hittable at center/edges`, ready.actionVisible && ready.actionHittable && !ready.actionDisabled && ready.actionRole === 'button' && ready.actionText === 'Replay Play' && /Replay Play/i.test(ready.actionAccessibleName), JSON.stringify(ready));
+			expect(group, `${label} Start Replay control is visible, accessible and hittable at center/edges`, ready.actionVisible && ready.actionHittable && !ready.actionDisabled && ready.actionRole === 'button' && ready.actionText === 'Start Replay' && /Start Replay/i.test(ready.actionAccessibleName), JSON.stringify(ready));
+			expect(group, `${label} ready screen exposes the complete immutable replay metadata card`, ready.metadataVisible
+				&& ready.metadata.modeLabel === 'Mode'
+				&& ready.metadata.basePlayLabel === 'Base Play'
+				&& ready.metadata.featureMultiplierLabel === 'Feature Multiplier'
+				&& ready.metadata.finalPlayAmountLabel === 'Final Play Amount'
+				&& ready.metadata.finalMultiplierLabel === 'Final Multiplier'
+				&& ready.metadata.totalWinLabel === 'Total Win'
+				&& ready.metadata.basePlay === ready.betText
+				&& ready.metadata.totalWin === ready.winText, JSON.stringify(ready.metadata));
 			expect(group, `${label} board and every required replay element are inside viewport and unclipped`, ready.boardVisible && ready.allRequiredInsideViewport && ready.allRequiredUnclipped && ready.panelDescendants.every((item) => item.insideViewport && item.visibleFraction >= 0.9999), JSON.stringify(ready));
 			expect(group, `${label} replay panel does not overlap WIN or Replay Play Amount`, ready.panelOverlapWin === 0 && ready.panelOverlapBet === 0, `winOverlap=${ready.panelOverlapWin} playAmountOverlap=${ready.panelOverlapBet}`);
 			expect(group, `${label} replay layout has no page scrollbars and required text remains readable`, !ready.scrollX && !ready.scrollY && ready.textSizes.every((item) => item.size >= 10), JSON.stringify(ready.textSizes));
 			const forbiddenTabStops = ['btn-spin', 'btn-auto', 'btn-bonus', 'btn-bet-minus', 'btn-bet-plus'];
 			expect(group, `${label} normal paid controls are absent from keyboard navigation`, !ready.tabbableIds.some((id) => forbiddenTabStops.includes(id)), ready.tabbableIds.join(','));
 			const coordinateAudit = await page.evaluate((points) => {
-				const action = document.getElementById('replay-action');
+				const action = document.getElementById('replay-start');
 				return points.map((point) => {
 					const hit = document.elementFromPoint(point.x, point.y);
 					return {
@@ -1808,9 +2013,9 @@ async function testReplay(browser, base) {
 			const activateReplayAction = async (method) => {
 				let focus = null;
 				if (method === 'Space' || method === 'Enter') {
-					await page.focus('#replay-action');
+					await page.focus('#replay-start');
 					focus = await page.evaluate(() => {
-						const action = document.getElementById('replay-action');
+						const action = document.getElementById('replay-start');
 						const style = getComputedStyle(action);
 						return {
 							focused: document.activeElement === action,
@@ -1822,11 +2027,7 @@ async function testReplay(browser, base) {
 						};
 					});
 					await page.keyboard.press(method);
-				} else if (method === 'touch') {
-					await page.tap('#replay-action');
-				} else {
-					await page.click('#replay-action');
-				}
+				} else await activateVisibleReplayAction(page, method);
 				if (focus) {
 					accessibilityEvidence.push({ scenario: scenario.name, viewport, lifecycle: await page.evaluate(() => document.getElementById('stage')?.dataset.replayState), activation: method, ...focus });
 					expect(group, `${label} focused ${method} activation has role, name, enabled state and visible focus`, focus.focused && focus.role === 'button' && /Replay|Play Again/i.test(focus.name) && !focus.disabled && focus.outlineStyle !== 'none' && focus.outlineWidth >= 2, JSON.stringify(focus));
@@ -1893,6 +2094,170 @@ async function testReplay(browser, base) {
 		}
 	}
 
+	// Stake review reproductions must exercise the immutable production book
+	// rows, not hand-authored lookalikes. Event 0 also proves that a valid zero
+	// identifier and every optional replay launch parameter survive transport.
+	const baseBook55473 = await readProductionBook('base_books.jsonl', 55473);
+	const baseFinalWins = baseBook55473.events.filter((event) => event.type === 'finalWin');
+	expect(
+		group,
+		'production base book 55473 is the exact zero-win review fixture',
+		baseBook55473.id === 55473
+			&& baseBook55473.mode === 'base'
+			&& baseBook55473.payoutMultiplier === 0
+			&& baseBook55473.events.length === 2
+			&& baseBook55473.events[0]?.type === 'reveal'
+			&& baseBook55473.events.filter((event) => event.type === 'winInfo').length === 0
+			&& baseFinalWins.length === 1
+			&& baseFinalWins[0]?.amount === 0,
+		JSON.stringify({ id: baseBook55473.id, mode: baseBook55473.mode, payoutMultiplier: baseBook55473.payoutMultiplier, eventTypes: baseBook55473.events.map((event) => event.type) }),
+	);
+
+	const bonusBook1488 = await readProductionBook('bonus_books.jsonl', 1488);
+	const bonusUpdates = bonusBook1488.events.filter((event) => event.type === 'updateFreeSpin');
+	const bonusReveals = bonusBook1488.events.filter((event) => event.type === 'reveal');
+	const bonusWins = bonusBook1488.events.filter((event) => event.type === 'winInfo');
+	const bonusLastUpdateIndex = bonusBook1488.events.findLastIndex((event) => event.type === 'updateFreeSpin');
+	const bonusTail = bonusBook1488.events.slice(bonusLastUpdateIndex + 1);
+	const bonusFreeSpinEnd = bonusBook1488.events.filter((event) => event.type === 'freeSpinEnd');
+	const bonusFinalWins = bonusBook1488.events.filter((event) => event.type === 'finalWin');
+	expect(
+		group,
+		'production bonus book 1488 contains exactly 12 spins and authoritative 5.48x settlement',
+		bonusBook1488.id === 1488
+			&& bonusBook1488.mode === 'bonus'
+			&& bonusBook1488.payoutMultiplier === 548
+			&& JSON.stringify(bonusUpdates.map((event) => event.amount)) === JSON.stringify(Array.from({ length: 12 }, (_, index) => index))
+			&& bonusReveals.length === 12
+			&& bonusWins.reduce((sum, event) => sum + Number(event.totalWin || 0), 0) === 548
+			&& bonusWins.at(-1)?.runningTotalWin === 548
+			&& bonusFreeSpinEnd.length === 1
+			&& bonusFreeSpinEnd[0]?.amount === 548
+			&& bonusFinalWins.length === 1
+			&& bonusFinalWins[0]?.amount === 548
+			&& !bonusTail.some((event) => event.type === 'updateFreeSpin')
+			&& bonusTail.filter((event) => event.type === 'reveal').length === 1,
+		JSON.stringify({
+			id: bonusBook1488.id,
+			payoutMultiplier: bonusBook1488.payoutMultiplier,
+			updates: bonusUpdates.map((event) => event.amount),
+			reveals: bonusReveals.length,
+			winTotal: bonusWins.reduce((sum, event) => sum + Number(event.totalWin || 0), 0),
+			tailTypes: bonusTail.map((event) => event.type),
+		}),
+	);
+
+	const exactBookCases = [
+		{
+			name: 'production-base-55473-event-zero',
+			book: baseBook55473,
+			event: 0,
+			amount: 10 * API,
+			device: 'mobile',
+			expectedWin: '$0.00',
+		},
+		{
+			name: 'production-bonus-1488',
+			book: bonusBook1488,
+			event: 1488,
+			amount: API,
+			device: 'desktop',
+			expectedWin: '$5.48',
+		},
+	];
+	for (const exactCase of exactBookCases) {
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		const round = replayRoundFromProductionBook(exactCase.book, { amount: exactCase.amount, eventId: exactCase.event });
+		const calls = await mockReplayRgs(context, () => ({ round }));
+		const page = await openPreview(context, base, replayQuery({
+			mode: exactCase.book.mode,
+			event: exactCase.event,
+			amount: exactCase.amount,
+			currency: 'USD',
+			language: 'en',
+			device: exactCase.device,
+		}));
+		await waitForReplayState(page, 'ready');
+		const request = calls.replay[0];
+		const ready = await page.evaluate(() => ({
+			state: document.getElementById('stage')?.dataset.replayState,
+			round: window.__stakeQa.Replay.current?.round,
+			meta: window.__stakeQa.Replay.current?.meta,
+			launch: Object.fromEntries(new URL(location.href).searchParams.entries()),
+		}));
+		expect(
+			group,
+			`${exactCase.name} preserves event, amount, currency, language and device parameters`,
+			calls.replay.length === 1
+				&& request?.method === 'GET'
+				&& request?.path.endsWith(`/${exactCase.event}`)
+				&& request?.search.language === 'en'
+				&& request?.search.lang === 'en'
+				&& ready.launch.amount === String(exactCase.amount)
+				&& ready.launch.currency === 'USD'
+				&& ready.launch.lang === 'en'
+				&& ready.launch.device === exactCase.device
+				&& calls.forbidden.length === 0,
+			JSON.stringify({ request, forbidden: calls.forbidden }),
+		);
+		expect(
+			group,
+			`${exactCase.name} loads the exact immutable production book`,
+			ready.state === 'ready'
+				&& ready.round?.betID === `stake-qa-production-book-${exactCase.book.id}`
+				&& ready.round?.state?.events?.length === exactCase.book.events.length
+				&& Number(ready.round?.payoutMultiplier) === exactCase.book.payoutMultiplier,
+			JSON.stringify({ state: ready.state, betID: ready.round?.betID, events: ready.round?.state?.events?.length, meta: ready.meta }),
+		);
+		await page.evaluate(() => window.__stakeQa.setTurbo(true));
+		await activateVisibleReplayAction(page);
+		const overlayDriver = exactCase.book.mode === 'bonus' ? driveReplayOverlays(page) : Promise.resolve();
+		await waitForReplayState(page, 'completed', 120_000);
+		await overlayDriver;
+		const complete = await replayUiAudit(page);
+		expect(group, `${exactCase.name} completes with the authoritative production payout`, complete.state === 'completed' && complete.winText === exactCase.expectedWin && calls.forbidden.length === 0, JSON.stringify(complete));
+		replayValidationEvidence.push({
+			case: exactCase.name,
+			bookId: exactCase.book.id,
+			expected: 'completed',
+			actual: complete,
+			replayRequests: calls.replay,
+			forbiddenRequests: calls.forbidden,
+		});
+		replayNetworkEvidence.push({ scenario: exactCase.name, viewport: 'desktop-1280x720', replayRequests: calls.replay, forbiddenRequests: calls.forbidden });
+		await context.close();
+	}
+
+	for (const omitted of [
+		['amount'],
+		['currency'],
+		['lang'],
+		['device'],
+		['amount', 'currency', 'lang', 'device', 'social'],
+	]) {
+		const label = omitted.join('-');
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		const calls = await mockReplayRgs(context, () => ({ round: baseReplayRound() }));
+		const page = await openPreview(context, base, replayQueryWithout(omitted, { mode: 'base', event: `stake-qa-optional-${label}` }));
+		await waitForReplayState(page, 'ready');
+		const audit = await replayUiAudit(page);
+		const launch = await page.evaluate(() => Object.fromEntries(new URL(location.href).searchParams.entries()));
+		expect(
+			group,
+			`Replay accepts omitted optional launch parameter(s): ${label}`,
+			omitted.every((name) => !Object.hasOwn(launch, name))
+				&& audit.state === 'ready'
+				&& audit.metadataVisible
+				&& audit.metadata.basePlay === '$1.00'
+				&& audit.metadata.totalWin === '$1.25'
+				&& calls.replay.length === 1
+				&& calls.forbidden.length === 0,
+			JSON.stringify({ omitted, launch, audit: audit.metadata, calls }),
+		);
+		replayValidationEvidence.push({ case: `optional-omitted-${label}`, expected: 'ready', actual: audit, replayRequests: calls.replay, forbiddenRequests: calls.forbidden });
+		await context.close();
+	}
+
 	// Stable Stake payout evidence: capture the authoritative float and every
 	// highlighted coordinate while the saved win is visibly held on screen.
 	const jSeven = [...columnPositions(0), { col: 1, row: 0 }, { col: 1, row: 1 }];
@@ -1908,7 +2273,7 @@ async function testReplay(browser, base) {
 		const calls = await mockReplayRgs(context, () => ({ round: authoritativeClusterReplayRound(stakeCase) }));
 		const page = await openPreview(context, base, replayQuery({ event: `stake-qa-${stakeCase.name}` }));
 		await waitForReplayState(page, 'ready');
-		await page.click('#replay-action');
+		await activateVisibleReplayAction(page);
 		await waitForReplayState(page, 'running');
 		await page.waitForFunction(({ expectedCount, expectedFloat }) => {
 			const float = [...document.querySelectorAll('.cluster-float')].find((item) => item.textContent?.includes(expectedFloat));
@@ -1974,10 +2339,10 @@ async function testReplay(browser, base) {
 			totalWin: window.__stakeQa.Replay.current?.meta?.totalWin,
 			payoutMultiplier: window.__stakeQa.Replay.current?.meta?.payoutMultiplier,
 			roundMode: window.__stakeQa.Replay.current?.round?.mode,
-			actionText: document.getElementById('replay-action')?.textContent?.trim(),
+			actionText: document.getElementById('replay-start')?.textContent?.trim(),
 		}));
-		expect(group, `${variant.name} reconstructs replay payout multiplier from finalWin when needed`, ready.state === 'ready' && ready.actionText === 'Replay Play' && ready.roundMode === (variant.expectedMode || variant.mode) && Math.abs(ready.totalWin - variant.expectedMultiplier) <= 0.000001 && Math.abs(ready.payoutMultiplier - variant.expectedMultiplier) <= 0.000001, JSON.stringify(ready));
-		await page.click('#replay-action');
+		expect(group, `${variant.name} reconstructs replay payout multiplier from finalWin when needed`, ready.state === 'ready' && ready.actionText === 'Start Replay' && ready.roundMode === (variant.expectedMode || variant.mode) && Math.abs(ready.totalWin - variant.expectedMultiplier) <= 0.000001 && Math.abs(ready.payoutMultiplier - variant.expectedMultiplier) <= 0.000001, JSON.stringify(ready));
+		await activateVisibleReplayAction(page);
 		await waitForReplayState(page, 'completed', 30_000);
 		const complete = await replayUiAudit(page);
 		const overlays = await page.evaluate(() => ({
@@ -1997,7 +2362,7 @@ async function testReplay(browser, base) {
 	// Social Replay derives its presentation from the authoritative XGC/XSC
 	// replay currency. No manual social query parameter is used in these cases.
 	const socialReplayModes = [
-		{ mode: 'base', name: 'Base Play', round: baseReplayRound },
+		{ mode: 'base', name: 'Base Game', round: baseReplayRound },
 		{ mode: 'hunt', name: 'Feature Spins', round: () => ({ ...baseReplayRound(), mode: 'hunt', costMultiplier: 4.2 }) },
 		{ mode: 'rainbow', name: 'Rainbow Spin', round: rainbowReplayRound },
 		{ mode: 'bonus_tier1', name: 'Golden Chance', round: bonusTier1ReplayRound },
@@ -2056,7 +2421,7 @@ async function testReplay(browser, base) {
 			const expectedSummary = `${socialMode.name.toUpperCase()} · 1.00 ${socialCode}`;
 			expect(group, `${currency} ${socialMode.mode} replay currency is authoritative and formatted once`, socialReadySurface.currency === currency && socialReadySurface.summary === expectedSummary && `${socialReady.betCurrency} ${socialReady.betText}`.includes(socialCode) && !`${socialReady.betCurrency} ${socialReady.betText}`.includes(currency), JSON.stringify({ socialReady, socialReadySurface, expectedSummary }));
 			expect(group, `${currency} ${socialMode.mode} ready lifecycle is explicit`, socialReadySurface.status === 'READY TO REPLAY', JSON.stringify(socialReadySurface));
-			await socialPage.click('#replay-action');
+			await activateVisibleReplayAction(socialPage);
 			await waitForReplayState(socialPage, 'running');
 			const socialRunning = await socialVisibleAudit('running');
 			expect(group, `${currency} ${socialMode.mode} running lifecycle is explicit`, socialRunning.status === 'REPLAY RUNNING', JSON.stringify(socialRunning));
@@ -2068,7 +2433,7 @@ async function testReplay(browser, base) {
 				await screenshot(socialPage, `replay-social-${currency.toLowerCase()}-completed-1280x720`);
 			}
 			await screenshot(socialPage, `replay-social-${currency.toLowerCase()}-${socialMode.mode}-completed-1280x720`);
-			await socialPage.click('#replay-action');
+			await activateVisibleReplayAction(socialPage);
 			await waitForReplayState(socialPage, 'running');
 			await waitForReplayState(socialPage, 'completed', 30_000);
 			const playAgainSurface = await socialVisibleAudit('completed after Play Again');
@@ -2119,9 +2484,9 @@ async function testReplay(browser, base) {
 	const mxnReady = await replayUiAudit(mxnPage);
 	const mxnReadySurface = await visibleSurfaceAudit(mxnPage);
 	const mxnReadyHits = playerVisibleForbiddenHits(`${mxnReadySurface.text} ${mxnReadySurface.attrs}`);
-	expect(group, 'normal MXN Replay ready state uses Replay Play Amount', mxnReady.betLabel === 'REPLAY PLAY' && mxnReady.actionText === 'Replay Play' && mxnReadyHits.length === 0, JSON.stringify({ mxnReady, mxnReadyHits }));
+	expect(group, 'normal MXN Replay ready state uses Replay Play Amount', mxnReady.betLabel === 'REPLAY PLAY' && mxnReady.actionText === 'Start Replay' && mxnReadyHits.length === 0, JSON.stringify({ mxnReady, mxnReadyHits }));
 	await mxnPage.evaluate(() => window.__stakeQa.setTurbo(true));
-	await mxnPage.click('#replay-action');
+	await activateVisibleReplayAction(mxnPage);
 	await waitForReplayState(mxnPage, 'running');
 	const mxnRunningSurface = await visibleSurfaceAudit(mxnPage);
 	const mxnRunningHits = playerVisibleForbiddenHits(`${mxnRunningSurface.text} ${mxnRunningSurface.attrs}`);
@@ -2132,7 +2497,7 @@ async function testReplay(browser, base) {
 	const mxnRestrictedHits = playerVisibleForbiddenHits(`${mxnSurface.text} ${mxnSurface.attrs}`);
 	expect(group, 'normal MXN Replay uses globally safe terminology and retains MX$ formatting', mxnReplay.statusText === 'REPLAY COMPLETED' && mxnReplay.betLabel === 'REPLAY PLAY' && mxnRestrictedHits.length === 0 && `${mxnReplay.betCurrency} ${mxnReplay.betText}`.includes('MX$') && mxnCalls.replay.length === 1 && mxnCalls.forbidden.length === 0, JSON.stringify({ mxnReplay, mxnRestrictedHits, mxnCalls }));
 	await screenshot(mxnPage, 'replay-normal-mxn-completed-1280x720');
-	await mxnPage.click('#replay-action');
+	await activateVisibleReplayAction(mxnPage);
 	await waitForReplayState(mxnPage, 'running');
 	await waitForReplayState(mxnPage, 'completed', 30_000);
 	const mxnAgainSurface = await visibleSurfaceAudit(mxnPage);
@@ -2229,11 +2594,11 @@ async function testReplay(browser, base) {
 		const page = await openPreview(context, base, replayQuery({ mode: 'base', event: `stake-qa-${errorCase.name}` }));
 		await page.waitForFunction(() => ['ready', 'error'].includes(document.getElementById('stage')?.dataset.replayState), null, { timeout: 25_000 });
 		if (await page.evaluate(() => document.getElementById('stage')?.dataset.replayState === 'ready')) {
-			await page.click('#replay-action');
+			await activateVisibleReplayAction(page);
 			await page.waitForFunction(() => ['completed', 'error'].includes(document.getElementById('stage')?.dataset.replayState), null, { timeout: 25_000 });
 		}
 		const errorAudit = await page.evaluate(() => {
-			const action = document.getElementById('replay-action');
+			const action = document.getElementById('replay-start');
 			const visible = (el) => !!el && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().width > 0;
 			return {
 				state: document.getElementById('stage')?.dataset.replayState,
@@ -2265,7 +2630,7 @@ async function testReplay(browser, base) {
 		amount: String(API), currency: 'USD', lang: 'en', device: 'desktop',
 	});
 	const launchCases = [
-		...['rgs_url', 'game', 'version', 'mode', 'event', 'amount', 'currency', 'lang', 'device'].map((field) => ({ name: `missing-${field}`, mutate: (params) => params.delete(field) })),
+		...['rgs_url', 'game', 'version', 'mode', 'event'].map((field) => ({ name: `missing-${field}`, mutate: (params) => params.delete(field) })),
 		{ name: 'zero-amount', mutate: (params) => params.set('amount', '0') },
 		{ name: 'fractional-api-amount', mutate: (params) => params.set('amount', '1.5') },
 		{ name: 'invalid-currency', mutate: (params) => params.set('currency', 'US$') },
@@ -2295,6 +2660,17 @@ async function testReplay(browser, base) {
 // ---------------------------------------------------------------------------
 async function testRgsRoundStates(browser, base) {
 	const group = 'rgs-round-states-e2e';
+	const baseBook55473 = await readProductionBook('base_books.jsonl', 55473);
+	expect(
+		group,
+		'normal RGS review fixture loads exact production base book 55473',
+		baseBook55473.id === 55473
+			&& baseBook55473.mode === 'base'
+			&& baseBook55473.payoutMultiplier === 0
+			&& JSON.stringify(baseBook55473.events.map((event) => event.type)) === JSON.stringify(['reveal', 'finalWin'])
+			&& baseBook55473.events.at(-1)?.amount === 0,
+		JSON.stringify({ id: baseBook55473.id, mode: baseBook55473.mode, payoutMultiplier: baseBook55473.payoutMultiplier, eventTypes: baseBook55473.events.map((event) => event.type) }),
+	);
 	const localMathContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 	const localMathPage = await openPreview(localMathContext, base);
 	const localWildBoard = Array.from({ length: 6 }, () => Array(5).fill('scatter'));
@@ -2360,6 +2736,142 @@ async function testRgsRoundStates(browser, base) {
 			await context.close();
 		}
 	}
+
+	// Stake screenshot reproduction: a connected ten-symbol win is 0.96x in
+	// the shipped paytable. At a $10 play amount the RGS therefore owns both
+	// the visible $9.60 win and the $990.00 -> $999.60 settlement delta.
+	const tenPositions = [...columnPositions(0), ...columnPositions(1)];
+	const tenBookUnits = 96;
+	const tenAmount = 10 * API;
+	const tenWin = 9.60;
+	const tenPaytable = productionMathConfig.paytable?.ten;
+	expect(
+		group,
+		'shipped ten-symbol 9+ value is exactly 0.96x',
+		Number(tenPaytable?.cluster5) * Number(tenPaytable?.cluster9Boost) === 0.96,
+		JSON.stringify(tenPaytable),
+	);
+	const tenRound = {
+		...authoritativeClusterReplayRound({ symbol: 'ten', positions: tenPositions, bookUnits: tenBookUnits, amount: tenAmount }),
+		active: true,
+		betID: 'stake-qa-ten-symbol-9-plus',
+	};
+	const tenContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+	const tenCalls = await mockRgs(tenContext, {
+		authenticate: () => ({ balance: balanceOf(1000, 'USD'), round: null }),
+		play: () => ({ balance: balanceOf(990, 'USD'), round: tenRound }),
+		endRound: () => ({
+			balance: balanceOf(999.60, 'USD'),
+			round: { ...cloneRound(tenRound), active: false, state: undefined },
+		}),
+	});
+	const tenPage = await openPreview(tenContext, base, rgsQuery('USD'));
+	await tenPage.waitForFunction(() => window.__stakeQa.state.walletBusy === false);
+	await tenPage.evaluate(() => {
+		window.__stakeQa.state.bet = 10;
+		window.__stakeQa.setTurbo(true);
+	});
+	await tenPage.evaluate(() => window.__stakeQa.spinRgsMode('base'));
+	await tenPage.waitForFunction(() => window.__stakeQa.state.spinning === false && window.__stakeQa.state.walletBusy === false, null, { timeout: 45_000 });
+	const tenState = await gameState(tenPage);
+	const tenWinText = await meterText(tenPage, 'meter-win');
+	const tenBalanceText = await meterText(tenPage, 'meter-balance');
+	const tenSucceeded = tenCalls.play.length === 1
+		&& tenCalls.play[0]?.amount === tenAmount
+		&& tenCalls.endRound.length === 1
+		&& JSON.stringify(tenCalls.order) === JSON.stringify(['authenticate', 'play', 'end-round'])
+		&& Math.abs(tenState.win - tenWin) <= 0.000001
+		&& tenWinText === '$9.60'
+		&& Math.abs(tenState.balance - 999.60) <= 0.000001
+		&& tenBalanceText === '$999.60'
+		&& tenState.localWalletCredits === 0;
+	expect(
+		group,
+		'$10 x 0.96 renders $9.60 and applies only the authoritative wallet delta',
+		tenSucceeded,
+		JSON.stringify({ state: tenState, winText: tenWinText, balanceText: tenBalanceText, calls: tenCalls }),
+	);
+	const tenInvariant = {
+		case: 'ten-symbol-9-plus-at-10-usd',
+		bookMultiplier: 0.96,
+		playAmountApi: tenAmount,
+		playBalanceApi: balanceOf(990, 'USD').amount,
+		endRoundBalanceApi: balanceOf(999.60, 'USD').amount,
+		expectedWin: tenWin.toFixed(2),
+		actualWin: tenState.win.toFixed(2),
+		expectedFinalBalance: '999.60',
+		actualFinalBalance: tenState.balance.toFixed(2),
+		localWalletCredits: tenState.localWalletCredits,
+		status: tenSucceeded ? 'PASS' : 'FAIL',
+	};
+	balanceInvariantEvidence.push(tenInvariant);
+	walletNetworkEvidence.push({ scenario: 'ten-symbol-9-plus-at-10-usd', calls: tenCalls, invariant: tenInvariant });
+	await tenContext.close();
+
+	// A normal wallet round is invalid when payout, payoutMultiplier and the
+	// terminal finalWin describe different money. This must become a fatal,
+	// non-playable state instead of picking whichever field looks plausible.
+	const contradictionRound = {
+		...authoritativeClusterReplayRound({ symbol: 'ten', positions: tenPositions, bookUnits: 270, amount: tenAmount }),
+		active: false,
+		betID: 'stake-qa-normal-rgs-contradiction',
+		payout: balanceOf(2.76, 'USD').amount,
+		payoutMultiplier: 270,
+	};
+	const contradictionContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+	const contradictionCalls = await mockRgs(contradictionContext, {
+		authenticate: () => ({ balance: balanceOf(1000, 'USD'), round: null }),
+		play: () => ({ balance: balanceOf(992.76, 'USD'), round: contradictionRound }),
+	});
+	const contradictionPage = await openPreview(contradictionContext, base, rgsQuery('USD'));
+	await contradictionPage.waitForFunction(() => window.__stakeQa.state.walletBusy === false);
+	await contradictionPage.evaluate(() => {
+		window.__stakeQa.state.bet = 10;
+		window.__stakeQa.setTurbo(true);
+	});
+	await contradictionPage.evaluate(() => window.__stakeQa.spinRgsMode('base'));
+	await contradictionPage.waitForFunction(
+		() => window.__stakeQa.state.fatal || (!window.__stakeQa.state.spinning && !window.__stakeQa.state.walletBusy),
+		null,
+		{ timeout: 45_000 },
+	);
+	const contradictionAudit = await contradictionPage.evaluate(() => ({
+		fatal: window.__stakeQa.state.fatal,
+		spinning: window.__stakeQa.state.spinning,
+		walletBusy: window.__stakeQa.state.walletBusy,
+		win: window.__stakeQa.state.win,
+		balance: window.__stakeQa.state.balance,
+		localWalletCredits: window.__stakeQa.state.localWalletCredits,
+		title: document.querySelector('#fatal-error .fatal-error-title')?.textContent?.trim() || '',
+		detail: document.querySelector('#fatal-error .fatal-error-detail')?.textContent?.trim() || '',
+	}));
+	const contradictionBlocked = contradictionAudit.fatal === true
+		&& contradictionAudit.spinning === false
+		&& contradictionAudit.walletBusy === false
+		&& contradictionCalls.play.length === 1
+		&& contradictionCalls.endRound.length === 0
+		&& contradictionAudit.localWalletCredits === 0
+		&& /inconsistent|invalid|validation|mismatch|unavailable|failed/i.test(`${contradictionAudit.title} ${contradictionAudit.detail}`);
+	expect(
+		group,
+		'normal RGS payout/finalWin/payoutMultiplier contradiction fails closed',
+		contradictionBlocked,
+		JSON.stringify({ audit: contradictionAudit, calls: contradictionCalls }),
+	);
+	walletNetworkEvidence.push({
+		scenario: 'normal-rgs-payout-contradiction',
+		calls: contradictionCalls,
+		invariant: {
+			playAmountApi: tenAmount,
+			payoutApi: contradictionRound.payout,
+			payoutMultiplier: contradictionRound.payoutMultiplier,
+			finalWinBookUnits: contradictionRound.state.at(-1)?.amount,
+			fatal: contradictionAudit.fatal,
+			localWalletCredits: contradictionAudit.localWalletCredits,
+			status: contradictionBlocked ? 'BLOCKED_AS_REQUIRED' : 'FAIL',
+		},
+	});
+	await contradictionContext.close();
 
 	for (const invalidEndBalance of [
 		{ name: 'missing', response: { round: { active: false } } },
@@ -2444,33 +2956,38 @@ async function testRgsRoundStates(browser, base) {
 		detail: document.querySelector('#fatal-error .fatal-error-detail')?.textContent?.trim(),
 		state: { fatal: window.__stakeQa.state.fatal, spinning: window.__stakeQa.state.spinning, win: window.__stakeQa.state.win },
 	}));
-	expect(group, 'unsupported normal RGS event state fails visibly with no local/random fallback', unsupported.state.fatal && !unsupported.state.spinning && unsupported.state.win === 0 && /Unsupported game-service round/i.test(unsupported.title || '') && /No local fallback/i.test(unsupported.detail || '') && unsupportedCalls.play.length === 1, JSON.stringify(unsupported));
+	expect(group, 'unsupported normal RGS event state fails visibly with no local/random fallback', unsupported.state.fatal && !unsupported.state.spinning && unsupported.state.win === 0 && /(?:Unsupported|Inconsistent) game-service round/i.test(unsupported.title || '') && /(?:No local fallback|Nothing was reconstructed locally)/i.test(unsupported.detail || '') && unsupportedCalls.play.length === 1, JSON.stringify(unsupported));
 	await unsupportedContext.close();
 
 	// Stake-review regression: settlement must finish before the completion
 	// presentation is dismissed, and Best Spin must be an individual spin.
+	const featureCumulativeUnits = [0, 348, 1368, 2068, 2548, 3448, 3648, 4448];
 	const featureEvents = [
 		{ index: 0, type: 'reveal', board: quietBoard(), gameType: 'basegame' },
 		{ index: 1, type: 'freeSpinTrigger', totalFs: 8, tier: 1, positions: [] },
-		{ index: 2, type: 'updateFreeSpin', amount: 0, total: 8, tier: 1 },
-		{ index: 3, type: 'setTotalWin', amount: 0 },
-		{ index: 4, type: 'updateFreeSpin', amount: 1, total: 8, tier: 1 },
-		{ index: 5, type: 'setTotalWin', amount: 348 },
-		{ index: 6, type: 'updateFreeSpin', amount: 2, total: 8, tier: 1 },
-		{ index: 7, type: 'setTotalWin', amount: 1368 },
-		{ index: 8, type: 'updateFreeSpin', amount: 3, total: 8, tier: 1 },
-		{ index: 9, type: 'setTotalWin', amount: 2068 },
-		{ index: 10, type: 'updateFreeSpin', amount: 4, total: 8, tier: 1 },
-		{ index: 11, type: 'setTotalWin', amount: 2548 },
-		{ index: 12, type: 'updateFreeSpin', amount: 5, total: 8, tier: 1 },
-		{ index: 13, type: 'setTotalWin', amount: 3448 },
-		{ index: 14, type: 'updateFreeSpin', amount: 6, total: 8, tier: 1 },
-		{ index: 15, type: 'setTotalWin', amount: 3648 },
-		{ index: 16, type: 'updateFreeSpin', amount: 7, total: 8, tier: 1 },
-		{ index: 17, type: 'setTotalWin', amount: 4448 },
-		{ index: 18, type: 'freeSpinEnd', amount: 4448 },
-		{ index: 19, type: 'finalWin', amount: 4448 },
 	];
+	let featureEventIndex = 2;
+	let previousFeatureUnits = 0;
+	for (let spinIndex = 0; spinIndex < featureCumulativeUnits.length; spinIndex += 1) {
+		const cumulativeUnits = featureCumulativeUnits[spinIndex];
+		const stepUnits = cumulativeUnits - previousFeatureUnits;
+		featureEvents.push({ index: featureEventIndex++, type: 'updateFreeSpin', amount: spinIndex, total: 8, tier: 1 });
+		if (stepUnits > 0) {
+			featureEvents.push({
+				index: featureEventIndex++,
+				type: 'winInfo',
+				totalWin: stepUnits,
+				runningTotalWin: cumulativeUnits,
+				wins: [{ symbol: 'L2', win: stepUnits, positions: columnPositions(0), meta: { multiplier: 1 } }],
+			});
+		}
+		featureEvents.push({ index: featureEventIndex++, type: 'setTotalWin', amount: cumulativeUnits });
+		previousFeatureUnits = cumulativeUnits;
+	}
+	featureEvents.push(
+		{ index: featureEventIndex++, type: 'freeSpinEnd', amount: 4448 },
+		{ index: featureEventIndex++, type: 'finalWin', amount: 4448 },
+	);
 	const featureContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 	const featureCalls = await mockRgs(featureContext, {
 		authenticate: () => ({ balance: balanceOf(1021.42, 'USD'), round: null }),
