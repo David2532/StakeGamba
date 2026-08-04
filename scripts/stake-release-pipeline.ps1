@@ -1120,12 +1120,14 @@ try {
 
 	$previousQaFrontendRoot = $env:STAKE_QA_FRONTEND_ROOT
 	$previousQaFrontendEntry = $env:STAKE_QA_FRONTEND_ENTRY
+	$previousQaFrontendHtml = $env:STAKE_QA_FRONTEND_HTML
 	$previousQaMathConfig = $env:STAKE_QA_MATH_CONFIG
 	$previousQaArtifactDir = $env:STAKE_QA_ARTIFACT_DIR
 	$previousQaRequireE2e = $env:STAKE_QA_REQUIRE_E2E
 	try {
 		$env:STAKE_QA_FRONTEND_ROOT = Join-Path $uploadExtractDir "frontend"
 		$env:STAKE_QA_FRONTEND_ENTRY = "index.html"
+		$env:STAKE_QA_FRONTEND_HTML = Join-Path $uploadExtractDir "frontend\index.html"
 		$env:STAKE_QA_MATH_CONFIG = Join-Path $uploadExtractDir "math\game_config.json"
 		$env:STAKE_QA_ARTIFACT_DIR = $exactZipQaRoot
 		$env:STAKE_QA_REQUIRE_E2E = "1"
@@ -1134,9 +1136,34 @@ try {
 	finally {
 		$env:STAKE_QA_FRONTEND_ROOT = $previousQaFrontendRoot
 		$env:STAKE_QA_FRONTEND_ENTRY = $previousQaFrontendEntry
+		$env:STAKE_QA_FRONTEND_HTML = $previousQaFrontendHtml
 		$env:STAKE_QA_MATH_CONFIG = $previousQaMathConfig
 		$env:STAKE_QA_ARTIFACT_DIR = $previousQaArtifactDir
 		$env:STAKE_QA_REQUIRE_E2E = $previousQaRequireE2e
+	}
+
+	$expectedExtractedFrontend = [System.IO.Path]::GetFullPath((Join-Path $uploadExtractDir "frontend\index.html"))
+	$expectedExtractedFrontendRoot = [System.IO.Path]::GetFullPath((Join-Path $uploadExtractDir "frontend"))
+	$expectedExtractedMath = [System.IO.Path]::GetFullPath((Join-Path $uploadExtractDir "math\game_config.json"))
+	$exactQaReport = Read-Json -Path (Join-Path $exactZipQaRoot "report.json")
+	$exactE2eReport = Read-Json -Path (Join-Path $exactZipQaRoot "e2e-report.json")
+	$reportedStaticFrontend = [System.IO.Path]::GetFullPath([string]$exactQaReport.targets.frontend)
+	$reportedStaticMath = [System.IO.Path]::GetFullPath([string]$exactQaReport.targets.mathConfig)
+	$reportedE2eFrontendRoot = [System.IO.Path]::GetFullPath((Join-Path $Root ([string]$exactE2eReport.frontendRoot)))
+	if ($reportedStaticFrontend -ne $expectedExtractedFrontend) {
+		throw "Extracted-artifact static QA targeted the wrong frontend: $reportedStaticFrontend"
+	}
+	if ($reportedStaticMath -ne $expectedExtractedMath) {
+		throw "Extracted-artifact static QA targeted the wrong math config: $reportedStaticMath"
+	}
+	if ($reportedE2eFrontendRoot -ne $expectedExtractedFrontendRoot) {
+		throw "Extracted-artifact E2E targeted the wrong frontend root: $reportedE2eFrontendRoot"
+	}
+	if ([string]$exactQaReport.identity.testedCommitSha -ne $gitSha -or [string]$exactE2eReport.identity.testedCommitSha -ne $gitSha) {
+		throw "Extracted-artifact QA commit identity differs from the packaged commit"
+	}
+	if ([int]$exactQaReport.summary.fail -ne 0 -or [int]$exactQaReport.summary.skip -ne 0 -or [int]$exactE2eReport.summary.fail -ne 0) {
+		throw "Extracted-artifact QA contains failed or skipped checks"
 	}
 
 	$exactQaEvidenceDestination = Join-Path $stageArtifacts "extracted-artifact-retest"
