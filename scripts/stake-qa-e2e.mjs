@@ -623,6 +623,20 @@ const amountBoundaryReplayRound = (bookUnits) => ({
 		: authoritativeClusterReplayRound({ symbol: 'L2', positions: columnPositions(0), bookUnits }).state,
 });
 
+const fractionalBamReplayRound = () => ({
+	...authoritativeClusterReplayRound({
+		symbol: 'L2',
+		positions: columnPositions(0),
+		bookUnits: 536,
+		amount: 20_000,
+		currency: 'BAM',
+		mode: 'hunt',
+		payout: 107_200,
+	}),
+	costMultiplier: 4.2,
+	betID: 'stake-qa-replay-bam-fractional-amounts',
+});
+
 // ---------------------------------------------------------------------------
 // Page helpers
 // ---------------------------------------------------------------------------
@@ -2429,6 +2443,59 @@ async function testReplay(browser, base) {
 		const expectedWin = bookUnits / 100;
 		expect(group, `book-unit boundary ${bookUnits} normalizes exactly once`, normalized.state === 'ready' && Math.abs(normalized.totalWin - expectedWin) <= 0.000001 && Math.abs(normalized.payoutMultiplier - expectedWin) <= 0.000001 && calls.replay.length === 1 && calls.forbidden.length === 0, JSON.stringify(normalized));
 		replayValidationEvidence.push({ case: `unit-${bookUnits}`, expected: 'ready', actual: normalized, replayRequests: calls.replay.length, forbiddenRequests: calls.forbidden.length });
+		await context.close();
+	}
+
+	// Stake review regression: Replay must not round authoritative API micro-units
+	// to conventional two-decimal wallet presentation. 0.02 x 4.2 is 0.084,
+	// while the finalWin contract 536 book units is exactly 0.1072 BAM.
+	{
+		const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+		const calls = await mockReplayRgs(context, () => ({ round: fractionalBamReplayRound() }));
+		const page = await openPreview(context, base, replayQuery({ mode: 'hunt', event: 'stake-qa-bam-fractional-amounts', currency: 'BAM', amount: 20_000 }));
+		await page.waitForFunction(() => ['ready', 'error'].includes(document.getElementById('stage')?.dataset.replayState));
+		const ready = await replayUiAudit(page);
+		const exact = await page.evaluate(() => ({
+			meta: window.__stakeQa.Replay.current?.meta || null,
+			status: document.getElementById('replay-status')?.textContent?.trim(),
+			error: document.getElementById('replay-overlay-detail')?.textContent?.trim(),
+			basePlay: document.getElementById('replay-basebet-value')?.textContent?.trim(),
+			featureMultiplier: document.getElementById('replay-cost-value')?.textContent?.trim(),
+			finalPlayAmount: document.getElementById('replay-totalcost-value')?.textContent?.trim(),
+			finalMultiplier: document.getElementById('replay-payout-value')?.textContent?.trim(),
+			totalWin: document.getElementById('replay-totalwin-value')?.textContent?.trim(),
+		}));
+		expect(
+			group,
+			'BAM fractional replay preserves exact final play amount and total win without two-decimal rounding',
+			ready.state === 'ready'
+				&& exact.basePlay === '0.02 BAM'
+				&& exact.featureMultiplier === '4.2x'
+				&& exact.finalPlayAmount === '0.084 BAM'
+				&& exact.finalMultiplier === '5.36x'
+				&& exact.totalWin === '0.1072 BAM'
+				&& Math.abs(exact.meta?.totalCost - 0.084) <= 0.000001
+				&& Math.abs(exact.meta?.totalWin - 0.1072) <= 0.000001
+				&& calls.replay.length === 1
+				&& calls.forbidden.length === 0,
+			JSON.stringify(exact),
+		);
+		const frame = await screenshot(page, 'replay-bam-fractional-amounts-ready-1280x800');
+		pass(group, 'BAM exact fractional replay modal screenshot saved', frame);
+		await page.evaluate(() => window.__stakeQa.setTurbo(true));
+		await activateVisibleReplayAction(page);
+		await waitForReplayState(page, 'completed', 30_000);
+		const completed = await replayUiAudit(page);
+		expect(
+			group,
+			'BAM completed replay retains the exact immutable modal amounts',
+			completed.metadata.finalPlayAmount === '0.084 BAM'
+				&& completed.metadata.totalWin === '0.1072 BAM'
+				&& calls.replay.length === 1
+				&& calls.forbidden.length === 0,
+			JSON.stringify(completed.metadata),
+		);
+		replayValidationEvidence.push({ case: 'bam-fractional-amounts', expected: 'completed-exact', actual: completed, replayRequests: calls.replay.length, forbiddenRequests: calls.forbidden.length });
 		await context.close();
 	}
 

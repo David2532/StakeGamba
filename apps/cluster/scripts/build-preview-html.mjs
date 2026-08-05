@@ -1435,6 +1435,21 @@ function formatCurrency(amount, currency = state.currency) {
 	const formattedAmount = safeValue.toFixed(meta.decimals);
 	return meta.symbolAfter ? formattedAmount + ' ' + meta.symbol : meta.symbol + formattedAmount;
 }
+function formatReplayCurrency(amount, currency = state.currency) {
+	const code = normalizeCurrency(currency);
+	const meta = currencyMeta(code);
+	const value = Number(amount);
+	const safeValue = Number.isFinite(value) ? value : 0;
+	const minimumDigits = meta ? meta.decimals : 2;
+	const maximumDigits = Math.max(minimumDigits, 4);
+	let formattedAmount = safeValue.toFixed(maximumDigits);
+	const decimalIndex = formattedAmount.indexOf('.');
+	while (formattedAmount.endsWith('0') && formattedAmount.length - decimalIndex - 1 > minimumDigits) {
+		formattedAmount = formattedAmount.slice(0, -1);
+	}
+	if (!meta) return formattedAmount + ' ' + (code || 'UNKNOWN');
+	return meta.symbolAfter ? formattedAmount + ' ' + meta.symbol : meta.symbol + formattedAmount;
+}
 function currencySymbol(currency = state.currency) {
 	const code = normalizeCurrency(currency);
 	return (currencyMeta(code) && currencyMeta(code).symbol) || code || '';
@@ -1844,9 +1859,9 @@ function setReplayLifecycle(status, meta = null, detail = '') {
 		setReplayValue('replay-mode-value', meta.mode || 'Base Game');
 		setReplayValue('replay-basebet-value', formatCurrency(meta.baseBet));
 		setReplayValue('replay-cost-value', multiplierText(meta.costMultiplier));
-		setReplayValue('replay-totalcost-value', formatCurrency(meta.totalCost));
+		setReplayValue('replay-totalcost-value', formatReplayCurrency(meta.totalCost));
 		setReplayValue('replay-payout-value', multiplierText(meta.payoutMultiplier));
-		setReplayValue('replay-totalwin-value', formatCurrency(meta.totalWin));
+		setReplayValue('replay-totalwin-value', formatReplayCurrency(meta.totalWin));
 	}
 	if (overlayAction) {
 		overlayAction.hidden = !metadataAvailable;
@@ -2771,7 +2786,7 @@ function rgsRoundAmountContract(round, events) {
 		finalBookUnits,
 		expectedPayoutApiAmount,
 		payoutPending,
-		totalWin: moneyRound(replayBookUnitsToMultiplier(finalBookUnits) * replayApiAmountToMoney(amount)),
+		totalWin: replayApiAmountToMoney(expectedPayoutApiAmount),
 	};
 }
 function rgsDisplayWinMoney(round, events) {
@@ -3475,7 +3490,7 @@ function replayMetadata(round) {
 	const meta = modeMeta(rgsRoundMode(round));
 	const baseBet = replayApiAmountToMoney(round && round.amount);
 	const costMultiplier = Number(round && round.costMultiplier) || Number(meta.costMultiplier) || 1;
-	const totalCost = moneyRound(baseBet * costMultiplier);
+	const totalCost = replayApiAmountToMoney(Math.round(baseBet * costMultiplier * API_AMOUNT_MULTIPLIER));
 	const totalWin = rgsDisplayWinMoney(round, events) || 0;
 	const payoutMultiplier = replayBookUnitsToMultiplier(round && round.payoutMultiplier);
 	return {
