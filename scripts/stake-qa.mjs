@@ -169,7 +169,7 @@ function runSyntaxCheck() {
 }
 
 async function runCurrencyChecks() {
-	const { CURRENCY_META, currencyDisplaySymbol, formatCurrencyAmount, insufficientFundsMessage } =
+	const { CURRENCY_META, currencyDisplaySymbol, formatCurrencyAmount, formatWinCurrencyAmount, insufficientFundsMessage } =
 		await import(pathToFileURL(paths.currency).href + `?v=${Date.now()}`);
 	const expected = {
 		USD: '$10.00',
@@ -217,6 +217,11 @@ async function runCurrencyChecks() {
 	expect('currency', 'unknown currency falls back to amount plus code', formatCurrencyAmount(10, 'ZZZ') === '10.00 ZZZ', formatCurrencyAmount(10, 'ZZZ'));
 	expect('currency', 'XSC display symbol is SC', currencyDisplaySymbol('XSC') === 'SC', currencyDisplaySymbol('XSC'));
 	expect('currency', 'XGC display symbol is GC', currencyDisplaySymbol('XGC') === 'GC', currencyDisplaySymbol('XGC'));
+	expect('currency', 'USD WIN preserves authoritative sub-cent precision', formatWinCurrencyAmount(0.0496, 'USD') === '$0.0496', formatWinCurrencyAmount(0.0496, 'USD'));
+	expect('currency', 'USD WIN keeps native minimum precision', formatWinCurrencyAmount(0.05, 'USD') === '$0.05' && formatWinCurrencyAmount(0, 'USD') === '$0.00', `${formatWinCurrencyAmount(0.05, 'USD')} / ${formatWinCurrencyAmount(0, 'USD')}`);
+	expect('currency', 'XSC WIN preserves precision without a dollar sign', formatWinCurrencyAmount(0.0496, 'XSC') === '0.0496 SC', formatWinCurrencyAmount(0.0496, 'XSC'));
+	expect('currency', 'unknown WIN currency preserves precision with code', formatWinCurrencyAmount(0.0496, 'BAM') === '0.0496 BAM', formatWinCurrencyAmount(0.0496, 'BAM'));
+	expect('currency', 'zero-decimal currency WIN policy remains integer', formatWinCurrencyAmount(10.49, 'JPY') === '\u00a510' && formatWinCurrencyAmount(10.49, 'CLP') === '10 CLP', `${formatWinCurrencyAmount(10.49, 'JPY')} / ${formatWinCurrencyAmount(10.49, 'CLP')}`);
 	expect('currency', 'social casino insufficient copy uses Balance', insufficientFundsMessage('XSC', false) === 'Insufficient Balance', insufficientFundsMessage('XSC', false));
 	expect('currency', 'fiat insufficient copy also uses globally safe Balance wording', insufficientFundsMessage('EUR', false) === 'Insufficient Balance', insufficientFundsMessage('EUR', false));
 }
@@ -390,8 +395,9 @@ function runCurrencySourceChecks() {
 
 	expectContains('currency-source', 'builder imports shared currency metadata', builder, 'CURRENCY_META');
 	expectContains('currency-source', 'builder HUD uses currency text slot', builder, "'currency'");
-	expectContains('currency-source', 'builder WIN meter uses currency formatting', builder, "$('meter-win').textContent = formatCurrency(");
-	expectContains('currency-source', 'shared amount formatter delegates to currency adapter', amount, 'formatCurrencyAmount');
+	expectContains('currency-source', 'builder WIN meter preserves authoritative sub-cent precision', builder, "$('meter-win').textContent = formatExactCurrency(");
+	expectContains('currency-source', 'shared standard amount formatter delegates to currency adapter', amount, 'formatCurrencyAmount');
+	expectContains('currency-source', 'shared book WIN formatter delegates to precise WIN currency adapter', amount, 'formatWinCurrencyAmount');
 	expectNotContains('currency-source', 'builder does not use old euro image asset', builder, 'assets.euro');
 	expectNotContains('currency-source', 'cluster preview source does not use old euro image asset', clusterSource, 'assets.euro');
 	expectNotContains('currency-source', 'lines preview no longer uses Intl currency hardcode', linesSource, 'Intl.NumberFormat');

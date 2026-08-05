@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import { currencyDisplaySymbol, formatCurrencyAmount } from 'utils-shared/currency.js';
+	import {
+		currencyDisplaySymbol,
+		formatCurrencyAmount,
+		formatWinCurrencyAmount,
+	} from 'utils-shared/currency.js';
 
 	const assets = {
 		background: new URL('../assets/golden-goal-rush/slot-background.webp', import.meta.url).href,
@@ -163,7 +167,7 @@
 		},
 		{
 			label: 'WIN',
-			value: formatCurrencyAmount(win, previewCurrency),
+			value: formatWinCurrencyAmount(win, previewCurrency),
 			currencySymbol: undefined,
 			icon: assets.trophy,
 			frame: assets.meterPanelB,

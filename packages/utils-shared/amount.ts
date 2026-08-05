@@ -1,6 +1,6 @@
 import { BOOK_AMOUNT_MULTIPLIER } from 'constants-shared/bet';
 import { stateBet } from 'state-shared';
-import { formatCurrencyAmount } from './currency.js';
+import { formatCurrencyAmount, formatWinCurrencyAmount } from './currency.js';
 
 // bookEventAmount: is the amount or win numbers in the events of books, e.g. the amount in setTotalWin bookEvent
 // {
@@ -29,5 +29,5 @@ export const numberToCurrencyString = (value: number) => {
 
 export const bookEventAmountToCurrencyString = (bookEventAmount: number) => {
 	const normalisedAmount = bookEventAmountToNormalisedAmount(bookEventAmount);
-	return numberToCurrencyString(normalisedAmount);
+	return formatWinCurrencyAmount(numberToFloat(normalisedAmount), stateBet.currency);
 };

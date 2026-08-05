@@ -2917,6 +2917,98 @@ async function testRgsRoundStates(browser, base) {
 		}
 	}
 
+	// Stake review regression: regular gameplay must preserve the authoritative
+	// sub-cent win while Balance and Play Amount retain normal USD formatting.
+	// Event-style contract: $0.02 x 2.48 = $0.0496, never $0.05.
+	const preciseBookUnits = 248;
+	const preciseAmount = 20_000;
+	const preciseWin = 0.0496;
+	const preciseRound = {
+		...authoritativeClusterReplayRound({ symbol: 'L2', positions: columnPositions(0), bookUnits: preciseBookUnits, amount: preciseAmount }),
+		active: true,
+		betID: 'stake-qa-regular-win-precision-26867',
+	};
+	const preciseContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+	const preciseCalls = await mockRgs(preciseContext, {
+		authenticate: () => ({
+			balance: balanceOf(1000, 'USD'),
+			config: {
+				currency: 'USD',
+				betLevels: [preciseAmount],
+				defaultBetLevel: preciseAmount,
+				betModes: { base: {}, hunt: {}, rainbow: {}, bonus_tier1: {}, bonus: {} },
+			},
+			round: null,
+		}),
+		play: () => ({ balance: balanceOf(999.98, 'USD'), round: preciseRound }),
+		endRound: () => ({
+			balance: balanceOf(1000.0296, 'USD'),
+			round: { ...cloneRound(preciseRound), active: false, state: undefined },
+		}),
+	});
+	const precisePage = await openPreview(preciseContext, base, rgsQuery('USD'));
+	await precisePage.waitForFunction(() => window.__stakeQa.state.walletBusy === false);
+	await precisePage.evaluate(() => {
+		window.__stakeQa.setTurbo(true);
+		window.__stakeQaRegularWinFloats = [];
+		window.__stakeQaRegularWinObserver = new MutationObserver(() => {
+			for (const element of document.querySelectorAll('.cluster-float')) {
+				const text = element.textContent?.trim() || '';
+				if (text && !window.__stakeQaRegularWinFloats.includes(text)) window.__stakeQaRegularWinFloats.push(text);
+			}
+		});
+		window.__stakeQaRegularWinObserver.observe(document.getElementById('stage'), { childList: true, subtree: true, characterData: true });
+	});
+	await precisePage.evaluate(() => window.__stakeQa.spinRgsMode('base'));
+	await precisePage.waitForFunction(() => window.__stakeQa.state.spinning === false && window.__stakeQa.state.walletBusy === false, null, { timeout: 45_000 });
+	const preciseAudit = await precisePage.evaluate(() => ({
+		bet: window.__stakeQa.state.bet,
+		win: window.__stakeQa.state.win,
+		balance: window.__stakeQa.state.balance,
+		winText: document.getElementById('meter-win')?.textContent?.trim(),
+		balanceText: document.getElementById('meter-balance')?.textContent?.trim(),
+		playText: document.getElementById('meter-bet')?.textContent?.trim(),
+		floats: window.__stakeQaRegularWinFloats || [],
+		localWalletCredits: window.__stakeQa.state.localWalletCredits,
+	}));
+	await precisePage.evaluate(() => window.__stakeQaRegularWinObserver?.disconnect());
+	const preciseSucceeded = preciseCalls.play.length === 1
+		&& preciseCalls.play[0]?.amount === preciseAmount
+		&& preciseCalls.endRound.length === 1
+		&& JSON.stringify(preciseCalls.order) === JSON.stringify(['authenticate', 'play', 'end-round'])
+		&& Math.abs(preciseAudit.bet - 0.02) <= 0.000001
+		&& Math.abs(preciseAudit.win - preciseWin) <= 0.000001
+		&& preciseAudit.winText === '$0.0496'
+		&& preciseAudit.floats.includes('+$0.0496')
+		&& preciseAudit.playText === '$0.02'
+		&& preciseAudit.balanceText === '$1000.03'
+		&& Math.abs(preciseAudit.balance - 1000.0296) <= 0.000001
+		&& preciseAudit.localWalletCredits === 0;
+	expect(
+		group,
+		'regular gameplay renders exact $0.0496 win and float for $0.02 x 2.48 without changing Balance or Play precision',
+		preciseSucceeded,
+		JSON.stringify({ audit: preciseAudit, calls: preciseCalls }),
+	);
+	const preciseShot = await screenshot(precisePage, 'regular-gameplay-win-precision-0.0496-usd-1280x720');
+	pass(group, 'regular gameplay exact $0.0496 WIN screenshot saved', preciseShot);
+	const preciseInvariant = {
+		case: 'regular-gameplay-0.02-usd-x-2.48',
+		bookMultiplier: 2.48,
+		playAmountApi: preciseAmount,
+		expectedWin: '0.0496',
+		actualWin: preciseAudit.win.toFixed(4),
+		expectedWinText: '$0.0496',
+		actualWinText: preciseAudit.winText,
+		expectedBalanceText: '$1000.03',
+		actualBalanceText: preciseAudit.balanceText,
+		localWalletCredits: preciseAudit.localWalletCredits,
+		status: preciseSucceeded ? 'PASS' : 'FAIL',
+	};
+	balanceInvariantEvidence.push(preciseInvariant);
+	walletNetworkEvidence.push({ scenario: 'regular-gameplay-win-precision', calls: preciseCalls, invariant: preciseInvariant });
+	await preciseContext.close();
+
 	// Stake screenshot reproduction: a connected ten-symbol win is 0.96x in
 	// the shipped paytable. At a $10 play amount the RGS therefore owns both
 	// the visible $9.60 win and the $990.00 -> $999.60 settlement delta.

@@ -1435,16 +1435,16 @@ function formatCurrency(amount, currency = state.currency) {
 	const formattedAmount = safeValue.toFixed(meta.decimals);
 	return meta.symbolAfter ? formattedAmount + ' ' + meta.symbol : meta.symbol + formattedAmount;
 }
-function formatReplayCurrency(amount, currency = state.currency) {
+function formatExactCurrency(amount, currency = state.currency) {
 	const code = normalizeCurrency(currency);
 	const meta = currencyMeta(code);
 	const value = Number(amount);
 	const safeValue = Number.isFinite(value) ? value : 0;
 	const minimumDigits = meta ? meta.decimals : 2;
-	const maximumDigits = Math.max(minimumDigits, 4);
+	const maximumDigits = meta && meta.decimals === 0 ? 0 : Math.max(minimumDigits, 4);
 	let formattedAmount = safeValue.toFixed(maximumDigits);
 	const decimalIndex = formattedAmount.indexOf('.');
-	while (formattedAmount.endsWith('0') && formattedAmount.length - decimalIndex - 1 > minimumDigits) {
+	while (decimalIndex >= 0 && formattedAmount.endsWith('0') && formattedAmount.length - decimalIndex - 1 > minimumDigits) {
 		formattedAmount = formattedAmount.slice(0, -1);
 	}
 	if (!meta) return formattedAmount + ' ' + (code || 'UNKNOWN');
@@ -1455,8 +1455,12 @@ function currencySymbol(currency = state.currency) {
 	return (currencyMeta(code) && currencyMeta(code).symbol) || code || '';
 }
 const ck = (c, r) => c + ',' + r;
-const apiAmountToMoney = (amount) => Math.round(((Number(amount) || 0) / API_AMOUNT_MULTIPLIER) * 100) / 100;
+// Keep the authoritative RGS micro-unit amount internally. Individual UI
+// surfaces decide their presentation precision: Balance/Play use the currency
+// default, while WIN preserves meaningful sub-cent digits.
+const apiAmountToMoney = (amount) => (Number(amount) || 0) / API_AMOUNT_MULTIPLIER;
 const moneyToApiAmount = (amount) => Math.round((Number(amount) || 0) * API_AMOUNT_MULTIPLIER);
+const apiMoneyRound = (amount) => replayApiAmountToMoney(moneyToApiAmount(amount));
 const moneyRound = (amount) => Math.round((Number(amount) || 0) * 100) / 100;
 const BOOK_MULTIPLIER_SCALE = 100;
 const replayApiAmountToMoney = (amount) => Number(amount) / API_AMOUNT_MULTIPLIER;
@@ -1859,9 +1863,9 @@ function setReplayLifecycle(status, meta = null, detail = '') {
 		setReplayValue('replay-mode-value', meta.mode || 'Base Game');
 		setReplayValue('replay-basebet-value', formatCurrency(meta.baseBet));
 		setReplayValue('replay-cost-value', multiplierText(meta.costMultiplier));
-		setReplayValue('replay-totalcost-value', formatReplayCurrency(meta.totalCost));
+		setReplayValue('replay-totalcost-value', formatExactCurrency(meta.totalCost));
 		setReplayValue('replay-payout-value', multiplierText(meta.payoutMultiplier));
-		setReplayValue('replay-totalwin-value', formatReplayCurrency(meta.totalWin));
+		setReplayValue('replay-totalwin-value', formatExactCurrency(meta.totalWin));
 	}
 	if (overlayAction) {
 		overlayAction.hidden = !metadataAvailable;
@@ -2734,10 +2738,10 @@ function rgsRoundPayoutMoney(round) {
 	}
 	const bookUnits = round && round.payoutMultiplier;
 	if (typeof bookUnits !== 'number' || !Number.isSafeInteger(bookUnits) || bookUnits < 0) return null;
-	return moneyRound(replayBookUnitsToMultiplier(bookUnits) * state.bet);
+	return replayApiAmountToMoney(Math.round(moneyToApiAmount(state.bet) * bookUnits / BOOK_MULTIPLIER_SCALE));
 }
 function bookAmountToMoney(amount) {
-	return roundMoney((Number(amount) || 0) * state.bet / 100);
+	return replayApiAmountToMoney(Math.round(moneyToApiAmount(state.bet) * (Number(amount) || 0) / BOOK_MULTIPLIER_SCALE));
 }
 function finalBookWinMoney(events) {
 	const final = [...events].reverse().find((event) => event && event.type === 'finalWin');
@@ -2968,7 +2972,7 @@ async function renderRgsWinInfo(event, runningWin) {
 	const cells = rgsCellsFromPositions(wins.flatMap((win) => win.positions || []));
 	const eventStepWin = bookAmountToMoney(event.totalWin || wins.reduce((sum, win) => sum + (Number(win.win) || 0), 0));
 	const stepWin = eventStepWin;
-	const targetWin = roundMoney(runningWin + stepWin);
+	const targetWin = apiMoneyRound(runningWin + stepWin);
 	if (cells.length) {
 		stage.classList.add('win-focus');
 		cells.forEach(([c, r]) => {
@@ -3086,7 +3090,7 @@ async function renderRgsGoldenReveal(event) {
 }
 async function renderRgsGoldenAward(event, runningWin) {
 	const amount = bookAmountToMoney(event.amount);
-	const target = event.totalWin !== undefined ? bookAmountToMoney(event.totalWin) : roundMoney(runningWin + amount);
+	const target = event.totalWin !== undefined ? bookAmountToMoney(event.totalWin) : apiMoneyRound(runningWin + amount);
 	const collectorCells = rgsCellsFromPositions(event.collectorPositions || []);
 	if (collectorCells.length) {
 		for (const [c, r] of collectorCells) {
@@ -3223,7 +3227,7 @@ async function playRgsBookRound(rgsPlay, spinId, options = {}) {
 		}
 	}
 	const displayedWin = hasAuthoritativePayout ? expected : rgsFinalFromState;
-	if (Math.abs(displayedWin - runningWin) > 0.01) {
+	if (Math.abs(displayedWin - runningWin) >= (1 / API_AMOUNT_MULTIPLIER)) {
 		setWin(displayedWin, false);
 		await countUp(displayedWin, runningWin);
 	} else {
@@ -3490,7 +3494,7 @@ function replayMetadata(round) {
 	const meta = modeMeta(rgsRoundMode(round));
 	const baseBet = replayApiAmountToMoney(round && round.amount);
 	const costMultiplier = Number(round && round.costMultiplier) || Number(meta.costMultiplier) || 1;
-	const totalCost = replayApiAmountToMoney(Math.round(baseBet * costMultiplier * API_AMOUNT_MULTIPLIER));
+	const totalCost = apiMoneyRound(baseBet * costMultiplier);
 	const totalWin = rgsDisplayWinMoney(round, events) || 0;
 	const payoutMultiplier = replayBookUnitsToMultiplier(round && round.payoutMultiplier);
 	return {
@@ -3616,7 +3620,7 @@ const Replay = (() => {
 			const playbackRound = cloneReplayData(current.round);
 			const displayedWin = await playRgsBookRound({ round: playbackRound }, ++spinSeq, { replay: true, skipBonusIntro: true, trackProgress: false });
 			if (JSON.stringify(current.round) !== current.signature) throw new Error('Saved replay data changed during playback');
-			if (Math.abs(displayedWin - current.meta.totalWin) > 0.01) throw new Error('Displayed replay total differs from the authoritative saved result');
+			if (Math.abs(displayedWin - current.meta.totalWin) >= (1 / API_AMOUNT_MULTIPLIER)) throw new Error('Displayed replay total differs from the authoritative saved result');
 			setWin(current.meta.totalWin);
 			status = 'completed';
 			setReplayLifecycle(status, current.meta);
@@ -3676,7 +3680,7 @@ function showClusterFloat(amount, cells, detail = '') {
 	const pos = clusterCenter(cells); if (!layer || !pos) return;
 	const el = document.createElement('div');
 	el.className = 'cluster-float';
-	el.textContent = '+' + formatCurrency(amount) + (detail ? ' · ' + detail : '');
+	el.textContent = '+' + formatExactCurrency(amount) + (detail ? ' · ' + detail : '');
 	el.style.left = pos.x + 'px';
 	el.style.top = pos.y + 'px';
 	layer.appendChild(el);
@@ -4098,10 +4102,9 @@ function updateMeters() {
 	if (betCurrency) betCurrency.textContent = currencySymbol();
 	$('meter-balance').textContent = formatCurrency(state.balance);
 	$('meter-bet').textContent = formatCurrency(state.bet);
-	// WIN must use the same currency formatting as balance/bet (e.g. "0 CLP",
-	// "0.00 SC"). setWin/countUp own the value mid-round; here we only sync the
-	// idle/current value so the meter is never left as an unformatted number.
-	$('meter-win').textContent = formatCurrency(state.mode === 'free' ? state.fsWin || 0 : state.win);
+	// WIN preserves authoritative sub-cent precision up to four decimal places.
+	// Balance and Play Amount intentionally retain their currency-native format.
+	$('meter-win').textContent = formatExactCurrency(state.mode === 'free' ? state.fsWin || 0 : state.win);
 	$('bet-display').textContent = formatCurrency(state.bet);
 	$('bet-controls').classList.toggle('low', state.betIdx === 0);
 }
@@ -4210,17 +4213,17 @@ async function countUp(amount, from = meterWinValue()) {
 	const el = $('meter-win');
 	const steps = countUpSteps(); let i = 0;
 	const target = Math.min(amount, capWin());
-	if (state.skipRequested || Math.abs(target - from) < 0.000001) { el.textContent = formatCurrency(target); return; }
+	if (state.skipRequested || Math.abs(target - from) < 0.000001) { el.textContent = formatExactCurrency(target); return; }
 	return new Promise((resolve) => {
 		const t = setInterval(() => {
 			if (state.skipRequested) {
 				clearInterval(t);
-				el.textContent = formatCurrency(target);
+				el.textContent = formatExactCurrency(target);
 				resolve();
 				return;
 			}
-			i += 1; el.textContent = formatCurrency(from + ((target - from) * i) / steps); Sound.tick(i, steps);
-			if (i >= steps) { clearInterval(t); el.textContent = formatCurrency(target); resolve(); }
+			i += 1; el.textContent = formatExactCurrency(from + ((target - from) * i) / steps); Sound.tick(i, steps);
+			if (i >= steps) { clearInterval(t); el.textContent = formatExactCurrency(target); resolve(); }
 		}, COUNT_UP_INTERVAL_MS);
 	});
 }
@@ -4245,14 +4248,14 @@ async function showBanner(amount) {
 	const b = $('win-banner'); b.classList.add('show', lv.tier);
 	if (x >= 25) { const n = x >= 100 ? 3 : x >= 50 ? 2 : 1; for (let s = 0; s < n; s += 1) { stage.classList.add('shake'); await wait(120); stage.classList.remove('shake'); await wait(60); } }
 	const amt = $('win-banner-amount'); const steps = x >= 50 ? 34 : 24;
-	for (let i = 1; i <= steps; i += 1) { amt.textContent = formatCurrency((amount * i) / steps); await wait(x >= 100 ? 38 : 28); }
+	for (let i = 1; i <= steps; i += 1) { amt.textContent = formatExactCurrency((amount * i) / steps); await wait(x >= 100 ? 38 : 28); }
 	await wait(lv.hold); b.classList.remove('show', lv.tier);
 }
 
 const capWin = () => CONFIG.maxWinMultiplier * state.bet;
 const setWin = (abs, render = true) => {
 	state.win = Math.min(abs, capWin());
-	if (render) $('meter-win').textContent = formatCurrency(state.win);
+	if (render) $('meter-win').textContent = formatExactCurrency(state.win);
 };
 function roundMoney(n) { return Math.round((Number(n) || 0) * 100) / 100; }
 function debugWinStep(spinDebug, cascade, wins, stepWin, targetWin) {
@@ -4819,7 +4822,7 @@ async function spin(buy, internalFreeSpin = false) {
 	if (state.mode === 'free') {
 		state.fsWin = (state.fsWin || 0) + state.win;
 		state.fsBest = Math.max(state.fsBest || 0, state.win); // track best single spin for the summary
-		$('meter-win').textContent = formatCurrency(state.fsWin); // WIN shows the running bonus total
+		$('meter-win').textContent = formatExactCurrency(state.fsWin); // WIN shows the running bonus total
 	} else {
 		if (rgsVisualSync && walletBalanceAfterPlay && !rgsRoundActive) state.balance = walletBalanceAfterPlay.amount;
 		else if (!rgsVisualSync) creditLocalWallet(state.win);
@@ -4880,7 +4883,7 @@ async function spin(buy, internalFreeSpin = false) {
 				if (paidRound) setWalletBusy(false);
 				return;
 			}
-			const walletWin = Math.max(0, roundMoney(state.balance - balanceAfterBet));
+			const walletWin = Math.max(0, apiMoneyRound(state.balance - balanceAfterBet));
 			baseWin = walletWin;
 			featureWin = 0;
 			setWin(walletWin);
@@ -4946,14 +4949,14 @@ async function retrigger(sc) {
 function bonusSummary(total, spins, best, { blocking = true } = {}) {
 	const presentation = new Promise((resolve) => {
 		const el = $('bonus-summary'); const btn = $('bs-continue');
-		$('bs-total').textContent = formatCurrency(0); $('bs-spins').textContent = spins; $('bs-best').textContent = formatCurrency(best);
+		$('bs-total').textContent = formatExactCurrency(0); $('bs-spins').textContent = spins; $('bs-best').textContent = formatExactCurrency(best);
 		el.classList.add('show');
 		const lv = winLevel(total / state.bet);
 		Sound.win(lv ? lv.tier : 'big'); coinShower(lv && lv.coins ? lv.coins : 22);
 		const steps = 30; let i = 0;
-		const cnt = setInterval(() => { i += 1; $('bs-total').textContent = formatCurrency(total * i / steps); Sound.tick(i, steps); if (i >= steps) { clearInterval(cnt); $('bs-total').textContent = formatCurrency(total); } }, 40);
+		const cnt = setInterval(() => { i += 1; $('bs-total').textContent = formatExactCurrency(total * i / steps); Sound.tick(i, steps); if (i >= steps) { clearInterval(cnt); $('bs-total').textContent = formatExactCurrency(total); } }, 40);
 		let closed = false;
-		const close = () => { if (closed) return; closed = true; clearInterval(cnt); $('bs-total').textContent = formatCurrency(total); el.classList.remove('show'); btn.onclick = null; resolve(); };
+		const close = () => { if (closed) return; closed = true; clearInterval(cnt); $('bs-total').textContent = formatExactCurrency(total); el.classList.remove('show'); btn.onclick = null; resolve(); };
 		btn.onclick = close;
 		if (state.replayPlaying || state.auto) {
 			setTimeout(close, state.replayPlaying ? (state.turbo ? 500 : 1200) : (state.turbo ? 2600 : 8000));
