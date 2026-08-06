@@ -17,4 +17,4 @@ export type IntermediateMachines = {
 
 export type PrimaryMachines = ReturnType<typeof createPrimaryMachines>;
 
-export type BaseBet = BetType<any>;
+export type BaseBet = BetType<Record<string, unknown>>;

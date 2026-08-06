@@ -2,98 +2,98 @@ Golden Goal Rush RTP Audit
 ===========================
 
 [base] cost=1.0x bet, simulations=80000
-  raw (unweighted) RTP:   197.64%
+  raw (unweighted) RTP:   189.28%
   target RTP:             96.45%
   achieved RTP:           96.45%
-  hit rate (weighted):    33.40%
-  effective sample size:  79972 of 80000 (99.96%)
+  hit rate (weighted):    36.13%
+  effective sample size:  79943 of 80000 (99.93%)
   top single-book weight: 0.0013% of total selection mass
-  max payout observed:    10000.00x bet
-  max win odds:           1 in 18,868,139
-  ETL >40x cost (RTP share): 0.587
-  CVaR 0.1% (x cost):     373.897
+  max payout observed:    3895.42x bet
+  max win odds:           1 in 18,867,806
+  ETL >40x cost (RTP share): 0.546
+  CVaR 0.1% (x cost):     330.576
   win distribution (selection-weighted):
-        0x: 66.596%
-      0-1x: 26.809%
-      1-5x: 5.195%
-     5-20x: 0.663%
-    20-50x: 0.428%
-      50x+: 0.309%
+        0x: 63.871%
+      0-1x: 28.485%
+      1-5x: 6.125%
+     5-20x: 0.735%
+    20-50x: 0.461%
+      50x+: 0.324%
 
 [hunt] cost=4.2x bet, simulations=40000
-  raw (unweighted) RTP:   233.21%
+  raw (unweighted) RTP:   265.41%
   target RTP:             96.45%
   achieved RTP:           96.45%
-  hit rate (weighted):    26.98%
-  effective sample size:  39641 of 40000 (99.10%)
+  hit rate (weighted):    29.36%
+  effective sample size:  39542 of 40000 (98.85%)
   top single-book weight: 0.0026% of total selection mass
   max payout observed:    10000.00x bet
-  max win odds:           1 in 18,867,864
-  ETL >40x cost (RTP share): 0.166
-  CVaR 0.1% (x cost):     90.428
+  max win odds:           1 in 18,868,123
+  ETL >40x cost (RTP share): 0.134
+  CVaR 0.1% (x cost):     83.020
   win distribution (selection-weighted):
-        0x: 73.022%
-      0-1x: 8.446%
-      1-5x: 5.214%
-     5-20x: 7.745%
-    20-50x: 3.847%
-      50x+: 1.725%
+        0x: 70.640%
+      0-1x: 9.348%
+      1-5x: 5.827%
+     5-20x: 8.463%
+    20-50x: 4.043%
+      50x+: 1.679%
 
 [rainbow] cost=6.0x bet, simulations=40000
-  raw (unweighted) RTP:   273.72%
+  raw (unweighted) RTP:   288.19%
   target RTP:             96.45%
   achieved RTP:           96.45%
-  hit rate (weighted):    26.90%
-  effective sample size:  39463 of 40000 (98.66%)
+  hit rate (weighted):    29.40%
+  effective sample size:  39247 of 40000 (98.12%)
   top single-book weight: 0.0026% of total selection mass
   max payout observed:    10000.00x bet
-  max win odds:           1 in 18,867,930
-  ETL >40x cost (RTP share): 0.128
-  CVaR 0.1% (x cost):     74.500
+  max win odds:           1 in 18,867,712
+  ETL >40x cost (RTP share): 0.086
+  CVaR 0.1% (x cost):     62.224
   win distribution (selection-weighted):
-        0x: 73.096%
-      0-1x: 2.047%
-      1-5x: 6.188%
-     5-20x: 10.576%
-    20-50x: 5.633%
-      50x+: 2.460%
+        0x: 70.598%
+      0-1x: 2.123%
+      1-5x: 6.738%
+     5-20x: 11.989%
+    20-50x: 6.142%
+      50x+: 2.410%
 
 [bonus_tier1] cost=31.0x bet, simulations=40000
-  raw (unweighted) RTP:   166.75%
+  raw (unweighted) RTP:   182.39%
   target RTP:             96.45%
   achieved RTP:           96.45%
-  hit rate (weighted):    95.10%
-  effective sample size:  39667 of 40000 (99.17%)
+  hit rate (weighted):    96.94%
+  effective sample size:  39515 of 40000 (98.79%)
   top single-book weight: 0.0026% of total selection mass
   max payout observed:    10000.00x bet
-  max win odds:           1 in 9,090,912
-  ETL >40x cost (RTP share): 0.063
-  CVaR 0.1% (x cost):     60.629
+  max win odds:           1 in 18,867,920
+  ETL >40x cost (RTP share): 0.043
+  CVaR 0.1% (x cost):     51.776
   win distribution (selection-weighted):
-        0x: 4.897%
-      0-1x: 22.573%
-      1-5x: 35.627%
-     5-20x: 13.367%
-    20-50x: 11.382%
-      50x+: 12.154%
+        0x: 3.057%
+      0-1x: 19.359%
+      1-5x: 38.694%
+     5-20x: 13.543%
+    20-50x: 12.445%
+      50x+: 12.901%
 
 [bonus] cost=95.0x bet, simulations=40000
-  raw (unweighted) RTP:   135.71%
+  raw (unweighted) RTP:   157.40%
   target RTP:             96.45%
   achieved RTP:           96.45%
-  hit rate (weighted):    98.95%
-  effective sample size:  39733 of 40000 (99.33%)
+  hit rate (weighted):    99.47%
+  effective sample size:  39374 of 40000 (98.43%)
   top single-book weight: 0.0026% of total selection mass
   max payout observed:    10000.00x bet
-  max win odds:           1 in 22,148
-  ETL >40x cost (RTP share): 0.037
-  CVaR 0.1% (x cost):     49.402
+  max win odds:           1 in 172,414
+  ETL >40x cost (RTP share): 0.015
+  CVaR 0.1% (x cost):     37.525
   win distribution (selection-weighted):
-        0x: 1.046%
-      0-1x: 8.886%
-      1-5x: 32.616%
-     5-20x: 13.849%
-    20-50x: 14.387%
-      50x+: 29.216%
+        0x: 0.534%
+      0-1x: 6.309%
+      1-5x: 32.963%
+     5-20x: 14.368%
+    20-50x: 14.794%
+      50x+: 31.031%
 
 All modes reached their configured rtp_target with healthy lookup-table diversity (no mode was diversity-capped). Each mode's declared rtp_achieved equals the weighted RTP of its shipped lookup table; the package is internally consistent.

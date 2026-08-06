@@ -1,24 +1,41 @@
-// Single source of truth for Golden Goal Rush feature math.
-// Imported by build-preview-html.mjs (the playable demo) AND ggr-sim.mjs
-// (the RTP simulation), so what is measured is exactly what is played.
+// Local visual/demo frequency and feature settings. These weights drive only
+// the browser's non-RGS demo generator and the optional ggr-sim utility; they
+// are not the published Stake math books, lookup weights, or RTP contract.
+// Paying values are deliberately imported from the exact production math
+// package so this file cannot become a second production Paytable.
+import { PRODUCTION_PAYTABLE } from './production-math-contract.mjs';
 
-// Board symbols: weight = reel frequency, pay = base 5-cluster multiplier.
-// Pays trimmed ~11% from the original to bring the base game to ~96% RTP
-// (free-spin wins are feature-dominated, so this barely moves the buy modes).
-export const SYMBOL_MATH = {
-	ten: { weight: 22, pay: 0.09 },
-	j: { weight: 20, pay: 0.09 },
-	q: { weight: 17, pay: 0.13 },
-	k: { weight: 15, pay: 0.18 },
-	a: { weight: 13, pay: 0.22 },
-	football: { weight: 9, pay: 0.35 },
-	whistle: { weight: 8, pay: 0.45 },
-	trophy: { weight: 6, pay: 0.65 },
-	jersey: { weight: 6, pay: 0.9 },
-	wild: { weight: 2, pay: 0, wild: true },
-	scatter: { weight: 2, pay: 0, scatter: true },
-	rainbow: { weight: 2, pay: 0, rainbow: true },
-};
+export const SYMBOL_WEIGHTS = Object.freeze({
+	ten: 22,
+	j: 20,
+	q: 17,
+	k: 15,
+	a: 13,
+	football: 9,
+	whistle: 8,
+	trophy: 6,
+	jersey: 6,
+	wild: 2,
+	scatter: 2,
+	rainbow: 2,
+});
+
+const SPECIAL_SYMBOL_META = Object.freeze({
+	wild: Object.freeze({ wild: true }),
+	scatter: Object.freeze({ scatter: true }),
+	rainbow: Object.freeze({ rainbow: true }),
+});
+
+export const SYMBOL_MATH = Object.freeze(Object.fromEntries(
+	Object.entries(SYMBOL_WEIGHTS).map(([symbol, weight]) => [
+		symbol,
+		Object.freeze({
+			weight,
+			pay: PRODUCTION_PAYTABLE[symbol]?.cluster5 ?? 0,
+			...(SPECIAL_SYMBOL_META[symbol] || {}),
+		}),
+	]),
+));
 
 export const CONFIG = {
 	// reveal weights (relative) for a marked golden cell when Rainbow activates.
@@ -46,8 +63,8 @@ export const CONFIG = {
 	// Prices are tuned so every buy returns ~96% (avg feature win / 0.96),
 	// measured against ggr-sim.mjs so a purchase is never a rip-off.
 	bonusBuy: [
-		{ id: 'hunt', label: 'Feature Spins', mult: 4.2, desc: 'One paid spin with boosted feature chance' },
-		{ id: 'rainbow', label: 'Rainbow Spin', mult: 6, desc: 'One paid spin with a guaranteed Golden Arc' },
+		{ id: 'hunt', label: 'Feature Spins', mult: 4.2, desc: 'One play with boosted feature chance' },
+		{ id: 'rainbow', label: 'Rainbow Spin', mult: 6, desc: 'One play with a guaranteed Golden Arc' },
 		{ id: 'tier1', label: 'Golden Chance', mult: 31, desc: 'Start 8 Free Spins (Tier 1)' },
 		{ id: 'tier2', label: 'All That Glitters', mult: 95, desc: 'Start 12 Free Spins (Tier 2)' },
 	],

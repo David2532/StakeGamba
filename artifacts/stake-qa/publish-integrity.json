@@ -1,0 +1,36 @@
+{
+  "testedCommit": {
+    "sha": "baf48c146cf50d073e1a86688033283bf433cb03",
+    "source": "scripts/stake-qa.mjs report.identity.testedCommitSha"
+  },
+  "githubActionsRunId": null,
+  "evidenceDirectory": "artifacts/stake-qa/2026-07-30T08-59-08-860Z",
+  "frontend": {
+    "uploadFolder": "publish/frontend",
+    "buildId": "74dc84abea7750ed76fc4adc1623125e8773cde2b98fd357f529921d8b4a06e7",
+    "indexSha256": "bd2f7e54e1c79a03e34db9902df2f9873a551b52a3c1a8377bde56399f43f219",
+    "manifestSha256": "afe0f18a1389f9b807927bbf7ee44bb814142c7a6f92d25b319ade3870e1343b"
+  },
+  "math": {
+    "uploadFolder": "publish/math",
+    "version": "0.2.2-cluster",
+    "gameConfigSha256": "6610ab4eb02209603d8715c0645edd90cb5aa1ad51aa5ba0774ff5586e70b775",
+    "manifestSha256": "1dc61a44ca65a7f66df6eff595c99769e37af9a12bd145352772a222f3d882c4"
+  },
+  "report": {
+    "path": "artifacts/stake-qa/2026-07-30T08-59-08-860Z/report.json",
+    "mode": "all",
+    "pass": 320,
+    "fail": 0,
+    "skip": 0,
+    "startedAt": "2026-07-30T08:59:08.841Z",
+    "completedAt": "2026-07-30T09:03:21.937Z"
+  },
+  "e2e": {
+    "path": "artifacts/stake-qa/2026-07-30T08-59-08-860Z/e2e-report.json",
+    "mode": "all",
+    "pass": 1406,
+    "fail": 0,
+    "skip": 0
+  }
+}

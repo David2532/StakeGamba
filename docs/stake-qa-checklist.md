@@ -14,7 +14,7 @@ For focused checks:
 ```powershell
 npm run stake:qa:currency            # currency formats + hardcode scan + HUD e2e
 npm run stake:qa:insufficient-funds  # insufficient funds/balance behaviour e2e
-npm run stake:qa:major-actions       # auto-bet/bonus-buy/major-action confirmation
+npm run stake:qa:major-actions       # auto-play/feature/major-action confirmation
 npm run stake:qa:interrupted-round   # refresh-mid-bonus resume flow e2e
 npm run stake:qa:mobile              # mobile fullscreen asserts + screenshots
 npm run stake:qa:rules               # rules button audit + icon existence
@@ -35,11 +35,11 @@ set `STAKE_QA_REQUIRE_E2E=1` (CI) to turn that SKIP into a failure.
   HUD (EUR, USD, XSC, XGC, JPY, DKK, CLP).
 - Repo-wide scan: no hardcoded currency symbol outside
   `packages/utils-shared/currency.js`.
-- "Insufficient Funds" (fiat) vs "Insufficient Balance" (Stake.us/XSC/XGC)
-  for spin, Auto-Bet and Bonus Buy — with proof that `/wallet/play` is never
-  called and no spin/purchase starts.
-- Auto-Bet: first click only opens the selection (10/25/50/100/200/∞),
-  confirmation required, Cancel keeps it off; Bonus Buy needs its price
+- Globally safe "Insufficient Balance" copy for fiat, crypto, XSC and XGC
+  for spin, Auto-Play and Bonus / Feature — with proof that `/wallet/play` is never
+  called and no play/activation starts.
+- Auto-Play: first click only opens the selection (10/25/50/100/200/∞),
+  confirmation required, Cancel keeps it off; Bonus / Feature needs its price
   confirmation; `confirmMajorAction()` gate for future major actions
   (e.g. Double Chance) resolves true only on explicit Confirm.
 - Interrupted bonus: mocked RGS active round → resume message with the exact
@@ -66,9 +66,9 @@ set `STAKE_QA_REQUIRE_E2E=1` (CI) to turn that SKIP into a failure.
 - Resize to a mobile portrait viewport and verify the board is centered with
   no large black bars or scrollbars; rotate to landscape and verify the
   controls stay centered.
-- Click Auto-Bet and verify no spin starts until an amount is selected and
+- Click Auto-Play and verify no spin starts until an amount is selected and
   confirmed; cancel once and confirm once.
-- Open Bonus Buy and verify the price confirmation appears before purchase.
+- Open Bonus / Feature and verify its confirmation appears before activation.
 - Click Rules and verify Buttons & Controls lists every button with its icon,
   on desktop and on a phone-sized window.
 - With a Stake session: start a bonus, refresh mid-bonus, and verify the

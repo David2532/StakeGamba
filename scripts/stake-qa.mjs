@@ -1,26 +1,72 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, extname, join, relative } from 'node:path';
+import { dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
+import {
+	STAKE_PLAYER_VISIBLE_RESTRICTED_TERMS,
+	formatMaxWinMultiplier,
+	playerVisibleRestrictedHits,
+} from '../apps/cluster/scripts/stake-compliance-contract.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 const mode = (process.argv[2] || 'all').toLowerCase();
-const artifactRoot = join(root, 'artifacts', 'stake-qa', new Date().toISOString().replace(/[:.]/g, '-'));
+const startedAt = new Date().toISOString();
+const testedCommitSha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+if (!/^[0-9a-f]{40}$/i.test(testedCommitSha)) {
+	throw new Error(`Stake QA requires a full immutable Git commit SHA, received: ${testedCommitSha || '(empty)'}`);
+}
+const artifactRoot = process.env.STAKE_QA_ARTIFACT_DIR
+	|| join(root, 'artifacts', 'stake-qa', new Date().toISOString().replace(/[:.]/g, '-'));
+
+const targetOverride = (name, fallback) => process.env[name]
+	? resolve(root, process.env[name])
+	: fallback;
 
 const paths = {
 	builder: join(root, 'apps', 'cluster', 'scripts', 'build-preview-html.mjs'),
+	introConfig: join(root, 'apps', 'cluster', 'scripts', 'ggr-intro-config.mjs'),
 	preview: join(root, 'apps', 'cluster', 'preview.html'),
+	productionMathContract: join(root, 'apps', 'cluster', 'scripts', 'production-math-contract.mjs'),
+	e2e: join(root, 'scripts', 'stake-qa-e2e.mjs'),
+	generatedMathConfig: join(root, 'math', 'games', 'golden_goal_rush', 'library', 'configs', 'game_config.json'),
+	publishedMathConfig: targetOverride('STAKE_QA_MATH_CONFIG', join(root, 'publish', 'math', 'game_config.json')),
+	publishedFrontend: targetOverride('STAKE_QA_FRONTEND_HTML', join(root, 'publish', 'frontend', 'index.html')),
 	currency: join(root, 'packages', 'utils-shared', 'currency.js'),
 	amount: join(root, 'packages', 'utils-shared', 'amount.ts'),
 	stateUi: join(root, 'packages', 'state-shared', 'src', 'stateUi.svelte.ts'),
 	i18nDerived: join(root, 'packages', 'components-ui-html', 'src', 'i18n', 'i18nDerived.ts'),
+	pixiI18nDerived: join(root, 'packages', 'components-ui-pixi', 'src', 'i18n', 'i18nDerived.ts'),
+	defaultGameRules: join(root, 'packages', 'state-shared', 'src', 'constants.ts'),
+	defaultSymbolTable: join(root, 'packages', 'components-ui-html', 'src', 'components', 'ModalPayTable.svelte'),
 	autoStart: join(root, 'packages', 'components-ui-html', 'src', 'components', 'AutoSpinsStartButton.svelte'),
 	clusterPreviewSource: join(root, 'apps', 'cluster', 'src', 'components', 'GoldenGoalRushFinalPreview.svelte'),
 	linesPreviewSource: join(root, 'apps', 'lines', 'src', 'components', 'GoldenGoalRushSixByFivePreview.svelte'),
 };
 
 const checks = [];
+let paytableEvidence = null;
+const PLAYER_VISIBLE_FORBIDDEN_VALUES = STAKE_PLAYER_VISIBLE_RESTRICTED_TERMS;
+const PLAYER_SAFE_REQUIRED_VALUES = [
+	'Play Replay',
+	'Base Play',
+	'Feature Multiplier',
+	'Final Multiplier',
+	'Final Play Amount',
+	'Total Win',
+	'Replay Play',
+	'BONUS / FEATURE',
+	'AUTO-PLAY',
+	'PLAY',
+];
+const PLAYER_MODE_NAMES = [
+	'Base Game',
+	'Feature Spins',
+	'Rainbow Spin',
+	'Golden Chance',
+	'All That Glitters',
+	'End of the Rainbow',
+];
 
 function read(path) {
 	return readFileSync(path, 'utf8');
@@ -63,16 +109,68 @@ function expectNotContains(group, name, content, marker) {
 	expect(group, name, !contains(content, marker), `forbidden marker: ${marker}`);
 }
 
+function extractBalancedObject(content, marker) {
+	const start = content.indexOf(marker);
+	if (start < 0) return '';
+	const brace = content.indexOf('{', start);
+	if (brace < 0) return '';
+	let depth = 0;
+	for (let i = brace; i < content.length; i += 1) {
+		const ch = content[i];
+		if (ch === '{') depth += 1;
+		if (ch === '}') {
+			depth -= 1;
+			if (depth === 0) return content.slice(brace, i + 1);
+		}
+	}
+	return '';
+}
+
+function escapeRegExp(value) {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function stringValuesFromObjectLiteral(block) {
+	return [...block.matchAll(/:\s*'([^']*)'/g)].map((match) => match[1]).join(' ');
+}
+
+function playerVisibleForbiddenHits(text) {
+	return playerVisibleRestrictedHits(text);
+}
+
 function runSyntaxCheck() {
 	const result = spawnSync(process.execPath, ['--check', paths.builder], {
 		cwd: root,
 		encoding: 'utf8',
 	});
 	expect('syntax', 'preview builder passes node --check', result.status === 0, result.stderr || result.stdout);
+	const generated = spawnSync(process.execPath, [paths.builder, '--check'], {
+		cwd: root,
+		encoding: 'utf8',
+	});
+	expect('generated-artifacts', 'preview.html exactly matches deterministic builder output', generated.status === 0, generated.stderr || generated.stdout);
+	const introConfig = spawnSync(process.execPath, ['--check', paths.introConfig], {
+		cwd: root,
+		encoding: 'utf8',
+	});
+	expect('syntax', 'cinematic intro configuration parses', introConfig.status === 0, introConfig.stderr || introConfig.stdout);
+	if (existsSync(paths.preview)) {
+		const preview = read(paths.preview);
+		const inlineScripts = [...preview.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
+		expect('generated-artifacts', 'generated preview contains inline application JavaScript', inlineScripts.length > 0, `scripts=${inlineScripts.length}`);
+		for (const [index, script] of inlineScripts.entries()) {
+			const inlineCheck = spawnSync(process.execPath, ['--check', '-'], {
+				cwd: root,
+				encoding: 'utf8',
+				input: script,
+			});
+			expect('generated-artifacts', `generated inline script ${index + 1} parses`, inlineCheck.status === 0, inlineCheck.stderr || inlineCheck.stdout);
+		}
+	}
 }
 
 async function runCurrencyChecks() {
-	const { CURRENCY_META, currencyDisplaySymbol, formatCurrencyAmount, insufficientFundsMessage } =
+	const { CURRENCY_META, currencyDisplaySymbol, formatCurrencyAmount, formatWinCurrencyAmount, insufficientFundsMessage } =
 		await import(pathToFileURL(paths.currency).href + `?v=${Date.now()}`);
 	const expected = {
 		USD: '$10.00',
@@ -120,8 +218,174 @@ async function runCurrencyChecks() {
 	expect('currency', 'unknown currency falls back to amount plus code', formatCurrencyAmount(10, 'ZZZ') === '10.00 ZZZ', formatCurrencyAmount(10, 'ZZZ'));
 	expect('currency', 'XSC display symbol is SC', currencyDisplaySymbol('XSC') === 'SC', currencyDisplaySymbol('XSC'));
 	expect('currency', 'XGC display symbol is GC', currencyDisplaySymbol('XGC') === 'GC', currencyDisplaySymbol('XGC'));
+	expect('currency', 'USD WIN preserves authoritative sub-cent precision', formatWinCurrencyAmount(0.0496, 'USD') === '$0.0496', formatWinCurrencyAmount(0.0496, 'USD'));
+	expect('currency', 'USD WIN keeps native minimum precision', formatWinCurrencyAmount(0.05, 'USD') === '$0.05' && formatWinCurrencyAmount(0, 'USD') === '$0.00', `${formatWinCurrencyAmount(0.05, 'USD')} / ${formatWinCurrencyAmount(0, 'USD')}`);
+	expect('currency', 'XSC WIN preserves precision without a dollar sign', formatWinCurrencyAmount(0.0496, 'XSC') === '0.0496 SC', formatWinCurrencyAmount(0.0496, 'XSC'));
+	expect('currency', 'unknown WIN currency preserves precision with code', formatWinCurrencyAmount(0.0496, 'BAM') === '0.0496 BAM', formatWinCurrencyAmount(0.0496, 'BAM'));
+	expect('currency', 'zero-decimal currency WIN policy remains integer', formatWinCurrencyAmount(10.49, 'JPY') === '\u00a510' && formatWinCurrencyAmount(10.49, 'CLP') === '10 CLP', `${formatWinCurrencyAmount(10.49, 'JPY')} / ${formatWinCurrencyAmount(10.49, 'CLP')}`);
 	expect('currency', 'social casino insufficient copy uses Balance', insufficientFundsMessage('XSC', false) === 'Insufficient Balance', insufficientFundsMessage('XSC', false));
-	expect('currency', 'fiat insufficient copy uses Funds', insufficientFundsMessage('EUR', false) === 'Insufficient Funds', insufficientFundsMessage('EUR', false));
+	expect('currency', 'fiat insufficient copy also uses globally safe Balance wording', insufficientFundsMessage('EUR', false) === 'Insufficient Balance', insufficientFundsMessage('EUR', false));
+}
+
+const API_AMOUNT_MULTIPLIER = 1_000_000;
+
+function sameNumber(left, right) {
+	return Math.round(Number(left) * 100_000_000) === Math.round(Number(right) * 100_000_000);
+}
+
+function connectedClusterSize(grid, target, wild = 'wild') {
+	const cols = Array.isArray(grid) ? grid.length : 0;
+	const rows = cols && Array.isArray(grid[0]) ? grid[0].length : 0;
+	const starts = [];
+	for (let col = 0; col < cols; col += 1) {
+		for (let row = 0; row < rows; row += 1) {
+			if (grid[col]?.[row] === target) starts.push([col, row]);
+		}
+	}
+	let largest = 0;
+	const globallySeen = new Set();
+	for (const start of starts) {
+		const startKey = `${start[0]},${start[1]}`;
+		if (globallySeen.has(startKey)) continue;
+		const stack = [start];
+		const seen = new Set([startKey]);
+		let count = 0;
+		while (stack.length) {
+			const [col, row] = stack.pop();
+			count += 1;
+			if (grid[col]?.[row] === target) globallySeen.add(`${col},${row}`);
+			for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+				const nextCol = col + dc;
+				const nextRow = row + dr;
+				if (nextCol < 0 || nextCol >= cols || nextRow < 0 || nextRow >= rows) continue;
+				const key = `${nextCol},${nextRow}`;
+				if (seen.has(key)) continue;
+				const symbol = grid[nextCol]?.[nextRow];
+				if (symbol !== target && symbol !== wild) continue;
+				seen.add(key);
+				stack.push([nextCol, nextRow]);
+			}
+		}
+		largest = Math.max(largest, count);
+	}
+	return largest;
+}
+
+async function runPaytableChecks() {
+	const group = 'paytable-contract';
+	for (const [name, path] of [
+		['production math contract module', paths.productionMathContract],
+		['generated production math config', paths.generatedMathConfig],
+		['published production math config', paths.publishedMathConfig],
+	]) {
+		expect(group, `${name} exists`, existsSync(path), rel(path));
+	}
+	if (![paths.productionMathContract, paths.generatedMathConfig, paths.publishedMathConfig].every(existsSync)) return;
+
+	let contract;
+	try {
+		contract = await import(pathToFileURL(paths.productionMathContract).href + `?qa=${Date.now()}`);
+		pass(group, 'production math contract imports without drift/schema errors', rel(paths.productionMathContract));
+	} catch (error) {
+		fail(group, 'production math contract imports without drift/schema errors', error?.stack || error?.message || String(error));
+		return;
+	}
+
+	let generatedConfig;
+	let publishedConfig;
+	try {
+		generatedConfig = JSON.parse(read(paths.generatedMathConfig));
+		publishedConfig = JSON.parse(read(paths.publishedMathConfig));
+	} catch (error) {
+		fail(group, 'production math configs contain valid JSON', error?.message || String(error));
+		return;
+	}
+
+	expect(
+		group,
+		'generated and published Paytable JSON are identical',
+		JSON.stringify(generatedConfig.paytable) === JSON.stringify(publishedConfig.paytable),
+		`${rel(paths.generatedMathConfig)} === ${rel(paths.publishedMathConfig)}`,
+	);
+	expect(
+		group,
+		'generated and published cluster rules are identical',
+		JSON.stringify(generatedConfig.cluster) === JSON.stringify(publishedConfig.cluster),
+		`${rel(paths.generatedMathConfig)} === ${rel(paths.publishedMathConfig)}`,
+	);
+
+	const matrix = [];
+	for (const symbol of contract.PAYING_SYMBOLS) {
+		const raw = publishedConfig.paytable?.[symbol];
+		const ui = contract.PRODUCTION_PAYTABLE?.[symbol];
+		expect(group, `${symbol} is present in published math and UI contract`, !!raw && !!ui, symbol);
+		if (!raw || !ui) continue;
+		for (const threshold of contract.CLUSTER_THRESHOLDS) {
+			const productionValue = threshold.boostKey ? Number(raw.cluster5) * Number(raw[threshold.boostKey]) : Number(raw.cluster5);
+			const contractValue = Number(ui[threshold.valueKey]);
+			const matches = sameNumber(productionValue, contractValue);
+			expect(group, `${symbol} ${threshold.label} matches published production math numerically`, matches, `${contractValue} === ${productionValue}`);
+			matrix.push({
+				symbol,
+				threshold: threshold.label,
+				production: productionValue,
+				frontendContract: contractValue,
+				formatted: matches ? contract.formatPaytableMultiplier(contractValue) : null,
+				result: matches ? 'PASS' : 'FAIL',
+			});
+		}
+	}
+
+	const apiPayout = (symbol, size, cascade = 1) => Math.round(
+		API_AMOUNT_MULTIPLIER * contract.payoutForCluster(symbol, size, cascade),
+	);
+	expect(group, 'K 5 symbols at $1 and 1x pays $0.48', apiPayout('k', 5) === 480_000, `${apiPayout('k', 5)} API units`);
+	expect(group, 'Q 5 symbols at $1 and 1x pays $0.36', apiPayout('q', 5) === 360_000, `${apiPayout('q', 5)} API units`);
+	expect(group, 'J 7 symbols at $1 and 1x pays $0.56', apiPayout('j', 7) === 560_000, `${apiPayout('j', 7)} API units`);
+
+	const wildGrid = Array.from({ length: 6 }, () => Array(5).fill('scatter'));
+	for (const [col, row] of [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1]]) wildGrid[col][row] = 'j';
+	wildGrid[3][1] = 'wild';
+	const wildClusterSize = connectedClusterSize(wildGrid, 'j');
+	expect(group, 'six J plus one connecting Wild counts as a seven-symbol J cluster', wildClusterSize === 7, `cluster size=${wildClusterSize}`);
+	expect(group, 'six J plus one connecting Wild pays $0.56 at $1 and 1x', apiPayout('j', wildClusterSize) === 560_000, `${apiPayout('j', wildClusterSize)} API units`);
+	expect(group, 'later 2x cascade applies after base threshold pay', apiPayout('j', 7, 2) === 1_120_000, `${apiPayout('j', 7, 2)} API units`);
+
+	for (const [value, expected] of [[0.48, '0.48'], [2.88, '2.88'], [3.84, '3.84'], [1, '1']]) {
+		expect(group, `Paytable formatter preserves ${expected}`, contract.formatPaytableMultiplier(value) === expected, contract.formatPaytableMultiplier(value));
+	}
+
+	const builder = read(paths.builder);
+	expectContains(group, 'frontend builder consumes production Paytable contract', builder, 'PRODUCTION_PAYTABLE');
+	expectContains(group, 'frontend builder consumes shared Paytable formatter', builder, 'formatPaytableMultiplier');
+	expectContains(group, 'frontend exposes generated Paytable for numerical DOM audit', builder, '__ggrPaytable');
+
+	if (existsSync(paths.preview)) {
+		pass(group, 'generated preview exists for Paytable audit', rel(paths.preview));
+	} else {
+		fail(group, 'generated preview exists for Paytable audit', rel(paths.preview));
+	}
+	if (existsSync(paths.preview) && existsSync(paths.publishedFrontend)) {
+		expect(group, 'publish/frontend/index.html exactly matches generated preview.html', read(paths.preview) === read(paths.publishedFrontend), `${rel(paths.preview)} === ${rel(paths.publishedFrontend)}`);
+	} else {
+		fail(group, 'published frontend exists for generated-artifact drift audit', rel(paths.publishedFrontend));
+	}
+
+	paytableEvidence = {
+		generatedMathConfig: rel(paths.generatedMathConfig),
+		publishedMathConfig: rel(paths.publishedMathConfig),
+		generatedFrontend: rel(paths.preview),
+		publishedFrontend: rel(paths.publishedFrontend),
+		apiAmountMultiplier: API_AMOUNT_MULTIPLIER,
+		matrix,
+		mandatoryExamples: {
+			k5ApiAmount: apiPayout('k', 5),
+			q5ApiAmount: apiPayout('q', 5),
+			j7ApiAmount: apiPayout('j', 7),
+			j6PlusWildClusterSize: wildClusterSize,
+			j6PlusWildApiAmount: apiPayout('j', wildClusterSize),
+		},
+	};
 }
 
 function runCurrencySourceChecks() {
@@ -132,8 +396,9 @@ function runCurrencySourceChecks() {
 
 	expectContains('currency-source', 'builder imports shared currency metadata', builder, 'CURRENCY_META');
 	expectContains('currency-source', 'builder HUD uses currency text slot', builder, "'currency'");
-	expectContains('currency-source', 'builder WIN meter uses currency formatting', builder, "$('meter-win').textContent = formatCurrency(");
-	expectContains('currency-source', 'shared amount formatter delegates to currency adapter', amount, 'formatCurrencyAmount');
+	expectContains('currency-source', 'builder WIN meter preserves authoritative sub-cent precision', builder, "$('meter-win').textContent = formatExactCurrency(");
+	expectContains('currency-source', 'shared standard amount formatter delegates to currency adapter', amount, 'formatCurrencyAmount');
+	expectContains('currency-source', 'shared book WIN formatter delegates to precise WIN currency adapter', amount, 'formatWinCurrencyAmount');
 	expectNotContains('currency-source', 'builder does not use old euro image asset', builder, 'assets.euro');
 	expectNotContains('currency-source', 'cluster preview source does not use old euro image asset', clusterSource, 'assets.euro');
 	expectNotContains('currency-source', 'lines preview no longer uses Intl currency hardcode', linesSource, 'Intl.NumberFormat');
@@ -216,7 +481,7 @@ function runI18nChecks() {
 	const autoStart = read(paths.autoStart);
 
 	expectContains('i18n', 'preview has Insufficient Balance title path', builder, "'Insufficient Balance'");
-	expectContains('i18n', 'preview has Insufficient Funds title path', builder, "'Insufficient Funds'");
+	expectNotContains('i18n', 'preview has no player-visible Insufficient Funds title path', builder, "'Insufficient Funds'");
 	expectContains('i18n', 'preview social flag is considered', builder, 'UrlState.social()');
 	expectContains('i18n', 'preview initializes display currency from URL', builder, 'state.currency = UrlState.currency();');
 	expectContains('i18n', 'shared UI derives insufficient copy from currency helper', i18n, 'insufficientFundsMessage(stateBet.currency, stateUrlDerived.social())');
@@ -224,6 +489,180 @@ function runI18nChecks() {
 	expectContains('i18n', 'auto-spin option 200 is available', stateUi, "'200': 200");
 	for (const removed of ["'75'", "'250'", "'500'", "'1000'"]) {
 		expectNotContains('i18n', `auto-spin option ${removed} is removed`, stateUi, removed);
+	}
+}
+
+function runBetConfigChecks() {
+	const builder = read(paths.builder);
+	const e2e = read(paths.e2e);
+	expectContains('bet-config', 'dev fallback bet levels are isolated', builder, 'const DEV_BET_LEVELS = [');
+	expectContains('bet-config', 'active bet config source exists', builder, 'let activeBetConfig');
+	expectContains('bet-config', 'authenticate bet config normalizer exists', builder, 'function normalizeBetConfig');
+	expectContains('bet-config', 'authenticate bet config applier exists', builder, 'function applyBetConfig');
+	expectContains('bet-config', 'authenticate bet levels are accepted from response config', builder, "firstArrayConfig(config, ['betLevels', 'availableBetLevels', 'betAmounts', 'bets', 'levels', 'denominations'])");
+	expectContains('bet-config', 'authenticate default bet is accepted from response config', builder, "firstMoneyConfig(config, ['defaultBetLevel', 'defaultBet', 'defaultBetAmount', 'betLevel', 'betAmount', 'minBet'])");
+	expectContains('bet-config', 'authenticate currency is accepted from config/balance', builder, 'config.currency || config.defaultCurrency || balanceCurrency');
+	expectContains('bet-config', 'RGS authenticate without levels uses response default only', builder, "if (source === 'authenticate' && !levels.length && defaultBet !== null)");
+	expectContains('bet-config', 'wallet response feeds bet config', builder, "syncBetLevels(data.config, data)");
+	expectContains('bet-config', 'wallet play uses active bet api levels', builder, 'activeBetConfig.apiLevels');
+	expectContains('bet-config', 'plus/minus controls move through active bet ladder', builder, 'state.bet = BETS[state.betIdx]');
+	expectContains('bet-config', 'QA-only runtime exposes cloned active bet config', e2e, 'getBetConfig: () => cloneReplayData(activeBetConfig)');
+	expectContains('bet-config', 'production frontend only exposes the QA instrumentation hook marker', builder, '/*__STAKE_QA_RUNTIME_HOOK__*/');
+	expectContains('bet-config', 'demo fallback only applies outside RGS/replay', builder, "if (!UrlState.requiresRgs() && !Replay.configured()) applyBetConfig");
+}
+
+function runSocialWordingChecks() {
+	const builder = read(paths.builder);
+	const sharedVisibleSources = [
+		read(paths.i18nDerived),
+		read(paths.pixiI18nDerived),
+		read(paths.defaultGameRules),
+		read(paths.defaultSymbolTable),
+		read(paths.clusterPreviewSource),
+		read(paths.linesPreviewSource),
+	].join('\n');
+	const standard = extractBalancedObject(builder, '\n\ten: {');
+	const sweeps = extractBalancedObject(builder, 'sweeps_en:');
+	const standardValues = stringValuesFromObjectLiteral(standard);
+	const sweepsValues = stringValuesFromObjectLiteral(sweeps);
+	const requiredFooter = '5+ means 5–6 symbols; 7+ means 7–8; 9+ means 9–11; 12+ means 12 or more. Each eligible symbol is evaluated independently with orthogonally connected Wilds. A Wild may support multiple distinct symbol clusters, counts toward each supported cluster, and appears only once within a single award. The tumble removes all awarded positions. The cascade multiplier starts at 1× and increases after each successful cascade. A floating amount shows that award step; the WIN meter is cumulative for the complete round.';
+	expect('player-copy', 'default en language resource is present', standard.length > 0, `chars=${standard.length}`);
+	expect('player-copy', 'sweeps_en language resource is present', sweeps.length > 0, `chars=${sweeps.length}`);
+	for (const [resourceName, resourceValues] of [['en', standardValues], ['sweeps_en', sweepsValues]]) {
+		const hits = playerVisibleForbiddenHits(resourceValues);
+		expect('player-copy', `${resourceName} values contain zero restricted terms`, hits.length === 0, hits.join(', '));
+		for (const required of PLAYER_SAFE_REQUIRED_VALUES) {
+			expectContains('player-copy', `${resourceName} value includes "${required}"`, resourceValues, required);
+		}
+	}
+	for (const fixture of ['PAY TABLE', 'Payouts', 'Symbol Pays', 'paying', 'standalone pay', 'standalone bet', 'Bonus Buy', 'Auto-Bet', 'Replay Bet']) {
+		const hits = playerVisibleForbiddenHits(fixture);
+		expect('player-copy', `restricted-term detector rejects "${fixture}"`, hits.length > 0, hits.join(', '));
+	}
+	expectContains('player-copy', 'UI applies language at runtime', builder, 'function applyLanguage()');
+	expectContains('player-copy', 'all modes share the player-safe Rules source', builder, 'function buildPlayerSafeRulesBodyHtml()');
+	expectContains('player-copy', 'Rules use Feature panel wording', builder, "socialTrigger: 'Feature panel");
+	expectContains('player-copy', 'Rules use play amount wording', builder, 'play amount');
+	expectContains('player-copy', 'Replay label mapping includes Final Play Amount', builder, "replayTotalCost: 'Final Play Amount'");
+	expectContains('player-copy', 'Replay label mapping includes Total Win', builder, "replayTotalWin: 'Total Win'");
+	expectContains('player-copy', 'both language resources use the approved neutral footer verbatim', standardValues + sweepsValues, requiredFooter);
+	expect('player-copy', 'approved footer has no restricted term', playerVisibleForbiddenHits(requiredFooter).length === 0, playerVisibleForbiddenHits(requiredFooter).join(', '));
+	expectContains('player-copy', 'authenticate jurisdiction remains authoritative for Social display metadata', builder, "typeof data.config.jurisdiction?.socialCasino === 'boolean'");
+	expectContains('player-copy', 'authoritative jurisdiction updates Social state', builder, 'state.socialCasino = data.config.jurisdiction.socialCasino');
+	expectNotContains('player-copy', 'default source contains no PAY TABLE heading', builder, '>PAY TABLE<');
+	expectNotContains('player-copy', 'default source contains no Replay Bet literal', builder, "'REPLAY BET'");
+	for (const restrictedLiteral of [
+		"'BET'",
+		"'BET MENU'",
+		"'SELECT YOUR BET'",
+		"'BUY BONUS'",
+		"'PAYTABLE'",
+		"'AUTO SPIN'",
+		'PAY TABLE |',
+		'ADD YOUR PAY TABLE',
+		'CLUSTER PAYS',
+		'text="PAYS"',
+		'text="BET"',
+		'Malfunction voids all pays and plays',
+		'Auto Spin is',
+	]) {
+		expectNotContains('player-copy', `shared visible sources omit "${restrictedLiteral}"`, sharedVisibleSources, restrictedLiteral);
+	}
+	for (const safeLiteral of [
+		"'PLAY'",
+		"'PLAY MENU'",
+		"'SELECT YOUR PLAY AMOUNT'",
+		"'BONUS / FEATURE'",
+		"'SYMBOL TABLE'",
+		"'AUTO-PLAY'",
+		'Malfunction voids all wins and plays',
+	]) {
+		expectContains('player-copy', `shared visible sources include "${safeLiteral}"`, sharedVisibleSources, safeLiteral);
+	}
+}
+
+function runGameInfoChecks() {
+	const builder = read(paths.builder);
+	const testedFrontend = process.env.STAKE_QA_FRONTEND_HTML ? paths.publishedFrontend : paths.preview;
+	const preview = existsSync(testedFrontend) ? read(testedFrontend) : builder;
+	const productionMathContract = read(paths.productionMathContract);
+	const productionMath = JSON.parse(read(paths.publishedMathConfig));
+	const rtpAuditPath = join(dirname(paths.publishedMathConfig), 'RTP_AUDIT.json');
+	const rtpAudit = existsSync(rtpAuditPath) ? JSON.parse(read(rtpAuditPath)) : null;
+	const publishedModes = {
+		base: 'Base Game',
+		hunt: 'Feature Spins',
+		rainbow: 'Rainbow Spin',
+		bonus_tier1: 'Golden Chance',
+		bonus: 'All That Glitters',
+	};
+	expectContains('game-info', 'player mode metadata source exists', builder, 'const PLAYER_MODE_META = {');
+	expectContains('game-info', 'rules render all player modes from metadata', builder, 'Object.entries(PLAYER_MODE_META).map');
+	expectContains('game-info', 'mode maximums are derived from exact production math', productionMathContract, 'export const PRODUCTION_MODE_MAX_WINS = buildModeMaxWins(PRODUCTION_GAME_CONFIG);');
+	expect('game-info', 'production RTP audit exists beside the tested math config', !!rtpAudit, rel(rtpAuditPath));
+	for (const [mode, label] of Object.entries(publishedModes)) {
+		const configured = Number(productionMath.betModes?.[mode]?.max_win);
+		const audited = Number(rtpAudit?.[mode]?.maxPayoutMultiplierObserved);
+		const formatted = formatMaxWinMultiplier(configured);
+		const naturalFeature = mode === 'bonus_tier1' || mode === 'bonus';
+		expect('game-info', `${label} maximum is finite and positive`, Number.isFinite(configured) && configured > 0, String(configured));
+		expect('game-info', `${label} maximum matches shipped RTP audit`, configured === audited, `config=${configured}; audit=${audited}`);
+		expectContains('game-info', `${label} renders its production maximum`, preview, `data-mode-maximum="${mode}" data-max-win="${configured}"`);
+		expectContains('game-info', `${label} maximum copy uses ${formatted}x Base Play amount`, preview, `${naturalFeature ? 'Feature-panel maximum award' : 'Maximum award'}: ${formatted}&times; the Base Play amount`);
+		if (naturalFeature) {
+			expectContains('game-info', `${label} separates feature-panel and natural origins`, preview, `data-natural-max-source-modes="base rainbow"`);
+			expectContains('game-info', `${label} natural sequence remains bound to its complete originating round`, preview, 'Natural Scatter-triggered features remain part of the complete originating round. Complete-round limit: Base Game 3,895.42&times;; Rainbow Spin 10,000&times;');
+			expectContains('game-info', `${label} summary labels the 10,000x value as feature-panel-only`, preview, `<b>${label} (feature panel):</b></dt><dd>${formatted}&times;`);
+		}
+	}
+	expect('game-info', 'Base Game maximum is mode-specific rather than the global engine cap', Number(productionMath.betModes?.base?.max_win) !== Number(productionMath.maxWinMultiplier), `base=${productionMath.betModes?.base?.max_win}; cap=${productionMath.maxWinMultiplier}`);
+	expectContains('game-info', 'runtime complete-round cap uses the active production mode maximum', builder, 'const productionRoundWinCap = () => PRODUCTION_MODE_MAX_WINS[productionModeKey(state.productionMode)] * state.bet;');
+	expectContains('game-info', 'local simulator clips each award to the remaining complete-round allowance', builder, 'const capWin = () => Math.max(0, productionRoundWinCap() - (state.localMathRound ? state.localRoundWin : 0));');
+	expectContains('game-info', 'local simulator commits wins to one complete-round accumulator', builder, 'function commitLocalRoundWin(amount)');
+	expectContains('game-info', 'every paid round binds its cap before rendering', builder, 'setProductionMode(Rgs.modeFor(buy));');
+	expectContains('game-info', 'Replay binds its cap to the immutable saved mode', builder, 'setProductionMode(immutableRound.mode);');
+	expectContains('game-info', 'active-round restore binds its cap to the authoritative saved mode', builder, 'setProductionMode(round.mode);');
+	expectNotContains('game-info', 'runtime never applies the old universal 10,000x cap', builder, 'const capWin = () => CONFIG.maxWinMultiplier * state.bet;');
+	expectContains('game-info', 'natural End of the Rainbow maximum follows its originating mode', preview, 'data-mode-maximum="bonus_tier3" data-max-source-modes="base rainbow"');
+	expectContains('game-info', 'natural End of the Rainbow shows both exact complete-round limits', preview, 'This natural feature remains part of the complete originating round. Complete-round limit: Base Game 3,895.42&times;; Rainbow Spin 10,000&times;');
+	expectContains('game-info', 'Game Info has a dedicated mode maximum summary', preview, 'id="mode-max-awards"');
+	expectContains('game-info', 'Game Info mode maximum summary is a labelled definition list', preview, '<dl class="pt-note" id="mode-max-awards" aria-labelledby="mode-max-awards-title">');
+	expectContains('game-info', 'mode maximum summary explains natural features remain in the originating round', preview, '<dt>Natural Scatter-triggered Free Spins, including End of the Rainbow, remain part of the complete originating round.</dt>');
+	expectContains('game-info', 'mode maximum summary shows exact complete-round limits', preview, '<dd>Complete-round limits: Base Game 3,895.42&times;; Rainbow Spin 10,000&times;.</dd>');
+	expectNotContains('game-info', 'Game Info never presents a mode cap as a natural-tier-specific maximum', preview, 'Natural feature maximum award');
+	expectNotContains('game-info', 'Game Info never presents origin mode caps as natural-feature maxima', preview, 'Natural Scatter-triggered feature maximum');
+	expectNotContains('game-info', 'Game Info never advertises the global demo cap as one universal maximum', builder, 'Max award ${formatMaxWinMultiplier(CONFIG.maxWinMultiplier)}');
+	expectNotContains('game-info', 'runtime Game Info never advertises one global maximum', builder, "'Max award ' + formatMaxWinMultiplier(CONFIG.maxWinMultiplier)");
+	for (const name of PLAYER_MODE_NAMES) {
+		expectContains('game-info', `Game Info explains mode "${name}"`, preview, name);
+	}
+	for (const marker of [
+		'Main Play button',
+		'Feature panel',
+		'3 Scatter tickets',
+		'4 Scatter tickets',
+		'5 Scatter tickets only',
+		'Feature panel',
+	]) {
+		expectContains('game-info', `Game Info includes access/trigger "${marker}"`, builder + preview, marker);
+	}
+	for (const marker of [
+		'Feature Multiplier:',
+		'Golden Cells persist',
+		'guaranteed Golden Arc',
+		'boosted Golden Arc chance',
+		'not available from the feature panel',
+	]) {
+		expectContains('game-info', `Game Info includes feature detail "${marker}"`, builder + preview, marker);
+	}
+	for (const marker of [
+		'<div class="pt-head">Retriggers</div>',
+		'Base Game and Rainbow Spin can trigger Free Spins',
+		'No retrigger inside this single-spin mode.',
+		'The current math book does not create additional Free Spins inside this tier.',
+		'Feature-panel Free Spins do not add additional Free Spins',
+	]) {
+		expectContains('game-info', `Game Info includes retrigger rule "${marker}"`, builder + preview, marker);
 	}
 }
 
@@ -244,7 +683,7 @@ function runMajorActionChecks() {
 	// The generic gate future major actions (e.g. Double Chance) must use.
 	expectContains('major-actions', 'confirmMajorAction gate exists', builder, 'function confirmMajorAction(');
 	expectContains('major-actions', 'confirmMajorAction modal exists', builder, 'id="modal-major-confirm"');
-	expectContains('major-actions', 'confirmMajorAction is part of the public preview API', builder, 'confirmMajorAction, formatCurrency');
+	expectNotContains('major-actions', 'production frontend does not expose the mutable preview API', builder, 'window.__ggr =');
 	expectContains('major-actions', 'confirmMajorAction treats dismissal as cancel', builder, 'observer = new MutationObserver(');
 }
 
@@ -259,6 +698,46 @@ function runInterruptedRoundChecks() {
 	expectContains('interrupted-round', 'interrupted round modal is persistent', builder, 'data-persistent="true"');
 	expect('interrupted-round', 'resume message appears before bonus playback starts', messageCall > resumeStart && messageCall < spinningStart, `messageCall=${messageCall}, spinningStart=${spinningStart}`);
 	expectContains('interrupted-round', 'persistent modal ignores backdrop close', builder, '!m.dataset.persistent');
+}
+
+function runReplayChecks() {
+	const builder = read(paths.builder);
+	expectContains('replay', 'dedicated replay overlay exists', builder, 'id="replay-overlay"');
+	expectContains('replay', 'dedicated replay action exists', builder, 'id="replay-action"');
+	expectContains('replay', 'explicit replay lifecycle state exists', builder, 'data-replay-state');
+	for (const lifecycle of ['loading', 'ready', 'running', 'completed', 'error']) {
+		expectContains('replay', `replay lifecycle includes ${lifecycle}`, builder, `${lifecycle}:`);
+	}
+	expectContains('replay', 'replay fetch uses Stake replay endpoint', builder, "'/bet/replay/'");
+	expectContains('replay', 'replay request includes language parameter', builder, 'language: UrlState.lang()');
+	expectContains('replay', 'replay request includes lang parameter', builder, 'lang: UrlState.lang()');
+	expectContains('replay', 'replay metadata function exists', builder, 'function replayMetadata(round)');
+	expectContains('replay', 'replay mode name comes from player mode metadata', builder, 'playerModeName(rgsRoundMode(round))');
+	expectContains('replay', 'Replay Play Amount label is explicit and display-only', builder, "'REPLAY PLAY'");
+	expectContains('replay', 'Replay Play and Play Again labels are dedicated', builder, "status === 'completed' ? t('replayAgainAction') : t('replayAction')");
+	expectContains('replay', 'replay lifecycle uses localized labels', builder, "replayLoadingDetail");
+	for (const label of ['REPLAY COMPLETED', 'REPLAY ERROR', 'REPLAY RUNNING', 'READY TO REPLAY', 'LOADING REPLAY']) {
+		expectContains('replay', `Social replay includes minimal safe state "${label}"`, builder, label);
+	}
+	expectContains('replay', 'Social replay summary uses one formatted GC/SC amount', builder, "String(meta.mode || 'Base Game').toUpperCase() + ' · ' + formatCurrency(meta.baseBet)");
+	expectContains('replay', 'replay currency code is hidden and aria-hidden', builder, "currency.setAttribute('aria-hidden', 'true')");
+	expectContains('replay', 'replay completion presentation is non-blocking for RGS settlement', builder, "{ blocking: false }");
+	expectContains('replay', 'normal replay controls are made inert/disabled', builder, 'function makeUnavailableInReplay(element)');
+	expectContains('replay', 'replay response is schema validated against its production mode', builder, 'function validateReplayEvents(events, mode)');
+	expectContains('replay', 'replay maximum comes from the mode-specific production contract', builder, 'const maxBookUnits = productionModeMaxBookUnits(mode)');
+	expectContains('replay', 'replay request has a timeout controller', builder, 'new AbortController()');
+	expectContains('replay', 'replay saved data is frozen', builder, 'deepFreezeReplayData');
+	expectContains('replay', 'replay uses RGS book renderer', builder, "playRgsBookRound({ round: playbackRound }");
+	expectContains('replay', 'replay playback does not track/save bonus progress', builder, 'trackProgress: false');
+	expectContains('replay', 'dedicated replay action starts cached playback', builder, 'action.onclick = () => play();');
+	expectNotContains('replay', 'production frontend exposes no mutable gameplay API', builder, 'window.__ggr =');
+	expectNotContains('replay', 'production frontend contains no demo win mutator', builder, 'demoWin');
+	expectNotContains('replay', 'production frontend contains no demo feature mutator', builder, 'demoFeature');
+	expectContains('replay', 'normal spin action is logically guarded in replay', builder, 'if (state.replay');
+	expectNotContains('replay', 'replay is no longer blocked as unsupported launch parameter', builder, 'The game URL contains unsupported launch parameters');
+	expectNotContains('replay', 'old replay unsupported comment removed', builder, 'This build does not implement replay rendering');
+	expectNotContains('replay', 'replay has no local fallback round generator', builder, 'localReplayRound');
+	expectNotContains('replay', 'replay has no fallback board generator', builder, 'replayFallbackBoard');
 }
 
 async function runMobileChecks() {
@@ -292,17 +771,42 @@ function runE2eChecks(selectedMode) {
 		encoding: 'utf8',
 		stdio: ['ignore', 'inherit', 'inherit'],
 		env: { ...process.env, STAKE_QA_ARTIFACT_DIR: artifactRoot },
-		timeout: 15 * 60 * 1000,
+		timeout: Number(process.env.STAKE_QA_E2E_TIMEOUT_MS) || 30 * 60 * 1000,
 	});
 	if (result.status === 0) {
 		pass('e2e', 'browser end-to-end suite', `mode=${e2eMode}, report: e2e-report.json`);
 		return;
 	}
-	if (result.status === 3 && process.env.STAKE_QA_REQUIRE_E2E !== '1') {
+	const e2eRequired = mode === 'e2e'
+		|| process.env.STAKE_QA_REQUIRE_E2E === '1'
+		|| process.env.CI === 'true'
+		|| process.env.CI === '1';
+	if (result.status === 3 && !e2eRequired) {
 		skip('e2e', 'browser end-to-end suite', 'Playwright/Chromium not available. Install with: npm i -D playwright && npx playwright install chromium. Set STAKE_QA_REQUIRE_E2E=1 to make this a hard failure.');
 		return;
 	}
 	fail('e2e', 'browser end-to-end suite', `stake-qa-e2e exited with status ${result.status}`);
+}
+
+function runMathIntegrityChecks() {
+	const args = [
+		'-m', 'unittest', 'discover',
+		'-s', join('math', 'games', 'golden_goal_rush', 'tests'),
+		'-p', 'test_*.py',
+		'-v',
+	];
+	const result = spawnSync('python', args, {
+		cwd: root,
+		encoding: 'utf8',
+		stdio: ['ignore', 'pipe', 'pipe'],
+		timeout: Number(process.env.STAKE_QA_MATH_TIMEOUT_MS) || 2 * 60 * 1000,
+	});
+	const output = `${result.stdout || ''}${result.stderr || ''}`.trim();
+	if (result.status === 0) {
+		pass('math-integrity', 'production Python Wild/cluster regression suite', output.split('\n').slice(-2).join(' | '));
+		return;
+	}
+	fail('math-integrity', 'production Python Wild/cluster regression suite', `status=${result.status}; ${output.slice(-2000)}`);
 }
 
 function runRulesChecks() {
@@ -330,32 +834,54 @@ function runRulesChecks() {
 		expectContains('rules', `rules describe ${key}`, preview, `data-control-key="${key}"`);
 	}
 	expectContains('rules', 'rules preserve RTP text', builder, 'RTP 96.45%');
-	expectContains('rules', 'rules preserve malfunction text', builder, 'Malfunction voids all pays and plays');
+	expectContains('rules', 'rules preserve approved malfunction text', builder, 'Malfunction voids all wins and plays');
 }
 
 function runExistingBehaviorChecks() {
 	const builder = read(paths.builder);
+	const preview = existsSync(paths.preview) ? read(paths.preview) : '';
 	const mathConfig = read(join(root, 'apps', 'cluster', 'scripts', 'ggr-config.mjs'));
+	const e2e = read(paths.e2e);
+	const introConfig = read(paths.introConfig);
 
 	expectContains('regression-markers', 'RGS authenticate function remains', builder, 'const authenticate = async () =>');
 	expectContains('regression-markers', 'RGS play endpoint remains', builder, '/wallet/play');
 	expectContains('regression-markers', 'RGS end-round endpoint remains', builder, '/wallet/end-round');
 	expectContains('regression-markers', 'round active end-round guard remains', builder, 'const roundNeedsEnd = (round) => !!round && round.active === true;');
+	expectContains('regression-markers', 'active rounds require authoritative end-round balance', preview, 'Active round is missing an authoritative end-round balance');
+	expectContains('regression-markers', 'wallet reconciliation helper remains', builder, 'function applyAuthoritativeWalletBalance');
+	expectContains('regression-markers', 'RGS local-wallet credit tracker remains', builder, 'localWalletCredits');
+	expectNotContains('regression-markers', 'active settlement never adds displayed win to local balance', builder, 'state.balance + displayedWin');
 	expectContains('regression-markers', 'RGS book renderer remains', builder, 'async function playRgsBookRound');
-	expectContains('regression-markers', 'bonus buy RGS render guard remains', builder, 'if (!shouldRenderRgsRound(rgsEvents))');
+	expectContains('regression-markers', 'bonus buy RGS render guard remains', builder, 'if (rgsAmountContractError || !shouldRenderRgsRound(rgsEvents))');
+	expectContains('regression-markers', 'normal RGS amounts fail closed against finalWin', builder, 'function rgsRoundAmountContract(round, events, expectedMode)');
+	expectContains('regression-markers', 'wallet response mode is bound to the requested production mode', builder, "Object.defineProperty(data, '__requestedProductionMode'");
+	expectContains('regression-markers', 'missing or mismatched wallet round mode fails closed', builder, 'function productionRoundMode(round, expectedMode)');
 	expectContains('regression-markers', 'local free spins stay demo-only', builder, 'allowLocalFreeSpins = !Rgs.configured()');
 	expectContains('regression-markers', 'symbol math import remains in preview builder', builder, 'import { SYMBOL_MATH, CONFIG }');
 	expectContains('regression-markers', 'math config still exports symbol weights', mathConfig, 'SYMBOL_MATH');
+	expectContains('regression-markers', 'E2E production-book proof uses Node Zstd streaming', e2e, 'createZstdDecompress');
+	expectContains('regression-markers', 'E2E production-book proof defaults to the shipped math artifact', e2e, ': dirname(publishedMathFile);');
+	expectNotContains('regression-markers', 'E2E production-book proof never defaults to ignored local raw books', e2e, "join(root, 'math', 'games', 'golden_goal_rush', 'library', 'books')");
+	expectContains('intro', 'intro configuration is a separate validated source of truth', introConfig, 'export function validateIntroConfig');
+	expectContains('intro', 'intro is non-blocking after the operational launch flow begins', builder, 'resumeLaunchRound();\nIntro.start();');
+	expectContains('intro', 'intro replay bypass is encoded in the runtime controller', builder, 'INTRO_CONFIG.skipInReplay');
 }
 
-const E2E_MODES = new Set(['all', 'currency', 'insufficient-funds', 'major-actions', 'interrupted-round', 'mobile', 'rules']);
+const E2E_MODES = new Set(['all', 'currency', 'insufficient-funds', 'major-actions', 'interrupted-round', 'mobile', 'rules', 'bet-config', 'social', 'intro', 'replay', 'paytable']);
 async function run(selectedMode) {
 	runSyntaxCheck();
+	if (selectedMode === 'all' || selectedMode === 'math-integrity') runMathIntegrityChecks();
+	if (selectedMode === 'all' || selectedMode === 'paytable') await runPaytableChecks();
 	if (selectedMode === 'all' || selectedMode === 'currency') {
 		await runCurrencyChecks();
 		runCurrencySourceChecks();
 	}
 	if (selectedMode === 'all' || selectedMode === 'i18n') runI18nChecks();
+	if (selectedMode === 'all' || selectedMode === 'bet-config') runBetConfigChecks();
+	if (selectedMode === 'all' || selectedMode === 'social') runSocialWordingChecks();
+	if (selectedMode === 'all' || selectedMode === 'rules' || selectedMode === 'game-info') runGameInfoChecks();
+	if (selectedMode === 'all' || selectedMode === 'replay') runReplayChecks();
 	if (selectedMode === 'all' || selectedMode === 'major-actions') runMajorActionChecks();
 	if (selectedMode === 'all' || selectedMode === 'interrupted-round') runInterruptedRoundChecks();
 	if (selectedMode === 'all' || selectedMode === 'mobile') await runMobileChecks();
@@ -374,6 +900,19 @@ mkdirSync(artifactRoot, { recursive: true });
 const report = {
 	mode,
 	root,
+	identity: {
+		testedCommitSha,
+		startedAt,
+		completedAt: new Date().toISOString(),
+		githubActionsRunId: process.env.GITHUB_RUN_ID || null,
+		githubActionsRunAttempt: process.env.GITHUB_RUN_ATTEMPT || null,
+	},
+	targets: {
+		frontend: paths.publishedFrontend,
+		mathConfig: paths.publishedMathConfig,
+		canonicalPreview: paths.preview,
+		canonicalGeneratedMathConfig: paths.generatedMathConfig,
+	},
 	checks,
 	summary: {
 		pass: checks.filter((check) => check.status === 'PASS').length,
@@ -382,12 +921,14 @@ const report = {
 	},
 };
 writeFileSync(join(artifactRoot, 'report.json'), JSON.stringify(report, null, 2));
+if (paytableEvidence) writeFileSync(join(artifactRoot, 'paytable-contract.json'), JSON.stringify(paytableEvidence, null, 2));
 
 for (const check of checks) {
 	const prefix = check.status === 'PASS' ? 'PASS' : check.status === 'SKIP' ? 'SKIP' : 'FAIL';
 	console.log(`${prefix} [${check.group}] ${check.name}${check.detail ? ` - ${check.detail}` : ''}`);
 }
 console.log(`Stake QA report: ${rel(join(artifactRoot, 'report.json'))}`);
+if (paytableEvidence) console.log(`Paytable contract evidence: ${rel(join(artifactRoot, 'paytable-contract.json'))}`);
 
 if (report.summary.fail > 0) {
 	console.error(`Stake QA failed: ${report.summary.fail} failing check(s).`);

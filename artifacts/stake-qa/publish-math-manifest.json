@@ -1,0 +1,87 @@
+{
+  "root": "publish/math",
+  "fileCount": 16,
+  "sha256": "1dc61a44ca65a7f66df6eff595c99769e37af9a12bd145352772a222f3d882c4",
+  "files": [
+    {
+      "path": "publish/math/base_books.jsonl.zst",
+      "bytes": 6403646,
+      "sha256": "9ab941212d1add249791473e0a0132590d6a8476e92259d608591c9e8e4be9c7"
+    },
+    {
+      "path": "publish/math/base_lookup.csv",
+      "bytes": 1225445,
+      "sha256": "96325b62e78b5fad8e62103748554895e87a262ca5f89ad17b86f4650be4e275"
+    },
+    {
+      "path": "publish/math/bonus_books.jsonl.zst",
+      "bytes": 40142521,
+      "sha256": "be82ada25fdabbc50835438b71588586c3fa460e63f1b438c2b089c00972ff84"
+    },
+    {
+      "path": "publish/math/bonus_lookup.csv",
+      "bytes": 698831,
+      "sha256": "327f6bfbe31ab39809d752f9a30f585da379e0c67f0b31c606ac03e03a18b476"
+    },
+    {
+      "path": "publish/math/bonus_tier1_books.jsonl.zst",
+      "bytes": 25233014,
+      "sha256": "77b95d13b53244c4de8043d4cb9951b35b7ffff152c105b99b9711a3767e7f25"
+    },
+    {
+      "path": "publish/math/bonus_tier1_lookup.csv",
+      "bytes": 677027,
+      "sha256": "b17d02fbae57dc3b0e574dcbd984fbd734f3eebc996c73e19fd995ea92a9c621"
+    },
+    {
+      "path": "publish/math/game_config.json",
+      "bytes": 5424,
+      "sha256": "6610ab4eb02209603d8715c0645edd90cb5aa1ad51aa5ba0774ff5586e70b775"
+    },
+    {
+      "path": "publish/math/hunt_books.jsonl.zst",
+      "bytes": 3059641,
+      "sha256": "9cd10e59ebbd6f9beb476f58557ab2d23e13d2a20dbd87600db051ab058a42c6"
+    },
+    {
+      "path": "publish/math/hunt_lookup.csv",
+      "bytes": 615487,
+      "sha256": "b30b604542a5432895a666afa4c1135f1c1148a65afb516e3a7d193b149bca8b"
+    },
+    {
+      "path": "publish/math/index.json",
+      "bytes": 732,
+      "sha256": "5b5b82fe6e73ddc01e612d54c518909a57c5ae3a4af54c573b53c1d5821c7a4d"
+    },
+    {
+      "path": "publish/math/rainbow_books.jsonl.zst",
+      "bytes": 3613998,
+      "sha256": "9f84223471daeb7b2f619d5e9476448b463541fcb9170b1940498e242805bad5"
+    },
+    {
+      "path": "publish/math/rainbow_lookup.csv",
+      "bytes": 621508,
+      "sha256": "9eb3937584d80beedf278e95bbc269f9b970e46a90dc6609ce9d027c0b2c6ab7"
+    },
+    {
+      "path": "publish/math/README_UPLOAD.txt",
+      "bytes": 1503,
+      "sha256": "c21a7d3cb3b72bf458ac00b9331e7099ebb69f0ea260db3e9abddedc8a35c6ac"
+    },
+    {
+      "path": "publish/math/RTP_AUDIT.json",
+      "bytes": 5482,
+      "sha256": "009f050abdd9854f4aebbbf234815924a488dc528ecd09cf7f2853d4aa7c5369"
+    },
+    {
+      "path": "publish/math/RTP_AUDIT.txt",
+      "bytes": 3351,
+      "sha256": "3138a3c0c8081ededc7a90a04272576c38f0a4aaaff5ab3da6cea9474393e794"
+    },
+    {
+      "path": "publish/math/UPLOAD_GUIDE.txt",
+      "bytes": 1203,
+      "sha256": "fb6f72f07dd99e611cd6c10f5a3ca9bf7fd671b02fb544f1d545b1382ed8c5cb"
+    }
+  ]
+}

@@ -2,10 +2,10 @@ import { stateBet, stateI18nDerived, stateUrlDerived } from 'state-shared';
 import { insufficientFundsMessage } from 'utils-shared/currency.js';
 
 export const i18nDerived = {
-	bet: () => stateI18nDerived.translate('BET'),
+	bet: () => stateI18nDerived.translate('PLAY'),
 	max: () => stateI18nDerived.translate('MAX'),
-	betMenu: () => stateI18nDerived.translate('BET MENU'),
-	selectYourBet: () => stateI18nDerived.translate('SELECT YOUR BET'),
+	betMenu: () => stateI18nDerived.translate('PLAY MENU'),
+	selectYourBet: () => stateI18nDerived.translate('SELECT YOUR PLAY AMOUNT'),
 	confirm: () => stateI18nDerived.translate('CONFIRM'),
 	masterVolume: () => stateI18nDerived.translate('MASTER VOLUME'),
 	musicVolume: () => stateI18nDerived.translate('MUSIC VOLUME'),

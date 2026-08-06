@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Container, Rectangle, getContextApp, anchorToPivot, Sprite } from 'pixi-svelte';
+	import { Container, Rectangle, getContextApp, anchorToPivot } from 'pixi-svelte';
 	import type { Snippet } from 'svelte';
 
 	type Props = {

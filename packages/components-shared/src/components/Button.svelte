@@ -4,7 +4,7 @@
 	type Props = {
 		debug?: boolean;
 		disabled?: boolean;
-		onclick: () => any;
+		onclick: () => void;
 		children: Snippet;
 		'data-test'?: string;
 	};

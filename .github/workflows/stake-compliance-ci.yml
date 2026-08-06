@@ -1,0 +1,102 @@
+name: Stake Candidate CI
+
+on:
+  push:
+    branches:
+      - main
+      - agent/stake-compliance-final
+      - codex/stake-review-2026-07-29
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stake-compliance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stake-release-verdict:
+    name: stake/release-verdict
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      NODE_NO_WARNINGS: "1"
+      NODE_OPTIONS: "--max-old-space-size=6144"
+      NPM_CONFIG_LOGLEVEL: error
+      STAKE_QA_REQUIRE_E2E: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+        with:
+          version: 10.5.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+
+      - name: Verify exact candidate identity
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          actual_sha="$(git rev-parse HEAD)"
+          test "${#EXPECTED_SHA}" -eq 40
+          test "$actual_sha" = "$EXPECTED_SHA"
+          printf '%s\n' "$actual_sha" > artifacts-tested-commit.txt
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --reporter=silent
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build workspace
+        run: npm run build
+
+      - name: Generate deterministic frontend
+        run: node apps/cluster/scripts/build-preview-html.mjs
+
+      - name: Publish exact frontend and math upload directories
+        run: npm run stake:publish
+
+      - name: Deterministic wallet and feature-summary contract
+        run: npm run stake:qa:wallet
+
+      - name: Full Stake QA, browser matrix, math, and evidence gate
+        run: npm run stake:qa
+
+      - name: Clean regeneration gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node apps/cluster/scripts/build-preview-html.mjs --check
+          npm run stake:publish
+          git diff --exit-code -- apps/cluster/preview.html publish/frontend/index.html publish/math
+
+      - name: Upload release diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: stake-candidate-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            artifacts-tested-commit.txt
+            artifacts/stake-qa/**
+            publish/publish-hashes.json

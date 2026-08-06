@@ -3,6 +3,8 @@ import { stateBet } from 'state-shared';
 import type { Reel, GetRawSymbolFromReel } from './types';
 import { stateSlots } from './stateSlots.svelte';
 
+// Every concrete reel specialization is preserved through TReel.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createEnhanceBoardPreSpin<TReel extends Reel<any, any>>({
 	board,
 }: {
@@ -17,7 +19,7 @@ export function createEnhanceBoardPreSpin<TReel extends Reel<any, any>>({
 
 		await Promise.all(
 			board.map((reel, reelIndex) => {
-				// @ts-ignore Ignored because paddingReel is not required by createCascadingReel
+				// @ts-expect-error paddingReel is not required by the cascading reel specialization.
 				return reel.preSpin({ isTurboBeforeAll, preSpinPaddingReel: paddingBoard?.[reelIndex] });
 			}),
 		);

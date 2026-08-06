@@ -57,6 +57,35 @@ export const formatCurrencyAmount = (amount, currency) => {
 		: `${meta.symbol}${formattedAmount}`;
 };
 
+// Win amounts may contain authoritative sub-cent value even when Balance and
+// Play Amount use the currency's normal display precision. Preserve up to four
+// fractional digits for WIN surfaces, while retaining each currency's native
+// minimum precision and its symbol-placement policy.
+export const formatWinCurrencyAmount = (amount, currency) => {
+	const code = normalizeCurrency(currency);
+	const meta = currencyMetaFor(code);
+	const value = Number(amount);
+	const safeValue = Number.isFinite(value) ? value : 0;
+	const minimumDigits = meta?.decimals ?? 2;
+	const maximumDigits = meta?.decimals === 0 ? 0 : Math.max(minimumDigits, 4);
+	let formattedAmount = safeValue.toFixed(maximumDigits);
+	const decimalIndex = formattedAmount.indexOf('.');
+
+	while (
+		decimalIndex >= 0 &&
+		formattedAmount.endsWith('0') &&
+		formattedAmount.length - decimalIndex - 1 > minimumDigits
+	) {
+		formattedAmount = formattedAmount.slice(0, -1);
+	}
+
+	if (!meta) return `${formattedAmount} ${code || 'UNKNOWN'}`;
+
+	return meta.symbolAfter
+		? `${formattedAmount} ${meta.symbol}`
+		: `${meta.symbol}${formattedAmount}`;
+};
+
 export const currencyDisplaySymbol = (currency) => {
 	const code = normalizeCurrency(currency);
 	return currencyMetaFor(code)?.symbol || code;
@@ -67,5 +96,4 @@ export const isStakeUsCurrency = (currency) => {
 	return code === 'XGC' || code === 'XSC';
 };
 
-export const insufficientFundsMessage = (currency, social = false) =>
-	social || isStakeUsCurrency(currency) ? 'Insufficient Balance' : 'Insufficient Funds';
+export const insufficientFundsMessage = () => 'Insufficient Balance';

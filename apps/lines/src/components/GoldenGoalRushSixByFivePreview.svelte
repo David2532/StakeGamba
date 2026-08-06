@@ -68,9 +68,9 @@
 
 	const actionLabels = {
 		spin: 'Spin',
-		betDown: 'Bet down',
-		betUp: 'Bet up',
-		bonusBuy: 'Bonus buy',
+		betDown: 'Decrease play amount',
+		betUp: 'Increase play amount',
+		bonusBuy: 'Bonus / Feature',
 		auto: 'Auto',
 		turbo: 'Turbo',
 		menu: 'Menu',
@@ -302,7 +302,7 @@
 				balance,
 				win,
 				bet,
-				badge: 'CLUSTER PAYS',
+				badge: 'CLUSTER WINS',
 				lastAction,
 				autoEnabled,
 				turboEnabled,
@@ -552,7 +552,7 @@
 			x={CLUSTER_BADGE.x + CLUSTER_BADGE.width * 0.5}
 			y={CLUSTER_BADGE.y + 94}
 			anchor={{ x: 0.5, y: 0.5 }}
-			text="PAYS"
+			text="VALUES"
 			style={badgeValueStyle}
 		/>
 	</Container>
@@ -601,7 +601,7 @@
 		<Text x={367} y={667} text={formatCurrency(win)} style={panelValueStyle} />
 
 		<Sprite key="ggr-preview-bet-stepper" x={610} y={628} width={270} height={78} />
-		<Text x={760} y={640} anchor={{ x: 0.5, y: 0 }} text="BET" style={panelLabelStyle} />
+		<Text x={760} y={640} anchor={{ x: 0.5, y: 0 }} text="PLAY" style={panelLabelStyle} />
 		<Text
 			x={760}
 			y={662}

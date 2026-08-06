@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import { currencyDisplaySymbol, formatCurrencyAmount } from 'utils-shared/currency.js';
+	import {
+		currencyDisplaySymbol,
+		formatCurrencyAmount,
+		formatWinCurrencyAmount,
+	} from 'utils-shared/currency.js';
 
 	const assets = {
 		background: new URL('../assets/golden-goal-rush/slot-background.webp', import.meta.url).href,
@@ -163,13 +167,13 @@
 		},
 		{
 			label: 'WIN',
-			value: formatCurrencyAmount(win, previewCurrency),
+			value: formatWinCurrencyAmount(win, previewCurrency),
 			currencySymbol: undefined,
 			icon: assets.trophy,
 			frame: assets.meterPanelB,
 		},
 		{
-			label: 'BET',
+			label: 'PLAY',
 			value: formatCurrencyAmount(bet, previewCurrency),
 			currencySymbol: currencyDisplaySymbol(previewCurrency),
 			icon: undefined,
@@ -270,8 +274,8 @@
 	<div class="board-wrap">
 		<div class="board-glow"></div>
 		<div class="board-frame">
-			<div class="side-badge left">CLUSTER<span>PAYS</span></div>
-			<div class="side-badge right">CLUSTER<span>PAYS</span></div>
+			<div class="side-badge left">CLUSTER<span>WINS</span></div>
+			<div class="side-badge right">CLUSTER<span>WINS</span></div>
 			<div class="board">
 				{#each board as symbol, index}
 					<div class="cell">
@@ -309,13 +313,13 @@
 			<img class="button-art" src={assets.menuButton} alt="" />
 			<span>MENU</span>
 		</button>
-		<button type="button" class:active={modal === 'bonus'} class="asset-button bonus" aria-label="Buy Bonus" onclick={() => openModal('bonus')}>
+		<button type="button" class:active={modal === 'bonus'} class="asset-button bonus" aria-label="Feature" onclick={() => openModal('bonus')}>
 			<img class="button-art" src={assets.bonusButton} alt="" />
-			<span>BUY BONUS</span>
+			<span>FEATURE</span>
 		</button>
-		<button type="button" class:active={autoSpin} class="asset-button" aria-label="Auto Spin" onclick={toggleAutoSpin}>
+		<button type="button" class:active={autoSpin} class="asset-button" aria-label="Auto-Play" onclick={toggleAutoSpin}>
 			<img class="button-art" src={assets.autoSpinButton} alt="" />
-			<span>AUTO SPIN</span>
+			<span>AUTO-PLAY</span>
 		</button>
 		<div class="feature-control" aria-label="Golden Goal Rush feature logic preview">
 			<img class="button-art" src={assets.featurePanel} alt="" />
@@ -328,24 +332,24 @@
 				{/each}
 			</div>
 		</div>
-		<button type="button" class:busy={isSpinning} class="spin-button" aria-label="Spin" disabled={isSpinning || balance < bet} onclick={handleSpin}>
+		<button type="button" class:busy={isSpinning} class="spin-button" aria-label="Play" disabled={isSpinning || balance < bet} onclick={handleSpin}>
 			<img class="spin-art" src={assets.spinButton} alt="" />
-			<span>{isSpinning ? '...' : 'SPIN'}</span>
+			<span>{isSpinning ? '...' : 'PLAY'}</span>
 		</button>
 		<button type="button" class:active={turbo} class="asset-button turbo" aria-label="Turbo" onclick={() => (turbo = !turbo)}>
 			<img class="button-art" src={assets.turboButton} alt="" />
 			<span>TURBO</span>
 		</button>
-		<div class="bet-controls" aria-label="Bet controls">
+		<div class="bet-controls" aria-label="Play controls">
 			<img class="button-art" src={assets.controlPanel} alt="" />
-			<button type="button" aria-label="Decrease bet" disabled={betIndex === 0} onclick={decreaseBet}>
+			<button type="button" aria-label="Decrease play amount" disabled={betIndex === 0} onclick={decreaseBet}>
 				<img src={assets.minusButton} alt="" />
 			</button>
 			<div class="bet-display">
-				<span>BET</span>
+				<span>PLAY</span>
 				<strong>{bet.toFixed(2)}</strong>
 			</div>
-			<button type="button" aria-label="Increase bet" disabled={betIndex === betSteps.length - 1} onclick={increaseBet}>
+			<button type="button" aria-label="Increase play amount" disabled={betIndex === betSteps.length - 1} onclick={increaseBet}>
 				<img src={assets.plusButton} alt="" />
 			</button>
 		</div>
@@ -361,15 +365,15 @@
 		<button type="button" class="modal-backdrop" aria-label="Close panel" onclick={() => (modal = null)}></button>
 		<div class="hud-modal" role="dialog" aria-label={`${modal} panel`}>
 			<div class="hud-modal-title">
-				{modal === 'menu' ? 'MENU' : modal === 'bonus' ? 'BUY BONUS' : modal === 'info' ? 'INFO' : 'SETTINGS'}
+				{modal === 'menu' ? 'MENU' : modal === 'bonus' ? 'BONUS / FEATURE' : modal === 'info' ? 'INFO' : 'SETTINGS'}
 			</div>
 			<div class="hud-modal-copy">
 				{#if modal === 'bonus'}
-					Bonus Buy is armed at {(bet * 15).toFixed(2)}.
+					The feature is ready at {(bet * 15).toFixed(2)}.
 				{:else if modal === 'info'}
-					Cluster pays, Wilds substitute, Scatters trigger Free Spins.
+					Cluster wins, Wilds substitute, Scatters trigger Free Spins.
 				{:else if modal === 'settings'}
-					Turbo is {turbo ? 'enabled' : 'disabled'}. Auto Spin is {autoSpin ? 'enabled' : 'disabled'}.
+					Turbo is {turbo ? 'enabled' : 'disabled'}. Auto-Play is {autoSpin ? 'enabled' : 'disabled'}.
 				{:else}
 					Golden Goal Rush controls are active.
 				{/if}

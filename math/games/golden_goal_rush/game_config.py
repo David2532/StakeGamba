@@ -9,7 +9,7 @@ from __future__ import annotations
 
 GAME_ID = "golden_goal_rush"
 GAME_NAME = "Golden Goal Rush"
-VERSION = "0.2.1-cluster"
+VERSION = "0.2.2-cluster"
 
 NUM_REELS = 6
 VISIBLE_ROWS = 5

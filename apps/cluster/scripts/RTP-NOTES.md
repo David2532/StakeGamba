@@ -1,8 +1,21 @@
-# Golden Goal Rush — RTP / balancing notes
+# Golden Goal Rush - legacy local-demo balancing notes
 
-The playable demo (`build-preview-html.mjs` → `preview.html`/`play.html`) and
-the RTP simulation (`ggr-sim.mjs`) share one math config (`ggr-config.mjs`),
-so what is measured is exactly what is played.
+> **Not production Stake math.** This file documents historical measurements
+> of the optional browser-local demo generator and `ggr-sim.mjs`. It does not
+> describe the published RGS books, lookup probabilities, or certified RTP and
+> must not be quoted as submission evidence.
+
+The authoritative submission sources are:
+
+- `publish/math/game_config.json` for the published symbol/cluster contract
+- `publish/math/RTP_AUDIT.json` (and `RTP_AUDIT.txt`) for achieved RTP and tail
+  metrics
+- the books and lookup tables referenced by `publish/math/index.json`
+
+`ggr-config.mjs` contains only local visual/demo frequencies and feature
+settings. Its paying values are imported from the production math contract so
+it cannot become a second Paytable source. The local demo and `ggr-sim.mjs`
+share those demo settings, but neither determines Stake RGS outcomes or RTP.
 
 Run the simulation:
 
@@ -30,7 +43,10 @@ node apps/cluster/scripts/ggr-sim.mjs 10000000 120000   # baseSpins buySpins
    That Glitters (Tier 2). Tier 3 is **not** buyable — it can only trigger
    naturally from 5 scatters.
 
-## Measured RTP (current config)
+## Historical local-demo measurements (non-authoritative)
+
+The figures below are retained only as development history. They are not the
+current published Stake RTP; use `publish/math/RTP_AUDIT.json` instead.
 
 | Mode                | Price  | RTP    | Notes |
 | ------------------- | ------ | ------ | ----- |
@@ -44,9 +60,10 @@ Coin audit (always clean): base silver max = 20, base gold max = 500, zero
 out-of-table base coins — i.e. a 60× silver can only ever come from a 20× coin
 times an ×3 badge, never from the RNG directly.
 
-## How it was tuned
+## Historical local-demo tuning context
 
-The fix was driven entirely by `ggr-config.mjs` — **no game logic changed**:
+The old local demo tuning described below was performed in `ggr-config.mjs`.
+It did not create or approve the production Stake books or lookup weights:
 
 - **Buy prices** were the real problem: at the old 3 / 50 / 100 / 250× prices
   the buys returned only 12–37 %, i.e. the player lost 60–88 % per purchase.
@@ -68,6 +85,8 @@ the stable, low-variance levers (cluster pays for the base, measured average
 feature win for each buy price); the cap and coin tables are deliberately left
 intact so the big-win ceiling (Golden Goal takeover) is preserved.
 
-All levers live in `ggr-config.mjs` (`SYMBOL_MATH` pays, `blankWeight`, coin
-weights/values, `rainbowWeight`, `scatterWeight`, `huntBoost`, per-tier
-parameters, `bonusBuy` prices).
+The local demo levers live in `ggr-config.mjs` (visual RNG weights,
+`blankWeight`, coin weights/values, `rainbowWeight`, `scatterWeight`,
+`huntBoost`, per-tier parameters, and local bonus-buy presentation). Production
+base pays and cluster boosts come from `publish/math/game_config.json`; Stake
+probabilities and RTP come from the published books, lookups, and RTP audit.

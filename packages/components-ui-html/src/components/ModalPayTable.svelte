@@ -19,7 +19,7 @@
 	<Popup zIndex={zIndex.modal} onclose={() => (stateModal.modal = null)}>
 		<BaseContent maxWidth="100%">
 			<BaseScrollable type="column">
-				<span>ADD YOUR PAY TABLE</span>
+				<span>ADD YOUR SYMBOL TABLE</span>
 				{@render props.children()}
 			</BaseScrollable>
 		</BaseContent>
