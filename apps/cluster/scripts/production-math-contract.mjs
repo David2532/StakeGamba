@@ -19,6 +19,14 @@ if (generatedConfigText !== publishedConfigText) {
 
 export const PRODUCTION_GAME_CONFIG = Object.freeze(readJson(publishedConfigPath));
 
+export const PRODUCTION_BET_MODE_KEYS = Object.freeze([
+	'base',
+	'hunt',
+	'rainbow',
+	'bonus_tier1',
+	'bonus',
+]);
+
 export const PAYING_SYMBOLS = Object.freeze([
 	'ten',
 	'j',
@@ -43,6 +51,32 @@ function finiteNumber(value, label) {
 	if (!Number.isFinite(parsed)) throw new Error(`${label} must be a finite number`);
 	return parsed;
 }
+
+function buildModeMaxWins(config) {
+	if (!config?.betModes || typeof config.betModes !== 'object') {
+		throw new Error('Production math config has no betModes');
+	}
+	const actualKeys = Object.keys(config.betModes).sort();
+	const expectedKeys = [...PRODUCTION_BET_MODE_KEYS].sort();
+	if (actualKeys.length !== expectedKeys.length || actualKeys.some((key, index) => key !== expectedKeys[index])) {
+		throw new Error(`Production math betModes must match the supported frontend modes exactly: expected ${expectedKeys.join(', ')}, received ${actualKeys.join(', ')}`);
+	}
+	const globalCap = finiteNumber(config.maxWinMultiplier, 'maxWinMultiplier');
+	return Object.freeze(Object.fromEntries(PRODUCTION_BET_MODE_KEYS.map((mode) => {
+		const raw = config.betModes[mode];
+		if (!raw || typeof raw !== 'object') throw new Error(`Production math config is missing betModes.${mode}`);
+		const maxWin = finiteNumber(raw.max_win, `betModes.${mode}.max_win`);
+		if (maxWin <= 0 || maxWin > globalCap) {
+			throw new Error(`betModes.${mode}.max_win must be greater than zero and no higher than maxWinMultiplier`);
+		}
+		return [mode, maxWin];
+	})));
+}
+
+// Player-facing maximum-award copy must come from the exact shipped math
+// configuration. The global maxWinMultiplier is only the engine safety cap;
+// it is not necessarily attainable in every published mode.
+export const PRODUCTION_MODE_MAX_WINS = buildModeMaxWins(PRODUCTION_GAME_CONFIG);
 
 function buildPaytable(config) {
 	if (!config || typeof config !== 'object') throw new Error('Production math config is not an object');

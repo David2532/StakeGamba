@@ -21,7 +21,9 @@ import { SYMBOL_MATH, CONFIG } from './ggr-config.mjs';
 import {
 	CLUSTER_THRESHOLDS,
 	PAYING_SYMBOLS,
+	PRODUCTION_BET_MODE_KEYS,
 	PRODUCTION_GAME_CONFIG,
+	PRODUCTION_MODE_MAX_WINS,
 	PRODUCTION_PAYTABLE,
 	formatPaytableMultiplier,
 } from './production-math-contract.mjs';
@@ -87,6 +89,7 @@ const PLAYER_MODE_META = {
 	base: {
 		name: 'Base Game',
 		socialName: 'Base Game',
+		maxWinMultiplier: PRODUCTION_MODE_MAX_WINS.base,
 		costMultiplier: 1,
 		trigger: 'Main Play button',
 		socialTrigger: 'Main Play button',
@@ -98,6 +101,7 @@ const PLAYER_MODE_META = {
 	hunt: {
 		name: 'Feature Spins',
 		socialName: 'Feature Spins',
+		maxWinMultiplier: PRODUCTION_MODE_MAX_WINS.hunt,
 		costMultiplier: CONFIG.bonusBuy.find((o) => o.id === 'hunt')?.mult ?? 4.2,
 		trigger: 'Feature panel',
 		socialTrigger: 'Feature panel',
@@ -109,6 +113,7 @@ const PLAYER_MODE_META = {
 	rainbow: {
 		name: 'Rainbow Spin',
 		socialName: 'Rainbow Spin',
+		maxWinMultiplier: PRODUCTION_MODE_MAX_WINS.rainbow,
 		costMultiplier: CONFIG.bonusBuy.find((o) => o.id === 'rainbow')?.mult ?? 6,
 		trigger: 'Feature panel',
 		socialTrigger: 'Feature panel',
@@ -120,6 +125,8 @@ const PLAYER_MODE_META = {
 	bonus_tier1: {
 		name: CONFIG.tiers[1].name,
 		socialName: CONFIG.tiers[1].name,
+		maxWinMultiplier: PRODUCTION_MODE_MAX_WINS.bonus_tier1,
+		naturalMaxWinSourceModes: ['base', 'rainbow'],
 		costMultiplier: CONFIG.bonusBuy.find((o) => o.id === 'tier1')?.mult ?? 31,
 		trigger: 'Feature panel or 3 Scatter tickets',
 		socialTrigger: 'Feature panel or 3 Scatter tickets',
@@ -131,6 +138,8 @@ const PLAYER_MODE_META = {
 	bonus: {
 		name: CONFIG.tiers[2].name,
 		socialName: CONFIG.tiers[2].name,
+		maxWinMultiplier: PRODUCTION_MODE_MAX_WINS.bonus,
+		naturalMaxWinSourceModes: ['base', 'rainbow'],
 		costMultiplier: CONFIG.bonusBuy.find((o) => o.id === 'tier2')?.mult ?? 95,
 		trigger: 'Feature panel or 4 Scatter tickets',
 		socialTrigger: 'Feature panel or 4 Scatter tickets',
@@ -142,6 +151,7 @@ const PLAYER_MODE_META = {
 	bonus_tier3: {
 		name: CONFIG.tiers[3].name,
 		socialName: CONFIG.tiers[3].name,
+		maxWinSourceModes: ['base', 'rainbow'],
 		costMultiplier: 1,
 		trigger: '5 Scatter tickets only',
 		socialTrigger: '5 Scatter tickets only',
@@ -151,6 +161,35 @@ const PLAYER_MODE_META = {
 		socialRetrigger: 'The current math book does not add extra Free Spins inside this tier.',
 	},
 };
+
+const naturalModeMaximumText = (sourceModes) => sourceModes
+	.map((sourceMode) => `${PLAYER_MODE_META[sourceMode].name} ${formatMaxWinMultiplier(PRODUCTION_MODE_MAX_WINS[sourceMode])}&times;`)
+	.join('; ');
+
+const modeMaximumAwardText = (key, mode) => {
+	if (mode.maxWinSourceModes) return `This natural feature remains part of the complete originating round. Complete-round limit: ${naturalModeMaximumText(mode.maxWinSourceModes)}.`;
+	const formatted = formatMaxWinMultiplier(mode.maxWinMultiplier);
+	if (key === 'base') {
+		return `Maximum award: ${formatted}&times; the Base Play amount, including naturally triggered Free Spins.`;
+	}
+	if (mode.naturalMaxWinSourceModes) {
+		return `Feature-panel maximum award: ${formatted}&times; the Base Play amount. Natural Scatter-triggered features remain part of the complete originating round. Complete-round limit: ${naturalModeMaximumText(mode.naturalMaxWinSourceModes)}.`;
+	}
+	return `Maximum award: ${formatted}&times; the Base Play amount.`;
+};
+
+const modeMaximumDataAttributes = (mode) => [
+	mode.maxWinMultiplier !== undefined ? `data-max-win="${mode.maxWinMultiplier}"` : '',
+	mode.maxWinSourceModes ? `data-max-source-modes="${mode.maxWinSourceModes.join(' ')}"` : '',
+	mode.naturalMaxWinSourceModes ? `data-natural-max-source-modes="${mode.naturalMaxWinSourceModes.join(' ')}"` : '',
+].filter(Boolean).join(' ');
+
+const MODE_MAXIMUM_SUMMARY_HTML = PRODUCTION_BET_MODE_KEYS.map((key) => {
+	const mode = PLAYER_MODE_META[key];
+	const scope = mode.naturalMaxWinSourceModes ? ' (feature panel)' : '';
+	return `<div data-mode-maximum-summary="${key}" data-max-win="${mode.maxWinMultiplier}"><dt><b>${mode.name}${scope}:</b></dt><dd>${formatMaxWinMultiplier(mode.maxWinMultiplier)}&times;</dd></div>`;
+}).join('')
+	+ `<div class="mode-maximum-origin"><dt>Natural Scatter-triggered Free Spins, including End of the Rainbow, remain part of the complete originating round.</dt><dd>Complete-round limits: Base Game ${formatMaxWinMultiplier(PRODUCTION_MODE_MAX_WINS.base)}&times;; Rainbow Spin ${formatMaxWinMultiplier(PRODUCTION_MODE_MAX_WINS.rainbow)}&times;.</dd></div>`;
 
 const FREE_SPIN_COUNTER_EXPLANATION = 'The counter identifies the current Free Spin. After the final counter value appears, cascades and Golden Cell awards may still finish as part of that same final Free Spin; they do not start an additional play or wallet request.';
 
@@ -461,6 +500,11 @@ const extraCss = `
 	.pt-feat b { color:#ffe49a; display:block; margin-bottom:3px; font-size:14px; letter-spacing:0.5px; }
 	.pt-note { margin-top:16px; padding-top:13px; border-top:1px solid rgba(213,162,59,0.3);
 		font-size:12px; color:#9b906f; text-align:center; line-height:1.6; }
+	#mode-max-awards { margin-bottom:0; }
+	#mode-max-awards > div { display:flex; justify-content:center; align-items:baseline; gap:4px; }
+	#mode-max-awards dt, #mode-max-awards dd { margin:0; }
+	#mode-max-awards dd { color:#d8cba6; }
+	#mode-max-awards .mode-maximum-origin { display:block; margin-top:6px; }
 
 	/* ---- golden cells + coin feature ---- */
 	.cell.golden::before { content:''; position:absolute; inset:2px; border-radius:6px; z-index:0;
@@ -1097,8 +1141,8 @@ ${featureItems}
 
 		<!-- ===== Rules and features modal ===== -->
 		<div class="modal-backdrop" id="modal-rules" data-modal>
-			<div class="modal">
-				<div class="modal-header"><div class="modal-title">RULES &amp; FEATURES</div><button class="modal-close" data-close>&times;</button></div>
+			<div class="modal" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+				<div class="modal-header"><div class="modal-title" id="rules-title" role="heading" aria-level="1">RULES &amp; FEATURES</div><button type="button" class="modal-close" data-close aria-label="Close Rules and Features">&times;</button></div>
 				<div class="modal-body" id="rules-body">
 					<p class="pt-intro">Golden Goal Rush is a 6&times;5 <b>cluster-awards</b> game. Land <b>5 or more matching symbols connected horizontally or vertically</b> to receive an award. The 5+/7+/9+/12+ bands mean 5–6, 7–8, 9–11, and 12 or more symbols. Awarded symbols are removed and new ones cascade in. The cascade multiplier starts at 1&times; and increments after each successful cascade.</p>
 					<div class="pt-head">Core Game</div>
@@ -1118,7 +1162,9 @@ ${featureItems}
 					<div class="pt-feat"><img src="${assets.bonusButton}" alt="Feature" /><div><b>BONUS / FEATURE</b>
 						${CONFIG.bonusBuy.map((o) => o.label + ' &mdash; ' + o.mult + '&times; play amount').join('<br>')}<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>
 					<div class="pt-head">Game Modes</div>
-					${Object.values(PLAYER_MODE_META).map((mode) => `<div class="pt-feat"><div class="pt-chip"></div><div><b>${mode.name}</b>${mode.description}<br><small>Access: ${mode.trigger}. Feature Multiplier: ${mode.costMultiplier}&times;. ${mode.retrigger}</small></div></div>`).join('\n\t\t\t\t\t')}
+					${Object.entries(PLAYER_MODE_META).map(([key, mode]) => `<div class="pt-feat" data-mode-rule="${key}"><div class="pt-chip"></div><div><b>${mode.name}</b>${mode.description}<br><small>Access: ${mode.trigger}. Feature Multiplier: ${mode.costMultiplier}&times;. ${mode.retrigger}<br><span data-mode-maximum="${key}" ${modeMaximumDataAttributes(mode)}>${modeMaximumAwardText(key, mode)}</span></small></div></div>`).join('\n\t\t\t\t\t')}
+					<div class="pt-head" id="mode-max-awards-title" role="heading" aria-level="2">Maximum Awards by Mode</div>
+					<dl class="pt-note" id="mode-max-awards" aria-labelledby="mode-max-awards-title">${MODE_MAXIMUM_SUMMARY_HTML}</dl>
 					<div class="pt-head">Retriggers</div>
 					<div class="pt-feat"><img src="${SYMBOLS.scatter.src}" alt="Retrigger" /><div><b>RETRIGGERS</b>Base Game and Rainbow Spin can trigger Free Spins with 3, 4 or 5 Scatter tickets. Feature-panel Free Spins do not add additional Free Spins in the current math book.</div></div>
 					<div class="pt-head">Buttons &amp; Controls</div>
@@ -1126,7 +1172,7 @@ ${featureItems}
 ${controlRuleRows}
 					</div>
 					<div class="pt-note">If the game is refreshed while a base-game round is still active, the round is completed by the game service and the result is available in game history. Active feature rounds resume from the saved round state with the selected balance and play amount preserved.</div>
-					<div class="pt-note">RTP 96.45% &middot; Max award ${formatMaxWinMultiplier(CONFIG.maxWinMultiplier)}&times; play amount &middot; All awards use the play amount. Malfunction voids all wins and plays. A consistent internet connection is required. After a disconnection, reload the game to finish any incomplete round. Expected return is calculated over many plays. The display is illustrative and does not represent a physical device. Wins are settled from the authoritative amount received from the Remote Game Server, not from browser events.</div>
+					<div class="pt-note">RTP 96.45% in every published mode. All award multipliers use the Base Play amount. Malfunction voids all wins and plays. A consistent internet connection is required. After a disconnection, reload the game to finish any incomplete round. Expected return is calculated over many plays. The display is illustrative and does not represent a physical device. Wins are settled from the authoritative amount received from the Remote Game Server, not from browser events.</div>
 				</div>
 			</div>
 		</div>
@@ -1259,6 +1305,9 @@ const summarizeFeatureEvents = ${summarizeFeatureEvents.toString()};
 const reconcileWalletBalance = ${reconcileWalletBalance.toString()};
 const ASSETS = ${JSON.stringify(assets)};
 const PLAYER_MODE_META = ${JSON.stringify(PLAYER_MODE_META)};
+const PRODUCTION_BET_MODE_KEYS = ${JSON.stringify(PRODUCTION_BET_MODE_KEYS)};
+const PRODUCTION_MODE_MAX_WINS = ${JSON.stringify(PRODUCTION_MODE_MAX_WINS)};
+const MODE_MAXIMUM_SUMMARY_HTML = ${JSON.stringify(MODE_MAXIMUM_SUMMARY_HTML)};
 const FREE_SPIN_COUNTER_EXPLANATION = ${JSON.stringify(FREE_SPIN_COUNTER_EXPLANATION)};
 const CONTROL_RULES = ${JSON.stringify(controlRules)};
 const CONFIG = ${JSON.stringify(CONFIG)};
@@ -1382,7 +1431,7 @@ for (const [resourceName, resource] of Object.entries(LANGUAGE_RESOURCES)) {
 const state = {
 	balance: 1000, bet: 1, betIdx: 9, currency: DEFAULT_CURRENCY, grid: [], spinning: false, walletBusy: false, turbo: false, auto: false, autoRemaining: 0, selectedAutoSpins: null,
 	golden: new Set(), reveals: new Map(), // golden = 'c,r' keys; reveals = 'c,r' -> {kind,value,asset}
-	mode: 'base', tier: 0, fsLeft: 0, fsTotal: 0, fsWin: 0, fsBest: 0, fsPlayed: 0, win: 0, sound: true, musicVolume: 100, sfxVolume: 100,
+	mode: 'base', productionMode: 'base', localMathRound: false, localRoundWin: 0, tier: 0, fsLeft: 0, fsTotal: 0, fsWin: 0, fsBest: 0, fsPlayed: 0, win: 0, sound: true, musicVolume: 100, sfxVolume: 100,
 	skipRequested: false, walletBalanceDeferred: false, pendingWalletBalance: null,
 	fatal: false, replay: false, replayPlaying: false, socialCasino: false, localWalletCredits: 0,
 };
@@ -1681,10 +1730,55 @@ function playerModeName(mode) {
 	const meta = modeMeta(mode);
 	return isSocialPlay() ? (meta.socialName || meta.name) : meta.name;
 }
+function productionModeKey(mode) {
+	const key = String(mode || '').trim().toLowerCase();
+	const aliases = {
+		tier1: 'bonus_tier1', golden_chance: 'bonus_tier1',
+		tier2: 'bonus', bonus_tier2: 'bonus', all_that_glitters: 'bonus',
+		feature: 'hunt', feature_spins: 'hunt', rainbow_spin: 'rainbow',
+	};
+	const canonical = aliases[key] || key;
+	if (!Object.hasOwn(PRODUCTION_MODE_MAX_WINS, canonical)) throw new Error('Unsupported production mode: ' + (mode || '(empty)'));
+	return canonical;
+}
+function productionRoundMode(round, expectedMode) {
+	if (!round || typeof round !== 'object' || Array.isArray(round)) throw new Error('RGS round is missing');
+	if (round.mode === undefined || round.mode === null || String(round.mode).trim() === '') throw new Error('RGS round mode is missing');
+	const actualMode = productionModeKey(round.mode);
+	if (expectedMode !== undefined && expectedMode !== null) {
+		const expected = productionModeKey(expectedMode);
+		if (actualMode !== expected) throw new Error('RGS response mode does not match the requested mode');
+	}
+	return actualMode;
+}
+function productionModeMaxBookUnits(mode) {
+	return Math.round(PRODUCTION_MODE_MAX_WINS[productionModeKey(mode)] * BOOK_MULTIPLIER_SCALE);
+}
+function setProductionMode(mode) {
+	state.productionMode = productionModeKey(mode);
+	return state.productionMode;
+}
 function multiplierText(value) {
 	const n = Number(value);
 	if (!Number.isFinite(n)) return '0x';
 	return (Math.round(n * 10000) / 10000).toString() + 'x';
+}
+function naturalModeMaximumText(sourceModes) {
+	return sourceModes.map((sourceMode) => playerModeName(sourceMode) + ' ' + formatMaxWinMultiplier(PRODUCTION_MODE_MAX_WINS[sourceMode]) + 'x').join('; ');
+}
+function modeMaximumAwardText(key, meta) {
+	if (meta.maxWinSourceModes) return 'This natural feature remains part of the complete originating round. Complete-round limit: ' + naturalModeMaximumText(meta.maxWinSourceModes) + '.';
+	const formatted = formatMaxWinMultiplier(meta.maxWinMultiplier);
+	if (key === 'base') return 'Maximum award: ' + formatted + 'x the Base Play amount, including naturally triggered Free Spins.';
+	if (meta.naturalMaxWinSourceModes) return 'Feature-panel maximum award: ' + formatted + 'x the Base Play amount. Natural Scatter-triggered features remain part of the complete originating round. Complete-round limit: ' + naturalModeMaximumText(meta.naturalMaxWinSourceModes) + '.';
+	return 'Maximum award: ' + formatted + 'x the Base Play amount.';
+}
+function modeMaximumDataAttributes(meta) {
+	return [
+		meta.maxWinMultiplier !== undefined ? 'data-max-win="' + meta.maxWinMultiplier + '"' : '',
+		meta.maxWinSourceModes ? 'data-max-source-modes="' + meta.maxWinSourceModes.join(' ') + '"' : '',
+		meta.naturalMaxWinSourceModes ? 'data-natural-max-source-modes="' + meta.naturalMaxWinSourceModes.join(' ') + '"' : '',
+	].filter(Boolean).join(' ');
 }
 function controlRulesGuideHtml(social = isSocialPlay()) {
 	return '<div class="controls-guide">' + CONTROL_RULES.map((rule) => {
@@ -1695,11 +1789,12 @@ function controlRulesGuideHtml(social = isSocialPlay()) {
 	}).join('') + '</div>';
 }
 function buildPlayerSafeRulesBodyHtml() {
-	const modeKeys = ['base', 'hunt', 'rainbow', 'bonus_tier1', 'bonus', 'bonus_tier3'];
+	const modeKeys = [...PRODUCTION_BET_MODE_KEYS, 'bonus_tier3'];
 	const modeRows = modeKeys.map((key) => {
 		const meta = PLAYER_MODE_META[key];
-		return '<div class="pt-feat"><div class="pt-chip"></div><div><b>' + (meta.socialName || meta.name) + '</b>'
-			+ meta.socialDescription + '<br><small>Access: ' + meta.socialTrigger + '. Feature Multiplier: ' + multiplierText(meta.costMultiplier) + '. ' + meta.socialRetrigger + '</small></div></div>';
+		return '<div class="pt-feat" data-mode-rule="' + key + '"><div class="pt-chip"></div><div><b>' + (meta.socialName || meta.name) + '</b>'
+			+ meta.socialDescription + '<br><small>Access: ' + meta.socialTrigger + '. Feature Multiplier: ' + multiplierText(meta.costMultiplier) + '. ' + meta.socialRetrigger
+			+ '<br><span data-mode-maximum="' + key + '" ' + modeMaximumDataAttributes(meta) + '>' + modeMaximumAwardText(key, meta) + '</span></small></div></div>';
 	}).join('');
 	const tierRows = Object.entries(CONFIG.tiers).map(([tier, value]) => 'Tier ' + tier + ' - ' + value.name + ': ' + value.spins + ' free spins' + (value.guaranteedRainbow ? ', guaranteed Arc each spin' : '') + '.').join('<br>');
 	const featureRows = CONFIG.bonusBuy.map((option) => option.label + ' - ' + multiplierText(option.mult) + ' play amount').join('<br>');
@@ -1720,11 +1815,13 @@ function buildPlayerSafeRulesBodyHtml() {
 		+ '<div class="pt-feat"><div class="pt-chip"></div><div><b>FREE SPIN COUNTER</b>' + FREE_SPIN_COUNTER_EXPLANATION + '</div></div>'
 		+ '<div class="pt-feat"><img src="' + ASSETS.bonusButton + '" alt="Feature" /><div><b>BONUS / FEATURE</b>' + featureRows + '<br>Tier 3 (End of the Rainbow) can only trigger naturally.</div></div>'
 		+ '<div class="pt-head">Game Modes</div>' + modeRows
+		+ '<div class="pt-head" id="mode-max-awards-title" role="heading" aria-level="2">Maximum Awards by Mode</div>'
+		+ '<dl class="pt-note" id="mode-max-awards" aria-labelledby="mode-max-awards-title">' + MODE_MAXIMUM_SUMMARY_HTML + '</dl>'
 		+ '<div class="pt-head">Retriggers</div>'
 		+ '<div class="pt-feat"><img src="' + SYMBOLS.scatter.src + '" alt="Retrigger" /><div><b>RETRIGGERS</b>Base Game and Rainbow Spin can trigger Free Spins with 3, 4 or 5 Scatter tickets. Feature-panel Free Spins do not add additional Free Spins in the current math book.</div></div>'
 		+ '<div class="pt-head">Buttons &amp; Controls</div>' + controlRulesGuideHtml(true)
 		+ '<div class="pt-note">If the game is refreshed while a base-game round is still active, the round is completed by the game service and the result is available in game history. Active feature rounds resume from the saved round state with the selected balance and play amount preserved.</div>'
-		+ '<div class="pt-note">RTP 96.45% &middot; Max award ' + formatMaxWinMultiplier(CONFIG.maxWinMultiplier) + 'x play amount &middot; All awards use the play amount. Malfunction voids all wins and plays. A consistent internet connection is required. After a disconnection, reload the game to finish any incomplete round. Expected return is calculated over many plays. The display is illustrative and does not represent a physical device. Wins are settled from the authoritative amount received from the Remote Game Server, not from browser events.</div>';
+		+ '<div class="pt-note">RTP 96.45% in every published mode. All award multipliers use the Base Play amount. Malfunction voids all wins and plays. A consistent internet connection is required. After a disconnection, reload the game to finish any incomplete round. Expected return is calculated over many plays. The display is illustrative and does not represent a physical device. Wins are settled from the authoritative amount received from the Remote Game Server, not from browser events.</div>';
 }
 function applyLanguage() {
 	const social = isSocialPlay();
@@ -2331,6 +2428,15 @@ const Rgs = (() => {
 		}).then(async (data) => {
 			if (data && data.round && data.round.active === true) {
 				lastRound = data.round;
+				try {
+					productionRoundMode(data.round);
+				} catch (error) {
+					currentRoundNeedsEnd = true;
+					expectedNextRequest = 'end-round';
+					await recoverActiveRound(data.round);
+					fatalError('Inconsistent game-service round', 'The saved round did not include a supported mode identity and could not be resumed safely. Please relaunch the game.');
+					return false;
+				}
 				applyBetFromRound(data.round);
 				if (rgsRoundIsBonus(data.round)) markRoundFromPlay(data.round);
 				else await recoverActiveRound(data.round);
@@ -2366,12 +2472,19 @@ const Rgs = (() => {
 			try {
 				assertWalletOrder('play');
 				const balanceBefore = state.balance;
+				const requestedMode = resolveMode(mode);
 				const data = await post('/wallet/play', {
-					mode: resolveMode(mode),
+					mode: requestedMode,
 					currency: state.currency,
 					sessionID: UrlState.sessionID(),
 					amount: apiAmount,
 				});
+				if (data && typeof data === 'object') {
+					Object.defineProperty(data, '__requestedProductionMode', {
+						value: productionModeKey(requestedMode),
+						enumerable: false,
+					});
+				}
 				const needsEnd = markRoundFromPlay(data && data.round);
 				if (data) data.__needsEndRound = needsEnd;
 				debugWallet({
@@ -2506,6 +2619,9 @@ async function resumeLaunchRound() {
 	const events = normalizeRgsEvents(round.state);
 	try {
 		rgsRoundAmountContract(round, events);
+		setProductionMode(round.mode);
+		state.localMathRound = false;
+		state.localRoundWin = 0;
 	} catch (error) {
 		console.error('[RGS contract] rejected resumed round', { message: error && error.message, roundId: rgsRoundId(round) });
 		Rgs.setBalanceDeferred(true);
@@ -2713,7 +2829,15 @@ function rgsRoundMode(round) {
 }
 function rgsRoundIsBonus(round) {
 	const mode = rgsRoundMode(round);
-	return mode.includes('bonus') || mode.includes('free');
+	if (mode.includes('bonus') || mode.includes('free')) return true;
+	// A Scatter-triggered feature remains part of its originating Base Game or
+	// Rainbow Spin round. Detect resumable feature state from authoritative
+	// events instead of requiring the service to relabel the round.
+	return normalizeRgsEvents(round && round.state).some((event) => event && [
+		'freeSpinTrigger',
+		'updateFreeSpin',
+		'freeSpinEnd',
+	].includes(event.type));
 }
 function applyBetFromRound(round) {
 	const bet = apiAmountToMoney(round && round.amount);
@@ -2747,19 +2871,20 @@ function finalBookWinMoney(events) {
 	const final = [...events].reverse().find((event) => event && event.type === 'finalWin');
 	return final ? bookAmountToMoney(final.amount) : 0;
 }
-function rgsRoundAmountContract(round, events) {
+function rgsRoundAmountContract(round, events, expectedMode) {
 	if (!round || typeof round !== 'object' || Array.isArray(round)) throw new Error('RGS round is missing');
 	// Normal wallet rounds and Replay use the same event-level arithmetic
 	// contract. This prevents a visually plausible winInfo sequence from
 	// drifting away from its running total or finalWin before settlement.
-	const validatedEvents = validateReplayEvents(Array.isArray(events) ? events : []);
+	const roundMode = productionRoundMode(round, expectedMode);
+	const validatedEvents = validateReplayEvents(Array.isArray(events) ? events : [], roundMode);
 	const finalEvents = (Array.isArray(events) ? events : []).filter((event) => event && event.type === 'finalWin');
 	if (finalEvents.length !== 1) throw new Error('RGS round must contain exactly one authoritative finalWin event');
 	const finalBookUnits = finalEvents[0].amount;
 	if (typeof finalBookUnits !== 'number' || !Number.isSafeInteger(finalBookUnits) || finalBookUnits < 0) {
 		throw new Error('RGS finalWin must be a non-negative integer in book units');
 	}
-	const maxBookUnits = Math.round(Number(CONFIG.maxWinMultiplier) * BOOK_MULTIPLIER_SCALE);
+	const maxBookUnits = productionModeMaxBookUnits(roundMode);
 	if (finalBookUnits > maxBookUnits) throw new Error('RGS finalWin exceeds the configured max win');
 	if (validatedEvents.runningBookUnits !== finalBookUnits || validatedEvents.final.amount !== finalBookUnits) {
 		throw new Error('RGS event totals differ from the authoritative finalWin event');
@@ -2793,8 +2918,8 @@ function rgsRoundAmountContract(round, events) {
 		totalWin: replayApiAmountToMoney(expectedPayoutApiAmount),
 	};
 }
-function rgsDisplayWinMoney(round, events) {
-	return rgsRoundAmountContract(round, events).totalWin;
+function rgsDisplayWinMoney(round, events, expectedMode) {
+	return rgsRoundAmountContract(round, events, expectedMode).totalWin;
 }
 function rgsEventIndex(event, fallback) {
 	const raw = event && (event.index ?? event.eventIndex ?? event.idx);
@@ -3119,7 +3244,10 @@ async function playRgsBookRound(rgsPlay, spinId, options = {}) {
 	const events = normalizeRgsEvents(round && round.state);
 	const featureInfo = rgsFeatureSummary(events);
 	const walletExpected = rgsRoundPayoutMoney(round);
-	const expected = rgsDisplayWinMoney(round, events);
+	const expected = rgsDisplayWinMoney(round, events, rgsPlay && rgsPlay.__requestedProductionMode);
+	setProductionMode(round.mode);
+	state.localMathRound = false;
+	state.localRoundWin = 0;
 	const hasAuthoritativePayout = expected !== null;
 	const startIndex = Math.max(0, Number(options.startIndex) || 0);
 	const skipBonusIntro = !!options.skipBonusIntro;
@@ -3313,12 +3441,12 @@ function validateReplayPosition(position, context) {
 		throw new Error(context + ' contains an invalid board position');
 	}
 }
-function validateReplayEvents(events) {
+function validateReplayEvents(events, mode) {
 	if (!Array.isArray(events) || !events.length) throw new Error('Replay response contains no round-state events');
 	let revealCount = 0;
 	let previousIndex = -1;
 	let runningBookUnits = 0;
-	const maxBookUnits = Math.round(Number(CONFIG.maxWinMultiplier) * BOOK_MULTIPLIER_SCALE);
+	const maxBookUnits = productionModeMaxBookUnits(mode);
 	const assertBookUnits = (value, label) => {
 		const units = requireReplaySafeInteger(value, label);
 		if (units > maxBookUnits) throw new Error(label + ' exceeds the configured max win');
@@ -3428,7 +3556,7 @@ function normalizeReplayPayload(data) {
 	if (responseEvent !== undefined && String(responseEvent) !== String(UrlState.event())) throw new Error('Replay response event does not match the launch event');
 	const stateValue = source.state ?? source.events ?? payload.state ?? payload.events;
 	const events = normalizeRgsEvents(stateValue);
-	const { final, runningBookUnits } = validateReplayEvents(events);
+	const { final, runningBookUnits } = validateReplayEvents(events, replayMode);
 	const hasLaunchAmount = UrlState.hasLaunchParam('amount', 'bet', 'stake');
 	const launchAmount = hasLaunchAmount
 		? requireReplaySafeInteger(Number(UrlState.amount()), 'Replay launch amount', { positive: true })
@@ -3588,6 +3716,9 @@ const Replay = (() => {
 			const replay = await fetchReplayRound();
 			const immutableRound = deepFreezeReplayData(cloneReplayData(replay.round));
 			current = { round: immutableRound, signature: JSON.stringify(immutableRound) };
+			setProductionMode(immutableRound.mode);
+			state.localMathRound = false;
+			state.localRoundWin = 0;
 			const replayCurrency = immutableRound.currency || immutableRound.currencyCode || UrlState.currency();
 			if (replayCurrency) state.currency = normalizeCurrency(replayCurrency);
 			applyBetFromRound(immutableRound);
@@ -3611,6 +3742,9 @@ const Replay = (() => {
 		state.replayPlaying = true;
 		state.fatal = false;
 		resetReplayPresentation();
+		setProductionMode(current.round.mode);
+		state.localMathRound = false;
+		state.localRoundWin = 0;
 		state.bet = current.meta.baseBet;
 		status = 'running';
 		setReplayLifecycle(status, current.meta);
@@ -4252,7 +4386,14 @@ async function showBanner(amount) {
 	await wait(lv.hold); b.classList.remove('show', lv.tier);
 }
 
-const capWin = () => CONFIG.maxWinMultiplier * state.bet;
+const productionRoundWinCap = () => PRODUCTION_MODE_MAX_WINS[productionModeKey(state.productionMode)] * state.bet;
+const capWin = () => Math.max(0, productionRoundWinCap() - (state.localMathRound ? state.localRoundWin : 0));
+function commitLocalRoundWin(amount) {
+	if (!state.localMathRound) return state.localRoundWin;
+	const increment = Math.max(0, Number(amount) || 0);
+	state.localRoundWin = Math.min(productionRoundWinCap(), state.localRoundWin + increment);
+	return state.localRoundWin;
+}
 const setWin = (abs, render = true) => {
 	state.win = Math.min(abs, capWin());
 	if (render) $('meter-win').textContent = formatExactCurrency(state.win);
@@ -4347,7 +4488,7 @@ function finishSpinDebug(spinDebug, result) {
 	const sourceIsRgs = String(entry.source || '').startsWith('RGS_');
 	if (!sourceIsRgs && !entry.rgsVisualSync) {
 		if (result.baseWin > 0 && !spinDebug.wins.some((w) => w.positions && w.positions.length)) console.error('[GGR assert] totalWin > 0 but no visible cluster positions', entry);
-		if (result.baseWin < capWin() - 0.001 && Math.abs(sumWins - roundMoney(result.baseWin)) > 0.01) console.error('[GGR assert] sum(wins.amount) !== baseWin', entry);
+		if (result.baseWin < productionRoundWinCap() - 0.001 && Math.abs(sumWins - roundMoney(result.baseWin)) > 0.01) console.error('[GGR assert] sum(wins.amount) !== baseWin', entry);
 		if (Math.abs(totalWin - displayedWin) > 0.01) console.error('[GGR assert] displayedWin !== totalWin', entry);
 		if (result.payoutApplied && Math.abs(roundMoney(result.balanceAfter) - expectedBalance) > 0.01) console.error('[GGR assert] balanceAfterPayout !== balanceBefore - bet + totalWin', entry);
 	}
@@ -4638,6 +4779,11 @@ async function spin(buy, internalFreeSpin = false) {
 		return;
 	}
 	const paidRound = state.mode !== 'free';
+	if (paidRound) {
+		setProductionMode(Rgs.modeFor(buy));
+		state.localMathRound = !Rgs.configured();
+		state.localRoundWin = 0;
+	}
 	if (paidRound && Rgs.configured()) state.localWalletCredits = 0;
 	const balanceBefore = state.balance;
 	const spinId = ++spinSeq;
@@ -4675,7 +4821,7 @@ async function spin(buy, internalFreeSpin = false) {
 		let rgsAmountContractError = null;
 		if (Rgs.configured() && rgsPlay) {
 			try {
-				rgsRoundAmountContract(rgsPlay.round, rgsEvents);
+				rgsRoundAmountContract(rgsPlay.round, rgsEvents, rgsPlay.__requestedProductionMode);
 			} catch (error) {
 				rgsAmountContractError = error;
 				console.error('[RGS contract] rejected play round', { message: error && error.message, roundId: rgsRoundId(rgsPlay.round) });
@@ -4821,11 +4967,12 @@ async function spin(buy, internalFreeSpin = false) {
 	// payout / accumulate
 	if (state.mode === 'free') {
 		state.fsWin = (state.fsWin || 0) + state.win;
+		commitLocalRoundWin(state.win);
 		state.fsBest = Math.max(state.fsBest || 0, state.win); // track best single spin for the summary
 		$('meter-win').textContent = formatExactCurrency(state.fsWin); // WIN shows the running bonus total
 	} else {
 		if (rgsVisualSync && walletBalanceAfterPlay && !rgsRoundActive) state.balance = walletBalanceAfterPlay.amount;
-		else if (!rgsVisualSync) creditLocalWallet(state.win);
+		else if (!rgsVisualSync) { commitLocalRoundWin(state.win); creditLocalWallet(state.win); }
 		if ((!rgsVisualSync || !rgsRoundActive) && state.win > 0) await showBanner(state.win);
 	}
 
@@ -4975,7 +5122,7 @@ async function startFreeSpins(tier, walletManaged = false) {
 	updateFsCounter();
 	await bonusIntro(tier);
 	Sound.stopFreeSpins();
-	while (state.fsLeft > 0 && (state.fsWin || 0) < capWin()) {
+	while (state.fsLeft > 0 && (!state.localMathRound || state.localRoundWin < productionRoundWinCap())) {
 		state.fsLeft -= 1; updateFsCounter();
 		await spin(null, true);
 		state.fsPlayed += 1;
@@ -5052,7 +5199,7 @@ function showBuyConfirm(o, price) {
 		+ '<div class="c-row"><button class="c-no" id="bb-cancel">Cancel</button><button class="c-yes" id="bb-confirm">Confirm</button></div></div>';
 	$('bonusbuy-note').textContent = t('balanceAfterPurchase') + ': ' + formatCurrency(Math.max(0, Math.round((state.balance - price) * 100) / 100));
 	$('bb-cancel').onclick = () => buildBonusBuy();
-	$('bb-confirm').onclick = async () => {
+		$('bb-confirm').onclick = async () => {
 		const confirmBtn = $('bb-confirm');
 		if (confirmBtn && confirmBtn.disabled) return;
 		if (confirmBtn) confirmBtn.disabled = true;
@@ -5068,6 +5215,9 @@ function showBuyConfirm(o, price) {
 				$('btn-spin').classList.add('busy');
 			}
 			try {
+				setProductionMode(Rgs.modeFor(o));
+				state.localMathRound = !Rgs.configured();
+				state.localRoundWin = 0;
 				const rgsPlay = await Rgs.play(state.bet, Rgs.modeFor(o), { spinId: purchaseSpinId });
 				const walletBalanceAfterPlay = Rgs.consumePendingBalance();
 				if (Rgs.configured() && !rgsPlay) {
@@ -5097,7 +5247,7 @@ function showBuyConfirm(o, price) {
 					const rgsEvents = normalizeRgsEvents(rgsPlay && rgsPlay.round && rgsPlay.round.state);
 					let rgsAmountContractError = null;
 					try {
-						rgsRoundAmountContract(rgsPlay.round, rgsEvents);
+						rgsRoundAmountContract(rgsPlay.round, rgsEvents, rgsPlay.__requestedProductionMode);
 					} catch (error) {
 						rgsAmountContractError = error;
 						console.error('[RGS contract] rejected feature round', { message: error && error.message, roundId: rgsRoundId(rgsPlay.round) });
@@ -5175,17 +5325,37 @@ window.addEventListener('keydown', (event) => {
 });
 
 // ---- modals: open / close ----
+let modalReturnFocus = null;
 function openModal(id) {
 	if (state.replay && ['modal-autospin', 'modal-bonusbuy', 'modal-major-confirm', 'modal-interrupted-round'].includes(id)) return false;
-	document.querySelectorAll('[data-modal]').forEach((m) => { if (!m.dataset.persistent || m.id === id) m.classList.remove('open'); });
 	const el = document.getElementById(id);
-	if (el) el.classList.add('open');
-	return !!el;
+	if (!el) return false;
+	const active = document.activeElement;
+	if (active instanceof HTMLElement && !el.contains(active)) modalReturnFocus = active;
+	document.querySelectorAll('[data-modal]').forEach((m) => { if (!m.dataset.persistent || m.id === id) m.classList.remove('open'); });
+	el.classList.add('open');
+	requestAnimationFrame(() => {
+		const target = el.querySelector('[data-close], button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+		if (target instanceof HTMLElement) target.focus();
+	});
+	return true;
 }
 function closeModals(force = false) {
+	let closed = false;
 	document.querySelectorAll('[data-modal]').forEach((m) => {
-		if (force || !m.dataset.persistent) m.classList.remove('open');
+		if ((force || !m.dataset.persistent) && m.classList.contains('open')) {
+			m.classList.remove('open');
+			closed = true;
+		}
 	});
+	if (closed) {
+		const target = modalReturnFocus;
+		modalReturnFocus = null;
+		requestAnimationFrame(() => {
+			if (target instanceof HTMLElement && target.isConnected && target.getClientRects().length) target.focus();
+			else $('btn-menu')?.focus();
+		});
+	}
 }
 $('btn-menu').addEventListener('click', () => openModal('modal-menu'));
 $('btn-settings').addEventListener('click', () => openModal('modal-settings'));
@@ -5193,7 +5363,31 @@ $('btn-info').addEventListener('click', () => openModal('modal-rules'));
 document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => closeModals()));
 document.querySelectorAll('[data-modal]').forEach((m) => m.addEventListener('click', (e) => { if (e.target === m && !m.dataset.persistent) closeModals(); }));
 document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => openModal(b.dataset.open)));
-window.addEventListener('keydown', (e) => { if (e.code === 'Escape') closeModals(); });
+window.addEventListener('keydown', (e) => {
+	const open = [...document.querySelectorAll('[data-modal].open')].at(-1);
+	if (!open) return;
+	if (e.code === 'Escape') {
+		e.preventDefault();
+		closeModals();
+		return;
+	}
+	if (e.key !== 'Tab') return;
+	const focusable = [...open.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+		.filter((element) => element instanceof HTMLElement && element.getClientRects().length);
+	if (!focusable.length) {
+		e.preventDefault();
+		return;
+	}
+	const first = focusable[0];
+	const last = focusable[focusable.length - 1];
+	if (e.shiftKey && document.activeElement === first) {
+		e.preventDefault();
+		last.focus();
+	} else if (!e.shiftKey && document.activeElement === last) {
+		e.preventDefault();
+		first.focus();
+	}
+});
 function primeSound() { Sound.prime(); }
 window.addEventListener('load', primeSound);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) primeSound(); });

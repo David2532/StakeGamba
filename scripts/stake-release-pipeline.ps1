@@ -366,10 +366,14 @@ print(json.dumps({"luminance": lum, "width": im.size[0], "height": im.size[1]}))
 }
 
 function Test-BookContract {
+	param(
+		[string]$MathRootPath = $MathDest
+	)
 	$python = @"
 import csv
 import io
 import json
+import math
 import pathlib
 import sys
 
@@ -377,12 +381,41 @@ try:
     import zstandard as zstd
 except Exception as exc:
     print(json.dumps({"ok": False, "error": "zstandard import failed: %s" % exc}))
-    raise SystemExit(0)
+    raise SystemExit(1)
 
 root = pathlib.Path(sys.argv[1])
 index = json.loads((root / "index.json").read_text(encoding="utf-8"))
+config = json.loads((root / "game_config.json").read_text(encoding="utf-8"))
+rtp_audit = json.loads((root / "RTP_AUDIT.json").read_text(encoding="utf-8"))
 errors = []
 summary = {}
+expected_modes = [
+    {"name": "base", "cost": 1.0, "events": "base_books.jsonl.zst", "weights": "base_lookup.csv"},
+    {"name": "hunt", "cost": 4.2, "events": "hunt_books.jsonl.zst", "weights": "hunt_lookup.csv"},
+    {"name": "rainbow", "cost": 6.0, "events": "rainbow_books.jsonl.zst", "weights": "rainbow_lookup.csv"},
+    {"name": "bonus_tier1", "cost": 31.0, "events": "bonus_tier1_books.jsonl.zst", "weights": "bonus_tier1_lookup.csv"},
+    {"name": "bonus", "cost": 95.0, "events": "bonus_books.jsonl.zst", "weights": "bonus_lookup.csv"},
+]
+expected_mode_names = [mode["name"] for mode in expected_modes]
+
+def is_strict_int(value, minimum=0):
+    return isinstance(value, int) and not isinstance(value, bool) and value >= minimum
+
+def is_strict_number(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+index_modes = index.get("modes")
+if index_modes != expected_modes:
+    errors.append("index.json modes must exactly match the five canonical mode names, costs and filenames")
+    index_modes = expected_modes
+
+config_modes = config.get("betModes")
+if not isinstance(config_modes, dict) or list(config_modes.keys()) != expected_mode_names:
+    errors.append("game_config.json betModes must contain the five canonical modes in order")
+
+audit_modes = list(rtp_audit.keys()) if isinstance(rtp_audit, dict) else []
+if audit_modes != expected_mode_names:
+    errors.append("RTP_AUDIT.json must contain the five canonical modes in order")
 
 known_events = {
     "reveal", "winInfo", "setWin", "setTotalWin", "tumbleBoard",
@@ -406,15 +439,29 @@ def iter_books(path):
                 if line:
                     yield json.loads(line)
 
-for mode in index["modes"]:
+for mode in index_modes:
     name = mode["name"]
     books_path = root / mode["events"]
     lookup_path = root / mode["weights"]
     rows = {}
     with lookup_path.open(encoding="utf-8", newline="") as fh:
-        for row in csv.reader(fh):
-            if len(row) == 3:
-                rows[int(row[0])] = (int(row[1]), int(row[2]))
+        for row_number, row in enumerate(csv.reader(fh), start=1):
+            if len(row) != 3:
+                errors.append("%s lookup row %s must contain id, weight and payout" % (name, row_number))
+                continue
+            if any(not field.isdigit() for field in row):
+                errors.append("%s lookup row %s contains a non-canonical integer field" % (name, row_number))
+                continue
+            book_id, weight, payout = (int(field) for field in row)
+            if book_id <= 0:
+                errors.append("%s lookup row %s has a non-positive book id" % (name, row_number))
+                continue
+            if book_id in rows:
+                errors.append("%s lookup contains duplicate book id %s" % (name, book_id))
+                continue
+            rows[book_id] = (weight, payout)
+    if not rows:
+        errors.append("%s lookup is empty" % name)
 
     count = 0
     wins = 0
@@ -422,19 +469,45 @@ for mode in index["modes"]:
     complete_features = 0
     weighted_sum = 0
     weight_sum = 0
+    maximum_book_payout = None
+    book_ids = set()
+    book_payouts = {}
     event_types = set()
     for book in iter_books(books_path):
         count += 1
-        book_id = int(book.get("id", 0))
-        payout = int(book.get("payoutMultiplier", -1))
-        events = book.get("events") or []
+        if not isinstance(book, dict):
+            errors.append("%s book row %s is not a JSON object" % (name, count))
+            continue
+        raw_book_id = book.get("id")
+        raw_payout = book.get("payoutMultiplier")
+        if not is_strict_int(raw_book_id, 1):
+            errors.append("%s book row %s has an invalid id" % (name, count))
+            continue
+        if not is_strict_int(raw_payout, 0):
+            errors.append("%s book %s has an invalid payoutMultiplier" % (name, raw_book_id))
+            continue
+        book_id = raw_book_id
+        payout = raw_payout
+        if book_id in book_ids:
+            errors.append("%s books contain duplicate id %s" % (name, book_id))
+            continue
+        book_ids.add(book_id)
+        book_payouts[book_id] = payout
+        maximum_book_payout = payout if maximum_book_payout is None else max(maximum_book_payout, payout)
+        events = book.get("events")
+        if not isinstance(events, list):
+            errors.append("%s book %s events must be an array" % (name, book_id))
+            continue
         if payout > 0:
             wins += 1
         if not events:
             errors.append("%s book %s has no events" % (name, book_id))
             continue
         for expected, event in enumerate(events):
-            if event.get("index") != expected:
+            if not isinstance(event, dict):
+                errors.append("%s book %s event %s is not an object" % (name, book_id, expected))
+                break
+            if not is_strict_int(event.get("index"), 0) or event.get("index") != expected:
                 errors.append("%s book %s event index mismatch at %s" % (name, book_id, expected))
                 break
             etype = event.get("type")
@@ -445,7 +518,9 @@ for mode in index["modes"]:
         final = [e for e in events if e.get("type") == "finalWin"]
         if not final:
             errors.append("%s book %s missing finalWin" % (name, book_id))
-        elif int(final[-1].get("amount", -1)) != payout:
+        elif not is_strict_int(final[-1].get("amount"), 0):
+            errors.append("%s book %s finalWin amount is not a non-negative integer" % (name, book_id))
+        elif final[-1].get("amount") != payout:
             errors.append("%s book %s finalWin %s != payoutMultiplier %s" % (name, book_id, final[-1].get("amount"), payout))
         if any(e.get("type") == "winInfo" for e in events) and payout <= 0:
             errors.append("%s book %s has winInfo but zero payout" % (name, book_id))
@@ -465,12 +540,64 @@ for mode in index["modes"]:
             errors.append("%s book %s missing lookup row" % (name, book_id))
         if len(errors) > 50:
             break
+    orphan_lookup_ids = sorted(set(rows) - book_ids)
+    missing_lookup_ids = sorted(book_ids - set(rows))
+    if orphan_lookup_ids:
+        errors.append("%s lookup contains %s orphan id(s), first=%s" % (name, len(orphan_lookup_ids), orphan_lookup_ids[:5]))
+    if missing_lookup_ids:
+        errors.append("%s books contain %s id(s) without lookup rows, first=%s" % (name, len(missing_lookup_ids), missing_lookup_ids[:5]))
+    maximum_lookup_payout = max((payout for _, payout in rows.values()), default=None)
+    maximum_positive_weight_payout = max((payout for weight, payout in rows.values() if weight > 0), default=None)
+    maximum_joined_positive_weight_book_payout = max(
+        (book_payouts[book_id] for book_id, (weight, _) in rows.items() if weight > 0 and book_id in book_payouts),
+        default=None,
+    )
+    configured_mode = config.get("betModes", {}).get(name, {})
+    configured_cost = configured_mode.get("cost") if isinstance(configured_mode, dict) else None
+    if not is_strict_number(configured_cost) or configured_cost != mode["cost"]:
+        errors.append("%s configured cost %s differs from canonical index cost %s" % (name, configured_cost, mode["cost"]))
+    configured_maximum = configured_mode.get("max_win") if isinstance(configured_mode, dict) else None
+    audited_maximum = rtp_audit.get(name, {}).get("maxPayoutMultiplierObserved")
+    if is_strict_number(configured_maximum):
+        configured_units_raw = configured_maximum * 100
+        configured_units = int(round(configured_units_raw))
+        if abs(configured_units_raw - configured_units) > 1e-9 or configured_units <= 0:
+            errors.append("%s configured max_win %s is not a positive two-decimal book-unit value" % (name, configured_maximum))
+    else:
+        configured_units = None
+        errors.append("%s configured max_win is missing or invalid: %s" % (name, configured_maximum))
+    if is_strict_number(audited_maximum):
+        audited_units_raw = audited_maximum * 100
+        audited_units = int(round(audited_units_raw))
+        if abs(audited_units_raw - audited_units) > 1e-9:
+            errors.append("%s RTP_AUDIT maximum %s is not a two-decimal book-unit value" % (name, audited_maximum))
+    else:
+        audited_units = None
+        errors.append("%s RTP_AUDIT maximum is missing or invalid: %s" % (name, audited_maximum))
+    for label, actual in (
+        ("book maximum", maximum_book_payout),
+        ("lookup maximum", maximum_lookup_payout),
+        ("positive-weight lookup maximum", maximum_positive_weight_payout),
+        ("joined positive-weight book maximum", maximum_joined_positive_weight_book_payout),
+        ("RTP_AUDIT maximum", audited_units),
+    ):
+        if configured_units is not None and actual != configured_units:
+            errors.append("%s %s %s != configured maximum %s book units" % (name, label, actual, configured_units))
+
     summary[name] = {
         "books": count,
         "wins": wins,
         "triggerBooks": triggers,
         "completeFeatureBooks": complete_features,
         "lookupRtp": round(weighted_sum / weight_sum / 100 / float(mode["cost"]), 6) if weight_sum else None,
+        "configuredMaximum": configured_maximum,
+        "auditedMaximum": audited_maximum,
+        "maximumBookUnits": maximum_book_payout,
+        "maximumLookupBookUnits": maximum_lookup_payout,
+        "maximumPositiveWeightLookupUnits": maximum_positive_weight_payout,
+        "maximumPositiveWeightBookUnits": maximum_joined_positive_weight_book_payout,
+        "idSetsMatch": not orphan_lookup_ids and not missing_lookup_ids and len(book_ids) == len(rows),
+        "maximumEvidenceMatches": configured_units is not None and not orphan_lookup_ids and not missing_lookup_ids and all(actual == configured_units for actual in (maximum_book_payout, maximum_lookup_payout, maximum_positive_weight_payout, maximum_joined_positive_weight_book_payout, audited_units)),
         "eventTypes": sorted(t for t in event_types if t),
     }
     if len(errors) > 50:
@@ -478,8 +605,34 @@ for mode in index["modes"]:
 
 print(json.dumps({"ok": not errors, "errorCount": len(errors), "errors": errors[:20], "summary": summary}, indent=2))
 "@
-	$resultText = $python | python - $MathDest
-	return ($resultText | ConvertFrom-Json)
+	$resultText = $python | python - $MathRootPath
+	$pythonExitCode = $LASTEXITCODE
+	if ($pythonExitCode -ne 0) {
+		throw "Book contract Python process failed with exit code $pythonExitCode for $MathRootPath"
+	}
+	try {
+		$result = ($resultText | ConvertFrom-Json)
+	}
+	catch {
+		throw "Book contract returned invalid JSON for ${MathRootPath}: $($_.Exception.Message)"
+	}
+	if ($null -eq $result -or $result.ok -isnot [bool] -or $null -eq $result.errorCount -or $null -eq $result.errors -or $null -eq $result.summary) {
+		throw "Book contract returned an invalid result shape for $MathRootPath"
+	}
+	$expectedSummaryModes = @("base", "hunt", "rainbow", "bonus_tier1", "bonus")
+	$actualSummaryModes = @($result.summary.PSObject.Properties | ForEach-Object { $_.Name })
+	if (($expectedSummaryModes -join "|") -ne ($actualSummaryModes -join "|")) {
+		throw "Book contract summary modes differ from the canonical five modes: $($actualSummaryModes -join ', ')"
+	}
+	foreach ($summaryMode in $expectedSummaryModes) {
+		$modeSummary = $result.summary.$summaryMode
+		foreach ($requiredField in @("books", "configuredMaximum", "maximumBookUnits", "maximumLookupBookUnits", "maximumPositiveWeightLookupUnits", "maximumPositiveWeightBookUnits", "idSetsMatch", "maximumEvidenceMatches")) {
+			if ($null -eq $modeSummary.$requiredField) {
+				throw "Book contract summary for $summaryMode is missing $requiredField"
+			}
+		}
+	}
+	return $result
 }
 
 function New-Checklist {
@@ -586,7 +739,7 @@ function New-Report {
 		$lines += "- Error count: $($BookContract.errorCount)"
 		foreach ($prop in $BookContract.summary.PSObject.Properties) {
 			$s = $prop.Value
-			$lines += "- $($prop.Name): books=$($s.books), wins=$($s.wins), triggerBooks=$($s.triggerBooks), completeFeatureBooks=$($s.completeFeatureBooks), lookupRtp=$($s.lookupRtp)"
+			$lines += "- $($prop.Name): books=$($s.books), wins=$($s.wins), triggerBooks=$($s.triggerBooks), completeFeatureBooks=$($s.completeFeatureBooks), lookupRtp=$($s.lookupRtp), configuredMaximum=$($s.configuredMaximum)x, bookMaximumUnits=$($s.maximumBookUnits), positiveWeightLookupMaximumUnits=$($s.maximumPositiveWeightLookupUnits), joinedPositiveWeightBookMaximumUnits=$($s.maximumPositiveWeightBookUnits), idSetsMatch=$($s.idSetsMatch), maximumEvidenceMatches=$($s.maximumEvidenceMatches)"
 		}
 		if ($BookContract.errorCount -gt 0) {
 			$lines += "Errors:"
@@ -760,7 +913,10 @@ Add-Check -Group "C Play / End-Round Flow" -Name "roundNeedsEnd line does not in
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "RGS book renderer exists" -Content $html -Marker "async function playRgsBookRound"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "display win from final book amount" -Content $html -Marker "finalBookWinMoney"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "book amount conversion stays x100" -Content $html -Marker "function bookAmountToMoney(amount)"
-Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "validated RGS amount contract is display source" -Content $html -Marker "return rgsRoundAmountContract(round, events).totalWin;"
+Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "validated RGS amount contract is display source" -Content $html -Marker "return rgsRoundAmountContract(round, events, expectedMode).totalWin;"
+Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "wallet response mode is bound to requested production mode" -Content $html -Marker "__requestedProductionMode"
+Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "runtime cap is derived from the exact production mode" -Content $html -Marker "const productionRoundWinCap = () => PRODUCTION_MODE_MAX_WINS[productionModeKey(state.productionMode)] * state.bet;"
+Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "local simulator clips against the remaining complete-round allowance" -Content $html -Marker "function commitLocalRoundWin(amount)"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "local free spins only without RGS" -Content $html -Marker "allowLocalFreeSpins = !Rgs.configured()"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "unsupported RGS state has no local fallback" -Content $html -Marker "No local fallback was used"
 Add-MarkerCheck -Group "D Winnings / No Fake Wins" -Name "positive RGS payout assertion" -Content $html -Marker "RGS payout > 0 but visible game shows no win"
@@ -862,7 +1018,11 @@ Add-Check -Group "Math / RTP" -Name "tiny 0.01x-0.20x wins are not dominant" -Pa
 Add-Check -Group "Math / RTP" -Name "0.20x-2.00x win bands are present" -Passed (([double]$analysis.buckets."0.20x-0.50x".share + [double]$analysis.buckets."0.50x-1.00x".share + [double]$analysis.buckets."1.00x-2.00x".share) -ge 0.20) -Detail "combined=$(([double]$analysis.buckets.'0.20x-0.50x'.share + [double]$analysis.buckets.'0.50x-1.00x'.share + [double]$analysis.buckets.'1.00x-2.00x'.share))"
 
 $bookContract = Test-BookContract
-Add-Check -Group "D Winnings / No Fake Wins" -Name "published books finalWin equals payoutMultiplier" -Passed ([bool]$bookContract.ok) -Detail "errors=$($bookContract.errorCount)"
+Add-Check -Group "D Winnings / No Fake Wins" -Name "published books, lookups and configured mode maximums agree" -Passed ([bool]$bookContract.ok) -Detail "errors=$($bookContract.errorCount)"
+foreach ($prop in $bookContract.summary.PSObject.Properties) {
+	$modeMaximum = $prop.Value
+	Add-Check -Group "Math / RTP" -Name "$($prop.Name) packaged maximum is derived from the same positively weighted book IDs" -Passed ([bool]$modeMaximum.maximumEvidenceMatches -and [bool]$modeMaximum.idSetsMatch) -Detail "config=$($modeMaximum.configuredMaximum)x; book=$($modeMaximum.maximumBookUnits); lookup=$($modeMaximum.maximumPositiveWeightLookupUnits); joinedBook=$($modeMaximum.maximumPositiveWeightBookUnits); idSetsMatch=$($modeMaximum.idSetsMatch)"
+}
 
 Test-TitleApproval -GameName ([string]$mathConfig.gameName)
 Test-OffensiveAssetNames
@@ -1111,11 +1271,17 @@ try {
 		Remove-Item -LiteralPath $exactZipQaRoot -Recurse -Force
 	}
 	New-Item -ItemType Directory -Force -Path $exactZipQaRoot | Out-Null
+	$exactBookContract = Test-BookContract -MathRootPath (Join-Path $uploadExtractDir "math")
+	$exactBookContract | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $exactZipQaRoot "book-contract.json") -Encoding UTF8
+	if (-not [bool]$exactBookContract.ok -or [int]$exactBookContract.errorCount -ne 0) {
+		throw "Extracted canonical math archive failed the full book/lookup identity contract"
+	}
 	Invoke-Checked -WorkingDirectory $Root -FilePath "node" -Arguments @(
 		$PaytableVerifier,
 		"--html", (Join-Path $uploadExtractDir "frontend\index.html"),
 		"--math", (Join-Path $uploadExtractDir "math\game_config.json"),
-		"--report", (Join-Path $exactZipQaRoot "paytable-contract.json")
+		"--report", (Join-Path $exactZipQaRoot "paytable-contract.json"),
+		"--logical-root", $uploadExtractDir
 	)
 
 	$previousQaFrontendRoot = $env:STAKE_QA_FRONTEND_ROOT

@@ -64,6 +64,19 @@ const artifactRoot = process.env.STAKE_QA_ARTIFACT_DIR
 	|| join(root, 'artifacts', 'stake-qa', new Date().toISOString().replace(/[:.]/g, '-'));
 const shotDir = join(artifactRoot, 'e2e-screenshots');
 const productionMathConfig = JSON.parse(readFileSync(publishedMathFile, 'utf8'));
+const PRODUCTION_MODE_LABELS = Object.freeze({
+	base: 'Base Game',
+	hunt: 'Feature Spins',
+	rainbow: 'Rainbow Spin',
+	bonus_tier1: 'Golden Chance',
+	bonus: 'All That Glitters',
+});
+const productionModeMaximums = Object.freeze(Object.entries(PRODUCTION_MODE_LABELS).map(([mode, label]) => ({
+	mode,
+	label,
+	maxWin: Number(productionMathConfig.betModes?.[mode]?.max_win),
+	formatted: new Intl.NumberFormat('en-US', { useGrouping: true, maximumFractionDigits: 20 }).format(Number(productionMathConfig.betModes?.[mode]?.max_win)),
+})));
 const productionBookRoot = process.env.STAKE_QA_MATH_BOOKS_ROOT
 	? resolve(root, process.env.STAKE_QA_MATH_BOOKS_ROOT)
 	: dirname(publishedMathFile);
@@ -112,6 +125,29 @@ Object.defineProperty(window, '__stakeQa', {
 			};
 			if (!Object.hasOwn(modeBuys, mode)) throw new Error('Unknown RGS mode: ' + mode);
 			return spin(modeBuys[mode]);
+		},
+		auditLocalModeCap: ({ mode, bet = 1, committed = 0, candidate = 0 } = {}) => {
+			const previous = {
+				mode: state.mode,
+				productionMode: state.productionMode,
+				localMathRound: state.localMathRound,
+				localRoundWin: state.localRoundWin,
+				bet: state.bet,
+				win: state.win,
+			};
+			try {
+				state.mode = 'free';
+				setProductionMode(mode);
+				state.localMathRound = true;
+				state.localRoundWin = committed;
+				state.bet = bet;
+				setWin(candidate, false);
+				const awarded = state.win;
+				const total = commitLocalRoundWin(awarded);
+				return { mode: state.productionMode, cap: productionRoundWinCap(), committed, candidate, awarded, total };
+			} finally {
+				Object.assign(state, previous);
+			}
 		},
 		confirmMajorAction,
 		auditLocalClusters: (grid) => {
@@ -436,9 +472,9 @@ const quietBoard = () => {
 };
 
 // Resumable Stake bonus round: 2 free spins, book win 2.5x bet, still active.
-const interruptedBonusRound = () => ({
+const interruptedBonusRound = ({ mode = 'bonus' } = {}) => ({
 	active: true,
-	mode: 'bonus',
+	mode,
 	amount: 1 * API,
 	betID: 'stake-qa-round-77',
 	event: 0,
@@ -609,11 +645,11 @@ const replayRoundFromProductionBook = (book, {
 	state: cloneRound(book.events),
 });
 
-const amountBoundaryReplayRound = (bookUnits) => ({
+const amountBoundaryReplayRound = (bookUnits, roundMode = 'base') => ({
 	active: false,
 	game: 'golden-goal-rush',
 	version: '1',
-	mode: 'base',
+	mode: roundMode,
 	amount: API,
 	currency: 'USD',
 	payout: Math.round(API * bookUnits / 100),
@@ -675,6 +711,7 @@ const gameState = (page) => page.evaluate(() => ({
 	auto: window.__stakeQa.state.auto,
 	autoRemaining: window.__stakeQa.state.autoRemaining,
 	mode: window.__stakeQa.state.mode,
+	productionMode: window.__stakeQa.state.productionMode,
 	balance: window.__stakeQa.state.balance,
 	bet: window.__stakeQa.state.bet,
 	win: window.__stakeQa.state.win,
@@ -1075,20 +1112,57 @@ async function testSocialWording(browser, base) {
 			title: document.querySelector('#modal-paytable .modal-title')?.textContent?.trim() || '',
 			footer: document.getElementById('paytable-note')?.textContent?.trim() || '',
 			replayLabels: [...document.querySelectorAll('#replay-metadata .replay-row span')].map((element) => element.textContent?.trim() || ''),
+			maximumHeading: {
+				text: document.getElementById('mode-max-awards-title')?.textContent?.trim() || '',
+				role: document.getElementById('mode-max-awards-title')?.getAttribute('role') || '',
+				level: document.getElementById('mode-max-awards-title')?.getAttribute('aria-level') || '',
+			},
+			maximumList: {
+				tag: document.getElementById('mode-max-awards')?.tagName || '',
+				labelledBy: document.getElementById('mode-max-awards')?.getAttribute('aria-labelledby') || '',
+				rows: [...document.querySelectorAll('#mode-max-awards [data-mode-maximum-summary]')].map((element) => ({
+					mode: element.getAttribute('data-mode-maximum-summary'),
+					maxWin: element.getAttribute('data-max-win'),
+					term: element.querySelector('dt')?.textContent?.trim() || '',
+					definition: element.querySelector('dd')?.textContent?.trim() || '',
+				})),
+			},
 		};
 	});
 	const staticHits = playerVisibleForbiddenHits(`${staticFirstRender.text} ${staticFirstRender.attrs}`);
+	const staticMaximumsExact = productionModeMaximums.every((expected) => {
+		const row = staticFirstRender.maximumList.rows.find((candidate) => candidate.mode === expected.mode);
+		const scope = expected.mode === 'bonus_tier1' || expected.mode === 'bonus' ? ' (feature panel)' : '';
+		return Number(row?.maxWin) === expected.maxWin
+			&& row?.term === `${expected.label}${scope}:`
+			&& row?.definition === `${expected.formatted}×`;
+	});
 	expect(
 		group,
 		'true no-JavaScript first render and static player-copy shell contain zero restricted terms',
 		staticHits.length === 0
 			&& staticFirstRender.title === 'SYMBOL TABLE'
 			&& staticFirstRender.footer.includes('Each eligible symbol')
-			&& staticFirstRender.replayLabels.join('|') === 'Mode|Base Play|Feature Multiplier|Final Play Amount|Final Multiplier|Total Win',
-		JSON.stringify({ hits: staticHits, title: staticFirstRender.title, footer: staticFirstRender.footer, replayLabels: staticFirstRender.replayLabels, visibleText: staticFirstRender.visibleText.slice(0, 240) }),
+			&& staticFirstRender.replayLabels.join('|') === 'Mode|Base Play|Feature Multiplier|Final Play Amount|Final Multiplier|Total Win'
+			&& staticFirstRender.maximumHeading.text === 'Maximum Awards by Mode'
+			&& staticFirstRender.maximumHeading.role === 'heading'
+			&& staticFirstRender.maximumHeading.level === '2'
+			&& staticFirstRender.maximumList.tag === 'DL'
+			&& staticFirstRender.maximumList.labelledBy === 'mode-max-awards-title'
+			&& staticFirstRender.maximumList.rows.length === productionModeMaximums.length
+			&& staticMaximumsExact
+			&& staticFirstRender.text.includes('Natural Scatter-triggered Free Spins, including End of the Rainbow, remain part of the complete originating round.')
+			&& staticFirstRender.text.includes('Complete-round limits: Base Game 3,895.42×; Rainbow Spin 10,000×.')
+			&& !staticFirstRender.text.includes('Natural feature maximum award')
+			&& !staticFirstRender.text.includes('Max award 10,000× play amount'),
+		JSON.stringify({ hits: staticHits, title: staticFirstRender.title, footer: staticFirstRender.footer, replayLabels: staticFirstRender.replayLabels, maximumHeading: staticFirstRender.maximumHeading, maximumList: staticFirstRender.maximumList, visibleText: staticFirstRender.visibleText.slice(0, 240) }),
 	);
 	const staticShot = await screenshot(staticPage, 'player-wording-static-no-js-first-render');
 	pass(group, 'true no-JavaScript first-render screenshot saved', staticShot);
+	await staticPage.evaluate(() => document.getElementById('modal-rules')?.classList.add('open'));
+	await auditModeMaximumSection(staticPage, group, 'true no-JavaScript first-render 1280x720');
+	const staticRulesShot = await screenshot(staticPage, 'rules-mode-max-awards-static-no-js-first-render-1280x720');
+	pass(group, 'true no-JavaScript first-render maximum-awards screenshot saved', staticRulesShot);
 	await staticContext.close();
 
 	const runCase = async ({
@@ -1233,12 +1307,43 @@ async function testSocialWording(browser, base) {
 				attrs,
 				heads: [...document.querySelectorAll('#modal-rules .pt-head')].map((el) => el.textContent.trim()),
 				controls: [...document.querySelectorAll('#modal-rules .control-rule')].map((el) => el.textContent.trim()),
+				modeMaximums: [...root.querySelectorAll('[data-mode-maximum]')].map((el) => ({
+					mode: el.getAttribute('data-mode-maximum'),
+					maxWin: el.getAttribute('data-max-win'),
+					sourceModes: el.getAttribute('data-max-source-modes'),
+					naturalSourceModes: el.getAttribute('data-natural-max-source-modes'),
+					text: el.textContent.trim(),
+				})),
+				summaryMaximums: [...root.querySelectorAll('[data-mode-maximum-summary]')].map((el) => ({
+					mode: el.getAttribute('data-mode-maximum-summary'),
+					maxWin: el.getAttribute('data-max-win'),
+					text: el.textContent.trim(),
+				})),
 			};
 		});
 		const hits = playerVisibleForbiddenHits(`${rulesAudit.text} ${rulesAudit.attrs}`);
 		expect(group, `${screenshotSuffix} rules avoid restricted phrases`, hits.length === 0, `hits=${hits.join(',') || 'none'}`);
 		expect(group, `${screenshotSuffix} rules include mode and button explanations`, rulesAudit.heads.includes('Game Modes') && rulesAudit.text.includes('Base Game') && rulesAudit.text.includes('Feature Multiplier') && rulesAudit.heads.includes('Buttons & Controls') && rulesAudit.controls.some((row) => row.includes('Auto-Play')), JSON.stringify(rulesAudit.heads));
 		expect(group, `${screenshotSuffix} rules explain retrigger conditions`, rulesAudit.heads.includes('Retriggers') && rulesAudit.text.includes('Base Game and Rainbow Spin can trigger Free Spins') && rulesAudit.text.includes('Feature-panel Free Spins do not add additional Free Spins'), rulesAudit.text.replace(/\s+/g, ' ').slice(0, 220));
+		const numericModeMaximums = rulesAudit.modeMaximums.filter((row) => row.maxWin !== null);
+		expect(group, `${screenshotSuffix} rules expose exactly five numeric published-mode maximums`, numericModeMaximums.length === productionModeMaximums.length && new Set(numericModeMaximums.map((row) => row.mode)).size === productionModeMaximums.length, JSON.stringify(numericModeMaximums));
+		for (const expected of productionModeMaximums) {
+			const row = numericModeMaximums.find((candidate) => candidate.mode === expected.mode);
+			const summaryRow = rulesAudit.summaryMaximums.find((candidate) => candidate.mode === expected.mode);
+			const naturalFeature = expected.mode === 'bonus_tier1' || expected.mode === 'bonus';
+			const rowCopyMatches = naturalFeature
+				? row?.text.includes(`Feature-panel maximum award: ${expected.formatted}x the Base Play amount`)
+					&& row?.naturalSourceModes === 'base rainbow'
+					&& row?.text.includes('remain part of the complete originating round')
+					&& row?.text.includes('Complete-round limit:')
+					&& row?.text.includes('Base Game 3,895.42x; Rainbow Spin 10,000x')
+				: row?.text.includes(`${expected.formatted}x the Base Play amount`);
+			expect(group, `${screenshotSuffix} ${expected.label} maximum matches tested production math and access path`, !!row && Number(row.maxWin) === expected.maxWin && rowCopyMatches, JSON.stringify(row));
+			const summaryLabel = `${expected.label}${naturalFeature ? ' (feature panel)' : ''}`;
+			expect(group, `${screenshotSuffix} ${expected.label} appears in the maximum summary`, !!summaryRow && Number(summaryRow.maxWin) === expected.maxWin && summaryRow.text.includes(summaryLabel) && summaryRow.text.includes(`${expected.formatted}×`), JSON.stringify(summaryRow));
+		}
+		const naturalTier = rulesAudit.modeMaximums.find((row) => row.mode === 'bonus_tier3');
+		expect(group, `${screenshotSuffix} natural End of the Rainbow shows both exact complete-round limits without claiming a tier maximum`, naturalTier?.maxWin === null && naturalTier?.sourceModes === 'base rainbow' && naturalTier?.text.includes('remains part of the complete originating round') && naturalTier?.text.includes('Complete-round limit: Base Game 3,895.42x; Rainbow Spin 10,000x') && !naturalTier?.text.includes('feature maximum'), JSON.stringify(naturalTier));
 		await auditVisibleSurface('Rules, Features, modes, symbols and controls');
 		await screenshot(page, `player-wording-${screenshotSuffix}`);
 		await context.close();
@@ -1298,6 +1403,31 @@ async function testSocialWording(browser, base) {
 	expect(group, 'first-render static Symbol Table is safe before language/auth switching completes', preAuthTable.title === 'SYMBOL TABLE' && preAuthTable.footer.includes('Each eligible symbol') && preAuthTable.atBottom && preAuthTableHits.length === 0, JSON.stringify({ preAuthTable, preAuthTableHits }));
 	const preAuthShot = await screenshot(delayedPage, 'symbol-table-first-render-delayed-auth-scrolled');
 	pass(group, 'first-render delayed-auth Symbol Table screenshot saved', preAuthShot);
+	const preAuthMaximums = await delayedPage.evaluate(() => {
+		document.querySelectorAll('[data-modal]').forEach((modal) => modal.classList.remove('open'));
+		document.getElementById('modal-rules')?.classList.add('open');
+		const list = document.getElementById('mode-max-awards');
+		return {
+			heading: document.getElementById('mode-max-awards-title')?.textContent?.trim() || '',
+			rows: [...(list?.querySelectorAll('[data-mode-maximum-summary]') || [])].map((element) => ({
+				mode: element.getAttribute('data-mode-maximum-summary'),
+				maxWin: element.getAttribute('data-max-win'),
+				term: element.querySelector('dt')?.textContent?.trim() || '',
+				definition: element.querySelector('dd')?.textContent?.trim() || '',
+			})),
+			text: document.getElementById('modal-rules')?.innerText || '',
+		};
+	});
+	const preAuthMaximumHits = playerVisibleForbiddenHits(preAuthMaximums.text);
+	const preAuthMaximumsExact = productionModeMaximums.every((expected) => {
+		const row = preAuthMaximums.rows.find((candidate) => candidate.mode === expected.mode);
+		const scope = expected.mode === 'bonus_tier1' || expected.mode === 'bonus' ? ' (feature panel)' : '';
+		return Number(row?.maxWin) === expected.maxWin && row?.term === `${expected.label}${scope}:` && row?.definition === `${expected.formatted}×`;
+	});
+	expect(group, 'first render before delayed Authenticate exposes the exact five math-bound mode maximums', preAuthMaximums.heading === 'Maximum Awards by Mode' && preAuthMaximums.rows.length === productionModeMaximums.length && preAuthMaximumsExact && preAuthMaximums.text.includes('Natural Scatter-triggered Free Spins, including End of the Rainbow, remain part of the complete originating round.') && preAuthMaximums.text.includes('Complete-round limits: Base Game 3,895.42×; Rainbow Spin 10,000×.') && !preAuthMaximums.text.includes('Natural feature maximum award') && !preAuthMaximums.text.includes('Max award 10,000× play amount') && preAuthMaximumHits.length === 0, JSON.stringify({ preAuthMaximums, preAuthMaximumHits }));
+	await auditModeMaximumSection(delayedPage, group, 'first-render delayed-auth 1280x720');
+	const preAuthRulesShot = await screenshot(delayedPage, 'rules-mode-max-awards-first-render-delayed-auth-1280x720');
+	pass(group, 'first-render delayed-auth maximum-awards screenshot saved', preAuthRulesShot);
 	await delayedPage.evaluate(() => document.querySelectorAll('[data-modal]').forEach((modal) => modal.classList.remove('open')));
 	releaseDelayedAuth();
 	await delayedPage.waitForFunction(() => window.__stakeQa.state.walletBusy === false && window.__stakeQa.state.socialCasino === false);
@@ -1483,12 +1613,12 @@ async function testMajorActions(browser, base) {
 // ---------------------------------------------------------------------------
 async function testInterruptedRound(browser, base) {
 	const group = 'interrupted-round-e2e';
-	const runCase = async ({ currency, extra, expectedBalance }) => {
-		const label = currency;
+	const runCase = async ({ currency, extra, expectedBalance, roundMode }) => {
+		const label = `${currency}-${roundMode}`;
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 		const calls = await mockRgs(context, {
-			authenticate: () => ({ balance: balanceOf(1000, currency), round: interruptedBonusRound() }),
-			endRound: () => ({ balance: balanceOf(1002.5, currency), round: { ...interruptedBonusRound(), active: false, payout: 2.5 * API, payoutMultiplier: 250, state: undefined } }),
+			authenticate: () => ({ balance: balanceOf(1000, currency), round: interruptedBonusRound({ mode: roundMode }) }),
+			endRound: () => ({ balance: balanceOf(1002.5, currency), round: { ...interruptedBonusRound({ mode: roundMode }), active: false, payout: 2.5 * API, payoutMultiplier: 250, state: undefined } }),
 		});
 		const page = await openPreview(context, base, rgsQuery(currency, extra));
 
@@ -1538,6 +1668,7 @@ async function testInterruptedRound(browser, base) {
 		expect(group, `${label} bonus progress events were saved`, calls.event.length >= 1, `event calls=${calls.event.length}`);
 		expect(group, `${label} settled wallet balance applied`, finalState.balance === 1002.5, `balance=${finalState.balance}`);
 		expect(group, `${label} balance meter shows settled amount`, balanceText === expectedBalance, `${balanceText} === ${expectedBalance}`);
+		expect(group, `${label} restored complete-round cap remains bound to the authoritative saved mode`, finalState.productionMode === roundMode, JSON.stringify(finalState));
 		expect(group, `${label} game returns to idle base mode`, finalState.mode === 'base' && finalState.spinning === false && finalState.walletBusy === false, JSON.stringify(finalState));
 		const cleanedUp = await page.evaluate(() => !document.getElementById('modal-interrupted-round')?.classList.contains('open'));
 		expect(group, `${label} resume message cleaned up after round end`, cleanedUp === true, `open=${!cleanedUp}`);
@@ -1545,8 +1676,8 @@ async function testInterruptedRound(browser, base) {
 		await context.close();
 	};
 
-	await runCase({ currency: 'EUR', extra: '', expectedBalance: '€1002.50' });
-	await runCase({ currency: 'XSC', extra: '&social=true', expectedBalance: '1002.50 SC' });
+	await runCase({ currency: 'EUR', extra: '', expectedBalance: '€1002.50', roundMode: 'bonus' });
+	await runCase({ currency: 'XSC', extra: '&social=true', expectedBalance: '1002.50 SC', roundMode: 'base' });
 }
 
 // ---------------------------------------------------------------------------
@@ -1729,6 +1860,51 @@ async function testMobile(browser, base) {
 // ---------------------------------------------------------------------------
 // 6. Rules → Buttons & Controls: complete, icons load, readable on mobile
 // ---------------------------------------------------------------------------
+async function auditModeMaximumSection(page, group, viewportLabel) {
+	await page.evaluate(() => {
+		const body = document.querySelector('#modal-rules .modal-body');
+		const section = document.getElementById('mode-max-awards');
+		if (!body || !section) return;
+		body.scrollTop = Math.max(0, section.offsetTop - ((body.clientHeight - section.offsetHeight) / 2));
+	});
+	await page.waitForTimeout(200);
+	const audit = await page.evaluate(() => {
+		const body = document.querySelector('#modal-rules .modal-body');
+		const section = document.getElementById('mode-max-awards');
+		const bodyRect = body?.getBoundingClientRect();
+		const sectionRect = section?.getBoundingClientRect();
+		return {
+			rows: [...(section?.querySelectorAll('[data-mode-maximum-summary]') || [])].map((el) => ({
+				mode: el.getAttribute('data-mode-maximum-summary'),
+				maxWin: el.getAttribute('data-max-win'),
+				term: el.querySelector('dt')?.textContent?.trim() || '',
+				definition: el.querySelector('dd')?.textContent?.trim() || '',
+			})),
+			text: section?.textContent?.replace(/\s+/g, ' ').trim() || '',
+			semantics: {
+				tag: section?.tagName || '',
+				labelledBy: section?.getAttribute('aria-labelledby') || '',
+				headingRole: document.getElementById('mode-max-awards-title')?.getAttribute('role') || '',
+				headingLevel: document.getElementById('mode-max-awards-title')?.getAttribute('aria-level') || '',
+			},
+			visible: !!bodyRect && !!sectionRect
+				&& sectionRect.top >= bodyRect.top - 1
+				&& sectionRect.bottom <= bodyRect.bottom + 1,
+			scrollTop: body?.scrollTop || 0,
+		};
+	});
+	expect(group, `${viewportLabel} mode-maximum section is fully visible after scrolling`, audit.visible, JSON.stringify(audit));
+	expect(group, `${viewportLabel} mode-maximum section has labelled definition-list semantics`, audit.semantics.tag === 'DL' && audit.semantics.labelledBy === 'mode-max-awards-title' && audit.semantics.headingRole === 'heading' && audit.semantics.headingLevel === '2', JSON.stringify(audit.semantics));
+	expect(group, `${viewportLabel} mode-maximum section has exactly the five published modes`, audit.rows.length === productionModeMaximums.length && new Set(audit.rows.map((row) => row.mode)).size === productionModeMaximums.length, JSON.stringify(audit.rows));
+	for (const expected of productionModeMaximums) {
+		const row = audit.rows.find((candidate) => candidate.mode === expected.mode);
+		const summaryLabel = `${expected.label}${expected.mode === 'bonus_tier1' || expected.mode === 'bonus' ? ' (feature panel)' : ''}`;
+		expect(group, `${viewportLabel} ${expected.label} summary binds label and access path to production maximum`, !!row && Number(row.maxWin) === expected.maxWin && row.term === `${summaryLabel}:` && row.definition === `${expected.formatted}×`, JSON.stringify(row));
+	}
+	expect(group, `${viewportLabel} summary shows exact complete-round limits without claiming natural-tier maxima`, audit.text.includes('Natural Scatter-triggered Free Spins, including End of the Rainbow, remain part of the complete originating round.') && audit.text.includes('Complete-round limits: Base Game 3,895.42×') && audit.text.includes('Rainbow Spin 10,000×') && !audit.text.includes('feature maximum'), audit.text);
+	return audit;
+}
+
 async function testRules(browser, base) {
 	const group = 'rules-e2e';
 	const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
@@ -1769,6 +1945,30 @@ async function testRules(browser, base) {
 	// Open the rules modal and validate the section content + icons.
 	await page.click('#btn-info');
 	await page.waitForFunction(() => document.getElementById('modal-rules')?.classList.contains('open'));
+	await page.waitForFunction(() => document.activeElement?.matches('#modal-rules [data-close]'));
+	const dialogAudit = await page.evaluate(() => {
+		const dialog = document.querySelector('#modal-rules .modal');
+		const close = document.querySelector('#modal-rules [data-close]');
+		return {
+			role: dialog?.getAttribute('role') || '',
+			modal: dialog?.getAttribute('aria-modal') || '',
+			labelledBy: dialog?.getAttribute('aria-labelledby') || '',
+			title: document.getElementById(dialog?.getAttribute('aria-labelledby') || '')?.textContent?.trim() || '',
+			titleRole: document.getElementById(dialog?.getAttribute('aria-labelledby') || '')?.getAttribute('role') || '',
+			titleLevel: document.getElementById(dialog?.getAttribute('aria-labelledby') || '')?.getAttribute('aria-level') || '',
+			closeLabel: close?.getAttribute('aria-label') || '',
+			closeFocused: document.activeElement === close,
+		};
+	});
+	expect(group, 'rules opens as a named modal dialog with a level-1 title and labelled focused close control', dialogAudit.role === 'dialog' && dialogAudit.modal === 'true' && dialogAudit.labelledBy === 'rules-title' && dialogAudit.title === 'RULES & FEATURES' && dialogAudit.titleRole === 'heading' && dialogAudit.titleLevel === '1' && dialogAudit.closeLabel === 'Close Rules and Features' && dialogAudit.closeFocused, JSON.stringify(dialogAudit));
+	await page.keyboard.press('Shift+Tab');
+	const trapped = await page.evaluate(() => document.querySelector('#modal-rules .modal')?.contains(document.activeElement) === true);
+	expect(group, 'rules keyboard focus remains inside the open modal', trapped, `active=${await page.evaluate(() => document.activeElement?.outerHTML || '')}`);
+	await page.keyboard.press('Escape');
+	await page.waitForFunction(() => !document.getElementById('modal-rules')?.classList.contains('open') && document.activeElement?.id === 'btn-info');
+	pass(group, 'Escape closes Rules and restores focus to the Info control');
+	await page.click('#btn-info');
+	await page.waitForFunction(() => document.getElementById('modal-rules')?.classList.contains('open'));
 	const section = await page.evaluate(() => {
 		const heads = [...document.querySelectorAll('#modal-rules .pt-head')].map((el) => el.textContent.trim());
 		const rules = [...document.querySelectorAll('#modal-rules .control-rule')].map((el) => {
@@ -1790,6 +1990,9 @@ async function testRules(browser, base) {
 		const meaningful = rule.name.length >= 3 && rule.description.length >= 20 && !/lorem|todo|tbd|placeholder/i.test(rule.description);
 		expect(group, `rules entry "${rule.key}" has real name+description`, meaningful, `${rule.name}: ${rule.description.slice(0, 60)}`);
 	}
+	await auditModeMaximumSection(page, group, 'desktop 1280x720');
+	await screenshot(page, 'rules-mode-max-awards-desktop-1280x720');
+	await page.evaluate(() => { const body = document.querySelector('#modal-rules .modal-body'); if (body) body.scrollTop = 0; });
 	await screenshot(page, 'rules-buttons-controls-desktop');
 	await page.close();
 
@@ -1812,6 +2015,9 @@ async function testRules(browser, base) {
 	expect(group, 'mobile rules dialog fully on screen', mobileModal.onScreen === true, JSON.stringify(mobileModal));
 	expect(group, 'mobile rules dialog readable (native-size text)', mobileModal.titleHeightPx >= 14, `title height=${mobileModal.titleHeightPx}px`);
 	expect(group, 'mobile rules dialog scrollable', mobileModal.scrollable === true, '');
+	await auditModeMaximumSection(mobilePage, group, 'mobile 390x844');
+	await screenshot(mobilePage, 'rules-mode-max-awards-mobile-390x844');
+	await mobilePage.evaluate(() => { const body = document.querySelector('#modal-rules .modal-body'); if (body) body.scrollTop = 0; });
 	await screenshot(mobilePage, 'rules-buttons-controls-mobile');
 	await mobileContext.close();
 	await context.close();
@@ -2428,7 +2634,8 @@ async function testReplay(browser, base) {
 
 	// Unit boundaries are interpreted by schema: payout/funding amounts are API
 	// micro-units, while book wins and payoutMultiplier are integer hundredths.
-	const boundaryBookUnits = [0, 1, 99, 100, 999, 1000, 1001, 125000, Math.round(Number(productionMathConfig.maxWinMultiplier || 10000) * 100)];
+	const baseMaximumBookUnits = Math.round(Number(productionMathConfig.betModes.base.max_win) * 100);
+	const boundaryBookUnits = [0, 1, 99, 100, 999, 1000, 1001, 125000, baseMaximumBookUnits];
 	for (const bookUnits of boundaryBookUnits) {
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 		const calls = await mockReplayRgs(context, () => ({ round: amountBoundaryReplayRound(bookUnits) }));
@@ -2444,6 +2651,61 @@ async function testReplay(browser, base) {
 		expect(group, `book-unit boundary ${bookUnits} normalizes exactly once`, normalized.state === 'ready' && Math.abs(normalized.totalWin - expectedWin) <= 0.000001 && Math.abs(normalized.payoutMultiplier - expectedWin) <= 0.000001 && calls.replay.length === 1 && calls.forbidden.length === 0, JSON.stringify(normalized));
 		replayValidationEvidence.push({ case: `unit-${bookUnits}`, expected: 'ready', actual: normalized, replayRequests: calls.replay.length, forbiddenRequests: calls.forbidden.length });
 		await context.close();
+	}
+
+	for (const [roundMode, label] of Object.entries(PRODUCTION_MODE_LABELS)) {
+		const maxBookUnits = Math.round(Number(productionMathConfig.betModes[roundMode].max_win) * 100);
+		for (const [offset, expectedState] of [[0, 'ready'], [1, 'error']]) {
+			const bookUnits = maxBookUnits + offset;
+			const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+			const calls = await mockReplayRgs(context, () => ({ round: amountBoundaryReplayRound(bookUnits, roundMode) }));
+			const page = await openPreview(context, base, replayQuery({ mode: roundMode, event: `stake-qa-${roundMode}-max-${bookUnits}` }));
+			await page.waitForFunction(() => ['ready', 'error'].includes(document.getElementById('stage')?.dataset.replayState), null, { timeout: 25_000 });
+			const actual = await page.evaluate(() => ({
+				state: document.getElementById('stage')?.dataset.replayState,
+				status: document.getElementById('replay-status')?.textContent?.trim() || '',
+				totalWin: window.__stakeQa.Replay.current?.meta?.totalWin ?? null,
+			}));
+			let completed = null;
+			if (expectedState === 'ready' && actual.state === 'ready') {
+				await page.evaluate(() => window.__stakeQa.setTurbo(true));
+				await page.click('#replay-start');
+				await driveReplayOverlays(page);
+				await waitForReplayState(page, 'completed', 30_000);
+				completed = await page.evaluate(() => ({
+					state: document.getElementById('stage')?.dataset.replayState,
+					win: window.__stakeQa.state.win,
+					winText: document.getElementById('meter-win')?.textContent?.trim() || '',
+					productionMode: window.__stakeQa.state.productionMode,
+				}));
+			}
+			const expectedWinText = `$${(maxBookUnits / 100).toFixed(2)}`;
+			const acceptedExactlyAtMaximum = expectedState === 'ready'
+				&& actual.state === 'ready'
+				&& Math.abs(Number(actual.totalWin) - maxBookUnits / 100) <= 0.000001
+				&& completed?.state === 'completed'
+				&& completed?.productionMode === roundMode
+				&& Math.abs(Number(completed?.win) - maxBookUnits / 100) <= 0.000001
+				&& completed?.winText === expectedWinText;
+			const rejectedAboveMaximum = expectedState === 'error'
+				&& actual.state === 'error'
+				&& /max|invalid|unavailable|failed|error/i.test(actual.status);
+			expect(
+				group,
+				`${label} replay ${offset === 0 ? 'accepts its exact shipped maximum' : 'rejects one book unit above its shipped maximum'}`,
+				offset === 0 ? acceptedExactlyAtMaximum : rejectedAboveMaximum,
+				JSON.stringify({ roundMode, maxBookUnits, bookUnits, actual, completed, calls }),
+			);
+			expect(group, `${label} maximum-boundary replay makes no forbidden wallet calls`, calls.forbidden.length === 0, JSON.stringify(calls));
+			replayValidationEvidence.push({
+				case: `${roundMode}-mode-maximum-${offset === 0 ? 'exact' : 'plus-one'}`,
+				expected: expectedState,
+				actual: { ...actual, completed },
+				replayRequests: calls.replay.length,
+				forbiddenRequests: calls.forbidden.length,
+			});
+			await context.close();
+		}
 	}
 
 	// Stake review regression: Replay must not round authoritative API micro-units
@@ -2764,8 +3026,8 @@ async function testReplay(browser, base) {
 			response: () => ({ round: { ...baseReplayRound(), costMultiplier: -1 } }),
 		},
 		{
-			name: 'above-max-win',
-			response: () => ({ round: amountBoundaryReplayRound(Math.round(Number(productionMathConfig.maxWinMultiplier) * 100) + 1) }),
+			name: 'above-base-mode-max-win',
+			response: () => ({ round: amountBoundaryReplayRound(baseMaximumBookUnits + 1, 'base') }),
 		},
 	];
 	for (const errorCase of errorCases) {
@@ -2863,6 +3125,36 @@ async function testRgsRoundStates(browser, base) {
 	const localClusters = await localMathPage.evaluate((grid) => window.__stakeQa.auditLocalClusters(grid), localWildBoard);
 	const qCluster = localClusters.find((cluster) => cluster.key === 'q');
 	expect(group, 'local non-RGS cluster helper matches production Wild semantics', !!qCluster && qCluster.cells.length === 5 && new Set(qCluster.cells.map((cell) => cell.join(','))).size === 5, JSON.stringify(localClusters));
+	for (const [roundMode, label] of Object.entries(PRODUCTION_MODE_LABELS)) {
+		const expectedCap = Number(productionMathConfig.betModes[roundMode].max_win);
+		const audit = await localMathPage.evaluate(
+			(input) => window.__stakeQa.auditLocalModeCap(input),
+			{ mode: roundMode, committed: 0, candidate: expectedCap + 100 },
+		);
+		expect(
+			group,
+			`${label} local simulator clips a candidate award to its exact complete-round maximum`,
+			audit.mode === roundMode
+				&& Math.abs(audit.cap - expectedCap) <= 0.000001
+				&& Math.abs(audit.awarded - expectedCap) <= 0.000001
+				&& Math.abs(audit.total - expectedCap) <= 0.000001,
+			JSON.stringify(audit),
+		);
+	}
+	for (const roundMode of ['base', 'rainbow']) {
+		const expectedCap = Number(productionMathConfig.betModes[roundMode].max_win);
+		const committed = expectedCap - 0.02;
+		const audit = await localMathPage.evaluate(
+			(input) => window.__stakeQa.auditLocalModeCap(input),
+			{ mode: roundMode, committed, candidate: 1 },
+		);
+		expect(
+			group,
+			`${PRODUCTION_MODE_LABELS[roundMode]} natural feature can use only the remaining 0.02x of its originating complete-round cap`,
+			Math.abs(audit.awarded - 0.02) <= 0.000001 && Math.abs(audit.total - expectedCap) <= 0.000001,
+			JSON.stringify(audit),
+		);
+	}
 	await localMathContext.close();
 	const normalRound = ({ active, bookUnits, roundMode = 'base' }) => ({
 		active,
@@ -2896,6 +3188,7 @@ async function testRgsRoundStates(browser, base) {
 			const expectedOrder = active ? ['authenticate', 'play', 'end-round'] : ['authenticate', 'play'];
 			expect(group, `${name} sends exactly one wallet play with the requested mode`, calls.play.length === 1 && calls.play[0]?.mode === roundMode, JSON.stringify(calls));
 			expect(group, `${name} end-round count and order follow round.active only`, calls.endRound.length === (active ? 1 : 0) && JSON.stringify(calls.order) === JSON.stringify(expectedOrder), JSON.stringify(calls));
+			expect(group, `${name} binds the visible win cap to the requested production mode`, state.productionMode === roundMode, JSON.stringify(state));
 			expect(group, `${name} displays only the authoritative payout`, Math.abs(state.win - bookUnits / 100) <= 0.000001 && winText === `$${(bookUnits / 100).toFixed(2)}`, JSON.stringify({ state, winText }));
 			expect(group, `${name} applies only the authoritative ${active ? 'End-Round' : 'Play-response'} balance`, Math.abs(state.balance - expectedBalance) <= 0.000001 && state.localWalletCredits === 0, JSON.stringify(state));
 			const invariant = {
@@ -2915,6 +3208,154 @@ async function testRgsRoundStates(browser, base) {
 			walletNetworkEvidence.push({ scenario: name, calls, invariant });
 			await context.close();
 		}
+	}
+
+	{
+		const roundMode = 'bonus';
+		const maxBookUnits = Math.round(Number(productionMathConfig.betModes[roundMode].max_win) * 100);
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		const calls = await mockRgs(context, {
+			authenticate: () => ({ balance: balanceOf(20_000, 'USD'), round: null }),
+			play: () => ({
+				balance: balanceOf(29_905, 'USD'),
+				round: normalRound({ active: false, bookUnits: maxBookUnits, roundMode }),
+			}),
+		});
+		const page = await openPreview(context, base, rgsQuery('USD'));
+		await page.waitForFunction(() => window.__stakeQa.state.walletBusy === false);
+		await page.evaluate(() => window.__stakeQa.setTurbo(true));
+		await page.evaluate((modeName) => window.__stakeQa.spinRgsMode(modeName), roundMode);
+		await page.waitForFunction(() => window.__stakeQa.state.spinning === false && window.__stakeQa.state.walletBusy === false, null, { timeout: 45_000 });
+		const state = await gameState(page);
+		const winText = await meterText(page, 'meter-win');
+		expect(
+			group,
+			'All That Glitters normal RGS playback renders the exact 10,000x maximum without the lower Base cap',
+			state.fatal !== true
+				&& state.productionMode === roundMode
+				&& Math.abs(state.win - maxBookUnits / 100) <= 0.000001
+				&& winText === '$10000.00'
+				&& calls.play.length === 1
+				&& calls.play[0]?.mode === roundMode,
+			JSON.stringify({ state, winText, calls }),
+		);
+		walletNetworkEvidence.push({
+			scenario: 'bonus-normal-rgs-exact-mode-maximum',
+			calls,
+			invariant: { productionMode: state.productionMode, win: state.win, winText, configuredMaxBookUnits: maxBookUnits },
+		});
+		await context.close();
+	}
+
+	for (const roundMode of settlementModes) {
+		const label = PRODUCTION_MODE_LABELS[roundMode];
+		const maxBookUnits = Math.round(Number(productionMathConfig.betModes[roundMode].max_win) * 100);
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		const calls = await mockRgs(context, {
+			authenticate: () => ({ balance: balanceOf(1021.42, 'USD'), round: null }),
+			play: () => ({
+				balance: balanceOf(1021.42, 'USD'),
+				round: normalRound({ active: false, bookUnits: maxBookUnits + 1, roundMode }),
+			}),
+		});
+		const page = await openPreview(context, base, rgsQuery('USD'));
+		await page.waitForFunction(() => window.__stakeQa.state.walletBusy === false);
+		await page.evaluate((modeName) => window.__stakeQa.spinRgsMode(modeName), roundMode);
+		await page.waitForFunction(() => document.getElementById('fatal-error')?.classList.contains('show'), null, { timeout: 25_000 });
+		const audit = await page.evaluate(() => ({
+			fatal: window.__stakeQa.state.fatal,
+			spinning: window.__stakeQa.state.spinning,
+			walletBusy: window.__stakeQa.state.walletBusy,
+			win: window.__stakeQa.state.win,
+			localWalletCredits: window.__stakeQa.state.localWalletCredits,
+			title: document.querySelector('#fatal-error .fatal-error-title')?.textContent?.trim() || '',
+			detail: document.querySelector('#fatal-error .fatal-error-detail')?.textContent?.trim() || '',
+		}));
+		const blocked = audit.fatal === true
+			&& audit.spinning === false
+			&& audit.walletBusy === false
+			&& audit.win === 0
+			&& audit.localWalletCredits === 0
+			&& calls.play.length === 1
+			&& calls.endRound.length === 0
+			&& /max|invalid|validation|inconsistent|did not agree|unavailable|failed/i.test(`${audit.title} ${audit.detail}`);
+		expect(
+			group,
+			`${label} normal RGS round rejects one book unit above its shipped maximum`,
+			blocked,
+			JSON.stringify({ roundMode, maxBookUnits, audit, calls }),
+		);
+		walletNetworkEvidence.push({
+			scenario: `${roundMode}-normal-rgs-mode-maximum-plus-one`,
+			calls,
+			invariant: {
+				mode: roundMode,
+				configuredMaxBookUnits: maxBookUnits,
+				receivedFinalWinBookUnits: maxBookUnits + 1,
+				fatal: audit.fatal,
+				localWalletCredits: audit.localWalletCredits,
+				status: blocked ? 'BLOCKED_AS_REQUIRED' : 'FAIL',
+			},
+		});
+		await context.close();
+	}
+
+	const baseMaximumBookUnits = Math.round(Number(productionMathConfig.betModes.base.max_win) * 100);
+	const missingModeRound = normalRound({ active: false, bookUnits: 4448, roundMode: 'hunt' });
+	delete missingModeRound.mode;
+	const modeIdentityCases = [
+		{
+			name: 'base-request-with-hunt-response-mode',
+			requestMode: 'base',
+			round: normalRound({ active: false, bookUnits: baseMaximumBookUnits + 1, roundMode: 'hunt' }),
+		},
+		{
+			name: 'hunt-request-with-missing-response-mode',
+			requestMode: 'hunt',
+			round: missingModeRound,
+		},
+	];
+	for (const identityCase of modeIdentityCases) {
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		const calls = await mockRgs(context, {
+			authenticate: () => ({ balance: balanceOf(1021.42, 'USD'), round: null }),
+			play: () => ({ balance: balanceOf(1021.42, 'USD'), round: cloneRound(identityCase.round) }),
+		});
+		const page = await openPreview(context, base, rgsQuery('USD'));
+		await page.waitForFunction(() => window.__stakeQa.state.walletBusy === false);
+		await page.evaluate((modeName) => window.__stakeQa.spinRgsMode(modeName), identityCase.requestMode);
+		await page.waitForFunction(() => document.getElementById('fatal-error')?.classList.contains('show'), null, { timeout: 25_000 });
+		const audit = await page.evaluate(() => ({
+			fatal: window.__stakeQa.state.fatal,
+			spinning: window.__stakeQa.state.spinning,
+			walletBusy: window.__stakeQa.state.walletBusy,
+			win: window.__stakeQa.state.win,
+			localWalletCredits: window.__stakeQa.state.localWalletCredits,
+			title: document.querySelector('#fatal-error .fatal-error-title')?.textContent?.trim() || '',
+			detail: document.querySelector('#fatal-error .fatal-error-detail')?.textContent?.trim() || '',
+		}));
+		const blocked = audit.fatal === true
+			&& audit.spinning === false
+			&& audit.walletBusy === false
+			&& audit.win === 0
+			&& audit.localWalletCredits === 0
+			&& calls.play.length === 1
+			&& calls.play[0]?.mode === identityCase.requestMode
+			&& calls.endRound.length === 0
+			&& /inconsistent|did not agree|unsupported|failed/i.test(`${audit.title} ${audit.detail}`);
+		expect(group, `${identityCase.name} fails closed before display or settlement`, blocked, JSON.stringify({ audit, calls, responseMode: identityCase.round.mode ?? null }));
+		walletNetworkEvidence.push({
+			scenario: identityCase.name,
+			calls,
+			invariant: {
+				requestedMode: identityCase.requestMode,
+				responseMode: identityCase.round.mode ?? null,
+				fatal: audit.fatal,
+				localWalletCredits: audit.localWalletCredits,
+				status: blocked ? 'BLOCKED_AS_REQUIRED' : 'FAIL',
+			},
+		});
+		await context.close();
 	}
 
 	// Stake review regression: regular gameplay must preserve the authoritative
@@ -3263,8 +3704,10 @@ async function testRgsRoundStates(browser, base) {
 	const featureContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 	const featureCalls = await mockRgs(featureContext, {
 		authenticate: () => ({ balance: balanceOf(1021.42, 'USD'), round: null }),
-		play: () => ({ balance: balanceOf(1021.42, 'USD'), round: { active: true, amount: API, mode: 'bonus_tier1', payout: 0, payoutMultiplier: 4448, state: featureEvents } }),
-		endRound: () => ({ balance: balanceOf(1065.90, 'USD'), round: { active: false, amount: API, mode: 'bonus_tier1', payout: 44480000, payoutMultiplier: 4448 } }),
+		// This sequence is triggered naturally by a Base Game request, so the
+		// authoritative round remains in the base mode and uses the base cap.
+		play: () => ({ balance: balanceOf(1021.42, 'USD'), round: { active: true, amount: API, mode: 'base', payout: 0, payoutMultiplier: 4448, state: featureEvents } }),
+		endRound: () => ({ balance: balanceOf(1065.90, 'USD'), round: { active: false, amount: API, mode: 'base', payout: 44480000, payoutMultiplier: 4448 } }),
 	});
 	const featurePage = await openPreview(featureContext, base, rgsQuery('USD'));
 	await featurePage.waitForFunction(() => window.__stakeQa.state.walletBusy === false);
@@ -3326,7 +3769,8 @@ async function testRgsRoundStates(browser, base) {
 		&& afterContinue.localWalletCredits === 0, JSON.stringify({ afterContinue, featureCalls }));
 	const featureInvariant = {
 		scenario: 'stake-review-8-spin-44-48',
-		mode: 'bonus_tier1',
+		mode: 'base',
+		featureOrigin: 'natural-scatter',
 		active: true,
 		authenticateBalanceApi: balanceOf(1021.42, 'USD').amount,
 		playBalanceApi: balanceOf(1021.42, 'USD').amount,

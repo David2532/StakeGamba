@@ -511,7 +511,8 @@ function Test-StakeCompliance {
 		@{ Name = "Replay: kein Progress/Walet-Mutate"; Marker = "trackProgress: false" },
 		@{ Name = "Replay: Play Again startet gecachte Wiedergabe"; Marker = "action.onclick = () => play();" },
 		# Stake: no local win simulation in production
-		@{ Name = "RGS-Rundenbeträge werden gegen Events validiert"; Marker = "function rgsRoundAmountContract(round, events)" },
+		@{ Name = "RGS-Rundenbeträge werden gegen Events und Request-Modus validiert"; Marker = "function rgsRoundAmountContract(round, events, expectedMode)" },
+		@{ Name = "RGS-Response-Modus ist an den Request-Modus gebunden"; Marker = "__requestedProductionMode" },
 		@{ Name = "Lokale Free Spins nur ohne RGS"; Marker = "allowLocalFreeSpins = !Rgs.configured()" },
 		@{ Name = "Unrenderbare RGS-Runde -> Fehler statt Fallback"; Marker = "No local fallback was used" }
 	)

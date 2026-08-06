@@ -29,6 +29,7 @@ export const STAKE_PLAYER_VISIBLE_RESTRICTED_TERMS = Object.freeze([
 	'buy',
 	'bought',
 	'purchase',
+	'purchased',
 	'at the cost of',
 	'cost of',
 	'rebet',

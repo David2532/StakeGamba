@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
 import {
 	STAKE_PLAYER_VISIBLE_RESTRICTED_TERMS,
+	formatMaxWinMultiplier,
 	playerVisibleRestrictedHits,
 } from '../apps/cluster/scripts/stake-compliance-contract.mjs';
 
@@ -582,9 +583,56 @@ function runSocialWordingChecks() {
 
 function runGameInfoChecks() {
 	const builder = read(paths.builder);
-	const preview = existsSync(paths.preview) ? read(paths.preview) : builder;
+	const testedFrontend = process.env.STAKE_QA_FRONTEND_HTML ? paths.publishedFrontend : paths.preview;
+	const preview = existsSync(testedFrontend) ? read(testedFrontend) : builder;
+	const productionMathContract = read(paths.productionMathContract);
+	const productionMath = JSON.parse(read(paths.publishedMathConfig));
+	const rtpAuditPath = join(dirname(paths.publishedMathConfig), 'RTP_AUDIT.json');
+	const rtpAudit = existsSync(rtpAuditPath) ? JSON.parse(read(rtpAuditPath)) : null;
+	const publishedModes = {
+		base: 'Base Game',
+		hunt: 'Feature Spins',
+		rainbow: 'Rainbow Spin',
+		bonus_tier1: 'Golden Chance',
+		bonus: 'All That Glitters',
+	};
 	expectContains('game-info', 'player mode metadata source exists', builder, 'const PLAYER_MODE_META = {');
-	expectContains('game-info', 'rules render all player modes from metadata', builder, 'Object.values(PLAYER_MODE_META).map');
+	expectContains('game-info', 'rules render all player modes from metadata', builder, 'Object.entries(PLAYER_MODE_META).map');
+	expectContains('game-info', 'mode maximums are derived from exact production math', productionMathContract, 'export const PRODUCTION_MODE_MAX_WINS = buildModeMaxWins(PRODUCTION_GAME_CONFIG);');
+	expect('game-info', 'production RTP audit exists beside the tested math config', !!rtpAudit, rel(rtpAuditPath));
+	for (const [mode, label] of Object.entries(publishedModes)) {
+		const configured = Number(productionMath.betModes?.[mode]?.max_win);
+		const audited = Number(rtpAudit?.[mode]?.maxPayoutMultiplierObserved);
+		const formatted = formatMaxWinMultiplier(configured);
+		const naturalFeature = mode === 'bonus_tier1' || mode === 'bonus';
+		expect('game-info', `${label} maximum is finite and positive`, Number.isFinite(configured) && configured > 0, String(configured));
+		expect('game-info', `${label} maximum matches shipped RTP audit`, configured === audited, `config=${configured}; audit=${audited}`);
+		expectContains('game-info', `${label} renders its production maximum`, preview, `data-mode-maximum="${mode}" data-max-win="${configured}"`);
+		expectContains('game-info', `${label} maximum copy uses ${formatted}x Base Play amount`, preview, `${naturalFeature ? 'Feature-panel maximum award' : 'Maximum award'}: ${formatted}&times; the Base Play amount`);
+		if (naturalFeature) {
+			expectContains('game-info', `${label} separates feature-panel and natural origins`, preview, `data-natural-max-source-modes="base rainbow"`);
+			expectContains('game-info', `${label} natural sequence remains bound to its complete originating round`, preview, 'Natural Scatter-triggered features remain part of the complete originating round. Complete-round limit: Base Game 3,895.42&times;; Rainbow Spin 10,000&times;');
+			expectContains('game-info', `${label} summary labels the 10,000x value as feature-panel-only`, preview, `<b>${label} (feature panel):</b></dt><dd>${formatted}&times;`);
+		}
+	}
+	expect('game-info', 'Base Game maximum is mode-specific rather than the global engine cap', Number(productionMath.betModes?.base?.max_win) !== Number(productionMath.maxWinMultiplier), `base=${productionMath.betModes?.base?.max_win}; cap=${productionMath.maxWinMultiplier}`);
+	expectContains('game-info', 'runtime complete-round cap uses the active production mode maximum', builder, 'const productionRoundWinCap = () => PRODUCTION_MODE_MAX_WINS[productionModeKey(state.productionMode)] * state.bet;');
+	expectContains('game-info', 'local simulator clips each award to the remaining complete-round allowance', builder, 'const capWin = () => Math.max(0, productionRoundWinCap() - (state.localMathRound ? state.localRoundWin : 0));');
+	expectContains('game-info', 'local simulator commits wins to one complete-round accumulator', builder, 'function commitLocalRoundWin(amount)');
+	expectContains('game-info', 'every paid round binds its cap before rendering', builder, 'setProductionMode(Rgs.modeFor(buy));');
+	expectContains('game-info', 'Replay binds its cap to the immutable saved mode', builder, 'setProductionMode(immutableRound.mode);');
+	expectContains('game-info', 'active-round restore binds its cap to the authoritative saved mode', builder, 'setProductionMode(round.mode);');
+	expectNotContains('game-info', 'runtime never applies the old universal 10,000x cap', builder, 'const capWin = () => CONFIG.maxWinMultiplier * state.bet;');
+	expectContains('game-info', 'natural End of the Rainbow maximum follows its originating mode', preview, 'data-mode-maximum="bonus_tier3" data-max-source-modes="base rainbow"');
+	expectContains('game-info', 'natural End of the Rainbow shows both exact complete-round limits', preview, 'This natural feature remains part of the complete originating round. Complete-round limit: Base Game 3,895.42&times;; Rainbow Spin 10,000&times;');
+	expectContains('game-info', 'Game Info has a dedicated mode maximum summary', preview, 'id="mode-max-awards"');
+	expectContains('game-info', 'Game Info mode maximum summary is a labelled definition list', preview, '<dl class="pt-note" id="mode-max-awards" aria-labelledby="mode-max-awards-title">');
+	expectContains('game-info', 'mode maximum summary explains natural features remain in the originating round', preview, '<dt>Natural Scatter-triggered Free Spins, including End of the Rainbow, remain part of the complete originating round.</dt>');
+	expectContains('game-info', 'mode maximum summary shows exact complete-round limits', preview, '<dd>Complete-round limits: Base Game 3,895.42&times;; Rainbow Spin 10,000&times;.</dd>');
+	expectNotContains('game-info', 'Game Info never presents a mode cap as a natural-tier-specific maximum', preview, 'Natural feature maximum award');
+	expectNotContains('game-info', 'Game Info never presents origin mode caps as natural-feature maxima', preview, 'Natural Scatter-triggered feature maximum');
+	expectNotContains('game-info', 'Game Info never advertises the global demo cap as one universal maximum', builder, 'Max award ${formatMaxWinMultiplier(CONFIG.maxWinMultiplier)}');
+	expectNotContains('game-info', 'runtime Game Info never advertises one global maximum', builder, "'Max award ' + formatMaxWinMultiplier(CONFIG.maxWinMultiplier)");
 	for (const name of PLAYER_MODE_NAMES) {
 		expectContains('game-info', `Game Info explains mode "${name}"`, preview, name);
 	}
@@ -675,7 +723,8 @@ function runReplayChecks() {
 	expectContains('replay', 'replay currency code is hidden and aria-hidden', builder, "currency.setAttribute('aria-hidden', 'true')");
 	expectContains('replay', 'replay completion presentation is non-blocking for RGS settlement', builder, "{ blocking: false }");
 	expectContains('replay', 'normal replay controls are made inert/disabled', builder, 'function makeUnavailableInReplay(element)');
-	expectContains('replay', 'replay response is schema validated', builder, 'function validateReplayEvents(events)');
+	expectContains('replay', 'replay response is schema validated against its production mode', builder, 'function validateReplayEvents(events, mode)');
+	expectContains('replay', 'replay maximum comes from the mode-specific production contract', builder, 'const maxBookUnits = productionModeMaxBookUnits(mode)');
 	expectContains('replay', 'replay request has a timeout controller', builder, 'new AbortController()');
 	expectContains('replay', 'replay saved data is frozen', builder, 'deepFreezeReplayData');
 	expectContains('replay', 'replay uses RGS book renderer', builder, "playRgsBookRound({ round: playbackRound }");
@@ -805,7 +854,9 @@ function runExistingBehaviorChecks() {
 	expectNotContains('regression-markers', 'active settlement never adds displayed win to local balance', builder, 'state.balance + displayedWin');
 	expectContains('regression-markers', 'RGS book renderer remains', builder, 'async function playRgsBookRound');
 	expectContains('regression-markers', 'bonus buy RGS render guard remains', builder, 'if (rgsAmountContractError || !shouldRenderRgsRound(rgsEvents))');
-	expectContains('regression-markers', 'normal RGS amounts fail closed against finalWin', builder, 'function rgsRoundAmountContract(round, events)');
+	expectContains('regression-markers', 'normal RGS amounts fail closed against finalWin', builder, 'function rgsRoundAmountContract(round, events, expectedMode)');
+	expectContains('regression-markers', 'wallet response mode is bound to the requested production mode', builder, "Object.defineProperty(data, '__requestedProductionMode'");
+	expectContains('regression-markers', 'missing or mismatched wallet round mode fails closed', builder, 'function productionRoundMode(round, expectedMode)');
 	expectContains('regression-markers', 'local free spins stay demo-only', builder, 'allowLocalFreeSpins = !Rgs.configured()');
 	expectContains('regression-markers', 'symbol math import remains in preview builder', builder, 'import { SYMBOL_MATH, CONFIG }');
 	expectContains('regression-markers', 'math config still exports symbol weights', mathConfig, 'SYMBOL_MATH');
