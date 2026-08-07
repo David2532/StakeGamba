@@ -870,17 +870,18 @@
 				<strong>LIVE SERVICE / {liveSnapshot.status.toUpperCase()}</strong>
 				<span>{getModeLabel(selectedMode.id, social)} · {totalAmountText}</span>
 				<small>Balance, round state and final result remain service-authoritative.</small>
-				{#if displayNetPosition || displaySessionTimer}
-					<div class="jurisdiction-readouts" aria-live="polite">
-						{#if displayNetPosition}
-							<span><em>SESSION POSITION</em><strong data-testid="session-net-position">{netPositionText}</strong></span>
-						{/if}
-						{#if displaySessionTimer}
-							<span><em>SESSION TIME</em><strong data-testid="session-timer">{sessionTimerText}</strong></span>
-						{/if}
-					</div>
-				{/if}
 			</div>
+			{/if}
+
+			{#if launch.kind === 'live' && (displayNetPosition || displaySessionTimer)}
+				<div class="jurisdiction-readouts" aria-live="polite">
+					{#if displayNetPosition}
+						<span><em>SESSION POSITION</em><strong data-testid="session-net-position">{netPositionText}</strong></span>
+					{/if}
+					{#if displaySessionTimer}
+						<span><em>SESSION TIME</em><strong data-testid="session-timer">{sessionTimerText}</strong></span>
+					{/if}
+				</div>
 			{/if}
 
 			<div class="contract-grid">
@@ -1991,6 +1992,12 @@
 
 		.rules-copy-grid {
 			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.board-frame {
+			width: min(91vw, 43vh);
 		}
 	}
 

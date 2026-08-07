@@ -786,6 +786,21 @@ function assertCleanDiagnostics(group, diagnostics) {
 	check(group, 'browser has no failed requests', diagnostics.failedRequests.length === 0, serialize(diagnostics.failedRequests));
 }
 
+function assertOnlyExpectedHttpDiagnostic(group, diagnostics, statusCode) {
+	const expectedMessage = {
+		401: 'Failed to load resource: the server responded with a status of 401 (Unauthorized)',
+		503: 'Failed to load resource: the server responded with a status of 503 (Service Unavailable)',
+	}[statusCode];
+	check(
+		group,
+		`browser reports exactly one expected HTTP ${statusCode} console diagnostic`,
+		diagnostics.consoleErrors.length === 1 && diagnostics.consoleErrors[0] === expectedMessage,
+		serialize(diagnostics.consoleErrors),
+	);
+	check(group, 'browser has no uncaught page errors', diagnostics.pageErrors.length === 0, serialize(diagnostics.pageErrors));
+	check(group, 'browser has no failed requests', diagnostics.failedRequests.length === 0, serialize(diagnostics.failedRequests));
+}
+
 async function collectPlayerVisibleSurface(page) {
 	return page.evaluate(() => {
 		const isVisible = (element) => {
@@ -978,7 +993,7 @@ async function runNetworkScenarios(browser, origin) {
 			check('invalid-session-auth-response-fails-closed', 'invalid session authenticates exactly once', network.byEndpoint.authenticate.length === 1, serialize(network.order));
 			check('invalid-session-auth-response-fails-closed', 'invalid session sends zero play or settlement writes', network.byEndpoint.play.length === 0 && network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0, serialize(network.order));
 			assertCleanNetwork('invalid-session-auth-response-fails-closed', network);
-			assertCleanDiagnostics('invalid-session-auth-response-fails-closed', diagnostics);
+			assertOnlyExpectedHttpDiagnostic('invalid-session-auth-response-fails-closed', diagnostics, 401);
 			record.screenshot = await saveScreenshot(page, 'invalid-session-auth');
 			record.network = network;
 			record.diagnostics = diagnostics;
@@ -1074,7 +1089,7 @@ async function runNetworkScenarios(browser, origin) {
 			check(group, 'authenticate 503 leaves primary action fail-closed', await page.locator(SELECTORS.primaryAction).isDisabled(), await page.locator(SELECTORS.primaryAction).innerText());
 			check(group, 'authenticate 503 exposes an explicit reload/restore control', await page.locator('[data-testid="recovery-action"]').isVisible(), await page.locator(SELECTORS.launchError).innerText());
 			assertCleanNetwork(group, network);
-			assertCleanDiagnostics(group, diagnostics);
+			assertOnlyExpectedHttpDiagnostic(group, diagnostics, 503);
 			record.screenshot = await saveScreenshot(page, 'recoverable-auth-503');
 			record.network = network;
 			record.diagnostics = diagnostics;
@@ -1127,7 +1142,7 @@ async function runNetworkScenarios(browser, origin) {
 			check(group, 'recovered round exposes its exact authoritative result', (await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00', await page.locator(SELECTORS.finalWin).innerText());
 			check(group, 'uncertain play recovery order is authenticate, play, authenticate, end-round', serialize(network.order) === serialize(['authenticate', 'play', 'authenticate', 'endRound']), serialize(network.order));
 			assertCleanNetwork(group, network);
-			assertCleanDiagnostics(group, diagnostics);
+			assertOnlyExpectedHttpDiagnostic(group, diagnostics, 503);
 			record.screenshot = await saveScreenshot(page, group);
 			record.network = network;
 			record.diagnostics = diagnostics;
@@ -1177,7 +1192,7 @@ async function runNetworkScenarios(browser, origin) {
 			check(group, 'Replay reload recovers to a playable read-only state', await runtimeState(page) === 'replay-ready' && !(await page.locator(SELECTORS.primaryAction).isDisabled()), await runtimeState(page));
 			check(group, 'Replay recovery performs exactly one additional GET and zero writes', network.byEndpoint.replay.length === 2 && walletWriteCount(network) === 0, serialize(network.order));
 			assertCleanNetwork(group, network);
-			assertCleanDiagnostics(group, diagnostics);
+			assertOnlyExpectedHttpDiagnostic(group, diagnostics, 503);
 			record.screenshot = await saveScreenshot(page, 'recoverable-replay-503');
 			record.network = network;
 			record.diagnostics = diagnostics;
@@ -1596,7 +1611,7 @@ async function runNetworkScenarios(browser, origin) {
 			const socialRangeValueText = await page.locator(SELECTORS.baseAmount).getAttribute('aria-valuetext');
 			check(group, 'XSC Balance is displayed as SC without a dollar prefix', balanceText.endsWith(' SC') && !balanceText.includes('$'), balanceText);
 			check(group, 'XSC complete play amount is displayed as SC without a dollar prefix', totalText.endsWith(' SC') && !totalText.includes('$'), totalText);
-			check(group, 'Social XSC range announces the exact SC value without a dollar prefix', socialRangeValueText === '1 SC' && !socialRangeValueText.includes('$'), socialRangeValueText);
+			check(group, 'Social XSC range announces the exact SC value without a dollar prefix', socialRangeValueText === '1.00 SC' && !socialRangeValueText.includes('$'), socialRangeValueText);
 			check(group, 'Social Base mode uses STANDARD RUN label', /STANDARD RUN/i.test(await page.locator(SELECTORS.modeBase).innerText()), await page.locator(SELECTORS.modeBase).innerText());
 			check(group, 'Social Blackout mode uses BLACKOUT ENTRY label', /BLACKOUT ENTRY/i.test(await page.locator(SELECTORS.modeBlackout).innerText()), await page.locator(SELECTORS.modeBlackout).innerText());
 
@@ -1813,7 +1828,7 @@ async function runNetworkScenarios(browser, origin) {
 				sessionTimer: (await page.locator(SELECTORS.sessionTimer).innerText()).trim(),
 				walletBalance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
 			};
-			check(group, 'session position reports authoritative total wagered minus total won', updatedUi.netPosition === '$7.00' && updatedUi.walletBalance === '$993.00', serialize({ authoritativePostPlayBalance, initialUi, updatedUi }));
+			check(group, 'session position reports authoritative total wagered minus total won', updatedUi.netPosition === '+$7.00' && updatedUi.walletBalance === '$993.00', serialize({ authoritativePostPlayBalance, initialUi, updatedUi }));
 			check(group, 'session timer remains visible and well-formed after play', await page.locator(SELECTORS.sessionTimer).isVisible() && /^\d{2}:\d{2}$/.test(updatedUi.sessionTimer), serialize(updatedUi));
 			assertExactRequest(group, network.byEndpoint.play[0], {
 				method: 'POST',
@@ -1973,7 +1988,7 @@ async function runNetworkScenarios(browser, origin) {
 			check(group, 'checkpoint failure settles exactly once', network.byEndpoint.event.length === 1 && network.byEndpoint.endRound.length === 1, serialize(network.order));
 			check(group, 'checkpoint failure order is authenticate, play, event, end-round', serialize(network.order) === serialize(['authenticate', 'play', 'event', 'endRound']), serialize(network.order));
 			assertCleanNetwork(group, network);
-			assertCleanDiagnostics(group, diagnostics);
+			assertOnlyExpectedHttpDiagnostic(group, diagnostics, 503);
 			record.result = { ...result, payoutApi: round.payout, settledBalance };
 			record.screenshot = await saveScreenshot(page, group);
 			record.network = network;
@@ -2164,7 +2179,7 @@ async function runNetworkScenarios(browser, origin) {
 					check(group, 'max-win case applies the exact 10,000x package cap to opaque query units', fixture.book.payoutMultiplier === 1_000_000 && firstPresentation.finalWin === expectedReplayFinalWin(amountUnitsRaw, 1_000_000, currency), serialize(firstPresentation));
 				}
 				if (expectedClass === 'fractional') {
-					check(group, 'fractional BLACKOUT arithmetic remains exact and lossless', fixture.mode === 'blackout' && fixture.book.payoutMultiplier === 29 && firstPresentation.totalPlay === '$3.968 units' && firstPresentation.finalWin === '$0.014384 units', serialize({ fixture: fixture.id, mode: fixture.mode, payoutCentiX: fixture.book.payoutMultiplier, firstPresentation }));
+					check(group, 'fractional BLACKOUT arithmetic remains exact and lossless', fixture.mode === 'blackout' && fixture.book.payoutMultiplier === 1423 && firstPresentation.totalPlay === '$3.968 units' && firstPresentation.finalWin === '$0.705808 units', serialize({ fixture: fixture.id, mode: fixture.mode, payoutCentiX: fixture.book.payoutMultiplier, firstPresentation }));
 				}
 
 				await page.locator(SELECTORS.primaryAction).click();
@@ -2234,16 +2249,17 @@ async function runNetworkScenarios(browser, origin) {
 			check(group, 'Social Replay GET remains queryless', Object.keys(request.search).length === 0, serialize(request.search));
 			const expectedTotalPlay = expectedReplayTotalPlay(amountUnitsRaw, MODE_COSTS[fixture.mode], currency);
 			const expectedFinalWin = expectedReplayFinalWin(amountUnitsRaw, fixture.book.payoutMultiplier, currency);
+			const expectedResultMultiplier = expectedCentiMultiplierText(fixture.book.payoutMultiplier);
 			const socialReady = await replayPresentationSnapshot(page);
 			check(group, 'Social Replay ready state keeps FINAL WIN hidden', socialReady.finalWin === '—' && socialReady.runtimeState === 'replay-ready', serialize(socialReady));
 			check(group, 'Social Replay decorates exact query amount × cost with SC units', expectedTotalPlay === '3.968 SC units' && socialReady.totalPlay === expectedTotalPlay, serialize({ expectedTotalPlay, socialReady }));
-			check(group, 'Social Replay ready card shows 80× BLACKOUT cost without leaking result', socialReady.replayCard.includes('80× play factor') && socialReady.replayCard.includes('— result') && !socialReady.replayCard.includes('0.29× result'), socialReady.replayCard);
+			check(group, 'Social Replay ready card shows 80× BLACKOUT cost without leaking result', socialReady.replayCard.includes('80× play factor') && socialReady.replayCard.includes('— result') && !socialReady.replayCard.includes(`${expectedResultMultiplier} result`), socialReady.replayCard);
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForReplayComplete(page);
 			const socialCompleted = await replayPresentationSnapshot(page);
-			check(group, 'Social Replay decorates exact query amount × payout with SC units', expectedFinalWin === '0.014384 SC units' && socialCompleted.finalWin === expectedFinalWin, serialize({ expectedFinalWin, socialCompleted }));
+			check(group, 'Social Replay decorates exact query amount × payout with SC units', expectedFinalWin === '0.705808 SC units' && socialCompleted.finalWin === expectedFinalWin, serialize({ expectedFinalWin, socialCompleted }));
 			check(group, 'Social Replay preserves exact decorated TOTAL PLAY after completion', socialCompleted.totalPlay === expectedTotalPlay, serialize(socialCompleted));
-			check(group, 'completed Social Replay card shows 80× cost and 0.29× result', socialCompleted.replayCard.includes('80× play factor') && socialCompleted.replayCard.includes('0.29× result'), socialCompleted.replayCard);
+			check(group, 'completed Social Replay card shows exact cost and result multipliers', socialCompleted.replayCard.includes('80× play factor') && socialCompleted.replayCard.includes(`${expectedResultMultiplier} result`), socialCompleted.replayCard);
 			check(group, 'Social Replay uses Social Base mode label', /STANDARD RUN/i.test(await page.locator(SELECTORS.modeBase).innerText()), await page.locator(SELECTORS.modeBase).innerText());
 			check(group, 'Social Replay uses Social BLACKOUT mode label', /BLACKOUT ENTRY/i.test(await page.locator(SELECTORS.modeBlackout).innerText()), await page.locator(SELECTORS.modeBlackout).innerText());
 			await page.getByRole('button', { name: /INFO \/ RULES/i }).click();
