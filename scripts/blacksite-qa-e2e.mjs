@@ -1983,7 +1983,7 @@ async function runNetworkScenarios(browser, origin) {
 			};
 			check(group, 'checkpoint failure remains visibly reported after fallback settlement', result.error.length > 0, serialize(result));
 			check(group, 'fallback settlement exposes the exact already-authoritative paid win', result.finalWin === '$200.00', serialize({ payoutApi: round.payout, result }));
-			check(group, 'fallback settlement adopts the exact authoritative settled balance', result.walletBalance === '$1,199.00', serialize({ settledBalance, result }));
+			check(group, 'fallback settlement adopts the exact authoritative settled balance', result.walletBalance === '$1199.00', serialize({ settledBalance, result }));
 			check(group, 'settled winning balance reports total wagered minus total won with the correct sign', result.netPosition === '−$199.00', serialize(result));
 			check(group, 'checkpoint failure settles exactly once', network.byEndpoint.event.length === 1 && network.byEndpoint.endRound.length === 1, serialize(network.order));
 			check(group, 'checkpoint failure order is authenticate, play, event, end-round', serialize(network.order) === serialize(['authenticate', 'play', 'event', 'endRound']), serialize(network.order));
