@@ -20,6 +20,7 @@ Every major Codex task starts with:
 - `MASTER_PLAN.md` — product vision, architecture, milestones and Definition of Done.
 - `STAKE_REQUIREMENTS_51.md` — the exact 51-point approval checklist supplied for this project, with proof expectations and release ownership.
 - `STAKE_ENGINE_SOURCE_INDEX.md` — official Stake Engine/SDK source map and precedence rules.
+- `OFFICIAL_DOC_REVIEW_2026-08-07.md` — dated review map covering current approval, RGS, math SDK, frontend SDK and Codex-source conclusions.
 - `STAKEGAMBA_LESSONS.md` — reusable lessons from Golden Goal Rush, previous Stake feedback, PRs, release evidence and conversation history.
 - `AGENT_OPERATING_MODEL.md` — orchestration, delegation, handoffs, ownership boundaries and escalation rules.
 - `ANIMATION_BIBLE.md` — side-character, Spine/Pixi, symbol, cascade, cinematic, turbo and responsive animation standards.
@@ -28,6 +29,41 @@ Every major Codex task starts with:
 - `ASSET_ART_STANDARD.md` — original asset pipeline, game-tile package, Spine delivery contract, audio, provenance and bundle budget.
 - `QUALITY_QA_RELEASE.md` — deterministic fixtures, browser QA, extracted-package testing, candidate identity and approval lifecycle.
 - `CODEX_MASTER_TASK.md` — reusable autonomous build brief for moving the project through M1–M6 without repeatedly rewriting the whole prompt.
+
+## Specialist agents
+
+Current repo-scoped Codex roles under `.codex/agents/`:
+
+- `creative_director`
+- `game_designer`
+- `animation_director`
+- `intro_director`
+- `asset_director`
+- `frontend_engineer`
+- `math_rgs_engineer`
+- `rgs_replay_engineer`
+- `mobile_performance`
+- `stake_compliance`
+- `research_librarian`
+- `qa_director`
+- `release_manager`
+
+Use the smallest set that covers the task; the parent session remains accountable for integration and truthfulness.
+
+## Repo skills
+
+Current reusable skills under `.agents/skills/`:
+
+- `aaa-animation`
+- `stake-intro`
+- `asset-pipeline`
+- `stake-3star-compliance`
+- `stake-rgs-replay`
+- `stake-math-production`
+- `aaa-visual-qa`
+- `mobile-performance`
+
+Load task-relevant skills rather than carrying every specialty into every run.
 
 ## Existing StakeGamba infrastructure to inspect before rebuilding anything
 
