@@ -1,0 +1,83 @@
+# BLACKSITE // BREACH — M3 Concept Provenance
+
+Generation date: **2026-08-07**
+Generation mode: **OpenAI built-in `image_gen`**
+Input policy: **project-authored text prompts only**; the accepted environment image also uses this task's first generated environment as its sole edit reference
+Lifecycle: **concept/reference only — no runtime import, production approval, rights approval or release claim**
+
+The three retained PNG files were copied into this directory without pixel modification after generation and were visually re-opened from their repository paths. Their exact dimensions and SHA-256 identities are recorded in `../../asset-manifest.json`.
+
+## Environment concept
+
+Retained file: `environment-server-bunker-board-aperture-concept-v1.png`
+
+Initial generation prompt:
+
+```text
+Use case: stylized-concept
+Asset type: BLACKSITE // BREACH game environment concept art, desktop composition reference
+Primary request: an original premium cyber-heist slot-game environment inside a physical classified underground server bunker; a large integrated square 7-by-7 game-board aperture is the unmistakable primary focal point, built into dense machinery and armored rack architecture; one adult cyber operative appears as a secondary side silhouette at a console, observing but never obscuring the board
+Scene/backdrop: deep industrial server facility with concrete, brushed gunmetal, cable conduits, rack doors, cooling vents, subtle haze and practical warning fixtures
+Style/medium: cinematic stylized realism, high-end game concept art, authored industrial materials, cohesive and production-oriented rather than generic neon sci-fi
+Composition/framing: wide 16:9 establishing composition; square board aperture centered slightly off-axis with generous readable negative space inside it; operative confined to one outer side; clear foreground/midground/background separation; suitable for later responsive layer extraction
+Lighting/mood: restrained cold cyan utility light with sparse amber/red security accents, deep but readable shadows, volumetric shafts used sparingly, tense classified atmosphere
+Color palette: charcoal, oxidized gunmetal, muted blue-green, bone-gray concrete, limited amber and red accents
+Materials/textures: worn painted steel, glass server doors, rubber cable sleeves, concrete dust, subtle condensation; no glossy fantasy chrome
+Constraints: original design only; board remains dominant; adult character only; no UI controls, no reels, no symbols, no readable text, no letters, no numbers, no logos, no trademarks, no watermark; no Stake branding; no weapon aimed at viewer
+Avoid: purple neon wallpaper, cyberpunk city streets, floating hologram overload, generic casino imagery, coins, gems, slot-machine cabinet, childish character, anime style, copied franchise silhouettes, illegible fake typography
+```
+
+The first output was not retained in the project because it invented an incorrect internal cell grid. Targeted edit prompt used for the retained file:
+
+```text
+Use case: precise-object-edit
+Asset type: BLACKSITE // BREACH game environment concept art, desktop composition reference
+Primary request: change only the large central board interior. Remove every internal panel, cell, grid line, seam, tile, and subdivision from inside the heavy square machinery frame. Replace the interior with one perfectly empty, uninterrupted, matte near-black square recessed aperture with very subtle uniform metal texture and even edge falloff, ready for an exact code-rendered 7-by-7 board overlay.
+Constraints: preserve the entire industrial bunker environment, camera, lighting, frame geometry, cables, side operative, console, colors, materials and all outer details unchanged; the central aperture must contain no grid and no objects; no text, no symbols, no letters, no numbers, no logos, no watermark; do not add anything elsewhere.
+```
+
+Visual QA: retained as a direction anchor because the board aperture is dominant and empty, the operative remains secondary, and no visible text/logo/watermark was found. It is not a production background: portrait/Popout recompositions, separable layers, final perspective alignment, optimization and human originality/rights review remain open.
+
+## Operative concept
+
+Retained file: `operative-spine-anchor-concept-v1.png`
+
+Final prompt:
+
+```text
+Use case: stylized-concept
+Asset type: BLACKSITE // BREACH adult operative character concept and Spine-rig visual anchor
+Primary request: an original adult cyber-security operative for a premium classified server-bunker game; practical specialist who monitors and reacts to an intrusion, never a superhero and never the source of game outcomes
+Subject: adult woman in her late thirties, grounded athletic build, distinct angular silhouette; short practical dark hair with one subtle gray streak; alert intelligent expression; layered matte-black and dark slate technical workwear with a compact shoulder harness, insulated forearm sleeves, small amber diagnostic module at the wrist, utility belt, soft knee protection and practical boots; hands suitable for terminal interaction; no exposed midriff; no helmet
+Style/medium: cinematic stylized realism, high-end game character concept render, coherent with industrial gunmetal server-bunker art direction, anatomically credible and rig-friendly
+Composition/framing: full body three-quarter neutral stance, entire silhouette and both hands visible, feet visible, facing slightly toward an implied game board outside frame; include one clean waist-up crop inset for portrait-mobile composition; plain restrained charcoal studio backdrop, ample separation around limbs for Spine bone planning
+Lighting/mood: cool cyan rim light with a restrained amber practical key; calm focused readiness, not aggressive
+Color palette: charcoal, slate, muted blue-green fabric, tiny amber/red equipment accents, natural skin tone
+Materials/textures: worn technical fabric, rubberized seams, brushed metal fasteners, subtle scuffs; no glossy latex
+Constraints: original adult character only; one consistent identity across full-body and inset; realistic hands and anatomy; readable silhouette at small size; no weapon, no tactical brand patches, no logos, no letters, no numbers, no readable text, no trademarks, no watermark; no cybernetic body replacement; no sexualized styling
+Avoid: anime, comic-book superhero, military fetish gear, gas mask, glowing eyes, hooded hacker cliché, purple neon, excessive cables, exposed skin, childlike proportions, extra fingers, duplicated limbs, multiple unrelated characters
+```
+
+Visual QA: one consistent adult identity, complete full-body silhouette, readable hands/feet and compatible waist-up inset were observed; no visible logo or text was found. This is not a turnaround, layered source, transparent cutout, fallback pose or Spine skeleton. Human anatomy/likeness/originality review and a production rig remain open.
+
+## Six-symbol material concept
+
+Retained file: `symbols-material-language-concept-v1.png`
+
+Final prompt:
+
+```text
+Use case: stylized-concept
+Asset type: BLACKSITE // BREACH six-symbol material-language concept sheet
+Primary request: design one cohesive original family of exactly six square game symbols for a premium physical server-bunker cluster game, corresponding by reading order to: BYTE, RELAY, PROXY, CIPHER, DAEMON, VAULT
+Subject: a clean 2-by-3 grid of six separate square industrial icon plaques. Reading order visual concepts: 1) compact data block made of four interlocking memory cubes; 2) hardened signal relay coil with two linked nodes; 3) layered mirrored routing mask with forward and shadow paths; 4) mechanical cipher rotor with offset locking teeth; 5) contained red security process core with a restrained horn-like circuit silhouette but no face; 6) massive sealed vault iris with concentric armored locks
+Style/medium: high-end stylized-realistic game symbol concept art; coherent industrial gunmetal construction; bold silhouettes and simplified internal shapes readable at 48 pixels; consistent three-quarter frontal perspective and identical lighting
+Composition/framing: exactly six equal isolated plaques in a precise 2-column by 3-row sheet, generous gutters, each symbol centered and fully visible, no overlap, flat dark neutral presentation background
+Lighting/mood: cool cyan rim light; value hierarchy rises from muted steel for the first symbol toward limited amber and deep security red accents for higher-value symbols
+Color palette: charcoal, gunmetal, muted blue-green, bone-gray metal, limited amber, deep red only on higher symbols
+Materials/textures: brushed and worn painted steel, ceramic insulators, matte glass, rubber seals; controlled emissive seams only
+Constraints: exactly six symbols; one coherent family; no alphabet letters, no words, no numbers, no labels, no logos, no trademarks, no watermark; no coins, gems, crowns, card suits, fruit, guns, skulls, faces or casino clichés; each silhouette must remain distinct without relying only on color; no Wild, Scatter or Mystery icon
+Avoid: tiny circuitry noise, purple neon, emoji icons, flat clip art, unrelated art styles, photoreal objects on different backgrounds, excessive glow, illegible microdetails
+```
+
+Visual QA: exactly six coherent plaques appear in the required reading order with distinct silhouettes and no visible text/logo/watermark. This sheet is not a runtime atlas: separate alpha sprites, exact crop/pivots, dim/win states, 48-pixel readability proof, color-vision review and book/rules visual mapping remain open.

@@ -1,6 +1,6 @@
 # BLACKSITE // BREACH — Codex Studio Index
 
-Status: **M0 / repository operating system**  
+Status: **M2 repository greybox gate complete / M3 concept-asset pass started**
 Last official-doc review: **2026-08-07**
 
 This directory is the durable source of truth for the next original Stake Engine slot. Root `AGENTS.md` is intentionally a routing document; detailed knowledge lives here so Codex does not have to carry the entire project encyclopedia in every turn.
@@ -20,6 +20,8 @@ Every major Codex task starts with:
 - `MASTER_PLAN.md` — product vision, architecture, milestones and Definition of Done.
 - `M1_GAME_MATH_CONTRACT.md` — frozen BLACKSITE M1 mechanic, modes, Ghost Route, events, fixtures and Gate A–D decisions.
 - `M1_COMPLIANCE_REVIEW.md` — truthful requirement-by-requirement M1 status and next-evidence gates for all 51 checklist items.
+- `M2_COMPLIANCE_REVIEW.md` — exact SHA-bound M2 unit/browser/build evidence and truthful current status for every checklist row.
+- `M3_ASSET_MANIFEST.md` — concept-asset ledger, retained file hashes, production group gaps and the safe runtime/Spine integration gate.
 - `STAKE_REQUIREMENTS_51.md` — the exact 51-point approval checklist supplied for this project, with proof expectations and release ownership.
 - `STAKE_ENGINE_SOURCE_INDEX.md` — official Stake Engine/SDK source map and precedence rules.
 - `OFFICIAL_DOC_REVIEW_2026-08-07.md` — dated review map covering current approval, RGS, math SDK, frontend SDK and Codex-source conclusions.

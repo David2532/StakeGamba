@@ -1,0 +1,142 @@
+{
+  "schema": "blacksite-asset-manifest-v1",
+  "updatedAt": "2026-08-07",
+  "lifecycle": "M3_STARTED_CONCEPT_ONLY",
+  "runtimeIntegration": "none",
+  "generator": {
+    "mode": "OpenAI built-in image_gen",
+    "inputs": "text-only generation; the accepted environment is a targeted edit of this task's original text-only generation",
+    "promptRecord": "apps/blacksite/art/concepts/m3/PROVENANCE.md"
+  },
+  "rightsReview": "pending-human-review",
+  "assets": [
+    {
+      "id": "concept.environment.server_bunker_board_aperture.v1",
+      "type": "environment-concept",
+      "purpose": "Desktop composition, physical material, lighting and empty board-aperture reference",
+      "source": "OpenAI built-in image_gen generation plus one targeted central-aperture edit",
+      "originalityProvenance": "Created in this repository task from project-authored text prompts; no third-party or user-supplied visual reference was used",
+      "licenseRights": "AI-assisted project concept; legal/originality and final-use rights review pending",
+      "path": "apps/blacksite/art/concepts/m3/environment-server-bunker-board-aperture-concept-v1.png",
+      "format": "png",
+      "runtimePath": null,
+      "dimensions": {
+        "width": 1672,
+        "height": 941
+      },
+      "sha256": "7a71b005b46c542882ed6553132e43a79c67207945651c8cbc4dcaf132dc991d",
+      "alpha": false,
+      "anchorPivot": null,
+      "atlasBundle": null,
+      "statesAnimations": [],
+      "mobileFallback": "Not approved; a separately authored portrait recomposition and Popout crop are required",
+      "compression": "Lossless PNG concept source only; excluded from runtime until production extraction and WebP optimization",
+      "owner": "asset_director / creative_director",
+      "status": "concept"
+    },
+    {
+      "id": "concept.character.operative_spine_anchor.v1",
+      "type": "character-concept",
+      "purpose": "Adult operative identity, material, silhouette and portrait-crop anchor for a future Spine 4.2 rig",
+      "source": "OpenAI built-in image_gen text-only generation",
+      "originalityProvenance": "Created in this repository task from a project-authored text prompt; no third-party or user-supplied visual reference was used",
+      "licenseRights": "AI-assisted project concept; legal/originality, likeness and final-use rights review pending",
+      "path": "apps/blacksite/art/concepts/m3/operative-spine-anchor-concept-v1.png",
+      "format": "png",
+      "runtimePath": null,
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "3b2cb5013bede3ea786f538f77b66dc716cc4ef4439268d428e4990c361f4869",
+      "alpha": false,
+      "anchorPivot": "Production rig must define root orientation, reference scale, stable bounds and mobile bust crop",
+      "atlasBundle": "Future Spine 4.2 skeleton, atlas and texture pages; none exist yet",
+      "statesAnimations": [
+        "idle_a",
+        "idle_b",
+        "spin_start",
+        "anticipation",
+        "win_small",
+        "win_medium",
+        "win_big",
+        "feature_tease",
+        "feature_trigger",
+        "bonus_idle",
+        "bonus_win",
+        "max_win",
+        "recover"
+      ],
+      "mobileFallback": "The concept includes a waist-up identity inset; a separate production fallback pose/crop is still required",
+      "compression": "Lossless PNG concept source only; not a runtime texture",
+      "owner": "asset_director / animation_director",
+      "status": "concept"
+    },
+    {
+      "id": "concept.symbols.material_language.v1",
+      "type": "symbol-family-concept",
+      "purpose": "Shared silhouette, perspective, material and value hierarchy for byte, relay, proxy, cipher, daemon and vault",
+      "source": "OpenAI built-in image_gen text-only generation",
+      "originalityProvenance": "Created in this repository task from project-authored symbol briefs; no third-party or user-supplied visual reference was used",
+      "licenseRights": "AI-assisted project concept; legal/originality and final-use rights review pending",
+      "path": "apps/blacksite/art/concepts/m3/symbols-material-language-concept-v1.png",
+      "format": "png",
+      "runtimePath": null,
+      "dimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "sha256": "e63ff125b5fbdc4b361176a3019a5590cca942ef710fbdb82c11fbf6fb148662",
+      "alpha": false,
+      "anchorPivot": "Production symbols require identical square bounds and centered pivots",
+      "atlasBundle": "Future six-symbol Pixi spritesheet; no atlas exists yet",
+      "statesAnimations": [
+        "idle",
+        "win-readable",
+        "dim-readable"
+      ],
+      "mobileFallback": "Each production symbol must remain distinguishable at the measured mobile cell size without relying only on hue",
+      "compression": "Lossless PNG concept sheet only; individual alpha sprites, crop and atlas optimization pending",
+      "owner": "asset_director / frontend_engineer",
+      "status": "concept"
+    }
+  ],
+  "requiredProductionGroups": [
+    {
+      "id": "brand-title",
+      "status": "planned"
+    },
+    {
+      "id": "environment-desktop-portrait-popout-blackout",
+      "status": "concept-started"
+    },
+    {
+      "id": "board-frame-cells-breach-states",
+      "status": "planned"
+    },
+    {
+      "id": "symbols-six-production-sprites",
+      "status": "concept-started"
+    },
+    {
+      "id": "character-spine-4.2-rig-atlas-events-fallback",
+      "status": "concept-started"
+    },
+    {
+      "id": "ui-controls-icons-mode-art",
+      "status": "planned"
+    },
+    {
+      "id": "fx-particles-spritesheets",
+      "status": "planned"
+    },
+    {
+      "id": "audio-music-sfx",
+      "status": "planned"
+    },
+    {
+      "id": "stake-game-tile-package",
+      "status": "planned"
+    }
+  ]
+}

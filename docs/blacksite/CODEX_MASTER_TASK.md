@@ -19,6 +19,14 @@ Work autonomously through reversible technical/product-detail decisions. Do not 
 
 Escalate only real blockers described in `AGENT_OPERATING_MODEL.md`.
 
+## Current durable checkpoint
+
+- **M1 complete:** the initial non-release math candidate remains bound to fingerprint `d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8` and event-schema hash `bb4f3ff88200519682a539909b196f1462069b865a48afd04cb3219e7b9efe29`.
+- **M2 complete for its repository greybox gate:** `M2_COMPLIANCE_REVIEW.md` records clean-SHA browser evidence at commit `0a63db9f5aef8c59ba67d7ec71b8e656fdca9455`, with 66/66 units and 735/735 browser checks across 36/36 scenarios.
+- **M3 started, not complete:** `M3_ASSET_MANIFEST.md` and `apps/blacksite/art/asset-manifest.json` record original environment, operative and six-symbol concept anchors. They are deliberately outside runtime, status `concept`, and do not satisfy final-art, Spine, responsive, rights/manual or release gates.
+
+Continue from this checkpoint instead of rebuilding or re-claiming M1/M2. Any later runtime/source change requires fresh clean-SHA evidence before inheriting the M2 verdict.
+
 ## Required startup sequence
 
 Before any major implementation run:
