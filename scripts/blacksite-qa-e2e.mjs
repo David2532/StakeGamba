@@ -36,8 +36,12 @@ import {
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDirectory, '..');
-const buildRoot = join(repoRoot, 'apps', 'blacksite', 'build');
+const requestedBuildRoot = process.env.BLACKSITE_QA_BUILD_ROOT?.trim();
+const buildRoot = requestedBuildRoot
+	? resolve(repoRoot, requestedBuildRoot)
+	: join(repoRoot, 'apps', 'blacksite', 'build');
 const buildEntry = join(buildRoot, 'index.html');
+const expectedBuildTreeSha256 = process.env.BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256?.trim() ?? '';
 const startedAt = new Date().toISOString();
 const timestamp = startedAt.replace(/[:.]/g, '-');
 const artifactRoot = join(repoRoot, 'artifacts', 'blacksite-qa', timestamp);
@@ -142,9 +146,13 @@ const sourceIdentityTargets = Object.freeze([
 	join(repoRoot, 'apps', 'blacksite', 'tests'),
 	join(repoRoot, 'packages', 'utils-shared', 'currency.js'),
 	join(repoRoot, 'packages', 'utils-shared', 'stake-social.js'),
+	join(repoRoot, 'packages', 'config-svelte', 'index.js'),
+	join(repoRoot, 'packages', 'config-svelte', 'package.json'),
 	join(repoRoot, 'package.json'),
 	join(repoRoot, 'pnpm-lock.yaml'),
 	join(repoRoot, 'scripts', 'blacksite-qa-e2e.mjs'),
+	join(repoRoot, 'scripts', 'blacksite-package-candidate.mjs'),
+	join(repoRoot, 'scripts', 'blacksite-package-verify.mjs'),
 ]);
 
 const gitSha = spawnSync('git', ['rev-parse', 'HEAD'], {
@@ -162,6 +170,8 @@ const evidence = {
 		completedAt: null,
 		testedGitSha: gitSha,
 		worktreeDirty: gitStatus !== '',
+		testedBuildRoot: buildRoot,
+		expectedBuildTreeSha256: expectedBuildTreeSha256 || null,
 		buildTreeSha256: null,
 		sourceTreeSha256: null,
 	},
@@ -2572,6 +2582,12 @@ async function main() {
 	try {
 		check('infrastructure', 'tested identity is a full git SHA', /^[0-9a-f]{40}$/i.test(gitSha), gitSha || '(empty)');
 		check('infrastructure', 'tested worktree is clean', !evidence.identity.worktreeDirty, gitStatus || '(clean)');
+		check(
+			'infrastructure',
+			'custom build-root QA is pinned to an expected SHA-256 tree identity',
+			!requestedBuildRoot || /^[0-9a-f]{64}$/u.test(expectedBuildTreeSha256),
+			serialize({ requestedBuildRoot: requestedBuildRoot || null, expectedBuildTreeSha256: expectedBuildTreeSha256 || null }),
+		);
 		check('infrastructure', 'static BLACKSITE build exists', existsSync(buildEntry), relative(repoRoot, buildEntry));
 		evidence.manifests.build = createFileManifest([buildRoot], buildRoot);
 		evidence.manifests.sources = createFileManifest(sourceIdentityTargets, repoRoot);
@@ -2579,6 +2595,18 @@ async function main() {
 		evidence.identity.sourceTreeSha256 = evidence.manifests.sources.treeSha256;
 		check('infrastructure', 'build tree manifest contains files', evidence.manifests.build.fileCount > 0, serialize(evidence.manifests.build));
 		check('infrastructure', 'build tree has a deterministic SHA-256 identity', /^[0-9a-f]{64}$/.test(evidence.identity.buildTreeSha256), evidence.identity.buildTreeSha256);
+		if (expectedBuildTreeSha256) {
+			check(
+				'infrastructure',
+				'tested build tree matches the caller-pinned package identity',
+				/^[0-9a-f]{64}$/u.test(expectedBuildTreeSha256) &&
+					evidence.identity.buildTreeSha256 === expectedBuildTreeSha256,
+				serialize({
+					expectedBuildTreeSha256,
+					actualBuildTreeSha256: evidence.identity.buildTreeSha256,
+				}),
+			);
+		}
 		check('infrastructure', 'central source and lockfile manifest contains files', evidence.manifests.sources.fileCount > 0, serialize(evidence.manifests.sources));
 		check('infrastructure', 'central source and lockfile tree has a deterministic SHA-256 identity', /^[0-9a-f]{64}$/.test(evidence.identity.sourceTreeSha256), evidence.identity.sourceTreeSha256);
 		evidence.productionBuildScan = scanProductionBuild(evidence.manifests.build);

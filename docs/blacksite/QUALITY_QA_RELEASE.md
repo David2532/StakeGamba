@@ -250,6 +250,33 @@ Candidate manifest records:
 - tool/runtime versions where material;
 - CI run IDs.
 
+### BLACKSITE isolated technical package command
+
+BLACKSITE must not use the repository `publish/` directory while that path remains the Golden Goal Rush upload target. Generate a new candidate directory outside the repository so the worktree stays clean and the two games cannot be confused:
+
+```sh
+pnpm --filter blacksite build
+node scripts/blacksite-package-candidate.mjs \
+  --output <new-candidate-directory> \
+  --expected-commit <full-git-sha> \
+  --expected-frontend-tree <sha256-from-the-fresh-build-evidence>
+node scripts/blacksite-package-verify.mjs \
+  --candidate <new-candidate-directory> \
+  --write-result
+```
+
+The generated `frontend/` folder is the exact copied static build. The generated `math/` folder contains exactly the current official minimal payload: root `index.json`, three referenced lookup CSV files and three referenced zstd JSONL books. `game_config.json`, audits, manifests and browser evidence remain adjacent evidence rather than math-upload bytes.
+
+For exact-folder browser proof, invoke the harness directly without another Vite build:
+
+```sh
+BLACKSITE_QA_BUILD_ROOT=<new-candidate-directory>/frontend \
+BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256=<frontend-tree-sha256> \
+node scripts/blacksite-qa-e2e.mjs
+```
+
+The packager requires a clean worktree, a caller-pinned full commit SHA and a caller-pinned frontend tree SHA. It verifies all seven canonical math inputs against the retained M1 `CANDIDATE_MANIFEST.json`, refuses to overwrite an existing target and writes `uploadAuthorized: false`. Producing these folders is package evidence only; BLACKSITE remains non-submission-ready while production art, Spine, audio, manual device/visual review or external Stake gates are open.
+
 ## 12. Clean regeneration gate
 
 To detect stale generated outputs:
