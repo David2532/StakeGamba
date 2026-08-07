@@ -160,6 +160,10 @@ The public Stake material currently reinforces the following project rules:
 - Replay is mandatory for new approval submissions and is sessionless/read-only;
 - Stake.US Social Mode uses restricted terminology and social currencies;
 - the static math package requires `index.json`, lookup CSV(s) and zstd-compressed JSONL books with exact payout consistency;
+- static payout fields use integer centi-x units (`100 = 1.00x`) and must never be confused with six-decimal RGS wallet units;
+- current math verification requires canonical `base` at `1.0x` and cheapest, RTP `90.0%–96.7%` per mode with at most `0.5` percentage-point spread, base SD at least `0.6`, non-zero hit rate at least `1:50`, Max Win at most `500,000x`, mode cost at most `2,000x`, a viable bet template, compressed books at most `4.2 GB`, and at most `10,000,000` events per mode;
+- new submissions must display exact small wins with three or four decimals as required by the minimum possible multiplier, separately from balance precision;
+- extracted builds need a production-console/sensitive-log check in addition to visible/network error checks;
 - 3-star quality requires studio-level creativity/polish, clean art/animation, device testing and optimized loading/bundle behaviour.
 
 The public submission-checklist page currently hides some exact criteria behind login. Therefore this repository treats the supplied 51-point checklist as the explicit project contract while re-checking public official documentation before each release candidate.

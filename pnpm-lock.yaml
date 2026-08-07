@@ -31,6 +31,37 @@ importers:
         specifier: ^1.61.1
         version: 1.61.1
 
+  apps/blacksite:
+    dependencies:
+      '@sveltejs/kit':
+        specifier: 2.17.3
+        version: 2.17.3(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.20.5)(vite@6.2.0(@types/node@26.1.0)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.2.0(@types/node@26.1.0)(jiti@1.21.7)(sass-embedded@1.89.2))
+      svelte:
+        specifier: 5.20.5
+        version: 5.20.5
+      vite:
+        specifier: 6.2.0
+        version: 6.2.0(@types/node@26.1.0)(jiti@1.21.7)(sass-embedded@1.89.2)
+    devDependencies:
+      '@sveltejs/vite-plugin-svelte':
+        specifier: 5.0.3
+        version: 5.0.3(svelte@5.20.5)(vite@6.2.0(@types/node@26.1.0)(jiti@1.21.7)(sass-embedded@1.89.2))
+      config-svelte:
+        specifier: workspace:*
+        version: link:../../packages/config-svelte
+      config-ts:
+        specifier: workspace:*
+        version: link:../../packages/config-ts
+      cross-env:
+        specifier: ^10.1.0
+        version: 10.1.0
+      eslint:
+        specifier: 9.21.0
+        version: 9.21.0(jiti@1.21.7)
+      eslint-config-custom:
+        specifier: workspace:*
+        version: link:../../packages/eslint-config-custom
+
   apps/cluster:
     dependencies:
       '@lingui/core':

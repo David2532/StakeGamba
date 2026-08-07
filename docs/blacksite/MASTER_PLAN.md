@@ -1,6 +1,6 @@
 # BLACKSITE // BREACH — AAA Stake Slot Master Plan
 
-Status: **PRE-PRODUCTION / AGENT SYSTEM READY**
+Status: **M1 COMPLETE — INITIAL NON-RELEASE MATH CANDIDATE VERIFIED / M2 GREYBOX STARTED**
 
 ## 1. Product target
 Create a new, original Stake Engine slot that aims for **3-star studio quality**, not merely technical acceptance. The game should reuse the hardened Stake/RGS/replay/QA infrastructure already proven in StakeGamba while establishing a fully new theme, mechanic implementation, visual identity, math package, assets, and presentation layer.
@@ -18,7 +18,7 @@ The player should understand the visual story without reading flavor copy:
 - Feature trigger = security layer collapses / BLACKOUT PROTOCOL begins.
 - Side character reacts to state but never controls or alters game results.
 
-Final mechanics and math remain subject to math-agent simulation and Stake compliance review before implementation is frozen.
+The v1 mechanic, mode, payout-unit, event and presentation interfaces are frozen in `M1_GAME_MATH_CONTRACT.md`. The initial non-release math candidate has passed its M1 automated package, distribution, risk, schema and fixture gates: 300,000 books, 90/90 gates, 48/48 fixtures and 7/7 tests. Candidate fingerprint: `d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8`; typed event-schema hash: `bb4f3ff88200519682a539909b196f1462069b865a48afd04cb3219e7b9efe29`. This closes M1 only and does not imply frontend readiness, manual 3-star review, Stake approval or release.
 
 ## 3. Technology direction
 Reuse the existing Stake web-SDK style monorepo:
@@ -220,13 +220,13 @@ The QA agent must capture and track:
 
 ## 15. Milestones
 ### M0 — Studio foundation
-Agent system, skills, current official research, master plan. **This branch currently targets M0.**
+Agent system, skills, current official research and master plan. **Complete.**
 
 ### M1 — Game design + math contract
-Freeze mechanic/event/state contract and initial valid math candidate.
+Freeze mechanic/event/state contract and initial valid math candidate. **Complete for the initial non-release candidate; exact automated evidence is recorded under `math/games/blacksite_breach/library/publish_files/`.**
 
 ### M2 — Greybox playable
-New app/game identity, deterministic fixtures, RGS/replay/restore, board without final assets.
+New app/game identity, deterministic fixtures, RGS/replay/restore, board without final assets. **Started as greybox only; no frontend, browser, visual or release gate is claimed complete.**
 
 ### M3 — Art/character integration
 Production asset manifest, first original asset set, Spine side character runtime and responsive composition.

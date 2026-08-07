@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "contract": "blacksite-book-events-v1",
+  "closed_records": true,
+  "units": {
+    "payout_raw": "centi-x_uint64; 100 = 1.00x base amount",
+    "cost_multiplier": "positive integer multiple of authenticated base amount",
+    "wallet_money": "forbidden in book records",
+    "position": "column-major {column,row}; each coordinate is uint 0..6",
+    "feature_cycle": "uint; 0 outside BLACKOUT, 1-based inside BLACKOUT",
+    "event_index": "zero-based contiguous uint"
+  },
+  "enums": {
+    "mode": ["base", "deep_access", "blackout"],
+    "phase": ["base", "feature"],
+    "symbol": ["byte", "relay", "proxy", "cipher", "daemon", "vault"],
+    "port_id": ["north", "west", "east"],
+    "access_multiplier": [1, 2, 3, 5, 7, 10, 15]
+  },
+  "records": {
+    "position": [
+      { "name": "column", "type": "uint_0_6" },
+      { "name": "row", "type": "uint_0_6" }
+    ],
+    "entering_symbol": [
+      { "name": "column", "type": "uint_0_6" },
+      { "name": "row", "type": "uint_0_6" },
+      { "name": "symbol", "type": "enum:symbol" }
+    ],
+    "cluster": [
+      { "name": "symbol", "type": "enum:symbol" },
+      { "name": "cluster_band", "type": "enum:paytable_cluster_band" },
+      { "name": "cluster_size", "type": "uint_5_49" },
+      { "name": "positions", "type": "nonempty_unique_array:position" },
+      { "name": "linked", "type": "boolean" },
+      { "name": "base_payout_raw", "type": "uint64", "unit": "payout_raw" },
+      { "name": "access_multiplier", "type": "enum:access_multiplier" },
+      { "name": "calculated_award_raw", "type": "uint64", "unit": "payout_raw" },
+      { "name": "applied_award_raw", "type": "uint64", "unit": "payout_raw" }
+    ],
+    "route_snapshot": [
+      { "name": "sealed_cells", "type": "unique_array:position" },
+      { "name": "dormant_cells", "type": "unique_array:position" },
+      { "name": "live_cells", "type": "unique_array:position" },
+      { "name": "reached_exfil_ports", "type": "unique_array:enum:port_id" },
+      { "name": "core_live", "type": "boolean" }
+    ]
+  },
+  "events": {
+    "round_start": [
+      { "name": "index", "type": "uint", "unit": "event_index" },
+      { "name": "type", "type": "literal:round_start" },
+      { "name": "schema_version", "type": "literal:1" },
+      { "name": "event_contract", "type": "literal:blacksite-book-events-v1" },
+      { "name": "mode", "type": "enum:mode" },
+      { "name": "cost_multiplier", "type": "positive_integer", "unit": "cost_multiplier" },
+      { "name": "payout_unit", "type": "literal:centi-x_uint64" },
+      { "name": "max_win_raw", "type": "uint64", "unit": "payout_raw" },
+      { "name": "board_columns", "type": "literal:7" },
+      { "name": "board_rows", "type": "literal:7" },
+      { "name": "initial_phase", "type": "enum:phase" },
+      { "name": "seeded_breached_cells", "type": "unique_array:position" },
+      { "name": "seeded_live_cells", "type": "unique_array:position" }
+    ],
+    "board_set": [
+      { "name": "index", "type": "uint", "unit": "event_index" },
+      { "name": "type", "type": "literal:board_set" },
+      { "name": "phase", "type": "enum:phase" },
+      { "name": "feature_cycle", "type": "uint", "unit": "feature_cycle" },
+      { "name": "tumble_index", "type": "uint" },
+      { "name": "board", "type": "column_major_board_7x7:enum:symbol" }
+    ],
+    "cluster_win": [
+      { "name": "index", "type": "uint", "unit": "event_index" },
+      { "name": "type", "type": "literal:cluster_win" },
+      { "name": "phase", "type": "enum:phase" },
+      { "name": "feature_cycle", "type": "uint", "unit": "feature_cycle" },
+      { "name": "clusters", "type": "nonempty_array:cluster" },
+      { "name": "step_payout_raw", "type": "uint64", "unit": "payout_raw" },
+      { "name": "cumulative_before_raw", "type": "uint64", "unit": "payout_raw" },
+      { "name": "cumulative_after_raw", "type": "uint64", "unit": "payout_raw" },
+      { "name": "cap_applied", "type": "boolean" }
+    ],
+    "breach_state": [
+      { "name": "index", "type": "uint", "unit": "event_index" },
+      { "name": "type", "type": "literal:breach_state" },
+      { "name": "phase", "type": "enum:phase" },
+      { "name": "newly_breached_cells", "type": "unique_array:position" },
+      { "name": "breached_cells", "type": "unique_array:position" },
+      { "name": "sealed_cells", "type": "unique_array:position" },
+      { "name": "dormant_cells", "type": "unique_array:position" },
+      { "name": "live_cells", "type": "unique_array:position" },
+      { "name": "core_live", "type": "boolean" },
+      { "name": "reached_exfil_ports", "type": "unique_array:enum:port_id" },
+      { "name": "current_access_multiplier", "type": "enum:access_multiplier", "meaning": "post-breach authority for the next evaluation" },
+      { "name": "feature_multiplier", "type": "enum:access_multiplier", "meaning": "post-breach BLACKOUT authority, or 1 outside BLACKOUT" },
+      { "name": "access_multiplier_used", "type": "enum:access_multiplier", "meaning": "pre-evaluation ambient access; each unlinked cluster still applies 1" },
+      { "name": "cumulative_payout_raw", "type": "uint64", "unit": "payout_raw" }
+    ],
+    "access_changed": [
+      { "name": "index", "type": "uint", "unit": "event_index" },
+      { "name": "type", "type": "literal:access_changed" },
+      { "name": "previous_multiplier", "type": "enum:access_multiplier" },
+      { "name": "next_multiplier", "type": "enum:access_multiplier" },
+      { "name": "effective_from_next_evaluation", "type": "literal:true" },
+      { "name": "reason", "type": "enum:mode_seed|route_proximity|core_live|exfil_north|exfil_west|exfil_east" }
+    ],
+    "feature_armed": [
+      { "name": "index", "type": "uint", "unit": "event_index" },
+      { "name": "type", "type": "literal:feature_armed" },
+      { "name": "reason", "type": "literal:core_became_live" },
+      { "name": "enter_after_current_cascade_chain", "type": "literal:true" },
+      { "name": "cumulative_payout_raw", "type": "uint64", "unit": "payout_raw" }
+    ],
+    "feature_start": [
+      { "name": "index", "type": "uint", "unit": "event_index" },
+      { "name": "type", "type": "literal:feature_start" },
+      { "name": "feature", "type": "literal:blackout_protocol" },
+      { "name": "direct", "type": "boolean" },
+      { "name": "initial_cycles", "type": "literal:6" },
+      { "name": "total_cycles", "type": "uint_6_12" },
+      { "name": "access_multiplier", "type": "enum:5|7|10|15" },
+      { "name": "core_live", "type": "literal:true" },
+      { "name": "initial_route", "type": "record:route_snapshot" }
+    ],
+    "feature_cycle": [
+      { "name": "index", "type": "uint", "unit": "event_index" },
+      { "name": "type", "type": "literal:feature_cycle" },
+      { "name": "cycle", "type": "uint_1_12", "unit": "feature_cycle" },
+      { "name": "total_cycles_awarded", "type": "uint_6_12" },
+      { "name": "remaining_cycles_after_current", "type": "uint_0_11" },
+      { "name": "access_multiplier", "type": "enum:5|7|10|15" },
+      { "name": "reached_exfil_ports", "type": "unique_array:enum:port_id" }
+    ],
+    "exfil_reached": [
+      { "name": "index", "type": "uint", "unit": "event_index" },
+      { "name": "type", "type": "literal:exfil_reached" },
+      { "name": "port_id", "type": "enum:port_id" },
+      { "name": "position", "type": "record:position" },
+      { "name": "awarded_cycles", "type": "literal:2" },
+      { "name": "total_cycles_after", "type": "uint_8_12" },
+      { "name": "remaining_cycles_after_current", "type": "uint_0_11" },
+      { "name": "next_access_multiplier", "type": "enum:7|10|15" }
+    ],
+    "tumble": [
+      { "name": "index", "type": "uint", "unit": "event_index" },
+      { "name": "type", "type": "literal:tumble" },
+      { "name": "phase", "type": "enum:phase" },
+      { "name": "tumble_index", "type": "positive_integer" },
+      { "name": "removed_positions", "type": "nonempty_unique_array:position" },
+      { "name": "entering_symbols", "type": "nonempty_unique_array:entering_symbol", "meaning": "exactly rows 0..k-1 for k removals in each affected column" }
+    ],
+    "feature_end": [
+      { "name": "index", "type": "uint", "unit": "event_index" },
+      { "name": "type", "type": "literal:feature_end" },
+      { "name": "cycles_played", "type": "uint_6_12" },
+      { "name": "total_cycles", "type": "uint_6_12" },
+      { "name": "reached_exfil_ports", "type": "unique_array:enum:port_id" },
+      { "name": "cumulative_payout_raw", "type": "uint64", "unit": "payout_raw" },
+      { "name": "capped", "type": "literal:false" }
+    ],
+    "cap_reached": [
+      { "name": "index", "type": "uint", "unit": "event_index" },
+      { "name": "type", "type": "literal:cap_reached" },
+      { "name": "cap_raw", "type": "uint64", "unit": "payout_raw" },
+      { "name": "gross_award_raw", "type": "uint64", "unit": "payout_raw" },
+      { "name": "accepted_award_raw", "type": "uint64", "unit": "payout_raw" },
+      { "name": "discarded_award_raw", "type": "uint64", "unit": "payout_raw" },
+      { "name": "cumulative_payout_raw", "type": "uint64", "unit": "payout_raw" }
+    ],
+    "round_end": [
+      { "name": "index", "type": "uint", "unit": "event_index" },
+      { "name": "type", "type": "literal:round_end" },
+      { "name": "mode", "type": "enum:mode" },
+      { "name": "final_phase", "type": "enum:phase" },
+      { "name": "payout_multiplier_raw", "type": "uint64", "unit": "payout_raw" },
+      { "name": "capped", "type": "boolean" }
+    ]
+  },
+  "ordering_grammar": {
+    "book_start": "round_start",
+    "book_end": "round_end",
+    "base_zero": "round_start -> board_set(no_win) -> round_end",
+    "seeded_zero": "round_start -> breach_state -> access_changed -> board_set(no_win) -> round_end",
+    "direct_feature_start": "round_start(feature) -> breach_state(feature) -> access_changed -> feature_start(direct)",
+    "winning_evaluation": "board_set -> cluster_win -> breach_state -> [access_changed] -> [feature_armed] -> [exfil_reached]",
+    "under_cap_continuation": "winning_evaluation -> tumble -> board_set",
+    "cap_termination": "winning_evaluation -> cap_reached -> round_end",
+    "natural_feature_entry": "armed cascade resolves to no-win board -> feature_start(natural)",
+    "feature_cycle": "feature_cycle -> board_set -> zero_or_more_winning_evaluations",
+    "normal_feature_end": "last no-win feature board -> feature_end -> round_end",
+    "invariants": [
+      "event indices are contiguous from zero",
+      "breach_state after a win is a full post-breach snapshot and follows cluster_win immediately",
+      "all clusters in one cluster_win use one immutable pre-evaluation board and route snapshot",
+      "all winning positions are removed together",
+      "tumble preserves survivor order toward increasing row and refills only top rows",
+      "access_changed is notification only and follows the breach_state that already contains the new authority",
+      "feature_armed never interrupts a still-winning cascade chain",
+      "cap_reached is immediately followed by round_end and never by feature_end or tumble",
+      "round_end is unique, final, and equals book plus lookup payout"
+    ]
+  }
+}

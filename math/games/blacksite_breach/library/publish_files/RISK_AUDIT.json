@@ -1,0 +1,1709 @@
+{
+  "verification_result": "PASS",
+  "lifecycle": "M1_INITIAL_CANDIDATE_NOT_RELEASE",
+  "candidate_fingerprint_sha256": "d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8",
+  "modes": [
+    {
+      "mode": "base",
+      "exact_distribution": {
+        "hit_rate": 0.35,
+        "zero_rate": 0.65,
+        "standard_deviation_cost_normalized_return": 32.579144736533536,
+        "cvar_worst_0_1_percent": {
+          "books": 100,
+          "cost_normalized_return": 227,
+          "raw_human_x": 227
+        },
+        "tail": {
+          "etl_rtp_share_above_40x_cost": 0.2494802494802495,
+          "etl_rtp_share_above_10000x_cost": 0,
+          "probability_raw_human_at_or_above_5000x": 0.00001,
+          "probability_raw_human_at_or_above_10000x": 0.00001,
+          "source_scale_ambiguity_checked_as_fraction_and_percent": true
+        },
+        "payout_bands_cost_normalized": [
+          {
+            "id": "zero",
+            "books": 65000,
+            "probability": 0.65,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
+          },
+          {
+            "id": "gt_0_lt_1x_cost",
+            "books": 6261,
+            "probability": 0.06261,
+            "payout_raw_contribution": 429143,
+            "rtp_contribution_share": 0.04460945945945946
+          },
+          {
+            "id": "1_to_lt_2x_cost",
+            "books": 10356,
+            "probability": 0.10356,
+            "payout_raw_contribution": 1543270,
+            "rtp_contribution_share": 0.16042307692307692
+          },
+          {
+            "id": "2_to_lt_5x_cost",
+            "books": 18257,
+            "probability": 0.18257,
+            "payout_raw_contribution": 5247587,
+            "rtp_contribution_share": 0.5454872141372141
+          },
+          {
+            "id": "5_to_lt_20x_cost",
+            "books": 0,
+            "probability": 0,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
+          },
+          {
+            "id": "20_to_lt_50x_cost",
+            "books": 0,
+            "probability": 0,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
+          },
+          {
+            "id": "50_to_lt_100x_cost",
+            "books": 100,
+            "probability": 0.001,
+            "payout_raw_contribution": 500000,
+            "rtp_contribution_share": 0.05197505197505198
+          },
+          {
+            "id": "100_to_lt_1000x_cost",
+            "books": 20,
+            "probability": 0.0002,
+            "payout_raw_contribution": 400000,
+            "rtp_contribution_share": 0.04158004158004158
+          },
+          {
+            "id": "gte_1000x_cost",
+            "books": 6,
+            "probability": 0.00006,
+            "payout_raw_contribution": 1500000,
+            "rtp_contribution_share": 0.15592515592515593
+          }
+        ]
+      },
+      "short_windows": [
+        {
+          "bets": 100,
+          "trials": 1000,
+          "rng_seed": 2149364897,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000106,
+            "operator_ggr_mean": 0.037999999999989376,
+            "player_rtp_standard_deviation": 3.2579144736533534,
+            "operator_ggr_standard_deviation": 3.2579144736533534
+          },
+          "player_rtp": {
+            "replicates": 1000,
+            "mean": 0.9498056,
+            "standard_deviation": 3.236974262187,
+            "monte_carlo_standard_error": 0.102362113959,
+            "quantiles": {
+              "p00": 0.2853,
+              "p01": 0.498308,
+              "p05": 0.55316,
+              "p10": 0.58948,
+              "p50": 0.7441,
+              "p90": 1.10161,
+              "p95": 1.264955,
+              "p99": 2.762755,
+              "p9999": 91.748491860006,
+              "p100": 100.6914
+            }
+          },
+          "operator_ggr": {
+            "replicates": 1000,
+            "mean": 0.0501944,
+            "standard_deviation": 3.236974262187,
+            "monte_carlo_standard_error": 0.102362113959,
+            "quantiles": {
+              "p00": -99.6914,
+              "p01": -1.762755,
+              "p05": -0.264955,
+              "p10": -0.10161,
+              "p50": 0.2559,
+              "p90": 0.41052,
+              "p95": 0.44684,
+              "p99": 0.501692,
+              "p9999": 0.70298173,
+              "p100": 0.7147
+            }
+          },
+          "probability_negative_operator_ggr": 0.119,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.033950898969,
+            "p01": 0.037275385722,
+            "p05": 0.040758164935,
+            "p10": 0.042996990251,
+            "p50": 0.051390566413,
+            "p90": 0.356179842337,
+            "p95": 0.426011101559,
+            "p99": 0.737953735556,
+            "p9999": 0.987648330875,
+            "p100": 0.993133475153
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0.375515394233,
+            "p95": 0.440977402002,
+            "p99": 0.738066341954,
+            "p9999": 0.987803695603,
+            "p100": 0.993133475153
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0.375515394233,
+            "p95": 0.440977402002,
+            "p99": 0.738066341954,
+            "p9999": 0.987803695603,
+            "p100": 0.993133475153
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0,
+            "p95": 0,
+            "p99": 0.737953735556,
+            "p9999": 0.987648330875,
+            "p100": 0.993133475153
+          }
+        },
+        {
+          "bets": 1000,
+          "trials": 1000,
+          "rng_seed": 3364536101,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000106,
+            "operator_ggr_mean": 0.037999999999989376,
+            "player_rtp_standard_deviation": 1.0302430158773224,
+            "operator_ggr_standard_deviation": 1.0302430158773224
+          },
+          "player_rtp": {
+            "replicates": 1000,
+            "mean": 0.94880786,
+            "standard_deviation": 1.032403756103,
+            "monte_carlo_standard_error": 0.032647473342,
+            "quantiles": {
+              "p00": 0.61396,
+              "p01": 0.6597202,
+              "p05": 0.6853205,
+              "p10": 0.703852,
+              "p50": 0.78808,
+              "p90": 1.001779,
+              "p95": 1.2241245,
+              "p99": 2.8287824,
+              "p9999": 11.79637172,
+              "p100": 11.85803
+            }
+          },
+          "operator_ggr": {
+            "replicates": 1000,
+            "mean": 0.05119214,
+            "standard_deviation": 1.032403756103,
+            "monte_carlo_standard_error": 0.032647473342,
+            "quantiles": {
+              "p00": -10.85803,
+              "p01": -1.8287824,
+              "p05": -0.2241245,
+              "p10": -0.001779,
+              "p50": 0.21192,
+              "p90": 0.296148,
+              "p95": 0.3146795,
+              "p99": 0.3402798,
+              "p9999": 0.383650392,
+              "p100": 0.38604
+            }
+          },
+          "probability_negative_operator_ggr": 0.103,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.004482433866,
+            "p01": 0.004775513284,
+            "p05": 0.004965712451,
+            "p10": 0.005116858742,
+            "p50": 0.062282014124,
+            "p90": 0.212133178079,
+            "p95": 0.226254531741,
+            "p99": 0.600386130416,
+            "p9999": 0.938385731985,
+            "p100": 0.939314638467
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0.066983274352,
+            "p90": 0.289171126399,
+            "p95": 0.409150859658,
+            "p99": 0.729339204404,
+            "p9999": 0.943639571894,
+            "p100": 0.94401121166
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0.066983274352,
+            "p90": 0.289171126399,
+            "p95": 0.409150859658,
+            "p99": 0.729339204404,
+            "p9999": 0.943639571894,
+            "p100": 0.94401121166
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0.217552585929,
+            "p95": 0.351090016632,
+            "p99": 0.729121193394,
+            "p9999": 0.938954238394,
+            "p100": 0.939314638467
+          }
+        },
+        {
+          "bets": 5000,
+          "trials": 500,
+          "rng_seed": 2656094185,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000106,
+            "operator_ggr_mean": 0.037999999999989376,
+            "player_rtp_standard_deviation": 0.4607386833692176,
+            "operator_ggr_standard_deviation": 0.4607386833692176
+          },
+          "player_rtp": {
+            "replicates": 500,
+            "mean": 0.942711808,
+            "standard_deviation": 0.433959476134,
+            "monte_carlo_standard_error": 0.019407257762,
+            "quantiles": {
+              "p00": 0.710368,
+              "p01": 0.72261456,
+              "p05": 0.7477814,
+              "p10": 0.7579762,
+              "p50": 0.822047,
+              "p90": 1.036819,
+              "p95": 1.2062579,
+              "p99": 2.86706144,
+              "p9999": 4.74699866,
+              "p100": 4.834154
+            }
+          },
+          "operator_ggr": {
+            "replicates": 500,
+            "mean": 0.057288192,
+            "standard_deviation": 0.433959476134,
+            "monte_carlo_standard_error": 0.019407257762,
+            "quantiles": {
+              "p00": -3.834154,
+              "p01": -1.86706144,
+              "p05": -0.2062579,
+              "p10": -0.036819,
+              "p50": 0.177953,
+              "p90": 0.2420238,
+              "p95": 0.2522186,
+              "p99": 0.27738544,
+              "p9999": 0.2896209222,
+              "p100": 0.289632
+            }
+          },
+          "probability_negative_operator_ggr": 0.152,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.01182684552,
+            "p01": 0.012098601418,
+            "p05": 0.012506556029,
+            "p10": 0.012739871799,
+            "p50": 0.047891974873,
+            "p90": 0.204235291315,
+            "p95": 0.213631620419,
+            "p99": 0.712130921419,
+            "p9999": 0.722865850092,
+            "p100": 0.723124882944
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0.01316641826,
+            "p01": 0.025961852937,
+            "p05": 0.039577617116,
+            "p10": 0.052563854812,
+            "p50": 0.122700200766,
+            "p90": 0.305765999966,
+            "p95": 0.405794415977,
+            "p99": 0.74707694412,
+            "p9999": 0.841928906443,
+            "p100": 0.846063240848
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0.01316641826,
+            "p01": 0.025961852937,
+            "p05": 0.039577617116,
+            "p10": 0.052563854812,
+            "p50": 0.122700200766,
+            "p90": 0.305765999966,
+            "p95": 0.405794415977,
+            "p99": 0.74707694412,
+            "p9999": 0.841928906443,
+            "p100": 0.846063240848
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0.050455361285,
+            "p90": 0.260420048445,
+            "p95": 0.345001040879,
+            "p99": 0.732231156437,
+            "p9999": 0.823322071855,
+            "p100": 0.827445712321
+          }
+        },
+        {
+          "bets": 10000,
+          "trials": 200,
+          "rng_seed": 2767494701,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000106,
+            "operator_ggr_mean": 0.037999999999989376,
+            "player_rtp_standard_deviation": 0.32579144736533533,
+            "operator_ggr_standard_deviation": 0.32579144736533533
+          },
+          "player_rtp": {
+            "replicates": 200,
+            "mean": 0.984655475,
+            "standard_deviation": 0.346955268661,
+            "monte_carlo_standard_error": 0.024533442324,
+            "quantiles": {
+              "p00": 0.736115,
+              "p01": 0.74796304,
+              "p05": 0.769753,
+              "p10": 0.7811838,
+              "p50": 0.865749,
+              "p90": 1.7751058,
+              "p95": 1.8535795,
+              "p99": 1.93116893,
+              "p9999": 2.830336727,
+              "p100": 2.848272
+            }
+          },
+          "operator_ggr": {
+            "replicates": 200,
+            "mean": 0.015344525,
+            "standard_deviation": 0.346955268661,
+            "monte_carlo_standard_error": 0.024533442324,
+            "quantiles": {
+              "p00": -1.848272,
+              "p01": -0.93116893,
+              "p05": -0.8535795,
+              "p10": -0.7751058,
+              "p50": 0.134251,
+              "p90": 0.2188162,
+              "p95": 0.230247,
+              "p99": 0.25203696,
+              "p9999": 0.2638067532,
+              "p100": 0.263885
+            }
+          },
+          "probability_negative_operator_ggr": 0.175,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.006226347662,
+            "p01": 0.00639887737,
+            "p05": 0.006578253161,
+            "p10": 0.022707467775,
+            "p50": 0.025639644659,
+            "p90": 0.518887532334,
+            "p95": 0.549094541503,
+            "p99": 0.563899560592,
+            "p9999": 0.566434687787,
+            "p100": 0.566464080229
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0.039320850274,
+            "p01": 0.045363931483,
+            "p05": 0.060625839127,
+            "p10": 0.082093778126,
+            "p50": 0.164853495332,
+            "p90": 0.595045034881,
+            "p95": 0.611815165359,
+            "p99": 0.629230089421,
+            "p9999": 0.743791301595,
+            "p100": 0.746066386918
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0.039320850274,
+            "p01": 0.045363931483,
+            "p05": 0.060625839127,
+            "p10": 0.082093778126,
+            "p50": 0.164853495332,
+            "p90": 0.595045034881,
+            "p95": 0.611815165359,
+            "p99": 0.629230089421,
+            "p9999": 0.743791301595,
+            "p100": 0.746066386918
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0.024783570404,
+            "p50": 0.11099784272,
+            "p90": 0.571321028727,
+            "p95": 0.584643220448,
+            "p99": 0.606110178594,
+            "p9999": 0.734777563418,
+            "p100": 0.737289135307
+          }
+        },
+        {
+          "bets": 100000,
+          "trials": 100,
+          "rng_seed": 1862288673,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000106,
+            "operator_ggr_mean": 0.037999999999989376,
+            "player_rtp_standard_deviation": 0.10302430158773224,
+            "operator_ggr_standard_deviation": 0.10302430158773224
+          },
+          "player_rtp": {
+            "replicates": 100,
+            "mean": 0.965212069,
+            "standard_deviation": 0.098163810884,
+            "monte_carlo_standard_error": 0.009816381088,
+            "quantiles": {
+              "p00": 0.8186845,
+              "p01": 0.825648655,
+              "p05": 0.83979018,
+              "p10": 0.8518701,
+              "p50": 0.94960265,
+              "p90": 1.08933652,
+              "p95": 1.134600275,
+              "p99": 1.203280991,
+              "p9999": 1.24670833991,
+              "p100": 1.247147
+            }
+          },
+          "operator_ggr": {
+            "replicates": 100,
+            "mean": 0.034787931,
+            "standard_deviation": 0.098163810884,
+            "monte_carlo_standard_error": 0.009816381088,
+            "quantiles": {
+              "p00": -0.247147,
+              "p01": -0.203280991,
+              "p05": -0.134600275,
+              "p10": -0.08933652,
+              "p50": 0.05039735,
+              "p90": 0.1481299,
+              "p95": 0.16020982,
+              "p99": 0.174351345,
+              "p9999": 0.18124585845,
+              "p100": 0.1813155
+            }
+          },
+          "probability_negative_operator_ggr": 0.32,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.011174592731,
+            "p01": 0.011340573208,
+            "p05": 0.011402975657,
+            "p10": 0.011525210621,
+            "p50": 0.093917624369,
+            "p90": 0.106055001266,
+            "p95": 0.106435796194,
+            "p99": 0.107913999826,
+            "p9999": 0.108160228505,
+            "p100": 0.108162715663
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0.116650553418,
+            "p01": 0.119263582143,
+            "p05": 0.139749063486,
+            "p10": 0.151277376862,
+            "p50": 0.240471640381,
+            "p90": 0.336121936238,
+            "p95": 0.363221194617,
+            "p99": 0.400654886626,
+            "p9999": 0.418376306401,
+            "p100": 0.418555310641
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0.116650553418,
+            "p01": 0.119263582143,
+            "p05": 0.139749063486,
+            "p10": 0.151277376862,
+            "p50": 0.240471640381,
+            "p90": 0.336121936238,
+            "p95": 0.363221194617,
+            "p99": 0.400654886626,
+            "p9999": 0.418376306401,
+            "p100": 0.418555310641
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0.051301814069,
+            "p01": 0.055664952394,
+            "p05": 0.077431904976,
+            "p10": 0.091714938461,
+            "p50": 0.186125794409,
+            "p90": 0.289104460079,
+            "p95": 0.32336475548,
+            "p99": 0.358363225737,
+            "p9999": 0.373499929214,
+            "p100": 0.373652825208
+          }
+        }
+      ]
+    },
+    {
+      "mode": "deep_access",
+      "exact_distribution": {
+        "hit_rate": 0.6,
+        "zero_rate": 0.4,
+        "standard_deviation_cost_normalized_return": 8.90725642494651,
+        "cvar_worst_0_1_percent": {
+          "books": 100,
+          "cost_normalized_return": 93.5,
+          "raw_human_x": 374
+        },
+        "tail": {
+          "etl_rtp_share_above_40x_cost": 0.07796257796257797,
+          "etl_rtp_share_above_10000x_cost": 0,
+          "probability_raw_human_at_or_above_5000x": 0.00001,
+          "probability_raw_human_at_or_above_10000x": 0.00001,
+          "source_scale_ambiguity_checked_as_fraction_and_percent": true
+        },
+        "payout_bands_cost_normalized": [
+          {
+            "id": "zero",
+            "books": 40000,
+            "probability": 0.4,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
+          },
+          {
+            "id": "gt_0_lt_1x_cost",
+            "books": 18648,
+            "probability": 0.18648,
+            "payout_raw_contribution": 4729017,
+            "rtp_contribution_share": 0.12289545218295218
+          },
+          {
+            "id": "1_to_lt_2x_cost",
+            "books": 25668,
+            "probability": 0.25668,
+            "payout_raw_contribution": 15400479,
+            "rtp_contribution_share": 0.40022034823284824
+          },
+          {
+            "id": "2_to_lt_5x_cost",
+            "books": 15558,
+            "probability": 0.15558,
+            "payout_raw_contribution": 14350504,
+            "rtp_contribution_share": 0.37293409563409563
+          },
+          {
+            "id": "5_to_lt_20x_cost",
+            "books": 0,
+            "probability": 0,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
+          },
+          {
+            "id": "20_to_lt_50x_cost",
+            "books": 100,
+            "probability": 0.001,
+            "payout_raw_contribution": 1000000,
+            "rtp_contribution_share": 0.02598752598752599
+          },
+          {
+            "id": "50_to_lt_100x_cost",
+            "books": 0,
+            "probability": 0,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
+          },
+          {
+            "id": "100_to_lt_1000x_cost",
+            "books": 25,
+            "probability": 0.00025,
+            "payout_raw_contribution": 2000000,
+            "rtp_contribution_share": 0.05197505197505198
+          },
+          {
+            "id": "gte_1000x_cost",
+            "books": 1,
+            "probability": 0.00001,
+            "payout_raw_contribution": 1000000,
+            "rtp_contribution_share": 0.02598752598752599
+          }
+        ]
+      },
+      "short_windows": [
+        {
+          "bets": 100,
+          "trials": 1000,
+          "rng_seed": 4005620385,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000014,
+            "operator_ggr_mean": 0.03799999999999859,
+            "player_rtp_standard_deviation": 0.890725642494651,
+            "operator_ggr_standard_deviation": 0.890725642494651
+          },
+          "player_rtp": {
+            "replicates": 1000,
+            "mean": 0.985386175,
+            "standard_deviation": 0.944394031363,
+            "monte_carlo_standard_error": 0.029864361478,
+            "quantiles": {
+              "p00": 0.6137,
+              "p01": 0.667007,
+              "p05": 0.72271125,
+              "p10": 0.7597775,
+              "p50": 0.882275,
+              "p90": 1.075535,
+              "p95": 1.19696625,
+              "p99": 2.361467,
+              "p9999": 24.002920750001,
+              "p100": 25.8718
+            }
+          },
+          "operator_ggr": {
+            "replicates": 1000,
+            "mean": 0.014613825,
+            "standard_deviation": 0.944394031363,
+            "monte_carlo_standard_error": 0.029864361478,
+            "quantiles": {
+              "p00": -24.8718,
+              "p01": -1.361467,
+              "p05": -0.19696625,
+              "p10": -0.075535,
+              "p50": 0.117725,
+              "p90": 0.2402225,
+              "p95": 0.27728875,
+              "p99": 0.332993,
+              "p9999": 0.3849238775,
+              "p100": 0.3863
+            }
+          },
+          "probability_negative_operator_ggr": 0.183,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.021782219533,
+            "p01": 0.024101906755,
+            "p05": 0.025772808968,
+            "p10": 0.026687200465,
+            "p50": 0.030426561659,
+            "p90": 0.219099915115,
+            "p95": 0.240075975363,
+            "p99": 0.62437616561,
+            "p9999": 0.955428932664,
+            "p100": 0.966303079028
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0.221840170306,
+            "p95": 0.244723576193,
+            "p99": 0.63590851729,
+            "p9999": 0.959025759273,
+            "p100": 0.966303079028
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0,
+            "p95": 0,
+            "p99": 0.62437616561,
+            "p9999": 0.959025759273,
+            "p100": 0.966303079028
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0,
+            "p95": 0,
+            "p99": 0.62437616561,
+            "p9999": 0.959025759273,
+            "p100": 0.966303079028
+          }
+        },
+        {
+          "bets": 1000,
+          "trials": 1000,
+          "rng_seed": 3173841189,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000014,
+            "operator_ggr_mean": 0.03799999999999859,
+            "player_rtp_standard_deviation": 0.2816721800599961,
+            "operator_ggr_standard_deviation": 0.2816721800599961
+          },
+          "player_rtp": {
+            "replicates": 1000,
+            "mean": 0.9610775375,
+            "standard_deviation": 0.286382434557,
+            "monte_carlo_standard_error": 0.009056207751,
+            "quantiles": {
+              "p00": 0.7793775,
+              "p01": 0.81792175,
+              "p05": 0.83445525,
+              "p10": 0.846173,
+              "p50": 0.9000625,
+              "p90": 1.0461195,
+              "p95": 1.313007875,
+              "p99": 3.357931775,
+              "p9999": 3.48338366325,
+              "p100": 3.4877925
+            }
+          },
+          "operator_ggr": {
+            "replicates": 1000,
+            "mean": 0.0389224625,
+            "standard_deviation": 0.286382434557,
+            "monte_carlo_standard_error": 0.009056207751,
+            "quantiles": {
+              "p00": -2.4877925,
+              "p01": -2.357931775,
+              "p05": -0.313007875,
+              "p10": -0.0461195,
+              "p50": 0.0999375,
+              "p90": 0.153827,
+              "p95": 0.16554475,
+              "p99": 0.18207825,
+              "p9999": 0.220164958,
+              "p100": 0.2206225
+            }
+          },
+          "probability_negative_operator_ggr": 0.153,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.002814547219,
+            "p01": 0.002857108856,
+            "p05": 0.00293594966,
+            "p10": 0.002979461144,
+            "p50": 0.027546426058,
+            "p90": 0.126663541039,
+            "p95": 0.261276811198,
+            "p99": 0.716877620873,
+            "p9999": 0.744437652766,
+            "p100": 0.744513493935
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0.028807028922,
+            "p90": 0.16807077918,
+            "p95": 0.361991094804,
+            "p99": 0.736062920147,
+            "p9999": 0.76130680701,
+            "p100": 0.762270375124
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0.128243864453,
+            "p95": 0.336293622978,
+            "p99": 0.728806222035,
+            "p9999": 0.76130680701,
+            "p100": 0.762270375124
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0.128243864453,
+            "p95": 0.336293622978,
+            "p99": 0.728806222035,
+            "p9999": 0.76130680701,
+            "p100": 0.762270375124
+          }
+        },
+        {
+          "bets": 5000,
+          "trials": 500,
+          "rng_seed": 1924064745,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000014,
+            "operator_ggr_mean": 0.03799999999999859,
+            "player_rtp_standard_deviation": 0.12596762839694245,
+            "operator_ggr_standard_deviation": 0.12596762839694245
+          },
+          "player_rtp": {
+            "replicates": 500,
+            "mean": 0.963258717,
+            "standard_deviation": 0.123956224477,
+            "monte_carlo_standard_error": 0.005543490883,
+            "quantiles": {
+              "p00": 0.846724,
+              "p01": 0.85659831,
+              "p05": 0.87080605,
+              "p10": 0.8783357,
+              "p50": 0.920792,
+              "p90": 1.06518565,
+              "p95": 1.36290015,
+              "p99": 1.443429775,
+              "p9999": 1.5187780962,
+              "p100": 1.5201235
+            }
+          },
+          "operator_ggr": {
+            "replicates": 500,
+            "mean": 0.036741283,
+            "standard_deviation": 0.123956224477,
+            "monte_carlo_standard_error": 0.005543490883,
+            "quantiles": {
+              "p00": -0.5201235,
+              "p01": -0.443429775,
+              "p05": -0.36290015,
+              "p10": -0.06518565,
+              "p50": 0.079208,
+              "p90": 0.1216643,
+              "p95": 0.12919395,
+              "p99": 0.14340169,
+              "p9999": 0.15322652415,
+              "p100": 0.153276
+            }
+          },
+          "probability_negative_operator_ggr": 0.216,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.000616362447,
+            "p01": 0.005469032467,
+            "p05": 0.005561170682,
+            "p10": 0.005612956778,
+            "p50": 0.026998846151,
+            "p90": 0.100127925678,
+            "p95": 0.329217609432,
+            "p99": 0.361047964896,
+            "p9999": 0.366864937607,
+            "p100": 0.36691121299
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0,
+            "p01": 0.011160282953,
+            "p05": 0.016951036297,
+            "p10": 0.022714347547,
+            "p50": 0.064403415792,
+            "p90": 0.188314326662,
+            "p95": 0.373005134007,
+            "p99": 0.403799838247,
+            "p9999": 0.437023155016,
+            "p100": 0.437464456013
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0.027650749135,
+            "p90": 0.166260929756,
+            "p95": 0.358747639681,
+            "p99": 0.383811924822,
+            "p9999": 0.427146644551,
+            "p100": 0.427596836704
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0.027650749135,
+            "p90": 0.166260929756,
+            "p95": 0.358747639681,
+            "p99": 0.383811924822,
+            "p9999": 0.427146644551,
+            "p100": 0.427596836704
+          }
+        },
+        {
+          "bets": 10000,
+          "trials": 200,
+          "rng_seed": 4148485165,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000014,
+            "operator_ggr_mean": 0.03799999999999859,
+            "player_rtp_standard_deviation": 0.08907256424946511,
+            "operator_ggr_standard_deviation": 0.08907256424946511
+          },
+          "player_rtp": {
+            "replicates": 200,
+            "mean": 0.9657001125,
+            "standard_deviation": 0.099638443978,
+            "monte_carlo_standard_error": 0.00704550194,
+            "quantiles": {
+              "p00": 0.87755575,
+              "p01": 0.8785963025,
+              "p05": 0.8887452375,
+              "p10": 0.897558975,
+              "p50": 0.9371795,
+              "p90": 1.131592275,
+              "p95": 1.1730832625,
+              "p99": 1.251369335,
+              "p9999": 1.692937047575,
+              "p100": 1.6997155
+            }
+          },
+          "operator_ggr": {
+            "replicates": 200,
+            "mean": 0.0342998875,
+            "standard_deviation": 0.099638443978,
+            "monte_carlo_standard_error": 0.00704550194,
+            "quantiles": {
+              "p00": -0.6997155,
+              "p01": -0.251369335,
+              "p05": -0.1730832625,
+              "p10": -0.131592275,
+              "p50": 0.0628205,
+              "p90": 0.102441025,
+              "p95": 0.1112547625,
+              "p99": 0.1214036975,
+              "p9999": 0.122444125625,
+              "p100": 0.12244425
+            }
+          },
+          "probability_negative_operator_ggr": 0.155,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.002760361431,
+            "p01": 0.00278233083,
+            "p05": 0.002848632191,
+            "p10": 0.013225526018,
+            "p50": 0.014142947222,
+            "p90": 0.150769759055,
+            "p95": 0.21331369836,
+            "p99": 0.217204244847,
+            "p9999": 0.221864009717,
+            "p100": 0.22189770915
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0.017092809397,
+            "p01": 0.022761229138,
+            "p05": 0.031295746389,
+            "p10": 0.033987258705,
+            "p50": 0.078051183549,
+            "p90": 0.245062729556,
+            "p95": 0.271406044957,
+            "p99": 0.304681600123,
+            "p9999": 0.49334803947,
+            "p100": 0.495671187325
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0.013751743037,
+            "p50": 0.053239804837,
+            "p90": 0.222295393636,
+            "p95": 0.250775646304,
+            "p99": 0.290714349935,
+            "p9999": 0.483037453719,
+            "p100": 0.485375346639
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0.013751743037,
+            "p50": 0.053239804837,
+            "p90": 0.222295393636,
+            "p95": 0.250775646304,
+            "p99": 0.290714349935,
+            "p9999": 0.483037453719,
+            "p100": 0.485375346639
+          }
+        },
+        {
+          "bets": 100000,
+          "trials": 100,
+          "rng_seed": 126698273,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000014,
+            "operator_ggr_mean": 0.03799999999999859,
+            "player_rtp_standard_deviation": 0.028167218005999615,
+            "operator_ggr_standard_deviation": 0.028167218005999615
+          },
+          "player_rtp": {
+            "replicates": 100,
+            "mean": 0.9622110145,
+            "standard_deviation": 0.024332499613,
+            "monte_carlo_standard_error": 0.002433249961,
+            "quantiles": {
+              "p00": 0.924158275,
+              "p01": 0.9251515915,
+              "p05": 0.928784005,
+              "p10": 0.9318354075,
+              "p50": 0.9593557,
+              "p90": 1.00020402,
+              "p95": 1.00354162125,
+              "p99": 1.01658718625,
+              "p9999": 1.022677160113,
+              "p100": 1.022738675
+            }
+          },
+          "operator_ggr": {
+            "replicates": 100,
+            "mean": 0.0377889855,
+            "standard_deviation": 0.024332499613,
+            "monte_carlo_standard_error": 0.002433249961,
+            "quantiles": {
+              "p00": -0.022738675,
+              "p01": -0.01658718625,
+              "p05": -0.00354162125,
+              "p10": -0.00020402,
+              "p50": 0.0406443,
+              "p90": 0.0681645925,
+              "p95": 0.071215995,
+              "p99": 0.0748484085,
+              "p9999": 0.075831791835,
+              "p100": 0.075841725
+            }
+          },
+          "probability_negative_operator_ggr": 0.11,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.00520191547,
+            "p01": 0.005206227202,
+            "p05": 0.005293953529,
+            "p10": 0.005307385456,
+            "p50": 0.02535602612,
+            "p90": 0.026276449377,
+            "p95": 0.026397767182,
+            "p99": 0.026672539761,
+            "p9999": 0.02687098224,
+            "p100": 0.026872986709
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0.066276526064,
+            "p01": 0.066652472291,
+            "p05": 0.073429261353,
+            "p10": 0.075679549106,
+            "p50": 0.10229329216,
+            "p90": 0.13740801468,
+            "p95": 0.141413231999,
+            "p99": 0.149581051208,
+            "p9999": 0.154680102677,
+            "p100": 0.154731608248
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0.039130198828,
+            "p01": 0.040562992276,
+            "p05": 0.04540749957,
+            "p10": 0.049543231677,
+            "p50": 0.076515272061,
+            "p90": 0.111134048434,
+            "p95": 0.113597456431,
+            "p99": 0.126262879194,
+            "p9999": 0.129521198851,
+            "p100": 0.129554111171
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0.039130198828,
+            "p01": 0.040562992276,
+            "p05": 0.04540749957,
+            "p10": 0.049543231677,
+            "p50": 0.076515272061,
+            "p90": 0.111134048434,
+            "p95": 0.113597456431,
+            "p99": 0.126262879194,
+            "p9999": 0.129521198851,
+            "p100": 0.129554111171
+          }
+        }
+      ]
+    },
+    {
+      "mode": "blackout",
+      "exact_distribution": {
+        "hit_rate": 0.95,
+        "zero_rate": 0.050000000000000044,
+        "standard_deviation_cost_normalized_return": 0.8951080486549385,
+        "cvar_worst_0_1_percent": {
+          "books": 100,
+          "cost_normalized_return": 17.375,
+          "raw_human_x": 1390
+        },
+        "tail": {
+          "etl_rtp_share_above_40x_cost": 0.0012993762993762994,
+          "etl_rtp_share_above_10000x_cost": 0,
+          "probability_raw_human_at_or_above_5000x": 0.00001,
+          "probability_raw_human_at_or_above_10000x": 0.00001,
+          "source_scale_ambiguity_checked_as_fraction_and_percent": true
+        },
+        "payout_bands_cost_normalized": [
+          {
+            "id": "zero",
+            "books": 5000,
+            "probability": 0.05,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
+          },
+          {
+            "id": "gt_0_lt_1x_cost",
+            "books": 48715,
+            "probability": 0.48715,
+            "payout_raw_contribution": 229759561,
+            "rtp_contribution_share": 0.2985441281185031
+          },
+          {
+            "id": "1_to_lt_2x_cost",
+            "books": 45864,
+            "probability": 0.45864,
+            "payout_raw_contribution": 508840439,
+            "rtp_contribution_share": 0.6611752066008316
+          },
+          {
+            "id": "2_to_lt_5x_cost",
+            "books": 0,
+            "probability": 0,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
+          },
+          {
+            "id": "5_to_lt_20x_cost",
+            "books": 400,
+            "probability": 0.004,
+            "payout_raw_contribution": 25000000,
+            "rtp_contribution_share": 0.032484407484407486
+          },
+          {
+            "id": "20_to_lt_50x_cost",
+            "books": 20,
+            "probability": 0.0002,
+            "payout_raw_contribution": 5000000,
+            "rtp_contribution_share": 0.006496881496881497
+          },
+          {
+            "id": "50_to_lt_100x_cost",
+            "books": 0,
+            "probability": 0,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
+          },
+          {
+            "id": "100_to_lt_1000x_cost",
+            "books": 1,
+            "probability": 0.00001,
+            "payout_raw_contribution": 1000000,
+            "rtp_contribution_share": 0.0012993762993762994
+          },
+          {
+            "id": "gte_1000x_cost",
+            "books": 0,
+            "probability": 0,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
+          }
+        ]
+      },
+      "short_windows": [
+        {
+          "bets": 100,
+          "trials": 1000,
+          "rng_seed": 1420488687,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000191,
+            "operator_ggr_mean": 0.03799999999998094,
+            "player_rtp_standard_deviation": 0.08951080486549386,
+            "operator_ggr_standard_deviation": 0.08951080486549386
+          },
+          "player_rtp": {
+            "replicates": 1000,
+            "mean": 0.95937614875,
+            "standard_deviation": 0.088392926588,
+            "monte_carlo_standard_error": 0.002795229771,
+            "quantiles": {
+              "p00": 0.77899375,
+              "p01": 0.8275031375,
+              "p05": 0.8554089375,
+              "p10": 0.871943875,
+              "p50": 0.947115,
+              "p90": 1.05380125,
+              "p95": 1.103299,
+              "p99": 1.2511456375,
+              "p9999": 2.084162730125,
+              "p100": 2.156945
+            }
+          },
+          "operator_ggr": {
+            "replicates": 1000,
+            "mean": 0.04062385125,
+            "standard_deviation": 0.088392926588,
+            "monte_carlo_standard_error": 0.002795229771,
+            "quantiles": {
+              "p00": -1.156945,
+              "p01": -0.2511456375,
+              "p05": -0.103299,
+              "p10": -0.05380125,
+              "p50": 0.052885,
+              "p90": 0.128056125,
+              "p95": 0.1445910625,
+              "p99": 0.1724968625,
+              "p9999": 0.2196131445,
+              "p100": 0.22100625
+            }
+          },
+          "probability_negative_operator_ggr": 0.225,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.015951782087,
+            "p01": 0.016985998173,
+            "p05": 0.01762997619,
+            "p10": 0.018010143011,
+            "p50": 0.019743628401,
+            "p90": 0.110402366467,
+            "p95": 0.121259990097,
+            "p99": 0.247905488906,
+            "p9999": 0.548184248645,
+            "p100": 0.579523353632
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0,
+            "p95": 0,
+            "p99": 0.247905488906,
+            "p9999": 0.548184248645,
+            "p100": 0.579523353632
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0,
+            "p95": 0,
+            "p99": 0,
+            "p9999": 0.521628970604,
+            "p100": 0.579523353632
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0,
+            "p95": 0,
+            "p99": 0,
+            "p9999": 0.521628970604,
+            "p100": 0.579523353632
+          }
+        },
+        {
+          "bets": 1000,
+          "trials": 1000,
+          "rng_seed": 1702776763,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000191,
+            "operator_ggr_mean": 0.03799999999998094,
+            "player_rtp_standard_deviation": 0.02830580185698423,
+            "operator_ggr_standard_deviation": 0.02830580185698423
+          },
+          "player_rtp": {
+            "replicates": 1000,
+            "mean": 0.9609097005,
+            "standard_deviation": 0.026238675347,
+            "monte_carlo_standard_error": 0.000829739769,
+            "quantiles": {
+              "p00": 0.899742625,
+              "p01": 0.914354295,
+              "p05": 0.923926325,
+              "p10": 0.9310462,
+              "p50": 0.9577631875,
+              "p90": 0.9931797375,
+              "p95": 1.0057790125,
+              "p99": 1.031535715,
+              "p9999": 1.144085788787,
+              "p100": 1.145535625
+            }
+          },
+          "operator_ggr": {
+            "replicates": 1000,
+            "mean": 0.0390902995,
+            "standard_deviation": 0.026238675347,
+            "monte_carlo_standard_error": 0.000829739769,
+            "quantiles": {
+              "p00": -0.145535625,
+              "p01": -0.031535715,
+              "p05": -0.0057790125,
+              "p10": 0.0068202625,
+              "p50": 0.0422368125,
+              "p90": 0.0689538,
+              "p95": 0.076073675,
+              "p99": 0.085645705,
+              "p9999": 0.100246660725,
+              "p100": 0.100257375
+            }
+          },
+          "probability_negative_operator_ggr": 0.068,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.001871381346,
+            "p01": 0.00192644477,
+            "p05": 0.006512155263,
+            "p10": 0.006571208318,
+            "p50": 0.012939884938,
+            "p90": 0.031620583119,
+            "p95": 0.032116075015,
+            "p99": 0.033005719032,
+            "p9999": 0.120392279667,
+            "p100": 0.120806985833
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0.031735857966,
+            "p95": 0.032240515555,
+            "p99": 0.061162269089,
+            "p9999": 0.134841425583,
+            "p100": 0.136399075323
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0,
+            "p95": 0,
+            "p99": 0,
+            "p9999": 0.120392279667,
+            "p100": 0.120806985833
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0,
+            "p95": 0,
+            "p99": 0,
+            "p9999": 0.120392279667,
+            "p100": 0.120806985833
+          }
+        },
+        {
+          "bets": 5000,
+          "trials": 500,
+          "rng_seed": 2107803295,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000191,
+            "operator_ggr_mean": 0.03799999999998094,
+            "player_rtp_standard_deviation": 0.012658739421971302,
+            "operator_ggr_standard_deviation": 0.012658739421971302
+          },
+          "player_rtp": {
+            "replicates": 500,
+            "mean": 0.96278886795,
+            "standard_deviation": 0.012278078953,
+            "monte_carlo_standard_error": 0.000549092383,
+            "quantiles": {
+              "p00": 0.935157775,
+              "p01": 0.938094875,
+              "p05": 0.94353115,
+              "p10": 0.9474321475,
+              "p50": 0.9619726375,
+              "p90": 0.97991412,
+              "p95": 0.98525925875,
+              "p99": 0.99722123625,
+              "p9999": 1.0022946824,
+              "p100": 1.0023358
+            }
+          },
+          "operator_ggr": {
+            "replicates": 500,
+            "mean": 0.03721113205,
+            "standard_deviation": 0.012278078953,
+            "monte_carlo_standard_error": 0.000549092383,
+            "quantiles": {
+              "p00": -0.0023358,
+              "p01": 0.00277876375,
+              "p05": 0.01474074125,
+              "p10": 0.02008588,
+              "p50": 0.0380273625,
+              "p90": 0.0525678525,
+              "p95": 0.05646885,
+              "p99": 0.061905125,
+              "p9999": 0.06480605748,
+              "p100": 0.064842225
+            }
+          },
+          "probability_negative_operator_ggr": 0.006,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.00133041444,
+            "p01": 0.002566476159,
+            "p05": 0.002590733673,
+            "p10": 0.002602150126,
+            "p50": 0.006433906849,
+            "p90": 0.006571730924,
+            "p95": 0.006678447032,
+            "p99": 0.025486641586,
+            "p9999": 0.025645006423,
+            "p100": 0.025645199233
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0.006486466926,
+            "p90": 0.01908028558,
+            "p95": 0.025338211162,
+            "p99": 0.03821367991,
+            "p9999": 0.055958150488,
+            "p100": 0.056233227034
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0,
+            "p95": 0,
+            "p99": 0.025513302255,
+            "p9999": 0.048673991844,
+            "p100": 0.049883482162
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0,
+            "p95": 0,
+            "p99": 0.025513302255,
+            "p9999": 0.048673991844,
+            "p100": 0.049883482162
+          }
+        },
+        {
+          "bets": 10000,
+          "trials": 200,
+          "rng_seed": 2111375827,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000191,
+            "operator_ggr_mean": 0.03799999999998094,
+            "player_rtp_standard_deviation": 0.008951080486549384,
+            "operator_ggr_standard_deviation": 0.008951080486549384
+          },
+          "player_rtp": {
+            "replicates": 200,
+            "mean": 0.96252337525,
+            "standard_deviation": 0.008910143224,
+            "monte_carlo_standard_error": 0.00063004227,
+            "quantiles": {
+              "p00": 0.9432973125,
+              "p01": 0.944815356375,
+              "p05": 0.949298705625,
+              "p10": 0.95178406875,
+              "p50": 0.96196004375,
+              "p90": 0.97450453625,
+              "p95": 0.977722645625,
+              "p99": 0.981873978125,
+              "p9999": 0.987293163628,
+              "p100": 0.9873681125
+            }
+          },
+          "operator_ggr": {
+            "replicates": 200,
+            "mean": 0.03747662475,
+            "standard_deviation": 0.008910143224,
+            "monte_carlo_standard_error": 0.00063004227,
+            "quantiles": {
+              "p00": 0.0126318875,
+              "p01": 0.018126021875,
+              "p05": 0.022277354375,
+              "p10": 0.02549546375,
+              "p50": 0.03803995625,
+              "p90": 0.04821593125,
+              "p95": 0.050701294375,
+              "p99": 0.055184643625,
+              "p9999": 0.056702583771,
+              "p100": 0.0567026875
+            }
+          },
+          "probability_negative_operator_ggr": 0,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.001296299693,
+            "p01": 0.001297961141,
+            "p05": 0.001308226525,
+            "p10": 0.001321739762,
+            "p50": 0.003248575677,
+            "p90": 0.012733323302,
+            "p95": 0.012854420169,
+            "p99": 0.013022523371,
+            "p9999": 0.01305742774,
+            "p100": 0.013057819437
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0.006496966264,
+            "p90": 0.016169679551,
+            "p95": 0.019266726054,
+            "p99": 0.02869957809,
+            "p9999": 0.03159549204,
+            "p100": 0.031649796671
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0.012733323302,
+            "p95": 0.012867494659,
+            "p99": 0.013038333029,
+            "p9999": 0.025455756746,
+            "p100": 0.025707485093
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0.012733323302,
+            "p95": 0.012867494659,
+            "p99": 0.013038333029,
+            "p9999": 0.025455756746,
+            "p100": 0.025707485093
+          }
+        },
+        {
+          "bets": 100000,
+          "trials": 100,
+          "rng_seed": 2830091591,
+          "exact_iid_window_expectation": {
+            "player_rtp_mean": 0.9620000000000191,
+            "operator_ggr_mean": 0.03799999999998094,
+            "player_rtp_standard_deviation": 0.002830580185698423,
+            "operator_ggr_standard_deviation": 0.002830580185698423
+          },
+          "player_rtp": {
+            "replicates": 100,
+            "mean": 0.962395016725,
+            "standard_deviation": 0.003080388414,
+            "monte_carlo_standard_error": 0.000308038841,
+            "quantiles": {
+              "p00": 0.9560486775,
+              "p01": 0.956240888475,
+              "p05": 0.957627232437,
+              "p10": 0.958993065375,
+              "p50": 0.962294905625,
+              "p90": 0.966683688125,
+              "p95": 0.967628523,
+              "p99": 0.969224758138,
+              "p9999": 0.969614165344,
+              "p100": 0.96961809875
+            }
+          },
+          "operator_ggr": {
+            "replicates": 100,
+            "mean": 0.037604983275,
+            "standard_deviation": 0.003080388414,
+            "monte_carlo_standard_error": 0.000308038841,
+            "quantiles": {
+              "p00": 0.03038190125,
+              "p01": 0.030775241862,
+              "p05": 0.032371477,
+              "p10": 0.033316311875,
+              "p50": 0.037705094375,
+              "p90": 0.041006934625,
+              "p95": 0.042372767563,
+              "p99": 0.043759111525,
+              "p9999": 0.04394940039,
+              "p100": 0.0439513225
+            }
+          },
+          "probability_negative_operator_ggr": 0,
+          "largest_payout_share_of_window_return": {
+            "p00": 0.00032373758,
+            "p01": 0.000323756764,
+            "p05": 0.000324465657,
+            "p10": 0.000324793122,
+            "p50": 0.001295094547,
+            "p90": 0.001302239407,
+            "p95": 0.001303198093,
+            "p99": 0.001307201999,
+            "p9999": 0.001307462179,
+            "p100": 0.001307464807
+          },
+          "return_concentration_gte_20x_cost": {
+            "p00": 0.004557903547,
+            "p01": 0.004560101304,
+            "p05": 0.00521197371,
+            "p10": 0.005538067933,
+            "p50": 0.008113298967,
+            "p90": 0.011052806658,
+            "p95": 0.011676187658,
+            "p99": 0.01259535878,
+            "p9999": 0.012893942256,
+            "p100": 0.012896958251
+          },
+          "return_concentration_gte_50x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0.001302080492,
+            "p90": 0.003877183081,
+            "p95": 0.003897687396,
+            "p99": 0.005188371344,
+            "p9999": 0.005190691662,
+            "p100": 0.0051907151
+          },
+          "return_concentration_gte_100x_cost": {
+            "p00": 0,
+            "p01": 0,
+            "p05": 0,
+            "p10": 0,
+            "p50": 0.001302080492,
+            "p90": 0.003877183081,
+            "p95": 0.003897687396,
+            "p99": 0.005188371344,
+            "p9999": 0.005190691662,
+            "p100": 0.0051907151
+          }
+        }
+      ]
+    }
+  ],
+  "note": "Risk visibility only. Runtime selection remains fixed, stateless and player/history independent."
+}

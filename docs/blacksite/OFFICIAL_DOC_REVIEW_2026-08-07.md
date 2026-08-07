@@ -24,6 +24,8 @@ Purpose: snapshot the first-party documentation areas reviewed while building th
   - mute, spacebar and autoplay confirmation;
   - fast/turbo readability;
   - currency/language playtesting.
+  - new-submission small-bet support and exact three-/four-decimal WIN precision according to the minimum possible multiplier;
+  - no production-console leakage of errors or game information.
 - RGS Communication
   - authenticate values must govern bet levels/limits/increments;
   - static frontend/no external runtime resources.
@@ -58,6 +60,13 @@ Purpose: snapshot the first-party documentation areas reviewed while building th
   - exact authenticated criteria are login-gated publicly;
   - current public page states the review uses independent reviewers and quality ranking;
   - this project therefore treats the supplied 51 checklist items as the explicit working checklist and reconciles them with the authenticated checklist before submission.
+- Math Verification
+  - canonical `base` mode must cost `1.0x` and be the cheapest mode;
+  - base standard deviation, per-mode RTP, cross-mode RTP spread, Max Win, mode-cost and non-zero-hit-rate hard gates;
+  - operator bet-template viability and static file/event-count limits;
+  - CVaR, tail probability and ETL/exposure diagnostics for quality-tier review;
+  - practical Max Win attainability and 100k-1M recommended simulation scale;
+  - this live first-party page was omitted from the original review and is now explicitly indexed.
 
 ## RGS documentation reviewed
 
@@ -78,6 +87,12 @@ Technical areas:
 - static math publication format.
 
 Important reconciliation: the exact need for a frontend end-round call depends on the authoritative round and BetMode auto-close contract. BLACKSITE therefore tests request behaviour per mode instead of encoding “win means end-round” or “loss means no end-round” as a universal UI rule.
+
+Additional reconciliation:
+- approval material says `minStep`, while the technical authenticate schema says `stepBet`; accept a documented alias only when both values agree;
+- Replay query `amount`, Replay response multiplier, static-package centi-x payout and wallet micro-units remain separate types until a target-RGS payload proves conversion;
+- `pl` is the internal ISO language code; any documented `po` launch alias is normalized only at the boundary;
+- Social Mode remains English-only under project checklist item 39 until Stake resolves the public `sweeps_<lang>` ambiguity.
 
 ## Math SDK documentation tree reviewed
 
@@ -147,6 +162,7 @@ The current official SDK navigation covers all of these areas, and BLACKSITE sou
 - A book contains the payout multiplier and the event sequence required by the frontend.
 - Lookup selection weights are the fixed production probability lever.
 - Lookup payout and book payout must match.
+- Book/lookup payout integers use centi-x units (`100 = 1.00x`); cost-normalized return is `rawPayout / (100 * modeCost)`, independently of six-decimal RGS wallet units.
 - `index.json` plus mode lookup CSV and compressed JSONL books are release-critical static math files.
 - `BetMode` defines RTP, cost, max win, distributions and auto-close/feature behaviour.
 - Distribution criteria/quotas can intentionally create simulation classes such as freegame/max-win candidates for a diverse optimization pool.

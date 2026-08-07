@@ -29,6 +29,18 @@ The exact uploaded math package must contain the current Stake-required structur
 
 The release gate extracts/reads the actual package and repeats these checks from package bytes, not just source folders.
 
+### Payout unit contract
+
+Stake math-package payout values are unsigned integer **centi-x** values, not human-readable multipliers:
+
+- raw book/lookup payout `100` = `1.00x`;
+- human payout multiplier = `rawPayout / 100`;
+- cost-normalized return = `rawPayout / (100 * modeCost)`;
+- wallet win in six-decimal API units = `round(baseAmountMicro * rawPayout / 100)`;
+- lookup `id`, `weight` and `payout` columns remain unsigned integer values.
+
+Do not mix this package unit with the RGS money unit (`1 currency unit = 1_000_000` API units). Unit conversion belongs at an explicit, tested boundary.
+
 ## 3. Canonical mode registry
 
 Before final simulation, freeze a mode registry containing:
@@ -132,11 +144,11 @@ For each published mode calculate at least:
 
 Always report both:
 
-`raw payout multiplier`
+`raw package payout (centi-x integer) and human payout multiplier = rawPayout / 100`
 
 and
 
-`cost-normalized return = payoutMultiplier / modeCost`
+`cost-normalized return = rawPayout / (100 * modeCost)`
 
 when comparing modes with different costs. Never call a 95× raw return a “95× player win” for a 95×-cost feature without normalization context.
 
@@ -251,6 +263,21 @@ Candidate build fails on any of:
 - stale audit/config/hash file;
 - event schema mismatch;
 - source package != tested package.
+
+The candidate also fails the current public Stake math-verification hard gates when:
+
+- canonical `base` mode is absent, costs anything other than `1.0x`, or is not the cheapest mode;
+- base-mode cost-normalized standard deviation is below `0.6`;
+- any mode RTP is below `90.0%` or above `96.7%`;
+- the RTP spread across modes exceeds `0.5` percentage points;
+- Max Win exceeds `500,000x` or any mode cost exceeds `2,000x`;
+- non-zero hit rate is below `1 / 50`;
+- there is no viable operator bet template;
+- a compressed book exceeds `4.2 GB` or a mode exceeds `10,000,000` events.
+
+For a 3-star candidate, additionally audit current non-critical exposure bands, including base-mode standard deviation, CVaR over the worst `0.1%`, tail RTP contribution/ETL above `40x` and `10,000x` cost, and raw probabilities at or above `5,000x` and `10,000x`. These values are candidate-review signals rather than permission to weaken any hard gate. Re-check the live Math Verification page before every approval freeze.
+
+The current public tail-probability table labels its values as raw probabilities but does not make the displayed decimal scale explicit. Store each source string, compute both fraction and percent interpretations, and require the candidate to satisfy the stricter interpretation. Keep the source ambiguity marked `REVIEW_REQUIRED`; it is not a candidate blocker when the exact candidate passes both readings.
 
 ## 15. Frontend contract generation
 

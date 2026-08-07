@@ -43,6 +43,8 @@ Separate display helpers:
 
 Never round authoritative values before final display formatting.
 
+For new submissions, support the small bet levels returned by RGS. When the smallest possible win is at least `0.1x`, show exact wins to at least three decimals where needed; when it is below `0.1x`, preserve four-decimal win precision. Balance formatting may remain a separate two-decimal policy. Never reuse balance rounding for WIN, Replay result or total-play display.
+
 ## 4. Authenticate
 
 Live paid play starts with exactly the current required authentication request.
@@ -58,6 +60,8 @@ Consume authoritative response fields including:
 - current/last round.
 
 Do not ship a hardcoded production bet-level list that overrides RGS response values.
+
+Current first-party pages use both `stepBet` and `minStep` for the minimum increment. Normalize this at one typed boundary: prefer the field actually returned by authenticate, accept an explicitly supported alias only when the values agree, and fail closed if both are present and conflict.
 
 ## 5. Bet selection
 
@@ -176,6 +180,8 @@ Validate response structure before playback:
 - cost multiplier numeric/valid;
 - state/event payload usable by the target math version;
 - mode identity consistent with the requested replay.
+
+The public Replay page describes `amount` only as being “in units” and exposes a numeric payout multiplier, while the static math package uses centi-x integers and wallet APIs use six-decimal integer money. Keep Replay query amount, Replay response multiplier, package payout and wallet amount as four explicitly named domains. Do not infer one unit from another until a real target RGS payload or authoritative schema proves the conversion.
 
 If legacy/alternate numeric representations are intentionally accepted, normalize only when they resolve exactly to the authoritative result. Contradictory values fail closed.
 

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "unit": "centi-x_uint64",
+  "cluster_bands": ["cluster_5_7", "cluster_8_11", "cluster_12_16", "cluster_17_23", "cluster_24_31", "cluster_32_39", "cluster_40_48", "cluster_49"],
+  "symbols": {
+    "byte":   [1, 2, 3, 4, 14, 100, 500, 2500],
+    "relay":  [2, 5, 6, 7, 25, 250, 750, 5000],
+    "proxy":  [3, 6, 8, 9, 207, 500, 1000, 10000],
+    "cipher": [4, 7, 9, 10, 207, 100, 2500, 25000],
+    "daemon": [5, 8, 10, 11, 250, 1000, 5000, 50000],
+    "vault":  [6, 9, 12, 13, 500, 2500, 10000, 100000]
+  },
+  "formula": "calculated_award_raw = base_payout_raw * access_multiplier; applied_award_raw = min(calculated_award_raw, max_win_raw - cumulative_before_raw)"
+}

@@ -18,6 +18,8 @@ Every major Codex task starts with:
 ## Core product and architecture
 
 - `MASTER_PLAN.md` — product vision, architecture, milestones and Definition of Done.
+- `M1_GAME_MATH_CONTRACT.md` — frozen BLACKSITE M1 mechanic, modes, Ghost Route, events, fixtures and Gate A–D decisions.
+- `M1_COMPLIANCE_REVIEW.md` — truthful requirement-by-requirement M1 status and next-evidence gates for all 51 checklist items.
 - `STAKE_REQUIREMENTS_51.md` — the exact 51-point approval checklist supplied for this project, with proof expectations and release ownership.
 - `STAKE_ENGINE_SOURCE_INDEX.md` — official Stake Engine/SDK source map and precedence rules.
 - `OFFICIAL_DOC_REVIEW_2026-08-07.md` — dated review map covering current approval, RGS, math SDK, frontend SDK and Codex-source conclusions.

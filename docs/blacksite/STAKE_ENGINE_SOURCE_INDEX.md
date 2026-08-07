@@ -38,6 +38,8 @@ Use for:
 - fastplay legibility;
 - currency/language playtesting.
 
+The current page also requires exact small-win visibility for new submissions: win precision depends on the game's minimum possible multiplier and is distinct from balance precision. It additionally prohibits leaking errors or game information through production console output, so extracted-build QA must include a console/sensitive-log scan.
+
 ### RGS communication approval guidance
 `https://stake-engine.com/docs/approval-guidelines/rgs-communication`
 
@@ -46,6 +48,8 @@ Use for:
 - authenticate bet-level constraints;
 - language/currency handling;
 - static/no-external-source restrictions.
+
+Reconcile the asset wording with the static-runtime rule as follows: ship package-local assets/fonts only; Stake may subsequently host those immutable files on its CDN, but the submitted frontend must not depend on arbitrary third-party runtime fetches.
 
 ### Replay requirements
 `https://stake-engine.com/docs/approval-guidelines/game-replay-requirements`
@@ -102,6 +106,20 @@ Use for the 3-star target:
 
 The public page explains review flow but currently gates the exact checklist behind login. Treat `STAKE_REQUIREMENTS_51.md` as this project's explicit approval checklist and reconcile it with whatever the authenticated checklist says at submission time.
 
+### Math verification
+`https://stake-engine.com/docs/approval-guidelines/math-verification`
+
+Use for the current automated and reviewer-facing math gates, including:
+- canonical `base` mode identity, `1.0x` cost and cheapest-mode requirement;
+- base-mode minimum standard deviation;
+- allowed RTP range and cross-mode RTP spread;
+- Max Win, mode-cost, hit-rate and file/event-count hard limits;
+- operator bet-template viability;
+- CVaR, tail-probability and ETL/exposure reporting;
+- practical Max Win attainability and recommended simulation volume.
+
+This page is release-critical. It was present in the current first-party application bundle before this repository's 2026-08-07 review but was omitted from the original index; the omission is corrected here.
+
 ## 2. RGS
 
 ### Stake Engine RGS docs
@@ -157,6 +175,12 @@ Release-critical requirements:
 - zstd-compressed JSONL book files;
 - every book contains at least `id`, `events`, `payoutMultiplier`;
 - payout values in lookup and books must match exactly.
+
+Unit contract:
+- lookup/book payout values are unsigned integer centi-x values (`100 = 1.00x`, `1150 = 11.50x`);
+- human payout multiplier is `rawPayout / 100`;
+- cost-normalized return is `rawPayout / (100 * modeCost)`;
+- these values are distinct from RGS wallet amounts, which use six-decimal integer money units.
 
 ### BetMode
 `https://stakeengine.github.io/math-sdk/math_docs/gamestate_section/configuration_section/betmode_overview/`
@@ -225,3 +249,11 @@ Before changing a compliance-sensitive contract:
 ## 7. Known documentation ambiguities
 
 Some rules are expressed differently between high-level approval pages and SDK/RGS implementation docs. Resolve them by preserving the stronger invariant and testing the actual RGS lifecycle. Example: end-round behaviour depends on the mode/round auto-close contract; do not blindly couple end-round to `payout > 0` or `payout == 0` in frontend code. The review requirement is that the frontend sends no incorrect/unnecessary request and restores/settles active rounds exactly as the RGS expects.
+
+Tracked current ambiguities:
+- approval guidance names authenticate `config/minStep`, while the technical RGS schema names `config.stepBet`; normalize an alias only when values agree and reject conflict;
+- approval language material lists Polish as `po`, while the technical ISO list uses `pl`; BLACKSITE uses ISO `pl` internally and permits an explicit launch alias only after target-RGS verification;
+- public supported-currency lists differ; retain safe currency-code fallback and explicit XGC/XSC/XEC handling instead of rejecting unknown codes;
+- Replay `amount` is described only as “in units”; do not assume it is wallet micro-units or human currency until verified against the target RGS;
+- public Math Verification tail-probability limits are labeled raw probabilities but their displayed decimal scale is not explicit. Candidate audits preserve the source values and test both fraction and percent interpretations;
+- the jurisdiction page suggests `sweeps_<lang>` but does not publicly require English-only Social Mode. Project checklist item 39 remains the stronger candidate contract until Stake confirms otherwise.

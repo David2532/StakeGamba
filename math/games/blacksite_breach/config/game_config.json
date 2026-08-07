@@ -1,0 +1,31 @@
+{
+  "game_id": "blacksite_breach",
+  "game_name": "BLACKSITE // BREACH",
+  "candidate_version": "0.1.0-m1",
+  "lifecycle": "M1_INITIAL_CANDIDATE_NOT_RELEASE",
+  "stateless": true,
+  "package_payout_unit": "centi-x_uint64",
+  "wallet_money_unit_present": false,
+  "layout": {
+    "columns": 7,
+    "rows": 7,
+    "position_shape": {
+      "column": "uint_0_to_6",
+      "row": "uint_0_to_6"
+    }
+  },
+  "source_files": {
+    "mode_registry": "mode_registry.json",
+    "mechanics": "mechanics.json",
+    "paytable": "paytable.json",
+    "math_verification_profile": "math_verification_profile.json"
+  },
+  "generation": {
+    "books_per_mode": 100000,
+    "lookup_weight_per_book": 1,
+    "id_min": 1,
+    "id_max": 100000,
+    "command": "node math/games/blacksite_breach/generate.mjs",
+    "verification_command": "node math/games/blacksite_breach/verify.mjs"
+  }
+}
