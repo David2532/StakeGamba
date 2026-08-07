@@ -16,6 +16,11 @@ const modeDefinitions = [
 		socialLabel: 'STANDARD RUN',
 		costMultiplier: 1,
 		initialPhase: 'base',
+		seedBreachedCells: [],
+		seedLiveCells: [],
+		startingAccessMultiplier: 1,
+		isBuyBonus: false,
+		actionDescription: 'Starts with every Ghost Route cell sealed and progresses naturally from the base phase.',
 	},
 	{
 		id: 'deep_access',
@@ -23,6 +28,11 @@ const modeDefinitions = [
 		socialLabel: 'DEEP ACCESS',
 		costMultiplier: 4,
 		initialPhase: 'base',
+		seedBreachedCells: [{ column: 3, row: 6 }, { column: 3, row: 5 }],
+		seedLiveCells: [{ column: 3, row: 6 }, { column: 3, row: 5 }],
+		startingAccessMultiplier: 2,
+		isBuyBonus: true,
+		actionDescription: 'Starts the base phase with two seeded live route cells and 2× Access.',
 	},
 	{
 		id: 'blackout',
@@ -30,6 +40,21 @@ const modeDefinitions = [
 		socialLabel: 'BLACKOUT ENTRY',
 		costMultiplier: 80,
 		initialPhase: 'feature',
+		seedBreachedCells: [
+			{ column: 3, row: 6 },
+			{ column: 3, row: 5 },
+			{ column: 3, row: 4 },
+			{ column: 3, row: 3 },
+		],
+		seedLiveCells: [
+			{ column: 3, row: 6 },
+			{ column: 3, row: 5 },
+			{ column: 3, row: 4 },
+			{ column: 3, row: 3 },
+		],
+		startingAccessMultiplier: 5,
+		isBuyBonus: true,
+		actionDescription: 'Starts BLACKOUT PROTOCOL directly with four seeded live route cells and six cycles.',
 	},
 ];
 
@@ -37,6 +62,12 @@ export const MODES = Object.freeze(
 	modeDefinitions.map((mode) =>
 		Object.freeze({
 			...mode,
+			seedBreachedCells: Object.freeze(
+				mode.seedBreachedCells.map((position) => Object.freeze({ ...position })),
+			),
+			seedLiveCells: Object.freeze(
+				mode.seedLiveCells.map((position) => Object.freeze({ ...position })),
+			),
 			targetRtp: TARGET_RTP,
 			maxWinRaw: MAX_WIN_RAW,
 		}),

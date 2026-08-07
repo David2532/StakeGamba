@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import {
 		CANDIDATE_FINGERPRINT_SHA256,
 		EVENT_SCHEMA_SHA256,
@@ -7,12 +7,35 @@
 		getMode,
 		getModeLabel,
 	} from '../lib/contracts/modes.js';
-	import { getFixture } from '../lib/fixtures/base-zero.js';
+	import {
+		CLUSTER_BANDS,
+		RULES_CONTRACT,
+		SYMBOL_PAYOUTS,
+		getRulesDisclaimer,
+	} from '../lib/contracts/rules.js';
+	import { createReplayClient } from '../lib/replay/client.js';
+	import { ReplayController } from '../lib/replay/controller.js';
+	import {
+		replayQueryUnitsTimesCentiX,
+		replayQueryUnitsTimesInteger,
+	} from '../lib/replay/money-domains.js';
+	import { createReplayNormalizer } from '../lib/replay/normalizer.js';
+	import { createLiveRgsClient } from '../lib/rgs/client.js';
+	import { InsufficientBalanceError, totalPlayAmountApi } from '../lib/rgs/contracts.js';
+	import { LiveSessionController } from '../lib/rgs/live-session.js';
 	import { GameEventAdapter } from '../lib/runtime/game-event-adapter.js';
+	import {
+		formatBalanceApi,
+		formatCentiMultiplier,
+		formatExactApi,
+		formatReplayQueryUnits,
+		formatSignedExactApi,
+	} from '../lib/runtime/display-money.js';
 	import { resolveLaunchMode } from '../lib/runtime/launch-mode.js';
 	import {
 		PresentationDirector,
 		createInitialPresentationState,
+		planPresentationRestore,
 	} from '../lib/runtime/presentation-director.js';
 
 	const boardCells = Array.from({ length: 49 }, (_, index) => ({
@@ -27,6 +50,14 @@
 		daemon: 'DMN',
 		vault: 'VLT',
 	});
+	const presentationCheckpointKinds = new Set([
+		'board_snapshot',
+		'route_snapshot',
+		'feature_started',
+		'feature_cycle',
+		'feature_ended',
+		'cap_reached',
+	]);
 
 	let launch = { kind: 'booting' };
 	let presentation = createInitialPresentationState();
@@ -35,8 +66,109 @@
 	let activeFixture = null;
 	let activeCues = [];
 	let director = null;
+	let liveSession = null;
+	let replayController = null;
+	let liveSnapshot = {
+		status: 'idle',
+		balance: null,
+		config: null,
+		selectedBaseAmountApi: null,
+		round: null,
+	};
+	let replaySnapshot = { status: 'idle', replay: null, error: null };
+	let runtimeState = 'booting';
+	let runtimeError = null;
+	let pendingRoundOrigin = null;
+	let primaryBusy = false;
+	let confirmationOpen = false;
+	let rulesOpen = false;
+	let finalWinApi = null;
+	let finalWinRaw = 0;
+	let sessionOpeningBalanceApi = null;
+	let sessionElapsedSeconds = 0;
+	let sessionTimerHandle = null;
+	let liveRoundStartedAtMs = null;
+	let minimumRoundWait = null;
+	let confirmationDialog = null;
+	let confirmationCancelButton = null;
+	let rulesDialog = null;
+	let rulesCloseButton = null;
+	let returnFocusElement = null;
 
 	$: selectedMode = getMode(selectedModeId);
+	$: social = launch.social === true || liveSnapshot.config?.jurisdiction?.socialCasino === true;
+	$: currency = liveSnapshot.balance?.currency ?? launch.currency ?? 'USD';
+	$: baseAmountApi = liveSnapshot.selectedBaseAmountApi ?? 0;
+	$: betLevelsApi = liveSnapshot.config?.betLevelsApi ?? [];
+	$: spacebarDisabled = liveSnapshot.config?.jurisdiction?.disabledSpacebar === true;
+	$: buyFeatureDisabled = liveSnapshot.config?.jurisdiction?.disabledBuyFeature === true;
+	$: selectedModeBlocked = Boolean(
+		buyFeatureDisabled && liveSnapshot.config?.betModes?.[selectedModeId]?.feature,
+	);
+	$: displayNetPosition = liveSnapshot.config?.jurisdiction?.displayNetPosition === true;
+	$: displaySessionTimer = liveSnapshot.config?.jurisdiction?.displaySessionTimer === true;
+	$: netPositionText = liveSnapshot.balance && sessionOpeningBalanceApi !== null
+		? formatSignedExactApi(
+			sessionOpeningBalanceApi - liveSnapshot.balance.amountApi,
+			liveSnapshot.balance.currency,
+		)
+		: '—';
+	$: sessionTimerText = `${String(Math.floor(sessionElapsedSeconds / 60)).padStart(2, '0')}:${String(sessionElapsedSeconds % 60).padStart(2, '0')}`;
+	$: totalAmountApi = safeTotalAmount(baseAmountApi, selectedModeId);
+	$: insufficientKnown = Boolean(
+		launch.kind === 'live' &&
+		liveSnapshot.balance &&
+		totalAmountApi > liveSnapshot.balance.amountApi,
+	);
+	$: balanceText = liveSnapshot.balance
+		? formatBalanceApi(liveSnapshot.balance.amountApi, liveSnapshot.balance.currency)
+		: '—';
+	$: totalAmountText = totalAmountApi > 0 ? formatExactApi(totalAmountApi, currency) : '—';
+	$: replayTotalUnits = launch.kind === 'replay' && replaySnapshot.replay
+		? replayQueryUnitsTimesInteger(
+			launch.amountUnitsRaw,
+			replaySnapshot.replay.costMultiplier,
+		)
+		: launch.kind === 'replay' ? launch.amountUnitsRaw : null;
+	$: replayWinUnits = launch.kind === 'replay' && replaySnapshot.replay
+		? replayQueryUnitsTimesCentiX(
+			launch.amountUnitsRaw,
+			replaySnapshot.replay.packagePayoutCentiX,
+		)
+		: null;
+	$: finalWinText = launch.kind === 'replay'
+		? replaySnapshot.status === 'completed'
+			? formatReplayQueryUnits(replayWinUnits, launch.currency)
+			: '—'
+		: launch.kind === 'fixture'
+			? formatCentiMultiplier(finalWinRaw)
+			: finalWinApi !== null
+				? formatExactApi(finalWinApi, currency)
+				: '—';
+	$: modalOpen = confirmationOpen || rulesOpen;
+	$: actionLabel = primaryActionLabel({
+		launchKind: launch.kind,
+		liveStatus: liveSnapshot.status,
+		replayStatus: replaySnapshot.status,
+		fixtureCompleted: runtimeState === 'fixture-completed',
+		insufficient: insufficientKnown,
+	});
+	$: actionDisabled = primaryActionDisabled({
+		launchKind: launch.kind,
+		liveStatus: liveSnapshot.status,
+		replayStatus: replaySnapshot.status,
+		busy: primaryBusy,
+		confirming: confirmationOpen,
+		showingRules: rulesOpen,
+		fixtureReady: Boolean(activeFixture),
+		insufficient: insufficientKnown,
+		modeBlocked: selectedModeBlocked,
+	});
+	$: visibleRuntimeMessage = social && runtimeError
+		? 'The authoritative game flow could not continue.'
+		: runtimeError?.message;
+	$: legalDisclaimer = getRulesDisclaimer(social);
+	$: if (typeof document !== 'undefined') document.body.dataset.runtimeState = runtimeState;
 	$: liveKeys = new Set(
 		(presentation.routeSnapshot?.live_cells ?? []).map((cell) => cellKey(cell)),
 	);
@@ -45,6 +177,11 @@
 	);
 	$: sealedKeys = new Set(
 		(presentation.routeSnapshot?.sealed_cells ?? []).map((cell) => cellKey(cell)),
+	);
+	$: activeClusterKeys = new Set(
+		(presentation.activeClusters ?? []).flatMap((cluster) =>
+			cluster.positions.map((cell) => cellKey(cell)),
+		),
 	);
 
 	function cellKey(cell) {
@@ -56,43 +193,460 @@
 		return symbol ? symbolCodes[symbol] : '--';
 	}
 
-	function fixtureFailure(code, message) {
-		launch = { kind: 'error', code, message, surface: 'fixture' };
+	function safeTotalAmount(amountApi, modeId) {
+		if (!Number.isSafeInteger(amountApi) || amountApi <= 0) return 0;
+		try {
+			return totalPlayAmountApi(amountApi, modeId);
+		} catch {
+			return 0;
+		}
 	}
 
-	function playFixture() {
+	function publicError(error, fallbackCode = 'RUNTIME_ERROR') {
+		return {
+			code: error?.code ?? fallbackCode,
+			message: error?.message ?? 'The authoritative game flow could not continue.',
+		};
+	}
+
+	function recoverRuntime() {
+		window.location.reload();
+	}
+
+	function fixtureFailure(code, message) {
+		launch = { kind: 'error', code, message, surface: 'fixture' };
+		runtimeState = 'error';
+		runtimeError = { code, message };
+	}
+
+	async function playFixture() {
 		if (!director || activeCues.length === 0) return;
-		director.reset();
-		void director.play(activeCues, { stepDelayMs: 120 });
+		primaryBusy = true;
+		runtimeState = 'fixture-playing';
+		try {
+			director.reset();
+			await director.play(activeCues, { stepDelayMs: 45 });
+			finalWinRaw = activeFixture.book.payoutMultiplier;
+			runtimeState = 'fixture-completed';
+		} finally {
+			primaryBusy = false;
+		}
+	}
+
+	function handleLiveState(nextState) {
+		liveSnapshot = nextState;
+		if (sessionOpeningBalanceApi === null && nextState.balance) {
+			sessionOpeningBalanceApi = nextState.balance.amountApi;
+		}
+		if (nextState.config?.jurisdiction?.displaySessionTimer === true && sessionTimerHandle === null) {
+			const sessionStartedAtMs = Date.now();
+			sessionTimerHandle = window.setInterval(() => {
+				sessionElapsedSeconds = Math.floor((Date.now() - sessionStartedAtMs) / 1_000);
+			}, 250);
+		}
+		if (nextState.status === 'authenticating') runtimeState = 'live-authenticating';
+		if (nextState.status === 'playing') runtimeState = 'live-requesting';
+		if (nextState.status === 'presenting') {
+			runtimeState = pendingRoundOrigin === 'play' ? 'live-presenting' : 'live-restore-ready';
+			selectedModeId = nextState.round?.mode ?? selectedModeId;
+		}
+		if (nextState.status === 'settling') runtimeState = 'live-settling';
+		if (nextState.status === 'ready' && !primaryBusy) runtimeState = 'live-ready';
+		if (nextState.status === 'error') {
+			runtimeState = 'live-error';
+			runtimeError = nextState.lastError ?? {
+				code: 'LIVE_SESSION_ERROR',
+				message: 'The live game session stopped safely.',
+			};
+		}
+	}
+
+	function handleReplayState(nextState) {
+		replaySnapshot = nextState;
+		runtimeState = `replay-${nextState.status}`;
+		if (nextState.replay) {
+			selectedModeId = nextState.replay.identity.mode;
+			if (nextState.status === 'completed') {
+				finalWinRaw = nextState.replay.packagePayoutCentiX;
+			}
+		}
+		if (nextState.status === 'loading' || nextState.status === 'ready' || nextState.status === 'playing') {
+			finalWinRaw = 0;
+		}
+		if (nextState.error) runtimeError = nextState.error;
+	}
+
+	async function loadDevelopmentFixture(fixtureId, adapter) {
+		if (!__BLACKSITE_DEV_FIXTURES__) {
+			fixtureFailure('DEV_FIXTURE_FORBIDDEN', 'Development fixtures are disabled.');
+			return;
+		}
+		const catalog = await import('../lib/fixtures/catalog.generated.js');
+		activeFixture = catalog.getFixture(fixtureId);
+		if (!activeFixture) {
+			fixtureFailure('DEV_FIXTURE_UNKNOWN', `Unknown development fixture: ${fixtureId}`);
+			return;
+		}
+		try {
+			activeCues = adapter.adaptBook(activeFixture.book, {
+				expectedMode: activeFixture.mode,
+			});
+			selectedModeId = activeFixture.mode;
+			finalWinRaw = activeFixture.book.payoutMultiplier;
+			runtimeState = 'fixture-ready';
+		} catch (error) {
+			fixtureFailure('DEV_FIXTURE_CONTRACT_INVALID', error.message);
+		}
+	}
+
+	async function presentLiveRound() {
+		const round = liveSession?.snapshot().round;
+		if (!round || primaryBusy) return;
+		primaryBusy = true;
+		runtimeError = null;
+		runtimeState = pendingRoundOrigin === 'play' ? 'live-presenting' : 'live-restoring';
+
+		try {
+			director.reset();
+			if (pendingRoundOrigin === 'play') await waitForMinimumRoundDuration();
+			const plan = pendingRoundOrigin === 'restore'
+				? planPresentationRestore(round.cues, round.eventCursor ?? 0)
+				: planPresentationRestore(round.cues, 0);
+			for (const cue of plan.primeCues) director.consume(cue);
+			const completed = await director.play(plan.resumeCues, {
+				stepDelayMs: 35,
+				winDelayMs: 220,
+				onCue: async (cue) => {
+					if (round.active && presentationCheckpointKinds.has(cue.kind)) {
+						await liveSession.savePresentationCursor(cue.eventIndex + 1);
+					}
+				},
+			});
+			if (!completed) throw new Error('Authoritative presentation was cancelled.');
+			await waitForMinimumRoundDuration();
+			finalWinApi = round.payoutApi;
+			finalWinRaw = round.payoutMultiplierRaw;
+		} catch (error) {
+			runtimeError = publicError(error, 'PRESENTATION_ERROR');
+			try {
+				await liveSession.failPresentation(error);
+				await waitForMinimumRoundDuration();
+				finalWinApi = round.payoutApi;
+				finalWinRaw = round.payoutMultiplierRaw;
+				runtimeState = 'live-ready';
+				pendingRoundOrigin = null;
+				liveRoundStartedAtMs = null;
+			} catch (settlementError) {
+				runtimeError = publicError(settlementError, 'SETTLEMENT_ERROR');
+				runtimeState = 'live-error';
+			}
+			primaryBusy = false;
+			return;
+		}
+
+		try {
+			await liveSession.completePresentation();
+			runtimeState = 'live-ready';
+			pendingRoundOrigin = null;
+			liveRoundStartedAtMs = null;
+		} catch (error) {
+			runtimeError = publicError(error, 'SETTLEMENT_ERROR');
+			runtimeState = 'live-error';
+		} finally {
+			primaryBusy = false;
+		}
+	}
+
+	async function executeLivePlay() {
+		if (!liveSession || primaryBusy) return;
+		primaryBusy = true;
+		pendingRoundOrigin = 'play';
+		runtimeError = null;
+		finalWinApi = null;
+		finalWinRaw = 0;
+		liveRoundStartedAtMs = Date.now();
+		try {
+			await liveSession.play(selectedModeId);
+		} catch (error) {
+			runtimeError = publicError(error);
+			liveRoundStartedAtMs = null;
+			if (error instanceof InsufficientBalanceError) runtimeState = 'live-insufficient';
+			else runtimeState = 'live-error';
+			primaryBusy = false;
+			return;
+		}
+		primaryBusy = false;
+		await presentLiveRound();
+	}
+
+	async function waitForMinimumRoundDuration() {
+		if (pendingRoundOrigin !== 'play' || liveRoundStartedAtMs === null) return;
+		const minimumMs = liveSnapshot.config?.jurisdiction?.minimumRoundDuration ?? 0;
+		const remainingMs = minimumMs - (Date.now() - liveRoundStartedAtMs);
+		if (remainingMs <= 0) return;
+		runtimeState = 'live-minimum-duration';
+		await new Promise((resolve) => {
+			const timer = window.setTimeout(() => {
+				minimumRoundWait = null;
+				resolve();
+			}, remainingMs);
+			minimumRoundWait = { timer, resolve };
+		});
+	}
+
+	function requestLivePlay() {
+		if (selectedModeBlocked) return;
+		if (selectedMode.costMultiplier > 1) void openConfirmation();
+		else void executeLivePlay();
+	}
+
+	async function confirmLivePlay() {
+		const focusTarget = returnFocusElement;
+		confirmationOpen = false;
+		returnFocusElement = null;
+		await tick();
+		focusTarget?.focus?.();
+		void executeLivePlay();
+	}
+
+	function rememberFocus() {
+		returnFocusElement = document.activeElement instanceof HTMLElement
+			? document.activeElement
+			: null;
+	}
+
+	async function openConfirmation() {
+		rememberFocus();
+		confirmationOpen = true;
+		await tick();
+		confirmationCancelButton?.focus();
+	}
+
+	async function closeConfirmation() {
+		const focusTarget = returnFocusElement;
+		confirmationOpen = false;
+		returnFocusElement = null;
+		await tick();
+		focusTarget?.focus?.();
+	}
+
+	async function openRules() {
+		rememberFocus();
+		rulesOpen = true;
+		await tick();
+		rulesCloseButton?.focus();
+	}
+
+	async function closeRules() {
+		const focusTarget = returnFocusElement;
+		rulesOpen = false;
+		returnFocusElement = null;
+		await tick();
+		focusTarget?.focus?.();
+	}
+
+	function trapDialogFocus(event, dialog) {
+		if (event.key !== 'Tab' || !dialog) return false;
+		const focusable = [...dialog.querySelectorAll(
+			'button:not([disabled]), select:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+		)].filter((element) => element instanceof HTMLElement && element.offsetParent !== null);
+		if (focusable.length === 0) {
+			event.preventDefault();
+			dialog.focus();
+			return true;
+		}
+		const first = focusable[0];
+		const last = focusable.at(-1);
+		if (!dialog.contains(document.activeElement)) {
+			event.preventDefault();
+			first.focus();
+			return true;
+		}
+		if (event.shiftKey && document.activeElement === first) {
+			event.preventDefault();
+			last.focus();
+			return true;
+		}
+		if (!event.shiftKey && document.activeElement === last) {
+			event.preventDefault();
+			first.focus();
+			return true;
+		}
+		return false;
+	}
+
+	function selectMode(modeId) {
+		if (launch.kind !== 'live' || liveSnapshot.status !== 'ready' || primaryBusy) return;
+		const modeConfig = liveSnapshot.config?.betModes?.[modeId];
+		if (!modeConfig || (buyFeatureDisabled && modeConfig.feature)) return;
+		selectedModeId = modeId;
+		runtimeError = null;
+	}
+
+	function selectBaseAmount(event) {
+		try {
+			liveSession?.selectBaseAmount(Number(event.currentTarget.value));
+			runtimeError = null;
+		} catch (error) {
+			runtimeError = publicError(error, 'PLAY_AMOUNT_INVALID');
+		}
+	}
+
+	async function activatePrimary() {
+		if (actionDisabled) return;
+		if (launch.kind === 'fixture') return playFixture();
+		if (launch.kind === 'replay') {
+			if (replaySnapshot.status === 'completed') return replayController.playAgain();
+			return replayController.play();
+		}
+		if (launch.kind === 'live' && liveSnapshot.status === 'presenting') {
+			pendingRoundOrigin ??= 'restore';
+			return presentLiveRound();
+		}
+		if (launch.kind === 'live' && liveSnapshot.status === 'ready') requestLivePlay();
+	}
+
+	function primaryActionLabel({
+		launchKind,
+		liveStatus,
+		replayStatus,
+		fixtureCompleted,
+		insufficient,
+	}) {
+		if (launchKind === 'fixture') {
+			return fixtureCompleted ? 'REPLAY DEV FIXTURE' : 'PLAY DEV FIXTURE';
+		}
+		if (launchKind === 'replay') {
+			if (replayStatus === 'loading') return 'LOADING REPLAY';
+			if (replayStatus === 'ready') return 'PLAY REPLAY';
+			if (replayStatus === 'playing') return 'REPLAYING';
+			if (replayStatus === 'completed') return 'PLAY AGAIN';
+			return 'REPLAY UNAVAILABLE';
+		}
+		if (launchKind === 'live') {
+			if (liveStatus === 'presenting') return 'CONTINUE ROUND';
+			if (liveStatus === 'ready' && insufficient) return 'INSUFFICIENT BALANCE';
+			if (liveStatus === 'ready') return 'INITIATE BREACH';
+			if (liveStatus === 'authenticating') return 'AUTHENTICATING';
+			if (liveStatus === 'settling') return 'SETTLING';
+		}
+		return 'UNAVAILABLE';
+	}
+
+	function primaryActionDisabled({
+		launchKind,
+		liveStatus,
+		replayStatus,
+		busy,
+		confirming,
+		showingRules,
+		fixtureReady,
+		insufficient,
+		modeBlocked,
+	}) {
+		if (busy || confirming || showingRules) return true;
+		if (launchKind === 'fixture') return !fixtureReady;
+		if (launchKind === 'replay') return !['ready', 'completed'].includes(replayStatus);
+		if (launchKind === 'live') {
+			return insufficient
+				|| (modeBlocked && liveStatus === 'ready')
+				|| !['ready', 'presenting'].includes(liveStatus);
+		}
+		return true;
+	}
+
+	function keydown(event) {
+		const openDialog = confirmationOpen ? confirmationDialog : rulesOpen ? rulesDialog : null;
+		if (openDialog && trapDialogFocus(event, openDialog)) return;
+		if (event.key === 'Escape') {
+			if (confirmationOpen) void closeConfirmation();
+			else if (rulesOpen) void closeRules();
+			event.preventDefault();
+			return;
+		}
+		if (
+			event.code === 'Space' &&
+			launch.kind === 'live' &&
+			!spacebarDisabled &&
+			!confirmationOpen &&
+			!rulesOpen &&
+			!['BUTTON', 'SELECT', 'INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)
+		) {
+			event.preventDefault();
+			void activatePrimary();
+		}
 	}
 
 	onMount(() => {
+		let disposed = false;
+		const adapter = new GameEventAdapter();
 		director = new PresentationDirector((nextState) => {
 			presentation = nextState;
 		});
 		launch = resolveLaunchMode(window.location.search, { dev: __BLACKSITE_DEV_FIXTURES__ });
+		window.addEventListener('keydown', keydown);
 
-		if (launch.kind === 'fixture') {
-			activeFixture = getFixture(launch.fixtureId);
-			if (!activeFixture) {
-				fixtureFailure(
-					'DEV_FIXTURE_UNKNOWN',
-					`Unknown development fixture: ${launch.fixtureId}`,
-				);
-			} else {
-				try {
-					activeCues = new GameEventAdapter().adaptBook(activeFixture.book, {
-						expectedMode: activeFixture.mode,
-					});
-					selectedModeId = activeFixture.mode;
-					void director.play(activeCues, { stepDelayMs: 120 });
-				} catch (error) {
-					fixtureFailure('DEV_FIXTURE_CONTRACT_INVALID', error.message);
+		void (async () => {
+			if (launch.kind === 'error') {
+				runtimeState = 'error';
+				runtimeError = { code: launch.code, message: launch.message };
+				return;
+			}
+			if (launch.kind === 'fixture') {
+				await loadDevelopmentFixture(launch.fixtureId, adapter);
+				return;
+			}
+			if (launch.kind === 'replay') {
+				selectedModeId = launch.mode;
+				replayController = new ReplayController({
+					client: createReplayClient(),
+					normalizer: createReplayNormalizer({ gameEventAdapter: adapter }),
+					director,
+					onState: handleReplayState,
+					stepDelayMs: 16,
+					winDelayMs: 220,
+				});
+				await replayController.load(launch);
+				return;
+			}
+			liveSession = new LiveSessionController({
+				client: createLiveRgsClient({ baseUrl: launch.rgsUrl }),
+				adapter,
+				sessionID: launch.sessionId,
+				language: launch.language,
+				onState: handleLiveState,
+			});
+			try {
+				const state = await liveSession.bootstrap();
+				if (disposed) return;
+				if (state.round?.active) {
+					pendingRoundOrigin = 'restore';
+					selectedModeId = state.round.mode;
+					runtimeState = 'live-restore-ready';
+					await presentLiveRound();
+				}
+			} catch (error) {
+				if (!disposed) {
+					runtimeError = publicError(error, 'AUTHENTICATION_ERROR');
+					runtimeState = 'live-error';
 				}
 			}
-		}
+		})();
 
-		return () => director?.destroy();
+		return () => {
+			disposed = true;
+			window.removeEventListener('keydown', keydown);
+			liveSession?.destroy();
+			if (sessionTimerHandle !== null) window.clearInterval(sessionTimerHandle);
+			if (minimumRoundWait) {
+				window.clearTimeout(minimumRoundWait.timer);
+				minimumRoundWait.resolve();
+				minimumRoundWait = null;
+			}
+			if (replayController) replayController.destroy();
+			else director?.destroy();
+			delete document.body.dataset.runtimeState;
+		};
 	});
 </script>
 
@@ -104,46 +658,92 @@
 	/>
 </svelte:head>
 
-<main class="app-shell">
-	<header class="masthead">
+<main class="app-shell" data-launch-kind={launch.kind}>
+	<header class="masthead" inert={modalOpen} aria-hidden={modalOpen ? 'true' : undefined}>
 		<div class="identity">
-			<span class="eyebrow">CLASSIFIED SYSTEM / PRESENTATION CONTRACT</span>
+			<span class="eyebrow">CLASSIFIED SYSTEM / AUTHORITATIVE PRESENTATION</span>
 			<h1>BLACKSITE <span>// BREACH</span></h1>
 		</div>
-		<div class="lifecycle" aria-label="Current lifecycle">
-			<span class="pulse"></span>
-			M2_STARTED · GREYBOX · NOT CANDIDATE
+		<div class="lifecycle" data-testid="launch-status" aria-label="Current runtime status">
+			<span class="pulse" class:error-pulse={runtimeError !== null}></span>
+			{runtimeState.replaceAll('-', ' ').toUpperCase()}
 		</div>
 	</header>
 
-	<section class="studio" aria-label="BLACKSITE greybox studio">
+	<section
+		class="studio"
+		aria-label="BLACKSITE game interface"
+		inert={modalOpen}
+		aria-hidden={modalOpen ? 'true' : undefined}
+	>
 		<aside class="panel mode-panel">
 			<div class="panel-heading">
 				<span>01</span>
 				<div>
 					<p>ACCESS PROFILE</p>
-					<h2>Canonical modes</h2>
+					<h2>Mode control</h2>
 				</div>
 			</div>
 
 			<div class="mode-list">
 				{#each MODES as mode}
-					<button
-						type="button"
-						class:selected={mode.id === selectedModeId}
-						aria-pressed={mode.id === selectedModeId}
-						on:click={() => (selectedModeId = mode.id)}
-					>
-						<span>{mode.normalLabel}</span>
-						<strong>{mode.costMultiplier}×</strong>
-						<small>{mode.id}</small>
-					</button>
+					{#if !(buyFeatureDisabled && liveSnapshot.config?.betModes?.[mode.id]?.feature)}
+						<button
+							type="button"
+							data-testid={`mode-${mode.id}`}
+							class:selected={mode.id === selectedModeId}
+							aria-pressed={mode.id === selectedModeId}
+							disabled={launch.kind !== 'live' || liveSnapshot.status !== 'ready' || primaryBusy}
+							on:click={() => selectMode(mode.id)}
+						>
+							<span>{getModeLabel(mode.id, social)}</span>
+							<strong>{mode.costMultiplier}×</strong>
+							<small>{mode.id}</small>
+						</button>
+					{/if}
 				{/each}
 			</div>
 
+			<label class="amount-control" for="blacksite-base-amount">
+				<span>PLAY AMOUNT</span>
+				{#if betLevelsApi.length > 0}
+					<select
+						id="blacksite-base-amount"
+						data-testid="base-amount"
+						value={baseAmountApi}
+						disabled={launch.kind !== 'live' || liveSnapshot.status !== 'ready' || primaryBusy}
+						on:change={selectBaseAmount}
+					>
+						{#each betLevelsApi as amountApi}
+							<option value={amountApi}>{formatExactApi(amountApi, currency)}</option>
+						{/each}
+					</select>
+				{:else if liveSnapshot.config}
+					<span class="amount-range">
+						<input
+							id="blacksite-base-amount"
+							data-testid="base-amount"
+							type="range"
+							min={liveSnapshot.config.minBetApi}
+							max={liveSnapshot.config.maxBetApi}
+							step={liveSnapshot.config.stepBetApi}
+							value={baseAmountApi}
+							aria-valuetext={formatExactApi(baseAmountApi, currency)}
+							disabled={launch.kind !== 'live' || liveSnapshot.status !== 'ready' || primaryBusy}
+							on:change={selectBaseAmount}
+						/>
+						<output for="blacksite-base-amount">{formatExactApi(baseAmountApi, currency)}</output>
+					</span>
+				{:else}
+					<select id="blacksite-base-amount" data-testid="base-amount" disabled>
+						<option value="">—</option>
+					</select>
+				{/if}
+			</label>
+
 			<div class="mode-readout">
-				<div><span>Selected</span><strong>{getModeLabel(selectedMode.id)}</strong></div>
-				<div><span>Cost</span><strong>{selectedMode.costMultiplier}× base</strong></div>
+				<div><span>Selected</span><strong>{getModeLabel(selectedMode.id, social)}</strong></div>
+				<div><span>Play factor</span><strong>{selectedMode.costMultiplier}× base</strong></div>
 				<div><span>RTP</span><strong>96.20%</strong></div>
 				<div><span>Max</span><strong>10,000×</strong></div>
 			</div>
@@ -159,15 +759,26 @@
 			</div>
 
 			<div class="board-frame">
-				<div class="board" role="grid" aria-rowcount="7" aria-colcount="7">
+				<div
+					class="board"
+					data-testid="board"
+					role="grid"
+					aria-rowcount="7"
+					aria-colcount="7"
+				>
 					{#each boardCells as cell}
-						<div
-							class="cell"
-							class:live={liveKeys.has(cellKey(cell))}
-							class:dormant={dormantKeys.has(cellKey(cell))}
-							class:sealed={sealedKeys.has(cellKey(cell))}
-							role="gridcell"
-							aria-label={`Column ${cell.column + 1}, row ${cell.row + 1}, ${symbolAt(cell)}`}
+					<div
+						class="cell"
+						class:live={liveKeys.has(cellKey(cell))}
+						class:dormant={dormantKeys.has(cellKey(cell))}
+						class:sealed={sealedKeys.has(cellKey(cell))}
+						class:cluster-active={activeClusterKeys.has(cellKey(cell))}
+						data-column={cell.column}
+						data-row={cell.row}
+						data-symbol={symbolAt(cell)}
+						data-cluster-active={activeClusterKeys.has(cellKey(cell))}
+						role="gridcell"
+						aria-label={`Column ${cell.column + 1}, row ${cell.row + 1}, ${symbolAt(cell)}${activeClusterKeys.has(cellKey(cell)) ? ', active cluster' : ''}`}
 						>
 							<small>{cell.column}{cell.row}</small>
 							<strong>{symbolAt(cell)}</strong>
@@ -176,21 +787,42 @@
 				</div>
 				<div class="ingress ingress-left" title="Ingress"></div>
 				<div class="ingress ingress-center" title="Ingress"></div>
-				<div class="ingress ingress-right" title="Ingress"></div>
+			<div class="ingress ingress-right" title="Ingress"></div>
+			{#if presentation.activeClusters?.length > 0}
+				<div class="cluster-cue" data-testid="cluster-cue" role="status">
+					{#each presentation.activeClusters as cluster}
+						<span
+							data-symbol={cluster.symbol}
+							data-size={cluster.cluster_size}
+							data-access-multiplier={cluster.access_multiplier}
+							data-applied-raw={cluster.applied_award_raw}
+						>
+							{cluster.symbol.toUpperCase()} · {cluster.cluster_size} CELLS ·
+							{formatCentiMultiplier(cluster.base_payout_raw)} × {cluster.access_multiplier} ACCESS =
+							{formatCentiMultiplier(cluster.applied_award_raw)}
+						</span>
+					{/each}
+					<strong>STEP {formatCentiMultiplier(presentation.stepWinRaw)}</strong>
+				</div>
+			{/if}
 			</div>
 
 			<div class="meter-row" aria-live="polite">
 				<div>
-					<span>STEP / RAW</span>
-					<strong>{presentation.stepWinRaw} centi-x</strong>
+					<span>BALANCE</span>
+					<strong data-testid="wallet-balance">
+						{launch.kind === 'replay' ? 'READ-ONLY' : balanceText}
+					</strong>
 				</div>
 				<div class="primary-meter">
-					<span>AUTHORITATIVE ROUND TOTAL</span>
-					<strong>{presentation.cumulativeWinRaw} centi-x</strong>
+					<span>TOTAL PLAY</span>
+					<strong data-testid="total-play">
+					{launch.kind === 'replay' ? formatReplayQueryUnits(replayTotalUnits, launch.currency) : totalAmountText}
+					</strong>
 				</div>
 				<div>
-					<span>ACCESS</span>
-					<strong>{presentation.accessMultiplier}×</strong>
+					<span>FINAL WIN</span>
+					<strong data-testid="final-win">{finalWinText}</strong>
 				</div>
 			</div>
 		</section>
@@ -204,49 +836,74 @@
 				</div>
 			</div>
 
-			{#if launch.kind === 'booting'}
-				<div class="launch-card pending" aria-live="polite">Inspecting launch contract…</div>
-			{:else if launch.kind === 'error'}
-				<div class="launch-card error" role="alert">
-					<strong>{launch.code}</strong>
-					<span>{launch.message}</span>
-					<small>No paid or fixture fallback was started.</small>
+			{#if runtimeError || launch.kind === 'error'}
+				<div class="launch-card error" data-testid="launch-error" role="alert">
+					<strong>{social ? 'AUTHORITATIVE_ERROR' : (runtimeError?.code ?? launch.code)}</strong>
+					<span>{visibleRuntimeMessage ?? launch.message}</span>
+					{#if runtimeError && (launch.kind === 'live' || launch.kind === 'replay')}
+						<button type="button" data-testid="recovery-action" on:click={recoverRuntime}>RELOAD / RESTORE</button>
+					{/if}
+					<small>No local round or development fallback was started.</small>
 				</div>
+			{:else if launch.kind === 'booting'}
+				<div class="launch-card pending" aria-live="polite">Inspecting launch contract…</div>
 			{:else if launch.kind === 'fixture'}
 				<div class="launch-card fixture">
 					<strong>DEV FIXTURE / {launch.fixtureId}</strong>
-					<span>Explicit development route. Never a paid-play fallback.</span>
-					<small>Published base book 1 · lookup weight 1</small>
+					<span>Explicit development route with frozen M1 authority.</span>
+					<small>Development-only content; unavailable in production builds.</small>
 				</div>
 			{:else if launch.kind === 'replay'}
-				<div class="launch-card pending">
-					<strong>REPLAY / READ-ONLY PENDING</strong>
-					<span>Identity parsed; fetch/playback wiring is not implemented yet.</span>
-					<small>Zero authenticate/play/end-round/event-save calls.</small>
+				<div class="launch-card replay-card">
+					<strong>REPLAY / {replaySnapshot.status.toUpperCase()}</strong>
+					<span>
+					{getModeLabel(launch.mode, social)} · {social ? 'record verified' : `event ${launch.event}`} · base {formatReplayQueryUnits(launch.amountUnitsRaw, launch.currency)} ·
+					{replaySnapshot.replay?.costMultiplier ?? selectedMode.costMultiplier}× play factor ·
+					{replaySnapshot.status === 'completed'
+						? formatCentiMultiplier(replaySnapshot.replay?.packagePayoutCentiX ?? 0)
+						: '—'} result
+					</span>
+					<small>Read-only presentation with zero wallet or event write calls.</small>
 				</div>
 			{:else}
-				<div class="launch-card pending">
-					<strong>LIVE RGS CONTRACT ACCEPTED</strong>
-					<span>Authentication/play wiring is intentionally pending.</span>
-					<small>No local wallet, RNG or paid simulation exists.</small>
-				</div>
+			<div class="launch-card live-card">
+				<strong>LIVE SERVICE / {liveSnapshot.status.toUpperCase()}</strong>
+				<span>{getModeLabel(selectedMode.id, social)} · {totalAmountText}</span>
+				<small>Balance, round state and final result remain service-authoritative.</small>
+				{#if displayNetPosition || displaySessionTimer}
+					<div class="jurisdiction-readouts" aria-live="polite">
+						{#if displayNetPosition}
+							<span><em>SESSION POSITION</em><strong data-testid="session-net-position">{netPositionText}</strong></span>
+						{/if}
+						{#if displaySessionTimer}
+							<span><em>SESSION TIME</em><strong data-testid="session-timer">{sessionTimerText}</strong></span>
+						{/if}
+					</div>
+				{/if}
+			</div>
 			{/if}
 
 			<div class="contract-grid">
 				<div><span>Event</span><strong>blacksite-book-events-v1</strong></div>
 				<div><span>Board</span><strong>column-major 7×7</strong></div>
-				<div><span>Payout unit</span><strong>centi-x uint64</strong></div>
+				<div><span>Result unit</span><strong>centi-x uint64</strong></div>
 				<div><span>Final authority</span><strong>book / RGS round</strong></div>
 			</div>
 
-			<button
-				class="primary-action"
-				type="button"
-				disabled={launch.kind !== 'fixture' || !activeFixture}
-				on:click={playFixture}
-			>
-				{launch.kind === 'fixture' ? 'REPLAY DEV FIXTURE' : 'PAID PLAY NOT WIRED'}
-			</button>
+			<div class="action-stack">
+				<button
+					class="primary-action"
+					data-testid="primary-action"
+					type="button"
+					disabled={actionDisabled}
+					on:click={() => void activatePrimary()}
+				>
+					{actionLabel}
+				</button>
+			<button class="info-action" type="button" on:click={() => void openRules()}>
+					INFO / RULES
+				</button>
+			</div>
 
 			<div class="hashes">
 				<span>Candidate {CANDIDATE_FINGERPRINT_SHA256.slice(0, 12)}…</span>
@@ -254,6 +911,105 @@
 			</div>
 		</aside>
 	</section>
+
+	{#if confirmationOpen}
+		<!-- Backdrop pointer dismissal complements the dialog's global Escape handler. -->
+		<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+		<div class="modal-backdrop" on:click|self={() => void closeConfirmation()}>
+			<section
+				class="confirmation-dialog"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="confirm-title"
+				tabindex="-1"
+				bind:this={confirmationDialog}
+			>
+				<span>SECOND EXPLICIT ACTION</span>
+				<h2 id="confirm-title">Confirm complete play amount</h2>
+				<p>
+					{getModeLabel(selectedMode.id, social)} uses {selectedMode.costMultiplier}× the selected
+					Play Amount.
+				</p>
+				<strong>{totalAmountText}</strong>
+				<div class="modal-actions">
+					<button bind:this={confirmationCancelButton} type="button" on:click={() => void closeConfirmation()}>CANCEL</button>
+					<button class="confirm-action" type="button" on:click={confirmLivePlay}>CONFIRM</button>
+				</div>
+			</section>
+		</div>
+	{/if}
+
+	{#if rulesOpen}
+		<!-- Backdrop pointer dismissal complements the dialog's global Escape handler. -->
+		<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+		<div class="modal-backdrop" on:click|self={() => void closeRules()}>
+			<section
+				class="rules-dialog"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="rules-title"
+				tabindex="-1"
+				bind:this={rulesDialog}
+			>
+				<header>
+					<div>
+						<span>GAME INFORMATION</span>
+						<h2 id="rules-title">BLACKSITE // BREACH</h2>
+					</div>
+					<button bind:this={rulesCloseButton} type="button" aria-label="Close game information" on:click={() => void closeRules()}>CLOSE</button>
+				</header>
+
+				<div class="rules-scroll">
+					<section>
+						<h3>Mode profiles</h3>
+						<div class="table-wrap">
+							<table>
+							<thead><tr><th>Profile</th><th>Action</th><th>Play factor</th><th>RTP</th><th>Max</th></tr></thead>
+								<tbody>
+									{#each MODES as mode}
+								<tr>
+									<td>{getModeLabel(mode.id, social)}</td>
+									<td class="mode-action-description">{mode.actionDescription}</td>
+											<td>{mode.costMultiplier}×</td>
+											<td>{(mode.targetRtp * 100).toFixed(2)}%</td>
+											<td>{formatCentiMultiplier(mode.maxWinRaw)}</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					</section>
+
+					<section>
+						<h3>Result matrix · connected cells · multiplier</h3>
+						<div class="table-wrap result-table">
+							<table>
+								<thead>
+									<tr><th>Symbol</th>{#each CLUSTER_BANDS as band}<th>{band.label}</th>{/each}</tr>
+								</thead>
+								<tbody>
+									{#each Object.entries(SYMBOL_PAYOUTS) as [symbol, values]}
+										<tr>
+											<td>{symbol.toUpperCase()}</td>
+											{#each values as value}<td>{formatCentiMultiplier(value)}</td>{/each}
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					</section>
+
+					<div class="rules-copy-grid">
+						<section><h3>How it works</h3>{#each RULES_CONTRACT.mechanic as line}<p>{line}</p>{/each}</section>
+						<section><h3>Blackout Protocol</h3>{#each RULES_CONTRACT.feature as line}<p>{line}</p>{/each}</section>
+						<section><h3>Controls</h3>{#each RULES_CONTRACT.controls as line}<p>{line}</p>{/each}</section>
+					</div>
+
+					<section class="disclaimer"><h3>Disclaimer</h3><p>{legalDisclaimer}</p></section>
+				</div>
+			</section>
+		</div>
+	{/if}
 </main>
 
 <style>
@@ -274,7 +1030,8 @@
 		touch-action: manipulation;
 	}
 
-	:global(button) {
+	:global(button),
+	:global(select) {
 		font: inherit;
 	}
 
@@ -351,6 +1108,11 @@
 		border-radius: 50%;
 		background: #efc06a;
 		box-shadow: 0 0 10px #efc06a;
+	}
+
+	.pulse.error-pulse {
+		background: #f05c55;
+		box-shadow: 0 0 10px #f05c55;
 	}
 
 	.studio {
@@ -431,6 +1193,11 @@
 		outline: none;
 	}
 
+	.mode-list button:disabled {
+		cursor: not-allowed;
+		opacity: 0.78;
+	}
+
 	.mode-list button.selected::before {
 		position: absolute;
 		inset: -1px auto -1px -1px;
@@ -449,6 +1216,74 @@
 	.mode-list small {
 		color: #55767d;
 		font-size: 9px;
+	}
+
+	.amount-control {
+		display: grid;
+		gap: 5px;
+		color: #6f939a;
+		font-size: 9px;
+		letter-spacing: 0.11em;
+		text-transform: uppercase;
+	}
+
+	.amount-control select {
+		width: 100%;
+		min-width: 0;
+		min-height: 44px;
+		padding: 7px 30px 7px 10px;
+		border: 1px solid #3c626b;
+		border-radius: 0;
+		background: #0d1b20;
+		color: #dce8ea;
+		cursor: pointer;
+	}
+
+	.amount-control select:focus-visible {
+		border-color: #efc06a;
+		outline: 2px solid rgba(239, 192, 106, 0.3);
+		outline-offset: 1px;
+	}
+
+	.amount-control select:disabled {
+		cursor: not-allowed;
+		opacity: 0.72;
+	}
+
+	.amount-range {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: center;
+		min-height: 44px;
+		gap: 8px;
+		padding: 6px 8px;
+		border: 1px solid #3c626b;
+		background: #0d1b20;
+	}
+
+	.amount-range input {
+		width: 100%;
+		min-width: 70px;
+		accent-color: #d55b55;
+		cursor: pointer;
+	}
+
+	.amount-range input:focus-visible {
+		outline: 2px solid rgba(239, 192, 106, 0.42);
+		outline-offset: 3px;
+	}
+
+	.amount-range input:disabled {
+		cursor: not-allowed;
+		opacity: 0.72;
+	}
+
+	.amount-range output {
+		color: #dce8ea;
+		font-size: 10px;
+		letter-spacing: 0;
+		text-transform: none;
+		white-space: nowrap;
 	}
 
 	.mode-readout,
@@ -588,6 +1423,36 @@
 		box-shadow: inset 0 0 14px rgba(240, 92, 85, 0.22);
 	}
 
+	.cell.cluster-active {
+		z-index: 1;
+		border-color: #f4d06f;
+		background: #4a3717;
+		color: #fff0bd;
+		box-shadow: inset 0 0 18px rgba(244, 208, 111, 0.42), 0 0 8px rgba(244, 208, 111, 0.36);
+	}
+
+	.cluster-cue {
+		position: absolute;
+		z-index: 3;
+		top: clamp(6px, 1vw, 12px);
+		right: clamp(6px, 1vw, 12px);
+		display: grid;
+		max-width: calc(100% - 12px);
+		gap: 3px;
+		padding: 7px 9px;
+		border: 1px solid #d5ad58;
+		background: rgba(24, 20, 12, 0.94);
+		color: #f7df9e;
+		font-size: clamp(7px, 0.62vw, 10px);
+		box-shadow: 0 7px 24px rgba(0, 0, 0, 0.42);
+		pointer-events: none;
+	}
+
+	.cluster-cue strong {
+		color: #fff0bd;
+		text-align: right;
+	}
+
 	.ingress {
 		position: absolute;
 		bottom: -5px;
@@ -671,6 +1536,24 @@
 		color: #ff928b;
 	}
 
+	.launch-card.error button {
+		min-height: 44px;
+		padding: 0 12px;
+		border: 1px solid #d86f69;
+		background: #32191a;
+		color: #ffd0cc;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		cursor: pointer;
+	}
+
+	.launch-card.error button:hover,
+	.launch-card.error button:focus-visible {
+		border-color: #ffaaa4;
+		outline: 2px solid rgba(255, 170, 164, 0.4);
+		outline-offset: 2px;
+	}
+
 	.launch-card.fixture {
 		border-color: #557b66;
 		background: #13221b;
@@ -680,13 +1563,55 @@
 		color: #93c9a8;
 	}
 
-	.launch-card.pending strong {
-		color: #efc06a;
+	.launch-card.live-card {
+		border-color: #527783;
+		background: #102129;
+	}
+
+	.launch-card.live-card strong,
+	.launch-card.replay-card strong {
+		color: #9bc6cd;
+	}
+
+	.jurisdiction-readouts {
+		display: flex;
+		grid-column: 1 / -1;
+		gap: 6px;
+		min-width: 0;
+	}
+
+	.jurisdiction-readouts > span {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		min-width: 0;
+		gap: 8px;
+		padding: 5px 7px;
+		border: 1px solid #355761;
+		background: #0b1920;
+	}
+
+	.jurisdiction-readouts em {
+		color: #6f939a;
+		font-size: 8px;
+		font-style: normal;
+		letter-spacing: 0.08em;
+	}
+
+	.jurisdiction-readouts strong {
+		color: #d9e6e8;
+		font-size: 9px;
+		white-space: nowrap;
+	}
+
+	.action-stack {
+		display: grid;
+		gap: 7px;
+		margin-top: auto;
 	}
 
 	.primary-action {
-		min-height: 46px;
-		margin-top: auto;
+		min-height: 44px;
 		border: 1px solid #d55b55;
 		background: #d55b55;
 		color: #0a1114;
@@ -708,12 +1633,223 @@
 		cursor: not-allowed;
 	}
 
+	.info-action {
+		min-height: 44px;
+		border: 1px solid #48646b;
+		background: #0d1b20;
+		color: #aac0c4;
+		font-size: clamp(9px, 0.75vw, 11px);
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		cursor: pointer;
+	}
+
+	.info-action:hover,
+	.info-action:focus-visible {
+		border-color: #efc06a;
+		color: #f0d6a5;
+		outline: none;
+	}
+
 	.hashes {
 		display: grid;
 		gap: 3px;
 		color: #4f7077;
 		font-size: clamp(7px, 0.58vw, 9px);
 		word-break: break-all;
+	}
+
+	.modal-backdrop {
+		position: fixed;
+		z-index: 20;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+			max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+		background: rgba(3, 8, 11, 0.88);
+		backdrop-filter: blur(5px);
+	}
+
+	.confirmation-dialog,
+	.rules-dialog {
+		width: min(100%, 940px);
+		border: 1px solid #48646b;
+		background: #0b171c;
+		box-shadow: 0 24px 80px rgba(0, 0, 0, 0.62);
+	}
+
+	.confirmation-dialog {
+		display: grid;
+		gap: 12px;
+		width: min(100%, 440px);
+		padding: clamp(18px, 3vw, 30px);
+		text-align: center;
+	}
+
+	.confirmation-dialog > span,
+	.rules-dialog header span {
+		color: #efc06a;
+		font-size: 10px;
+		letter-spacing: 0.13em;
+	}
+
+	.confirmation-dialog h2,
+	.confirmation-dialog p,
+	.rules-dialog h2,
+	.rules-dialog h3,
+	.rules-dialog p {
+		margin: 0;
+	}
+
+	.confirmation-dialog h2,
+	.rules-dialog h2,
+	.rules-dialog h3 {
+		font-family: Arial, Helvetica, sans-serif;
+	}
+
+	.confirmation-dialog p {
+		color: #9db4b9;
+		font-size: 12px;
+		line-height: 1.55;
+	}
+
+	.confirmation-dialog > strong {
+		color: #f1c170;
+		font-size: clamp(22px, 5vw, 34px);
+	}
+
+	.modal-actions {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 8px;
+	}
+
+	.modal-actions button,
+	.rules-dialog header button {
+		min-height: 44px;
+		border: 1px solid #48646b;
+		background: #101f25;
+		color: #b9cccf;
+		font-weight: 700;
+		cursor: pointer;
+	}
+
+	.modal-actions button.confirm-action {
+		border-color: #d55b55;
+		background: #d55b55;
+		color: #091115;
+	}
+
+	.modal-actions button:focus-visible,
+	.rules-dialog header button:focus-visible {
+		outline: 2px solid #f4d19b;
+		outline-offset: 2px;
+	}
+
+	.rules-dialog {
+		display: grid;
+		grid-template-rows: auto minmax(0, 1fr);
+		max-height: calc(100vh - 24px);
+	}
+
+	.rules-dialog > header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		padding: 14px 16px;
+		border-bottom: 1px solid #29434a;
+	}
+
+	.rules-dialog h2 {
+		margin-top: 2px;
+		font-size: clamp(18px, 2.5vw, 28px);
+	}
+
+	.rules-dialog header button {
+		min-width: 74px;
+		padding: 0 12px;
+	}
+
+	.rules-scroll {
+		display: grid;
+		gap: 18px;
+		overflow: auto;
+		padding: 16px;
+		overscroll-behavior: contain;
+	}
+
+	.rules-scroll section {
+		display: grid;
+		gap: 8px;
+	}
+
+	.rules-dialog h3 {
+		color: #d5e1e3;
+		font-size: 14px;
+	}
+
+	.table-wrap {
+		overflow-x: auto;
+		border: 1px solid #29434a;
+	}
+
+	.rules-dialog table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 10px;
+		white-space: nowrap;
+	}
+
+	.rules-dialog th,
+	.rules-dialog td {
+		padding: 7px 8px;
+		border: 1px solid #29434a;
+		text-align: right;
+	}
+
+	.rules-dialog th:first-child,
+	.rules-dialog td:first-child {
+		position: sticky;
+		left: 0;
+		background: #0d1b20;
+		text-align: left;
+	}
+
+	.rules-dialog .mode-action-description {
+		min-width: 280px;
+		white-space: normal;
+		text-align: left;
+	}
+
+	.rules-dialog th {
+		color: #88a5ab;
+		font-weight: 600;
+	}
+
+	.result-table td:not(:first-child) {
+		color: #efc06a;
+	}
+
+	.rules-copy-grid {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 12px;
+	}
+
+	.rules-copy-grid section,
+	.disclaimer {
+		align-content: start;
+		padding: 12px;
+		border: 1px solid #29434a;
+		background: #0d1b20;
+	}
+
+	.rules-dialog p {
+		color: #9eb3b7;
+		font-size: 10px;
+		line-height: 1.5;
 	}
 
 	@media (max-width: 820px) {
@@ -773,7 +1909,7 @@
 		}
 
 		.mode-list button {
-			min-height: 42px;
+			min-height: 44px;
 			padding: 5px 7px;
 		}
 
@@ -786,6 +1922,12 @@
 
 		.mode-list button small {
 			display: none;
+		}
+
+		.amount-control {
+			grid-template-columns: auto minmax(130px, 1fr);
+			align-items: center;
+			gap: 8px;
 		}
 
 		.board-frame {
@@ -802,8 +1944,22 @@
 			display: none;
 		}
 
-		.primary-action {
-			min-height: 40px;
+		.jurisdiction-readouts {
+			flex-wrap: wrap;
+		}
+
+		.jurisdiction-readouts > span {
+			flex: 1 1 150px;
+		}
+
+		.contract-panel {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) minmax(145px, 0.62fr);
+			align-items: stretch;
+		}
+
+		.action-stack {
+			margin: 0;
 		}
 	}
 
@@ -817,28 +1973,78 @@
 		}
 
 		.stage-heading strong,
-		.phase-chip,
-		.meter-row > div:first-child,
-		.meter-row > div:last-child {
+		.phase-chip {
 			display: none;
 		}
 
 		.meter-row {
-			grid-template-columns: 1fr;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
 
 		.board-frame {
-			width: min(91vw, 49vh);
+			width: min(91vw, 58vh);
 		}
 
-		.contract-panel {
-			grid-template-columns: minmax(0, 1fr) auto;
-			align-items: stretch;
+		.primary-action {
+			padding: 0 10px;
+		}
+
+		.rules-copy-grid {
+			grid-template-columns: 1fr;
+		}
 	}
 
-		.primary-action {
-			margin: 0;
-			padding: 0 10px;
+	@media (min-width: 821px) and (max-height: 560px) {
+		.app-shell {
+			gap: 6px;
+			padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right))
+				max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
+		}
+
+		.masthead {
+			align-items: center;
+			padding-bottom: 5px;
+		}
+
+		.eyebrow,
+		.panel-heading,
+		.mode-readout,
+		.contract-grid,
+		.hashes,
+		.launch-card small {
+			display: none;
+		}
+
+		.panel,
+		.board-stage {
+			gap: 5px;
+			padding: 6px;
+		}
+
+		.mode-list {
+			gap: 5px;
+		}
+
+		.mode-list button {
+			min-height: 44px;
+			padding: 5px 7px;
+		}
+
+		.amount-control {
+			gap: 3px;
+		}
+
+		.launch-card {
+			padding: 7px;
+		}
+
+		.action-stack {
+			gap: 5px;
+			margin-top: 0;
+		}
+
+		.board-frame {
+			width: min(100%, 58vh);
 		}
 	}
 

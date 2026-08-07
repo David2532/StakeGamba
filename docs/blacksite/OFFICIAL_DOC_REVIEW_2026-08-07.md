@@ -33,6 +33,8 @@ Purpose: snapshot the first-party documentation areas reviewed while building th
   - mandatory for new approvals;
   - public/sessionless replay;
   - replay query parameters and endpoint;
+  - current new-game response envelope is the direct object `{ payoutMultiplier, costMultiplier, state }`;
+  - optional launch values configure the Replay UI and are not appended to the exact Replay GET path;
   - Play/Play Again lifecycle;
   - no normal betting/session calls;
   - reviewer scenario IDs per mode.
@@ -90,9 +92,11 @@ Important reconciliation: the exact need for a frontend end-round call depends o
 
 Additional reconciliation:
 - approval material says `minStep`, while the technical authenticate schema says `stepBet`; accept a documented alias only when both values agree;
+- BLACKSITE normalizes the current direct Replay envelope instead of inheriting GGR's older permissive `round`/`replay.round` wrapper handling;
 - Replay query `amount`, Replay response multiplier, static-package centi-x payout and wallet micro-units remain separate types until a target-RGS payload proves conversion;
 - `pl` is the internal ISO language code; any documented `po` launch alias is normalized only at the boundary;
 - Social Mode remains English-only under project checklist item 39 until Stake resolves the public `sweeps_<lang>` ambiguity.
+- Public currency lists differ across current first-party pages; BLACKSITE keeps code fallback and explicitly supports XGC, XSC and XEC without a dollar prefix.
 
 ## Math SDK documentation tree reviewed
 

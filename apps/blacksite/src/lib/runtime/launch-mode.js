@@ -10,10 +10,17 @@ function parseRgsUrl(rawValue) {
 	}
 	try {
 		const url = new URL(rawValue);
-		if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) {
+		if (
+			!['https:', 'http:'].includes(url.protocol) ||
+			!url.hostname ||
+			url.username ||
+			url.password ||
+			url.search ||
+			url.hash
+		) {
 			return { ok: false, code: 'RGS_URL_INVALID' };
 		}
-		return { ok: true, url: url.toString().replace(/\/$/, '') };
+			return { ok: true, url: url.toString().replace(/\/+$/, '') };
 	} catch {
 		return { ok: false, code: 'RGS_URL_INVALID' };
 	}
@@ -22,6 +29,56 @@ function parseRgsUrl(rawValue) {
 function requiredQuery(params, name) {
 	const value = params.get(name);
 	return value && value.trim() ? value.trim() : null;
+}
+
+function firstQuery(params, names) {
+	for (const name of names) {
+		const value = requiredQuery(params, name);
+		if (value !== null) return value;
+	}
+	return null;
+}
+
+function isBoundedText(value, maxLength = 240) {
+	return (
+		typeof value === 'string' &&
+		value.length > 0 &&
+		value.length <= maxLength &&
+		![...value].some((character) => {
+			const code = character.charCodeAt(0);
+			return code < 32 || code === 127;
+		})
+	);
+}
+
+function parseLanguage(value, { required = false } = {}) {
+	if (value === null) return required ? null : undefined;
+	// BLACKSITE M2 intentionally ships English only. Unknown or malformed
+	// language values must not corrupt launch; they resolve to the supported
+	// English resource instead of being reflected into UI or requests.
+	return 'en';
+}
+
+function parseDevice(value, { required = false } = {}) {
+	if (value === null) return required ? null : undefined;
+	return /^(desktop|mobile|tablet)$/i.test(value) ? value.toLowerCase() : null;
+}
+
+function parseCurrency(value, { required = false } = {}) {
+	if (value === null) return required ? null : undefined;
+	return /^[a-z]{2,8}$/i.test(value) ? value.toUpperCase() : null;
+}
+
+function parseReplayAmount(value) {
+	if (value === null) return undefined;
+	if (value.length > 64 || !/^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value)) return null;
+	return Number(value) > 0 ? value : null;
+}
+
+function parseSocial(params) {
+	return ['social', 'socialCasino', 'social_casino', 'stakeUS'].some((name) =>
+		/^(?:1|true|yes)$/i.test(params.get(name) ?? ''),
+	);
 }
 
 export function resolveLaunchMode(search, { dev = false } = {}) {
@@ -33,8 +90,24 @@ export function resolveLaunchMode(search, { dev = false } = {}) {
 		const mode = requiredQuery(params, 'mode');
 		const event = requiredQuery(params, 'event');
 		const rgs = parseRgsUrl(params.get('rgs_url'));
+		const currency = parseCurrency(requiredQuery(params, 'currency'));
+		const amountUnitsRaw = parseReplayAmount(
+			firstQuery(params, ['amount', 'bet', 'stake']),
+		);
+		const language = parseLanguage(firstQuery(params, ['lang', 'language']));
+		const device = parseDevice(firstQuery(params, ['device', 'deviceType']));
 
-		if (!game || !version || !mode || !event || !rgs.ok) {
+		if (
+			!isBoundedText(game) ||
+			!isBoundedText(version) ||
+			!isBoundedText(mode) ||
+			!isBoundedText(event) ||
+			!rgs.ok ||
+			currency === null ||
+			amountUnitsRaw === null ||
+			language === null ||
+			device === null
+		) {
 			return launchError(
 				'REPLAY_QUERY_INVALID',
 				'Replay requires game, version, canonical mode, event and a valid rgs_url.',
@@ -56,11 +129,11 @@ export function resolveLaunchMode(search, { dev = false } = {}) {
 			mode,
 			event,
 			rgsUrl: rgs.url,
-			currency: params.get('currency'),
-			amount: params.get('amount'),
-			lang: params.get('lang'),
-			device: params.get('device'),
-			social: params.get('social') === 'true',
+			currency,
+			amountUnitsRaw,
+			language,
+			device,
+			social: parseSocial(params),
 		});
 	}
 
@@ -81,8 +154,19 @@ export function resolveLaunchMode(search, { dev = false } = {}) {
 		return launchError(
 			rgs.code,
 			rgs.code === 'RGS_URL_MISSING'
-				? 'Paid live launch requires rgs_url. No local game was started.'
-				: 'Paid live launch rejected the invalid rgs_url. No local game was started.',
+				? 'Live launch requires rgs_url. No local game was started.'
+				: 'Live launch rejected the invalid rgs_url. No local game was started.',
+			'live',
+		);
+	}
+	const sessionId = firstQuery(params, ['sessionID', 'sessionId', 'session_id', 'sid']);
+	const language = parseLanguage(firstQuery(params, ['lang', 'language']), { required: true });
+	const currency = parseCurrency(requiredQuery(params, 'currency'));
+	const device = parseDevice(firstQuery(params, ['device', 'deviceType']), { required: true });
+	if (!isBoundedText(sessionId) || !language || currency === null || !device) {
+		return launchError(
+			'LIVE_QUERY_INVALID',
+			'Live launch requires valid sessionID, lang and device parameters.',
 			'live',
 		);
 	}
@@ -90,6 +174,10 @@ export function resolveLaunchMode(search, { dev = false } = {}) {
 	return Object.freeze({
 		kind: 'live',
 		rgsUrl: rgs.url,
-		status: 'RGS_WIRING_PENDING',
+		sessionId,
+		language,
+		currency,
+		device,
+		social: parseSocial(params),
 	});
 }

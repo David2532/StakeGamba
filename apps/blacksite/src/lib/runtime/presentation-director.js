@@ -5,6 +5,7 @@ export function createInitialPresentationState() {
 		mode: null,
 		phase: 'base',
 		board: null,
+		activeClusters: Object.freeze([]),
 		routeSnapshot: null,
 		featureCycle: 0,
 		featureCyclesAwarded: 0,
@@ -14,6 +15,22 @@ export function createInitialPresentationState() {
 		finalWinRaw: null,
 		capped: false,
 		notice: 'Awaiting authoritative events',
+	});
+}
+
+export function planPresentationRestore(cues, nextEventIndex = 0) {
+	if (!Array.isArray(cues)) throw new TypeError('Presentation cues must be an array.');
+	if (!Number.isSafeInteger(nextEventIndex) || nextEventIndex < 0 || nextEventIndex > cues.length) {
+		throw new RangeError('Restore cursor must identify the next presentation event.');
+	}
+	for (let index = 0; index < cues.length; index += 1) {
+		if (cues[index]?.eventIndex !== index) {
+			throw new Error('Presentation cues must retain contiguous authoritative event indices.');
+		}
+	}
+	return Object.freeze({
+		primeCues: Object.freeze(cues.slice(0, nextEventIndex)),
+		resumeCues: Object.freeze(cues.slice(nextEventIndex)),
 	});
 }
 
@@ -52,6 +69,8 @@ export class PresentationDirector {
 				this.update({
 					...common,
 					board: event.board,
+					activeClusters: Object.freeze([]),
+					stepWinRaw: 0,
 					phase: event.phase,
 					featureCycle: event.feature_cycle,
 					notice: `Authoritative board ${event.tumble_index}`,
@@ -61,6 +80,7 @@ export class PresentationDirector {
 				this.update({
 					...common,
 					phase: event.phase,
+					activeClusters: event.clusters,
 					stepWinRaw: event.step_payout_raw,
 					cumulativeWinRaw: event.cumulative_after_raw,
 					notice: `${event.clusters.length} authoritative cluster cue(s)`,
@@ -113,7 +133,12 @@ export class PresentationDirector {
 				});
 				break;
 			case 'tumble':
-				this.update({ ...common, notice: `Tumble ${event.tumble_index}` });
+				this.update({
+					...common,
+					activeClusters: Object.freeze([]),
+					stepWinRaw: 0,
+					notice: `Tumble ${event.tumble_index}`,
+				});
 				break;
 			case 'feature_ended':
 				this.update({
@@ -157,12 +182,24 @@ export class PresentationDirector {
 		});
 	}
 
-	async play(cues, { stepDelayMs = 0 } = {}) {
+	async play(cues, { stepDelayMs = 0, winDelayMs = stepDelayMs, onCue = null } = {}) {
+		if (!Number.isSafeInteger(stepDelayMs) || stepDelayMs < 0) {
+			throw new TypeError('stepDelayMs must be a non-negative safe integer.');
+		}
+		if (!Number.isSafeInteger(winDelayMs) || winDelayMs < 0) {
+			throw new TypeError('winDelayMs must be a non-negative safe integer.');
+		}
+		if (onCue !== null && typeof onCue !== 'function') {
+			throw new TypeError('onCue must be a function when supplied.');
+		}
 		const generation = ++this.playbackGeneration;
 		for (const cue of cues) {
 			if (this.destroyed || generation !== this.playbackGeneration) return false;
 			this.consume(cue);
-			if (stepDelayMs > 0 && !(await this.delay(stepDelayMs, generation))) return false;
+			if (onCue) await onCue(cue, this.state);
+			if (this.destroyed || generation !== this.playbackGeneration) return false;
+			const delayMs = cue.kind === 'win' ? winDelayMs : stepDelayMs;
+			if (delayMs > 0 && !(await this.delay(delayMs, generation))) return false;
 		}
 		return true;
 	}

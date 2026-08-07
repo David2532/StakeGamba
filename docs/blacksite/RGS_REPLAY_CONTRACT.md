@@ -63,6 +63,8 @@ Do not ship a hardcoded production bet-level list that overrides RGS response va
 
 Current first-party pages use both `stepBet` and `minStep` for the minimum increment. Normalize this at one typed boundary: prefer the field actually returned by authenticate, accept an explicitly supported alias only when the values agree, and fail closed if both are present and conflict.
 
+Treat the current jurisdiction object as a closed typed boundary. Required booleans include Social Mode, feature/spacebar restrictions and optional net-position/session-time displays; `minimumRoundDuration` is a non-negative integer in milliseconds. A newly initiated round cannot expose its result, settle or re-enable play before that minimum duration. Restore presentation is not artificially delayed.
+
 ## 5. Bet selection
 
 A selected base amount must:
@@ -70,6 +72,8 @@ A selected base amount must:
 - satisfy step rules;
 - be one of the current recommended/returned levels when the UI is presenting those levels;
 - restore to the authoritative amount for an active round.
+
+When `betLevels` is absent or empty, the UI must not collapse to the default alone. Expose the complete legal `minBet`/`maxBet`/`stepBet` interval with a bounded step control.
 
 Total debit shown before a high-cost mode action:
 
@@ -95,6 +99,8 @@ Before sending:
 
 The returned round/book state is authoritative for presentation and payout.
 
+An exact live WIN surface requires authoritative integer `round.payout`. Missing payout fails the result contract; the frontend never substitutes or relabels `payoutMultiplier` as a monetary amount.
+
 ## 7. Insufficient balance
 
 If current authoritative balance cannot cover the selected total play amount:
@@ -119,6 +125,8 @@ If active:
 - settle at most once.
 
 If the game persists presentation progress with `/bet/event`, make it idempotent and ensure resume is valid even if the event marker is missing/stale.
+
+BLACKSITE persists a bounded `blacksite-book-events-v1:<nextEventIndex>` marker after durable full-state checkpoints. On restore it synchronously primes all cues before that next index, then animates from that index exactly once. Missing, foreign, malformed or out-of-range markers conservatively resume from event `0` instead of blocking authentication. The `/bet/event` success response may omit its optional `event` echo; if an echo is present it must match the request.
 
 ## 9. Settlement / end-round
 
@@ -175,13 +183,23 @@ Use the current replay endpoint shape:
 
 `GET {rgs_url}/bet/replay/{game}/{version}/{mode}/{event}`
 
+The optional launch `lang`, `currency`, `amount`, `device` and `social` values configure the replay UI. They are not appended to the RGS endpoint, whose path remains exact.
+
 Validate response structure before playback:
 - payout multiplier numeric/non-negative;
 - cost multiplier numeric/valid;
 - state/event payload usable by the target math version;
 - mode identity consistent with the requested replay.
 
-The public Replay page describes `amount` only as being “in units” and exposes a numeric payout multiplier, while the static math package uses centi-x integers and wallet APIs use six-decimal integer money. Keep Replay query amount, Replay response multiplier, package payout and wallet amount as four explicitly named domains. Do not infer one unit from another until a real target RGS payload or authoritative schema proves the conversion.
+For the current new-game contract, normalize the exact direct response object:
+
+`{ payoutMultiplier: number, costMultiplier: number, state: object }`
+
+Do not inherit older game-specific `round` or `replay.round` wrapper aliases without a real target-RGS payload and a documented compatibility decision.
+
+The public Replay page describes `amount` only as being “in units” and exposes a numeric payout multiplier, while the static math package uses centi-x integers and wallet APIs use six-decimal integer money. Keep Replay query amount, Replay response multiplier, package payout and wallet amount as four explicitly named domains. Never reinterpret Replay query units as wallet micro-units.
+
+Exact arithmetic inside the documented Replay query-unit domain is permitted and required: `total play = raw amount units × canonical costMultiplier`, and `final win = raw amount units × authoritative payoutMultiplier`. Use decimal-string/BigInt arithmetic, retain the explicit `units` label and apply the optional launch currency only as display decoration. This does not authorize conversion into the live wallet domain.
 
 If legacy/alternate numeric representations are intentionally accepted, normalize only when they resolve exactly to the authoritative result. Contradictory values fail closed.
 
