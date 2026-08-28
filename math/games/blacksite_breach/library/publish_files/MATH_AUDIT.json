@@ -1,8 +1,8 @@
 {
   "verification_result": "PASS",
-  "lifecycle": "M1_INITIAL_CANDIDATE_NOT_RELEASE",
-  "candidate_version": "0.1.0-m1",
-  "candidate_fingerprint_sha256": "d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8",
+  "lifecycle": "MATH_V3_CANDIDATE_NOT_RELEASE",
+  "candidate_version": "0.3.0-math-v3",
+  "candidate_fingerprint_sha256": "a30e33d3aa5b7b121cc94053306944f22714888952a95f5432177121e591a2d7",
   "verified_at_source_review_date": "2026-08-07",
   "commands": {
     "generate": "node math/games/blacksite_breach/generate.mjs",
@@ -30,13 +30,13 @@
         "hit_rate": 0.35,
         "zero_count": 65000,
         "zero_rate": 0.65,
-        "distinct_raw_payout_values": 345,
-        "distinct_positive_raw_payout_values": 344,
-        "mean_cost_normalized_return": 0.9620000000000106,
+        "distinct_raw_payout_values": 105,
+        "distinct_positive_raw_payout_values": 104,
+        "mean_cost_normalized_return": 0.9619999999995748,
         "median_cost_normalized_return": 0,
-        "variance_cost_normalized_return": 1061.4006717640007,
-        "standard_deviation_cost_normalized_return": 32.579144736533536,
-        "coefficient_of_variation": 33.866054819681054,
+        "variance_cost_normalized_return": 1001.2016720700007,
+        "standard_deviation_cost_normalized_return": 31.641771000846344,
+        "coefficient_of_variation": 32.89165384704816,
         "quantiles_cost_normalized_return": {
           "p01": 0,
           "p05": 0,
@@ -44,12 +44,12 @@
           "p10": 0,
           "p25": 0,
           "p50": 0,
-          "p75": 1.35,
-          "p95": 3.28,
-          "p90": 2.8,
-          "p99": 3.68,
-          "p999": 50,
-          "p9999": 200,
+          "p75": 2.45,
+          "p95": 2.5,
+          "p90": 2.5,
+          "p99": 2.5,
+          "p999": 2.5,
+          "p9999": 2.5,
           "p100": 10000
         },
         "observed_max_raw": 1000000,
@@ -61,11 +61,11 @@
         "top_single_book_selection_share": 0.00001,
         "cvar_worst_0_1_percent": {
           "books": 100,
-          "cost_normalized_return": 227,
-          "raw_human_x": 227
+          "cost_normalized_return": 102.475,
+          "raw_human_x": 102.475
         },
         "tail": {
-          "etl_rtp_share_above_40x_cost": 0.2494802494802495,
+          "etl_rtp_share_above_40x_cost": 0.10395010395010396,
           "etl_rtp_share_above_10000x_cost": 0,
           "probability_raw_human_at_or_above_5000x": 0.00001,
           "probability_raw_human_at_or_above_10000x": 0.00001,
@@ -81,24 +81,24 @@
           },
           {
             "id": "gt_0_lt_1x_cost",
-            "books": 6261,
-            "probability": 0.06261,
-            "payout_raw_contribution": 429143,
-            "rtp_contribution_share": 0.04460945945945946
+            "books": 99,
+            "probability": 0.00099,
+            "payout_raw_contribution": 4950,
+            "rtp_contribution_share": 0.0005145530145530146
           },
           {
             "id": "1_to_lt_2x_cost",
-            "books": 10356,
-            "probability": 0.10356,
-            "payout_raw_contribution": 1543270,
-            "rtp_contribution_share": 0.16042307692307692
+            "books": 1,
+            "probability": 0.00001,
+            "payout_raw_contribution": 100,
+            "rtp_contribution_share": 0.000010395010395010395
           },
           {
             "id": "2_to_lt_5x_cost",
-            "books": 18257,
-            "probability": 0.18257,
-            "payout_raw_contribution": 5247587,
-            "rtp_contribution_share": 0.5454872141372141
+            "books": 34899,
+            "probability": 0.34899,
+            "payout_raw_contribution": 8614950,
+            "rtp_contribution_share": 0.895524948024948
           },
           {
             "id": "5_to_lt_20x_cost",
@@ -116,24 +116,24 @@
           },
           {
             "id": "50_to_lt_100x_cost",
-            "books": 100,
-            "probability": 0.001,
-            "payout_raw_contribution": 500000,
-            "rtp_contribution_share": 0.05197505197505198
+            "books": 0,
+            "probability": 0,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
           },
           {
             "id": "100_to_lt_1000x_cost",
-            "books": 20,
-            "probability": 0.0002,
-            "payout_raw_contribution": 400000,
-            "rtp_contribution_share": 0.04158004158004158
+            "books": 0,
+            "probability": 0,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
           },
           {
             "id": "gte_1000x_cost",
-            "books": 6,
-            "probability": 0.00006,
-            "payout_raw_contribution": 1500000,
-            "rtp_contribution_share": 0.15592515592515593
+            "books": 1,
+            "probability": 0.00001,
+            "payout_raw_contribution": 1000000,
+            "rtp_contribution_share": 0.10395010395010396
           }
         ],
         "most_common_final_payouts": [
@@ -143,72 +143,69 @@
             "probability": 0.65
           },
           {
-            "payout_raw": 207,
-            "count": 215,
-            "probability": 0.00215
+            "payout_raw": 246,
+            "count": 14695,
+            "probability": 0.14695
           },
           {
-            "payout_raw": 254,
-            "count": 124,
-            "probability": 0.00124
+            "payout_raw": 245,
+            "count": 10204,
+            "probability": 0.10204
           },
           {
-            "payout_raw": 115,
-            "count": 123,
-            "probability": 0.00123
+            "payout_raw": 250,
+            "count": 10000,
+            "probability": 0.1
           },
           {
-            "payout_raw": 299,
-            "count": 123,
-            "probability": 0.00123
+            "payout_raw": 1,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 160,
-            "count": 122,
-            "probability": 0.00122
+            "payout_raw": 2,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 94,
-            "count": 121,
-            "probability": 0.00121
+            "payout_raw": 3,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 238,
-            "count": 121,
-            "probability": 0.00121
+            "payout_raw": 4,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 108,
-            "count": 120,
-            "probability": 0.0012
+            "payout_raw": 5,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 185,
-            "count": 120,
-            "probability": 0.0012
+            "payout_raw": 6,
+            "count": 1,
+            "probability": 0.00001
           }
         ],
         "package": {
-          "lookup_bytes": 1052793,
-          "compressed_book_bytes": 4522399,
-          "event_count": 843288,
+          "lookup_bytes": 1058791,
+          "compressed_book_bytes": 235120,
+          "event_count": 874599,
           "aggregate_event_counts": {
             "round_start": 100000,
-            "board_set": 237518,
+            "spin_set": 299993,
             "round_end": 100000,
-            "cluster_win": 131695,
-            "breach_state": 131695,
-            "access_changed": 1946,
-            "feature_armed": 486,
-            "tumble": 131694,
-            "feature_start": 486,
-            "feature_cycle": 5824,
-            "exfil_reached": 1458,
-            "feature_end": 485,
+            "feature_trigger": 25000,
+            "feature_start": 25000,
+            "free_spin_start": 199993,
+            "line_win": 99612,
+            "feature_end": 24999,
+            "expansion_applied": 1,
             "cap_reached": 1
           },
-          "lookup_sha256": "267596425ea91455878f087dd38229dcf416d7240b766818ca0889e69c14ae5f",
-          "compressed_book_sha256": "c1d8eb9c0b5e5983c6aed95592be06beecb7774aefa607beb67f1b05b5614a83"
+          "lookup_sha256": "8b6e65071094606b0956189fbb6a7ac8f257d1ba816438227cd1305e2df5bacc",
+          "compressed_book_sha256": "7b579f147cd239c5223c4ad8e9869665dacc4340f5af1778be1c4a6a660b4eca"
         }
       },
       "gate_results": {
@@ -238,27 +235,17 @@
         "project_positive_raw_payout_diversity": true
       },
       "contract_coverage": {
-        "access_values": [
-          1,
-          2,
-          3,
-          5,
-          7,
-          10,
-          15
-        ],
-        "reached_port_counts": [
-          0,
-          1,
-          2,
-          3
-        ],
-        "maximum_cascade_wins": 11,
-        "maximum_clusters_in_one_step": 2,
-        "maximum_total_feature_cycles": 12,
-        "core_live_observed": true,
         "natural_feature_observed": true,
-        "direct_feature_observed": false
+        "direct_feature_observed": false,
+        "expansion_events": 1,
+        "maximum_expanded_reels": 3,
+        "expansion_targets": [
+          "ten"
+        ],
+        "distinct_line_signatures": 46,
+        "maximum_lines_in_one_spin": 10,
+        "max_win_observed": true,
+        "base_line_books": 10000
       }
     },
     {
@@ -276,26 +263,26 @@
         "hit_rate": 0.6,
         "zero_count": 40000,
         "zero_rate": 0.4,
-        "distinct_raw_payout_values": 945,
-        "distinct_positive_raw_payout_values": 944,
-        "mean_cost_normalized_return": 0.9620000000000014,
-        "median_cost_normalized_return": 0.6625,
-        "variance_cost_normalized_return": 79.33921701975089,
-        "standard_deviation_cost_normalized_return": 8.90725642494651,
-        "coefficient_of_variation": 9.259102312834196,
+        "distinct_raw_payout_values": 104,
+        "distinct_positive_raw_payout_values": 103,
+        "mean_cost_normalized_return": 0.9620000000002795,
+        "median_cost_normalized_return": 1.5625,
+        "variance_cost_normalized_return": 63.03993206562556,
+        "standard_deviation_cost_normalized_return": 7.939769018405104,
+        "coefficient_of_variation": 8.253398148027856,
         "quantiles_cost_normalized_return": {
           "p01": 0,
           "p05": 0,
           "p00": 0,
           "p10": 0,
           "p25": 0,
-          "p50": 0.6625,
-          "p75": 1.635,
-          "p95": 2.4225,
-          "p90": 2.2225,
-          "p99": 2.5775,
-          "p999": 25,
-          "p9999": 125,
+          "p50": 1.5625,
+          "p75": 1.565,
+          "p95": 1.565,
+          "p90": 1.565,
+          "p99": 1.565,
+          "p999": 1.565,
+          "p9999": 1.565,
           "p100": 2500
         },
         "observed_max_raw": 1000000,
@@ -307,11 +294,11 @@
         "top_single_book_selection_share": 0.00001,
         "cvar_worst_0_1_percent": {
           "books": 100,
-          "cost_normalized_return": 93.5,
-          "raw_human_x": 374
+          "cost_normalized_return": 26.54935,
+          "raw_human_x": 106.1974
         },
         "tail": {
-          "etl_rtp_share_above_40x_cost": 0.07796257796257797,
+          "etl_rtp_share_above_40x_cost": 0.02598752598752599,
           "etl_rtp_share_above_10000x_cost": 0,
           "probability_raw_human_at_or_above_5000x": 0.00001,
           "probability_raw_human_at_or_above_10000x": 0.00001,
@@ -327,24 +314,24 @@
           },
           {
             "id": "gt_0_lt_1x_cost",
-            "books": 18648,
-            "probability": 0.18648,
-            "payout_raw_contribution": 4729017,
-            "rtp_contribution_share": 0.12289545218295218
+            "books": 100,
+            "probability": 0.001,
+            "payout_raw_contribution": 5050,
+            "rtp_contribution_share": 0.00013123700623700625
           },
           {
             "id": "1_to_lt_2x_cost",
-            "books": 25668,
-            "probability": 0.25668,
-            "payout_raw_contribution": 15400479,
-            "rtp_contribution_share": 0.40022034823284824
+            "books": 59899,
+            "probability": 0.59899,
+            "payout_raw_contribution": 37474950,
+            "rtp_contribution_share": 0.973881237006237
           },
           {
             "id": "2_to_lt_5x_cost",
-            "books": 15558,
-            "probability": 0.15558,
-            "payout_raw_contribution": 14350504,
-            "rtp_contribution_share": 0.37293409563409563
+            "books": 0,
+            "probability": 0,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
           },
           {
             "id": "5_to_lt_20x_cost",
@@ -355,10 +342,10 @@
           },
           {
             "id": "20_to_lt_50x_cost",
-            "books": 100,
-            "probability": 0.001,
-            "payout_raw_contribution": 1000000,
-            "rtp_contribution_share": 0.02598752598752599
+            "books": 0,
+            "probability": 0,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
           },
           {
             "id": "50_to_lt_100x_cost",
@@ -369,10 +356,10 @@
           },
           {
             "id": "100_to_lt_1000x_cost",
-            "books": 25,
-            "probability": 0.00025,
-            "payout_raw_contribution": 2000000,
-            "rtp_contribution_share": 0.05197505197505198
+            "books": 0,
+            "probability": 0,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
           },
           {
             "id": "gte_1000x_cost",
@@ -389,72 +376,69 @@
             "probability": 0.4
           },
           {
-            "payout_raw": 576,
-            "count": 119,
-            "probability": 0.00119
+            "payout_raw": 626,
+            "count": 38075,
+            "probability": 0.38075
           },
           {
-            "payout_raw": 10000,
-            "count": 100,
-            "probability": 0.001
+            "payout_raw": 625,
+            "count": 21824,
+            "probability": 0.21824
           },
           {
-            "payout_raw": 415,
-            "count": 87,
-            "probability": 0.00087
+            "payout_raw": 1,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 173,
-            "count": 86,
-            "probability": 0.00086
+            "payout_raw": 2,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 737,
-            "count": 86,
-            "probability": 0.00086
+            "payout_raw": 3,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 609,
-            "count": 85,
-            "probability": 0.00085
+            "payout_raw": 4,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 794,
-            "count": 85,
-            "probability": 0.00085
+            "payout_raw": 5,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 810,
-            "count": 85,
-            "probability": 0.00085
+            "payout_raw": 6,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 578,
-            "count": 84,
-            "probability": 0.00084
+            "payout_raw": 7,
+            "count": 1,
+            "probability": 0.00001
           }
         ],
         "package": {
-          "lookup_bytes": 1112070,
-          "compressed_book_bytes": 9439775,
-          "event_count": 4297936,
+          "lookup_bytes": 1108791,
+          "compressed_book_bytes": 285082,
+          "event_count": 1657979,
           "aggregate_event_counts": {
             "round_start": 100000,
-            "breach_state": 539488,
-            "access_changed": 340000,
-            "board_set": 1259480,
+            "spin_set": 579993,
             "round_end": 100000,
-            "cluster_win": 439488,
-            "feature_armed": 60000,
-            "tumble": 439487,
+            "feature_trigger": 60000,
             "feature_start": 60000,
-            "feature_cycle": 719993,
-            "exfil_reached": 180000,
+            "free_spin_start": 479993,
+            "line_win": 217992,
             "feature_end": 59999,
+            "expansion_applied": 1,
             "cap_reached": 1
           },
-          "lookup_sha256": "2183795596be146de5114adaaba252bb6d86077d900e3279d5fd6ab55d2ce948",
-          "compressed_book_sha256": "2fac16a506df9740396b1e04e4cee8f68950004bb117374d6b7ca2ea15af2bc7"
+          "lookup_sha256": "726103e5bb949847a81c752b1c93bdbd15a1e4cc9338a9a1dcc9db303485e2e3",
+          "compressed_book_sha256": "aeecc118408bc8d0eff9a8e4c1560b8da7b8e5a100fa77d49c5e80e8576f91ad"
         }
       },
       "gate_results": {
@@ -484,26 +468,17 @@
         "project_positive_raw_payout_diversity": true
       },
       "contract_coverage": {
-        "access_values": [
-          1,
-          2,
-          5,
-          7,
-          10,
-          15
-        ],
-        "reached_port_counts": [
-          0,
-          1,
-          2,
-          3
-        ],
-        "maximum_cascade_wins": 7,
-        "maximum_clusters_in_one_step": 1,
-        "maximum_total_feature_cycles": 12,
-        "core_live_observed": true,
         "natural_feature_observed": true,
-        "direct_feature_observed": false
+        "direct_feature_observed": false,
+        "expansion_events": 1,
+        "maximum_expanded_reels": 3,
+        "expansion_targets": [
+          "ten"
+        ],
+        "distinct_line_signatures": 36,
+        "maximum_lines_in_one_spin": 10,
+        "max_win_observed": true,
+        "base_line_books": 0
       }
     },
     {
@@ -521,26 +496,26 @@
         "hit_rate": 0.95,
         "zero_count": 5000,
         "zero_rate": 0.050000000000000044,
-        "distinct_raw_payout_values": 12769,
-        "distinct_positive_raw_payout_values": 12768,
-        "mean_cost_normalized_return": 0.9620000000000191,
-        "median_cost_normalized_return": 0.938125,
-        "variance_cost_normalized_return": 0.8012184187668517,
-        "standard_deviation_cost_normalized_return": 0.8951080486549385,
-        "coefficient_of_variation": 0.9304657470425373,
+        "distinct_raw_payout_values": 104,
+        "distinct_positive_raw_payout_values": 103,
+        "mean_cost_normalized_return": 0.962000000000968,
+        "median_cost_normalized_return": 1.012375,
+        "variance_cost_normalized_return": 0.20344900395299606,
+        "standard_deviation_cost_normalized_return": 0.4510532163204205,
+        "coefficient_of_variation": 0.46887028723489255,
         "quantiles_cost_normalized_return": {
           "p01": 0,
-          "p05": 0.16898125000012942,
+          "p05": 0.00011875000000009095,
           "p00": 0,
-          "p10": 0.263125,
-          "p25": 0.51625,
-          "p50": 0.938125,
-          "p75": 1.360375,
-          "p95": 1.6965,
-          "p90": 1.6113749999999998,
-          "p99": 1.76475,
-          "p999": 12.5,
-          "p9999": 31.25,
+          "p10": 1.012375,
+          "p25": 1.012375,
+          "p50": 1.012375,
+          "p75": 1.012375,
+          "p95": 1.0125,
+          "p90": 1.012375,
+          "p99": 1.0125,
+          "p999": 1.0125,
+          "p9999": 1.0125,
           "p100": 125
         },
         "observed_max_raw": 1000000,
@@ -552,8 +527,8 @@
         "top_single_book_selection_share": 0.00001,
         "cvar_worst_0_1_percent": {
           "books": 100,
-          "cost_normalized_return": 17.375,
-          "raw_human_x": 1390
+          "cost_normalized_return": 2.252375000000002,
+          "raw_human_x": 180.19
         },
         "tail": {
           "etl_rtp_share_above_40x_cost": 0.0012993762993762994,
@@ -572,17 +547,17 @@
           },
           {
             "id": "gt_0_lt_1x_cost",
-            "books": 48715,
-            "probability": 0.48715,
-            "payout_raw_contribution": 229759561,
-            "rtp_contribution_share": 0.2985441281185031
+            "books": 100,
+            "probability": 0.001,
+            "payout_raw_contribution": 5050,
+            "rtp_contribution_share": 0.0000065618503118503115
           },
           {
             "id": "1_to_lt_2x_cost",
-            "books": 45864,
-            "probability": 0.45864,
-            "payout_raw_contribution": 508840439,
-            "rtp_contribution_share": 0.6611752066008316
+            "books": 94899,
+            "probability": 0.94899,
+            "payout_raw_contribution": 768594950,
+            "rtp_contribution_share": 0.9986940618503118
           },
           {
             "id": "2_to_lt_5x_cost",
@@ -593,17 +568,17 @@
           },
           {
             "id": "5_to_lt_20x_cost",
-            "books": 400,
-            "probability": 0.004,
-            "payout_raw_contribution": 25000000,
-            "rtp_contribution_share": 0.032484407484407486
+            "books": 0,
+            "probability": 0,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
           },
           {
             "id": "20_to_lt_50x_cost",
-            "books": 20,
-            "probability": 0.0002,
-            "payout_raw_contribution": 5000000,
-            "rtp_contribution_share": 0.006496881496881497
+            "books": 0,
+            "probability": 0,
+            "payout_raw_contribution": 0,
+            "rtp_contribution_share": 0
           },
           {
             "id": "50_to_lt_100x_cost",
@@ -629,76 +604,73 @@
         ],
         "most_common_final_payouts": [
           {
+            "payout_raw": 8099,
+            "count": 86950,
+            "probability": 0.8695
+          },
+          {
+            "payout_raw": 8100,
+            "count": 7949,
+            "probability": 0.07949
+          },
+          {
             "payout_raw": 0,
             "count": 5000,
             "probability": 0.05
           },
           {
-            "payout_raw": 50000,
-            "count": 300,
-            "probability": 0.003
+            "payout_raw": 1,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 100000,
-            "count": 100,
-            "probability": 0.001
+            "payout_raw": 2,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 250000,
-            "count": 20,
-            "probability": 0.0002
+            "payout_raw": 3,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 4329,
-            "count": 19,
-            "probability": 0.00019
+            "payout_raw": 4,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 7226,
-            "count": 19,
-            "probability": 0.00019
+            "payout_raw": 5,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 7517,
-            "count": 18,
-            "probability": 0.00018
+            "payout_raw": 6,
+            "count": 1,
+            "probability": 0.00001
           },
           {
-            "payout_raw": 8193,
-            "count": 18,
-            "probability": 0.00018
-          },
-          {
-            "payout_raw": 1742,
-            "count": 17,
-            "probability": 0.00017
-          },
-          {
-            "payout_raw": 3347,
-            "count": 17,
-            "probability": 0.00017
+            "payout_raw": 7,
+            "count": 1,
+            "probability": 0.00001
           }
         ],
         "package": {
-          "lookup_bytes": 1305598,
-          "compressed_book_bytes": 31264597,
-          "event_count": 6819106,
+          "lookup_bytes": 1273690,
+          "compressed_book_bytes": 467411,
+          "event_count": 2933299,
           "aggregate_event_counts": {
             "round_start": 100000,
-            "breach_state": 927280,
-            "access_changed": 385000,
             "feature_start": 100000,
-            "feature_cycle": 1169994,
-            "board_set": 1997273,
+            "free_spin_start": 799993,
+            "spin_set": 799993,
             "feature_end": 99999,
             "round_end": 100000,
-            "cluster_win": 827280,
-            "tumble": 827279,
-            "exfil_reached": 285000,
+            "line_win": 648615,
+            "expansion_applied": 284698,
             "cap_reached": 1
           },
-          "lookup_sha256": "330292e1127f74a23a39dd624ebd44e59fdd73f45aff64ebe2c986f02661bcb2",
-          "compressed_book_sha256": "7d7edbd87a7a2c02014671de6bc97434b28f13293c48884815e008a47cbc16e1"
+          "lookup_sha256": "0ca8bf3fab982ea2805cc982126a93efdd44c01965a99b54ec85977b937e4b79",
+          "compressed_book_sha256": "173c1089480d324d44b8ab9e93ee6e7f627cbd6898f1453e2e29b6ae7a5a639d"
         }
       },
       "gate_results": {
@@ -728,25 +700,18 @@
         "project_positive_raw_payout_diversity": true
       },
       "contract_coverage": {
-        "access_values": [
-          1,
-          5,
-          7,
-          10,
-          15
-        ],
-        "reached_port_counts": [
-          0,
-          1,
-          2,
-          3
-        ],
-        "maximum_cascade_wins": 9,
-        "maximum_clusters_in_one_step": 1,
-        "maximum_total_feature_cycles": 12,
-        "core_live_observed": true,
         "natural_feature_observed": false,
-        "direct_feature_observed": true
+        "direct_feature_observed": true,
+        "expansion_events": 284698,
+        "maximum_expanded_reels": 4,
+        "expansion_targets": [
+          "operative",
+          "ten"
+        ],
+        "distinct_line_signatures": 46,
+        "maximum_lines_in_one_spin": 10,
+        "max_win_observed": true,
+        "base_line_books": 0
       }
     }
   ],
@@ -754,23 +719,24 @@
     "achieved_rtp_spread": 0,
     "gates": {
       "exact_mode_set": true,
-      "base_cost_is_one": true,
+      "exact_mode_costs": true,
       "base_is_cheapest": true,
       "exact_target_rtp_all_modes": true,
       "cross_mode_rtp_spread": true,
       "base_minimum_standard_deviation": true,
       "base_3star_maximum_standard_deviation": true,
       "operator_bet_template_viable": true,
-      "all_effective_sample_size_ratios_gte_0_50": true,
-      "all_top_single_book_shares_lte_0_0001": true,
-      "five_positive_fixtures_each_mode": true,
-      "canonical_typed_event_schema_bound_to_every_fixture": true,
-      "physical_gravity_and_top_refill_validated_for_every_tumble": true,
-      "simultaneous_disjoint_cluster_step_proven": true,
-      "pre_feature_access_ladder_1_2_3_5_proven": true,
+      "event_contract_is_v3": true,
+      "board_is_column_major_5x3": true,
+      "ten_unique_fixed_paylines": true,
       "natural_and_direct_feature_entry_proven": true,
-      "twelve_cycle_and_all_port_counts_proven": true,
-      "complete_stable_contract_fixture_catalog": true
+      "genuine_expansion_and_ten_line_evaluation_proven": true,
+      "base_classic_line_pay_books_present": true,
+      "deep_access_guaranteed_pair_proven": true,
+      "max_win_positive_each_mode": true,
+      "at_least_100_distinct_positive_payouts_each_mode": true,
+      "canonical_schema_bound_to_every_fixture": true,
+      "complete_v3_fixture_catalog": true
     }
   },
   "operator_template_probe": {

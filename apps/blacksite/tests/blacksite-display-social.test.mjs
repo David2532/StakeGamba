@@ -9,8 +9,12 @@ import {
 } from '../src/lib/runtime/display-money.js';
 import {
 	RULES_CONTRACT,
+	RULES_INTERFACE_COPY,
 	getRulesDisclaimer,
+	getRulesInterfaceCopy,
 } from '../src/lib/contracts/rules.js';
+import { getModeActionDescription } from '../src/lib/contracts/modes.js';
+import { createMissionBriefing } from '../src/lib/contracts/mission-briefing.js';
 import {
 	CURRENCY_META,
 	currencyMetaFor,
@@ -224,7 +228,11 @@ test('normal rules retain the canonical disclaimer while Social rules are restri
 		...RULES_CONTRACT.mechanic,
 		...RULES_CONTRACT.feature,
 		...RULES_CONTRACT.controls,
-		...RULES_CONTRACT.modes.map((mode) => mode.socialLabel),
+		...Object.values(getRulesInterfaceCopy(true)),
+		...RULES_CONTRACT.modes.flatMap((mode) => [
+			mode.socialLabel,
+			getModeActionDescription(mode.id, true),
+		]),
 		socialDisclaimer,
 	].join(' ');
 	assert.deepEqual(playerVisibleRestrictedHits(normalRulesWithoutDisclaimer), []);
@@ -233,4 +241,30 @@ test('normal rules retain the canonical disclaimer while Social rules are restri
 	assert.match(socialRules, /BLACKOUT ENTRY/);
 	assert.equal(socialRules.includes('BREACH RUN'), false);
 	assert.deepEqual(playerVisibleRestrictedHits(socialRules), []);
+	assert.equal(getRulesInterfaceCopy(false), RULES_INTERFACE_COPY.normal);
+	assert.equal(RULES_INTERFACE_COPY.normal.amountLabel, 'BET');
+	assert.equal(RULES_INTERFACE_COPY.normal.resultExplanation.includes('non-paying'), true);
+	assert.equal(RULES_INTERFACE_COPY.social.amountLabel, 'PLAY AMOUNT');
+	assert.equal(RULES_INTERFACE_COPY.social.resultExplanation.includes('no line award'), true);
+});
+
+test('Social mission briefing is restricted-term clean in every player-visible field', () => {
+	const briefing = createMissionBriefing({ language: 'en', social: true });
+	const visibleCopy = [
+		briefing.copy.eyebrow,
+		briefing.copy.title,
+		briefing.copy.mission,
+		briefing.copy.features,
+		briefing.copy.intel,
+		briefing.copy.modes,
+		...briefing.missionCopy,
+		...briefing.features.flatMap((feature) => [feature.title, feature.copy]),
+		...briefing.modes.flatMap((mode) => [mode.label, mode.description]),
+		briefing.copy.rtp,
+		briefing.copy.maxWin,
+		briefing.copy.maxWinSuffix,
+		briefing.copy.responsible,
+		briefing.copy.cta,
+	].join(' ');
+	assert.deepEqual(playerVisibleRestrictedHits(visibleCopy), []);
 });

@@ -1,0 +1,2343 @@
+{
+  "schemaVersion": 1,
+  "generatedBy": "scripts/build-blacksite-dev-standalone-fx.py",
+  "devOnly": true,
+  "manifest": "apps/blacksite/static/assets/blacksite/runtime-rgba-dev-fx-v1/animation_manifest.json",
+  "manifestSha256": "1a66c712995225da19a8f62400c4a04333cbf070fb1333c108425d421a1cc6a7",
+  "totalBytes": 5732614,
+  "effects": {
+    "BONUS_CRATE_PULSE_30FPS": {
+      "sequence": "BONUS_CRATE_PULSE_30FPS",
+      "sourceFrames": [
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_000.webp",
+          "bytes": 37398,
+          "sha256": "38cd0fb94239c9239bad366bd12b937498881a2829731741d458539f28b03bd8"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_001.webp",
+          "bytes": 39516,
+          "sha256": "55f71265a8557dee08318d3384e713f4fbc99de085e7d3f2cb57ba83815af73c"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_002.webp",
+          "bytes": 40856,
+          "sha256": "e718ef31e173473e63b679539053e3781926822bb374140e8143b8bd193815d8"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_003.webp",
+          "bytes": 41576,
+          "sha256": "1901e1b9951337885632cad7e2f39f9b38f57caa6bf1f62a7f0a350a3021b48c"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_004.webp",
+          "bytes": 42118,
+          "sha256": "bc4e035f44e343183f4e5e5e68b9f2812f2c4fc1d7b9f019cee02a48dcf33c0d"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_005.webp",
+          "bytes": 41576,
+          "sha256": "1901e1b9951337885632cad7e2f39f9b38f57caa6bf1f62a7f0a350a3021b48c"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_006.webp",
+          "bytes": 40856,
+          "sha256": "e718ef31e173473e63b679539053e3781926822bb374140e8143b8bd193815d8"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_007.webp",
+          "bytes": 39516,
+          "sha256": "55f71265a8557dee08318d3384e713f4fbc99de085e7d3f2cb57ba83815af73c"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_008.webp",
+          "bytes": 37402,
+          "sha256": "6b565e2efbcfd38eca8a8acea787031a21148daf73a00c2997ed81b99ba06825"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_009.webp",
+          "bytes": 35668,
+          "sha256": "f78aed7ba80dbfeeaba95eab4c891cf4d7599e7db37a9acca8615ec9c255d15f"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_010.webp",
+          "bytes": 34142,
+          "sha256": "a7d21fde457853c1d9ac4ca4180e5f10f2f58ff5e4d843343061803d904d8e4e"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_011.webp",
+          "bytes": 33054,
+          "sha256": "de26948338e0b64aa8de09c2c3c91ee5ae7d3e21838e84fd697289017cfdd7d9"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_012.webp",
+          "bytes": 32766,
+          "sha256": "0a8082d2a70825e75f7f2a34c746d4484498a7d2e51ba716bcd1e5b2ccb86912"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_013.webp",
+          "bytes": 33054,
+          "sha256": "de26948338e0b64aa8de09c2c3c91ee5ae7d3e21838e84fd697289017cfdd7d9"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_014.webp",
+          "bytes": 34142,
+          "sha256": "a7d21fde457853c1d9ac4ca4180e5f10f2f58ff5e4d843343061803d904d8e4e"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_015.webp",
+          "bytes": 35668,
+          "sha256": "f78aed7ba80dbfeeaba95eab4c891cf4d7599e7db37a9acca8615ec9c255d15f"
+        }
+      ],
+      "outputFrames": [
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_000.webp",
+          "bytes": 37142,
+          "sha256": "c2b881984d8f9ef5119087e3670b4738e9db1289aa301bb4c631349533521646",
+          "decodedRgbaSha256": "b40bca5764226afae9dfe35e16162dd894df2ab54230e0c197071c17243514ba",
+          "frameIndex": 0,
+          "sourceFrame": 0,
+          "targetFrame": 1,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_001.webp",
+          "bytes": 36468,
+          "sha256": "ceb83d2f271234f19c2b48067c05d5cc56c7dc31d0d7ef4d7e9d58710d6cb3a6",
+          "decodedRgbaSha256": "b16e9f94c7169ea3b6b740449f663a837e8b9520a1b5ab6c0ca75111aca77b43",
+          "frameIndex": 1,
+          "sourceFrame": 0,
+          "targetFrame": 1,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_002.webp",
+          "bytes": 38836,
+          "sha256": "0b53100bfc4e815fd02c17ffd5735aa7be4b3fcdc47fd59ffd2c21793d161bad",
+          "decodedRgbaSha256": "37a338416cdc0f535a536dd2a0fd1097b0ea235c5af00db669bf48c17bbee47f",
+          "frameIndex": 2,
+          "sourceFrame": 0,
+          "targetFrame": 1,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_003.webp",
+          "bytes": 39448,
+          "sha256": "2ae4a5ce7f8cfb2bf3fe577e95311c7074a90a644fb366b5b44a212c90b9a0bd",
+          "decodedRgbaSha256": "11ce1668ed5bb3790068e121b4215eae3acb85256212e5f17bca21115ab209b2",
+          "frameIndex": 3,
+          "sourceFrame": 1,
+          "targetFrame": 2,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_004.webp",
+          "bytes": 38740,
+          "sha256": "5e324aacc3aa2873f255f040b8af2cbb4925e4f335189299043ff7cb09b74176",
+          "decodedRgbaSha256": "3f46df8994ed643149bd8b8a742096e4a01c306542dab2ccc4efda61904d3507",
+          "frameIndex": 4,
+          "sourceFrame": 1,
+          "targetFrame": 2,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_005.webp",
+          "bytes": 40544,
+          "sha256": "a09b9bbe6ee9214bb40618eab6dc108558634d0f327b88e22438035cb1a248c5",
+          "decodedRgbaSha256": "75dc1bc5233ddf3ac678dbab38c38f865bb3d7e69c76adbc8545a5d183326ad9",
+          "frameIndex": 5,
+          "sourceFrame": 2,
+          "targetFrame": 3,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_006.webp",
+          "bytes": 39226,
+          "sha256": "ad204decd9ab0fd9fca7ccace25debabc0e0541e815d49cc3ae32a2445593fba",
+          "decodedRgbaSha256": "0a3dcd0c408d1637adf3ad1dbe850c1c8196a447bb7a0fb527b90c177689b6f8",
+          "frameIndex": 6,
+          "sourceFrame": 2,
+          "targetFrame": 3,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_007.webp",
+          "bytes": 40576,
+          "sha256": "ec61da7199bb77f7fb1e431bdd1dea8572a171a9bc38b000a0389c06023bd84a",
+          "decodedRgbaSha256": "988b92e270fc8ec44d262430958dec188d09e4d855e85608f0bded84f620c562",
+          "frameIndex": 7,
+          "sourceFrame": 2,
+          "targetFrame": 3,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_008.webp",
+          "bytes": 40976,
+          "sha256": "6fd008ffb3478772858f282d030fcb168aec5f10443e2b56e195672aea93de7b",
+          "decodedRgbaSha256": "b9c7d3c5a002dab91af1326b3755d2d8c68cfe7dcc666d628448db90a2bbd53e",
+          "frameIndex": 8,
+          "sourceFrame": 3,
+          "targetFrame": 4,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_009.webp",
+          "bytes": 40660,
+          "sha256": "5bccb48bf176cff6e74d47ec53e338f1a3bfc263c47a20ae119063832423c218",
+          "decodedRgbaSha256": "a53ff050e12e78eac775233dbb364dc0914272cf7bf44d865ea62c9520dc47c1",
+          "frameIndex": 9,
+          "sourceFrame": 3,
+          "targetFrame": 4,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_010.webp",
+          "bytes": 41820,
+          "sha256": "247b8e24953c0a1125e6c5095162afbab2ab888aa09a9659caa594d9097eae83",
+          "decodedRgbaSha256": "02d2553f63a3e5776d0037f1aa4f4bc10ff95b6dd12e75b7438fd31959b240ed",
+          "frameIndex": 10,
+          "sourceFrame": 4,
+          "targetFrame": 5,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_011.webp",
+          "bytes": 40660,
+          "sha256": "5bccb48bf176cff6e74d47ec53e338f1a3bfc263c47a20ae119063832423c218",
+          "decodedRgbaSha256": "a53ff050e12e78eac775233dbb364dc0914272cf7bf44d865ea62c9520dc47c1",
+          "frameIndex": 11,
+          "sourceFrame": 4,
+          "targetFrame": 5,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_012.webp",
+          "bytes": 40976,
+          "sha256": "6fd008ffb3478772858f282d030fcb168aec5f10443e2b56e195672aea93de7b",
+          "decodedRgbaSha256": "b9c7d3c5a002dab91af1326b3755d2d8c68cfe7dcc666d628448db90a2bbd53e",
+          "frameIndex": 12,
+          "sourceFrame": 4,
+          "targetFrame": 5,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_013.webp",
+          "bytes": 40576,
+          "sha256": "ec61da7199bb77f7fb1e431bdd1dea8572a171a9bc38b000a0389c06023bd84a",
+          "decodedRgbaSha256": "988b92e270fc8ec44d262430958dec188d09e4d855e85608f0bded84f620c562",
+          "frameIndex": 13,
+          "sourceFrame": 5,
+          "targetFrame": 6,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_014.webp",
+          "bytes": 39226,
+          "sha256": "ad204decd9ab0fd9fca7ccace25debabc0e0541e815d49cc3ae32a2445593fba",
+          "decodedRgbaSha256": "0a3dcd0c408d1637adf3ad1dbe850c1c8196a447bb7a0fb527b90c177689b6f8",
+          "frameIndex": 14,
+          "sourceFrame": 5,
+          "targetFrame": 6,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_015.webp",
+          "bytes": 40544,
+          "sha256": "a09b9bbe6ee9214bb40618eab6dc108558634d0f327b88e22438035cb1a248c5",
+          "decodedRgbaSha256": "75dc1bc5233ddf3ac678dbab38c38f865bb3d7e69c76adbc8545a5d183326ad9",
+          "frameIndex": 15,
+          "sourceFrame": 6,
+          "targetFrame": 7,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_016.webp",
+          "bytes": 38740,
+          "sha256": "5e324aacc3aa2873f255f040b8af2cbb4925e4f335189299043ff7cb09b74176",
+          "decodedRgbaSha256": "3f46df8994ed643149bd8b8a742096e4a01c306542dab2ccc4efda61904d3507",
+          "frameIndex": 16,
+          "sourceFrame": 6,
+          "targetFrame": 7,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_017.webp",
+          "bytes": 39448,
+          "sha256": "2ae4a5ce7f8cfb2bf3fe577e95311c7074a90a644fb366b5b44a212c90b9a0bd",
+          "decodedRgbaSha256": "11ce1668ed5bb3790068e121b4215eae3acb85256212e5f17bca21115ab209b2",
+          "frameIndex": 17,
+          "sourceFrame": 6,
+          "targetFrame": 7,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_018.webp",
+          "bytes": 38846,
+          "sha256": "2f974edfb4c5a6ceb24469f96e59b9be91aa6d3cfcfc3bd79b5c1c72d2f5ea0e",
+          "decodedRgbaSha256": "eb53b29ffa10d322eb3435163e951b2ad3dee5ee16bd243fc726dca96a313c07",
+          "frameIndex": 18,
+          "sourceFrame": 7,
+          "targetFrame": 8,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_019.webp",
+          "bytes": 36476,
+          "sha256": "0766353b71403e6eb9c11b749dc3f5f37ace0a33046be07750b7f65e8593833b",
+          "decodedRgbaSha256": "d76af21273bf2cbec35754194dac9a571187ed600f952ca8fb465a78d669aa28",
+          "frameIndex": 19,
+          "sourceFrame": 7,
+          "targetFrame": 8,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_020.webp",
+          "bytes": 37122,
+          "sha256": "d15d9b15e4c7f03101574865e99b7cd7e9c82d3e0563d8b1e808b8da7ef9b219",
+          "decodedRgbaSha256": "41264e2018591eccee5cff20a09f8943902649aba243fa3c5b41d58f973ee058",
+          "frameIndex": 20,
+          "sourceFrame": 8,
+          "targetFrame": 9,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_021.webp",
+          "bytes": 35732,
+          "sha256": "09ca54298643e8e8dc9d0268e48249885c0283277eb8a90f0571c59c7fdf451b",
+          "decodedRgbaSha256": "424d0b8675a58b00e298ff2c0b554d7d5a424d6b0570942c04abaa3205f76dc6",
+          "frameIndex": 21,
+          "sourceFrame": 8,
+          "targetFrame": 9,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_022.webp",
+          "bytes": 36012,
+          "sha256": "015f019c5dfc2333da1ca3de257a22894acc793d9d19d65f64dfb19e7877adb8",
+          "decodedRgbaSha256": "724b53da106e3e8d344c53f9b94d5e345823c7dc383fb89497f5338ee29bb01f",
+          "frameIndex": 22,
+          "sourceFrame": 8,
+          "targetFrame": 9,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_023.webp",
+          "bytes": 34638,
+          "sha256": "2aebc8bbc495ba010e174a6e82bbb18992390e25432fa14b8755fb3572000454",
+          "decodedRgbaSha256": "070241d2fdad894fa99501816e1f00e01cef73a7a49d58fb793bab6aa0f112f0",
+          "frameIndex": 23,
+          "sourceFrame": 9,
+          "targetFrame": 10,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_024.webp",
+          "bytes": 33010,
+          "sha256": "60d6c11f85e8e4a67ab0befe79acea4cf7372e87aa61f8e685b761de97b68fe9",
+          "decodedRgbaSha256": "ee57f8213334afda53f107cac6c39e32ec49c0000b87eb65d03e4daef01ceca4",
+          "frameIndex": 24,
+          "sourceFrame": 9,
+          "targetFrame": 10,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_025.webp",
+          "bytes": 33730,
+          "sha256": "f4f92c51c027fbb28f29d72013a122311c2c0dd80602990932e91d0df3713ceb",
+          "decodedRgbaSha256": "be025e2f2137598f384db78f67b195bbdb23daca74a0f192c1cdcbf411fcb7c0",
+          "frameIndex": 25,
+          "sourceFrame": 10,
+          "targetFrame": 11,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_026.webp",
+          "bytes": 31946,
+          "sha256": "9524993e507eac82c0bc6cf56f67939947c41f086e4e3fcea4b4b7fadc72ff77",
+          "decodedRgbaSha256": "74e390f2a568c3bdeb1787845d202dd449e0c728b138a40702d23164eb580054",
+          "frameIndex": 26,
+          "sourceFrame": 10,
+          "targetFrame": 11,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_027.webp",
+          "bytes": 32786,
+          "sha256": "8f67c42b99fa45a3ab6b4d51528762bb6b9b400625bf98151ebb160f1a88bd22",
+          "decodedRgbaSha256": "a5ee4204dd1cacbe9150a5068192939e21e2ffd83acf4634ba966820cd9d294a",
+          "frameIndex": 27,
+          "sourceFrame": 10,
+          "targetFrame": 11,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_028.webp",
+          "bytes": 32526,
+          "sha256": "c0ad31914658fda72259f4df604e165caa929feb1e939082673b27d433a2af21",
+          "decodedRgbaSha256": "2d19aa6236560286287dc1940d79732c4f231a27423decaf17f100f800ba2e25",
+          "frameIndex": 28,
+          "sourceFrame": 11,
+          "targetFrame": 12,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_029.webp",
+          "bytes": 32030,
+          "sha256": "3a8dda3dfc97e2723e79f81e95a3946ce28e77766f71af69db8d08b5c7b220bf",
+          "decodedRgbaSha256": "095ce9e565a1ae66a82e621135dfa89b4ac5488a483bd322c7fcd3c09ce8b2d9",
+          "frameIndex": 29,
+          "sourceFrame": 11,
+          "targetFrame": 12,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_030.webp",
+          "bytes": 32350,
+          "sha256": "72e8b5553bcfbb1473f3b4ad8eb67cf32f905b5525ee21ee49e7839a2f9e0557",
+          "decodedRgbaSha256": "956bf342551e2c9d2aa4221e309618007dfa0bd0be97cd0386c19da2608538d1",
+          "frameIndex": 30,
+          "sourceFrame": 12,
+          "targetFrame": 13,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_031.webp",
+          "bytes": 32030,
+          "sha256": "3a8dda3dfc97e2723e79f81e95a3946ce28e77766f71af69db8d08b5c7b220bf",
+          "decodedRgbaSha256": "095ce9e565a1ae66a82e621135dfa89b4ac5488a483bd322c7fcd3c09ce8b2d9",
+          "frameIndex": 31,
+          "sourceFrame": 12,
+          "targetFrame": 13,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_032.webp",
+          "bytes": 32526,
+          "sha256": "c0ad31914658fda72259f4df604e165caa929feb1e939082673b27d433a2af21",
+          "decodedRgbaSha256": "2d19aa6236560286287dc1940d79732c4f231a27423decaf17f100f800ba2e25",
+          "frameIndex": 32,
+          "sourceFrame": 12,
+          "targetFrame": 13,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_033.webp",
+          "bytes": 32786,
+          "sha256": "8f67c42b99fa45a3ab6b4d51528762bb6b9b400625bf98151ebb160f1a88bd22",
+          "decodedRgbaSha256": "a5ee4204dd1cacbe9150a5068192939e21e2ffd83acf4634ba966820cd9d294a",
+          "frameIndex": 33,
+          "sourceFrame": 13,
+          "targetFrame": 14,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_034.webp",
+          "bytes": 31946,
+          "sha256": "9524993e507eac82c0bc6cf56f67939947c41f086e4e3fcea4b4b7fadc72ff77",
+          "decodedRgbaSha256": "74e390f2a568c3bdeb1787845d202dd449e0c728b138a40702d23164eb580054",
+          "frameIndex": 34,
+          "sourceFrame": 13,
+          "targetFrame": 14,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_035.webp",
+          "bytes": 33730,
+          "sha256": "f4f92c51c027fbb28f29d72013a122311c2c0dd80602990932e91d0df3713ceb",
+          "decodedRgbaSha256": "be025e2f2137598f384db78f67b195bbdb23daca74a0f192c1cdcbf411fcb7c0",
+          "frameIndex": 35,
+          "sourceFrame": 14,
+          "targetFrame": 15,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_036.webp",
+          "bytes": 33010,
+          "sha256": "60d6c11f85e8e4a67ab0befe79acea4cf7372e87aa61f8e685b761de97b68fe9",
+          "decodedRgbaSha256": "ee57f8213334afda53f107cac6c39e32ec49c0000b87eb65d03e4daef01ceca4",
+          "frameIndex": 36,
+          "sourceFrame": 14,
+          "targetFrame": 15,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_037.webp",
+          "bytes": 34638,
+          "sha256": "2aebc8bbc495ba010e174a6e82bbb18992390e25432fa14b8755fb3572000454",
+          "decodedRgbaSha256": "070241d2fdad894fa99501816e1f00e01cef73a7a49d58fb793bab6aa0f112f0",
+          "frameIndex": 37,
+          "sourceFrame": 14,
+          "targetFrame": 15,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_038.webp",
+          "bytes": 35976,
+          "sha256": "0f069b08db984e840748a5f772d5b485b7eb52968e97a26c0f9977a64b83703c",
+          "decodedRgbaSha256": "6ac45641fcca5ad56368a9449c2ec0c88cf96bf0c0fa1b25d42b69a93c6725eb",
+          "frameIndex": 38,
+          "sourceFrame": 15,
+          "targetFrame": 0,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_PULSE_30FPS/rgba/BONUS_CRATE_PULSE_30FPS_039.webp",
+          "bytes": 35736,
+          "sha256": "bd7d85000b3eedd8404a98aa0964aee39964fa65991e2d89122e08951905fde8",
+          "decodedRgbaSha256": "890cf13108dc79b9865e671015d87109b8aeb297af685bcbef199794f27a12b2",
+          "frameIndex": 39,
+          "sourceFrame": 15,
+          "targetFrame": 0,
+          "phase": 0.6
+        }
+      ],
+      "flow": {},
+      "qa": {
+        "distinctFileHashes": 26,
+        "distinctDecodedRgbaHashes": 26,
+        "consecutiveDuplicateVisibleFrames": 0,
+        "transparentTerminalFrames": 0,
+        "nonAdjacentPoseRevisits": 14,
+        "adjacentAlphaIouMin": 0.939209,
+        "adjacentAlphaIouMean": 0.976467,
+        "loopSeamAlphaIou": 0.986634,
+        "sourceAdjacentDeltaMedian": 0.05962471,
+        "outputAdjacentDeltaMedian": 0.02094935,
+        "temporalDeltaRatio": 0.351353,
+        "synthesizedAlphaEdgeOvershootMax": 0.981119,
+        "transparentRgbMax": 0
+      },
+      "contactSheet": "apps/blacksite/art/generated/v22/standalone-fx-30fps-v1/BONUS_CRATE_PULSE_30FPS_contact-sheet.webp",
+      "contactSheetSha256": "556fbdc930d8bb87b953e35739ada907482de07a6165228b8c2075ed2c606941"
+    },
+    "BONUS_CRATE_SPIN_30FPS": {
+      "sequence": "BONUS_CRATE_SPIN_30FPS",
+      "sourceFrames": [
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_000.webp",
+          "bytes": 37398,
+          "sha256": "38cd0fb94239c9239bad366bd12b937498881a2829731741d458539f28b03bd8"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_001.webp",
+          "bytes": 38318,
+          "sha256": "0459ba4c9b2a10c4f93e225e32ed5b7b6781fa040b4c7e7dcaa94f339237d94a"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_002.webp",
+          "bytes": 40670,
+          "sha256": "eb8989d8afe671a317a6ba2247aa4fdd4573c3228a0353616dfe0ef3d0a80248"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_003.webp",
+          "bytes": 41766,
+          "sha256": "c43b59b98dd233d2e64f9acaaf3bd357070fbe3442b34b38e38e8baca03c692e"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_004.webp",
+          "bytes": 42814,
+          "sha256": "3752a6d4cda58dc76137faaa9a88fbc2bbfcfec02f1393bf72b917927d4c9eb6"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_005.webp",
+          "bytes": 41970,
+          "sha256": "014c111f71ee431fa565d0712cce281ec84144fcd8f54e0e5e7cd6c6b692f5f6"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_006.webp",
+          "bytes": 42226,
+          "sha256": "73146ef54ddcce2ce34cb298aa54fc33b6dd93a232918654c39491dad5e0efe0"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_007.webp",
+          "bytes": 41834,
+          "sha256": "4fd143ae1965c0e834ef92811743b483acddc622655d32b3ab24194998152ce2"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_008.webp",
+          "bytes": 40962,
+          "sha256": "1b1a53a28d24a70b577be7283e6514478f5fcb02ba0986cf16888a946ddb0a07"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_009.webp",
+          "bytes": 39350,
+          "sha256": "16f0977d64e4554fce186489d07bed101e2744ff9f60f92974699225b670d7ff"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_010.webp",
+          "bytes": 37298,
+          "sha256": "bbd21b98efe972ed2710ce7f0f24468d4df468ebe10dc55322405990ba424345"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_011.webp",
+          "bytes": 35762,
+          "sha256": "c17567b119284bb4c894c9382502fc3b45bf32c5e1a90bfdace8b78ff244f0a3"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_012.webp",
+          "bytes": 34838,
+          "sha256": "0c2a0ea0c327df2a832714e0d90c3345cee20c8f7218e9fcd00264baf7d3effe"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_013.webp",
+          "bytes": 34150,
+          "sha256": "ba77da884a75d2d78ea7792a87487698200fed8abff0b963ea0c060946d43705"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_014.webp",
+          "bytes": 33512,
+          "sha256": "0fb946a573b7e507079ff1d7363af3efccc0cde733e766f6cdc333faf7c382bd"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_015.webp",
+          "bytes": 33450,
+          "sha256": "feeabfee519d7570519c1f56b9383f78b3d7e47e97f0c942c17c47753ce08547"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_016.webp",
+          "bytes": 32734,
+          "sha256": "8771dd741e380e6d893aca195371ac999604608b9218fcc9c1c73dbf493ec779"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_017.webp",
+          "bytes": 34204,
+          "sha256": "8b67be336b829156c2a610a136bebdb7b86ab75d5ef05f3f6f57d9f697df32cc"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_018.webp",
+          "bytes": 35128,
+          "sha256": "360ded4fa850346122087cdb8cd168ef604a6630efe7736344dca628fc884b49"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_019.webp",
+          "bytes": 36414,
+          "sha256": "d5c11f1159c2a946ff9f8369f31633f1c272ae69e9e4f996569baf4cfb4382bc"
+        }
+      ],
+      "outputFrames": [
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_000.webp",
+          "bytes": 37142,
+          "sha256": "c2b881984d8f9ef5119087e3670b4738e9db1289aa301bb4c631349533521646",
+          "decodedRgbaSha256": "b40bca5764226afae9dfe35e16162dd894df2ab54230e0c197071c17243514ba",
+          "frameIndex": 0,
+          "sourceFrame": 0,
+          "targetFrame": 1,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_001.webp",
+          "bytes": 35510,
+          "sha256": "85c32c877c81f740253a2ac9beaec8607c8ca8a43df90f8be59a7c0acd46b31d",
+          "decodedRgbaSha256": "66b4e8bcabee1da61a23e433b9381dae52d98aafaba0a7d89158320a87308aa8",
+          "frameIndex": 1,
+          "sourceFrame": 0,
+          "targetFrame": 1,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_002.webp",
+          "bytes": 38036,
+          "sha256": "21f7d0c210647829fa4437dc854d9feb980d0eecfa16e632860e7555f80925e0",
+          "decodedRgbaSha256": "09d1cce50db4662f02bdd2d24960d092460c1900941a212bf23206a4d651f5c9",
+          "frameIndex": 2,
+          "sourceFrame": 1,
+          "targetFrame": 2,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_003.webp",
+          "bytes": 37982,
+          "sha256": "fe1bb7a6107150b6aabbb43248a48de7df3a077addc7efe75d96fe5bc75ebc38",
+          "decodedRgbaSha256": "6d526c5758e1b413a469eecee16fca2298f20debc97913abc1d56647b6e7116c",
+          "frameIndex": 3,
+          "sourceFrame": 1,
+          "targetFrame": 2,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_004.webp",
+          "bytes": 40422,
+          "sha256": "2ac897ed47e082312d90179d8657486c229bc99b0b0b7c54fc1392c6fd153bca",
+          "decodedRgbaSha256": "245c1f8ae01fd62b9eff00ed1988dd7b0112586bdbf80e082bda1486e4bc94c6",
+          "frameIndex": 4,
+          "sourceFrame": 2,
+          "targetFrame": 3,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_005.webp",
+          "bytes": 39182,
+          "sha256": "97b085b3ae4c3050d865c711a86023f29e29cb1a3cccd423ff6eb23d1227046c",
+          "decodedRgbaSha256": "c04153a3eda05f50016af0a4f5f8e795fc18bec106dcd497feb195efddbcdaf1",
+          "frameIndex": 5,
+          "sourceFrame": 2,
+          "targetFrame": 3,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_006.webp",
+          "bytes": 41448,
+          "sha256": "27f1a2f6ef2c3d74a6c687755ecb3362413eb6dd860e0d0dc6aecae6db47ddbc",
+          "decodedRgbaSha256": "f72a45f96926755977bd88b015ddfc4eed2e6ab69c5202719e20e718a9c37f90",
+          "frameIndex": 6,
+          "sourceFrame": 3,
+          "targetFrame": 4,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_007.webp",
+          "bytes": 39650,
+          "sha256": "67d13cb0cd207b1c11ee584c133af3433886550cf3ac4de73cef99a5ecf12085",
+          "decodedRgbaSha256": "3189792d681b4d6c859df57154bf859353ba55b37dd3a071c289ef5784cfd960",
+          "frameIndex": 7,
+          "sourceFrame": 3,
+          "targetFrame": 4,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_008.webp",
+          "bytes": 42576,
+          "sha256": "e4ecf010dd4dc42409020b1f1df27bd121bd33d932e619aad602bf2c2ea5aa53",
+          "decodedRgbaSha256": "70048ed92960dbf56b6b5c2a195debd01a10ad778eca87c00834d9bc3a61ff1b",
+          "frameIndex": 8,
+          "sourceFrame": 4,
+          "targetFrame": 5,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_009.webp",
+          "bytes": 40386,
+          "sha256": "584cd443e34189a3b3857426cf9186c464d8d8662e57dd3c651995854db4cab1",
+          "decodedRgbaSha256": "ba01701d242935cdf175d1f7a7cd837daa6460de62946a55548e2ec9337bccf7",
+          "frameIndex": 9,
+          "sourceFrame": 4,
+          "targetFrame": 5,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_010.webp",
+          "bytes": 41832,
+          "sha256": "9986d90523a73eb02d3977a52b104c41f91b594e7258f32c9b5cb8d1129802e8",
+          "decodedRgbaSha256": "2f594209dfa38ec787b49bd20019365344fbe29261e9089bb604705cc496bb7b",
+          "frameIndex": 10,
+          "sourceFrame": 5,
+          "targetFrame": 6,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_011.webp",
+          "bytes": 39970,
+          "sha256": "7a2e271cd3ae5b4d353499b9959ca4e953e0a18e0a2eccfb817ed2dbe0ad417e",
+          "decodedRgbaSha256": "8959cd45bb30703f027118ddd5b73f2389ee59d7f2083ba1d719e4aa7e14d22b",
+          "frameIndex": 11,
+          "sourceFrame": 5,
+          "targetFrame": 6,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_012.webp",
+          "bytes": 41668,
+          "sha256": "2e92ddda44a0187bd40c1a86ae8e6418ffcba38440f51a9576472111c149e204",
+          "decodedRgbaSha256": "de7d56c27287af5e4d00c5603b45ed04b3aab10b45aad3fa6a1e2bdf12a191f3",
+          "frameIndex": 12,
+          "sourceFrame": 6,
+          "targetFrame": 7,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_013.webp",
+          "bytes": 39310,
+          "sha256": "a51743c2bfb56b5b9a1a8f893544eb1942142f95d9fab0be17f27e9e5d35a271",
+          "decodedRgbaSha256": "95d59860e1e85b3104d5103c8c98859f79c5a5430022c4568215062577eb2d25",
+          "frameIndex": 13,
+          "sourceFrame": 6,
+          "targetFrame": 7,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_014.webp",
+          "bytes": 41596,
+          "sha256": "c1dbd21dc3c9cadf5e39918b199401ec5bd62c09e7f71f5feffef293fdc50caa",
+          "decodedRgbaSha256": "a0f6cfa8d3e029c7684e7f1c46513d394831b7fe92712f357d48cbacdffe516c",
+          "frameIndex": 14,
+          "sourceFrame": 7,
+          "targetFrame": 8,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_015.webp",
+          "bytes": 38820,
+          "sha256": "1e5d83156b9ee80b4dee9c289cebfb9caf1a3a5bd5f98b0aa9b0bdca25ab8e07",
+          "decodedRgbaSha256": "5b8d61d4189a7edc5a0de956646f6b1a7433dda25f955e9c16f7eba3b2e18c94",
+          "frameIndex": 15,
+          "sourceFrame": 7,
+          "targetFrame": 8,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_016.webp",
+          "bytes": 40538,
+          "sha256": "73cde0468a6451050a7cdb5ca16e091f48b00ee383a482397218e203a73e5cb4",
+          "decodedRgbaSha256": "5e12e2841f68b1024eb40724418d34b4fe2d94a43610479c36594b150fc4edc9",
+          "frameIndex": 16,
+          "sourceFrame": 8,
+          "targetFrame": 9,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_017.webp",
+          "bytes": 37348,
+          "sha256": "c5e277c171bcb3eef2c55d7ed6aa7f19090219926789c5fa31094e6d269f0939",
+          "decodedRgbaSha256": "66e55c82f758e36177675589f43bea141b9d13186b790367ed92cf85a4caca97",
+          "frameIndex": 17,
+          "sourceFrame": 8,
+          "targetFrame": 9,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_018.webp",
+          "bytes": 39096,
+          "sha256": "88e242f9d7c2613f2cf4b7ee7c58fbf283aa8a4151d1b2fd3681ddd93196ec4f",
+          "decodedRgbaSha256": "8c8fbbbe84890cca14b8a1553d5dff872e29e0ae47e7a257e30884d6eca2353b",
+          "frameIndex": 18,
+          "sourceFrame": 9,
+          "targetFrame": 10,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_019.webp",
+          "bytes": 35816,
+          "sha256": "93ab8cbfcb3812b8528c87b70f18be4ae63bf8763c0079b553c83de4623864e2",
+          "decodedRgbaSha256": "6b21369938da091cefec868a0c1661e62ae2b5fd08647793a961821cb38d22d1",
+          "frameIndex": 19,
+          "sourceFrame": 9,
+          "targetFrame": 10,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_020.webp",
+          "bytes": 36958,
+          "sha256": "0a5e5d9a82a66e105e2659ae816a979ee8de99fdc5e18fa88464ee82d1d90f46",
+          "decodedRgbaSha256": "81d5280df9bb629199ed93e5f1d848be5248f5af81533bd70fd3de4e9b5d8a87",
+          "frameIndex": 20,
+          "sourceFrame": 10,
+          "targetFrame": 11,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_021.webp",
+          "bytes": 34104,
+          "sha256": "db3d0ca0b06a096042c7bc285abe9488c548d7644350a3ff4012ef71734a4d7b",
+          "decodedRgbaSha256": "3ac0c84c1a85dfd9b72e64ac281a9c0b8a050d5826a9775dafcf714aeb33c499",
+          "frameIndex": 21,
+          "sourceFrame": 10,
+          "targetFrame": 11,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_022.webp",
+          "bytes": 35410,
+          "sha256": "067e0334dba99973b9beb7361c95b3062175eb9a673007ad908f8c914e0a8e1f",
+          "decodedRgbaSha256": "f116b57e2c467f25f5c85f4f38a2e3239beb4b477711c97349eb21a5e1d219bc",
+          "frameIndex": 22,
+          "sourceFrame": 11,
+          "targetFrame": 12,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_023.webp",
+          "bytes": 32170,
+          "sha256": "c4bc86c4875e9669b8cc2307308cee5cf247551f2924d2424c6414a2f30b0878",
+          "decodedRgbaSha256": "a78523ac44508c192e47c54ccb236a9dec811f4f601a92bbc39acc111c38fc99",
+          "frameIndex": 23,
+          "sourceFrame": 11,
+          "targetFrame": 12,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_024.webp",
+          "bytes": 34704,
+          "sha256": "ed130ab0d4d5500449aed952926cce0ddb413b9edac0605fee64f8bc364137cf",
+          "decodedRgbaSha256": "4bc7218c5fd285f53486128d4a2be38f7422ce9f6b6ecccbc0d9db74e48197f8",
+          "frameIndex": 24,
+          "sourceFrame": 12,
+          "targetFrame": 13,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_025.webp",
+          "bytes": 31104,
+          "sha256": "7efa5d4ea63eae63576e7613f0367dc7bfc7c6942ed4161d016172143db06945",
+          "decodedRgbaSha256": "64f3e4eb326022d09d60870347b7cbe21f6689e8be8f387039fd301cbf36ffc1",
+          "frameIndex": 25,
+          "sourceFrame": 12,
+          "targetFrame": 13,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_026.webp",
+          "bytes": 33660,
+          "sha256": "071f2f5fe2a4a6d21903ab254a4896403d0f056fad66a606908bab178712cb24",
+          "decodedRgbaSha256": "ebeda1e94ff512f88d9520aa94d4bf14cf3ab1a42d168e9826fc1b2a33b1d60c",
+          "frameIndex": 26,
+          "sourceFrame": 13,
+          "targetFrame": 14,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_027.webp",
+          "bytes": 30232,
+          "sha256": "ad4dc977e00dcc1718903713ce04fe34fe407fa653f75b15fe795ebd69bea993",
+          "decodedRgbaSha256": "e1780e7bc67886715fff1223f1796c815996734223539551b8ee96a6a6a3bd55",
+          "frameIndex": 27,
+          "sourceFrame": 13,
+          "targetFrame": 14,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_028.webp",
+          "bytes": 32996,
+          "sha256": "e906700f9625e8c2e89a7e6233709bfd33b830e885770698f01617220f4562b5",
+          "decodedRgbaSha256": "237ebfe2fbe1a8c3f6cd19cf3844caefb5e98d38ace613f1f1042ac4f983db75",
+          "frameIndex": 28,
+          "sourceFrame": 14,
+          "targetFrame": 15,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_029.webp",
+          "bytes": 29786,
+          "sha256": "a28ae67b23f19b07d3375674400844f2a7f7846fd8553014f5b563c8e99f18eb",
+          "decodedRgbaSha256": "5eb7460d5e50018f17650d0bc42bda8f986fbf632d4f74ec29c0348c0d83e31b",
+          "frameIndex": 29,
+          "sourceFrame": 14,
+          "targetFrame": 15,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_030.webp",
+          "bytes": 32848,
+          "sha256": "4188abd89a6a49c76d6fab41a99a1225ad51cfc7657a3edb13fb7cc71b0a1e39",
+          "decodedRgbaSha256": "b29b5bd4caf44e529fedbb86d06fa4acd61788697e5ee6184c21deef3d291ef6",
+          "frameIndex": 30,
+          "sourceFrame": 15,
+          "targetFrame": 16,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_031.webp",
+          "bytes": 29410,
+          "sha256": "671a08368fbaa75534aafa2ddde50c5653ff6def992e22fb51ce09bcc8869e34",
+          "decodedRgbaSha256": "a4e2acbbef471bf26cbbc8de947ed03c55c3e7316775f9f5ed2462ce74e38db6",
+          "frameIndex": 31,
+          "sourceFrame": 15,
+          "targetFrame": 16,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_032.webp",
+          "bytes": 32300,
+          "sha256": "df4cd7aa76149e8e6b69aace994478b2fce12bb22da32052967d71181a584300",
+          "decodedRgbaSha256": "f7c88b7897b609e00b1b6f1ea353bc44d80937bb3d24d139cc3dfc366583399f",
+          "frameIndex": 32,
+          "sourceFrame": 16,
+          "targetFrame": 17,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_033.webp",
+          "bytes": 30160,
+          "sha256": "e2517093ae5bae2ca58fb15a3ac63efccb26b2638cf0d8966d73e01617f6f2bb",
+          "decodedRgbaSha256": "1c2e7f83cdb83263fba8e13c11d9f97bcd4f4cba900ec31e6519df0fed566eb8",
+          "frameIndex": 33,
+          "sourceFrame": 16,
+          "targetFrame": 17,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_034.webp",
+          "bytes": 33688,
+          "sha256": "e71c43b29db341d335320b58004a73dce73d23613e6d1988ce9142693717b8e8",
+          "decodedRgbaSha256": "266ddd8915d907a811ed01497bc0a0d61b8bfd4d43101aafd5f0891b6f85d84f",
+          "frameIndex": 34,
+          "sourceFrame": 17,
+          "targetFrame": 18,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_035.webp",
+          "bytes": 31094,
+          "sha256": "2d1de5129b5141c6ddd9df5a9c57519ea5bbafeff8a56fd2035f681ae787db38",
+          "decodedRgbaSha256": "871e91840d369fa1ef81384008b082943f7207fd1a3926f127eb0c6486dfc35f",
+          "frameIndex": 35,
+          "sourceFrame": 17,
+          "targetFrame": 18,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_036.webp",
+          "bytes": 34818,
+          "sha256": "24e5e97c1ea7fd9fc0f80e46a97fc9d3b9173ed5923d0e8c4f77384894af9ed1",
+          "decodedRgbaSha256": "416ebd7e00161ad3fa2b5f1f6f3446adf10e360ae7e68d635b905f99134d641c",
+          "frameIndex": 36,
+          "sourceFrame": 18,
+          "targetFrame": 19,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_037.webp",
+          "bytes": 32128,
+          "sha256": "84952151af3c03af1a3ddc460d6fb94ca4569b4dd2ce30822ce46b0c1508901c",
+          "decodedRgbaSha256": "29671c75ddd148f2d2dd93dc83d3b1a47990f764d1dd441d49257631aa6d006e",
+          "frameIndex": 37,
+          "sourceFrame": 18,
+          "targetFrame": 19,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_038.webp",
+          "bytes": 36202,
+          "sha256": "028d81393c7da6f5a561ce1bce184f3c8059056ed0d43a18c95dc98fe8b0ffe6",
+          "decodedRgbaSha256": "157ce55c756e451d4f59eef035a66ceaf90189540e11166f5b17e21fcb54a5a7",
+          "frameIndex": 38,
+          "sourceFrame": 19,
+          "targetFrame": 0,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/BONUS_CRATE_SPIN_30FPS/rgba/BONUS_CRATE_SPIN_30FPS_039.webp",
+          "bytes": 34438,
+          "sha256": "361b4d666494de5d957038e4d91784666280ab4866af5a5abbd0b54f30dcc811",
+          "decodedRgbaSha256": "1094fa5ea24387c8bf05963a766e891a1d1242ee8809771994700b8e9efd2174",
+          "frameIndex": 39,
+          "sourceFrame": 19,
+          "targetFrame": 0,
+          "phase": 0.5
+        }
+      ],
+      "flow": {},
+      "qa": {
+        "distinctFileHashes": 40,
+        "distinctDecodedRgbaHashes": 40,
+        "consecutiveDuplicateVisibleFrames": 0,
+        "transparentTerminalFrames": 0,
+        "nonAdjacentPoseRevisits": 0,
+        "adjacentAlphaIouMin": 0.873429,
+        "adjacentAlphaIouMean": 0.880267,
+        "loopSeamAlphaIou": 0.880317,
+        "sourceAdjacentDeltaMedian": 0.12823843,
+        "outputAdjacentDeltaMedian": 0.10458023,
+        "temporalDeltaRatio": 0.815514,
+        "synthesizedAlphaEdgeOvershootMax": 0.922664,
+        "transparentRgbMax": 0
+      },
+      "contactSheet": "apps/blacksite/art/generated/v22/standalone-fx-30fps-v1/BONUS_CRATE_SPIN_30FPS_contact-sheet.webp",
+      "contactSheetSha256": "b025a3c252e9cbb596317cba574a8c06b473df4f9755df3c6ee922b0cbebeeb8"
+    },
+    "FX_COIN_BURST_30FPS": {
+      "sequence": "FX_COIN_BURST_30FPS",
+      "sourceFrames": [
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_000.webp",
+          "bytes": 2488,
+          "sha256": "ae4088e0c04edcb8e468ff4298ba83eaa5018e72e2e75ae51d1a1c0d7803398d"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_001.webp",
+          "bytes": 5462,
+          "sha256": "0a30cac9d92f0c52266ad36b76e4299b9372644868cb263d0317357dee1d587c"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_002.webp",
+          "bytes": 7868,
+          "sha256": "4404dedd7702c5ab0a9c4e5873ef54f14539285dcd15c2406d8467dd09228f9b"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_003.webp",
+          "bytes": 10112,
+          "sha256": "8e32aad9ae3fbfce26072546d3962401375a8d965fdb252add8c505837f5b968"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_004.webp",
+          "bytes": 11962,
+          "sha256": "430c9356b2860d65647ce1db01494cc2a9b9cd003176e751075240bb7de6904d"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_005.webp",
+          "bytes": 14572,
+          "sha256": "74f872c995e84a04a5106bbc19473e3421d6d4845cfb842396de349d50565ecb"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_006.webp",
+          "bytes": 17348,
+          "sha256": "54fcfbab06545134580e7143456f1f25a88ee046c4b5460bbdea0a9a9f08af0d"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_007.webp",
+          "bytes": 19212,
+          "sha256": "af5d0e1709ff1a3fcbae764a94878988f6f5bd720a7565601e117d30a3cf1370"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_008.webp",
+          "bytes": 21416,
+          "sha256": "4f056f31bb5a19affa0aebdfdb2b850d6d90aa17596b15697a952c1bc4939f1b"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_009.webp",
+          "bytes": 23908,
+          "sha256": "7e964753fd36062c0e5c8f86b6bf9470fa2794abac4428766380d61e64b8d703"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_010.webp",
+          "bytes": 25736,
+          "sha256": "c938ef44677e01a6670432612023f0dd9b2af5f9ace036dc4efabbbfa6c3b6bb"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_011.webp",
+          "bytes": 26690,
+          "sha256": "bffd86c5d4b380ce9fdc3ce8b8144fccf3ea1f754d539cffba67fb5e49efc894"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_012.webp",
+          "bytes": 27760,
+          "sha256": "de63a416d9ca677593c151cb3b72ae9f570842e5cd9265fea15485f6832e0605"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_013.webp",
+          "bytes": 28734,
+          "sha256": "de36af05cc14bc7671217302a62bb81fb43a8626e50902b66268cee0dc9ba23e"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_014.webp",
+          "bytes": 28282,
+          "sha256": "2720d11256b99f47d6d2f86ecec510e16274a04baabf78623c9bd1d436ad7466"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_015.webp",
+          "bytes": 27928,
+          "sha256": "ec43b42930e3e5c3100801ab736d25a4ffdc61d5fc2f77e4dc833821919753cc"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_016.webp",
+          "bytes": 25980,
+          "sha256": "4fbaa975235452bb2773315057762ca890aa990bf3c7e6ac00faee36ceac73a8"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_017.webp",
+          "bytes": 25612,
+          "sha256": "f7691357e7bd89463bad7cf4aa3ace0d87ad2ecc89a369ee998226590a3bc601"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_018.webp",
+          "bytes": 25796,
+          "sha256": "2b26c1174e51764f1ab1be87dbe03af1eb45982eb0ae5ffb59d5fcf269676b0c"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_019.webp",
+          "bytes": 20722,
+          "sha256": "c66c11233488a85df77d4a8977a0f8f0cd86774ebc028a0f4aeb363157e53bb9"
+        }
+      ],
+      "outputFrames": [
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_000.webp",
+          "bytes": 2488,
+          "sha256": "ae4088e0c04edcb8e468ff4298ba83eaa5018e72e2e75ae51d1a1c0d7803398d",
+          "decodedRgbaSha256": "c036cbb7553a909f8b8877d4461924307f27ecb66cff928eeeafd569c3887e29",
+          "frameIndex": 0,
+          "sourceFrame": 0,
+          "targetFrame": 1,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_001.webp",
+          "bytes": 5608,
+          "sha256": "6e637e775b327d360b6aadfba0f4fed0ce82c28771b42969fbe2dc951755df0c",
+          "decodedRgbaSha256": "d6ed596e9a2651b106cd5e2fcc21fbf90e337b2ae35b5fd3b6518276bba7a175",
+          "frameIndex": 1,
+          "sourceFrame": 0,
+          "targetFrame": 1,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_002.webp",
+          "bytes": 6212,
+          "sha256": "d2c61e5d647727bdb2e5d41c4e770a22837bef808af493d58e25fd3196373ba6",
+          "decodedRgbaSha256": "e312353f0a14af129bdadd11d6db98b9ce60ee6621c48201f5794cf01f5539c2",
+          "frameIndex": 2,
+          "sourceFrame": 0,
+          "targetFrame": 1,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_003.webp",
+          "bytes": 7406,
+          "sha256": "4bd930a02cdb9bbd5d5db861ac2c4962335663585d50d238b19eddf1b1e80730",
+          "decodedRgbaSha256": "88a04b6efb5feabef6d8381e7e67c72bd2a5c32af2ae5ae1e2b9909ff4b850f0",
+          "frameIndex": 3,
+          "sourceFrame": 1,
+          "targetFrame": 2,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_004.webp",
+          "bytes": 8854,
+          "sha256": "eb4cb47c01fb819a502b9ad8888a72f64afa3c80da3dd91f5450e00a89d09d80",
+          "decodedRgbaSha256": "a86f93ce024dd39896ff76317ea184b8eea447ecaae6f0aaea91deffa4c98fdd",
+          "frameIndex": 4,
+          "sourceFrame": 1,
+          "targetFrame": 2,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_005.webp",
+          "bytes": 7780,
+          "sha256": "9a2e402f928b621efb22dddb021052dac2d02994ba08722995bdae51ce4651ce",
+          "decodedRgbaSha256": "1e9842ca733aefaedf2b6d5b413e08be5e9cf7de88c976c1d2f48c0769dfe84b",
+          "frameIndex": 5,
+          "sourceFrame": 2,
+          "targetFrame": 3,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_006.webp",
+          "bytes": 11740,
+          "sha256": "d7cea6a892e23ca9059e25442fd42021e651fe914bd7f108cad02282657ffe93",
+          "decodedRgbaSha256": "cbfe099c91425823347e4589a9fb06d5ad0aa56de1b0bf5a7af4f859f1f1608a",
+          "frameIndex": 6,
+          "sourceFrame": 2,
+          "targetFrame": 3,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_007.webp",
+          "bytes": 13198,
+          "sha256": "746cf25e5e27db6401a9146aa9a6f0d6b6dffebec8cba31652f683086bf321bf",
+          "decodedRgbaSha256": "310751c0554f1c69366a79c23e47ad1f7e1aba7a8af031dc1699b0cc29c28dae",
+          "frameIndex": 7,
+          "sourceFrame": 2,
+          "targetFrame": 3,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_008.webp",
+          "bytes": 14542,
+          "sha256": "4bf920bada2e9b2333e5fdee7bce51c6c83a0f541543d3b883fbb01b275b6d7b",
+          "decodedRgbaSha256": "15239becbe0a253aec5ab451fe26cdefdcc23310d49998d4e40ad8ee1df3c23b",
+          "frameIndex": 8,
+          "sourceFrame": 3,
+          "targetFrame": 4,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_009.webp",
+          "bytes": 16032,
+          "sha256": "7bf11b4a9a80905b76bba399a9521162691eb2745b90c5ae8946ddac23a6c835",
+          "decodedRgbaSha256": "8ca2f5a5725c274945d1bb3d57d30d27222c4cfe6031c2fe1cf0e5c48a804b91",
+          "frameIndex": 9,
+          "sourceFrame": 3,
+          "targetFrame": 4,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_010.webp",
+          "bytes": 11776,
+          "sha256": "4f0fb943b6009fd4b1805a6baf22eb0222c11a6e9a89268eb5bfc18d647eab3b",
+          "decodedRgbaSha256": "d7631c3e359ad87f1ae05451b1a7418bd038325da5c870148d89d2c74a30cb5c",
+          "frameIndex": 10,
+          "sourceFrame": 4,
+          "targetFrame": 5,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_011.webp",
+          "bytes": 18974,
+          "sha256": "f83ba78355ca89ea44e61932a686918038d32f1b3e16c587795365a2871958af",
+          "decodedRgbaSha256": "8b843e6384f70e499dc3d5b6234c1a6dd084123a56dbbc09be7bcf1dacacd3b1",
+          "frameIndex": 11,
+          "sourceFrame": 4,
+          "targetFrame": 5,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_012.webp",
+          "bytes": 20100,
+          "sha256": "205608c928e805e7bf43af0744ba42c3e07de702975887db0a94cb16190dc844",
+          "decodedRgbaSha256": "3f1927ce0f6a2498d4c7980604003434de58e2955ed9b0ad20e837b9f574e222",
+          "frameIndex": 12,
+          "sourceFrame": 4,
+          "targetFrame": 5,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_013.webp",
+          "bytes": 22608,
+          "sha256": "6984b1c3f2f14b96f559c99cc045cc090ca598b479475347aa97cd649ebb5664",
+          "decodedRgbaSha256": "f82522da17115dc05930b1dbeea3e82c45f014d960d0fcec454e92c7ea02bc3c",
+          "frameIndex": 13,
+          "sourceFrame": 5,
+          "targetFrame": 6,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_014.webp",
+          "bytes": 25782,
+          "sha256": "f1954582c43183b7829a39a56091d283f3ec8bcfd17a72e927da4b0b73bbee6a",
+          "decodedRgbaSha256": "b89e203d1809bd45bb12f69a2c131835c1b2c3c6132e4ac69f5c50fc1bcc312a",
+          "frameIndex": 14,
+          "sourceFrame": 5,
+          "targetFrame": 6,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_015.webp",
+          "bytes": 17106,
+          "sha256": "4ea845557b2a8a03ce33cff5f6f01ae9adffb8344f0638787f8305ec4d83e25c",
+          "decodedRgbaSha256": "956dacc0889d18cba5474fe57d72f937da7e95e29bbe8c91f956b168a4c0d1d9",
+          "frameIndex": 15,
+          "sourceFrame": 6,
+          "targetFrame": 7,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_016.webp",
+          "bytes": 29618,
+          "sha256": "768b1dda97aec087b6a130b7e6fcdc6e5717a506bef79f2bc97d4c5e4f13ab5a",
+          "decodedRgbaSha256": "69f4d366956b2d898387bbf0dda3e8b81ffc891dc37a910874419d5f43e23dc5",
+          "frameIndex": 16,
+          "sourceFrame": 6,
+          "targetFrame": 7,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_017.webp",
+          "bytes": 31060,
+          "sha256": "d8ee792d3139598ba3009321d8d24ebc4ad223756803dbd9a51299db8b1e5799",
+          "decodedRgbaSha256": "f1bb86cfeef376dcb5b16a50f0865236184b545bfdb093cabfa519a80abc9ac2",
+          "frameIndex": 17,
+          "sourceFrame": 6,
+          "targetFrame": 7,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_018.webp",
+          "bytes": 30938,
+          "sha256": "e7716354849b341e6ca408195f63991862d93cd486c7346aa6398bc8fdc2a47b",
+          "decodedRgbaSha256": "bdd421a6e2280a847eadfd13576579be32973ca9f03ec72490f035be50393a56",
+          "frameIndex": 18,
+          "sourceFrame": 7,
+          "targetFrame": 8,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_019.webp",
+          "bytes": 33496,
+          "sha256": "f70c386e9a37406f7ba2a85d4740c651b21a20d8d14648e246009e24be7f264c",
+          "decodedRgbaSha256": "8e6f11e8d8edbf4d80e0ad85fee3c9b4894df74e6066630fc520d75004c9c607",
+          "frameIndex": 19,
+          "sourceFrame": 7,
+          "targetFrame": 8,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_020.webp",
+          "bytes": 21246,
+          "sha256": "d23edaa626340e5b82bcc97c956e10e50fb75bab08efaf3177f8193c60751fe8",
+          "decodedRgbaSha256": "ebb29c0e9bf71321092026cf5fca81e2d07dff4f260a0918afa71828a98e7ede",
+          "frameIndex": 20,
+          "sourceFrame": 8,
+          "targetFrame": 9,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_021.webp",
+          "bytes": 35584,
+          "sha256": "9327c36a11183f74eb6f03b620e1e969c895213c4a8a2856ca7a8712eec6e217",
+          "decodedRgbaSha256": "20d07190a4612c06c0512ebced4e906c0413b0aaba8a669305c62cf8997be179",
+          "frameIndex": 21,
+          "sourceFrame": 8,
+          "targetFrame": 9,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_022.webp",
+          "bytes": 36436,
+          "sha256": "ae15db9665788d3e24f1dc08c89a4f664100ef98e2e4e0caea0cdc49efa2a7ea",
+          "decodedRgbaSha256": "383f0a2f836e343f4ac6d00eb5b742a879a2823b39a43137cb177573739ff918",
+          "frameIndex": 22,
+          "sourceFrame": 8,
+          "targetFrame": 9,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_023.webp",
+          "bytes": 37618,
+          "sha256": "49583f56ad254e672cca36a3e6238ade2ea6ecf74c183d2579995811ca1c343f",
+          "decodedRgbaSha256": "b45d8abb412a38cb2157fc3a403606b78fe467e5f7d94a6869ee89957ebcdc63",
+          "frameIndex": 23,
+          "sourceFrame": 9,
+          "targetFrame": 10,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_024.webp",
+          "bytes": 39992,
+          "sha256": "9904d09382343580c8a2e9fc259db411af5d4fa4d4c84c57843af2a346a8d5e7",
+          "decodedRgbaSha256": "1b306acf18e25fe65a3e34bf9c4c322ff6f677b78359c83aeea702eeffd62c7d",
+          "frameIndex": 24,
+          "sourceFrame": 9,
+          "targetFrame": 10,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_025.webp",
+          "bytes": 25428,
+          "sha256": "a14c826510b458327db363d8dd48d3d02a35352d22986a5d6c533050be49ff2d",
+          "decodedRgbaSha256": "74d2f76d6bd8c0c34ffb0f5a0908ccc07beb6cb0ade36e32b49014229c76f76d",
+          "frameIndex": 25,
+          "sourceFrame": 10,
+          "targetFrame": 11,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_026.webp",
+          "bytes": 40600,
+          "sha256": "a3e90b5203fb6c97dd3d46f52803275e13e17f79f799738128dcc043d406f76f",
+          "decodedRgbaSha256": "67bfa67a2a842a91e4ee6d9e22be69f709bf0c7d5a1da21fddae6669b0faa88a",
+          "frameIndex": 26,
+          "sourceFrame": 10,
+          "targetFrame": 11,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_027.webp",
+          "bytes": 41392,
+          "sha256": "00aa67b9417a00a5eb28bd363efd95280463af184c806f7fad812dffc0a2e05c",
+          "decodedRgbaSha256": "e7fc3148ff93fadeec4221391d8365ac534782fa09de6f1a0df4589b7fb2d582",
+          "frameIndex": 27,
+          "sourceFrame": 10,
+          "targetFrame": 11,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_028.webp",
+          "bytes": 41912,
+          "sha256": "617ef2fa080ce2a2e977bba3525e916a0a3345c7d2f6ebf5ef4c933cd3b24b27",
+          "decodedRgbaSha256": "19fdb2368e3a1a39c221f8aa64a0daaf41128f8145e3670a6a06b744ed53b164",
+          "frameIndex": 28,
+          "sourceFrame": 11,
+          "targetFrame": 12,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_029.webp",
+          "bytes": 43472,
+          "sha256": "742a16da8984a8de21cb83919d6f813ac8a264a957a528a4bd54911bad22fe85",
+          "decodedRgbaSha256": "54baacd1cf61ced7ba10a79930a63601111e6eccc779d24a7a0d4cc15ba9420d",
+          "frameIndex": 29,
+          "sourceFrame": 11,
+          "targetFrame": 12,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_030.webp",
+          "bytes": 27454,
+          "sha256": "0ce0a852967d276cb9f446fc8c693b8b098ab87ce423e5c4e909bb319e3bfecc",
+          "decodedRgbaSha256": "c8950d5784480aa0fee31d451f0be2733bd4643ef870e2eefd8b8ccb11b3773e",
+          "frameIndex": 30,
+          "sourceFrame": 12,
+          "targetFrame": 13,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_031.webp",
+          "bytes": 45992,
+          "sha256": "3fd18509edb3bd1b2d9cc33215ab665f2dbba84718212edd3da6aa06031498ab",
+          "decodedRgbaSha256": "eddcb27dbefe2144929e6b11dada9705d97f30341ccfa6a72244ae873a553e21",
+          "frameIndex": 31,
+          "sourceFrame": 12,
+          "targetFrame": 13,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_032.webp",
+          "bytes": 46726,
+          "sha256": "efe83575ae193bdf08dc946a5e43e807a166b2f55dd69ca56dae36658e33c0d9",
+          "decodedRgbaSha256": "6fc85fdfacf688a0a589ac6aaed4caa5d9b991e769a793043a92a7744a2a5bba",
+          "frameIndex": 32,
+          "sourceFrame": 12,
+          "targetFrame": 13,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_033.webp",
+          "bytes": 48500,
+          "sha256": "a91188851a2a5d40bfbf29c2387bc7107f1d8c98ad25cacb8fd05079a5d372ed",
+          "decodedRgbaSha256": "45ca2652d7a3226c489dac49ba24cb8ca350ab6205ba0dcdbb45379a969b32bc",
+          "frameIndex": 33,
+          "sourceFrame": 13,
+          "targetFrame": 14,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_034.webp",
+          "bytes": 49818,
+          "sha256": "41b95b0d6057441d541ebd26bd97a08ccf00076eaa07fd21d56165e39c846607",
+          "decodedRgbaSha256": "35874da6b9845abad8ad6f0f763fdf45f4e7e5b91ed875dd2ffdc57dfa14e1b5",
+          "frameIndex": 34,
+          "sourceFrame": 13,
+          "targetFrame": 14,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_035.webp",
+          "bytes": 27894,
+          "sha256": "d2c0b42231800b3f43c3a4fadbdd797e8358da18706df65d18375386931ff372",
+          "decodedRgbaSha256": "0135b84f74975a2e2f890602b641c224ece056c4bbb81f02c38046b54a3feb77",
+          "frameIndex": 35,
+          "sourceFrame": 14,
+          "targetFrame": 15,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_036.webp",
+          "bytes": 52300,
+          "sha256": "7d447ff197ba14994f41bb8010743a97b18e576fac07211ed5f4797642dd2006",
+          "decodedRgbaSha256": "9a5127dc02dd7440fe06423e4a374ab1d421ff81fc3d412a00fe979a7e24146a",
+          "frameIndex": 36,
+          "sourceFrame": 14,
+          "targetFrame": 15,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_037.webp",
+          "bytes": 51192,
+          "sha256": "8b1d38ac729ab4a92b5fadd3feb0b466ea64d7761c07bf508bdefada8b88a029",
+          "decodedRgbaSha256": "43172bfb3e8c8cab00c4b0b40a7e66228a8add9367dd0cc0a7edcdb4b655c75b",
+          "frameIndex": 37,
+          "sourceFrame": 14,
+          "targetFrame": 15,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_038.webp",
+          "bytes": 52608,
+          "sha256": "2dad9e74e9e97058a701a74c4b5cdac37f9759bec7f23a64f381c1944cff8aef",
+          "decodedRgbaSha256": "d533a9726294cb765f907e5cf7746b304ec0fd47ac3ee77048d76a11cd024fa1",
+          "frameIndex": 38,
+          "sourceFrame": 15,
+          "targetFrame": 16,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_039.webp",
+          "bytes": 53224,
+          "sha256": "17920b1d9df92d98b2b4eb0efaeca47a3a2ef62f3eb0915ad3d3dc97d92df376",
+          "decodedRgbaSha256": "7a069422228f3a061853ca2769a4fac384e4cd4452fa9a7f80843edc0ab50476",
+          "frameIndex": 39,
+          "sourceFrame": 15,
+          "targetFrame": 16,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_040.webp",
+          "bytes": 26038,
+          "sha256": "4f056e0a21a6dbddcc80602f0043e1865d3015866ac0f94cebefa14776862008",
+          "decodedRgbaSha256": "cb4d61228730e9d4e5acc3d3ac5a58811898addeb9ee625089f0853f96f838b8",
+          "frameIndex": 40,
+          "sourceFrame": 16,
+          "targetFrame": 17,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_041.webp",
+          "bytes": 54608,
+          "sha256": "90346ef1c08e48eef38331cbbab6f62fc4d34d52c46ab174e1b1792ba5f3dfb6",
+          "decodedRgbaSha256": "e1e355e0567e4ae0c430c2e2f70fc3008a03d16f691913861cf496d5ff66e25b",
+          "frameIndex": 41,
+          "sourceFrame": 16,
+          "targetFrame": 17,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_042.webp",
+          "bytes": 49746,
+          "sha256": "60906033f5f241c3e6b5973f844f798460d069d16be269996e269d1fcf06a32b",
+          "decodedRgbaSha256": "3d9afda57cb78be6e2da595ed446dc277da3e16cac275bab03a0a670dc6942b5",
+          "frameIndex": 42,
+          "sourceFrame": 16,
+          "targetFrame": 17,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_043.webp",
+          "bytes": 52334,
+          "sha256": "646950aeb6d365957ae2c203c5cc706438e6a6867ad05b1be8ad9eb2f5f3c096",
+          "decodedRgbaSha256": "c62f9bef4efaa9d2dac5b67a050dcdea4643f0f21dd2f7c7eac876a53013ce2b",
+          "frameIndex": 43,
+          "sourceFrame": 17,
+          "targetFrame": 18,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_044.webp",
+          "bytes": 52286,
+          "sha256": "3dfa730c3bbd0899009813e3448d990f9208f5ca33d234aba32a9ae5db31ac12",
+          "decodedRgbaSha256": "981932182b45ee56cf0d7ba9e0f194b5ab912a03aa0e61170d47bfaaf89fd43a",
+          "frameIndex": 44,
+          "sourceFrame": 17,
+          "targetFrame": 18,
+          "phase": 0.6
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_045.webp",
+          "bytes": 25652,
+          "sha256": "ca9332611303ec057c84183fb15a6baca8f13e6929b693104120aae3e75a9a4f",
+          "decodedRgbaSha256": "f9e7350815db7e7b6df52dea3d0e91435dd5ab197899d9b98d808537e6d0e0a0",
+          "frameIndex": 45,
+          "sourceFrame": 18,
+          "targetFrame": 19,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_046.webp",
+          "bytes": 31034,
+          "sha256": "2198aa6dbf82e23c2c0d7606d49f98bba57e87e3f2cee71d0d41f8cdf28f821e",
+          "decodedRgbaSha256": "d3050f8c7084032d5450b932a5efa1a06105bd1cad43a068d3d3355581b61820",
+          "frameIndex": 46,
+          "sourceFrame": 18,
+          "targetFrame": 19,
+          "phase": 0.4
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_047.webp",
+          "bytes": 25250,
+          "sha256": "b5f36dca70aa39f261879234a644378992600b440644150cb92bb62a7cb5f28b",
+          "decodedRgbaSha256": "d95af6db6465ef21e60f159c2ab614f6b3635b7de5bb10728669bd63ebde2527",
+          "frameIndex": 47,
+          "sourceFrame": 18,
+          "targetFrame": 19,
+          "phase": 0.8
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_048.webp",
+          "bytes": 2488,
+          "sha256": "ae4088e0c04edcb8e468ff4298ba83eaa5018e72e2e75ae51d1a1c0d7803398d",
+          "decodedRgbaSha256": "c036cbb7553a909f8b8877d4461924307f27ecb66cff928eeeafd569c3887e29",
+          "frameIndex": 48,
+          "sourceFrame": 19,
+          "targetFrame": null,
+          "phase": 0.2
+        },
+        {
+          "path": "standalone_fx/FX_COIN_BURST_30FPS/rgba/FX_COIN_BURST_30FPS_049.webp",
+          "bytes": 2488,
+          "sha256": "ae4088e0c04edcb8e468ff4298ba83eaa5018e72e2e75ae51d1a1c0d7803398d",
+          "decodedRgbaSha256": "c036cbb7553a909f8b8877d4461924307f27ecb66cff928eeeafd569c3887e29",
+          "frameIndex": 49,
+          "sourceFrame": 19,
+          "targetFrame": null,
+          "phase": 0.6
+        }
+      ],
+      "flow": {
+        "0": {
+          "forwardBackwardErrorMean": 7.202567,
+          "forwardBackwardErrorP95": 9.899755
+        },
+        "1": {
+          "forwardBackwardErrorMean": 3.455994,
+          "forwardBackwardErrorP95": 9.436516
+        },
+        "2": {
+          "forwardBackwardErrorMean": 2.952178,
+          "forwardBackwardErrorP95": 8.847025
+        },
+        "3": {
+          "forwardBackwardErrorMean": 2.649863,
+          "forwardBackwardErrorP95": 7.091147
+        },
+        "4": {
+          "forwardBackwardErrorMean": 2.564738,
+          "forwardBackwardErrorP95": 6.20362
+        },
+        "5": {
+          "forwardBackwardErrorMean": 2.53005,
+          "forwardBackwardErrorP95": 6.625733
+        },
+        "6": {
+          "forwardBackwardErrorMean": 2.453558,
+          "forwardBackwardErrorP95": 6.602405
+        },
+        "7": {
+          "forwardBackwardErrorMean": 1.98456,
+          "forwardBackwardErrorP95": 6.24594
+        },
+        "8": {
+          "forwardBackwardErrorMean": 1.717562,
+          "forwardBackwardErrorP95": 5.446095
+        },
+        "9": {
+          "forwardBackwardErrorMean": 1.790537,
+          "forwardBackwardErrorP95": 6.268346
+        },
+        "10": {
+          "forwardBackwardErrorMean": 1.737863,
+          "forwardBackwardErrorP95": 6.049214
+        },
+        "11": {
+          "forwardBackwardErrorMean": 1.743632,
+          "forwardBackwardErrorP95": 6.07875
+        },
+        "12": {
+          "forwardBackwardErrorMean": 2.058859,
+          "forwardBackwardErrorP95": 6.773526
+        },
+        "13": {
+          "forwardBackwardErrorMean": 2.509104,
+          "forwardBackwardErrorP95": 7.611247
+        },
+        "14": {
+          "forwardBackwardErrorMean": 2.933826,
+          "forwardBackwardErrorP95": 8.439607
+        },
+        "15": {
+          "forwardBackwardErrorMean": 3.026621,
+          "forwardBackwardErrorP95": 8.202273
+        },
+        "16": {
+          "forwardBackwardErrorMean": 3.239589,
+          "forwardBackwardErrorP95": 8.030404
+        },
+        "17": {
+          "forwardBackwardErrorMean": 3.144965,
+          "forwardBackwardErrorP95": 8.682147
+        },
+        "18": {
+          "forwardBackwardErrorMean": 4.516089,
+          "forwardBackwardErrorP95": 8.483969
+        }
+      },
+      "qa": {
+        "distinctFileHashes": 48,
+        "distinctDecodedRgbaHashes": 48,
+        "consecutiveDuplicateVisibleFrames": 0,
+        "transparentTerminalFrames": 4,
+        "nonAdjacentPoseRevisits": 2,
+        "adjacentAlphaIouMin": 0.0,
+        "adjacentAlphaIouMean": 0.674752,
+        "loopSeamAlphaIou": null,
+        "sourceAdjacentDeltaMedian": 0.3498964,
+        "outputAdjacentDeltaMedian": 0.1990772,
+        "temporalDeltaRatio": 0.56896,
+        "synthesizedAlphaEdgeOvershootMax": 0.978173,
+        "transparentRgbMax": 0
+      },
+      "contactSheet": "apps/blacksite/art/generated/v22/standalone-fx-30fps-v1/FX_COIN_BURST_30FPS_contact-sheet.webp",
+      "contactSheetSha256": "96e313967f618e1c9267e043d8048719e11c85639931963c94f0fdf61be9e2bc"
+    },
+    "FX_SCREEN_IMPACT_30FPS": {
+      "sequence": "FX_SCREEN_IMPACT_30FPS",
+      "sourceFrames": [
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_000.webp",
+          "bytes": 10736,
+          "sha256": "5fe7385627c5bc1952403ca552ea699949e078a16828093896fc30b8545d5f73"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_001.webp",
+          "bytes": 12590,
+          "sha256": "c3bd04c1a4ac2085711519f4afe9ef6c4fecf1986a37de336f92c2030ea90b81"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_002.webp",
+          "bytes": 15164,
+          "sha256": "dea81bc1754c493c18437a978506635525ecde44f315d014c6b782cb564b6b0c"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_003.webp",
+          "bytes": 17502,
+          "sha256": "5f3fef755242f093fcd018b45a9c68fd6367b0ef35f5e7b896f72bc47657f412"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_004.webp",
+          "bytes": 30118,
+          "sha256": "3403989d082bfba63bb601172b6ae5b9189f020b806da049ae8d69653eab29e0"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_005.webp",
+          "bytes": 58366,
+          "sha256": "4f47ce4baaa509866b238938c88dbdb90ae686595eb2266a8eea15438535d917"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_006.webp",
+          "bytes": 58970,
+          "sha256": "6a17930bf01013c9c147365c65cab6e478536b61a1ca45157d79e954c1cd8b81"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_007.webp",
+          "bytes": 59328,
+          "sha256": "03b9bb3ffb7be728980f93f97a9dcbbfa8dd365d8f8b4f0b3a464b65fceb1f11"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_008.webp",
+          "bytes": 58554,
+          "sha256": "c24635d2af1cfe4988a79f25b7cbcb0e44ac4b3ce60ad7d02f8b5ec8dac50a2c"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_009.webp",
+          "bytes": 58624,
+          "sha256": "3d0de16eead256f6ae327eb5c6723ea15e1bc99a35088b71d7ddc10e9b95b94f"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_010.webp",
+          "bytes": 57038,
+          "sha256": "c0dbb9bf2237622cd386ef327b90165c66f730f67a5211e99306eaa7b971d9ce"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_011.webp",
+          "bytes": 43504,
+          "sha256": "2bb42e7234bafd3311d1a08ba88369de0d63c1dcfbca4846feda54795058fbe0"
+        }
+      ],
+      "outputFrames": [
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_000.webp",
+          "bytes": 10636,
+          "sha256": "49eb6ed4b4214f46dc9fa31b03af068f38db69ba0f237ead5c077383a4042a90",
+          "decodedRgbaSha256": "2dfae29e2234f4a5871064d4a6c0ae737de71470ed7858625f6381bb418f227e",
+          "frameIndex": 0,
+          "sourceFrame": 0,
+          "targetFrame": 1,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_001.webp",
+          "bytes": 13378,
+          "sha256": "75612e373d1bc6db69fddea1815b914859ba882c6f1b8c3d00198e9a9a0ce8fe",
+          "decodedRgbaSha256": "e5bd87427e988a5fc848d244b4007d00cfe9514db7c8f594972e929e45ddb8af",
+          "frameIndex": 1,
+          "sourceFrame": 0,
+          "targetFrame": 1,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_002.webp",
+          "bytes": 12320,
+          "sha256": "aa20c8cc97ac13c1af1f7ab196cd8c335f540d301729668f1c3128ab81e6bee5",
+          "decodedRgbaSha256": "43d7f4509ec9338850ce59b13daaafa73c36c982d451601cd5a5c40b92efa3de",
+          "frameIndex": 2,
+          "sourceFrame": 1,
+          "targetFrame": 2,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_003.webp",
+          "bytes": 17158,
+          "sha256": "e152abba8c6e4142f0b8a269dc3a44d0f9c8509e59336198b8dca5603b35554d",
+          "decodedRgbaSha256": "0998cf7db4b245fa5c28ecbd71ca5ffd5981f926797369cbe2c5efe9a90e39b9",
+          "frameIndex": 3,
+          "sourceFrame": 1,
+          "targetFrame": 2,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_004.webp",
+          "bytes": 14758,
+          "sha256": "acf6c2dfcb96c1390bf2a94658f62d6be416a6c225a3db3724d93092d6bf26a3",
+          "decodedRgbaSha256": "609345a9055ea71ff5ee16e7367c227b764691b56bd45c374b45eeb9666b2ca9",
+          "frameIndex": 4,
+          "sourceFrame": 2,
+          "targetFrame": 3,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_005.webp",
+          "bytes": 20862,
+          "sha256": "ec69ce83465975d0fc99331617973dbf6e9709658ef300fe09c56d3c8c86001e",
+          "decodedRgbaSha256": "61fd8744bf534cfa87f5e8593054a3d31272a2e305bd5c61557a39b648e1d87c",
+          "frameIndex": 5,
+          "sourceFrame": 2,
+          "targetFrame": 3,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_006.webp",
+          "bytes": 17132,
+          "sha256": "9202a0b6f973984dcf561875e0c28f4b6a3ca69d675af00cba175fcc1f9e3bb1",
+          "decodedRgbaSha256": "fc4a47bd202f470182d6f00481fcc4641fca3c76c3f4b16ab37893e87f39ab96",
+          "frameIndex": 6,
+          "sourceFrame": 3,
+          "targetFrame": 4,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_007.webp",
+          "bytes": 33580,
+          "sha256": "af73f7fc57497a148820ce682b280dd9b809c2a38357acd28baaa5b400b22c28",
+          "decodedRgbaSha256": "4bf479a0e85c1b0646805cfbf87c5346be5f4fdc49e9f2e01a2a8a88822bb94f",
+          "frameIndex": 7,
+          "sourceFrame": 3,
+          "targetFrame": 4,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_008.webp",
+          "bytes": 29340,
+          "sha256": "3c1f00375ff56bfc99fe3380d490cc7bc9fcfcecf40fdc9681e4b10599ab93e3",
+          "decodedRgbaSha256": "4bcdaee5b9f9608b1d32d37391a5bf13d8db9cdee101a16283777c0326416c2b",
+          "frameIndex": 8,
+          "sourceFrame": 4,
+          "targetFrame": 5,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_009.webp",
+          "bytes": 61002,
+          "sha256": "f61deddcff1a96eb652aa04a0dd55a12ee535706b7cc3ca3fa1fb7143719e6cf",
+          "decodedRgbaSha256": "df9b0f571f97506926833bfe87caf64711bffe366b3b56b6cf53a6de25e38f4a",
+          "frameIndex": 9,
+          "sourceFrame": 4,
+          "targetFrame": 5,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_010.webp",
+          "bytes": 57320,
+          "sha256": "c2c40226659c5d2d1ff978983ddab3feb983acb8d6ca258cb8770abded75607c",
+          "decodedRgbaSha256": "6b85969c01384a6fccaae276051976f7fd5da7376e92eac963727bc8e531acf8",
+          "frameIndex": 10,
+          "sourceFrame": 5,
+          "targetFrame": 6,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_011.webp",
+          "bytes": 62798,
+          "sha256": "5acb5083520e07389eb05b30bd103d4dd40c173544efd939b628e474d80f37d8",
+          "decodedRgbaSha256": "fa023585d8098bec21c1123cdaf69aa69d22d5f116b71163801d335494e97d7c",
+          "frameIndex": 11,
+          "sourceFrame": 5,
+          "targetFrame": 6,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_012.webp",
+          "bytes": 58022,
+          "sha256": "8b5e2a134389e771be67e23ad6ada056e20e24970b0431b0113bf2c5fc0ba812",
+          "decodedRgbaSha256": "7a5b2f530c150dd1c9081c6338f5a814e56291318b1859a737a687abdd18b117",
+          "frameIndex": 12,
+          "sourceFrame": 6,
+          "targetFrame": 7,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_013.webp",
+          "bytes": 63364,
+          "sha256": "e1857ebe8e796e4ab5c2926521b784b39ab7fbef2253d0bbef246004be796589",
+          "decodedRgbaSha256": "08fdf59fb87ae3dd8b2dd32437fc196d6cbcda2c0e3850dfa87d7d0ae4ca781a",
+          "frameIndex": 13,
+          "sourceFrame": 6,
+          "targetFrame": 7,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_014.webp",
+          "bytes": 58330,
+          "sha256": "fcb80a2eb99fa979f37d5c8b28ae50127c219f3f15bcf8c83eb9324ce955be14",
+          "decodedRgbaSha256": "f582f5e2fb20ab7810d26640fdd596f45a629f13a900755837a5bf0c9ee70fd7",
+          "frameIndex": 14,
+          "sourceFrame": 7,
+          "targetFrame": 8,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_015.webp",
+          "bytes": 63516,
+          "sha256": "8a5f9127d4db131d3e9b7b6ebe92941e1810e22713340b2a5b27a6ba91e8bbd9",
+          "decodedRgbaSha256": "3442c26b5fad5bca9ba9569a1611f8463957dbb66bc9547e4c75a046ef4a9bd6",
+          "frameIndex": 15,
+          "sourceFrame": 7,
+          "targetFrame": 8,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_016.webp",
+          "bytes": 58128,
+          "sha256": "85eb30c3c711bfd6d958a5f2934995e73453de38cf3295aa0638a4a66305bf85",
+          "decodedRgbaSha256": "06d544734832ebd4ae8f33fd842c178114177ff789d919569254d7241887b9b4",
+          "frameIndex": 16,
+          "sourceFrame": 8,
+          "targetFrame": 9,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_017.webp",
+          "bytes": 58386,
+          "sha256": "eacf45d0ad20de2796e4fdb8db02dad81b213b2ff30bbfc8441ba13744716f88",
+          "decodedRgbaSha256": "eb1e7d7092a3e72f54523a6c93556dfa10fcb3b49acfe2d33a2a935b5fafc2f6",
+          "frameIndex": 17,
+          "sourceFrame": 8,
+          "targetFrame": 9,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_018.webp",
+          "bytes": 58096,
+          "sha256": "1365d8251a579baaa351aaba527c48336012ed9a43c42c2b0022fc31392ab0c6",
+          "decodedRgbaSha256": "9131234896083e793d069aa44a58c8ed97b7b4fc017be6eea8a182ee8e4c021c",
+          "frameIndex": 18,
+          "sourceFrame": 9,
+          "targetFrame": 10,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_019.webp",
+          "bytes": 57612,
+          "sha256": "6e61c1d4ed84ddae8c10f6953c9d8641e5746d9214cd6c7c024e26e2f7633ffd",
+          "decodedRgbaSha256": "9ae82e0061567cf7b6cef9c95a5be8084abe795699e976180a5fbbd8b85d88d2",
+          "frameIndex": 19,
+          "sourceFrame": 9,
+          "targetFrame": 10,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_020.webp",
+          "bytes": 56544,
+          "sha256": "d57d71865e655634f33951274daa54a456b397d802ff84c88528210efbcbb272",
+          "decodedRgbaSha256": "d0159b2ff3fedab046e4a5bbc4fa9a8171e0df8eedda9335440fd6172c4c81a4",
+          "frameIndex": 20,
+          "sourceFrame": 10,
+          "targetFrame": 11,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_021.webp",
+          "bytes": 56236,
+          "sha256": "ba4da19d7fdd2a2ccf3351b9c3ab38bd5ab69332ef520460e55d7be0397b7a9e",
+          "decodedRgbaSha256": "4dd6d6a830d168880bc68919b651d2dc8a48537d388d5fa096c575351e9e50f5",
+          "frameIndex": 21,
+          "sourceFrame": 10,
+          "targetFrame": 11,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_022.webp",
+          "bytes": 2488,
+          "sha256": "ae4088e0c04edcb8e468ff4298ba83eaa5018e72e2e75ae51d1a1c0d7803398d",
+          "decodedRgbaSha256": "c036cbb7553a909f8b8877d4461924307f27ecb66cff928eeeafd569c3887e29",
+          "frameIndex": 22,
+          "sourceFrame": 11,
+          "targetFrame": null,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_SCREEN_IMPACT_30FPS/rgba/FX_SCREEN_IMPACT_30FPS_023.webp",
+          "bytes": 2488,
+          "sha256": "ae4088e0c04edcb8e468ff4298ba83eaa5018e72e2e75ae51d1a1c0d7803398d",
+          "decodedRgbaSha256": "c036cbb7553a909f8b8877d4461924307f27ecb66cff928eeeafd569c3887e29",
+          "frameIndex": 23,
+          "sourceFrame": 11,
+          "targetFrame": null,
+          "phase": 0.5
+        }
+      ],
+      "flow": {},
+      "qa": {
+        "distinctFileHashes": 23,
+        "distinctDecodedRgbaHashes": 23,
+        "consecutiveDuplicateVisibleFrames": 0,
+        "transparentTerminalFrames": 2,
+        "nonAdjacentPoseRevisits": 1,
+        "adjacentAlphaIouMin": 0.0,
+        "adjacentAlphaIouMean": 0.83,
+        "loopSeamAlphaIou": null,
+        "sourceAdjacentDeltaMedian": 0.044277,
+        "outputAdjacentDeltaMedian": 0.02210329,
+        "temporalDeltaRatio": 0.499205,
+        "synthesizedAlphaEdgeOvershootMax": 0.99876,
+        "transparentRgbMax": 0
+      },
+      "contactSheet": "apps/blacksite/art/generated/v22/standalone-fx-30fps-v1/FX_SCREEN_IMPACT_30FPS_contact-sheet.webp",
+      "contactSheetSha256": "4ce91571c35c7b70c6d67c4fc0a969c32fe4c0c1de17eff749d920704ec4e50f"
+    },
+    "FX_WIN_FLASH_30FPS": {
+      "sequence": "FX_WIN_FLASH_30FPS",
+      "sourceFrames": [
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_000.webp",
+          "bytes": 6556,
+          "sha256": "d34a09122e82384e2b5101fe559cc1ead92bf4053f8c86feb6a91c8422c192a3"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_001.webp",
+          "bytes": 8340,
+          "sha256": "1e0f8c9d4661293a480e8c0ab4040f94e30ab22def11b23559d06ad80685889c"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_002.webp",
+          "bytes": 10956,
+          "sha256": "a55ca7c42219cfc561276ec09443bdc4f10e56f69276326329950ed62efef8ef"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_003.webp",
+          "bytes": 13738,
+          "sha256": "8a20b538b81962173da95da3492f838846e204a5f79062eec4f94611a91e9a86"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_004.webp",
+          "bytes": 16762,
+          "sha256": "30999530019c85bc33f77949c37a2f1151fd110258493467ac42ef145d42cf24"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_005.webp",
+          "bytes": 19204,
+          "sha256": "c99456f852d6ef55d7a5f9880c63abfeea761fa3c8c527ecd1152a681499ee35"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_006.webp",
+          "bytes": 20620,
+          "sha256": "1ce6c26032c0f4b014a5324257a102ce50a2854aae2799e0ce3490716a61a432"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_007.webp",
+          "bytes": 18920,
+          "sha256": "ba23d04367dad56ad60e8f94e91f45f98f20515827f289c976d8c7a7085fc02d"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_008.webp",
+          "bytes": 18142,
+          "sha256": "95b8cb292e7fe51bd2fa8017c00741b9239edb6264008bb10bf1a88e287e126a"
+        },
+        {
+          "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1/standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_009.webp",
+          "bytes": 18396,
+          "sha256": "cba62caec8e22ddb274153d9eb69bc3c695127fd79886d5312b83fb8307683b5"
+        }
+      ],
+      "outputFrames": [
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_000.webp",
+          "bytes": 6710,
+          "sha256": "462a96569a0f6c2e5c277752a678f867f32b934d92aae290c9e288581f1e3451",
+          "decodedRgbaSha256": "d52ce0dab7ef5291304126955055a7dc177b73061e1d4ca069dfefe2a1907008",
+          "frameIndex": 0,
+          "sourceFrame": 0,
+          "targetFrame": 1,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_001.webp",
+          "bytes": 8482,
+          "sha256": "f693a5576814af1a880336bf3ca79a3ad5c6a7237852c608d6bec7a89d5f5386",
+          "decodedRgbaSha256": "eb9869fedc9159aae4988ac1ddd6b250d70a43fb8451e201a693faff05927b3e",
+          "frameIndex": 1,
+          "sourceFrame": 0,
+          "targetFrame": 1,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_002.webp",
+          "bytes": 9004,
+          "sha256": "563d6fe10a159b1fa31f54f6702fc2bf6f925217419de403ad6254431db93a43",
+          "decodedRgbaSha256": "9ff2e631e7577912a42f99c402fa199993deb60edbf007f6b8d6d24af163e819",
+          "frameIndex": 2,
+          "sourceFrame": 1,
+          "targetFrame": 2,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_003.webp",
+          "bytes": 13798,
+          "sha256": "8a88bbfc9feb3a1dfe53323ae5ecde708ced37a7a75b38b52a54ec34200908db",
+          "decodedRgbaSha256": "d984c2fe57d992803b4b0ed4d454da76135119050741fb7d7914881aeff38f01",
+          "frameIndex": 3,
+          "sourceFrame": 1,
+          "targetFrame": 2,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_004.webp",
+          "bytes": 13074,
+          "sha256": "b4ec868cb5bbedc97791881a1eaa14098c62ab5c4e5b2e417e0ed064417643a0",
+          "decodedRgbaSha256": "71b84758592af5cb8924dcb1c1e07e5e444a814c27f553b76c2c56ead03d520f",
+          "frameIndex": 4,
+          "sourceFrame": 2,
+          "targetFrame": 3,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_005.webp",
+          "bytes": 18544,
+          "sha256": "cfdd49bb4357ae8b950f2781179f5828b27f5838c73342359e3e8dd189486e65",
+          "decodedRgbaSha256": "c95cfa76d8136e69f6eb3894ea509314d704c2d649757b8891fd5716ece7c3bd",
+          "frameIndex": 5,
+          "sourceFrame": 2,
+          "targetFrame": 3,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_006.webp",
+          "bytes": 17176,
+          "sha256": "ae103d41e45bf3c5e09d3f498bcaa353d46a96ec1c65474fb7ce3ffb964192f2",
+          "decodedRgbaSha256": "081b1dd2a7fff8bafc83ab4139c8ccf0573e931ac58cddac4887ea53d9e7ea0e",
+          "frameIndex": 6,
+          "sourceFrame": 3,
+          "targetFrame": 4,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_007.webp",
+          "bytes": 24716,
+          "sha256": "989078ed64d53e719d9db8b3a19748b605dd9e13aa73a11864807266ee41fc87",
+          "decodedRgbaSha256": "673b07dfd338786bef896ab72dd5a8eab326b4a74235f48b22313b123bd9b67e",
+          "frameIndex": 7,
+          "sourceFrame": 3,
+          "targetFrame": 4,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_008.webp",
+          "bytes": 21482,
+          "sha256": "60ab634d930e67752a688ad4ddc714b877026f47102fe2c250bb554bade8a6a2",
+          "decodedRgbaSha256": "2c1b0ff819460d0501067a04c98f3334bfdd1e832e6a9a9136a0de9779ec4c93",
+          "frameIndex": 8,
+          "sourceFrame": 4,
+          "targetFrame": 5,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_009.webp",
+          "bytes": 30098,
+          "sha256": "9e0480def023791c76760ef666e68e8138cb129dd31d6d356e33fcac85a7ad26",
+          "decodedRgbaSha256": "bdfead07a18994518c736fa28287e225df176522aeb5b093fe8797cc67a376c2",
+          "frameIndex": 9,
+          "sourceFrame": 4,
+          "targetFrame": 5,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_010.webp",
+          "bytes": 24096,
+          "sha256": "df40805061b09aec11f9934d4609400bbcb960e5137714b69d45a94dc9d1c633",
+          "decodedRgbaSha256": "66c8866346c30c3a32656c36d5b35bf6df46ed310ca9ec6b9f67e15c9cd18a7e",
+          "frameIndex": 10,
+          "sourceFrame": 5,
+          "targetFrame": 6,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_011.webp",
+          "bytes": 33288,
+          "sha256": "63e92e3bd23c42bbbc7df2f40c22e0bb336117ea9965cfa7df8377147632dc03",
+          "decodedRgbaSha256": "4336834f3b0b27453439e025c84f0c3494486af0ff1af148a7c7fcbc45e00218",
+          "frameIndex": 11,
+          "sourceFrame": 5,
+          "targetFrame": 6,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_012.webp",
+          "bytes": 23930,
+          "sha256": "98f6cec2ff8cbfa8ed24518aba4e8214211f6f024dc2d2a99b1975fa1fdb36bd",
+          "decodedRgbaSha256": "97ebb6a3a497978c7365b473ff8cf56d4dcc96b83360ab1328dc2346d369de10",
+          "frameIndex": 12,
+          "sourceFrame": 6,
+          "targetFrame": 7,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_013.webp",
+          "bytes": 32322,
+          "sha256": "edeb7324bfdcfc7a251d4d9e586777bba944fae89e9ce073014bc9f94c2c1287",
+          "decodedRgbaSha256": "eeee9b04a2b4bd9c522b84b027a4908c0743d427d776e7a08b17330176058d0a",
+          "frameIndex": 13,
+          "sourceFrame": 6,
+          "targetFrame": 7,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_014.webp",
+          "bytes": 20042,
+          "sha256": "9085701f888df591364f264d8de28dd4f8b6a4c5db6a00acf643cf0132195482",
+          "decodedRgbaSha256": "3d7b113a28a9cf2c6da6bc123ed7664d9ad46557f8672a01be8a4daee28489fd",
+          "frameIndex": 14,
+          "sourceFrame": 7,
+          "targetFrame": 8,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_015.webp",
+          "bytes": 27244,
+          "sha256": "008c727b50100707996bad744076c06bea28a80bc1c51039000b67f68d307c5b",
+          "decodedRgbaSha256": "d968cc0bdca6149d25a00660388975bbe57d60f1106ca7407a5fa8eee95697fd",
+          "frameIndex": 15,
+          "sourceFrame": 7,
+          "targetFrame": 8,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_016.webp",
+          "bytes": 19060,
+          "sha256": "e82c66077ab6e8a7d1348be13cf554b0ac94aeb4a9cfcef758b14424bdc85b94",
+          "decodedRgbaSha256": "82f721770c0278bce70316ac646abe65460ead0575c5b79999c2827ab4684317",
+          "frameIndex": 16,
+          "sourceFrame": 8,
+          "targetFrame": 9,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_017.webp",
+          "bytes": 21270,
+          "sha256": "4771dd46f3a569f38f89767647ba1f1deffe328d0b66efaf0f87f8e345ca897a",
+          "decodedRgbaSha256": "3a621a35090cc8b95794bd2023a819fde06f62496cb1d01a804c6f45a0449972",
+          "frameIndex": 17,
+          "sourceFrame": 8,
+          "targetFrame": 9,
+          "phase": 0.5
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_018.webp",
+          "bytes": 19184,
+          "sha256": "7803120ed7b0c31e14162e42f51b98018bf5f2cfe96dc34c97ddb9c404437806",
+          "decodedRgbaSha256": "86d69c54ca1217fbef2f95ca10246af314710fbb437926f1c1a6b54ff8bb4429",
+          "frameIndex": 18,
+          "sourceFrame": 9,
+          "targetFrame": null,
+          "phase": 0.0
+        },
+        {
+          "path": "standalone_fx/FX_WIN_FLASH_30FPS/rgba/FX_WIN_FLASH_30FPS_019.webp",
+          "bytes": 18244,
+          "sha256": "57309bb947fe9cb1d4706ccbb87b531a7158b33caa405a36e2e94ac7614a5ed6",
+          "decodedRgbaSha256": "dc699683c9835d437eae04b36f6404848772fb1aa3ae047cc99a277c55a8816f",
+          "frameIndex": 19,
+          "sourceFrame": 9,
+          "targetFrame": null,
+          "phase": 0.5
+        }
+      ],
+      "flow": {},
+      "qa": {
+        "distinctFileHashes": 20,
+        "distinctDecodedRgbaHashes": 20,
+        "consecutiveDuplicateVisibleFrames": 0,
+        "transparentTerminalFrames": 7,
+        "nonAdjacentPoseRevisits": 0,
+        "adjacentAlphaIouMin": 0.0,
+        "adjacentAlphaIouMean": 0.645521,
+        "loopSeamAlphaIou": null,
+        "sourceAdjacentDeltaMedian": 0.02085751,
+        "outputAdjacentDeltaMedian": 0.01039817,
+        "temporalDeltaRatio": 0.498534,
+        "synthesizedAlphaEdgeOvershootMax": 0.994009,
+        "transparentRgbMax": 0
+      },
+      "contactSheet": "apps/blacksite/art/generated/v22/standalone-fx-30fps-v1/FX_WIN_FLASH_30FPS_contact-sheet.webp",
+      "contactSheetSha256": "7415de915334c5e1eac362967ee1ac274b00986124d55ec1040e4f3dffaf4dd7"
+    }
+  },
+  "buildSeconds": 175.5
+}

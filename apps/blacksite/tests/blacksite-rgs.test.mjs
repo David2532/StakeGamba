@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
 	API_AMOUNT_SCALE,
 	InsufficientBalanceError,
+	PRESENTATION_CURSOR_PREFIX,
 	RgsContractError,
 	encodePresentationCursor,
 	normalizeAuthenticateResponse,
@@ -200,8 +201,13 @@ test('RGS money remains safe integer micro-units and canonical mode cost is appl
 
 test('authenticate accepts only unambiguous step aliases and the exact BLACKSITE mode table', () => {
 	const adapter = contractAdapter();
+	const configWithoutBetModes = canonicalConfig();
+	delete configWithoutBetModes.betModes;
 	for (const config of [
 		canonicalConfig(),
+		configWithoutBetModes,
+		canonicalConfig({ betModes: {} }),
+		canonicalConfig({ betModes: { base: {}, deep_access: {}, blackout: {} } }),
 		canonicalConfig({ stepBet: undefined, minStep: 100_000 }),
 		canonicalConfig({ stepBet: 100_000, minStep: 100_000 }),
 	]) {
@@ -226,6 +232,9 @@ test('authenticate accepts only unambiguous step aliases and the exact BLACKSITE
 	}
 
 	const conflicts = [
+		[canonicalConfig({ betModes: null }), 'OBJECT_REQUIRED'],
+		[canonicalConfig({ betModes: [] }), 'OBJECT_REQUIRED'],
+		[canonicalConfig({ betModes: { base: {} } }), 'BET_MODE_SET_MISMATCH'],
 		[canonicalConfig({ minStep: 200_000 }), 'STEP_BET_CONFLICT'],
 		[canonicalConfig({ betModes: { ...canonicalConfig().betModes, bonus: { costMultiplier: 2 } } }), 'BET_MODE_SET_MISMATCH'],
 		[canonicalConfig({ betModes: { ...canonicalConfig().betModes, blackout: { costMultiplier: 79 } } }), 'BET_MODE_COST_MISMATCH'],
@@ -261,6 +270,8 @@ test('authenticate accepts only unambiguous step aliases and the exact BLACKSITE
 
 test('round normalization accepts both official state shapes and reconciles multiplier-x exactly', () => {
 	const adapter = contractAdapter();
+	assert.equal(PRESENTATION_CURSOR_PREFIX, 'blacksite-book-events-v3:');
+	assert.equal(encodePresentationCursor(0), 'blacksite-book-events-v3:0');
 	for (const stateShape of ['array', 'object']) {
 		const source = roundPayload({
 			stateShape,
@@ -286,6 +297,22 @@ test('round normalization accepts both official state shapes and reconciles mult
 		1,
 	);
 	assert.equal(normalizeRound(roundPayload({ event: '2' }), { adapter }).eventCursor, 2);
+	assert.equal(
+		normalizeRound(roundPayload({ event: 'blacksite-book-events-v2:2' }), { adapter }).eventCursor,
+		0,
+		'legacy v2 cursors must never advance a v3 presentation',
+	);
+	for (const foreignCursor of [
+		'blacksite-book-events-v1:2',
+		'other-game-events-v3:2',
+		'blacksite-book-events-v3:-1',
+	]) {
+		assert.equal(
+			normalizeRound(roundPayload({ event: foreignCursor }), { adapter }).eventCursor,
+			0,
+			`${foreignCursor} must fail back to event zero`,
+		);
+	}
 	assert.equal(normalizeRound(roundPayload({ event: 'cursor-1' }), { adapter }).eventCursor, 0);
 	assert.equal(normalizeRound(roundPayload({ event: 3 }), { adapter }).eventCursor, 0);
 	assert.throws(

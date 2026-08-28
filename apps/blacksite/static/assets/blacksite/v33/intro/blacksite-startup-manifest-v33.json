@@ -1,0 +1,86 @@
+{
+  "schema": "blacksite-intro-manifest/v2",
+  "version": 33,
+  "status": "runtime-integrated-review-pending",
+  "releaseStatus": "MANUAL_REVIEW_REQUIRED",
+  "videoAvailable": true,
+  "durationSeconds": 10.006,
+  "runtimeRoot": "assets/blacksite/v33/intro",
+  "poster": {
+    "desktop": "v28/environment/blackout-interior-desktop.webp",
+    "portrait": "v28/environment/blackout-interior-portrait.webp",
+    "shortLandscape": "v28/environment/blackout-interior-short-landscape.webp"
+  },
+  "endFrame": "v33/intro/blacksite-breach-start-screen-v33.webp",
+  "rulesScreen": "v33/intro/blacksite-breach-start-screen-v33.webp",
+  "video": {
+    "desktop": {
+      "webm": null,
+      "mp4": "v33/intro/blacksite-vault-opening-v33.mp4"
+    },
+    "mobile": {
+      "webm": null,
+      "mp4": "v33/intro/blacksite-vault-opening-v33.mp4"
+    }
+  },
+  "runtimePolicy": {
+    "sequence": "preload -> video -> rules-screen -> slot",
+    "normalLaunch": "mandatory-every-start",
+    "skip": "skip-video-only-rules-screen-remains-mandatory",
+    "reducedMotion": "skip-video-show-rules-screen",
+    "replayAndRestore": "skip-video-show-rules-screen-without-wallet-mutation",
+    "autoplay": "muted-playsinline",
+    "embeddedVideoAudio": false,
+    "failureFallback": "poster-then-rules-screen",
+    "remoteRuntimeDependencies": false
+  },
+  "budget": {
+    "completeBuildHardMaxBytes": 67108864,
+    "videoBytes": 2621261,
+    "rulesScreenBytes": 391062,
+    "combinedV33RuntimeBytes": 3012323,
+    "pass": true
+  },
+  "provenance": {
+    "videoSource": "User-supplied Military_vault_door_opening_202608221744.mp4",
+    "videoSha256": "1e158d67ef3942cacca08a4e0b9b42983e8ace101079e2c4d3b9ec6cf6efce51",
+    "videoRights": "User supplied for this project; final human rights review remains required before release.",
+    "rulesScreenSource": "apps/blacksite/art/v32/intro/blacksite-breach-start-screen-book-logic-v32.png",
+    "rulesScreenSourceSha256": "02b067303bf230cef2d4cb2565878a330e537d343c1fc4619c8ee1391e39059d",
+    "rulesScreenRuntimeSha256": "6edd0ff2d0ab0b1a8ea1b2e1852a5f65c4159d99cf03e577dc0a4d6d81fc0503",
+    "rulesScreenOriginality": "Project-authored AI-assisted BLACKSITE composition using the canonical runtime symbol references.",
+    "rulesScreenRights": "Final human rights and visual review remain required before release."
+  },
+  "assetRecords": [
+    {
+      "id": "intro.video.shared.mp4.v33",
+      "type": "video",
+      "purpose": "Mandatory normal-start vault-opening cinematic",
+      "path": "assets/blacksite/v33/intro/blacksite-vault-opening-v33.mp4",
+      "container": "mp4",
+      "codec": "h264-high-3.1",
+      "dimensions": { "width": 1280, "height": 720 },
+      "fps": 24,
+      "durationSeconds": 10.006,
+      "bytes": 2621261,
+      "sha256": "1e158d67ef3942cacca08a4e0b9b42983e8ace101079e2c4d3b9ec6cf6efce51",
+      "mobileFallback": "shared-landscape-contain",
+      "owner": "intro_director",
+      "status": "runtime-integrated-review-pending"
+    },
+    {
+      "id": "intro.rules-screen.v33",
+      "type": "image",
+      "purpose": "Mandatory rules/start screen after cinematic and before slot",
+      "path": "assets/blacksite/v33/intro/blacksite-breach-start-screen-v33.webp",
+      "format": "webp",
+      "dimensions": { "width": 1672, "height": 941 },
+      "bytes": 391062,
+      "sha256": "6edd0ff2d0ab0b1a8ea1b2e1852a5f65c4159d99cf03e577dc0a4d6d81fc0503",
+      "source": "apps/blacksite/art/v32/intro/blacksite-breach-start-screen-book-logic-v32.png",
+      "compression": "WebP quality 94, smart subsampling, effort 6",
+      "owner": "intro_director",
+      "status": "runtime-integrated-review-pending"
+    }
+  ]
+}

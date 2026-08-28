@@ -1,79 +1,78 @@
 {
-  "schema_version": 1,
+  "schema_version": 3,
   "board": {
-    "columns": 7,
-    "rows": 7,
-    "adjacency": "orthogonal",
-    "minimum_cluster_size": 5,
-    "cluster_bands": [
-      { "id": "cluster_5_7", "minimum": 5, "maximum": 7, "representative_size": 5 },
-      { "id": "cluster_8_11", "minimum": 8, "maximum": 11, "representative_size": 8 },
-      { "id": "cluster_12_16", "minimum": 12, "maximum": 16, "representative_size": 12 },
-      { "id": "cluster_17_23", "minimum": 17, "maximum": 23, "representative_size": 17 },
-      { "id": "cluster_24_31", "minimum": 24, "maximum": 31, "representative_size": 24 },
-      { "id": "cluster_32_39", "minimum": 32, "maximum": 39, "representative_size": 32 },
-      { "id": "cluster_40_48", "minimum": 40, "maximum": 48, "representative_size": 40 },
-      { "id": "cluster_49", "minimum": 49, "maximum": 49, "representative_size": 49 }
-    ]
+    "columns": 5,
+    "rows": 3,
+    "storage": "column-major",
+    "pay_direction": "left-to-right from column 0",
+    "minimum_match": 3,
+    "maximum_match": 5
   },
-  "symbols": ["byte", "relay", "proxy", "cipher", "daemon", "vault"],
-  "special_symbols": [],
-  "underlay": {
-    "name": "Ghost Route",
-    "ingress_cells": [
-      { "column": 2, "row": 6 },
-      { "column": 3, "row": 6 },
-      { "column": 4, "row": 6 }
-    ],
-    "core_cell": { "column": 3, "row": 3 },
-    "exfil_ports": [
-      { "id": "north", "column": 3, "row": 0 },
-      { "id": "west", "column": 0, "row": 3 },
-      { "id": "east", "column": 6, "row": 3 }
-    ],
-    "breach_timing": "winning cells become breached only after their payout is evaluated",
-    "live_definition": "breached cells orthogonally connected to at least one ingress cell",
-    "linked_definition": "a winning cluster is linked only when at least one winning cell is already live in the pre-win snapshot",
-    "natural_feature_arm": "core cell first becomes live after a breach_state update",
-    "feature_entry_timing": "after the current cascade chain completes"
+  "paylines": [
+    { "id": 0, "rows": [1, 1, 1, 1, 1] },
+    { "id": 1, "rows": [0, 0, 0, 0, 0] },
+    { "id": 2, "rows": [2, 2, 2, 2, 2] },
+    { "id": 3, "rows": [0, 1, 2, 1, 0] },
+    { "id": 4, "rows": [2, 1, 0, 1, 2] },
+    { "id": 5, "rows": [0, 0, 1, 2, 2] },
+    { "id": 6, "rows": [2, 2, 1, 0, 0] },
+    { "id": 7, "rows": [1, 0, 0, 0, 1] },
+    { "id": 8, "rows": [1, 2, 2, 2, 1] },
+    { "id": 9, "rows": [0, 1, 0, 1, 0] }
+  ],
+  "regular_symbols": [
+    "operative",
+    "encrypted_drive",
+    "tactical_radio",
+    "classified_folder",
+    "night_vision_goggles",
+    "supply_crate",
+    "a",
+    "k",
+    "q",
+    "j",
+    "ten"
+  ],
+  "special_symbols": ["ghost_wild", "breach"],
+  "wild": {
+    "symbol": "ghost_wild",
+    "substitutes_for": "regular_symbols_only",
+    "self_pay": true,
+    "line_resolution": "enumerate each regular candidate over the consecutive prefix containing only that symbol or ghost_wild, plus the pure ghost_wild prefix; pay one candidate per line by highest base payout, then longest match, then canonical paytable symbol order"
   },
-  "access": {
-    "pre_feature_by_minimum_live_manhattan_distance_to_core": [
-      { "minimum_distance": 3, "maximum_distance": 12, "multiplier": 1 },
-      { "minimum_distance": 2, "maximum_distance": 2, "multiplier": 2 },
-      { "minimum_distance": 1, "maximum_distance": 1, "multiplier": 3 },
-      { "minimum_distance": 0, "maximum_distance": 0, "multiplier": 5 }
-    ],
-    "no_live_cells_multiplier": 1,
-    "pre_feature_linked_multipliers": [1, 2, 3, 5],
-    "feature_linked_multiplier_by_reached_port_count": [5, 7, 10, 15],
-    "unlinked_multiplier": 1,
-    "upgrade_timing": "route and exfil upgrades are stored in the post-breach snapshot and apply to the next cluster evaluation, never retroactively"
+  "trigger": {
+    "symbol": "breach",
+    "line_pay": false,
+    "wild_substitution": false,
+    "maximum_per_reel": 1,
+    "minimum_distinct_reels": 3,
+    "awarded_free_spins": 8,
+    "retrigger": false
   },
   "feature": {
     "name": "BLACKOUT PROTOCOL",
-    "initial_cycles": 6,
-    "cycles_per_first_exfil_reach": 2,
-    "maximum_cycles": 12,
-    "retrigger_symbols": false,
+    "free_spins": 8,
+    "target_selection": "one authoritative regular symbol at feature_start",
+    "expansion": "before line evaluation, every reel containing the selected target in the original free-spin board becomes three target symbols",
+    "retrigger": false,
     "blackout_starts_directly": true
+  },
+  "deep_access": {
+    "guarantee": "the two canonical guaranteed BREACH positions are present on every opening spin; a third BREACH on another reel triggers the feature"
   },
   "complete_round_cap": {
     "raw_centi_x": 1000000,
     "human_x": 10000,
-    "application": "cluster calculated award is truncated to remaining complete-round cap; no later payout event may occur"
+    "application": "line awards are applied in ascending payline id order and truncated to the remaining complete-round cap; no later payout or feature event occurs"
   },
   "event_order": [
     "round_start",
-    "board_set",
-    "cluster_win",
-    "breach_state",
-    "access_changed",
-    "feature_armed",
+    "spin_set",
+    "expansion_applied",
+    "line_win",
+    "feature_trigger",
     "feature_start",
-    "feature_cycle",
-    "exfil_reached",
-    "tumble",
+    "free_spin_start",
     "feature_end",
     "cap_reached",
     "round_end"

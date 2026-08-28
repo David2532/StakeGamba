@@ -10,12 +10,15 @@ This is a hard contract. Presentation code may not weaken it to make UI work eas
 The frontend has explicit launch modes:
 
 ### Paid live play
+
 Requires valid Stake launch parameters and RGS authentication. No local payout simulation fallback is allowed.
 
 ### Replay
+
 Triggered by Replay query parameters. Session authentication is not required and wallet-mutating calls are forbidden.
 
 ### Development fixture
+
 Explicit local/dev-only route or flag. Uses deterministic fixture data and cannot be reachable as accidental fallback from a failed paid launch.
 
 These modes must be distinguishable at startup and in tests.
@@ -34,6 +37,7 @@ RGS API monetary amounts use integer units with six decimal places of precision.
 Maintain integer amounts across request/state boundaries as long as possible.
 
 Separate display helpers:
+
 - balance;
 - selected base play amount;
 - total play amount after mode cost;
@@ -50,6 +54,7 @@ For new submissions, support the small bet levels returned by RGS. When the smal
 Live paid play starts with exactly the current required authentication request.
 
 Consume authoritative response fields including:
+
 - balance amount/currency;
 - `minBet`;
 - `maxBet`;
@@ -68,6 +73,7 @@ Treat the current jurisdiction object as a closed typed boundary. Required boole
 ## 5. Bet selection
 
 A selected base amount must:
+
 - be within min/max;
 - satisfy step rules;
 - be one of the current recommended/returned levels when the UI is presenting those levels;
@@ -86,11 +92,13 @@ Confirmation text must show the exact total amount in the current currency/socia
 A legal paid action emits at most one `/wallet/play` request.
 
 Request must use:
+
 - current authenticated session;
 - current canonical mode;
 - current base amount in RGS units.
 
 Before sending:
+
 - no active unresolved round unless the RGS contract explicitly allows a new one;
 - no unresolved major-action confirmation;
 - no Replay mode;
@@ -104,6 +112,7 @@ An exact live WIN surface requires authoritative integer `round.payout`. Missing
 ## 7. Insufficient balance
 
 If current authoritative balance cannot cover the selected total play amount:
+
 - show the approved insufficient-balance message;
 - send zero play requests;
 - do not begin local animation as if a round exists;
@@ -116,6 +125,7 @@ Also handle RGS `ERR_IPB` safely if balance changed between client check and req
 On authenticate, `round` can represent an active or completed round.
 
 If active:
+
 - restore canonical mode;
 - restore original base amount/total play context;
 - restore currency/session context;
@@ -126,19 +136,21 @@ If active:
 
 If the game persists presentation progress with `/bet/event`, make it idempotent and ensure resume is valid even if the event marker is missing/stale.
 
-BLACKSITE persists a bounded `blacksite-book-events-v1:<nextEventIndex>` marker after durable full-state checkpoints. On restore it synchronously primes all cues before that next index, then animates from that index exactly once. Missing, foreign, malformed or out-of-range markers conservatively resume from event `0` instead of blocking authentication. The `/bet/event` success response may omit its optional `event` echo; if an echo is present it must match the request.
+BLACKSITE persists a bounded `blacksite-book-events-v3:<nextEventIndex>` marker after durable full-state checkpoints. On restore it synchronously primes all cues before that next index, then animates from that index exactly once. Missing, v1/v2/foreign, malformed or out-of-range markers conservatively resume from event `0` instead of blocking authentication; a v1 or v2 cursor is never interpreted as v3 state. The `/bet/event` success response may omit its optional `event` echo; if an echo is present it must match the request.
 
 ## 9. Settlement / end-round
 
 Do not couple end-round to whether visible payout is zero/non-zero.
 
 Decision inputs are:
+
 - authoritative round active/completed state;
 - current mode auto-close contract;
 - current RGS requirements;
 - whether the frontend is responsible for manual close in that mode.
 
 Rules:
+
 - never call end-round twice;
 - never call end-round from Replay;
 - never call end-round merely because a count-up animation finished if round state says otherwise;
@@ -152,6 +164,7 @@ QA must assert request order and counts, not just final balance.
 Balance shown after play/settlement comes from RGS wallet responses.
 
 Do not:
+
 - calculate wallet balance from `oldBalance - bet + win` as production authority;
 - let a local animation amount update the wallet state;
 - retain an optimistic balance if an RGS request fails.
@@ -161,6 +174,7 @@ Temporary visual debit/count-up can exist only if it reconciles to authoritative
 ## 11. Replay query contract
 
 Replay must handle the current Stake parameters including:
+
 - `replay=true`;
 - `game`;
 - `version`;
@@ -186,6 +200,7 @@ Use the current replay endpoint shape:
 The optional launch `lang`, `currency`, `amount`, `device` and `social` values configure the replay UI. They are not appended to the RGS endpoint, whose path remains exact.
 
 Validate response structure before playback:
+
 - payout multiplier numeric/non-negative;
 - cost multiplier numeric/valid;
 - state/event payload usable by the target math version;
@@ -206,6 +221,7 @@ If legacy/alternate numeric representations are intentionally accepted, normaliz
 ## 13. Replay is read-only
 
 Replay must make zero calls to:
+
 - `/wallet/authenticate`;
 - `/wallet/play`;
 - `/wallet/end-round`;
@@ -217,11 +233,13 @@ Disable/hide normal bet controls and prevent any route from Replay into paid pla
 ## 14. Replay UX
 
 Loading:
+
 - automatically fetch requested event;
 - show bounded loading/error state;
 - present explicit Play when ready.
 
 Playback:
+
 - same authoritative round result and essential animation sequence;
 - show play amount/cost context, multiplier and final win;
 - respect sound setting;
@@ -229,6 +247,7 @@ Playback:
 - support Popout S and mobile.
 
 Completion:
+
 - final result remains visible;
 - Play Again resets presentation only;
 - replaying again is deterministic;
@@ -237,6 +256,7 @@ Completion:
 ## 15. Fractional Replay
 
 Maintain regression cases where:
+
 - base amount is fractional in display currency;
 - mode cost creates non-two-decimal final play amount;
 - payout produces sub-cent/four-decimal visible win;
@@ -247,6 +267,7 @@ Do not round final play amount by borrowing the balance formatting policy.
 ## 16. Social Mode
 
 When `social=true`:
+
 - apply Social Mode phrase vocabulary from boot;
 - XGC/XSC/XEC display without `$` prefix;
 - Replay uses the same approved social vocabulary;
@@ -256,6 +277,7 @@ When `social=true`:
 ## 17. Required deterministic network tests
 
 At minimum:
+
 1. valid auth;
 2. invalid `rgs_url`;
 3. invalid session;
@@ -282,6 +304,7 @@ For each test capture exact request counts and relevant payload fields.
 ## 18. Error UX
 
 Errors are categorized, not collapsed into a generic fake continuation:
+
 - launch/config error;
 - auth/session error;
 - insufficient balance;

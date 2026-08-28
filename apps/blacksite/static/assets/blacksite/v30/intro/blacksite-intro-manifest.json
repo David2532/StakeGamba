@@ -1,0 +1,249 @@
+{
+  "schema": "blacksite-intro-manifest/v1",
+  "version": 30,
+  "status": "poster-fallback-only",
+  "releaseStatus": "FALLBACK_ONLY_NOT_RELEASE_APPROVED",
+  "videoAvailable": false,
+  "durationSeconds": null,
+  "runtimeRoot": "assets/blacksite/v30/intro",
+  "promptRecord": "docs/kling-blacksite-intro-prompt.md",
+  "poster": {
+    "desktop": "v28/environment/blackout-interior-desktop.webp",
+    "portrait": "v28/environment/blackout-interior-portrait.webp",
+    "shortLandscape": "v28/environment/blackout-interior-short-landscape.webp"
+  },
+  "endFrame": "v28/environment/base-desktop.webp",
+  "video": {
+    "desktop": {
+      "webm": "v30/intro/blacksite-intro-desktop.webm",
+      "mp4": "v30/intro/blacksite-intro-desktop.mp4"
+    },
+    "mobile": {
+      "webm": "v30/intro/blacksite-intro-mobile.webm",
+      "mp4": "v30/intro/blacksite-intro-mobile.mp4"
+    }
+  },
+  "videoVariants": {
+    "desktop": {
+      "webm": {
+        "path": "assets/blacksite/v30/intro/blacksite-intro-desktop.webm",
+        "available": false,
+        "targetContainer": "webm",
+        "targetCodec": "vp9",
+        "targetDimensions": { "width": 1280, "height": 720 },
+        "targetFps": 30
+      },
+      "mp4": {
+        "path": "assets/blacksite/v30/intro/blacksite-intro-desktop.mp4",
+        "available": false,
+        "targetContainer": "mp4",
+        "targetCodec": "h264",
+        "targetDimensions": { "width": 1280, "height": 720 },
+        "targetFps": 30
+      }
+    },
+    "mobile": {
+      "webm": {
+        "path": "assets/blacksite/v30/intro/blacksite-intro-mobile.webm",
+        "available": false,
+        "targetContainer": "webm",
+        "targetCodec": "vp9",
+        "targetDimensions": { "width": 720, "height": 1280 },
+        "targetFps": 30
+      },
+      "mp4": {
+        "path": "assets/blacksite/v30/intro/blacksite-intro-mobile.mp4",
+        "available": false,
+        "targetContainer": "mp4",
+        "targetCodec": "h264",
+        "targetDimensions": { "width": 720, "height": 1280 },
+        "targetFps": 30
+      }
+    }
+  },
+  "fallbackPosters": {
+    "desktop": {
+      "path": "assets/blacksite/v28/environment/blackout-interior-desktop.webp",
+      "dimensions": { "width": 2560, "height": 1440 },
+      "bytes": 365658,
+      "sha256": "d86a9147acf331429ee7618c1170377f1ae00ea397faa904e34723862ae76b47"
+    },
+    "portrait": {
+      "path": "assets/blacksite/v28/environment/blackout-interior-portrait.webp",
+      "dimensions": { "width": 1536, "height": 2048 },
+      "bytes": 294358,
+      "sha256": "17bdf133304212832611b2b16c2498bb2ff87549c71a010aacb3ee7813759c98"
+    },
+    "shortLandscape": {
+      "path": "assets/blacksite/v28/environment/blackout-interior-short-landscape.webp",
+      "dimensions": { "width": 1792, "height": 828 },
+      "bytes": 203388,
+      "sha256": "2594474f3cc2f051348e3673009984ca05b7d2132b3764d0c7d7f301738ac938"
+    }
+  },
+  "transitionEndFrames": {
+    "desktop": "assets/blacksite/v28/environment/base-desktop.webp",
+    "portrait": "assets/blacksite/v28/environment/base-portrait.webp",
+    "shortLandscape": "assets/blacksite/v28/environment/base-short-landscape.webp"
+  },
+  "generation": {
+    "provider": "Kling AI MCP",
+    "requestedModel": "kling-video-v3_0",
+    "requestedMode": "Professional",
+    "requestedDurationSeconds": 12,
+    "requestedAspectRatio": "16:9",
+    "requestedResolution": "720p",
+    "requestedFps": 30,
+    "requestedCandidateCount": 3,
+    "status": "NOT_GENERATED",
+    "blockedReason": "OAuth connection succeeded on 2026-08-22, but the connected Free account reported 0.0 available credits.",
+    "generationIds": []
+  },
+  "runtimePolicy": {
+    "preload": "metadata-after-critical-poster",
+    "autoplay": "muted-playsinline-only",
+    "embeddedVideoAudio": false,
+    "audio": "Use existing licensed V29 game-owned cinematic cues and the global mute setting; do not depend on video audio.",
+    "reducedMotion": "poster-only",
+    "failureFallback": "poster-then-mission-briefing",
+    "remoteRuntimeDependencies": false
+  },
+  "budget": {
+    "completeBuildHardMaxBytes": 67108864,
+    "measuredBaselineCompleteBuildBytes": 62220604,
+    "measuredBaselineHeadroomBytes": 4888260,
+    "maximumFutureV30VideoBytes": 4194304,
+    "reserveForManifestCodeAndEvidenceBytes": 694020,
+    "currentV30VideoBytes": 0,
+    "pass": true
+  },
+  "provenance": {
+    "fallbackSource": "Existing V28 environment runtime plates; no binary duplication.",
+    "fallbackManifest": "apps/blacksite/art/v28/environment/PACK_MANIFEST.json",
+    "fallbackOriginality": "Internal original AI-assisted project assets generated with the built-in OpenAI image tool.",
+    "fallbackRights": "Human creative and final-use rights review remains pending.",
+    "videoOriginality": "Pending generation and human review.",
+    "videoRights": "No video bytes are shipped by this manifest. A future candidate must be watermark-free and receive human rights review before release use."
+  },
+  "assetRecords": [
+    {
+      "id": "intro.poster.desktop.v30",
+      "type": "image",
+      "purpose": "Desktop boot-intro poster and video-error fallback",
+      "source": "bsb-env-blackout-desktop-idle-v28",
+      "originalityProvenance": "apps/blacksite/art/v28/environment/PACK_MANIFEST.json",
+      "path": "assets/blacksite/v28/environment/blackout-interior-desktop.webp",
+      "dimensions": { "width": 2560, "height": 1440 },
+      "alpha": false,
+      "anchorPivot": "center",
+      "atlasBundle": "v28-environment",
+      "statesAnimations": ["static-fallback"],
+      "mobileFallback": "intro.poster.portrait.v30",
+      "compression": "WebP quality 96, smart subsampling, effort 6",
+      "owner": "intro_director",
+      "status": "runtime-reference-review-pending"
+    },
+    {
+      "id": "intro.poster.portrait.v30",
+      "type": "image",
+      "purpose": "Portrait boot-intro poster and video-error fallback",
+      "source": "bsb-env-blackout-portrait-idle-v28",
+      "originalityProvenance": "apps/blacksite/art/v28/environment/PACK_MANIFEST.json",
+      "path": "assets/blacksite/v28/environment/blackout-interior-portrait.webp",
+      "dimensions": { "width": 1536, "height": 2048 },
+      "alpha": false,
+      "anchorPivot": "center",
+      "atlasBundle": "v28-environment",
+      "statesAnimations": ["static-fallback"],
+      "mobileFallback": null,
+      "compression": "WebP quality 96, smart subsampling, effort 6",
+      "owner": "intro_director",
+      "status": "runtime-reference-review-pending"
+    },
+    {
+      "id": "intro.poster.short_landscape.v30",
+      "type": "image",
+      "purpose": "Short-landscape boot-intro poster and video-error fallback",
+      "source": "bsb-env-blackout-short-landscape-idle-v28",
+      "originalityProvenance": "apps/blacksite/art/v28/environment/PACK_MANIFEST.json",
+      "path": "assets/blacksite/v28/environment/blackout-interior-short-landscape.webp",
+      "dimensions": { "width": 1792, "height": 828 },
+      "alpha": false,
+      "anchorPivot": "center",
+      "atlasBundle": "v28-environment",
+      "statesAnimations": ["static-fallback"],
+      "mobileFallback": "intro.poster.portrait.v30",
+      "compression": "WebP quality 96, smart subsampling, effort 6",
+      "owner": "intro_director",
+      "status": "runtime-reference-review-pending"
+    },
+    {
+      "id": "intro.video.desktop.webm.v30",
+      "type": "video",
+      "purpose": "Desktop cinematic boot intro",
+      "source": "pending Kling VIDEO 3.0 candidate selection",
+      "originalityProvenance": "docs/kling-blacksite-intro-prompt.md",
+      "path": "assets/blacksite/v30/intro/blacksite-intro-desktop.webm",
+      "dimensions": { "width": 1280, "height": 720 },
+      "alpha": false,
+      "anchorPivot": "center",
+      "atlasBundle": "intro-v30-deferred",
+      "statesAnimations": ["10-12-second-finite-intro"],
+      "mobileFallback": "intro.video.mobile.webm.v30",
+      "compression": "pending deterministic VP9 transcode",
+      "owner": "intro_director",
+      "status": "placeholder-path-not-shipped"
+    },
+    {
+      "id": "intro.video.desktop.mp4.v30",
+      "type": "video",
+      "purpose": "Desktop H.264 compatibility fallback",
+      "source": "pending Kling VIDEO 3.0 candidate selection",
+      "originalityProvenance": "docs/kling-blacksite-intro-prompt.md",
+      "path": "assets/blacksite/v30/intro/blacksite-intro-desktop.mp4",
+      "dimensions": { "width": 1280, "height": 720 },
+      "alpha": false,
+      "anchorPivot": "center",
+      "atlasBundle": "intro-v30-deferred",
+      "statesAnimations": ["10-12-second-finite-intro"],
+      "mobileFallback": "intro.video.mobile.mp4.v30",
+      "compression": "pending deterministic H.264 transcode",
+      "owner": "intro_director",
+      "status": "placeholder-path-not-shipped"
+    },
+    {
+      "id": "intro.video.mobile.webm.v30",
+      "type": "video",
+      "purpose": "Portrait/mobile cinematic boot intro",
+      "source": "pending Kling VIDEO 3.0 candidate selection",
+      "originalityProvenance": "docs/kling-blacksite-intro-prompt.md",
+      "path": "assets/blacksite/v30/intro/blacksite-intro-mobile.webm",
+      "dimensions": { "width": 720, "height": 1280 },
+      "alpha": false,
+      "anchorPivot": "center",
+      "atlasBundle": "intro-v30-deferred",
+      "statesAnimations": ["10-12-second-finite-intro"],
+      "mobileFallback": "intro.poster.portrait.v30",
+      "compression": "pending deterministic VP9 transcode",
+      "owner": "intro_director",
+      "status": "placeholder-path-not-shipped"
+    },
+    {
+      "id": "intro.video.mobile.mp4.v30",
+      "type": "video",
+      "purpose": "Portrait/mobile H.264 compatibility fallback",
+      "source": "pending Kling VIDEO 3.0 candidate selection",
+      "originalityProvenance": "docs/kling-blacksite-intro-prompt.md",
+      "path": "assets/blacksite/v30/intro/blacksite-intro-mobile.mp4",
+      "dimensions": { "width": 720, "height": 1280 },
+      "alpha": false,
+      "anchorPivot": "center",
+      "atlasBundle": "intro-v30-deferred",
+      "statesAnimations": ["10-12-second-finite-intro"],
+      "mobileFallback": "intro.poster.portrait.v30",
+      "compression": "pending deterministic H.264 transcode",
+      "owner": "intro_director",
+      "status": "placeholder-path-not-shipped"
+    }
+  ]
+}

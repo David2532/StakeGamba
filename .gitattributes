@@ -1,0 +1,20 @@
+# BLACKSITE math evidence is byte-bound. Keep canonical text payloads stable on Windows.
+/math/games/blacksite_breach/library/**/*.json text eol=lf
+/math/games/blacksite_breach/library/**/*.csv text eol=lf
+/math/games/blacksite_breach/library/**/*.zst -text
+
+# BLACKSITE source tests and byte-bound manifests must behave identically after a Windows checkout.
+/apps/blacksite/src/** text eol=lf
+/apps/blacksite/src/app.html text eol=crlf
+/apps/blacksite/tests/** text eol=lf
+/apps/blacksite/scripts/** text eol=lf
+/apps/blacksite/vite/** text eol=lf
+/apps/blacksite/static/assets/blacksite/v20/penguin-operator/manifest.json text eol=crlf
+/apps/blacksite/static/assets/blacksite/v21/ui-kit/manifest.json text eol=crlf
+/apps/blacksite/static/assets/blacksite/v22/ui-kit/manifest.json text eol=lf
+/apps/blacksite/static/assets/blacksite/v27/ui-kit/manifest.json text eol=crlf
+/apps/blacksite/static/assets/blacksite/v29/audio/audio-manifest.json -text -diff
+/apps/blacksite/static/assets/blacksite/v33/intro/blacksite-startup-manifest-v33.json text eol=lf
+/apps/blacksite/art/audio/runtimepack-v1/source-audio-manifest.json text eol=lf
+/scripts/** text eol=lf
+/docs/blacksite/** text eol=lf

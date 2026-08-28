@@ -11,6 +11,11 @@ import {
 } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+	CANDIDATE_FINGERPRINT_SHA256,
+	EVENT_CONTRACT,
+	EVENT_SCHEMA_SHA256,
+} from '../apps/blacksite/src/lib/contracts/modes.js';
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDirectory, '..');
@@ -18,8 +23,11 @@ const frontendSource = join(repoRoot, 'apps', 'blacksite', 'build');
 const mathLibrary = join(repoRoot, 'math', 'games', 'blacksite_breach', 'library');
 const mathIndexSource = join(mathLibrary, 'publish_files', 'index.json');
 const mathConfigSource = join(mathLibrary, 'configs', 'game_config.json');
+const mathEventSchemaSource = join(mathLibrary, 'configs', 'event_schema.json');
 const verifyResultSource = join(mathLibrary, 'publish_files', 'VERIFY_RESULT.json');
 const mathCandidateManifestSource = join(mathLibrary, 'publish_files', 'CANDIDATE_MANIFEST.json');
+const expectedMathLifecycle = 'MATH_V3_CANDIDATE_NOT_RELEASE';
+const expectedEventSchemaVersion = 3;
 const expectedModes = Object.freeze([
 	{ name: 'base', cost: 1 },
 	{ name: 'deep_access', cost: 4 },
@@ -192,14 +200,18 @@ function canonicalMathUploadFiles(index) {
 	];
 }
 
-function validateMathEvidence(index, candidateManifest, verifyResult, gameConfig) {
+function validateMathEvidence(index, candidateManifest, verifyResult, gameConfig, eventSchema) {
 	if (
 		candidateManifest.candidate_fingerprint_sha256 !== verifyResult.candidate_fingerprint_sha256 ||
+		candidateManifest.candidate_fingerprint_sha256 !== CANDIDATE_FINGERPRINT_SHA256 ||
 		candidateManifest.lifecycle !== verifyResult.lifecycle ||
 		candidateManifest.lifecycle !== gameConfig.lifecycle ||
 		candidateManifest.candidate_version !== verifyResult.candidate_version ||
 		candidateManifest.candidate_version !== gameConfig.candidate_version ||
-		gameConfig.lifecycle !== 'M1_INITIAL_CANDIDATE_NOT_RELEASE'
+		gameConfig.lifecycle !== expectedMathLifecycle ||
+		verifyResult.canonical_event_schema_sha256 !== EVENT_SCHEMA_SHA256 ||
+		eventSchema.schema_version !== expectedEventSchemaVersion ||
+		eventSchema.contract !== EVENT_CONTRACT
 	) {
 		fail('Math candidate manifest and verification result identity mismatch');
 	}
@@ -212,7 +224,18 @@ function validateMathEvidence(index, candidateManifest, verifyResult, gameConfig
 		recordedConfig.bytes !== actualConfig.bytes ||
 		recordedConfig.sha256 !== actualConfig.sha256
 	) {
-		fail('Canonical game_config.json differs from the retained M1 candidate evidence');
+		fail('Canonical game_config.json differs from the retained v3 candidate evidence');
+	}
+	const recordedEventSchema = candidateManifest.files?.find(
+		(record) => record.path === 'configs/event_schema.json',
+	);
+	const actualEventSchema = fileFact(mathEventSchemaSource);
+	if (
+		!recordedEventSchema ||
+		recordedEventSchema.bytes !== actualEventSchema.bytes ||
+		recordedEventSchema.sha256 !== actualEventSchema.sha256
+	) {
+		fail('Canonical event_schema.json differs from the retained v3 candidate evidence');
 	}
 	const expectedFiles = canonicalMathUploadFiles(index);
 	const recordedFiles = candidateManifest.upload_payload_files;
@@ -226,7 +249,7 @@ function validateMathEvidence(index, candidateManifest, verifyResult, gameConfig
 		const actual = { path: file.path, ...fileFact(file.absolutePath) };
 		const recorded = recordsByPath.get(file.path);
 		if (!recorded || recorded.bytes !== actual.bytes || recorded.sha256 !== actual.sha256) {
-			fail(`Canonical math upload file differs from M1 candidate evidence: ${file.path}`);
+			fail(`Canonical math upload file differs from v3 candidate evidence: ${file.path}`);
 		}
 	}
 	const expectedPaths = expectedFiles.map((file) => file.path).sort();
@@ -252,6 +275,7 @@ function main() {
 	for (const path of [
 		mathIndexSource,
 		mathConfigSource,
+		mathEventSchemaSource,
 		verifyResultSource,
 		mathCandidateManifestSource,
 	]) {
@@ -268,6 +292,7 @@ function main() {
 
 	const index = readJson(mathIndexSource);
 	const gameConfig = readJson(mathConfigSource);
+	const eventSchema = readJson(mathEventSchemaSource);
 	const verifyResult = readJson(verifyResultSource);
 	const mathCandidateManifest = readJson(mathCandidateManifestSource);
 	validateIndex(index);
@@ -280,6 +305,7 @@ function main() {
 		mathCandidateManifest,
 		verifyResult,
 		gameConfig,
+		eventSchema,
 	);
 	const frontendSourceManifest = createFileManifest(frontendSource);
 	if (frontendSourceManifest.treeSha256 !== expectedFrontendTreeSha256) {
@@ -341,6 +367,8 @@ function main() {
 		},
 		mathEvidence: {
 			candidateFingerprintSha256: verifyResult.candidate_fingerprint_sha256,
+			eventContract: EVENT_CONTRACT,
+			eventSchemaVersion: expectedEventSchemaVersion,
 			eventSchemaSha256: verifyResult.canonical_event_schema_sha256,
 			booksVerified: verifyResult.books_verified,
 			gatesPassed: verifyResult.gates_passed,
@@ -353,6 +381,12 @@ function main() {
 				candidateVersion: gameConfig.candidate_version,
 				note: 'Evidence only; official minimal math upload folder contains index.json plus referenced CSV/ZST files.',
 			},
+			eventSchemaEvidenceOnly: {
+				...fileFact(mathEventSchemaSource),
+				contract: eventSchema.contract,
+				schemaVersion: eventSchema.schema_version,
+				note: 'Evidence only; the exact v3 event schema remains outside the minimal math upload root.',
+			},
 			uploadPayloadFiles: mathCandidateManifest.upload_payload_files,
 		},
 		packages: {
@@ -364,8 +398,8 @@ function main() {
 			math: 'math/',
 		},
 		warnings: [
-			'M2 authoritative greybox frontend; final production assets, animation and audio are not present.',
-			'M1 initial non-release math candidate; the math upload root contains only the seven official minimal payload files and no Stake Math approval is claimed.',
+			'M4 original-IP 5x3 classic-slot presentation; final Spine, audio and human asset approval remain open.',
+			'Math v3 non-release candidate; the math upload root contains only the seven official minimal payload files and no Stake Math approval is claimed.',
 			'No manual visual/device, extracted archive, Stake/ACP, upload, release or live approval is claimed.',
 		],
 	};
@@ -388,7 +422,7 @@ function main() {
 			'Do not upload the repository publish/ folder; it belongs to Golden Goal Rush.',
 			'',
 			'IMPORTANT: This is a SHA-bound technical package candidate, not Stake-approved or release-ready.',
-			'Production art/Spine/audio, manual device/visual review and external Stake gates remain open.',
+			'Production Spine/audio, asset optimization, human rights review and external Stake gates remain open.',
 			'',
 		].join('\n'),
 	);

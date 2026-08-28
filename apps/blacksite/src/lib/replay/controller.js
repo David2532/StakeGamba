@@ -29,6 +29,7 @@ export class ReplayController {
 		normalizer,
 		director,
 		onState = () => {},
+		onCue = null,
 		stepDelayMs = 16,
 		winDelayMs = 220,
 	} = {}) {
@@ -46,6 +47,9 @@ export class ReplayController {
 			throw new TypeError('ReplayController requires a resettable presentation director.');
 		}
 		if (typeof onState !== 'function') throw new TypeError('Replay onState must be a function.');
+		if (onCue !== null && typeof onCue !== 'function') {
+			throw new TypeError('Replay onCue must be a function when supplied.');
+		}
 		if (!Number.isSafeInteger(stepDelayMs) || stepDelayMs < 0) {
 			throw new TypeError('Replay stepDelayMs must be a non-negative safe integer.');
 		}
@@ -57,6 +61,7 @@ export class ReplayController {
 		this.normalizer = normalizer;
 		this.director = director;
 		this.onState = onState;
+		this.onCue = onCue;
 		this.stepDelayMs = stepDelayMs;
 		this.winDelayMs = winDelayMs;
 		this.state = initialState();
@@ -124,10 +129,12 @@ export class ReplayController {
 
 		try {
 			this.director.reset();
-			const completed = await this.director.play(this.replay.cues, {
+			const playbackOptions = {
 				stepDelayMs: this.stepDelayMs,
 				winDelayMs: this.winDelayMs,
-			});
+			};
+			if (this.onCue) playbackOptions.onCue = this.onCue;
+			const completed = await this.director.play(this.replay.cues, playbackOptions);
 			if (this.destroyed || generation !== this.generation) return false;
 			if (completed !== true) {
 				throw new ReplayControllerError(
@@ -168,5 +175,6 @@ export class ReplayController {
 		if (typeof this.director.destroy === 'function') this.director.destroy();
 		else this.director.reset();
 		this.onState = () => {};
+		this.onCue = null;
 	}
 }

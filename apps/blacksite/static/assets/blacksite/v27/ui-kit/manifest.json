@@ -1,0 +1,476 @@
+{
+  "schema": "blacksite-ui-kit-v27",
+  "version": 27,
+  "devOnly": false,
+  "integrationStatus": "catalog-wired-not-default",
+  "runtimeRoot": "/assets/blacksite/v27/ui-kit/",
+  "generatedOn": "2026-08-20",
+  "generator": "built-in-codex-imagegen-approved-sources-plus-deterministic-pillow-normalization",
+  "materialSystem": {
+    "name": "BLACKOUT BREACH OXIDE / V27",
+    "materials": [
+      "oxidized near-black gunmetal",
+      "parkerized steel",
+      "restrained aged brass",
+      "smoked near-black glass"
+    ],
+    "lighting": "neutral warm-white instrument lighting only",
+    "forbiddenLighting": [
+      "cyan",
+      "blue",
+      "red",
+      "magenta",
+      "RGB neon"
+    ],
+    "textPolicy": "no baked live text, numbers, labels, icons, logos or watermarks"
+  },
+  "inherits": {
+    "version": 22,
+    "catalog": "BLACKSITE_ASSETS.ui.v22",
+    "roles": [
+      "nineSlice.control",
+      "nineSlice.panel",
+      "nineSlice.readout",
+      "atlases.roundStates",
+      "atlases.glyphs",
+      "reelStrips",
+      "reelStage",
+      "screenRoles"
+    ]
+  },
+  "states": [
+    "idle",
+    "hover",
+    "pressed",
+    "focus",
+    "selected",
+    "disabled",
+    "danger"
+  ],
+  "statePriority": [
+    "disabled",
+    "danger",
+    "pressed",
+    "focus",
+    "selected",
+    "hover",
+    "idle"
+  ],
+  "stateAliases": {
+    "normal": "idle",
+    "base": "idle",
+    "active": "selected",
+    "armed": "selected",
+    "complete": "selected",
+    "winning": "selected",
+    "locked": "disabled",
+    "error": "danger",
+    "warning": "danger"
+  },
+  "stateDerivation": {
+    "method": "non-destructive runtime filters; source swaps remain discrete",
+    "recipes": {
+      "idle": {
+        "brightness": 1.0,
+        "contrast": 1.0,
+        "saturation": 1.0,
+        "opacity": 1.0
+      },
+      "hover": {
+        "brightness": 1.06,
+        "contrast": 1.03,
+        "saturation": 1.0,
+        "opacity": 1.0
+      },
+      "pressed": {
+        "brightness": 0.82,
+        "contrast": 1.1,
+        "saturation": 0.9,
+        "opacity": 1.0
+      },
+      "focus": {
+        "brightness": 1.08,
+        "contrast": 1.04,
+        "saturation": 0.95,
+        "opacity": 1.0
+      },
+      "selected": {
+        "brightness": 1.1,
+        "contrast": 1.06,
+        "saturation": 1.02,
+        "opacity": 1.0
+      },
+      "disabled": {
+        "brightness": 0.54,
+        "contrast": 0.92,
+        "saturation": 0.18,
+        "opacity": 0.58
+      },
+      "danger": {
+        "brightness": 0.93,
+        "contrast": 1.12,
+        "saturation": 0.78,
+        "opacity": 1.0
+      }
+    }
+  },
+  "nineSlice": {
+    "feature": {
+      "path": "nine-slice/feature/master.webp",
+      "width": 960,
+      "height": 384,
+      "sliceInsets": {
+        "top": 128,
+        "right": 176,
+        "bottom": 128,
+        "left": 176
+      },
+      "contentInsets": {
+        "top": 104,
+        "right": 152,
+        "bottom": 104,
+        "left": 152
+      },
+      "centerMode": "opaque-empty",
+      "alpha": true,
+      "bytes": 227722,
+      "sha256": "01a8c02ad3417b0eb9e33b578a4ba203a90e7d6ad20025bd3342636d41b47240",
+      "qa": {
+        "mode": "RGBA",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "centerAlpha": 255,
+        "invisibleRgbPixels": 0,
+        "visiblePoliceLightPixels": {
+          "red": 0,
+          "cyan": 0,
+          "blue": 0,
+          "magenta": 0
+        }
+      }
+    },
+    "content": {
+      "path": "nine-slice/content/master.webp",
+      "width": 768,
+      "height": 512,
+      "sliceInsets": {
+        "top": 112,
+        "right": 128,
+        "bottom": 112,
+        "left": 128
+      },
+      "contentInsets": {
+        "top": 82,
+        "right": 96,
+        "bottom": 82,
+        "left": 96
+      },
+      "centerMode": "opaque-empty",
+      "alpha": true,
+      "bytes": 223470,
+      "sha256": "5454101cb4296308db9bd5f33d1399c61d6622500b2efaec1680b66d50886322",
+      "qa": {
+        "mode": "RGBA",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "centerAlpha": 255,
+        "invisibleRgbPixels": 0,
+        "visiblePoliceLightPixels": {
+          "red": 0,
+          "cyan": 0,
+          "blue": 0,
+          "magenta": 0
+        }
+      }
+    },
+    "header": {
+      "path": "nine-slice/header/master.webp",
+      "width": 1280,
+      "height": 256,
+      "sliceInsets": {
+        "top": 64,
+        "right": 160,
+        "bottom": 64,
+        "left": 160
+      },
+      "contentInsets": {
+        "top": 44,
+        "right": 128,
+        "bottom": 44,
+        "left": 128
+      },
+      "centerMode": "opaque-empty",
+      "alpha": true,
+      "bytes": 168142,
+      "sha256": "b581786f56eef26a891046160d9b2753d57bc25e7f56ab0cbfc1817180b2573d",
+      "qa": {
+        "mode": "RGBA",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "centerAlpha": 255,
+        "invisibleRgbPixels": 0,
+        "visiblePoliceLightPixels": {
+          "red": 0,
+          "cyan": 0,
+          "blue": 0,
+          "magenta": 0
+        }
+      }
+    },
+    "award": {
+      "path": "nine-slice/award/master.webp",
+      "width": 1280,
+      "height": 640,
+      "sliceInsets": {
+        "top": 144,
+        "right": 176,
+        "bottom": 144,
+        "left": 176
+      },
+      "contentInsets": {
+        "top": 104,
+        "right": 128,
+        "bottom": 104,
+        "left": 128
+      },
+      "centerMode": "opaque-empty",
+      "alpha": true,
+      "bytes": 473442,
+      "sha256": "4fb401d8d30897a163a9b24d0aa66a763e7414f45c83764be17b9af3c8db466b",
+      "qa": {
+        "mode": "RGBA",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "centerAlpha": 255,
+        "invisibleRgbPixels": 0,
+        "visiblePoliceLightPixels": {
+          "red": 0,
+          "cyan": 0,
+          "blue": 0,
+          "magenta": 0
+        }
+      }
+    },
+    "chip": {
+      "path": "nine-slice/chip/master.webp",
+      "width": 768,
+      "height": 240,
+      "sliceInsets": {
+        "top": 60,
+        "right": 96,
+        "bottom": 60,
+        "left": 96
+      },
+      "contentInsets": {
+        "top": 44,
+        "right": 76,
+        "bottom": 44,
+        "left": 76
+      },
+      "centerMode": "opaque-empty",
+      "alpha": true,
+      "bytes": 119822,
+      "sha256": "f8a5b8ebe806a398282e4babbe86a3002b1e0320990233495cf40addb229cd18",
+      "qa": {
+        "mode": "RGBA",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "centerAlpha": 255,
+        "invisibleRgbPixels": 0,
+        "visiblePoliceLightPixels": {
+          "red": 0,
+          "cyan": 0,
+          "blue": 0,
+          "magenta": 0
+        }
+      }
+    },
+    "progress": {
+      "path": "nine-slice/progress/master.webp",
+      "width": 1024,
+      "height": 96,
+      "sliceInsets": {
+        "top": 28,
+        "right": 48,
+        "bottom": 28,
+        "left": 48
+      },
+      "contentInsets": {
+        "top": 18,
+        "right": 56,
+        "bottom": 18,
+        "left": 56
+      },
+      "centerMode": "opaque-empty",
+      "alpha": true,
+      "bytes": 32084,
+      "sha256": "6fd8f14f54da6bcdeb7baa6693e0de246a07637c9147275c2091b68f15b451cc",
+      "qa": {
+        "mode": "RGBA",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "centerAlpha": 255,
+        "invisibleRgbPixels": 0,
+        "visiblePoliceLightPixels": {
+          "red": 0,
+          "cyan": 0,
+          "blue": 0,
+          "magenta": 0
+        }
+      }
+    }
+  },
+  "decor": {
+    "rewardHalo": {
+      "path": "decor/reward-halo.webp",
+      "width": 768,
+      "height": 768,
+      "openingInsets": {
+        "top": 220,
+        "right": 220,
+        "bottom": 220,
+        "left": 220
+      },
+      "centerMode": "transparent-opening",
+      "alpha": true,
+      "bytes": 390524,
+      "sha256": "c8d2737457fac3fdac768a2a1114693b1022d745d21fb639e3e9681b8e67f8df",
+      "qa": {
+        "mode": "RGBA",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "centerAlpha": 0,
+        "invisibleRgbPixels": 0,
+        "visiblePoliceLightPixels": {
+          "red": 0,
+          "cyan": 0,
+          "blue": 0,
+          "magenta": 0
+        }
+      }
+    }
+  },
+  "authoringSources": [
+    {
+      "path": "sources/feature-readout-source.png",
+      "builtInOutput": "exec-306ad756-89df-4727-a381-d9fcb6cc4c89.png",
+      "width": 2172,
+      "height": 724,
+      "mode": "RGBA",
+      "bytes": 1450781,
+      "sha256": "9f7884bf7bbcbc4367a4842c2c1a9586d004be93006ddd9e77b643564b037d2c"
+    },
+    {
+      "path": "sources/content-card-source.png",
+      "builtInOutput": "exec-eb204ec0-bcb4-4f7e-ab0e-b7b0e1a6fea8.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "bytes": 1675345,
+      "sha256": "480710bb7cd0febc1d1e4c6b63bba7e7daf47c0c16333275bf59dfb2cd92401b"
+    },
+    {
+      "path": "sources/modal-header-source.png",
+      "builtInOutput": "exec-eec07391-64e7-44e5-83ab-865b8ea5a658.png",
+      "width": 2172,
+      "height": 724,
+      "mode": "RGBA",
+      "bytes": 1184078,
+      "sha256": "f732d164584c73ae10bfcc843843227a1ace9741b1f0e82c9a1e61d638476eab"
+    },
+    {
+      "path": "sources/free-spin-award-source.png",
+      "builtInOutput": "exec-c58e8e6f-ca06-46a4-a421-cf7e12b5e17a.png",
+      "width": 1681,
+      "height": 936,
+      "mode": "RGBA",
+      "bytes": 1320157,
+      "sha256": "6035597cb08186052b6e1d093eeed40a540fe96812301f7c0b35752bf8e13f4e"
+    },
+    {
+      "path": "sources/status-chip-source.png",
+      "builtInOutput": "exec-98e5281e-3d40-4c8c-9956-3ef06b6e0ec7.png",
+      "width": 2172,
+      "height": 724,
+      "mode": "RGBA",
+      "bytes": 1450846,
+      "sha256": "819770af961a3a03571ba07471c009437482ff8a66efa48d84d1fbbbc6ae09c8"
+    },
+    {
+      "path": "sources/progress-track-source.png",
+      "builtInOutput": "exec-0c25222a-d4a9-4178-92d4-6570a99f4b3b.png",
+      "width": 2172,
+      "height": 724,
+      "mode": "RGBA",
+      "bytes": 768558,
+      "sha256": "89e4b210f69ace275bb155a27fab967e1bd54ae630ec94441f505102bbf8e81a"
+    },
+    {
+      "path": "sources/reward-halo-source.png",
+      "builtInOutput": "exec-4c431d73-e984-4850-8551-0cc3676f0e3a.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "bytes": 1659224,
+      "sha256": "128b7d910555ce5b6adb849c7f98cb92e21a56fc96bb55ec7936c0f25a79998a"
+    }
+  ],
+  "qa": {
+    "manualSourceReview": "PASS",
+    "textAndLogoFree": true,
+    "transparentCorners": true,
+    "invisibleRgbPixels": 0,
+    "visiblePoliceLightPixels": {
+      "red": 0,
+      "cyan": 0,
+      "blue": 0,
+      "magenta": 0
+    }
+  },
+  "budgets": {
+    "runtimeWebpCount": 7,
+    "runtimeBytes": 1635206,
+    "runtimeHardMaxBytes": 3670016,
+    "pass": true
+  },
+  "runtimeFiles": [
+    "nine-slice/feature/master.webp",
+    "nine-slice/content/master.webp",
+    "nine-slice/header/master.webp",
+    "nine-slice/award/master.webp",
+    "nine-slice/chip/master.webp",
+    "nine-slice/progress/master.webp",
+    "decor/reward-halo.webp"
+  ],
+  "metadataFiles": [
+    "manifest.json"
+  ]
+}

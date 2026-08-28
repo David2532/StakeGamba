@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "sourceKind": "user-supplied-native-kling-video",
+  "videoTranscoded": false,
+  "runtime": {
+    "video": {
+      "path": "static/assets/blacksite/v26/cinematic/vault-opening-blackout-v26-720p24.mp4",
+      "bytes": 5956543,
+      "sha256": "5edad7d2f7c56ec48d3e6afd7c344c9b0704053baaeb14b2f7a0fd6084ac3acf",
+      "width": 1280,
+      "height": 720,
+      "fps": 24,
+      "durationMs": 5041.667,
+      "container": "mp4",
+      "videoCodec": "h264",
+      "hasAudio": true
+    },
+    "poster": {
+      "path": "static/assets/blacksite/v26/cinematic/vault-opening-blackout-v26-poster-720p.webp",
+      "bytes": 74342,
+      "sha256": "c0ce502b59f7e9d51c6de1cb2758c74e920be52dd412ea1005deda50cf54d9f9",
+      "width": 1280,
+      "height": 720,
+      "format": "webp"
+    }
+  }
+}

@@ -102,11 +102,16 @@ function normalizeStepBet(config) {
 }
 
 function normalizeBetModes(rawModes) {
+	// Stake's documented authenticate response may omit betModes. BLACKSITE's
+	// published mode identities and costs are already frozen locally; when the
+	// optional echo is absent, normalize from that canonical registry.
+	// Any values the RGS does echo remain strict consistency assertions.
+	if (rawModes === undefined) rawModes = {};
 	assertObject(rawModes, 'config.betModes');
 	const expectedIds = MODES.map((mode) => mode.id).sort();
 	const actualIds = Object.keys(rawModes).sort();
-	if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
-		fail('BET_MODE_SET_MISMATCH', 'Authenticate betModes must exactly match the BLACKSITE modes.', {
+	if (actualIds.length > 0 && JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
+		fail('BET_MODE_SET_MISMATCH', 'Authenticate betModes must be empty or contain the complete canonical BLACKSITE mode set.', {
 			expected: expectedIds,
 			actual: actualIds,
 		});
@@ -115,17 +120,17 @@ function normalizeBetModes(rawModes) {
 	const normalized = {};
 	for (const mode of MODES) {
 		const rawMode = rawModes[mode.id];
-		assertObject(rawMode, `config.betModes.${mode.id}`);
-		if (rawMode.costMultiplier !== mode.costMultiplier) {
+		if (rawMode !== undefined) assertObject(rawMode, `config.betModes.${mode.id}`);
+		if (rawMode?.costMultiplier !== undefined && rawMode.costMultiplier !== mode.costMultiplier) {
 			fail('BET_MODE_COST_MISMATCH', `Authenticate cost for ${mode.id} is not canonical.`, {
 				expected: mode.costMultiplier,
 				actual: rawMode.costMultiplier,
 			});
 		}
-		if (rawMode.mode !== undefined && rawMode.mode !== mode.id) {
+		if (rawMode?.mode !== undefined && rawMode.mode !== mode.id) {
 			fail('BET_MODE_IDENTITY_MISMATCH', `Authenticate mode identity for ${mode.id} disagrees.`);
 		}
-		if (rawMode.feature !== undefined && rawMode.feature !== mode.isBuyBonus) {
+		if (rawMode?.feature !== undefined && rawMode.feature !== mode.isBuyBonus) {
 			fail('BET_MODE_FEATURE_MISMATCH', `Authenticate feature identity for ${mode.id} disagrees.`, {
 				expected: mode.isBuyBonus,
 				actual: rawMode.feature,
@@ -343,7 +348,7 @@ function normalizeRoundId(rawRound) {
 	fail('ROUND_ID_INVALID', 'RGS round identity must be a safe integer or bounded non-empty string.');
 }
 
-export const PRESENTATION_CURSOR_PREFIX = 'blacksite-book-events-v1:';
+export const PRESENTATION_CURSOR_PREFIX = 'blacksite-book-events-v3:';
 
 export function encodePresentationCursor(nextEventIndex) {
 	if (!Number.isSafeInteger(nextEventIndex) || nextEventIndex < 0) {
@@ -356,7 +361,7 @@ function normalizeEventCursor(value) {
 	if (value === undefined || value === null || value === '') return null;
 	if (Number.isSafeInteger(value) && value >= 0) return value;
 	if (typeof value !== 'string' || value.length > 512) return 0;
-	const match = value.match(/^(?:blacksite-book-events-v1:)?(0|[1-9]\d*)$/);
+	const match = value.match(/^(?:blacksite-book-events-v3:)?(0|[1-9]\d*)$/);
 	if (!match) return 0;
 	const parsed = Number(match[1]);
 	if (!Number.isSafeInteger(parsed)) return 0;

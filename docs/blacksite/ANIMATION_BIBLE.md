@@ -129,23 +129,24 @@ The listener maps events to semantic controllers. Missing optional FX must not p
 - visible amount appears near the winning region without covering key symbols;
 - minimum readable highlight time exists even in turbo.
 
-### Cascade
-Motion should communicate continuity:
-1. hit confirmation;
-2. removal/breach activation;
-3. compact transition gap;
-4. new symbol entry;
-5. settle;
-6. next evaluation.
+### Winning lines
+Motion should make the classic line evaluation immediately legible:
+1. all five reels settle on the authoritative board;
+2. the canonical payline path appears;
+3. only the awarded 3/4/5-symbol prefix lifts or brightens;
+4. WILD substitutions receive a distinct accent;
+5. simultaneous lines are presented once in deterministic line-ID order;
+6. the exact step award remains readable before the next free spin or settlement.
 
-Do not overlap all phases until the player cannot understand what caused the next win.
+Do not invent reel stops, positions or line awards between authoritative events.
 
-### Breach cells
-Persistent state must feel physical and cumulative:
-- first activation = controlled emissive pulse;
-- level-up = stronger localized pulse/edge trace;
-- active cells remain legible without washing out symbol artwork;
-- board-wide network connections only appear during meaningful triggers.
+### BREACH and expanding target
+Feature state must feel physical without obscuring the familiar reel game:
+- three or more BREACH symbols on distinct reels trigger the eight-spin entry;
+- BREACH never receives a line-win highlight;
+- the selected regular target is visible throughout the feature;
+- reels containing that target expand across all three rows before payline evaluation;
+- free-spin current/total/remaining counters stay legible through every transition.
 
 ## 8. Anticipation
 
@@ -276,8 +277,11 @@ Required routes/stories/fixture IDs:
 - `small-win`;
 - `medium-win`;
 - `big-win`;
-- `cascade-3`;
-- `cascade-5`;
+- `line-win-3`;
+- `line-win-5`;
+- `simultaneous-lines`;
+- `wild-substitution`;
+- `expanding-target`;
 - `feature-tease`;
 - `feature-trigger`;
 - `bonus-enter`;

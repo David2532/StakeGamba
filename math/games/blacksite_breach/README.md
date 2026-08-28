@@ -1,44 +1,46 @@
-# BLACKSITE // BREACH — M1 math candidate
+# BLACKSITE // BREACH — math v3 candidate
 
-Lifecycle: **`M1_INITIAL_CANDIDATE_NOT_RELEASE`**
+Lifecycle: **`MATH_V3_CANDIDATE_NOT_RELEASE`**
 
-This package is the verified initial M1 candidate for the frozen
-`blacksite-m1-v1` contract. It is not a frontend package, a Stake submission,
-an approval, or a release.
+This directory contains the deterministic, stateless 5 × 3 line-pay candidate
+for `blacksite_breach`. Math v3 supersedes the v2 placeholder-symbol contract
+as a new versioned candidate; it is not an approval or a release.
 
-## Reproduce and verify
+Canonical commands:
 
-From the repository root:
-
-```sh
-pnpm blacksite:math:generate
-pnpm blacksite:math:verify
-pnpm blacksite:math:test
+```text
+node math/games/blacksite_breach/generate.mjs
+node math/games/blacksite_breach/verify.mjs
+node --test math/games/blacksite_breach/tests/*.test.mjs
 ```
 
-Generation is deterministic and writes the three 100,000-book, equal-weight
-mode libraries under `library/`. Verification decompresses every published
-book and independently checks the closed event schema, formulas, route
-topology, physical tumble/refill behavior, ordering grammar, lookup weights,
-distribution/risk gates, and deterministic fixture predicates.
+The generator emits 100,000 unit-weight books for each canonical mode:
 
-## Verified identity
+- `base`, cost `1x`;
+- `deep_access`, cost `4x`;
+- `blackout`, cost `80x`.
 
-- Candidate fingerprint: `d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8`
-- Canonical typed event-schema hash: `bb4f3ff88200519682a539909b196f1462069b865a48afd04cb3219e7b9efe29`
-- Result: 300,000 books, 90/90 gates, 48/48 fixtures, 7/7 tests
-- Modes: `base`, `deep_access`, `blackout`
-- Cost-normalized RTP: `0.962000` in every mode
-- Complete-round cap: `1,000,000` centi-x (`10,000.00x`) in every mode
+Every mode has exact cost-normalized RTP `0.962`, a complete-round cap of
+`1,000,000` raw centi-x (`10,000x`), a positive-weight max book and at least
+100 distinct positive payouts. The strict verifier decompresses every book and
+recomputes the closed `blacksite-book-events-v3` lifecycle, all ten paylines,
+WILD resolution, BREACH triggers, target expansion, cumulative payout and cap.
 
-Canonical review artifacts are:
+Math v3 binds the final thirteen-symbol visual vocabulary: `operative`,
+`encrypted_drive`, `tactical_radio`, `classified_folder`,
+`night_vision_goggles`, `supply_crate`, `ghost_wild`, `breach`, `a`, `k`, `q`,
+`j` and `ten`. It replaces the v2 placeholder-symbol contract; v2 books and
+event cursors are not compatible with v3.
 
-- `library/publish_files/VERIFY_RESULT.json`
-- `library/publish_files/CANDIDATE_MANIFEST.json`
-- `library/publish_files/MATH_AUDIT.json`
-- `library/publish_files/RISK_AUDIT.json`
-- `library/publish_files/FIXTURE_INDEX.json`
+The minimal Stake math upload remains seven files:
 
-The source of truth remains the versioned config and event schema under
-`config/`. Published copies under `library/configs/` are hash-bound candidate
-outputs.
+- `library/publish_files/index.json`;
+- three `library/lookup_tables/*_lookup.csv` files;
+- three `library/books_compressed/*_books.jsonl.zst` files.
+
+Configs and the generated manifest/audits/fixture index are retained evidence,
+not extra files for the minimal upload root. Source-of-truth configs live under
+`config/`; byte-identical published copies live under `library/configs/`.
+
+See `docs/blacksite/MATH_V3_GAME_CONTRACT.md` for the frozen rules and event
+grammar.

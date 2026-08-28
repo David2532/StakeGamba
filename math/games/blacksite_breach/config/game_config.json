@@ -1,17 +1,17 @@
 {
   "game_id": "blacksite_breach",
   "game_name": "BLACKSITE // BREACH",
-  "candidate_version": "0.1.0-m1",
-  "lifecycle": "M1_INITIAL_CANDIDATE_NOT_RELEASE",
+  "candidate_version": "0.3.0-math-v3",
+  "lifecycle": "MATH_V3_CANDIDATE_NOT_RELEASE",
   "stateless": true,
   "package_payout_unit": "centi-x_uint64",
   "wallet_money_unit_present": false,
   "layout": {
-    "columns": 7,
-    "rows": 7,
+    "columns": 5,
+    "rows": 3,
     "position_shape": {
-      "column": "uint_0_to_6",
-      "row": "uint_0_to_6"
+      "column": "uint_0_to_4",
+      "row": "uint_0_to_2"
     }
   },
   "source_files": {

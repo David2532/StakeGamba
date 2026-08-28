@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 3,
   "target_rtp": 0.962,
   "max_win_raw": 1000000,
   "max_win_human_x": 10000,
@@ -11,9 +11,7 @@
       "cost": 1,
       "zero_books": 65000,
       "positive_books": 35000,
-      "seed_breached_cells": [],
-      "seed_live_cells": [],
-      "starting_access_multiplier": 1,
+      "guaranteed_breach_positions": [],
       "direct_feature": false,
       "is_feature": true,
       "is_buybonus": false,
@@ -27,15 +25,10 @@
       "cost": 4,
       "zero_books": 40000,
       "positive_books": 60000,
-      "seed_breached_cells": [
-        { "column": 3, "row": 6 },
-        { "column": 3, "row": 5 }
+      "guaranteed_breach_positions": [
+        { "column": 0, "row": 1 },
+        { "column": 4, "row": 1 }
       ],
-      "seed_live_cells": [
-        { "column": 3, "row": 6 },
-        { "column": 3, "row": 5 }
-      ],
-      "starting_access_multiplier": 2,
       "direct_feature": false,
       "is_feature": true,
       "is_buybonus": true,
@@ -49,19 +42,7 @@
       "cost": 80,
       "zero_books": 5000,
       "positive_books": 95000,
-      "seed_breached_cells": [
-        { "column": 3, "row": 6 },
-        { "column": 3, "row": 5 },
-        { "column": 3, "row": 4 },
-        { "column": 3, "row": 3 }
-      ],
-      "seed_live_cells": [
-        { "column": 3, "row": 6 },
-        { "column": 3, "row": 5 },
-        { "column": 3, "row": 4 },
-        { "column": 3, "row": 3 }
-      ],
-      "starting_access_multiplier": 5,
+      "guaranteed_breach_positions": [],
       "direct_feature": true,
       "is_feature": false,
       "is_buybonus": true,

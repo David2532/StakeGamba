@@ -26,7 +26,7 @@ function launch(overrides = {}) {
 	return {
 		kind: 'replay',
 		game: 'blacksite_breach',
-		version: '0.1.0-m1',
+		version: '0.3.0-math-v3',
 		mode: 'base',
 		event: '0',
 		rgsUrl: 'https://rgs.example',
@@ -485,4 +485,19 @@ test('ReplayController validates and forwards an explicit visible playback delay
 	await controller.load(launch());
 	await controller.play();
 	assert.deepEqual(director.lastOptions, { stepDelayMs: 24, winDelayMs: 220 });
+});
+
+test('ReplayController forwards optional cosmetic cues without changing Replay authority', async () => {
+	const director = new FakeDirector();
+	const onCue = () => {};
+	const controller = new ReplayController({
+		client: { fetchRound: async () => replayPayload() },
+		normalizer: normalizer(),
+		director,
+		onCue,
+	});
+	await controller.load(launch());
+	await controller.play();
+	assert.equal(director.lastOptions.onCue, onCue);
+	assert.equal(controller.state.status, 'completed');
 });

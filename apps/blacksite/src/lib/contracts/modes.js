@@ -1,10 +1,11 @@
 export const GAME_ID = 'blacksite_breach';
 export const GAME_TITLE = 'BLACKSITE // BREACH';
-export const EVENT_CONTRACT = 'blacksite-book-events-v1';
+export const EVENT_CONTRACT = 'blacksite-book-events-v3';
+
 export const EVENT_SCHEMA_SHA256 =
-	'bb4f3ff88200519682a539909b196f1462069b865a48afd04cb3219e7b9efe29';
+	'8d68ffcf0d47fdf20648868d975d2cd944dd4892ac5bd9bf411f6d96b8834b75';
 export const CANDIDATE_FINGERPRINT_SHA256 =
-	'd03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8';
+	'a30e33d3aa5b7b121cc94053306944f22714888952a95f5432177121e591a2d7';
 export const PAYOUT_UNIT = 'centi-x_uint64';
 export const MAX_WIN_RAW = 1_000_000;
 export const TARGET_RTP = 0.962;
@@ -16,11 +17,15 @@ const modeDefinitions = [
 		socialLabel: 'STANDARD RUN',
 		costMultiplier: 1,
 		initialPhase: 'base',
-		seedBreachedCells: [],
-		seedLiveCells: [],
-		startingAccessMultiplier: 1,
+		guaranteedBreachSymbols: 0,
+		guaranteedBreachPositions: [],
+		freeSpins: 0,
+		directFeature: false,
 		isBuyBonus: false,
-		actionDescription: 'Starts with every Ghost Route cell sealed and progresses naturally from the base phase.',
+		actionDescription:
+			'Standard five-reel game. Three VAULT symbols trigger eight BLACKOUT free spins.',
+		socialActionDescription:
+			'Standard five-reel game. Three VAULT symbols trigger eight BLACKOUT free spins.',
 	},
 	{
 		id: 'deep_access',
@@ -28,11 +33,15 @@ const modeDefinitions = [
 		socialLabel: 'DEEP ACCESS',
 		costMultiplier: 4,
 		initialPhase: 'base',
-		seedBreachedCells: [{ column: 3, row: 6 }, { column: 3, row: 5 }],
-		seedLiveCells: [{ column: 3, row: 6 }, { column: 3, row: 5 }],
-		startingAccessMultiplier: 2,
+		guaranteedBreachSymbols: 2,
+		guaranteedBreachPositions: [{ column: 0, row: 1 }, { column: 4, row: 1 }],
+		freeSpins: 0,
+		directFeature: false,
 		isBuyBonus: true,
-		actionDescription: 'Starts the base phase with two seeded live route cells and 2× Access.',
+		actionDescription:
+			'Two VAULT symbols are guaranteed. A third triggers eight BLACKOUT free spins.',
+		socialActionDescription:
+			'Two VAULT symbols are guaranteed. A third triggers eight BLACKOUT free spins.',
 	},
 	{
 		id: 'blackout',
@@ -40,21 +49,15 @@ const modeDefinitions = [
 		socialLabel: 'BLACKOUT ENTRY',
 		costMultiplier: 80,
 		initialPhase: 'feature',
-		seedBreachedCells: [
-			{ column: 3, row: 6 },
-			{ column: 3, row: 5 },
-			{ column: 3, row: 4 },
-			{ column: 3, row: 3 },
-		],
-		seedLiveCells: [
-			{ column: 3, row: 6 },
-			{ column: 3, row: 5 },
-			{ column: 3, row: 4 },
-			{ column: 3, row: 3 },
-		],
-		startingAccessMultiplier: 5,
+		guaranteedBreachSymbols: 0,
+		guaranteedBreachPositions: [],
+		freeSpins: 8,
+		directFeature: true,
 		isBuyBonus: true,
-		actionDescription: 'Starts BLACKOUT PROTOCOL directly with four seeded live route cells and six cycles.',
+		actionDescription:
+			'Starts eight free spins. One regular symbol is chosen and expands on every reel where it lands.',
+		socialActionDescription:
+			'Starts eight free spins. One regular symbol is chosen and expands on every reel where it lands.',
 	},
 ];
 
@@ -62,11 +65,8 @@ export const MODES = Object.freeze(
 	modeDefinitions.map((mode) =>
 		Object.freeze({
 			...mode,
-			seedBreachedCells: Object.freeze(
-				mode.seedBreachedCells.map((position) => Object.freeze({ ...position })),
-			),
-			seedLiveCells: Object.freeze(
-				mode.seedLiveCells.map((position) => Object.freeze({ ...position })),
+			guaranteedBreachPositions: Object.freeze(
+				mode.guaranteedBreachPositions.map((position) => Object.freeze({ ...position })),
 			),
 			targetRtp: TARGET_RTP,
 			maxWinRaw: MAX_WIN_RAW,
@@ -91,4 +91,9 @@ export function getMode(modeId) {
 export function getModeLabel(modeId, social = false) {
 	const mode = getMode(modeId);
 	return social ? mode.socialLabel : mode.normalLabel;
+}
+
+export function getModeActionDescription(modeId, social = false) {
+	const mode = getMode(modeId);
+	return social ? mode.socialActionDescription : mode.actionDescription;
 }

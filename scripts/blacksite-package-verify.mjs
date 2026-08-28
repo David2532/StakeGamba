@@ -12,10 +12,19 @@ import { createInterface } from 'node:readline';
 import { createZstdDecompress } from 'node:zlib';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+	CANDIDATE_FINGERPRINT_SHA256,
+	EVENT_CONTRACT,
+	EVENT_SCHEMA_SHA256,
+} from '../apps/blacksite/src/lib/contracts/modes.js';
+import { GameEventAdapter } from '../apps/blacksite/src/lib/runtime/game-event-adapter.js';
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDirectory, '..');
 const mathLibrary = join(repoRoot, 'math', 'games', 'blacksite_breach', 'library');
+const mathEventSchemaSource = join(mathLibrary, 'configs', 'event_schema.json');
+const expectedMathLifecycle = 'MATH_V3_CANDIDATE_NOT_RELEASE';
+const expectedEventSchemaVersion = 3;
 const expectedModes = Object.freeze([
 	{ name: 'base', cost: 1, events: 'base_books.jsonl.zst', weights: 'base_lookup.csv' },
 	{
@@ -33,6 +42,7 @@ const expectedModes = Object.freeze([
 ]);
 const booksPerMode = 100_000;
 const maxPayoutRaw = 1_000_000;
+const eventAdapter = new GameEventAdapter();
 
 function fail(message) {
 	throw new Error(message);
@@ -160,6 +170,7 @@ async function verifyBook(path, modeName, payouts) {
 		) {
 			fail(`${modeName}: book/lookup mismatch at ID ${id}`);
 		}
+		eventAdapter.adaptBook(book, { expectedMode: modeName });
 	}
 	if (id !== booksPerMode) fail(`${modeName}: expected ${booksPerMode} books, received ${id}`);
 	return id;
@@ -218,7 +229,7 @@ async function main() {
 	assertManifestEqual(mathManifest, manifest.packages?.math, 'Math');
 
 	const frontendTopLevel = readdirSync(frontendRoot).sort();
-	if (JSON.stringify(frontendTopLevel) !== JSON.stringify(['_app', 'index.html'])) {
+	if (JSON.stringify(frontendTopLevel) !== JSON.stringify(['_app', 'assets', 'index.html'])) {
 		fail(`Unexpected frontend root entries: ${frontendTopLevel.join(', ')}`);
 	}
 
@@ -244,6 +255,8 @@ async function main() {
 	const canonicalConfigPath = join(mathLibrary, 'configs', 'game_config.json');
 	const canonicalConfigFact = fileFact(canonicalConfigPath);
 	const canonicalConfig = readJson(canonicalConfigPath);
+	const canonicalEventSchemaFact = fileFact(mathEventSchemaSource);
+	const canonicalEventSchema = readJson(mathEventSchemaSource);
 	if (
 		configEvidence?.bytes !== canonicalConfigFact.bytes ||
 		configEvidence?.sha256 !== canonicalConfigFact.sha256 ||
@@ -262,6 +275,9 @@ async function main() {
 	const recordedConfig = canonicalCandidateManifest.files?.find(
 		(record) => record.path === 'configs/game_config.json',
 	);
+	const recordedEventSchema = canonicalCandidateManifest.files?.find(
+		(record) => record.path === 'configs/event_schema.json',
+	);
 	if (
 		JSON.stringify(manifest.mathEvidence?.candidateManifest) !==
 			JSON.stringify(candidateManifestFact) ||
@@ -274,8 +290,12 @@ async function main() {
 			canonicalCandidateManifest.candidate_fingerprint_sha256 ||
 		manifest.mathEvidence?.candidateFingerprintSha256 !==
 			canonicalVerifyResult.candidate_fingerprint_sha256 ||
+		manifest.mathEvidence?.candidateFingerprintSha256 !== CANDIDATE_FINGERPRINT_SHA256 ||
+		manifest.mathEvidence?.eventContract !== EVENT_CONTRACT ||
+		manifest.mathEvidence?.eventSchemaVersion !== expectedEventSchemaVersion ||
 		manifest.mathEvidence?.eventSchemaSha256 !==
 			canonicalVerifyResult.canonical_event_schema_sha256 ||
+		manifest.mathEvidence?.eventSchemaSha256 !== EVENT_SCHEMA_SHA256 ||
 		manifest.mathEvidence?.booksVerified !== canonicalVerifyResult.books_verified ||
 		manifest.mathEvidence?.gatesPassed !== canonicalVerifyResult.gates_passed ||
 		manifest.mathEvidence?.gatesTotal !== canonicalVerifyResult.gates_total ||
@@ -289,10 +309,21 @@ async function main() {
 		canonicalConfig.lifecycle !== canonicalVerifyResult.lifecycle ||
 		recordedConfig?.bytes !== canonicalConfigFact.bytes ||
 		recordedConfig?.sha256 !== canonicalConfigFact.sha256 ||
-		canonicalVerifyResult.lifecycle !== 'M1_INITIAL_CANDIDATE_NOT_RELEASE'
+		recordedEventSchema?.bytes !== canonicalEventSchemaFact.bytes ||
+		recordedEventSchema?.sha256 !== canonicalEventSchemaFact.sha256 ||
+		JSON.stringify(manifest.mathEvidence?.eventSchemaEvidenceOnly) !==
+			JSON.stringify({
+				...canonicalEventSchemaFact,
+				contract: canonicalEventSchema.contract,
+				schemaVersion: canonicalEventSchema.schema_version,
+				note: 'Evidence only; the exact v3 event schema remains outside the minimal math upload root.',
+			}) ||
+		canonicalEventSchema.contract !== EVENT_CONTRACT ||
+		canonicalEventSchema.schema_version !== expectedEventSchemaVersion ||
+		canonicalVerifyResult.lifecycle !== expectedMathLifecycle
 	) {
 		fail(
-			'Outer candidate math identity/lifecycle fields are not bound to the canonical M1 evidence',
+			'Outer candidate math identity/lifecycle fields are not bound to the canonical v3 evidence',
 		);
 	}
 

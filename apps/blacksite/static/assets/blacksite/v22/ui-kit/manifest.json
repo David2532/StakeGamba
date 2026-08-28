@@ -1,0 +1,275 @@
+{
+  "schema": "blacksite-ui-kit-v22",
+  "version": 22,
+  "devOnly": true,
+  "integrationStatus": "asset-only-not-wired",
+  "runtimeRoot": "/assets/blacksite/v22/ui-kit/",
+  "generatedOn": "2026-08-14",
+  "generator": "built-in-codex-imagegen",
+  "materialSystem": {
+    "name": "BLACKOUT BREACH OXIDE",
+    "materials": [
+      "oxidized near-black gunmetal",
+      "parkerized steel",
+      "restrained aged brass",
+      "smoked near-black glass"
+    ],
+    "lighting": "neutral warm-white instrument lighting only",
+    "forbiddenLighting": [
+      "cyan",
+      "blue",
+      "red",
+      "magenta",
+      "police-style rim lighting",
+      "RGB neon"
+    ],
+    "palette": {
+      "blackout": "#090b0b",
+      "gunmetal": "#171a1b",
+      "oxidizedSteel": "#2a2e2f",
+      "agedBrass": "#9a7445",
+      "warmInstrument": "#f3d6a5"
+    }
+  },
+  "states": [
+    "idle",
+    "hover",
+    "pressed",
+    "focus",
+    "selected",
+    "disabled",
+    "danger"
+  ],
+  "stateDerivation": {
+    "source": "nine-slice/control/master.webp",
+    "method": "non-destructive runtime filter and overlay recipes; no baked text",
+    "recipes": {
+      "idle": {
+        "brightness": 1.0,
+        "contrast": 1.0,
+        "saturation": 1.0,
+        "warmWhiteOverlayOpacity": 0.0
+      },
+      "hover": {
+        "brightness": 1.06,
+        "contrast": 1.03,
+        "saturation": 1.0,
+        "warmWhiteOverlayOpacity": 0.06
+      },
+      "pressed": {
+        "brightness": 0.82,
+        "contrast": 1.1,
+        "saturation": 0.9,
+        "warmWhiteOverlayOpacity": 0.0
+      },
+      "focus": {
+        "brightness": 1.08,
+        "contrast": 1.04,
+        "saturation": 0.95,
+        "warmWhiteOverlayOpacity": 0.11
+      },
+      "selected": {
+        "brightness": 1.1,
+        "contrast": 1.06,
+        "saturation": 1.02,
+        "warmWhiteOverlayOpacity": 0.14
+      },
+      "disabled": {
+        "brightness": 0.54,
+        "contrast": 0.92,
+        "saturation": 0.18,
+        "opacity": 0.58,
+        "warmWhiteOverlayOpacity": 0.0
+      },
+      "danger": {
+        "brightness": 0.93,
+        "contrast": 1.12,
+        "saturation": 0.78,
+        "mutedAmberOverlayOpacity": 0.12,
+        "redOverlayOpacity": 0.0
+      }
+    }
+  },
+  "masters": {
+    "control": {
+      "path": "nine-slice/control/master.webp",
+      "width": 768,
+      "height": 384,
+      "sliceInsets": {
+        "top": 144,
+        "right": 160,
+        "bottom": 144,
+        "left": 160
+      },
+      "contentInsets": {
+        "top": 112,
+        "right": 136,
+        "bottom": 112,
+        "left": 136
+      },
+      "centerMode": "opaque-empty",
+      "alpha": true,
+      "bytes": 194838,
+      "sha256": "7d09bf43e0cc22dd417463dbe94de5ceebdd62f5c34cf46866e2f9f5996ee1e4"
+    },
+    "panel": {
+      "path": "nine-slice/panel/master.webp",
+      "width": 960,
+      "height": 640,
+      "sliceInsets": {
+        "top": 160,
+        "right": 176,
+        "bottom": 160,
+        "left": 176
+      },
+      "contentInsets": {
+        "top": 112,
+        "right": 128,
+        "bottom": 112,
+        "left": 128
+      },
+      "centerMode": "opaque-empty",
+      "alpha": true,
+      "bytes": 507694,
+      "sha256": "a8d213ad99c46fce7a4e3db46a68060c5e02ddc61cc901547fd91319d9343db3"
+    },
+    "readout": {
+      "path": "nine-slice/readout/master.webp",
+      "width": 960,
+      "height": 384,
+      "sliceInsets": {
+        "top": 128,
+        "right": 176,
+        "bottom": 128,
+        "left": 176
+      },
+      "contentInsets": {
+        "top": 104,
+        "right": 152,
+        "bottom": 104,
+        "left": 152
+      },
+      "centerMode": "opaque-empty",
+      "alpha": true,
+      "bytes": 228250,
+      "sha256": "b141f373b1edd4dc8f5bf901aad61083d517a9e03c412d056b27d3194f1520b7"
+    },
+    "reelStageInnerBezel": {
+      "path": "reel-stage/inner-bezel-depth-overlay.webp",
+      "width": 1280,
+      "height": 768,
+      "contentInsets": {
+        "top": 112,
+        "right": 112,
+        "bottom": 112,
+        "left": 112
+      },
+      "centerMode": "transparent-opening",
+      "alpha": true,
+      "bytes": 447008,
+      "sha256": "5c90db89f137c25f5e62bacb1c18d6a2fbca80be8db2712510faf2119135a053"
+    },
+    "reelCellDepthOverlay": {
+      "path": "reel-stage/cell-depth-overlay.webp",
+      "width": 640,
+      "height": 512,
+      "contentInsets": {
+        "top": 104,
+        "right": 104,
+        "bottom": 104,
+        "left": 104
+      },
+      "centerMode": "transparent-opening",
+      "alpha": true,
+      "openingContract": {
+        "maximumSafeOpeningAlpha": 8,
+        "minimumSafeOpeningCanvasFraction": 0.4,
+        "minimumConnectedTransparentFraction": 0.45,
+        "mustBeEnclosed": true
+      },
+      "bytes": 157142,
+      "sha256": "db1bc7badf1317710903260dae87bd74b364ed2ea2b8e3570f75a2a2b9b9e9af"
+    }
+  },
+  "authoringSources": [
+    {
+      "path": "authoring/sources/control-master-source.webp",
+      "width": 1774,
+      "height": 887,
+      "bytes": 1174786,
+      "sha256": "8b2edbad20a960ead5296bf5dadf9bb293139b50acd348e70bd090844aa98c23"
+    },
+    {
+      "path": "authoring/sources/panel-master-source.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1388148,
+      "sha256": "53302376e44a8909fa28e818dfdf0331f528009243e90cd8427af9212a94156d"
+    },
+    {
+      "path": "authoring/sources/readout-master-source.webp",
+      "width": 1983,
+      "height": 793,
+      "bytes": 1033070,
+      "sha256": "ad554c777a52d48f286bcafe9767faa54bf6b815aa2990c56060cd06e807ff61"
+    },
+    {
+      "path": "authoring/sources/reel-stage-source.webp",
+      "width": 1619,
+      "height": 971,
+      "bytes": 767572,
+      "sha256": "fe8d23c9ef71d33d1ae9924bcb3a0f8196a8835ece096031eee79b27ef1f5399"
+    },
+    {
+      "path": "authoring/sources/cell-depth-overlay-source.webp",
+      "width": 1402,
+      "height": 1122,
+      "bytes": 800234,
+      "sha256": "1ad1fc2ae8684bbf0a831e9ed7299b880d76fc4a90e2ee4368cbca0d7a0122c8"
+    }
+  ],
+  "metadataFiles": [
+    "manifest.json",
+    "PROVENANCE.md",
+    "authoring/PROMPTS.md",
+    "authoring/build_v22_ui_kit.py",
+    "authoring/validate_v22_ui_kit.py"
+  ],
+  "qa": {
+    "manualVisualStatus": "PASS",
+    "textAndLogoFree": true,
+    "transparentCorners": true,
+    "reelOpeningTransparent": true,
+    "visiblePoliceLightPixelThreshold": 0,
+    "visiblePoliceLightPixels": {
+      "red": 0,
+      "cyan": 0,
+      "blue": 0,
+      "magenta": 0
+    },
+    "cellDepthOverlay": {
+      "mode": "RGBA",
+      "safeOpeningAlphaMaximum": 0,
+      "connectedTransparentPixels": 150346,
+      "connectedTransparentFraction": 0.458819580078125,
+      "connectedTransparentBounds": {
+        "left": 87,
+        "top": 86,
+        "right": 552,
+        "bottom": 409
+      },
+      "enclosed": true
+    }
+  },
+  "budgets": {
+    "runtimeWebpCount": 5,
+    "runtimeBytes": 1534932,
+    "runtimeHardMaxBytes": 2097152,
+    "authoringWebpCount": 5,
+    "authoringBytes": 5163810,
+    "authoringHardMaxBytes": 5242880,
+    "totalRasterBytes": 6698742,
+    "totalRasterHardMaxBytes": 7340032,
+    "pass": true
+  }
+}

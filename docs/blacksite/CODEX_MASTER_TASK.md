@@ -11,6 +11,7 @@ The project must reuse verified generic infrastructure from StakeGamba/Golden Go
 ## Autonomy
 
 Work autonomously through reversible technical/product-detail decisions. Do not repeatedly stop to ask the founder for implementation preferences that can be safely decided from:
+
 - current official Stake documentation;
 - the 51-point project matrix;
 - the existing hardened StakeGamba implementation/evidence;
@@ -21,11 +22,11 @@ Escalate only real blockers described in `AGENT_OPERATING_MODEL.md`.
 
 ## Current durable checkpoint
 
-- **M1 complete:** the initial non-release math candidate remains bound to fingerprint `d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8` and event-schema hash `bb4f3ff88200519682a539909b196f1462069b865a48afd04cb3219e7b9efe29`.
-- **M2 complete for its repository greybox gate:** `M2_COMPLIANCE_REVIEW.md` records clean-SHA browser evidence at commit `0a63db9f5aef8c59ba67d7ec71b8e656fdca9455`, with 66/66 units and 735/735 browser checks across 36/36 scenarios.
-- **M3 started, not complete:** `M3_ASSET_MANIFEST.md` and `apps/blacksite/art/asset-manifest.json` record original environment, operative and six-symbol concept anchors. They are deliberately outside runtime, status `concept`, and do not satisfy final-art, Spine, responsive, rights/manual or release gates.
+- **Math v3 verified internally:** `blacksite-book-events-v3`, candidate `0.3.0-math-v3`, fingerprint `a30e33d3aa5b7b121cc94053306944f22714888952a95f5432177121e591a2d7`, event-schema hash `8d68ffcf0d47fdf20648868d975d2cd944dd4892ac5bd9bf411f6d96b8834b75`, 300,000 books, 91/91 gates, 41 fixtures and 11/11 math tests.
+- **Historical v1/v2 evidence is superseded:** `M2_COMPLIANCE_REVIEW.md` and `MATH_V2_GAME_CONTRACT.md` remain immutable evidence for their former candidates only. Their frontend/browser, fixture, cursor and symbol verdicts cannot be inherited by v3.
+- **V3 frontend/package evidence must be regenerated:** live RGS, Replay/restore, exact 13-symbol 5x3 rendering, mobile/popout, nested hosting and exact two-folder packaging all require a fresh clean-SHA run.
 
-Continue from this checkpoint instead of rebuilding or re-claiming M1/M2. Any later runtime/source change requires fresh clean-SHA evidence before inheriting the M2 verdict.
+Continue from the v3 checkpoint. Never reintroduce v1/v2 books, cursors, fixtures, symbol IDs, paytables or UI assumptions into a v3 candidate.
 
 ## Required startup sequence
 
@@ -54,6 +55,7 @@ Before any major implementation run:
 Orchestrate Creative, Game Design, Math/RGS, Stake Compliance and Frontend specialists.
 
 Deliver:
+
 - final original concept statement and player loop;
 - canonical mode registry;
 - exact base/feature mechanic specification;
@@ -78,6 +80,7 @@ Gate: no deep final art/animation until mechanic/math/event/presentation contrac
 Deliver a new isolated app/game identity using verified framework packages.
 
 Must include:
+
 - correct live RGS auth/play/settlement lifecycle;
 - invalid RGS/session failure behaviour;
 - all authenticate-provided bet parameters;
@@ -100,6 +103,7 @@ Gate: complete browser/network proof before visual complexity increases.
 Asset Director + Creative Director create/approve the asset manifest and original art package.
 
 Deliver:
+
 - title/logo;
 - production board/environment;
 - complete symbol set;
@@ -111,17 +115,18 @@ Deliver:
 - optimized static paths/atlases;
 - zero final sample/placeholder assets in finished surfaces.
 
-Frontend/Animation integrate without breaking M2 contracts.
+Frontend/Animation integrate without breaking the verified v3 math, RGS, Replay, restore, money or settlement contracts. Historical v1/v2 presentation and symbol assumptions are not reusable.
 
 ## M4 — Motion + Cinematic Pass
 
 Animation/Intro specialists implement:
+
 - character semantic state machine;
 - Spine mixing/tracks/events;
 - spin/reveal motion;
-- winning-cell readability;
-- cascade continuity;
-- breach-cell progression;
+- winning-line and WILD readability;
+- reel settle and ordered line-win continuity;
+- BREACH trigger and expanding-target readability;
 - anticipation;
 - feature trigger/entry/exit;
 - bonus idle/win states;
@@ -139,6 +144,7 @@ Use deterministic fixtures for iteration. Every async cue gets completion, clean
 Creative + QA + Mobile/Performance run repeated critique loops.
 
 Improve:
+
 - composition/hierarchy;
 - symbol readability;
 - character integration;
@@ -160,6 +166,7 @@ Do not chase polish by weakening result readability or compliance.
 Freeze source/math/frontend identity.
 
 Run:
+
 - full lint/build/test;
 - all generalized Stake QA families;
 - 51-point repo-owned matrix proof;
@@ -181,13 +188,17 @@ Lifecycle after internal success is `STAKE_REVIEW_PENDING`, never `APPROVED` unt
 ## Implementation strategy
 
 ### Reuse first
+
 Before writing new RGS/replay/currency/release code, locate the latest hardened Golden Goal Rush implementation and tests. Generalize into shared packages/scripts where clean. Copying old code into a second divergent stack is a last resort.
 
 ### Contracts before aesthetics
+
 Final animation depends on stable event/state names. Final rules depend on stable math. Freeze those first.
 
 ### Evidence before claims
+
 Every milestone summary includes:
+
 - exact SHA;
 - implemented scope;
 - tests run/results;
@@ -198,11 +209,13 @@ Every milestone summary includes:
 - next autonomous step.
 
 ### Small durable docs
+
 Keep root instructions concise. Update focused docs when new Stake feedback or hard-won lessons appear. Do not dump every historical log into `AGENTS.md`.
 
 ## Stake feedback ingestion rule
 
 Whenever Stake gives new feedback:
+
 1. preserve the exact feedback text in a dated history/evidence document;
 2. map it to checklist/source requirement;
 3. identify root cause rather than patching symptom only;
@@ -214,6 +227,7 @@ Whenever Stake gives new feedback:
 ## Completion standard
 
 The project is complete only when:
+
 - the exact 51-point checklist is genuinely satisfied, including external lifecycle steps;
 - exact frontend/math versions are approved;
 - game is live and verified;

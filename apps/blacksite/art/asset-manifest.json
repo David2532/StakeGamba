@@ -1,142 +1,1748 @@
 {
-  "schema": "blacksite-asset-manifest-v1",
-  "updatedAt": "2026-08-07",
-  "lifecycle": "M3_STARTED_CONCEPT_ONLY",
-  "runtimeIntegration": "none",
+  "schema": "blacksite-asset-manifest-v6",
+  "updatedAt": "2026-08-22",
+  "lifecycle": "V33_MANDATORY_STARTUP_VIDEO_RULES_SCREEN",
+  "runtimeIntegration": "premium-5x3-reels-v22-responsive-shell-canonical-v20-penguin-v22-penguin-symbol-and-reels-v26-feature-vault-v27-ui-v29-curated-runtimepack-v1-audio-v33-mandatory-video-then-rules-screen-startup-with-v28-environment-preload-candidates",
+  "eventContract": "blacksite-book-events-v3",
   "generator": {
-    "mode": "OpenAI built-in image_gen",
-    "inputs": "text-only generation; the accepted environment is a targeted edit of this task's original text-only generation",
+    "mode": "OpenAI built-in image_gen and deterministic project raster builders; the owner-supplied V26 feature Vault film and V33 startup Vault film remain byte-preserved, and the curated CC0-only Blackside Breach RuntimePack V1 audio selection is byte-preserved as V29, with audible and final rights review explicitly pending",
+    "inputs": "project-authored BLACKSITE briefs, project-owner-supplied generated inputs, and the user-supplied Blackside Breach Audio Complete RuntimePack v1.0 archive; no third-party casino art assets",
     "promptRecord": "apps/blacksite/art/concepts/m3/PROVENANCE.md"
   },
   "rightsReview": "pending-human-review",
+  "canonicalSymbolIds": [
+    "operative",
+    "encrypted_drive",
+    "tactical_radio",
+    "classified_folder",
+    "night_vision_goggles",
+    "supply_crate",
+    "ghost_wild",
+    "breach",
+    "a",
+    "k",
+    "q",
+    "j",
+    "ten"
+  ],
+  "symbolStates": [
+    "base",
+    "win",
+    "dim",
+    "anticipation",
+    "triggered"
+  ],
+  "symbolStateDelivery": "dedicated 512x512 alpha WebP state packs; every symbol has logical base, win and dim states; ghost_wild also has anticipation and triggered files; breach is the internal math ID for the V19 Vault and maps logical win to its triggered raster",
+  "treeHashAlgorithm": "SHA-256 of UTF-8 concatenation of sorted relativePath, newline, lowercase file SHA-256, newline",
+  "runtimeDeliveryV19": {
+    "historical": true,
+    "supersededBy": "currentProductionDelivery",
+    "runtimeRoot": "apps/blacksite/static/assets/blacksite",
+    "runtimeFileCount": 359,
+    "runtimeWebpCount": 358,
+    "runtimeJsonCount": 1,
+    "runtimeBytes": 22518832,
+    "runtimeTreeSha256": "5d7b0c576056682ca7b6e5667d1959f80ed88e51f213a5469988a17164ce2eb7"
+  },
+  "singleVaultRuntimeSet": {
+    "historical": true,
+    "supersededBy": "vaultOpeningRuntimeV26",
+    "runtimeRoot": "apps/blacksite/static/assets/blacksite/v19",
+    "assetIndex": "apps/blacksite/art/generated/v19/provenance/asset-index.generated.json",
+    "runtimeWebpCount": 10,
+    "runtimeBytes": 1712958,
+    "runtimeTreeSha256": "6057120303fd8eabe8e89c07c265c480b0580997de37c7c6c076750a601d5fc9"
+  },
+  "currentProductionDelivery": {
+    "authority": "apps/blacksite/tests/blacksite-character-assets.test.mjs",
+    "pruner": "apps/blacksite/scripts/prune-production-assets.mjs",
+    "buildAssetRoot": "apps/blacksite/build/assets/blacksite",
+    "runtimeFileCount": 408,
+    "runtimeBytes": 63282387,
+    "runtimeTypeCounts": {
+      ".flac": 1,
+      ".json": 6,
+      ".mp4": 2,
+      ".ogg": 102,
+      ".opus": 1,
+      ".wav": 17,
+      ".webp": 279
+    },
+    "runtimeTreeSha256": "6d3b851b319c6f0197d7905370ba8189fe9a932ced23350bb1d872add96d099d",
+    "productionGroups": {
+      "runtime-rgba-v1": {
+        "files": 78,
+        "bytes": 2383822,
+        "treeSha256": "be3e99e96729152f610f2feb09e34c515d7805eb60f44653306c88cd6f420b0c"
+      },
+      "symbols": {
+        "files": 35,
+        "bytes": 1737668,
+        "treeSha256": "2ca4dd8273abd370d9d4ff3399d8d18e643002de246a513b808876ab3836157a"
+      },
+      "ui": {
+        "files": 85,
+        "bytes": 942964,
+        "treeSha256": "564829f9e40a62b107ef02014ca375a1126418a14e8e980a876dc8d73dec3acc"
+      },
+      "v19": {
+        "files": 10,
+        "bytes": 1776158,
+        "treeSha256": "8d810683482a1d4eb0ae18e1aef27cb927272ad65e5c6dc6868895162f8a4228"
+      },
+      "v20": {
+        "files": 27,
+        "bytes": 35703284,
+        "treeSha256": "81ed9910ab2d8009d54e9aa53ba9a1fd38c277ad3dace6abf7303dbd81da6a8c"
+      },
+      "v21": {
+        "files": 13,
+        "bytes": 192091,
+        "treeSha256": "9d6b62c4afd6dfe357500d0501af78f4a397e6be272a076e1c3c7d064cea16f1"
+      },
+      "v22": {
+        "files": 19,
+        "bytes": 5181068,
+        "treeSha256": "9fee55d1241763e14c500a798d028de90f07ec5359eaae8d80809484ddc72645"
+      },
+      "v26": {
+        "files": 2,
+        "bytes": 6030885,
+        "treeSha256": "655f2b780f1bb47fa35b797451f3f3716e38a547c98737e5d13603ac6a79d2f4"
+      },
+      "v27": {
+        "files": 8,
+        "bytes": 1646936,
+        "treeSha256": "13d616a17122eff3e62645cafa4d988da57281f081cf8bad60ef4ef0f2aaee1a"
+      },
+      "v28": {
+        "files": 6,
+        "bytes": 1352930,
+        "treeSha256": "c6f244c29c1e01e47017159f09d1cb5930402034bfea358c273987dcf0c3daa0"
+      },
+      "v29": {
+        "files": 122,
+        "bytes": 3318590,
+        "treeSha256": "6916a04cded0667224aa1466cf8c92cd4ba8d63b9bd5a894eef8a7047858e47a"
+      },
+      "v33": {
+        "files": 3,
+        "bytes": 3015991,
+        "treeSha256": "1cd4c04e565c8ab7f244bfdf985b540a42feb457ba79023508f74ee0464240b8"
+      }
+    },
+    "hardMaxBytes": 67108864,
+    "headroomBytes": 3826477,
+    "pass": true,
+    "completeBuild": {
+      "fileCount": 414,
+      "bytes": 65546227,
+      "treeSha256": "7ae6db730ed606eea59ece217df9ed3e9ce7fc5cc5d121100489e523ddab5be0",
+      "typeCounts": {
+        ".css": 2,
+        ".flac": 1,
+        ".html": 1,
+        ".js": 2,
+        ".json": 7,
+        ".mp4": 2,
+        ".ogg": 102,
+        ".opus": 1,
+        ".wav": 17,
+        ".webp": 279
+      },
+      "hardMaxBytes": 67108864,
+      "headroomBytes": 1562637,
+      "gate": "the generated build is measured after production pruning; source JS/CSS identity is deliberately not part of the immutable asset closure",
+      "pass": true
+    }
+  },
+  "bootIntroRuntimeV30": {
+    "historical": true,
+    "supersededBy": "bootStartupRuntimeV33",
+    "productionExcluded": true,
+    "excludedBy": "apps/blacksite/scripts/prune-production-assets.mjs",
+    "runtimeRoot": "apps/blacksite/static/assets/blacksite/v30/intro",
+    "manifest": "apps/blacksite/static/assets/blacksite/v30/intro/blacksite-intro-manifest.json",
+    "runtimeFileCount": 1,
+    "runtimeBytes": 10292,
+    "runtimeTreeSha256": "56eb282ade07edccdc5f400508d08babc01167252651012763e153a1fc693b46",
+    "videoAvailable": false,
+    "fallbackPosterSources": "existing V28 Base/BLACKOUT responsive environment plates",
+    "endFrameSource": "existing V22 premium machine shell",
+    "binaryDuplication": false,
+    "generationStatus": "NOT_GENERATED_ZERO_KLING_CREDITS",
+    "promptRecord": "docs/kling-blacksite-intro-prompt.md",
+    "status": "historical-source-retained-production-pruned"
+  },
+  "bootRulesScreenAuthoringV31": {
+    "historical": true,
+    "supersededBy": "bootStartupRuntimeV33",
+    "productionExcluded": true,
+    "excludedBy": "apps/blacksite/scripts/prune-production-assets.mjs",
+    "runtimeRemoved": true,
+    "authoringArchive": "apps/blacksite/art/v31/intro/blacksite-breach-start-screen-v31.png",
+    "sourceBytes": 2302197,
+    "status": "historical-authoring-only-production-pruned"
+  },
+  "bootStartupRuntimeV33": {
+    "runtimeRoot": "apps/blacksite/static/assets/blacksite/v33/intro",
+    "manifest": "apps/blacksite/static/assets/blacksite/v33/intro/blacksite-startup-manifest-v33.json",
+    "runtimeFileCount": 3,
+    "runtimeBytes": 3015991,
+    "runtimeTypeCounts": {
+      ".json": 1,
+      ".mp4": 1,
+      ".webp": 1
+    },
+    "runtimeTreeSha256": "1cd4c04e565c8ab7f244bfdf985b540a42feb457ba79023508f74ee0464240b8",
+    "videoAvailable": true,
+    "sequence": "preload -> video -> rules-screen -> slot",
+    "normalLaunch": "mandatory-every-start",
+    "safeBypasses": "skip/reduced-motion/replay/active-round-restore bypass video only and still show the rules screen",
+    "video": {
+      "path": "apps/blacksite/static/assets/blacksite/v33/intro/blacksite-vault-opening-v33.mp4",
+      "bytes": 2621261,
+      "sha256": "1e158d67ef3942cacca08a4e0b9b42983e8ace101079e2c4d3b9ec6cf6efce51",
+      "width": 1280,
+      "height": 720,
+      "fps": 24,
+      "durationMs": 10006,
+      "container": "MP4",
+      "codec": "H.264 High 3.1",
+      "audio": "AAC LC stereo 48kHz embedded; runtime autoplay remains muted"
+    },
+    "rulesScreen": {
+      "path": "apps/blacksite/static/assets/blacksite/v33/intro/blacksite-breach-start-screen-v33.webp",
+      "bytes": 391062,
+      "sha256": "6edd0ff2d0ab0b1a8ea1b2e1852a5f65c4159d99cf03e577dc0a4d6d81fc0503",
+      "width": 1672,
+      "height": 941,
+      "source": "apps/blacksite/art/v32/intro/blacksite-breach-start-screen-book-logic-v32.png"
+    },
+    "manifestBytes": 3668,
+    "manifestSha256": "ea48c7a5808da7b857cf4508fe84c81e866ac358da515002e76e16691d286b60",
+    "rights": "user-supplied video and AI-assisted project rules art; final human rights and visual review remain required before release",
+    "status": "runtime-integrated-manual-review-required",
+    "pass": true
+  },
+  "uiSurfaceRuntimeV27": {
+    "runtimeRoot": "apps/blacksite/static/assets/blacksite/v27/ui-kit",
+    "catalog": "apps/blacksite/src/lib/assets/blacksite-ui-v27.js",
+    "manifest": "apps/blacksite/static/assets/blacksite/v27/ui-kit/manifest.json",
+    "authoringRoot": "apps/blacksite/art/generated/v27/ui-kit",
+    "runtimeFileCount": 8,
+    "runtimeWebpCount": 7,
+    "runtimeBytes": 1646936,
+    "runtimeRasterBytes": 1635206,
+    "runtimeHardMaxBytes": 3670016,
+    "roles": [
+      "feature-readout",
+      "content-card",
+      "modal-header",
+      "free-spin-award",
+      "status-chip",
+      "progress-track",
+      "reward-halo"
+    ],
+    "dynamicContentPolicy": "all labels, values, target symbols, progress fills, focus indicators and accessibility text remain live DOM",
+    "source": "OpenAI built-in imagegen masters normalized by the deterministic V27 asset builder",
+    "rights": "AI-assisted project assets; human originality and final-use review pending",
+    "status": "runtime",
+    "pass": true
+  },
+  "vaultOpeningRuntimeV23": {
+    "historical": true,
+    "supersededBy": "vaultOpeningRuntimeV24",
+    "historicalRuntimeRoot": "apps/blacksite/static/assets/blacksite/v23/cinematic",
+    "runtimeRemoved": true,
+    "artArchiveRoot": "apps/blacksite/art/generated/v23/cinematic/vault-opening",
+    "historicalRuntimeFileCount": 2,
+    "historicalRuntimeBytes": 3675741,
+    "videoCodec": "VP8",
+    "videoFrames": 247,
+    "videoFps": 60,
+    "durationMs": 4116.666667,
+    "muted": true,
+    "loop": false,
+    "posterFallback": true,
+    "provenance": "apps/blacksite/art/generated/v23/cinematic/vault-opening/PROVENANCE.md",
+    "buildReport": "apps/blacksite/art/generated/v23/cinematic/vault-opening/BUILD_REPORT.json",
+    "qualityReport": "apps/blacksite/art/generated/v23/cinematic/vault-opening/QUALITY_REPORT.json"
+  },
+  "vaultOpeningRuntimeV24": {
+    "historical": true,
+    "productionExcluded": true,
+    "excludedBy": "apps/blacksite/scripts/prune-production-assets.mjs",
+    "supersededBy": "vaultOpeningRuntimeV26",
+    "runtimeRole": "source-retained historical VP8 Vault package excluded from the production build",
+    "runtimeRoot": "apps/blacksite/static/assets/blacksite/v24/cinematic",
+    "sourceRuntimeFileCount": 3,
+    "sourceRuntimeBytes": 28349424,
+    "historicalProductionFileCount": 2,
+    "historicalProductionBytes": 7870278,
+    "historicalProductionTreeSha256": "abf8289f883a6d8a853e26233843571c9c5325ffe8e19d433f2d2217a7a93d54",
+    "videoCodec": "VP8",
+    "videoFrames": 247,
+    "videoFps": 60,
+    "durationMs": 4116.666667,
+    "dimensions": {
+      "width": 1920,
+      "height": 1080
+    },
+    "muted": true,
+    "loop": false,
+    "posterFallback": true,
+    "independentCodecQa": "pass-1080",
+    "productionExclusions": [
+      "all v24 VP8 films and the v24 poster"
+    ],
+    "promptRecord": "apps/blacksite/art/generated/v24/cinematic/vault-opening/PROMPTS.md",
+    "provenance": "apps/blacksite/art/generated/v24/cinematic/vault-opening/PROVENANCE.md",
+    "sourceReport": "apps/blacksite/art/generated/v24/cinematic/vault-opening/SOURCE_REPORT.json",
+    "buildReport": "apps/blacksite/art/generated/v24/cinematic/vault-opening/BUILD_REPORT.json",
+    "codecQualityReport": "apps/blacksite/art/generated/v24/cinematic/vault-opening/CODEC_QA_REPORT.json"
+  },
+  "vaultOpeningRuntimeV26": {
+    "runtimeRole": "canonical production Vault opening film plus matching load, error and reduced-motion poster",
+    "runtimeRoot": "apps/blacksite/static/assets/blacksite/v26/cinematic",
+    "runtimeFileCount": 2,
+    "runtimeBytes": 6030885,
+    "productionGroupTreeSha256": "655f2b780f1bb47fa35b797451f3f3716e38a547c98737e5d13603ac6a79d2f4",
+    "videoContainer": "MP4",
+    "videoCodec": "H.264",
+    "videoFps": 24,
+    "durationMs": 5041.667,
+    "dimensions": {
+      "width": 1280,
+      "height": 720
+    },
+    "hasAudio": true,
+    "runtimeMuted": true,
+    "loop": false,
+    "posterFallback": true,
+    "sourceBytePreserved": true,
+    "visibleWatermark": "KlingAI 3.0 is permanently baked into the bottom-right of the supplied video and matching poster",
+    "releaseApproval": "blocked-pending-clean-licensed-export-and-human-rights-review",
+    "promptRecord": "apps/blacksite/art/generated/v26/cinematic/vault-opening-kling/PROMPTS.md",
+    "provenance": "apps/blacksite/art/generated/v26/cinematic/vault-opening-kling/PROVENANCE.md",
+    "promotionReport": "apps/blacksite/art/generated/v26/cinematic/vault-opening-kling/RUNTIME_PROMOTION_REPORT.json"
+  },
+  "responsiveEnvironmentShellSet": {
+    "runtimeRoot": "apps/blacksite/static/assets/blacksite/v22/environment",
+    "assetIds": [
+      "environment.premium_machine_shell.v22",
+      "environment.premium_machine_shell_portrait.v22",
+      "environment.premium_machine_shell_phone.v22",
+      "environment.premium_machine_shell_compact_phone.v22",
+      "environment.premium_machine_shell_short_landscape.v22"
+    ],
+    "runtimeWebpCount": 5,
+    "runtimeBytes": 699866,
+    "runtimeTreeSha256": "1a8e67fe574dc740ea40f1362cb47ef7c5ec1d5c07ed9a201087276888f383fb"
+  },
+  "canonicalPenguinRuntimeV20": {
+    "runtimeRoot": "apps/blacksite/static/assets/blacksite/v20/penguin-operator",
+    "manifest": "apps/blacksite/static/assets/blacksite/v20/penguin-operator/manifest.json",
+    "role": "sole visible tactical Penguin character",
+    "runtimeFileCount": 27,
+    "runtimeWebpCount": 26,
+    "runtimeBytes": 35703284,
+    "runtimeTreeSha256": "7b22bf17d3a19dc07e7d226fda16308bb47b73fa2c47211f07c5dcc31d681d04",
+    "adultHumanFallback": false,
+    "status": "production"
+  },
+  "penguinOperativeAndReelsV22": {
+    "runtimeRoot": "apps/blacksite/static/assets/blacksite/v22",
+    "operativeStateCount": 3,
+    "reelStripCount": 5,
+    "policy": "V22 Penguin operative is the canonical SYM_01 identity and every production reel strip uses that same Penguin",
+    "supersededProductionRoots": [
+      "assets/blacksite/symbols/sym_01_operative",
+      "assets/blacksite/ui/reel-strips-v1"
+    ],
+    "status": "production"
+  },
+  "environmentCandidateV28": {
+    "runtimeRoot": "apps/blacksite/static/assets/blacksite/v28/environment",
+    "manifest": "apps/blacksite/art/v28/environment/PACK_MANIFEST.json",
+    "runtimeRole": "catalogued responsive preload candidates; V22 remains the visible machine-shell owner",
+    "runtimeFileCount": 6,
+    "runtimeBytes": 1352930,
+    "runtimeTreeSha256": "0ae1f51d81d6303c3ee68f36326ea1d3addf7a4790453f9615ea189101d3bfb9",
+    "releaseApproved": false,
+    "status": "production-package-candidate-only"
+  },
+  "audioRuntimeV28": {
+    "historical": true,
+    "supersededBy": "audioRuntimePackV1V29",
+    "productionExcluded": true,
+    "excludedBy": "apps/blacksite/scripts/prune-production-assets.mjs",
+    "runtimeRoot": "apps/blacksite/static/assets/blacksite/v28/audio",
+    "manifest": "apps/blacksite/static/assets/blacksite/v28/audio/audio-manifest.json",
+    "runtimeFileCount": 154,
+    "runtimeWavCount": 153,
+    "runtimeBytes": 3445236,
+    "runtimeTreeSha256": "293e6d58676a9fd21ad6c574bc20a7b330a0f77f72dc6d3b3ea99c1502a2a368",
+    "audibleQa": "PROVISIONAL_NOT_PERFORMED",
+    "status": "source-retained-production-pruned"
+  },
+  "audioRuntimePackV1V29": {
+    "runtimeRoot": "apps/blacksite/static/assets/blacksite/v29/audio",
+    "manifest": "apps/blacksite/static/assets/blacksite/v29/audio/audio-manifest.json",
+    "catalog": "apps/blacksite/src/lib/assets/blacksite-audio-runtimepack-v1.generated.js",
+    "selection": "apps/blacksite/art/audio/runtimepack-v1/selection.json",
+    "importReport": "apps/blacksite/art/audio/runtimepack-v1/IMPORT_REPORT.json",
+    "runtimeFileCount": 122,
+    "runtimeMediaFileCount": 121,
+    "runtimeBytes": 3318590,
+    "runtimeMediaBytes": 3236044,
+    "runtimeTypeCounts": {
+      ".flac": 1,
+      ".json": 1,
+      ".ogg": 102,
+      ".opus": 1,
+      ".wav": 17
+    },
+    "runtimeTreeSha256": "63b7ca15b81764a6b3aeb35c16659b20d9b4f04578c86a6f28580b5af3cfc2cc",
+    "productionGroupTreeSha256": "6916a04cded0667224aa1466cf8c92cd4ba8d63b9bd5a894eef8a7047858e47a",
+    "sourceArchiveSha256": "00bd81eb277623763b5b3626617c3eca0e035b46f0547a8d772b4c63582aad1a",
+    "sourceManifestSha256": "5ef7ee6fb51b47754a5ac4ddae39dddece1fbe48712383a19379b3c3f2d8f7a7",
+    "sourcePolicy": "CC0-only selection from the user-supplied Blackside Breach Audio Complete RuntimePack v1.0 archive",
+    "bytePreserved": true,
+    "audibleQa": "PENDING_USER_AND_DEVICE_AUDITION",
+    "status": "runtime-technical-import-pass-manual-audible-and-rights-review-pending"
+  },
   "assets": [
     {
-      "id": "concept.environment.server_bunker_board_aperture.v1",
-      "type": "environment-concept",
-      "purpose": "Desktop composition, physical material, lighting and empty board-aperture reference",
-      "source": "OpenAI built-in image_gen generation plus one targeted central-aperture edit",
-      "originalityProvenance": "Created in this repository task from project-authored text prompts; no third-party or user-supplied visual reference was used",
-      "licenseRights": "AI-assisted project concept; legal/originality and final-use rights review pending",
-      "path": "apps/blacksite/art/concepts/m3/environment-server-bunker-board-aperture-concept-v1.png",
-      "format": "png",
-      "runtimePath": null,
+      "id": "environment.server_bunker_desktop.v1",
+      "type": "environment",
+      "master": true,
+      "path": "apps/blacksite/static/assets/blacksite/environment/server-bunker-desktop-v1.webp",
+      "runtimePath": "assets/blacksite/environment/server-bunker-desktop-v1.webp",
+      "format": "webp",
       "dimensions": {
         "width": 1672,
         "height": 941
       },
-      "sha256": "7a71b005b46c542882ed6553132e43a79c67207945651c8cbc4dcaf132dc991d",
-      "alpha": false,
-      "anchorPivot": null,
-      "atlasBundle": null,
-      "statesAnimations": [],
-      "mobileFallback": "Not approved; a separately authored portrait recomposition and Popout crop are required",
-      "compression": "Lossless PNG concept source only; excluded from runtime until production extraction and WebP optimization",
-      "owner": "asset_director / creative_director",
-      "status": "concept"
+      "sha256": "8ceb6dac4a6071894466fc3ebbaa2cc7824de94586634383b64154df0d8f203f",
+      "transparent": false,
+      "source": "OpenAI built-in image_gen edit of the repository-owned BLACKSITE bunker concept",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "source-retained-production-pruned"
     },
     {
-      "id": "concept.character.operative_spine_anchor.v1",
-      "type": "character-concept",
-      "purpose": "Adult operative identity, material, silhouette and portrait-crop anchor for a future Spine 4.2 rig",
-      "source": "OpenAI built-in image_gen text-only generation",
-      "originalityProvenance": "Created in this repository task from a project-authored text prompt; no third-party or user-supplied visual reference was used",
-      "licenseRights": "AI-assisted project concept; legal/originality, likeness and final-use rights review pending",
-      "path": "apps/blacksite/art/concepts/m3/operative-spine-anchor-concept-v1.png",
-      "format": "png",
-      "runtimePath": null,
+      "id": "environment.premium_machine_shell.v1",
+      "type": "environment-and-machine-chrome",
+      "master": true,
+      "path": "apps/blacksite/static/assets/blacksite/environment/premium-machine-shell-v1.webp",
+      "runtimePath": "assets/blacksite/environment/premium-machine-shell-v1.webp",
+      "format": "webp",
       "dimensions": {
-        "width": 1024,
-        "height": 1536
+        "width": 1672,
+        "height": 941
       },
-      "sha256": "3b2cb5013bede3ea786f538f77b66dc716cc4ef4439268d428e4990c361f4869",
-      "alpha": false,
-      "anchorPivot": "Production rig must define root orientation, reference scale, stable bounds and mobile bust crop",
-      "atlasBundle": "Future Spine 4.2 skeleton, atlas and texture pages; none exist yet",
-      "statesAnimations": [
-        "idle_a",
-        "idle_b",
-        "spin_start",
+      "sha256": "9197fd771bf935b5da52b463111750deeed9887cb8738a8281a702d96d89f40b",
+      "transparent": false,
+      "source": "OpenAI built-in image_gen precise edit of the project owner's supplied 1672x941 BLACKSITE target; all operator, symbols, text and dynamic values removed while preserving the physical machine geometry",
+      "rights": "AI-assisted project asset derived from a project-owner-supplied target; human originality and final-use review pending",
+      "status": "source-retained-production-pruned"
+    },
+    {
+      "id": "environment.premium_machine_shell_portrait.v1",
+      "type": "responsive-environment-and-machine-chrome",
+      "path": "apps/blacksite/static/assets/blacksite/environment/premium-machine-shell-portrait-v1.webp",
+      "runtimePath": "assets/blacksite/environment/premium-machine-shell-portrait-v1.webp",
+      "format": "webp",
+      "dimensions": {
+        "width": 768,
+        "height": 1024
+      },
+      "runtimeBytes": 95248,
+      "sha256": "a67595963b54af270eeb43dc8cd5c044f9f827ea8ad8172b5b7baa31b672b03e",
+      "transparent": false,
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/compact-shells-v1/premium-machine-shell-portrait-source-v1.png",
+        "dimensions": {
+          "width": 1086,
+          "height": 1448
+        },
+        "bytes": 1791700,
+        "sha256": "f79330913f1dc40e7f335db39527d7caa82f99aba3c43456a12ecff5d14055e7"
+      },
+      "source": "OpenAI built-in image_gen native portrait recomposition using the project-owner-supplied premium target and repository desktop shell as visual references; proportional Pillow LANCZOS delivery resize with no crop",
+      "rights": "AI-assisted project asset derived from project-owner-supplied and repository-owned references; human originality and final-use review pending",
+      "status": "source-retained-production-pruned"
+    },
+    {
+      "id": "environment.premium_machine_shell_phone.v1",
+      "type": "responsive-environment-and-machine-chrome",
+      "path": "apps/blacksite/static/assets/blacksite/environment/premium-machine-shell-phone-v1.webp",
+      "runtimePath": "assets/blacksite/environment/premium-machine-shell-phone-v1.webp",
+      "format": "webp",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "runtimeBytes": 53030,
+      "sha256": "41167f1683a0524762036e7a1bd0868920ebce88a73fa9a95eb793425f3e2ec9",
+      "transparent": false,
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/compact-shells-v1/premium-machine-shell-phone-source-v1.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "bytes": 1721524,
+        "sha256": "6b8985fbdce590e34d310ac2d50de99a9358aac6295be9d703d34367120fc5ec"
+      },
+      "source": "OpenAI built-in image_gen native phone recomposition using the project-owner-supplied premium target, repository desktop shell and portrait shell source as visual references; proportional Pillow LANCZOS delivery resize, one-pixel opaque top pad and no crop",
+      "rights": "AI-assisted project asset derived from project-owner-supplied and repository-owned references; human originality and final-use review pending",
+      "status": "source-retained-production-pruned"
+    },
+    {
+      "id": "environment.premium_machine_shell_short_landscape.v1",
+      "type": "responsive-environment-and-machine-chrome",
+      "path": "apps/blacksite/static/assets/blacksite/environment/premium-machine-shell-short-landscape-v1.webp",
+      "runtimePath": "assets/blacksite/environment/premium-machine-shell-short-landscape-v1.webp",
+      "format": "webp",
+      "dimensions": {
+        "width": 844,
+        "height": 390
+      },
+      "runtimeBytes": 44772,
+      "sha256": "805fd8d095db6181b7993b6d3ef1d5c47f7630c97a528c41c7561e3e14f44bd1",
+      "transparent": false,
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/compact-shells-v1/premium-machine-shell-short-landscape-source-v1.png",
+        "dimensions": {
+          "width": 1846,
+          "height": 852
+        },
+        "bytes": 1592226,
+        "sha256": "51d4855f1fb6cde9728fe3a2338235f919e1df60ce79e62d6c366aac71c6e19f"
+      },
+      "source": "OpenAI built-in image_gen native short-landscape recomposition using the project-owner-supplied premium target and repository desktop shell as visual references; direct Pillow LANCZOS delivery resize with no crop",
+      "rights": "AI-assisted project asset derived from project-owner-supplied and repository-owned references; human originality and final-use review pending",
+      "status": "source-retained-production-pruned"
+    },
+    {
+      "id": "ui.premium_hud.v2",
+      "type": "raster-control-and-panel-state-package",
+      "path": "apps/blacksite/static/assets/blacksite/ui/premium-hud-v2",
+      "runtimePath": "assets/blacksite/ui/premium-hud-v2",
+      "format": "rgba-webp",
+      "transparent": true,
+      "controls": [
+        "menu",
+        "buy",
+        "auto",
+        "minus",
+        "plus",
+        "spin",
+        "turbo",
+        "info",
+        "settings",
+        "close",
+        "resume"
+      ],
+      "controlStates": [
+        "normal",
+        "hover",
+        "pressed",
+        "active",
+        "disabled"
+      ],
+      "panels": [
+        "mode-card",
+        "meter-bet",
+        "meter-total",
+        "meter-win",
+        "meter-balance",
+        "how-to",
+        "ticker",
+        "marker"
+      ],
+      "modeCardStates": [
+        "normal",
+        "hover",
+        "selected",
+        "disabled"
+      ],
+      "markerStates": [
+        "normal",
+        "active",
+        "disabled"
+      ],
+      "runtimeWebpCount": 68,
+      "runtimeBytes": 414762,
+      "runtimeTreeSha256": "94900e6a99fe8a4a745f066232a3f917bf42d58ccbdea0c122f016506dfd97ac",
+      "source": "Nine project-owner-supplied premium target crops plus deterministic 2x raster state treatment and project-authored text-free panel generation",
+      "rights": "Project-owner-supplied reference derivatives and original project-authored raster additions; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "ui.premium_dialog_frames.v1",
+      "type": "generated-raster-dialog-frame-package",
+      "path": "apps/blacksite/static/assets/blacksite/ui/premium-panels-v1",
+      "runtimePath": "assets/blacksite/ui/premium-panels-v1",
+      "format": "rgba-webp",
+      "transparent": true,
+      "files": [
+        {
+          "name": "dialog-mode.webp",
+          "dimensions": {
+            "width": 1640,
+            "height": 640
+          },
+          "bytes": 51652,
+          "sha256": "eafbf503686194a7d35bbec395d6def36e9da7b6ecb4c68768d63f5fa824fab9",
+          "role": "mode"
+        },
+        {
+          "name": "dialog-menu.webp",
+          "dimensions": {
+            "width": 1040,
+            "height": 480
+          },
+          "bytes": 37036,
+          "sha256": "2143cdf5df60cdd9cb21b7a5550beb916bc91d2ba0c7743d4bffacd4ab35662a",
+          "role": "menu"
+        },
+        {
+          "name": "dialog-confirmation.webp",
+          "dimensions": {
+            "width": 1040,
+            "height": 680
+          },
+          "bytes": 43314,
+          "sha256": "8102c7d991fa3580238eca0c3ceea2636bd2be0fea1afea4573d6d96944f5c42",
+          "role": "confirmation"
+        },
+        {
+          "name": "dialog-rules.webp",
+          "dimensions": {
+            "width": 1880,
+            "height": 1640
+          },
+          "bytes": 91052,
+          "sha256": "f2c7f9163841dad53464a9c59a3d700313aa1b5c736527ef8bac12db77917db7",
+          "role": "rules"
+        },
+        {
+          "name": "dialog-auto.webp",
+          "dimensions": {
+            "width": 1080,
+            "height": 760
+          },
+          "bytes": 46438,
+          "sha256": "cbd054ca1ae0f08c087286720ec87de3d86ebdd784acd2c6df583805860795ad",
+          "role": "autoplay"
+        },
+        {
+          "name": "dialog-settings.webp",
+          "dimensions": {
+            "width": 1040,
+            "height": 520
+          },
+          "bytes": 40614,
+          "sha256": "327409daa3203cd64579a0c8952ba9ecaf5f12d6911200a3d08a576243084f0c",
+          "role": "settings"
+        },
+        {
+          "name": "dialog-runtime-error.webp",
+          "dimensions": {
+            "width": 880,
+            "height": 520
+          },
+          "bytes": 36734,
+          "sha256": "ea7966db667eb443660df98dc0f4da98a5cca67d2cdb669b31ee533aeee37d9b",
+          "role": "runtime-error"
+        }
+      ],
+      "runtimeWebpCount": 7,
+      "runtimeBytes": 346840,
+      "runtimeTreeSha256": "563f40d352b34011894aa4643a9b3018f398ee4b403456dde075ba485c734f58",
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/ui-v1/modal-frame-chroma-v1.png",
+        "dimensions": {
+          "width": 1672,
+          "height": 941
+        },
+        "bytes": 1253504,
+        "sha256": "0954744c217fee8ee32f5bb49feaf5729025d542442412b9189783a69bb27157"
+      },
+      "generatorPath": "apps/blacksite/scripts/generate-premium-dialog-pack.py",
+      "source": "OpenAI built-in image_gen modal master on flat magenta, Codex chroma-key conversion, then deterministic production-size nine-slice composition for seven dialog aspect ratios",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "ui.paylines.v1",
+      "type": "raster-payline-package",
+      "path": "apps/blacksite/static/assets/blacksite/ui/paylines-v1",
+      "runtimePath": "assets/blacksite/ui/paylines-v1",
+      "format": "rgba-webp",
+      "dimensions": {
+        "width": 1000,
+        "height": 600
+      },
+      "lineIds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "runtimeWebpCount": 10,
+      "runtimeBytes": 181362,
+      "runtimeTreeSha256": "092df11a2f83df42b224cb47c66fb99f309851d5baa9d455a2647265f82b9dd7",
+      "source": "Deterministic project-authored rasterization of the authoritative ten fixed 5x3 payline paths",
+      "rights": "Original project-authored raster assets",
+      "status": "runtime"
+    },
+    {
+      "id": "ui.reel_strips.v1",
+      "type": "raster-reel-spin-strip-package",
+      "path": "apps/blacksite/static/assets/blacksite/ui/reel-strips-v1",
+      "runtimePath": "assets/blacksite/ui/reel-strips-v1",
+      "format": "rgba-webp",
+      "dimensions": {
+        "width": 320,
+        "height": 3840
+      },
+      "reelCount": 5,
+      "stopDimensions": {
+        "width": 320,
+        "height": 240
+      },
+      "stopsPerStrip": 16,
+      "files": [
+        {
+          "name": "reel-01.webp",
+          "sha256": "c78cbb90cf48c10c5c6490afc92a2ff29b3397964b6a8502119fc59be4b274a1",
+          "bytes": 119518,
+          "vaultStopIndexZeroBased": 4
+        },
+        {
+          "name": "reel-02.webp",
+          "sha256": "a6fbad98613c9135b5861b77e3e92d50699ad36063a4a0934f20d9181fcb18a0",
+          "bytes": 120070,
+          "vaultStopIndexZeroBased": 6
+        },
+        {
+          "name": "reel-03.webp",
+          "sha256": "0a276030a009d316bf2f2ee0a8818821e5fc7dac4786e58bb2fe421fa76e2eb7",
+          "bytes": 121166,
+          "vaultStopIndexZeroBased": 8
+        },
+        {
+          "name": "reel-04.webp",
+          "sha256": "73a654db377f70fb6e46a4c2ea3b1f5575c98bc847664b3611683c8dc58502b8",
+          "bytes": 125994,
+          "vaultStopIndexZeroBased": 10
+        },
+        {
+          "name": "reel-05.webp",
+          "sha256": "2f9c9808f6cb2a15279fafd6bf11c629c61a53314bda6decc56bcfe137dc79ba",
+          "bytes": 124452,
+          "vaultStopIndexZeroBased": 12
+        }
+      ],
+      "runtimeWebpCount": 5,
+      "runtimeBytes": 611200,
+      "runtimeTreeSha256": "829563c5c1ee693543c5a1b4786c4031aa718f6af1aab2e720011acdff8411f9",
+      "source": "V18 reel stop order preserved byte-for-stop except for the prior BREACH stop, which was deterministically rebuilt from the V19 Vault base raster at zero-based stops 4, 6, 8, 10 and 12",
+      "rights": "Derived from the project symbol library; underlying AI-assisted symbol rights remain pending human originality and final-use review",
+      "status": "source-retained-production-pruned-by-v22-penguin-reels"
+    },
+    {
+      "id": "character.operative.runtime_rgba.v1",
+      "type": "character-and-fx-webp-sequence-package",
+      "path": "apps/blacksite/static/assets/blacksite/runtime-rgba-v1",
+      "runtimePath": "assets/blacksite/runtime-rgba-v1/animation_manifest.json",
+      "catalog": "apps/blacksite/src/lib/assets/operator-animation-assets.js",
+      "format": "rgba-webp-sequences-plus-json-manifest",
+      "dimensions": [
+        {
+          "width": 1280,
+          "height": 1024
+        },
+        {
+          "width": 512,
+          "height": 512
+        }
+      ],
+      "transparent": true,
+      "anchor": {
+        "operator": {
+          "x": 310,
+          "y": 1000
+        },
+        "standalone512": {
+          "x": 256,
+          "y": 256
+        }
+      },
+      "runtimeSequenceIds": [
+        "CHAR_BIG_WIN",
+        "CHAR_BONUS_TOSS",
+        "CHAR_IDLE_WATCH",
+        "CHAR_LOSS_SINGLE",
+        "CHAR_LOSS_STREAK",
+        "CHAR_RAGE_PC_SMASH",
+        "CHAR_WIN_HAPPY"
+      ],
+      "standaloneFxIds": [
+        "BONUS_CRATE_PULSE",
+        "BONUS_CRATE_SPIN",
+        "FX_COIN_BURST",
+        "FX_SCREEN_IMPACT",
+        "FX_WIN_FLASH"
+      ],
+      "staticKeyposeIds": [
+        "BONUS_CRATE_STATIC",
+        "CHAR_POSE_BONUS_TOSS",
+        "CHAR_POSE_IDLE",
+        "CHAR_POSE_LOSS_FACEPALM",
+        "CHAR_POSE_LOSS_STREAK",
+        "CHAR_POSE_RAGE_PC_SMASH",
+        "CHAR_POSE_WIN_HAPPY"
+      ],
+      "runtimeWebpCount": 215,
+      "runtimeFileCountIncludingManifest": 216,
+      "runtimeBytesIncludingManifest": 16873330,
+      "manifestSha256": "6edcd12d0508b4bcace16a577a25266b0d6d18807fd869a39133f8d8b51b49f7",
+      "runtimeTreeSha256": "6d0efd216cf2dad5ad5c9a030c77f7664418acd1a3913ff53d27747b86a4c503",
+      "runtimeTreeAlgorithm": "SHA-256 of sorted path UTF-8 byte length, NUL, relative path, NUL, file byte length, NUL and raw WebP bytes",
+      "source": "User-supplied generated BLACKSITE animation package Blacksite_Breach_ALLES_WAS_DU_BRAUCHST_v1.zip; manifest-declared alpha PNG sources were validated, then deterministically converted to alpha-preserving WebP runtime frames",
+      "rights": "Supplied/generated project asset; human likeness, anatomy, originality and final-use rights review pending",
+      "status": "source-only-adult-sequences-pruned-production-keeps-standalone-fx-subset"
+    },
+    {
+      "id": "symbol.operative.v4",
+      "symbolId": "operative",
+      "code": "SYM_01",
+      "type": "raster-reel-symbol-state-pack",
+      "tier": "premium",
+      "path": "apps/blacksite/static/assets/blacksite/symbols/sym_01_operative/states-v4",
+      "runtimePath": "assets/blacksite/symbols/sym_01_operative/states-v4",
+      "format": "rgba-webp",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "states": [
+        "base",
+        "win",
+        "dim"
+      ],
+      "runtimeWebpCount": 3,
+      "runtimeBytes": 107796,
+      "runtimeTreeSha256": "8633ccc99f015602d5c92e7dea05e508a687befe825a1a8b73302390deec0136",
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/symbols-v4/source-masters-v3/sym_01_operative-master-v3.png",
+        "dimensions": {
+          "width": 512,
+          "height": 512
+        },
+        "sha256": "0040d02614469b12cb6c2302b2d1e0365ddef928c4617bbd3d24583b0535da8e"
+      },
+      "source": "OpenAI built-in image_gen source master plus deterministic raster-state builder",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "source-retained-production-pruned-by-v22-penguin-operative"
+    },
+    {
+      "id": "symbol.encrypted_drive.v4",
+      "symbolId": "encrypted_drive",
+      "code": "SYM_02",
+      "type": "raster-reel-symbol-state-pack",
+      "tier": "premium",
+      "path": "apps/blacksite/static/assets/blacksite/symbols/sym_02_encrypted_drive/states-v4",
+      "runtimePath": "assets/blacksite/symbols/sym_02_encrypted_drive/states-v4",
+      "format": "rgba-webp",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "states": [
+        "base",
+        "win",
+        "dim"
+      ],
+      "runtimeWebpCount": 3,
+      "runtimeBytes": 162770,
+      "runtimeTreeSha256": "caca7da86dfa9a7adcfca1200036ad4a67968798b414cdcf474c63428a0d34f4",
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/symbols-v4/source-masters-v3/sym_02_encrypted_drive-master-v3.png",
+        "dimensions": {
+          "width": 512,
+          "height": 512
+        },
+        "sha256": "eb4c91ef74782f3580209adad009d664017ea9aaf53dc5cd5bd03947f2ded346"
+      },
+      "source": "OpenAI built-in image_gen source master plus deterministic raster-state builder",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "symbol.tactical_radio.v4",
+      "symbolId": "tactical_radio",
+      "code": "SYM_03",
+      "type": "raster-reel-symbol-state-pack",
+      "tier": "premium",
+      "path": "apps/blacksite/static/assets/blacksite/symbols/sym_03_tactical_radio/states-v4",
+      "runtimePath": "assets/blacksite/symbols/sym_03_tactical_radio/states-v4",
+      "format": "rgba-webp",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "states": [
+        "base",
+        "win",
+        "dim"
+      ],
+      "runtimeWebpCount": 3,
+      "runtimeBytes": 101412,
+      "runtimeTreeSha256": "2ba8c861c37ec4ae57af30d6554e3cdc2787fb0695ab96afda6c464c33e6408e",
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/symbols-v4/source-masters-v3/sym_03_tactical_radio-master-v3.png",
+        "dimensions": {
+          "width": 512,
+          "height": 512
+        },
+        "sha256": "feb9be1d99e329a4bfba74e18299d9db14d335eef1ddf454417d3542bf515767"
+      },
+      "source": "OpenAI built-in image_gen source master plus deterministic raster-state builder",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "symbol.classified_folder.v4",
+      "symbolId": "classified_folder",
+      "code": "SYM_04",
+      "type": "raster-reel-symbol-state-pack",
+      "tier": "premium",
+      "path": "apps/blacksite/static/assets/blacksite/symbols/sym_04_classified_folder/states-v4",
+      "runtimePath": "assets/blacksite/symbols/sym_04_classified_folder/states-v4",
+      "format": "rgba-webp",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "states": [
+        "base",
+        "win",
+        "dim"
+      ],
+      "runtimeWebpCount": 3,
+      "runtimeBytes": 123998,
+      "runtimeTreeSha256": "84e1c6c4a20ae12d631e2ef58b4972497583e10c3ca173b44a407b763812fdec",
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/symbols-v4/source-masters-v3/sym_04_classified_folder-master-v3.png",
+        "dimensions": {
+          "width": 512,
+          "height": 512
+        },
+        "sha256": "a02f6b8f36a4bbf7a9a2e91a54abdd572f5eefbc45269ffb2e4d98d1c4ca54e6"
+      },
+      "source": "OpenAI built-in image_gen source master plus deterministic raster-state builder",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "symbol.night_vision_goggles.v4",
+      "symbolId": "night_vision_goggles",
+      "code": "SYM_05",
+      "type": "raster-reel-symbol-state-pack",
+      "tier": "premium",
+      "path": "apps/blacksite/static/assets/blacksite/symbols/sym_05_night_vision_goggles/states-v4",
+      "runtimePath": "assets/blacksite/symbols/sym_05_night_vision_goggles/states-v4",
+      "format": "rgba-webp",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "states": [
+        "base",
+        "win",
+        "dim"
+      ],
+      "runtimeWebpCount": 3,
+      "runtimeBytes": 147502,
+      "runtimeTreeSha256": "f9789e047ff4a3a10c8fab109f400cd68bb5060df7a7ff808702b0ad547de247",
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/symbols-v4/source-masters-v3/sym_05_night_vision_goggles-master-v3.png",
+        "dimensions": {
+          "width": 512,
+          "height": 512
+        },
+        "sha256": "76411499f38237c35d38a63996bc817e49808797d38776b250cbea538571b27f"
+      },
+      "source": "OpenAI built-in image_gen source master plus deterministic raster-state builder",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "symbol.supply_crate.v4",
+      "symbolId": "supply_crate",
+      "code": "SYM_06",
+      "type": "raster-reel-symbol-state-pack",
+      "tier": "premium",
+      "path": "apps/blacksite/static/assets/blacksite/symbols/sym_06_supply_crate/states-v4",
+      "runtimePath": "assets/blacksite/symbols/sym_06_supply_crate/states-v4",
+      "format": "rgba-webp",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "states": [
+        "base",
+        "win",
+        "dim"
+      ],
+      "runtimeWebpCount": 3,
+      "runtimeBytes": 114104,
+      "runtimeTreeSha256": "81794169a941ea5b8f62a5a31d5fa1ccf446386ed0c84782d2f261fccd537f7a",
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/symbols-v4/source-masters-v3/sym_06_supply_crate-master-v3.png",
+        "dimensions": {
+          "width": 512,
+          "height": 512
+        },
+        "sha256": "757225fd13bc9005b6e9aaba92ca13ae084ec6da8c17e119e32a1f359fbac9a9"
+      },
+      "source": "OpenAI built-in image_gen source master plus deterministic raster-state builder",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "symbol.ghost_wild.v4",
+      "symbolId": "ghost_wild",
+      "code": "SYM_07",
+      "type": "raster-reel-symbol-state-pack",
+      "tier": "special",
+      "role": "wild",
+      "path": "apps/blacksite/static/assets/blacksite/symbols/sym_07_ghost_wild/states-v4",
+      "runtimePath": "assets/blacksite/symbols/sym_07_ghost_wild/states-v4",
+      "format": "rgba-webp",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "states": [
+        "base",
+        "win",
+        "dim",
         "anticipation",
-        "win_small",
-        "win_medium",
-        "win_big",
-        "feature_tease",
-        "feature_trigger",
-        "bonus_idle",
-        "bonus_win",
-        "max_win",
-        "recover"
+        "triggered"
       ],
-      "mobileFallback": "The concept includes a waist-up identity inset; a separate production fallback pose/crop is still required",
-      "compression": "Lossless PNG concept source only; not a runtime texture",
-      "owner": "asset_director / animation_director",
-      "status": "concept"
+      "runtimeWebpCount": 5,
+      "runtimeBytes": 302202,
+      "runtimeTreeSha256": "cad54fdc52f3f8de6f6f782ea256d5ba13ba719cc2a51d9f7474fdd791c89f4f",
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/symbols-v4/source-masters-v3/sym_07_ghost_wild-master-v3.png",
+        "dimensions": {
+          "width": 512,
+          "height": 512
+        },
+        "sha256": "b42a328cf521d6f1995b4e31c8ab3b7356f6c4abea817cddb8eb1ea50db379cb"
+      },
+      "source": "OpenAI built-in image_gen source master plus deterministic raster-state builder",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
     },
     {
-      "id": "concept.symbols.material_language.v1",
-      "type": "symbol-family-concept",
-      "purpose": "Shared silhouette, perspective, material and value hierarchy for byte, relay, proxy, cipher, daemon and vault",
-      "source": "OpenAI built-in image_gen text-only generation",
-      "originalityProvenance": "Created in this repository task from project-authored symbol briefs; no third-party or user-supplied visual reference was used",
-      "licenseRights": "AI-assisted project concept; legal/originality and final-use rights review pending",
-      "path": "apps/blacksite/art/concepts/m3/symbols-material-language-concept-v1.png",
-      "format": "png",
-      "runtimePath": null,
+      "id": "symbol.breach_vault.v19",
+      "symbolId": "breach",
+      "displayIdentity": "Vault",
+      "code": "SYM_08",
+      "type": "v19-single-vault-raster-state-pack",
+      "tier": "special",
+      "role": "scatter-feature-trigger",
+      "path": "apps/blacksite/static/assets/blacksite/v19/vault-symbol",
+      "runtimePath": "assets/blacksite/v19/vault-symbol",
+      "format": "rgba-webp",
       "dimensions": {
-        "width": 1254,
-        "height": 1254
+        "width": 512,
+        "height": 512
       },
-      "sha256": "e63ff125b5fbdc4b361176a3019a5590cca942ef710fbdb82c11fbf6fb148662",
-      "alpha": false,
-      "anchorPivot": "Production symbols require identical square bounds and centered pivots",
-      "atlasBundle": "Future six-symbol Pixi spritesheet; no atlas exists yet",
-      "statesAnimations": [
-        "idle",
-        "win-readable",
-        "dim-readable"
+      "states": [
+        "base",
+        "win",
+        "dim",
+        "anticipation",
+        "triggered"
       ],
-      "mobileFallback": "Each production symbol must remain distinguishable at the measured mobile cell size without relying only on hue",
-      "compression": "Lossless PNG concept sheet only; individual alpha sprites, crop and atlas optimization pending",
-      "owner": "asset_director / frontend_engineer",
-      "status": "concept"
+      "stateFiles": {
+        "base": "base.webp",
+        "win": "triggered.webp",
+        "dim": "dim.webp",
+        "anticipation": "anticipation.webp",
+        "triggered": "triggered.webp"
+      },
+      "stateAliases": {
+        "win": "triggered"
+      },
+      "files": [
+        {
+          "name": "anticipation.webp",
+          "bytes": 84970,
+          "sha256": "00ee0debd5b0eaf8ad9de842d44b0cbfa03040875ad87a2d9204a973397a87e2"
+        },
+        {
+          "name": "base.webp",
+          "bytes": 83552,
+          "sha256": "9969f95eb5c1ebb5fb6e62147637ddae22d987e1f8661a0da4385a3bf0a5beb9"
+        },
+        {
+          "name": "dim.webp",
+          "bytes": 47052,
+          "sha256": "5eea9d13ee3481b4f3e03c33abefdd5887c173970057c8f2f61a1679818574df"
+        },
+        {
+          "name": "triggered.webp",
+          "bytes": 82498,
+          "sha256": "4d162aa568339b0e4b9bdf19b7a281448d481be64835bb1b62a44312f39df33d"
+        }
+      ],
+      "runtimeWebpCount": 4,
+      "runtimeBytes": 298072,
+      "runtimeTreeSha256": "fa16d5b7086c4aeec343e7c65f3e7ccef713ed5d55c3662292f0a0cac1705bd7",
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/v19/sources/master-vault-source.png",
+        "sha256": "289a330d1db579c2f39cc0abd637dce85ecad78ff605aeeb964faf94bf071d5d"
+      },
+      "removedRuntimePath": "assets/blacksite/symbols/sym_08_breach_scatter/states-v4",
+      "source": "One OpenAI built-in image_gen Vault master plus deterministic local chroma-key cleanup and raster-state generation; the internal math ID remains breach",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "feature.vault_scenes.v19",
+      "type": "v19-cinematic-scene-package",
+      "path": "apps/blacksite/static/assets/blacksite/v19/scenes",
+      "runtimePath": "assets/blacksite/v19/scenes",
+      "format": "webp",
+      "files": [
+        {
+          "name": "blackout-interior-desktop.webp",
+          "dimensions": {
+            "width": 1672,
+            "height": 941
+          },
+          "transparent": false,
+          "bytes": 279766,
+          "sha256": "cd86b22ef9b8f037fc83018c8667b9df2ccb91b25eff05fa7452dd5b6c5d2128"
+        },
+        {
+          "name": "extraction-report-desktop.webp",
+          "dimensions": {
+            "width": 1536,
+            "height": 1024
+          },
+          "transparent": true,
+          "bytes": 184704,
+          "sha256": "39562603b7c2533e531cd7c54caf827aaf0738248e94e7495000dd798d591424"
+        },
+        {
+          "name": "vault-access-desktop.webp",
+          "dimensions": {
+            "width": 1672,
+            "height": 941
+          },
+          "transparent": false,
+          "bytes": 319076,
+          "sha256": "9ae583684fa7cb9d3f3f12e1373bcebd7a59b137f901f8fb730df5dc0929483b"
+        }
+      ],
+      "runtimeWebpCount": 3,
+      "runtimeBytes": 783546,
+      "runtimeTreeSha256": "47154645cc62bf9d74f8ff2536352da194e70f0657278ccc77687b8c035f21a7",
+      "source": "OpenAI built-in image_gen scene extensions of the single V19 Vault master; extraction-report alpha was produced by deterministic local chroma-key cleanup",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "feature.vault_opening.v23",
+      "historical": true,
+      "supersededBy": "feature.vault_opening.v24",
+      "type": "historical-vault-opening-video-provenance",
+      "path": "apps/blacksite/art/generated/v23/cinematic/vault-opening",
+      "historicalRuntimePath": "assets/blacksite/v23/cinematic",
+      "runtimeRemoved": true,
+      "format": "vp8-webm-with-static-webp-poster",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "historicalFiles": [
+        {
+          "name": "vault-opening-blackout-v1.webm",
+          "bytes": 3409479,
+          "sha256": "8fd30676df97423f1b0c27dd4fa4ad740dae219209609fb9f701fbce8d939a2c",
+          "codec": "VP8",
+          "pixelFormat": "yuv420p",
+          "fps": 60,
+          "frames": 247,
+          "durationMs": 4116.666667,
+          "muted": true,
+          "loop": false
+        },
+        {
+          "name": "vault-opening-blackout-v1-poster.webp",
+          "bytes": 266262,
+          "sha256": "ab38e9f7f8e3e76cb8c69b415e98382d9f7c7c8bb9da86bf142db2ebe77566d1",
+          "transparent": false,
+          "role": "reduced-motion-and-video-error-fallback"
+        }
+      ],
+      "historicalRuntimeFileCount": 2,
+      "historicalRuntimeBytes": 3675741,
+      "source": "Three OpenAI built-in image-generation masters registered into one deterministic right-hinge vault shot and encoded as a finite two-pass 1080p60 VP8 film",
+      "promptRecord": "apps/blacksite/art/generated/v23/cinematic/vault-opening/PROMPTS.md",
+      "provenance": "apps/blacksite/art/generated/v23/cinematic/vault-opening/PROVENANCE.md",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "historical-provenance-only"
+    },
+    {
+      "id": "feature.vault_opening.v24",
+      "supersededAsPrimaryBy": "feature.vault_opening.v26",
+      "type": "historical-vault-opening-video-package",
+      "path": "apps/blacksite/static/assets/blacksite/v24/cinematic",
+      "runtimePath": "assets/blacksite/v24/cinematic",
+      "format": "historical-dual-vp8-webm-with-static-webp-poster",
+      "primaryDimensions": {
+        "width": 3840,
+        "height": 2160
+      },
+      "files": [
+        {
+          "name": "vault-opening-blackout-v24-2160p60.webm",
+          "bytes": 20479146,
+          "sha256": "ab50b2f15204ea6f420746724608df588b782fb30f61a57e3f3463de94c0a59e",
+          "width": 3840,
+          "height": 2160,
+          "codec": "VP8",
+          "pixelFormat": "yuv420p",
+          "fps": 60,
+          "frames": 247,
+          "durationMs": 4116.666667,
+          "muted": true,
+          "loop": false,
+          "role": "historical-source-only-ultra-hd-film"
+        },
+        {
+          "name": "vault-opening-blackout-v24-1080p60.webm",
+          "bytes": 7455404,
+          "sha256": "26ea80df6e50ad7690d15884ccb275bc189cc158b8a9507610fdc4f27ff3f095",
+          "width": 1920,
+          "height": 1080,
+          "codec": "VP8",
+          "pixelFormat": "yuv420p",
+          "fps": 60,
+          "frames": 247,
+          "durationMs": 4116.666667,
+          "muted": true,
+          "loop": false,
+          "role": "historical-source-only-full-hd-film",
+          "visualCodecQa": "pass"
+        },
+        {
+          "name": "vault-opening-blackout-v24-poster-1080p.webp",
+          "bytes": 414874,
+          "sha256": "eecae4f60e4c413ac9999cc5d194eba1d638ee0b6ff1fdecd3e570be4c82ab49",
+          "width": 1920,
+          "height": 1080,
+          "transparent": false,
+          "role": "historical-source-only-poster"
+        }
+      ],
+      "sourceRuntimeFileCount": 3,
+      "sourceRuntimeBytes": 28349424,
+      "historicalProductionPairBytes": 7870278,
+      "productionRuntimeFileCount": 0,
+      "source": "Three OpenAI built-in image-generation sources deterministically mastered to 3840x2160 and registered into one smooth right-hinge Vault shot, with independent visual codec QA for both VP8 tiers",
+      "promptRecord": "apps/blacksite/art/generated/v24/cinematic/vault-opening/PROMPTS.md",
+      "provenance": "apps/blacksite/art/generated/v24/cinematic/vault-opening/PROVENANCE.md",
+      "sourceReport": "apps/blacksite/art/generated/v24/cinematic/vault-opening/SOURCE_REPORT.json",
+      "buildReport": "apps/blacksite/art/generated/v24/cinematic/vault-opening/BUILD_REPORT.json",
+      "codecQualityReport": "apps/blacksite/art/generated/v24/cinematic/vault-opening/CODEC_QA_REPORT.json",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "historical-source-only-production-pruned"
+    },
+    {
+      "id": "feature.vault_opening.v26",
+      "type": "canonical-kling-vault-opening-video-package",
+      "path": "apps/blacksite/static/assets/blacksite/v26/cinematic",
+      "runtimePath": "assets/blacksite/v26/cinematic",
+      "format": "h264-mp4-with-static-webp-poster",
+      "primaryDimensions": {
+        "width": 1280,
+        "height": 720
+      },
+      "files": [
+        {
+          "name": "vault-opening-blackout-v26-720p24.mp4",
+          "bytes": 5956543,
+          "sha256": "5edad7d2f7c56ec48d3e6afd7c344c9b0704053baaeb14b2f7a0fd6084ac3acf",
+          "width": 1280,
+          "height": 720,
+          "container": "MP4",
+          "codec": "H.264",
+          "fps": 24,
+          "durationMs": 5041.667,
+          "hasAudio": true,
+          "sourceBytePreserved": true,
+          "runtimeMuted": true,
+          "loop": false,
+          "role": "canonical-full-motion-vault-opening"
+        },
+        {
+          "name": "vault-opening-blackout-v26-poster-720p.webp",
+          "bytes": 74342,
+          "sha256": "c0ce502b59f7e9d51c6de1cb2758c74e920be52dd412ea1005deda50cf54d9f9",
+          "width": 1280,
+          "height": 720,
+          "transparent": false,
+          "role": "matching-load-and-reduced-motion-poster"
+        }
+      ],
+      "runtimeFileCount": 2,
+      "runtimeBytes": 6030885,
+      "productionRuntimeFileCount": 2,
+      "productionGroupTreeSha256": "655f2b780f1bb47fa35b797451f3f3716e38a547c98737e5d13603ac6a79d2f4",
+      "runtimeFallbackChain": [
+        "assets/blacksite/v26/cinematic/vault-opening-blackout-v26-720p24.mp4",
+        "assets/blacksite/v26/cinematic/vault-opening-blackout-v26-poster-720p.webp"
+      ],
+      "source": "Project-owner-supplied native Kling MP4 copied byte-for-byte without local transcode, remux or compositing; its exact decoded frame 0 was deterministically converted to the matching runtime poster",
+      "visibleWatermark": "KlingAI 3.0 is permanently baked into the bottom-right of the supplied video and matching poster",
+      "releaseApproval": "blocked-pending-clean-licensed-export-and-human-rights-review",
+      "promptRecord": "apps/blacksite/art/generated/v26/cinematic/vault-opening-kling/PROMPTS.md",
+      "provenance": "apps/blacksite/art/generated/v26/cinematic/vault-opening-kling/PROVENANCE.md",
+      "promotionReport": "apps/blacksite/art/generated/v26/cinematic/vault-opening-kling/RUNTIME_PROMOTION_REPORT.json",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime-canonical-production-with-release-blocker"
+    },
+    {
+      "id": "intro.startup.v33",
+      "type": "mandatory-video-rules-screen-startup-package",
+      "path": "apps/blacksite/static/assets/blacksite/v33/intro",
+      "runtimePath": "assets/blacksite/v33/intro",
+      "format": "h264-mp4-plus-opaque-webp-plus-json-manifest",
+      "files": [
+        {
+          "name": "blacksite-breach-start-screen-v33.webp",
+          "bytes": 391062,
+          "sha256": "6edd0ff2d0ab0b1a8ea1b2e1852a5f65c4159d99cf03e577dc0a4d6d81fc0503",
+          "width": 1672,
+          "height": 941,
+          "transparent": false,
+          "role": "mandatory-post-video-rules-and-start-screen"
+        },
+        {
+          "name": "blacksite-startup-manifest-v33.json",
+          "bytes": 3668,
+          "sha256": "ea48c7a5808da7b857cf4508fe84c81e866ac358da515002e76e16691d286b60",
+          "role": "startup-sequence-runtime-contract"
+        },
+        {
+          "name": "blacksite-vault-opening-v33.mp4",
+          "bytes": 2621261,
+          "sha256": "1e158d67ef3942cacca08a4e0b9b42983e8ace101079e2c4d3b9ec6cf6efce51",
+          "width": 1280,
+          "height": 720,
+          "container": "MP4",
+          "codec": "H.264 High 3.1",
+          "fps": 24,
+          "durationMs": 10006,
+          "hasAudio": true,
+          "sourceBytePreserved": true,
+          "runtimeMuted": true,
+          "loop": false,
+          "role": "mandatory-normal-start-vault-opening"
+        }
+      ],
+      "runtimeFileCount": 3,
+      "runtimeBytes": 3015991,
+      "productionRuntimeFileCount": 3,
+      "productionGroupTreeSha256": "1cd4c04e565c8ab7f244bfdf985b540a42feb457ba79023508f74ee0464240b8",
+      "runtimeSequence": [
+        "assets/blacksite/v33/intro/blacksite-vault-opening-v33.mp4",
+        "assets/blacksite/v33/intro/blacksite-breach-start-screen-v33.webp",
+        "slot"
+      ],
+      "safeBypasses": "skip, reduced motion, Replay and active-round restore bypass the motion video only; the rules screen remains before slot entry",
+      "videoSource": "User-supplied Military_vault_door_opening_202608221744.mp4 copied byte-for-byte without local transcode or remux",
+      "rulesScreenSource": "apps/blacksite/art/v32/intro/blacksite-breach-start-screen-book-logic-v32.png",
+      "rights": "user-supplied video and AI-assisted project rules art; final human rights and visual review remain required before release",
+      "status": "runtime-integrated-manual-review-required"
+    },
+    {
+      "id": "ui.mode_key_art.v19",
+      "type": "v19-mode-key-art-package",
+      "path": "apps/blacksite/static/assets/blacksite/v19/modes",
+      "runtimePath": "assets/blacksite/v19/modes",
+      "format": "opaque-webp",
+      "dimensions": {
+        "width": 768,
+        "height": 768
+      },
+      "files": [
+        {
+          "name": "base.webp",
+          "bytes": 170882,
+          "sha256": "5b789bb6b588e7b88f9fe5c8d40145d75f33420d54cf5a1194e6cbb79ac504c9"
+        },
+        {
+          "name": "blackout.webp",
+          "bytes": 251334,
+          "sha256": "6a739224e183e29254a189678bff87cc2a5fe3743a5c867bfd956d212eff3b53"
+        },
+        {
+          "name": "deep-access.webp",
+          "bytes": 209124,
+          "sha256": "7dbf88d8f254cd2e28fad14a7b0562c78b15cd803f061167238ba814dc9f7c11"
+        }
+      ],
+      "runtimeWebpCount": 3,
+      "runtimeBytes": 631340,
+      "runtimeTreeSha256": "d06312081e4d83e9c65467f575bb3341f0f806ee0193aaa496a782660536222b",
+      "source": "Three text-free OpenAI built-in image_gen mode views derived from the single V19 Vault design language",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "symbol.a.v4",
+      "symbolId": "a",
+      "code": "SYM_09",
+      "type": "raster-reel-symbol-state-pack",
+      "tier": "low",
+      "path": "apps/blacksite/static/assets/blacksite/symbols/sym_09_a/states-v4",
+      "runtimePath": "assets/blacksite/symbols/sym_09_a/states-v4",
+      "format": "rgba-webp",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "states": [
+        "base",
+        "win",
+        "dim"
+      ],
+      "runtimeWebpCount": 3,
+      "runtimeBytes": 154816,
+      "runtimeTreeSha256": "b0f0448dd170d1f1f35037f65c86024722f14c645bdeea8e6262f6b8daeb0d24",
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/symbols-v4/objects/sym_09_a-object-v4.png",
+        "dimensions": {
+          "width": 1254,
+          "height": 1254
+        },
+        "sha256": "863c17de214f15419de568dd4f8500eefaedb25f16d025b93b6f8ee9004461c2"
+      },
+      "source": "OpenAI built-in image_gen isolated 3D metal glyph on flat magenta, chroma-to-alpha conversion, then deterministic raster-state builder",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "symbol.k.v4",
+      "symbolId": "k",
+      "code": "SYM_10",
+      "type": "raster-reel-symbol-state-pack",
+      "tier": "low",
+      "path": "apps/blacksite/static/assets/blacksite/symbols/sym_10_k/states-v4",
+      "runtimePath": "assets/blacksite/symbols/sym_10_k/states-v4",
+      "format": "rgba-webp",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "states": [
+        "base",
+        "win",
+        "dim"
+      ],
+      "runtimeWebpCount": 3,
+      "runtimeBytes": 158286,
+      "runtimeTreeSha256": "efda7a9e9895f418b4efebd136786356373f17f562ae24ab2789323795fa6f5f",
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/symbols-v4/objects/sym_10_k-object-v4.png",
+        "dimensions": {
+          "width": 1024,
+          "height": 1024
+        },
+        "sha256": "22285f2fd5fdd36a361a7cf14ac8870872f21c3c74fe61ce858d0b6cee2b605b"
+      },
+      "source": "OpenAI built-in image_gen isolated 3D metal glyph on flat magenta, chroma-to-alpha conversion, then deterministic raster-state builder",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "symbol.q.v4",
+      "symbolId": "q",
+      "code": "SYM_11",
+      "type": "raster-reel-symbol-state-pack",
+      "tier": "low",
+      "path": "apps/blacksite/static/assets/blacksite/symbols/sym_11_q/states-v4",
+      "runtimePath": "assets/blacksite/symbols/sym_11_q/states-v4",
+      "format": "rgba-webp",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "states": [
+        "base",
+        "win",
+        "dim"
+      ],
+      "runtimeWebpCount": 3,
+      "runtimeBytes": 164226,
+      "runtimeTreeSha256": "68e6e74d51dfb5c1de57b02548ee24082b86610c230250ce16e1258c624fa360",
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/symbols-v4/objects/sym_11_q-object-v4.png",
+        "dimensions": {
+          "width": 1024,
+          "height": 1024
+        },
+        "sha256": "1684531a8b1e1ecb54ff4a41ccda15fd7fad9bf966545da7045805bfc2fe1ec9"
+      },
+      "source": "OpenAI built-in image_gen isolated 3D metal glyph on flat magenta, chroma-to-alpha conversion, then deterministic raster-state builder",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "symbol.j.v4",
+      "symbolId": "j",
+      "code": "SYM_12",
+      "type": "raster-reel-symbol-state-pack",
+      "tier": "low",
+      "path": "apps/blacksite/static/assets/blacksite/symbols/sym_12_j/states-v4",
+      "runtimePath": "assets/blacksite/symbols/sym_12_j/states-v4",
+      "format": "rgba-webp",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "states": [
+        "base",
+        "win",
+        "dim"
+      ],
+      "runtimeWebpCount": 3,
+      "runtimeBytes": 131348,
+      "runtimeTreeSha256": "f8d940a235798e36e4233e3a195ad663f1a0f4b52a65d7c7242f473f7f575499",
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/symbols-v4/objects/sym_12_j-object-v4.png",
+        "dimensions": {
+          "width": 1024,
+          "height": 1024
+        },
+        "sha256": "7f569276b3273a38214bb514fb7002d6a1409fce9c858d18158bc2f70b0b6bdf"
+      },
+      "source": "OpenAI built-in image_gen isolated 3D metal glyph on flat magenta, chroma-to-alpha conversion, then deterministic raster-state builder",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "symbol.ten.v4",
+      "symbolId": "ten",
+      "code": "SYM_13",
+      "type": "raster-reel-symbol-state-pack",
+      "tier": "low",
+      "path": "apps/blacksite/static/assets/blacksite/symbols/sym_13_ten/states-v4",
+      "runtimePath": "assets/blacksite/symbols/sym_13_ten/states-v4",
+      "format": "rgba-webp",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "states": [
+        "base",
+        "win",
+        "dim"
+      ],
+      "runtimeWebpCount": 3,
+      "runtimeBytes": 192222,
+      "runtimeTreeSha256": "911850184f848ebfa07ef40afae882719684b53b09acb44a1ed6e528fc6b3177",
+      "sourceObject": {
+        "path": "apps/blacksite/art/generated/symbols-v4/objects/sym_13_ten-object-v4.png",
+        "dimensions": {
+          "width": 1024,
+          "height": 1024
+        },
+        "sha256": "b0404d5d5f9ff9cbc2cab2187538ce83889302ec6d6c8ef4bac6c25526957afe"
+      },
+      "source": "OpenAI built-in image_gen isolated 3D metal glyph on flat magenta, chroma-to-alpha conversion, then deterministic raster-state builder",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime"
+    },
+    {
+      "id": "character.tactical_penguin.v20",
+      "type": "animated-webp-character-pack",
+      "path": "apps/blacksite/static/assets/blacksite/v20/penguin-operator",
+      "runtimePath": "assets/blacksite/v20/penguin-operator",
+      "format": "rgba-webp-plus-json-manifest",
+      "runtimeFileCount": 27,
+      "runtimeBytes": 35703284,
+      "runtimeTreeSha256": "7b22bf17d3a19dc07e7d226fda16308bb47b73fa2c47211f07c5dcc31d681d04",
+      "manifest": "apps/blacksite/static/assets/blacksite/v20/penguin-operator/manifest.json",
+      "source": "project-authored tactical Penguin pack",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime-canonical-character"
+    },
+    {
+      "id": "symbol.operative_penguin.v22",
+      "symbolId": "operative",
+      "code": "SYM_01",
+      "type": "raster-reel-symbol-state-pack",
+      "path": "apps/blacksite/static/assets/blacksite/v22/symbols/operative",
+      "runtimePath": "assets/blacksite/v22/symbols/operative",
+      "format": "rgba-webp",
+      "states": [
+        "base",
+        "win",
+        "dim"
+      ],
+      "runtimeWebpCount": 3,
+      "runtimeBytes": 145534,
+      "source": "project-authored tactical Penguin reel identity",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime-canonical-operative"
+    },
+    {
+      "id": "ui.penguin_reel_strips.v22",
+      "type": "opaque-animated-reel-strip-pack",
+      "path": "apps/blacksite/static/assets/blacksite/v22/ui/reel-strips",
+      "runtimePath": "assets/blacksite/v22/ui/reel-strips",
+      "format": "webp",
+      "runtimeWebpCount": 5,
+      "runtimeBytes": 2793632,
+      "source": "deterministic V22 reel-strip build using the canonical Penguin operative",
+      "rights": "project-authored assets; human originality and final-use review pending",
+      "status": "runtime-canonical-reels"
+    },
+    {
+      "id": "environment.responsive_candidates.v28",
+      "type": "responsive-opaque-environment-pack",
+      "path": "apps/blacksite/static/assets/blacksite/v28/environment",
+      "runtimePath": "assets/blacksite/v28/environment",
+      "format": "webp",
+      "runtimeWebpCount": 6,
+      "runtimeBytes": 1352930,
+      "runtimeTreeSha256": "0ae1f51d81d6303c3ee68f36326ea1d3addf7a4790453f9615ea189101d3bfb9",
+      "manifest": "apps/blacksite/art/v28/environment/PACK_MANIFEST.json",
+      "runtimeRole": "catalogued/prewarmed candidate only; V22 owns the visible shell",
+      "rights": "AI-assisted project asset; human originality and final-use review pending",
+      "status": "runtime-candidate-not-visible-owner"
+    },
+    {
+      "id": "audio.full_event_pack.v28",
+      "type": "pcm-wav-audio-pack",
+      "historical": true,
+      "supersededBy": "audio.curated_runtimepack_v1.v29",
+      "productionExcluded": true,
+      "excludedBy": "apps/blacksite/scripts/prune-production-assets.mjs",
+      "path": "apps/blacksite/static/assets/blacksite/v28/audio",
+      "runtimePath": "assets/blacksite/v28/audio",
+      "format": "pcm-wav-plus-json-manifest",
+      "runtimeFileCount": 154,
+      "runtimeWavCount": 153,
+      "runtimeBytes": 3445236,
+      "runtimeTreeSha256": "293e6d58676a9fd21ad6c574bc20a7b330a0f77f72dc6d3b3ea99c1502a2a368",
+      "manifest": "apps/blacksite/static/assets/blacksite/v28/audio/audio-manifest.json",
+      "rights": "project-generated audio; audible QA remains provisional",
+      "status": "source-retained-production-pruned"
+    },
+    {
+      "id": "audio.curated_runtimepack_v1.v29",
+      "type": "curated-multicodec-audio-pack",
+      "path": "apps/blacksite/static/assets/blacksite/v29/audio",
+      "runtimePath": "assets/blacksite/v29/audio",
+      "format": "flac-ogg-opus-wav-plus-json-manifest",
+      "runtimeFileCount": 122,
+      "runtimeMediaFileCount": 121,
+      "runtimeBytes": 3318590,
+      "runtimeMediaBytes": 3236044,
+      "runtimeTypeCounts": {
+        ".flac": 1,
+        ".json": 1,
+        ".ogg": 102,
+        ".opus": 1,
+        ".wav": 17
+      },
+      "runtimeTreeSha256": "63b7ca15b81764a6b3aeb35c16659b20d9b4f04578c86a6f28580b5af3cfc2cc",
+      "productionGroupTreeSha256": "6916a04cded0667224aa1466cf8c92cd4ba8d63b9bd5a894eef8a7047858e47a",
+      "manifest": "apps/blacksite/static/assets/blacksite/v29/audio/audio-manifest.json",
+      "selection": "apps/blacksite/art/audio/runtimepack-v1/selection.json",
+      "importReport": "apps/blacksite/art/audio/runtimepack-v1/IMPORT_REPORT.json",
+      "source": "byte-preserved curated selection from the user-supplied Blackside Breach Audio Complete RuntimePack v1.0 archive",
+      "rights": "supplied pack declares a CC0-only license policy; final human rights review and device audition remain pending",
+      "status": "runtime-technical-import-pass-manual-audible-and-rights-review-pending"
     }
   ],
-  "requiredProductionGroups": [
-    {
-      "id": "brand-title",
-      "status": "planned"
-    },
-    {
-      "id": "environment-desktop-portrait-popout-blackout",
-      "status": "concept-started"
-    },
-    {
-      "id": "board-frame-cells-breach-states",
-      "status": "planned"
-    },
-    {
-      "id": "symbols-six-production-sprites",
-      "status": "concept-started"
-    },
-    {
-      "id": "character-spine-4.2-rig-atlas-events-fallback",
-      "status": "concept-started"
-    },
-    {
-      "id": "ui-controls-icons-mode-art",
-      "status": "planned"
-    },
-    {
-      "id": "fx-particles-spritesheets",
-      "status": "planned"
-    },
-    {
-      "id": "audio-music-sfx",
-      "status": "planned"
-    },
-    {
-      "id": "stake-game-tile-package",
-      "status": "planned"
-    }
+  "uiAssetDelivery": {
+    "registry": "apps/blacksite/src/lib/assets/blacksite-asset-registry.js",
+    "mode": "dedicated alpha WebP control, panel, symbol-state and payline packs with live DOM text and authoritative interaction state",
+    "groups": [
+      "branding-header",
+      "canonical-v20-tactical-penguin-character-stage",
+      "reel-frame-tiles-glass",
+      "raster-line-markers-and-ten-payline-overlays",
+      "five-v22-penguin-raster-reel-spin-strips",
+      "five-responsive-v22-premium-machine-shells",
+      "feature-banner-counter-target",
+      "premium-hud-v2-control-state-packs",
+      "premium-hud-v2-value-and-ticker-panels",
+      "v27-textless-feature-readout-content-card-modal-header-award-chip-progress-and-reward-halo-surfaces",
+      "seven-purpose-sized-premium-dialog-frames",
+      "rules-settings-auto-menu-mode-confirmation-runtime-error-dialog-content",
+      "v22-penguin-operative-plus-eleven-v4-raster-symbol-state-packs-plus-v19-single-vault-state-pack",
+      "three-v19-vault-cinematic-scenes",
+      "canonical-v26-720p24-vault-opening-mp4-and-matching-poster",
+      "mandatory-v33-startup-vault-video-then-rules-screen-package",
+      "three-v19-mode-key-art-rasters",
+      "v29-curated-runtimepack-v1-multicodec-audio-pack",
+      "six-v28-responsive-environment-preload-candidates-with-v22-visible-owner",
+      "responsive-desktop-mobile-popout-composition"
+    ],
+    "interactionStates": [
+      "normal",
+      "hover",
+      "pressed",
+      "active",
+      "disabled"
+    ],
+    "dynamicTextPolicy": "balances, wagers, wins, labels and accessibility text remain live DOM and are never baked into decorative raster assets"
+  },
+  "forbiddenRuntimeLegacyAssets": [
+    "assets/blacksite/symbols/industrial-symbol-sheet-v1.png",
+    "assets/blacksite/symbols/ghost-wild-v2.png",
+    "assets/blacksite/symbols/breach-core-v2.png",
+    "assets/blacksite/character/operative-male-v1.png",
+    "assets/blacksite/character/operative-idle-v1.png",
+    "assets/blacksite/symbols/sym_01_operative",
+    "assets/blacksite/runtime-rgba-v1/runtime_sequences",
+    "assets/blacksite/runtime-rgba-v1/static_keyposes",
+    "assets/blacksite/ui/reel-strips-v1",
+    "assets/blacksite/ui/reel-depth-v1",
+    "assets/blacksite/audio/v19",
+    "assets/blacksite/v28/audio",
+    "assets/blacksite/environment",
+    "assets/blacksite/v19/cinematic/dev-rig-v1",
+    "assets/blacksite/v24",
+    "assets/blacksite/v30",
+    "assets/blacksite/v31",
+    "assets/blacksite/symbols/sym_08_breach_scatter/states-v4/anticipation-v4.webp",
+    "assets/blacksite/symbols/sym_08_breach_scatter/states-v4/base-v4.webp",
+    "assets/blacksite/symbols/sym_08_breach_scatter/states-v4/dim-v4.webp",
+    "assets/blacksite/symbols/sym_08_breach_scatter/states-v4/triggered-v4.webp",
+    "assets/blacksite/symbols/sym_08_breach_scatter/states-v4/win-v4.webp"
   ]
 }

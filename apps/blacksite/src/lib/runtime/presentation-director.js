@@ -1,3 +1,9 @@
+import { SYMBOL_DISPLAY_NAMES } from '../contracts/reels.js';
+
+function symbolLabel(symbol) {
+	return SYMBOL_DISPLAY_NAMES[symbol] ?? String(symbol).replaceAll('_', ' ').toUpperCase();
+}
+
 export function createInitialPresentationState() {
 	return Object.freeze({
 		status: 'idle',
@@ -5,16 +11,17 @@ export function createInitialPresentationState() {
 		mode: null,
 		phase: 'base',
 		board: null,
-		activeClusters: Object.freeze([]),
-		routeSnapshot: null,
-		featureCycle: 0,
-		featureCyclesAwarded: 0,
-		accessMultiplier: 1,
+		evaluatedBoard: null,
+		activeLines: Object.freeze([]),
+		featureTarget: null,
+		freeSpinIndex: 0,
+		totalFreeSpins: 0,
+		remainingFreeSpins: 0,
 		stepWinRaw: 0,
 		cumulativeWinRaw: 0,
 		finalWinRaw: null,
 		capped: false,
-		notice: 'Awaiting authoritative events',
+		notice: 'Choose a bet and press SPIN',
 	});
 }
 
@@ -62,89 +69,77 @@ export class PresentationDirector {
 					status: 'presenting',
 					mode: event.mode,
 					phase: event.initial_phase,
-					notice: `${event.mode} round accepted`,
+					notice: event.initial_phase === 'feature' ? 'BLACKOUT selected' : 'Reels spinning',
 				});
 				break;
 			case 'board_snapshot':
 				this.update({
 					...common,
-					board: event.board,
-					activeClusters: Object.freeze([]),
-					stepWinRaw: 0,
 					phase: event.phase,
-					featureCycle: event.feature_cycle,
-					notice: `Authoritative board ${event.tumble_index}`,
+					board: event.board,
+					evaluatedBoard: event.board,
+					activeLines: Object.freeze([]),
+					stepWinRaw: 0,
+					notice: event.phase === 'feature'
+						? `Free spin ${event.spin_index}: checking all 10 lines`
+						: 'Checking all 10 lines',
+				});
+				break;
+			case 'expansion':
+				this.update({
+					...common,
+					evaluatedBoard: event.evaluated_board,
+					featureTarget: event.target_symbol,
+					notice: `${symbolLabel(event.target_symbol)} expanded on ${event.expanded_reels.length} reel(s)`,
 				});
 				break;
 			case 'win':
 				this.update({
 					...common,
 					phase: event.phase,
-					activeClusters: event.clusters,
+					activeLines: Object.freeze(event.wins),
 					stepWinRaw: event.step_payout_raw,
 					cumulativeWinRaw: event.cumulative_after_raw,
-					notice: `${event.clusters.length} authoritative cluster cue(s)`,
-				});
-				break;
-			case 'route_snapshot':
-				this.update({
-					...common,
-					routeSnapshot: event,
-					accessMultiplier: event.current_access_multiplier,
-					cumulativeWinRaw: event.cumulative_payout_raw,
-					notice: 'Authoritative Ghost Route snapshot',
-				});
-				break;
-			case 'access_changed':
-				this.update({
-					...common,
-					accessMultiplier: event.next_multiplier,
-					notice: `Access ${event.previous_multiplier} -> ${event.next_multiplier}`,
+					notice: `${event.wins.length} winning line${event.wins.length === 1 ? '' : 's'}`,
 				});
 				break;
 			case 'feature_armed':
-				this.update({ ...common, notice: 'BLACKOUT armed after cascade chain' });
+				this.update({
+					...common,
+					notice: `${event.distinct_reels} VAULT reels award ${event.awarded_free_spins} free spins`,
+				});
 				break;
 			case 'feature_started':
 				this.update({
 					...common,
 					phase: 'feature',
-					routeSnapshot: event.initial_route,
-					featureCyclesAwarded: event.total_cycles,
-					accessMultiplier: event.access_multiplier,
-					notice: event.direct ? 'Direct BLACKOUT entry' : 'Natural BLACKOUT entry',
+					featureTarget: event.target_symbol,
+					freeSpinIndex: 0,
+					totalFreeSpins: event.total_free_spins,
+					remainingFreeSpins: event.total_free_spins,
+					activeLines: Object.freeze([]),
+					stepWinRaw: 0,
+					notice: `${event.total_free_spins} free spins awarded - expanding target ${symbolLabel(event.target_symbol)}`,
 				});
 				break;
 			case 'feature_cycle':
 				this.update({
 					...common,
-					featureCycle: event.cycle,
-					featureCyclesAwarded: event.total_cycles_awarded,
-					accessMultiplier: event.access_multiplier,
-					notice: `Feature cycle ${event.cycle}`,
-				});
-				break;
-			case 'exfil_reached':
-				this.update({
-					...common,
-					featureCyclesAwarded: event.total_cycles_after,
-					accessMultiplier: event.next_access_multiplier,
-					notice: `EXFIL ${event.port_id} reached`,
-				});
-				break;
-			case 'tumble':
-				this.update({
-					...common,
-					activeClusters: Object.freeze([]),
+					phase: 'feature',
+					freeSpinIndex: event.free_spin_index,
+					totalFreeSpins: event.total_free_spins,
+					remainingFreeSpins: event.remaining_after_current,
+					activeLines: Object.freeze([]),
 					stepWinRaw: 0,
-					notice: `Tumble ${event.tumble_index}`,
+					notice: `Free spin ${event.free_spin_index} of ${event.total_free_spins} - ${event.remaining_after_current} remaining`,
 				});
 				break;
 			case 'feature_ended':
 				this.update({
 					...common,
+					remainingFreeSpins: 0,
 					cumulativeWinRaw: event.cumulative_payout_raw,
-					notice: 'BLACKOUT complete',
+					notice: `${this.state.totalFreeSpins}/${this.state.totalFreeSpins} free spins complete`,
 				});
 				break;
 			case 'cap_reached':
@@ -152,7 +147,7 @@ export class PresentationDirector {
 					...common,
 					capped: true,
 					cumulativeWinRaw: event.cumulative_payout_raw,
-					notice: 'Complete-round cap reached',
+					notice: '10,000x maximum win reached',
 				});
 				break;
 			case 'settled':
@@ -163,7 +158,7 @@ export class PresentationDirector {
 					finalWinRaw: event.payout_multiplier_raw,
 					cumulativeWinRaw: event.payout_multiplier_raw,
 					capped: event.capped,
-					notice: 'Authoritative round_end reached',
+					notice: event.payout_multiplier_raw === 0 ? 'No line win' : 'Round win confirmed',
 				});
 				break;
 			default:

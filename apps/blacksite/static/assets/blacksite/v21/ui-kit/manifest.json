@@ -1,0 +1,182 @@
+{
+  "schema": "blacksite-ui-kit-v21",
+  "runtimeRoot": "/assets/blacksite/v21/ui-kit/",
+  "statePriority": [
+    "disabled",
+    "danger",
+    "pressed",
+    "focus",
+    "selected",
+    "hover",
+    "idle"
+  ],
+  "control": {
+    "size": [
+      288,
+      144
+    ],
+    "sliceInsets": [
+      48,
+      48,
+      48,
+      48
+    ],
+    "states": [
+      "idle",
+      "hover",
+      "pressed",
+      "focus",
+      "selected",
+      "disabled",
+      "danger"
+    ]
+  },
+  "panel": {
+    "size": [
+      384,
+      256
+    ],
+    "sliceInsets": [
+      64,
+      64,
+      64,
+      64
+    ],
+    "states": [
+      "idle",
+      "danger"
+    ]
+  },
+  "readout": {
+    "size": [
+      320,
+      128
+    ],
+    "sliceInsets": [
+      32,
+      48,
+      32,
+      48
+    ],
+    "states": [
+      "idle"
+    ]
+  },
+  "roundAtlas": {
+    "size": [
+      1400,
+      200
+    ],
+    "cell": [
+      200,
+      200
+    ],
+    "states": [
+      "idle",
+      "hover",
+      "pressed",
+      "focus",
+      "selected",
+      "disabled",
+      "danger"
+    ]
+  },
+  "glyphAtlas": {
+    "size": [
+      1536,
+      480
+    ],
+    "cell": [
+      96,
+      96
+    ],
+    "columns": [
+      "menu",
+      "buy",
+      "auto",
+      "minus",
+      "plus",
+      "spin",
+      "turbo",
+      "info",
+      "settings",
+      "close",
+      "resume",
+      "warning",
+      "chevron-down",
+      "check",
+      "lock",
+      "audio"
+    ],
+    "rows": [
+      "idle",
+      "hover-focus",
+      "pressed-selected",
+      "disabled",
+      "danger"
+    ]
+  },
+  "files": [
+    {
+      "path": "atlas/glyphs.webp",
+      "bytes": 101978,
+      "sha256": "b4a274be327929ec5c1a3afeb99c53ee7ddac4b255c154687584faebb107b614"
+    },
+    {
+      "path": "atlas/round-states.webp",
+      "bytes": 44626,
+      "sha256": "f23753c44ac0cfbd48b82fdb68e080329f52c0280756b879fdb8f83481875c97"
+    },
+    {
+      "path": "nine-slice/control/danger.webp",
+      "bytes": 4508,
+      "sha256": "231dcab5e337acaaa74457d35f6cc79f857afcfb4b593463b20b550a92439c84"
+    },
+    {
+      "path": "nine-slice/control/disabled.webp",
+      "bytes": 4126,
+      "sha256": "451d429f188a82f26d92c22e0fed5cab3e7c0b454a46ee07f0de7c6a2cb5a11f"
+    },
+    {
+      "path": "nine-slice/control/focus.webp",
+      "bytes": 5140,
+      "sha256": "9d1fa1dfcc86ff0eac98c36e4ca69ada4579a16f22e3f9e0a23e9d49eea8f641"
+    },
+    {
+      "path": "nine-slice/control/hover.webp",
+      "bytes": 4840,
+      "sha256": "ecc5b906b927159eda54e6b034bc22e8391560e39f80dee873d9dc0aa5f07a79"
+    },
+    {
+      "path": "nine-slice/control/idle.webp",
+      "bytes": 4168,
+      "sha256": "4fb55e951f91268f21674e7f7530dd509240ed107d325edadebc7057449f2c3a"
+    },
+    {
+      "path": "nine-slice/control/pressed.webp",
+      "bytes": 4532,
+      "sha256": "43afc3fcaa16e8f375a2e43a3b58f5d6ec8bd28dc10fcb52c74bf9f62c939623"
+    },
+    {
+      "path": "nine-slice/control/selected.webp",
+      "bytes": 4622,
+      "sha256": "b2ad70160294b4e767a262e97330b29995a913cfedae582acbe403af1528fac4"
+    },
+    {
+      "path": "nine-slice/panel/danger.webp",
+      "bytes": 2874,
+      "sha256": "4156ef99b2db843f4196970cc5ca9524e3e51e93e6d56964a425055a83979e3d"
+    },
+    {
+      "path": "nine-slice/panel/idle.webp",
+      "bytes": 2808,
+      "sha256": "938e4a2209dae5268010fd205da06d8f48e0c3c98b68e14e76664af36fbb9606"
+    },
+    {
+      "path": "nine-slice/readout/idle.webp",
+      "bytes": 4142,
+      "sha256": "6b4f09c027d1fd37430e60d7779914f0659215c287a636cd693af8a0d41340dc"
+    }
+  ],
+  "totalBytes": 188364
+}

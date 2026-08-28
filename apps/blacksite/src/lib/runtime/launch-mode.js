@@ -9,7 +9,15 @@ function parseRgsUrl(rawValue) {
 		return { ok: false, code: 'RGS_URL_MISSING' };
 	}
 	try {
-		const url = new URL(rawValue);
+		const raw = rawValue.trim();
+		const explicitProtocol = /^[a-z][a-z\d+.-]*:\/\//i.test(raw);
+		if (explicitProtocol && !/^https?:\/\//i.test(raw)) {
+			return { ok: false, code: 'RGS_URL_INVALID' };
+		}
+		if (/^[\\/?#]/.test(raw) || raw.includes('\\') || /\s/.test(raw)) {
+			return { ok: false, code: 'RGS_URL_INVALID' };
+		}
+		const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
 		if (
 			!['https:', 'http:'].includes(url.protocol) ||
 			!url.hostname ||
@@ -53,10 +61,9 @@ function isBoundedText(value, maxLength = 240) {
 
 function parseLanguage(value, { required = false } = {}) {
 	if (value === null) return required ? null : undefined;
-	// BLACKSITE M2 intentionally ships English only. Unknown or malformed
-	// language values must not corrupt launch; they resolve to the supported
-	// English resource instead of being reflected into UI or requests.
-	return 'en';
+	// BLACKSITE ships bounded English and German resources. Unknown language values
+	// fail safely to English instead of being reflected into UI or requests.
+	return /^de(?:[-_]|$)/iu.test(value) ? 'de' : 'en';
 }
 
 function parseDevice(value, { required = false } = {}) {

@@ -1,0 +1,43 @@
+{
+  "schema": "blacksite-v24-runtime-evidence/v1",
+  "note": "Portable runtime evidence only; machine-local encoder commands were intentionally omitted.",
+  "runtimeStaging": {
+    "video2160": {
+      "path": "apps/blacksite/art/generated/v24/cinematic/vault-opening/runtime-staging/vault-opening-blackout-v24-2160p60.webm",
+      "width": 3840,
+      "height": 2160,
+      "fps": 60,
+      "frames": 247,
+      "durationMs": 4116.666667,
+      "codec": "VP8",
+      "pixelFormat": "yuv420p",
+      "muted": true,
+      "loop": false,
+      "bytes": 20479146,
+      "sha256": "ab50b2f15204ea6f420746724608df588b782fb30f61a57e3f3463de94c0a59e"
+    },
+    "video1080": {
+      "path": "apps/blacksite/art/generated/v24/cinematic/vault-opening/runtime-staging/vault-opening-blackout-v24-1080p60.webm",
+      "width": 1920,
+      "height": 1080,
+      "fps": 60,
+      "frames": 247,
+      "durationMs": 4116.666667,
+      "codec": "VP8",
+      "pixelFormat": "yuv420p",
+      "muted": true,
+      "loop": false,
+      "bytes": 7455404,
+      "sha256": "26ea80df6e50ad7690d15884ccb275bc189cc158b8a9507610fdc4f27ff3f095"
+    },
+    "poster1080": {
+      "path": "apps/blacksite/art/generated/v24/cinematic/vault-opening/runtime-staging/vault-opening-blackout-v24-poster-1080p.webp",
+      "width": 1920,
+      "height": 1080,
+      "format": "WebP",
+      "quality": 92,
+      "bytes": 414874,
+      "sha256": "eecae4f60e4c413ac9999cc5d194eba1d638ee0b6ff1fdecd3e570be4c82ab49"
+    }
+  }
+}

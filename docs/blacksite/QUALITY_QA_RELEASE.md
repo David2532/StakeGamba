@@ -93,7 +93,7 @@ Required fixtures:
 - medium win;
 - big win;
 - five-win rule cases per mode;
-- 3/5 cascade sequences;
+- 3/4/5-symbol line wins and simultaneous winning lines;
 - feature tease;
 - feature trigger;
 - bonus entry;
@@ -210,7 +210,7 @@ Measure heavy fixtures:
 - first interactive load;
 - first legal play readiness;
 - intro;
-- cascade-heavy round;
+- line-heavy round with all eight free spins;
 - bonus entry;
 - max win;
 - rules modal;
@@ -277,6 +277,12 @@ node scripts/blacksite-qa-e2e.mjs
 
 The packager requires a clean worktree, a caller-pinned full commit SHA and a caller-pinned frontend tree SHA. It verifies all seven canonical math inputs against the retained M1 `CANDIDATE_MANIFEST.json`, refuses to overwrite an existing target and writes `uploadAuthorized: false`. Producing these folders is package evidence only; BLACKSITE remains non-submission-ready while production art, Spine, audio, manual device/visual review or external Stake gates are open.
 
+### V19 isolated package contract
+
+V19 uses the stricter versioned contract in `V19_PACKAGING_EVIDENCE.md` and `V19_PACKAGE_CONTRACT.json`. It pins commit `1edbc06c699bd6f1bbbd248cc16ac0c5dbe1ed94` as the V18 source baseline, requires V19 math to remain byte-identical to the V18 math upload tree, leaves the V19 frontend hash unbound until the final fresh build and writes only the exact sibling roots `BLACKSITE_FRONTEND_UPLOAD_V19`, `BLACKSITE_MATH_UPLOAD_V19` and `BLACKSITE_V19_EVIDENCE`.
+
+The V19 package verifier can return only `PASS_PACKAGE_IDENTITY_ONLY`. Manual, extracted-browser and external gates remain explicitly open/pending, and `releaseReady` plus `uploadAuthorized` remain false.
+
 ## 12. Clean regeneration gate
 
 To detect stale generated outputs:
@@ -320,7 +326,7 @@ Human review of exact extracted frontend covers:
 - game tile assets;
 - rules readability;
 - character animation;
-- spin/reveal/cascade timing;
+- spin/reveal/line-win/free-spin timing;
 - feature transition;
 - big/max win;
 - sound/mute;

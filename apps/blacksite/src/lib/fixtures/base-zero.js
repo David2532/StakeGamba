@@ -17,18 +17,16 @@ function deepFreeze(value) {
 }
 
 const board = [
-	['vault', 'daemon', 'vault', 'daemon', 'vault', 'daemon', 'vault'],
-	['daemon', 'vault', 'daemon', 'vault', 'daemon', 'vault', 'daemon'],
-	['vault', 'daemon', 'vault', 'daemon', 'vault', 'daemon', 'vault'],
-	['daemon', 'vault', 'daemon', 'vault', 'daemon', 'vault', 'daemon'],
-	['vault', 'daemon', 'vault', 'daemon', 'vault', 'daemon', 'vault'],
-	['daemon', 'vault', 'daemon', 'vault', 'daemon', 'vault', 'daemon'],
-	['vault', 'daemon', 'vault', 'daemon', 'vault', 'daemon', 'vault'],
+	['classified_folder', 'q', 'encrypted_drive'],
+	['q', 'j', 'supply_crate'],
+	['ten', 'classified_folder', 'q'],
+	['q', 'a', 'encrypted_drive'],
+	['a', 'tactical_radio', 'encrypted_drive'],
 ];
 
 export const BASE_ZERO_FIXTURE = deepFreeze({
 	id: 'base_zero',
-	label: 'Published base zero-win / book 1',
+	label: 'Published v3 base zero-win / book 1',
 	mode: 'base',
 	mathBacked: true,
 	bookId: 1,
@@ -42,24 +40,23 @@ export const BASE_ZERO_FIXTURE = deepFreeze({
 			{
 				index: 0,
 				type: 'round_start',
-				schema_version: 1,
+				schema_version: 3,
 				event_contract: EVENT_CONTRACT,
 				mode: 'base',
 				cost_multiplier: 1,
 				payout_unit: PAYOUT_UNIT,
 				max_win_raw: MAX_WIN_RAW,
-				board_columns: 7,
-				board_rows: 7,
+				board_columns: 5,
+				board_rows: 3,
+				payline_count: 10,
 				initial_phase: 'base',
-				seeded_breached_cells: [],
-				seeded_live_cells: [],
+				guaranteed_breach_positions: [],
 			},
 			{
 				index: 1,
-				type: 'board_set',
+				type: 'spin_set',
 				phase: 'base',
-				feature_cycle: 0,
-				tumble_index: 0,
+				spin_index: 0,
 				board,
 			},
 			{

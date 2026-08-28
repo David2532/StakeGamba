@@ -1,24 +1,18 @@
 import { MAX_WIN_RAW, MODES, PAYOUT_UNIT, TARGET_RTP } from './modes.js';
+import { LINE_PAYTABLE_RAW } from './reels.js';
 
-export const CLUSTER_BANDS = Object.freeze([
-	Object.freeze({ id: 'cluster_5_7', label: '5–7' }),
-	Object.freeze({ id: 'cluster_8_11', label: '8–11' }),
-	Object.freeze({ id: 'cluster_12_16', label: '12–16' }),
-	Object.freeze({ id: 'cluster_17_23', label: '17–23' }),
-	Object.freeze({ id: 'cluster_24_31', label: '24–31' }),
-	Object.freeze({ id: 'cluster_32_39', label: '32–39' }),
-	Object.freeze({ id: 'cluster_40_48', label: '40–48' }),
-	Object.freeze({ id: 'cluster_49', label: '49' }),
+export const LINE_LENGTHS = Object.freeze([
+	Object.freeze({ id: 'line_3', label: '3' }),
+	Object.freeze({ id: 'line_4', label: '4' }),
+	Object.freeze({ id: 'line_5', label: '5' }),
 ]);
 
-const symbolPayouts = {
-	byte: [1, 2, 3, 4, 14, 100, 500, 2500],
-	relay: [2, 5, 6, 7, 25, 250, 750, 5000],
-	proxy: [3, 6, 8, 9, 207, 500, 1000, 10000],
-	cipher: [4, 7, 9, 10, 207, 100, 2500, 25000],
-	daemon: [5, 8, 10, 11, 250, 1000, 5000, 50000],
-	vault: [6, 9, 12, 13, 500, 2500, 10000, 100000],
-};
+const symbolPayouts = Object.fromEntries(
+	Object.entries(LINE_PAYTABLE_RAW).map(([symbol, payouts]) => [
+		symbol,
+		[3, 4, 5].map((matchCount) => payouts[matchCount]),
+	]),
+);
 
 export const SYMBOL_PAYOUTS = Object.freeze(
 	Object.fromEntries(
@@ -26,36 +20,95 @@ export const SYMBOL_PAYOUTS = Object.freeze(
 	),
 );
 
+export const RULES_INTERFACE_COPY = Object.freeze({
+	normal: Object.freeze({
+		gameplayHint: 'MATCH 3+ FROM THE LEFT / CHOOSE BET / PRESS SPIN',
+		controlDeckLabel: 'Bet, total, win and spin controls',
+		amountLabel: 'BET',
+		rulesLead:
+			'Choose the entry mode and BET, check TOTAL, then press SPIN. All ten paylines are fixed and always active.',
+		totalFormula: 'TOTAL = BET x MODE COST',
+		resultHeading: 'PAYOUTS / CONSECUTIVE SYMBOLS / BET MULTIPLIER',
+		resultExplanation:
+			'Values are multiples of BET. Each line pays at most one deterministic symbol result; VAULT is a non-paying trigger.',
+	}),
+	social: Object.freeze({
+		gameplayHint: 'MATCH 3+ FROM THE LEFT / CHOOSE PLAY AMOUNT / PRESS SPIN',
+		controlDeckLabel: 'Play amount, total play, win and spin controls',
+		amountLabel: 'PLAY AMOUNT',
+		rulesLead:
+			'Choose the entry mode and play amount, check TOTAL PLAY, then press SPIN. All ten paylines are fixed and always active.',
+		totalFormula: 'TOTAL PLAY = PLAY AMOUNT x MODE COST',
+		resultHeading: 'RESULTS / CONSECUTIVE SYMBOLS / PLAY AMOUNT MULTIPLIER',
+		resultExplanation:
+			'Values are multiples of the play amount. Each line awards at most one deterministic symbol result; VAULT is a trigger with no line award.',
+	}),
+});
+
 export const RULES_CONTRACT = Object.freeze({
-	board: Object.freeze({ columns: 7, rows: 7, adjacency: 'orthogonal', minimumCluster: 5 }),
+	board: Object.freeze({
+		columns: 5,
+		rows: 3,
+		paylines: 10,
+		direction: 'left-to-right',
+		minimumMatch: 3,
+	}),
 	payoutUnit: PAYOUT_UNIT,
 	targetRtp: TARGET_RTP,
 	maxWinRaw: MAX_WIN_RAW,
 	modes: MODES,
-	accessMultipliers: Object.freeze([1, 2, 3, 5]),
-	featureMultipliers: Object.freeze([5, 7, 10, 15]),
-	initialFeatureCycles: 6,
-	cyclesPerPort: 2,
-	maximumFeatureCycles: 12,
+	initialFeatureSpins: 8,
+	initialFeatureCycles: 8,
+	featureRetrigger: false,
+	wildSymbol: 'ghost_wild',
+	featureSymbol: 'breach',
+	quickStart: Object.freeze([
+		Object.freeze({
+			step: '01',
+			title: 'MATCH 3+',
+			copy: 'Land three, four or five matching symbols on any fixed line, starting from the leftmost reel.',
+		}),
+		Object.freeze({
+			step: '02',
+			title: 'GHOST WILD',
+			copy: 'GHOST WILD substitutes for every regular symbol. It does not substitute for VAULT.',
+		}),
+		Object.freeze({
+			step: '03',
+			title: 'TRIGGER BLACKOUT',
+			copy: 'Land three VAULT symbols on three distinct reels to award eight free spins.',
+		}),
+	]),
+	specialSymbols: Object.freeze([
+		Object.freeze({
+			id: 'ghost_wild',
+			label: 'GHOST WILD',
+			copy: 'Substitutes for all eleven regular symbols.',
+		}),
+		Object.freeze({
+			id: 'breach',
+			label: 'VAULT',
+			copy: 'Three on distinct reels award eight BLACKOUT free spins.',
+		}),
+	]),
 	mechanic: Object.freeze([
-		'Form orthogonally connected groups of five or more matching symbols on the 7 × 7 board.',
-		'All simultaneous groups are resolved from one authoritative snapshot, then their cells are removed and each column refills.',
-		'Winning cells breach the Ghost Route only after their current award is fixed. Live route cells connect to one of the three ingress cells.',
-		'A group touching an already-live cell uses the current Access multiplier. Route upgrades apply to the next evaluation only.',
-		'When the Core becomes live, BLACKOUT PROTOCOL begins after the current cascade chain ends.',
+		'All ten paylines are fixed and always active; there is no line selector.',
+		'Line wins require three, four or five consecutive matching symbols from reel one toward reel five.',
+		'More than one line may win in the same spin. All winning line awards are added together.',
+		'GHOST WILD substitutes for a regular symbol when completing a line win.',
+		'VAULT has no line award. Three VAULT symbols on three distinct reels trigger BLACKOUT; GHOST WILD never substitutes for it.',
 	]),
 	feature: Object.freeze([
-		'BLACKOUT PROTOCOL begins with six cycles.',
-		'Each north, west or east EXFIL port can extend the feature once by two cycles, up to twelve cycles total.',
-		'Linked feature groups use 5×, 7×, 10× or 15× according to the number of ports already reached.',
-		'There are no Wild, Scatter or Mystery symbols and no symbol-based retrigger.',
+		'BLACKOUT begins with exactly eight free spins.',
+		'At feature start, one of the eleven regular symbols becomes the expanding target for all eight spins.',
+		'When the target lands, it expands first; any resulting line wins are shown before the next free spin.',
+		'BLACKOUT cannot retrigger.',
 	]),
 	controls: Object.freeze([
-		'Mode buttons select one canonical access profile.',
-		'Play Amount lists every level supplied by the authenticated game service.',
-		'Initiate Breach starts one round; Space activates the same control when permitted.',
-		'DEEP ACCESS and BLACKOUT ENTRY require a second explicit confirmation showing the complete play amount.',
-		'Info opens this rules and interface guide.',
+		'MODE selects an entry route. High-cost modes require confirmation.',
+		'PLAY AMOUNT selects an available value; TOTAL shows the complete play cost.',
+		'SPIN or Space starts one permitted round. AUTO requires confirmation.',
+		'TURBO changes timing only. INFO opens these rules. SETTINGS controls game audio.',
 	]),
 	disclaimer:
 		'Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. The expected return is calculated over many plays. The game display is not representative of any physical device and is for illustrative purposes only. Winnings are settled according to the amount received from the Remote Game Server and not from events within the web browser. TM and © 2026 Stake Engine.',
@@ -65,4 +118,8 @@ export function getRulesDisclaimer(social = false) {
 	return social
 		? RULES_CONTRACT.disclaimer.replace('Stake Engine', 'the game provider')
 		: RULES_CONTRACT.disclaimer;
+}
+
+export function getRulesInterfaceCopy(social = false) {
+	return social ? RULES_INTERFACE_COPY.social : RULES_INTERFACE_COPY.normal;
 }

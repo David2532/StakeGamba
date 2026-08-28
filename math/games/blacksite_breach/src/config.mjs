@@ -27,7 +27,15 @@ export const MAX_WIN_RAW = MODE_REGISTRY.max_win_raw;
 export const TARGET_RTP = MODE_REGISTRY.target_rtp;
 export const MODE_NAMES = MODE_REGISTRY.modes.map((mode) => mode.name);
 export const MODE_BY_NAME = new Map(MODE_REGISTRY.modes.map((mode) => [mode.name, mode]));
-export const SYMBOLS = Object.freeze([...MECHANICS.symbols]);
+export const REGULAR_SYMBOLS = Object.freeze([...MECHANICS.regular_symbols]);
+export const SPECIAL_SYMBOLS = Object.freeze([...MECHANICS.special_symbols]);
+export const SYMBOLS = Object.freeze([...REGULAR_SYMBOLS, ...SPECIAL_SYMBOLS]);
+export const WILD_SYMBOL = MECHANICS.wild.symbol;
+export const BREACH_SYMBOL = MECHANICS.trigger.symbol;
+export const PAYLINES = Object.freeze(MECHANICS.paylines.map((line) => Object.freeze({
+  id: line.id,
+  rows: Object.freeze([...line.rows]),
+})));
 export const PAYOUT_UNIT = GAME_CONFIG.package_payout_unit;
 
 export function canonicalJson(value) {

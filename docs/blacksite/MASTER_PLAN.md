@@ -1,8 +1,9 @@
 # BLACKSITE // BREACH — AAA Stake Slot Master Plan
 
-Status: **M2 COMPLETE — SHA-BOUND AUTHORITATIVE GREYBOX VERIFIED / M3 CONCEPT-ASSET PASS STARTED**
+Status: **V3 13-SYMBOL CLASSIC SLOT — 5x3 MATH VERIFIED INTERNALLY / FRONTEND AND PACKAGE QA IN PROGRESS**
 
 ## 1. Product target
+
 Create a new, original Stake Engine slot that aims for **3-star studio quality**, not merely technical acceptance. The game should reuse the hardened Stake/RGS/replay/QA infrastructure already proven in StakeGamba while establishing a fully new theme, mechanic implementation, visual identity, math package, assets, and presentation layer.
 
 Working title: **BLACKSITE // BREACH**
@@ -10,20 +11,24 @@ Working title: **BLACKSITE // BREACH**
 Theme: premium cyber-heist / classified server-bunker intrusion. Dark physical environment, dense machinery, restrained emissive lighting, tactical security UI, authored side character/operative, and a board that appears integrated into the facility rather than floating over a generic background.
 
 ## 2. Core experience
+
 The player should understand the visual story without reading flavor copy:
-- Spin = initiate intrusion attempt.
-- Winning cells = compromised/breached positions.
-- Cascades = the intrusion propagates through the network.
-- Persistent/strengthening breach cells during the round = deeper access.
-- Feature trigger = security layer collapses / BLACKOUT PROTOCOL begins.
+
+- Spin = initiate one familiar five-reel attempt.
+- 3, 4 or 5 matching symbols from the left on any of 10 always-active lines = win.
+- GHOST WILD substitutes for regular symbols and can also pay on its own.
+- Three BREACH symbols on distinct reels = eight BLACKOUT free spins.
+- One regular feature target expands across any reel containing it during BLACKOUT.
 - Side character reacts to state but never controls or alters game results.
 
-The v1 mechanic, mode, payout-unit, event and presentation interfaces are frozen in `M1_GAME_MATH_CONTRACT.md`. The initial non-release math candidate has passed its M1 automated package, distribution, risk, schema and fixture gates: 300,000 books, 90/90 gates, 48/48 fixtures and 7/7 tests. Candidate fingerprint: `d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8`; typed event-schema hash: `bb4f3ff88200519682a539909b196f1462069b865a48afd04cb3219e7b9efe29`. This closes M1 only and does not imply frontend readiness, manual 3-star review, Stake approval or release.
+The current mechanic, payout-unit, 13-symbol vocabulary and closed event interfaces are frozen in `MATH_V3_GAME_CONTRACT.md` as `blacksite-book-events-v3`. The v1 7x7 cluster/Ghost Route and v2 six-regular-symbol candidates remain retained only as historical evidence in `M1_GAME_MATH_CONTRACT.md` and `MATH_V2_GAME_CONTRACT.md`; their books, hashes, fixtures and restore cursors are incompatible with v3 and must never be mixed into a v3 package.
 
-M2 is closed for the evidence-bound authoritative greybox candidate documented in `M2_COMPLIANCE_REVIEW.md`: commit `0a63db9f5aef8c59ba67d7ec71b8e656fdca9455` passed 66/66 unit tests, lint, production build and 735/735 browser checks across 36/36 scenarios on a clean worktree. This closes only the repository-owned M2 gate; final assets, extracted-package QA, manual visual/device review and every external Stake/release action remain open.
+The historical v1 M2 greybox evidence remains documented in `M2_COMPLIANCE_REVIEW.md`: commit `0a63db9f5aef8c59ba67d7ec71b8e656fdca9455` passed its own 66/66 unit tests and 735/735 browser checks. The v3 symbol/paytable migration supersedes that runtime verdict and the later v2 candidate identity; fresh v3 frontend, restore, extracted-package and browser evidence is required and no v1/v2 PASS may be inherited.
 
 ## 3. Technology direction
+
 Reuse the existing Stake web-SDK style monorepo:
+
 - Svelte 5
 - PixiJS v8
 - existing `pixi-svelte`
@@ -35,6 +40,7 @@ Reuse the existing Stake web-SDK style monorepo:
 Do **not** add GSAP/Rive/another animation runtime by default. The current stack already supports skeletal character animation, spritesheets, filters and particles. New production dependencies require a measured technical need.
 
 ## 4. Codex studio structure
+
 Codex should orchestrate specialists rather than asking one generalist to own everything:
 
 1. `creative_director` — art direction, hierarchy, composition, 3-star bar.
@@ -49,7 +55,9 @@ Codex should orchestrate specialists rather than asking one generalist to own ev
 Parallel work is allowed only where contracts are stable. Math/event contract and visual state contract must be agreed before deep animation work.
 
 ## 5. Agent workflow per major feature
+
 For each feature:
+
 1. Parent agent reads root `AGENTS.md` and relevant skills.
 2. `stake_compliance` verifies current requirements affected by the feature.
 3. `creative_director` defines visual acceptance criteria.
@@ -64,13 +72,17 @@ For each feature:
 No specialist may silently change another discipline's contract.
 
 ## 6. Side-character system
+
 ### Desktop
+
 A single operative/AI-security character occupies one side of the board, integrated into the bunker composition. The character should feel alive but spend most time in low-amplitude idle motion.
 
 ### Portrait mobile
+
 Do not shrink the desktop scene uniformly. Recompose into a compact bust/corner vignette or crop the character behind the board. The board and controls always win the hierarchy battle.
 
 ### Runtime
+
 Use Spine 4.2 through the repository's existing `@esotericsoftware/spine-pixi-v8` integration.
 
 Required semantic states:
@@ -79,6 +91,7 @@ Required semantic states:
 Use Spine mixing and tracks, not hard replacement for every state. Use authored animation events to synchronize sparks, impacts, sound and UI pulses.
 
 Every state has:
+
 - expected duration/loop behavior;
 - allowed transitions;
 - turbo behavior;
@@ -87,13 +100,15 @@ Every state has:
 - timeout/failure fallback.
 
 ## 7. Animation quality system
+
 Create a `PresentationDirector`/equivalent semantic layer. It consumes authoritative game events and emits presentation cues. It never calculates payouts.
 
 Suggested hierarchy:
+
 - `GameEventAdapter` — converts book/RGS event structures into typed game-domain presentation messages.
 - `PresentationDirector` — sequences board, character, UI, FX and sound cues.
 - `CharacterController` — Spine state/mixing/tracks.
-- `BoardMotionController` — reveal/hit/cascade/feature-cell motion.
+- `BoardMotionController` — reel reveal/settle, ordered payline and expanding-feature motion.
 - `FxController` — particles/filters/camera impulse.
 - `CinematicController` — intro/feature/big-win sequences.
 - `AudioDirector` — semantic SFX/music cues with mute/resume lifecycle.
@@ -101,9 +116,11 @@ Suggested hierarchy:
 All controllers support cleanup and deterministic completion.
 
 ## 8. Intro standard
+
 Normal boot cinematic target: ~2.5–4.0 seconds with skip/fast path.
 
 Beat sheet:
+
 - black/system boot;
 - rack lights/security scan;
 - BLACKSITE lockup assembly;
@@ -114,9 +131,11 @@ Beat sheet:
 Do not block restored rounds or Bet Replay behind the first-launch cinematic. Do not use an opaque full-screen video as the only implementation if it makes state, skip, mobile composition or asset loading fragile.
 
 ## 9. UI standard
+
 Build a distinct production UI rather than visually shipping Stake's sample UI package. Required controls and information remain easy to find.
 
 Rules:
+
 - Board first.
 - Clear balance / bet / win.
 - Strong spin affordance.
@@ -130,7 +149,9 @@ Rules:
 - Touch targets and safe-area behavior verified on mobile.
 
 ## 10. Stake-first architecture gates
+
 Before visual polish is considered complete:
+
 - stateless bet model;
 - exact RGS/session flow;
 - interrupted-round restore without double play/settle;
@@ -146,9 +167,11 @@ Before visual polish is considered complete:
 - exact frontend/math package identity.
 
 ## 11. Math pre-production gate
+
 Do not start final polish on unstable math.
 
 Math agent deliverables first:
+
 - mechanics spec and state diagram;
 - game modes and costs;
 - generated book event schema;
@@ -165,9 +188,11 @@ Math agent deliverables first:
 All odds stay fixed and player-independent.
 
 ## 12. Asset production gate
+
 No final integration from ad-hoc placeholders.
 
 Required manifest groups:
+
 - logo/title lockup;
 - desktop background layers;
 - portrait/mobile background crop/layers;
@@ -184,11 +209,13 @@ Required manifest groups:
 Every final asset has provenance/originality, path, dimensions, runtime contract and optimization status.
 
 ## 13. Deterministic visual fixture system
+
 A polished slot cannot depend on random spins for visual iteration. Create direct fixture/story states for:
+
 - base idle;
 - zero win;
 - small/medium/big base wins;
-- multi-cascade sequence;
+- simultaneous and sequential winning-line presentations;
 - feature tease;
 - feature trigger;
 - bonus intro;
@@ -205,7 +232,9 @@ A polished slot cannot depend on random spins for visual iteration. Create direc
 This is the key enabler for fast Codex visual iteration: the agent can repeatedly open the exact state instead of waiting for RNG.
 
 ## 14. Quality measurement
+
 The QA agent must capture and track:
+
 - build/lint/test state;
 - no console/network errors;
 - screenshot evidence for required fixtures/viewports;
@@ -221,29 +250,39 @@ The QA agent must capture and track:
 - release hashes/manifests.
 
 ## 15. Milestones
+
 ### M0 — Studio foundation
+
 Agent system, skills, current official research and master plan. **Complete.**
 
 ### M1 — Game design + math contract
-Freeze mechanic/event/state contract and initial valid math candidate. **Complete for the initial non-release candidate; exact automated evidence is recorded under `math/games/blacksite_breach/library/publish_files/`.**
+
+Freeze mechanic/event/state contract and initial valid math candidate. **The historical v1 and v2 gates are superseded. The current v3 5x3 / 13-symbol line-pay candidate is internally verified and its exact automated evidence is recorded under `math/games/blacksite_breach/library/publish_files/`; no external approval is implied.**
 
 ### M2 — Greybox playable
+
 New app/game identity, deterministic fixtures, RGS/replay/restore, board without final assets. **Complete for the SHA-bound repository greybox gate recorded in `M2_COMPLIANCE_REVIEW.md`; no final-art, extracted-package, manual, Stake or release gate is implied.**
 
 ### M3 — Art/character integration
-Production asset manifest, first original asset set, Spine side character runtime and responsive composition. **Started: three original concept anchors and exact provenance/hashes are recorded in `M3_ASSET_MANIFEST.md`; no concept is runtime-integrated or production-approved, and the Spine rig/responsive exports remain open.**
 
-### M4 — Motion/cinematic pass
-All semantic animation states, boot intro, feature transitions, big-win/max-win presentation, turbo variants.
+Production asset manifest, first original asset set, Spine side character runtime and responsive composition. **In progress: the bunker plate, six-pose operative preview and exact thirteen-symbol v3 master set are runtime-integrated with recorded provenance/hashes; no asset is production-approved, and the Spine rig, optimized responsive exports and human review remain open.**
+
+### M4 — Classic-slot presentation and motion pass
+
+Five-reel hierarchy, visible paylines, the exact 13-symbol master set, free-spin counter/expansion, all semantic operative reactions, feature transitions, big-win/max-win presentation and turbo variants. **In progress for v3.**
 
 ### M5 — 3-star polish
+
 Audio, microinteraction, particles/filters, layout tuning, performance and bundle optimization.
 
 ### M6 — Stake candidate
+
 Full math + frontend regeneration, extracted package QA, requirement trace, manual visual review, exact release hashes. No claim of Stake approval until Stake itself approves the version.
 
 ## 16. Definition of done
+
 BLACKSITE is not ready merely because it builds. It is ready for submission only when:
+
 - the current official Stake requirement matrix is complete;
 - the exact math/frontend candidate is frozen and identified;
 - full repository QA is green;

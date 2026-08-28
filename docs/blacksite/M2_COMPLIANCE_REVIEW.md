@@ -4,6 +4,8 @@ Review date: **2026-08-07**
 Scope: authoritative RGS/Replay greybox, frozen-event adapter, rules/controls and automated browser evidence
 Lifecycle: **M2 closed for the evidence-bound greybox candidate; M3 may start; this is not release, Stake, manual, extracted-package or 3-star approval**
 
+> **Historical v1 evidence only.** This review is bound to the former 7x7 cluster/Ghost Route candidate and its exact commit. The current `blacksite-book-events-v2` 5x3 candidate supersedes it; current `publish_files` belong to v2 and must not be used to reinterpret the v1 claims below. Fresh v2 frontend/package evidence is required.
+
 This is the BLACKSITE-specific M2 evidence view of the immutable checklist in `STAKE_REQUIREMENTS_51.md`. It does not replace that source checklist or transfer evidence from another game. `PASS_AUTOMATED` means only that the stated requirement passed the repository-owned automated gate on the exact candidate below. Rows that require final artwork, a human judgment, an extracted package, real hardware or an external Stake action remain deliberately unpassed.
 
 ## Evidence identity and result

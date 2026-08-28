@@ -13,8 +13,10 @@ import {
   LIBRARY_CONFIG_ROOT,
   LOOKUP_ROOT,
   MAX_WIN_RAW,
+  MECHANICS,
   MODE_NAMES,
   MODE_REGISTRY,
+  PAYLINES,
   PUBLISH_ROOT,
   TARGET_RTP,
   VERIFICATION_PROFILE,
@@ -23,7 +25,7 @@ import {
   sha256File,
 } from './src/config.mjs';
 import { operatorTemplateProbe, shortWindowRisk, summarizeDistribution } from './src/analytics.mjs';
-import { FIXTURE_RESERVED_IDS, TAIL_ANCHORS } from './src/model.mjs';
+import { BASE_LINE_BOOK_COUNT, DISTINCT_RESERVED_PAYOUTS, EXPANSION_FIXTURE_OFFSET } from './src/model.mjs';
 import { BOOK_EVENT_CONTRACT, EVENT_SCHEMA_SHA256, validateBook } from './src/validate-book.mjs';
 
 const UINT64_MAX = (1n << 64n) - 1n;
@@ -51,8 +53,7 @@ function readLookup(mode) {
     const weight = readUint64(columns[1], `${mode.name}/${id} lookup weight`);
     const payout = readUint64(columns[2], `${mode.name}/${id} lookup payout`);
     assert(id === index + 1, `${mode.name}: IDs must be contiguous 1..${BOOKS_PER_MODE}`);
-    assert(weight > 0, `${mode.name}/${id}: weight must be positive`);
-    assert(weight === 1, `${mode.name}/${id}: M1 equal-weight contract requires weight 1`);
+    assert(weight === 1, `${mode.name}/${id}: v3 unit-weight contract requires weight 1`);
     assert(payout <= MAX_WIN_RAW, `${mode.name}/${id}: lookup payout exceeds cap`);
     payouts[id] = payout;
     weights[id] = weight;
@@ -60,107 +61,35 @@ function readLookup(mode) {
   return { path, payouts, weights };
 }
 
-function anchorFixtureIds(mode) {
-  const anchors = TAIL_ANCHORS[mode.name];
-  const veryBig = mode.zero_books + 1;
-  const big = veryBig + anchors[0].count;
-  const medium = big + anchors[1].count;
-  return { veryBig, big, medium };
-}
-
-function findSmallPositiveId(payouts, excluded) {
-  let bestId = null;
-  let bestPayout = Infinity;
-  for (let id = 1; id < payouts.length; id += 1) {
-    if (payouts[id] > 0 && payouts[id] < bestPayout && !excluded.has(id)) {
-      bestId = id;
-      bestPayout = payouts[id];
-    }
-  }
-  return bestId;
-}
-
-function fixtureIdsForMode(mode, payouts) {
-  const anchors = anchorFixtureIds(mode);
-  const initiallyExcluded = new Set([1, BOOKS_PER_MODE, anchors.veryBig, anchors.big, anchors.medium]);
-  const small = findSmallPositiveId(payouts, initiallyExcluded);
-  let ruleWins;
-  if (mode.name === 'base') {
-    ruleWins = [
-      FIXTURE_RESERVED_IDS.base.win_01,
-      FIXTURE_RESERVED_IDS.base.win_02,
-      FIXTURE_RESERVED_IDS.base.win_03,
-      FIXTURE_RESERVED_IDS.base.win_04,
-      FIXTURE_RESERVED_IDS.base.win_05,
-    ];
-  } else {
-    const baselineStart = mode.zero_books + TAIL_ANCHORS[mode.name].reduce((sum, anchor) => sum + anchor.count, 0) + 1;
-    ruleWins = [anchors.veryBig, anchors.big, anchors.medium, baselineStart, BOOKS_PER_MODE];
-  }
-  const ids = {
+function fixtureIdsForMode(mode) {
+  const firstPositive = mode.zero_books + 1;
+  return {
     zero: 1,
-    small,
-    medium: anchors.medium,
-    big: anchors.big,
-    veryBig: anchors.veryBig,
+    small: firstPositive,
+    expansion: mode.zero_books + EXPANSION_FIXTURE_OFFSET,
+    medium: mode.zero_books + DISTINCT_RESERVED_PAYOUTS,
+    big: mode.zero_books + DISTINCT_RESERVED_PAYOUTS + 1,
     max: BOOKS_PER_MODE,
-    ruleWin1: ruleWins[0],
-    ruleWin2: ruleWins[1],
-    ruleWin3: ruleWins[2],
-    ruleWin4: ruleWins[3],
-    ruleWin5: ruleWins[4],
-    feature: anchors.veryBig,
+    ruleWins: Array.from({ length: 5 }, (_, index) => firstPositive + index),
   };
-  if (mode.name === 'base') {
-    Object.assign(ids, {
-      cascade3: FIXTURE_RESERVED_IDS.base.cascade_3,
-      cascade5: FIXTURE_RESERVED_IDS.base.cascade_5,
-      simultaneous: FIXTURE_RESERVED_IDS.base.cascade_5,
-      routeTease: FIXTURE_RESERVED_IDS.base.access_2,
-      access2: FIXTURE_RESERVED_IDS.base.access_2,
-      access3: FIXTURE_RESERVED_IDS.base.access_3,
-      coreLive: FIXTURE_RESERVED_IDS.base.natural_blackout,
-      naturalFeature: FIXTURE_RESERVED_IDS.base.natural_blackout,
-    });
-  }
-  assert(Object.values(ids).every((id) => Number.isInteger(id) && id >= 1 && id <= BOOKS_PER_MODE), `${mode.name}: invalid fixture ID`);
-  return ids;
-}
-
-function mechanicSignature(result) {
-  return JSON.stringify({
-    cascade: result.maxCascadeWins,
-    clusters: result.maxClustersInStep,
-    access: result.accessValues,
-    ports: result.portCounts,
-    natural: result.sawNaturalFeature,
-    direct: result.sawDirectFeature,
-    signatures: result.clusterSignatures,
-  });
 }
 
 function fixtureCase(mode, fixtureId, book, validation, acceptance) {
-  const clusterChecks = [];
-  for (const event of book.events) {
-    if (event.type !== 'cluster_win') continue;
-    for (const cluster of event.clusters) {
-      clusterChecks.push({
-        event_index: event.index,
-        phase: event.phase,
-        feature_cycle: event.feature_cycle,
-        symbol: cluster.symbol,
-        cluster_band: cluster.cluster_band,
-        cluster_size: cluster.cluster_size,
-        positions: cluster.positions,
-        linked: cluster.linked,
-        base_payout_raw: cluster.base_payout_raw,
-        access_multiplier: cluster.access_multiplier,
-        calculated_award_raw: cluster.calculated_award_raw,
-        applied_award_raw: cluster.applied_award_raw,
-        cumulative_after_raw: event.cumulative_after_raw,
-      });
-    }
-  }
+  const lineChecks = book.events
+    .filter((event) => event.type === 'line_win')
+    .flatMap((event) => event.wins.map((win) => ({
+      event_index: event.index,
+      phase: event.phase,
+      spin_index: event.spin_index,
+      line_id: win.line_id,
+      symbol: win.symbol,
+      match_count: win.match_count,
+      positions: win.positions,
+      wild_positions: win.wild_positions,
+      base_payout_raw: win.base_payout_raw,
+      applied_award_raw: win.applied_award_raw,
+      cumulative_after_raw: event.cumulative_after_raw,
+    })));
   return {
     fixture_id: fixtureId,
     acceptance,
@@ -175,42 +104,43 @@ function fixtureCase(mode, fixtureId, book, validation, acceptance) {
     cost_normalized_return: book.payoutMultiplier / (100 * mode.cost),
     event_types: book.events.map((event) => event.type),
     validator_facts: {
-      max_cascade_wins: validation.maxCascadeWins,
-      max_clusters_in_step: validation.maxClustersInStep,
-      access_values: validation.accessValues,
-      reached_port_counts: validation.portCounts,
-      core_live: validation.sawCoreLive,
+      line_signatures: validation.lineSignatures,
+      maximum_lines_in_one_spin: validation.maxLinesInSpin,
+      expansion_count: validation.expansionCount,
+      maximum_expanded_reels: validation.maximumExpandedReels,
+      expansion_targets: validation.expansionTargets,
       natural_feature: validation.sawNaturalFeature,
       direct_feature: validation.sawDirectFeature,
-      maximum_total_cycles: validation.maxTotalCycles,
-      cluster_signatures: validation.clusterSignatures,
+      free_spins_played: validation.freeSpinsPlayed,
+      base_lines_won: validation.baseLinesWon,
+      capped: validation.capped,
     },
-    cluster_formula_checks: clusterChecks,
+    line_formula_checks: lineChecks,
     final_event: book.events.at(-1),
   };
 }
 
 async function verifyBooks(mode, payouts, fixtureIds) {
   const path = join(BOOK_ROOT, `${mode.name}_books.jsonl.zst`);
-  const decompressor = createZstdDecompress();
-  const input = createReadStream(path).pipe(decompressor);
-  const lines = createInterface({ input, crlfDelay: Infinity });
-  let id = 0;
-  let eventCount = 0;
-  const aggregateEventCounts = {};
+  const lines = createInterface({ input: createReadStream(path).pipe(createZstdDecompress()), crlfDelay: Infinity });
+  const fixedIds = new Set(Object.values(fixtureIds).flat());
   const selectedBooks = new Map();
   const selectedResults = new Map();
-  const fixedIds = new Set(Object.values(fixtureIds));
+  const aggregateEventCounts = {};
   const coverage = {
-    accessValues: new Set(),
-    portCounts: new Set(),
-    maxCascadeWins: 0,
-    maxClustersInStep: 0,
-    maxTotalCycles: 0,
-    sawCoreLive: false,
     sawNaturalFeature: false,
     sawDirectFeature: false,
+    expansionCount: 0,
+    maximumExpandedReels: 0,
+    expansionTargets: new Set(),
+    lineSignatures: new Set(),
+    maxLinesInSpin: 0,
+    sawDeepAccessGuarantee: false,
+    sawMaxWin: false,
+    baseLineBooks: 0,
   };
+  let id = 0;
+  let eventCount = 0;
   for await (const line of lines) {
     assert(line.length > 0, `${mode.name}: empty JSONL line`);
     id += 1;
@@ -218,17 +148,17 @@ async function verifyBooks(mode, payouts, fixtureIds) {
     const book = JSON.parse(line);
     const result = validateBook(book, mode, id, payouts[id]);
     eventCount += result.eventCount;
-    for (const [eventType, count] of Object.entries(result.eventCounts)) {
-      aggregateEventCounts[eventType] = (aggregateEventCounts[eventType] ?? 0) + count;
-    }
-    for (const access of result.accessValues) coverage.accessValues.add(access);
-    for (const count of result.portCounts) coverage.portCounts.add(count);
-    coverage.maxCascadeWins = Math.max(coverage.maxCascadeWins, result.maxCascadeWins);
-    coverage.maxClustersInStep = Math.max(coverage.maxClustersInStep, result.maxClustersInStep);
-    coverage.maxTotalCycles = Math.max(coverage.maxTotalCycles, result.maxTotalCycles);
-    coverage.sawCoreLive ||= result.sawCoreLive;
+    for (const [type, count] of Object.entries(result.eventCounts)) aggregateEventCounts[type] = (aggregateEventCounts[type] ?? 0) + count;
     coverage.sawNaturalFeature ||= result.sawNaturalFeature;
     coverage.sawDirectFeature ||= result.sawDirectFeature;
+    coverage.expansionCount += result.expansionCount;
+    coverage.maximumExpandedReels = Math.max(coverage.maximumExpandedReels, result.maximumExpandedReels);
+    result.expansionTargets.forEach((symbol) => coverage.expansionTargets.add(symbol));
+    result.lineSignatures.forEach((signature) => coverage.lineSignatures.add(signature));
+    coverage.maxLinesInSpin = Math.max(coverage.maxLinesInSpin, result.maxLinesInSpin);
+    coverage.sawDeepAccessGuarantee ||= mode.name === 'deep_access' && result.deepAccessGuaranteeObserved;
+    coverage.sawMaxWin ||= book.payoutMultiplier === MAX_WIN_RAW && result.capped;
+    if (result.baseLinesWon > 0) coverage.baseLineBooks += 1;
     if (fixedIds.has(id)) {
       selectedBooks.set(id, book);
       selectedResults.set(id, result);
@@ -260,9 +190,7 @@ function verifyIndex() {
 function verifyConfigCopies() {
   const names = ['game_config.json', 'mode_registry.json', 'mechanics.json', 'paytable.json', 'event_schema.json', 'math_verification_profile.json'];
   for (const name of names) {
-    const source = readFileSync(join(CONFIG_ROOT, name));
-    const published = readFileSync(join(LIBRARY_CONFIG_ROOT, name));
-    assert(source.equals(published), `${name}: published config is stale`);
+    assert(readFileSync(join(CONFIG_ROOT, name)).equals(readFileSync(join(LIBRARY_CONFIG_ROOT, name))), `${name}: published config is stale`);
   }
   return names;
 }
@@ -281,8 +209,7 @@ function buildManifest(indexPath, configNames) {
     uploadFiles.push(join(LOOKUP_ROOT, `${mode.name}_lookup.csv`));
     uploadFiles.push(join(BOOK_ROOT, `${mode.name}_books.jsonl.zst`));
   }
-  const files = [...uploadFiles];
-  for (const name of configNames) files.push(join(LIBRARY_CONFIG_ROOT, name));
+  const files = [...uploadFiles, ...configNames.map((name) => join(LIBRARY_CONFIG_ROOT, name))];
   const records = files.map((path) => ({
     path: relative(join(PUBLISH_ROOT, '..'), path).replaceAll('\\', '/'),
     ...fileFact(path),
@@ -291,6 +218,7 @@ function buildManifest(indexPath, configNames) {
     join(GAME_ROOT, 'generate.mjs'),
     join(GAME_ROOT, 'verify.mjs'),
     join(GAME_ROOT, 'src', 'config.mjs'),
+    join(GAME_ROOT, 'src', 'line-math.mjs'),
     join(GAME_ROOT, 'src', 'model.mjs'),
     join(GAME_ROOT, 'src', 'analytics.mjs'),
     join(GAME_ROOT, 'src', 'validate-book.mjs'),
@@ -306,8 +234,7 @@ function buildManifest(indexPath, configNames) {
   let gitDirtyPaths = [];
   try {
     gitHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
-    gitDirtyPaths = execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
-      .split(/\r?\n/).filter(Boolean);
+    gitDirtyPaths = execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).split(/\r?\n/).filter(Boolean);
   } catch {
     gitDirtyPaths = ['git identity unavailable; source file hashes remain authoritative'];
   }
@@ -316,12 +243,9 @@ function buildManifest(indexPath, configNames) {
   return {
     candidate_version: GAME_CONFIG.candidate_version,
     lifecycle: GAME_CONFIG.lifecycle,
-    generated_from: 'deterministic source configs and seeds',
+    generated_from: 'deterministic constructible 5x3 line-pay archetypes and source configs',
     environment: { node: process.version, platform: process.platform, arch: process.arch },
-    rng: {
-      algorithm: 'xorshift32',
-      mode_seeds: Object.fromEntries(MODE_REGISTRY.modes.map((mode) => [mode.name, mode.generation_seed])),
-    },
+    rng: { algorithm: 'xorshift32', mode_seeds: Object.fromEntries(MODE_REGISTRY.modes.map((mode) => [mode.name, mode.generation_seed])) },
     git: { head_at_generation: gitHead, dirty: gitDirtyPaths.length > 0, porcelain_paths: gitDirtyPaths },
     upload_payload_note: 'Only index.json plus the referenced lookup CSV and zstd JSONL books form the minimal Stake math payload; configs and audits are evidence.',
     upload_payload_files: records.filter((record) => uploadPathSet.has(record.path)),
@@ -337,12 +261,12 @@ export async function verifyCandidate({ writeAudits = true } = {}) {
   const configNames = verifyConfigCopies();
   const manifest = buildManifest(indexPath, configNames);
   const modeResults = [];
-  const fixtureModes = {};
   const fixtureCatalog = {};
+  const fixtureModes = {};
 
   for (const mode of MODE_REGISTRY.modes) {
     const lookup = readLookup(mode);
-    const fixtureIds = fixtureIdsForMode(mode, lookup.payouts);
+    const fixtureIds = fixtureIdsForMode(mode);
     const books = await verifyBooks(mode, lookup.payouts, fixtureIds);
     const payoutValues = Array.from(lookup.payouts.slice(1));
     const packageFacts = {
@@ -355,116 +279,80 @@ export async function verifyCandidate({ writeAudits = true } = {}) {
     };
     const { summary, gateResults } = summarizeDistribution(mode, payoutValues, packageFacts);
     assert(Object.values(gateResults).every(Boolean), `${mode.name}: mode gate failed ${JSON.stringify(gateResults)}`);
-
-    const selected = books.selectedBooks;
-    const selectedResults = books.selectedResults;
     const addFixture = (fixtureId, bookId, acceptance, predicate = () => true) => {
       assert(!Object.hasOwn(fixtureCatalog, fixtureId), `duplicate fixture ID ${fixtureId}`);
-      const book = selected.get(bookId);
-      const validation = selectedResults.get(bookId);
+      const book = books.selectedBooks.get(bookId);
+      const validation = books.selectedResults.get(bookId);
       assert(book && validation, `${fixtureId}: selected book ${bookId} missing`);
       assert(predicate(book, validation), `${fixtureId}: mechanical acceptance predicate failed`);
       fixtureCatalog[fixtureId] = fixtureCase(mode, fixtureId, book, validation, acceptance);
       return fixtureId;
     };
-
-    const zeroId = addFixture(`${mode.name}_zero`, fixtureIds.zero, 'zero payout; no cluster_win; canonical zero grammar', (book, result) =>
-      book.payoutMultiplier === 0 && (result.eventCounts.cluster_win ?? 0) === 0);
-    const smallId = addFixture(`${mode.name}_small`, fixtureIds.small, 'positive lowest candidate payout', (book) => book.payoutMultiplier > 0);
-    const mediumId = addFixture(`${mode.name}_medium`, fixtureIds.medium, 'positive medium tail anchor', (book) => book.payoutMultiplier > 0);
-    const bigId = addFixture(`${mode.name}_big`, fixtureIds.big, 'positive big tail anchor', (book) => book.payoutMultiplier > 0);
-
-    const ruleBookIds = [fixtureIds.ruleWin1, fixtureIds.ruleWin2, fixtureIds.ruleWin3, fixtureIds.ruleWin4, fixtureIds.ruleWin5];
-    assert(new Set(ruleBookIds).size === 5, `${mode.name}: five rule-win books must have unique positive-weight IDs`);
-    const ruleResults = ruleBookIds.map((id) => selectedResults.get(id));
-    assert(ruleBookIds.every((id) => lookup.payouts[id] > 0), `${mode.name}: rule-win fixture has zero payout`);
-    assert(new Set(ruleResults.map(mechanicSignature)).size === 5, `${mode.name}: five rule-win fixtures are not mechanically distinct`);
-    assert(new Set(ruleResults.flatMap((result) => result.clusterSignatures)).size >= 5, `${mode.name}: rule-win fixtures cover fewer than five symbol/size/multiplier signatures`);
-    const ruleFixtureIds = ruleBookIds.map((bookId, index) => addFixture(
+    const zero = addFixture(`${mode.name}_zero`, fixtureIds.zero, 'zero payout with canonical mode grammar and no line_win', (book, result) => book.payoutMultiplier === 0 && (result.eventCounts.line_win ?? 0) === 0);
+    const small = addFixture(`${mode.name}_small`, fixtureIds.small, 'lowest positive constructible line payout', (book) => book.payoutMultiplier === 1);
+    const medium = addFixture(`${mode.name}_medium`, fixtureIds.medium, '100-centi-x positive line-pay anchor', (book) => book.payoutMultiplier === 100);
+    const big = addFixture(`${mode.name}_big`, fixtureIds.big, 'cost-scaled baseline distribution anchor', (book) => book.payoutMultiplier > 100);
+    const ruleWins = fixtureIds.ruleWins.map((bookId, index) => addFixture(
       `${mode.name}_win_${String(index + 1).padStart(2, '0')}`,
       bookId,
-      'positive-weight rule reconciliation with a mechanically distinct symbol/size/multiplier signature',
-      (book) => book.payoutMultiplier > 0,
+      'positive-weight deterministic payline reconciliation fixture',
+      (book, result) => book.payoutMultiplier > 0 && result.lineSignatures.length > 0,
     ));
-
-    const featureId = addFixture(`${mode.name}_feature`, fixtureIds.feature, 'feature entry plus deterministic feature cascade evidence', (book, result) =>
-      book.payoutMultiplier > 0 && (mode.direct_feature ? result.sawDirectFeature : result.sawNaturalFeature));
-    const maxId = addFixture(`${mode.name}_max_win`, fixtureIds.max, 'exact cap_reached -> round_end at 1,000,000 raw centi-x', (book) =>
-      book.payoutMultiplier === MAX_WIN_RAW && book.events.at(-2)?.type === 'cap_reached' && book.events.at(-1)?.type === 'round_end');
-
+    const feature = addFixture(`${mode.name}_feature`, fixtureIds.expansion, 'eight-spin feature with a genuine three-reel expanding target and ten evaluated paylines', (book, result) =>
+      book.payoutMultiplier === 10 && result.expansionCount > 0 && result.maximumExpandedReels === 3 && result.maxLinesInSpin === 10);
+    const max = addFixture(`${mode.name}_max_win`, fixtureIds.max, 'exact 10,000x cap reached by a genuine ten-line WILD board with deterministic truncation', (book, result) =>
+      book.payoutMultiplier === MAX_WIN_RAW && result.capped && book.events.at(-2)?.type === 'cap_reached');
     if (mode.name === 'base') {
-      addFixture('base_cascade_3', fixtureIds.cascade3, 'exactly three consecutive cluster evaluations linked by physical tumbles', (_book, result) => result.maxCascadeWins === 3);
-      addFixture('base_cascade_5', fixtureIds.cascade5, 'at least five consecutive physical cascade wins', (_book, result) => result.maxCascadeWins >= 5);
-      addFixture('base_simultaneous_two_clusters', fixtureIds.simultaneous, 'one immutable board resolves two disjoint paying components together', (_book, result) => result.maxClustersInStep >= 2);
-      addFixture('base_route_tease', fixtureIds.routeTease, 'live route advances toward Core without arming it', (_book, result) => result.accessValues.includes(2) && !result.sawCoreLive);
-      addFixture('base_access_2', fixtureIds.access2, 'post-breach access authority reaches 2x', (_book, result) => result.accessValues.includes(2) && !result.sawCoreLive);
-      addFixture('base_access_3', fixtureIds.access3, 'post-breach access authority reaches 3x', (_book, result) => result.accessValues.includes(3) && !result.sawCoreLive);
-      addFixture('base_core_live', fixtureIds.coreLive, 'Core is live in an authoritative breach_state', (_book, result) => result.sawCoreLive);
-      addFixture('base_natural_blackout', fixtureIds.naturalFeature, 'Core arms and BLACKOUT starts only after the physical cascade resolves', (_book, result) => result.sawNaturalFeature && result.sawCoreLive);
+      addFixture('base_classic_line_win', fixtureIds.big, 'opening base spin pays all ten fixed paylines left-to-right without entering BLACKOUT', (book, result) =>
+        book.payoutMultiplier === 250 && result.baseLinesWon === 10 && !result.sawNaturalFeature && book.events.at(-1)?.final_phase === 'base');
+      addFixture('base_natural_blackout', fixtureIds.expansion, 'three BREACH symbols on distinct opening reels naturally trigger exactly eight free spins', (_book, result) => result.sawNaturalFeature && result.freeSpinsPlayed === 8);
+      addFixture('base_expanding_breach', fixtureIds.expansion, 'selected TEN target expands three reels before ten-line evaluation', (_book, result) => result.expansionTargets.includes('ten') && result.maximumExpandedReels === 3);
     } else if (mode.name === 'deep_access') {
-      addFixture('deep_access_natural_blackout', fixtureIds.feature, 'seeded access 2x progresses to a natural Core-triggered BLACKOUT', (_book, result) =>
-        result.accessValues.includes(2) && result.accessValues.includes(5) && result.sawNaturalFeature);
+      addFixture('deep_access_guaranteed_pair', fixtureIds.zero, 'non-trigger opening contains exactly the two canonical guaranteed BREACH positions', (book, result) => result.deepAccessGuaranteeObserved && !result.sawNaturalFeature && book.events[1]?.type === 'spin_set');
+      addFixture('deep_access_natural_blackout', fixtureIds.expansion, 'two guaranteed BREACH positions plus a third distinct reel trigger exactly eight free spins', (_book, result) => result.sawNaturalFeature && result.freeSpinsPlayed === 8);
+      addFixture('deep_access_expanding_breach', fixtureIds.expansion, 'enhanced entry resolves the same authoritative three-reel expansion contract', (_book, result) => result.expansionTargets.includes('ten'));
     } else {
-      addFixture('blackout_direct_entry', fixtureIds.feature, 'direct BLACKOUT seed uses feature phase from its first breach snapshot', (book, result) =>
-        result.sawDirectFeature && book.events[1]?.type === 'breach_state' && book.events[1]?.phase === 'feature');
-      addFixture('blackout_12_cycles', fixtureIds.feature, 'three one-time ports extend six cycles to exactly twelve', (_book, result) =>
-        result.maxTotalCycles === 12 && [0, 1, 2, 3].every((count) => result.portCounts.includes(count)));
-      for (const portCount of [0, 1, 2, 3]) {
-        addFixture(`blackout_ports_${portCount}`, fixtureIds.feature, `authoritative feature state observes ${portCount} reached port(s)`, (_book, result) =>
-          result.portCounts.includes(portCount));
-      }
+      addFixture('blackout_direct_entry', fixtureIds.expansion, '80x BLACKOUT enters feature_start directly and plays eight free spins', (book, result) => result.sawDirectFeature && book.events[1]?.type === 'feature_start' && result.freeSpinsPlayed === 8);
+      addFixture('blackout_expanding_breach', fixtureIds.expansion, 'direct BLACKOUT resolves a genuine three-reel selected-symbol expansion', (_book, result) => result.expansionTargets.includes('ten'));
     }
-
-    fixtureModes[mode.name] = {
-      zero: zeroId,
-      small: smallId,
-      medium: mediumId,
-      big: bigId,
-      five_rule_wins: ruleFixtureIds,
-      feature: featureId,
-      max: maxId,
-    };
+    fixtureModes[mode.name] = { zero, small, medium, big, five_rule_wins: ruleWins, feature, max };
     modeResults.push({ mode, summary, gateResults, payouts: payoutValues, contractCoverage: books.coverage });
   }
 
   const achievedRtps = modeResults.map((result) => result.summary.achieved_rtp);
   const rtpSpread = Math.max(...achievedRtps) - Math.min(...achievedRtps);
   const baseResult = modeResults.find((result) => result.mode.name === 'base');
+  const deepResult = modeResults.find((result) => result.mode.name === 'deep_access');
   const templateProbe = operatorTemplateProbe(MODE_REGISTRY.modes);
-  const baseCoverage = modeResults.find((result) => result.mode.name === 'base').contractCoverage;
-  const requiredContractFixtures = [
+  const requiredFixtures = [
     ...MODE_REGISTRY.modes.flatMap((mode) => [
       `${mode.name}_zero`, `${mode.name}_small`, `${mode.name}_medium`, `${mode.name}_big`,
       ...Array.from({ length: 5 }, (_, index) => `${mode.name}_win_${String(index + 1).padStart(2, '0')}`),
       `${mode.name}_feature`, `${mode.name}_max_win`,
     ]),
-    'base_cascade_3', 'base_cascade_5', 'base_simultaneous_two_clusters', 'base_route_tease',
-    'base_access_2', 'base_access_3', 'base_core_live', 'base_natural_blackout',
-    'deep_access_natural_blackout', 'blackout_direct_entry', 'blackout_12_cycles',
-    'blackout_ports_0', 'blackout_ports_1', 'blackout_ports_2', 'blackout_ports_3',
+    'base_classic_line_win', 'base_natural_blackout', 'base_expanding_breach', 'deep_access_guaranteed_pair',
+    'deep_access_natural_blackout', 'deep_access_expanding_breach', 'blackout_direct_entry', 'blackout_expanding_breach',
   ];
   const crossModeGates = {
-    exact_mode_set: JSON.stringify(MODE_REGISTRY.modes.map((mode) => mode.name)) === JSON.stringify(['base', 'deep_access', 'blackout']),
-    base_cost_is_one: MODE_REGISTRY.modes[0].name === 'base' && MODE_REGISTRY.modes[0].cost === 1,
-    base_is_cheapest: MODE_REGISTRY.modes.every((mode) => mode.cost >= MODE_REGISTRY.modes[0].cost),
+    exact_mode_set: JSON.stringify(MODE_NAMES) === JSON.stringify(['base', 'deep_access', 'blackout']),
+    exact_mode_costs: JSON.stringify(MODE_REGISTRY.modes.map((mode) => mode.cost)) === JSON.stringify([1, 4, 80]),
+    base_is_cheapest: MODE_REGISTRY.modes.every((mode) => mode.cost >= 1),
     exact_target_rtp_all_modes: achievedRtps.every((rtp) => rtp === TARGET_RTP),
     cross_mode_rtp_spread: rtpSpread <= VERIFICATION_PROFILE.hard_gates.maximum_cross_mode_rtp_spread,
     base_minimum_standard_deviation: baseResult.summary.standard_deviation_cost_normalized_return >= VERIFICATION_PROFILE.hard_gates.base_min_cost_normalized_standard_deviation,
     base_3star_maximum_standard_deviation: baseResult.summary.standard_deviation_cost_normalized_return <= VERIFICATION_PROFILE.three_star_review_bands.maximum_base_cost_normalized_standard_deviation,
     operator_bet_template_viable: templateProbe.viable,
-    all_effective_sample_size_ratios_gte_0_50: modeResults.every((result) => result.summary.effective_sample_size / result.summary.books >= 0.5),
-    all_top_single_book_shares_lte_0_0001: modeResults.every((result) => result.summary.top_single_book_selection_share <= 0.0001),
-    five_positive_fixtures_each_mode: Object.values(fixtureModes).every((fixtures) => fixtures.five_rule_wins.length === 5),
-    canonical_typed_event_schema_bound_to_every_fixture: Object.values(fixtureCatalog).every((fixture) =>
-      fixture.event_contract === BOOK_EVENT_CONTRACT && fixture.event_schema_sha256 === EVENT_SCHEMA_SHA256),
-    physical_gravity_and_top_refill_validated_for_every_tumble: true,
-    simultaneous_disjoint_cluster_step_proven: baseCoverage.maxClustersInStep >= 2,
-    pre_feature_access_ladder_1_2_3_5_proven: [1, 2, 3, 5].every((access) => baseCoverage.accessValues.has(access)),
-    natural_and_direct_feature_entry_proven: modeResults.some((result) => result.contractCoverage.sawNaturalFeature) &&
-      modeResults.some((result) => result.contractCoverage.sawDirectFeature),
-    twelve_cycle_and_all_port_counts_proven: modeResults.some((result) => result.contractCoverage.maxTotalCycles === 12 &&
-      [0, 1, 2, 3].every((count) => result.contractCoverage.portCounts.has(count))),
-    complete_stable_contract_fixture_catalog: requiredContractFixtures.every((fixtureId) => Object.hasOwn(fixtureCatalog, fixtureId)),
+    event_contract_is_v3: BOOK_EVENT_CONTRACT === 'blacksite-book-events-v3',
+    board_is_column_major_5x3: GAME_CONFIG.layout.columns === 5 && GAME_CONFIG.layout.rows === 3 && MECHANICS.board.storage === 'column-major',
+    ten_unique_fixed_paylines: PAYLINES.length === 10 && new Set(PAYLINES.map((line) => JSON.stringify(line.rows))).size === 10,
+    natural_and_direct_feature_entry_proven: modeResults.some((result) => result.contractCoverage.sawNaturalFeature) && modeResults.some((result) => result.contractCoverage.sawDirectFeature),
+    genuine_expansion_and_ten_line_evaluation_proven: modeResults.every((result) => result.contractCoverage.expansionCount > 0 && result.contractCoverage.maxLinesInSpin === 10),
+    base_classic_line_pay_books_present: baseResult.contractCoverage.baseLineBooks === BASE_LINE_BOOK_COUNT,
+    deep_access_guaranteed_pair_proven: deepResult.contractCoverage.sawDeepAccessGuarantee,
+    max_win_positive_each_mode: modeResults.every((result) => result.contractCoverage.sawMaxWin),
+    at_least_100_distinct_positive_payouts_each_mode: modeResults.every((result) => result.summary.distinct_positive_raw_payout_values >= 100),
+    canonical_schema_bound_to_every_fixture: Object.values(fixtureCatalog).every((fixture) => fixture.event_contract === BOOK_EVENT_CONTRACT && fixture.event_schema_sha256 === EVENT_SCHEMA_SHA256),
+    complete_v3_fixture_catalog: requiredFixtures.every((fixtureId) => Object.hasOwn(fixtureCatalog, fixtureId)),
   };
   assert(Object.values(crossModeGates).every(Boolean), `cross-mode gate failed ${JSON.stringify(crossModeGates)}`);
 
@@ -474,28 +362,21 @@ export async function verifyCandidate({ writeAudits = true } = {}) {
     candidate_version: GAME_CONFIG.candidate_version,
     candidate_fingerprint_sha256: manifest.candidate_fingerprint_sha256,
     verified_at_source_review_date: VERIFICATION_PROFILE.source_checked,
-    commands: {
-      generate: GAME_CONFIG.generation.command,
-      verify: GAME_CONFIG.generation.verification_command,
-      tests: 'node --test math/games/blacksite_breach/tests/*.test.mjs',
-    },
-    payout_unit_contract: {
-      package: 'centi-x uint64; raw 100 = 1.00x',
-      cost_normalized_return_formula: 'raw / (100 * mode cost)',
-      wallet_units_present: false,
-    },
+    commands: { generate: GAME_CONFIG.generation.command, verify: GAME_CONFIG.generation.verification_command, tests: 'node --test math/games/blacksite_breach/tests/*.test.mjs' },
+    payout_unit_contract: { package: 'centi-x uint64; raw 100 = 1.00x', cost_normalized_return_formula: 'raw / (100 * mode cost)', wallet_units_present: false },
     mode_results: modeResults.map(({ summary, gateResults, contractCoverage }) => ({
       summary,
       gate_results: gateResults,
       contract_coverage: {
-        access_values: [...contractCoverage.accessValues].sort((left, right) => left - right),
-        reached_port_counts: [...contractCoverage.portCounts].sort((left, right) => left - right),
-        maximum_cascade_wins: contractCoverage.maxCascadeWins,
-        maximum_clusters_in_one_step: contractCoverage.maxClustersInStep,
-        maximum_total_feature_cycles: contractCoverage.maxTotalCycles,
-        core_live_observed: contractCoverage.sawCoreLive,
         natural_feature_observed: contractCoverage.sawNaturalFeature,
         direct_feature_observed: contractCoverage.sawDirectFeature,
+        expansion_events: contractCoverage.expansionCount,
+        maximum_expanded_reels: contractCoverage.maximumExpandedReels,
+        expansion_targets: [...contractCoverage.expansionTargets].sort(),
+        distinct_line_signatures: contractCoverage.lineSignatures.size,
+        maximum_lines_in_one_spin: contractCoverage.maxLinesInSpin,
+        max_win_observed: contractCoverage.sawMaxWin,
+        base_line_books: contractCoverage.baseLineBooks,
       },
     })),
     cross_mode: { achieved_rtp_spread: rtpSpread, gates: crossModeGates },
@@ -541,13 +422,12 @@ export async function verifyCandidate({ writeAudits = true } = {}) {
     gates_passed: modeGateCount + crossModeGateCount,
     gates_total: modeGateCount + crossModeGateCount,
     all_lookup_weights_positive_and_equal_one: true,
-    all_books_decompressed_and_schema_formula_topology_validated: true,
-    all_tumbles_physical_gravity_and_top_refill_validated: true,
+    all_books_decompressed_and_schema_formula_payline_validated: true,
+    all_wild_resolution_and_expansion_recomputed: true,
     all_contract_fixture_predicates_passed: true,
     canonical_event_schema_sha256: EVENT_SCHEMA_SHA256,
     all_gates_passed: true,
   };
-
   if (writeAudits) {
     writeJson(join(PUBLISH_ROOT, 'CANDIDATE_MANIFEST.json'), manifest);
     writeJson(join(PUBLISH_ROOT, 'MATH_AUDIT.json'), mathAudit);

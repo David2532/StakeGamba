@@ -1,0 +1,99 @@
+{
+  "schema": "blacksite-v19-package-contract-v1",
+  "lifecycle": "V19_IMPLEMENTATION_BASELINE_NOT_RELEASE",
+  "version": 19,
+  "v18Baseline": {
+    "gitCommit": "1edbc06c699bd6f1bbbd248cc16ac0c5dbe1ed94",
+    "frontend": {
+      "rootName": "BLACKSITE_FRONTEND_UPLOAD_V18",
+      "treeSha256": "65c5bd22b41edf9a4ba5332bc8d44c823b9382254fab08b4c95d43a9a480e88f",
+      "fileCount": 360,
+      "totalBytes": 22158429
+    },
+    "math": {
+      "rootName": "BLACKSITE_MATH_UPLOAD_V18",
+      "treeSha256": "778c128a547adbfdddb038e05957e206ae129dff2941df98a2aca3ee36276297",
+      "fileCount": 7,
+      "totalBytes": 4429320,
+      "files": [
+        {
+          "path": "base_books.jsonl.zst",
+          "bytes": 235120,
+          "sha256": "7b579f147cd239c5223c4ad8e9869665dacc4340f5af1778be1c4a6a660b4eca"
+        },
+        {
+          "path": "base_lookup.csv",
+          "bytes": 1058791,
+          "sha256": "8b6e65071094606b0956189fbb6a7ac8f257d1ba816438227cd1305e2df5bacc"
+        },
+        {
+          "path": "blackout_books.jsonl.zst",
+          "bytes": 467411,
+          "sha256": "173c1089480d324d44b8ab9e93ee6e7f627cbd6898f1453e2e29b6ae7a5a639d"
+        },
+        {
+          "path": "blackout_lookup.csv",
+          "bytes": 1273690,
+          "sha256": "0ca8bf3fab982ea2805cc982126a93efdd44c01965a99b54ec85977b937e4b79"
+        },
+        {
+          "path": "deep_access_books.jsonl.zst",
+          "bytes": 285082,
+          "sha256": "aeecc118408bc8d0eff9a8e4c1560b8da7b8e5a100fa77d49c5e80e8576f91ad"
+        },
+        {
+          "path": "deep_access_lookup.csv",
+          "bytes": 1108791,
+          "sha256": "726103e5bb949847a81c752b1c93bdbd15a1e4cc9338a9a1dcc9db303485e2e3"
+        },
+        {
+          "path": "index.json",
+          "bytes": 435,
+          "sha256": "ae6f3af1a506f44ce87de905b16f8513ec15a3ca5bd01f324f74e25eacfd0e1d"
+        }
+      ]
+    }
+  },
+  "v19Outputs": {
+    "frontendRootName": "BLACKSITE_FRONTEND_UPLOAD_V19",
+    "mathRootName": "BLACKSITE_MATH_UPLOAD_V19",
+    "evidenceRootName": "BLACKSITE_V19_EVIDENCE"
+  },
+  "frontendAcceptance": {
+    "state": "UNBOUND_UNTIL_FINAL_BUILD",
+    "treeSha256": null,
+    "requireCallerPinnedTree": true,
+    "requireCleanExactCommit": true,
+    "requireV18Ancestor": true,
+    "rejectV18Tree": true
+  },
+  "mathAcceptance": {
+    "state": "PINNED_BYTE_IDENTICAL_TO_V18",
+    "copySource": "BLACKSITE_MATH_UPLOAD_V18",
+    "requireRepositoryPayloadMatch": true
+  },
+  "releaseTruth": {
+    "lifecycle": "V19_TECHNICAL_CANDIDATE_NOT_RELEASE",
+    "releaseDecision": "BLOCKED",
+    "releaseReady": false,
+    "uploadAuthorized": false,
+    "automatedExactPackageGate": "NOT_RUN",
+    "manualGates": {
+      "creativeVisualReview": "OPEN",
+      "responsiveVisualReview": "OPEN",
+      "olderDeviceReview": "OPEN",
+      "animationReview": "OPEN",
+      "audioReview": "OPEN",
+      "assetRightsAndProvenanceReview": "OPEN"
+    },
+    "externalGates": {
+      "betLevelTemplate": "EXTERNAL_PENDING",
+      "provablyFairAndReplayEnablement": "EXTERNAL_PENDING",
+      "stakeFrontApproval": "EXTERNAL_PENDING",
+      "stakeMathApproval": "EXTERNAL_PENDING",
+      "approvedChannelPost": "EXTERNAL_PENDING",
+      "liveVerification": "EXTERNAL_PENDING",
+      "approvalClosure": "EXTERNAL_PENDING"
+    }
+  }
+}

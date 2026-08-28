@@ -1,0 +1,548 @@
+{
+  "package": "BLACKSITE // BREACH Animation Assets",
+  "version": "1.0.0",
+  "generated": "2026-08-09",
+  "production_canvas": {
+    "width": 1280,
+    "height": 1024,
+    "operator_anchor": {
+      "x": 310,
+      "y": 1000
+    },
+    "anchor_description": "Keep the operator foot anchor fixed while swapping full-body frames."
+  },
+  "runtime_sequences": {
+    "CHAR_BIG_WIN": {
+      "name": "CHAR_BIG_WIN",
+      "fps": 12,
+      "loop": false,
+      "frame_count": 20,
+      "duration_ms": 1660,
+      "trigger": "big-win / high multiplier",
+      "notes": "Happy reaction with coin shower and flash baked into frames.",
+      "frame_size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      },
+      "frames": [
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_000.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_001.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_002.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_003.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_004.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_005.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_006.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_007.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_008.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_009.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_010.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_011.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_012.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_013.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_014.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_015.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_016.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_017.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_018.webp",
+        "runtime_sequences/CHAR_BIG_WIN/rgba/CHAR_BIG_WIN_019.webp"
+      ]
+    },
+    "CHAR_BONUS_TOSS": {
+      "name": "CHAR_BONUS_TOSS",
+      "fps": 12,
+      "loop": false,
+      "frame_count": 20,
+      "duration_ms": 1660,
+      "trigger": "random bonus gift / feature award",
+      "notes": "Operator presents and throws a glowing bonus crate into the game area.",
+      "frame_size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      },
+      "frames": [
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_000.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_001.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_002.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_003.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_004.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_005.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_006.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_007.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_008.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_009.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_010.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_011.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_012.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_013.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_014.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_015.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_016.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_017.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_018.webp",
+        "runtime_sequences/CHAR_BONUS_TOSS/rgba/CHAR_BONUS_TOSS_019.webp"
+      ]
+    },
+    "CHAR_IDLE_WATCH": {
+      "name": "CHAR_IDLE_WATCH",
+      "fps": 8,
+      "loop": true,
+      "frame_count": 12,
+      "duration_ms": 1500,
+      "trigger": "default/round-complete",
+      "notes": "Front-facing idle breathing loop.",
+      "frame_size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      },
+      "frames": [
+        "runtime_sequences/CHAR_IDLE_WATCH/rgba/CHAR_IDLE_WATCH_000.webp",
+        "runtime_sequences/CHAR_IDLE_WATCH/rgba/CHAR_IDLE_WATCH_001.webp",
+        "runtime_sequences/CHAR_IDLE_WATCH/rgba/CHAR_IDLE_WATCH_002.webp",
+        "runtime_sequences/CHAR_IDLE_WATCH/rgba/CHAR_IDLE_WATCH_003.webp",
+        "runtime_sequences/CHAR_IDLE_WATCH/rgba/CHAR_IDLE_WATCH_004.webp",
+        "runtime_sequences/CHAR_IDLE_WATCH/rgba/CHAR_IDLE_WATCH_005.webp",
+        "runtime_sequences/CHAR_IDLE_WATCH/rgba/CHAR_IDLE_WATCH_006.webp",
+        "runtime_sequences/CHAR_IDLE_WATCH/rgba/CHAR_IDLE_WATCH_007.webp",
+        "runtime_sequences/CHAR_IDLE_WATCH/rgba/CHAR_IDLE_WATCH_008.webp",
+        "runtime_sequences/CHAR_IDLE_WATCH/rgba/CHAR_IDLE_WATCH_009.webp",
+        "runtime_sequences/CHAR_IDLE_WATCH/rgba/CHAR_IDLE_WATCH_010.webp",
+        "runtime_sequences/CHAR_IDLE_WATCH/rgba/CHAR_IDLE_WATCH_011.webp"
+      ]
+    },
+    "CHAR_LOSS_SINGLE": {
+      "name": "CHAR_LOSS_SINGLE",
+      "fps": 10,
+      "loop": false,
+      "frame_count": 16,
+      "duration_ms": 1600,
+      "trigger": "zero-win isolated",
+      "notes": "Disappointed facepalm after a normal losing spin.",
+      "frame_size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      },
+      "frames": [
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_000.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_001.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_002.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_003.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_004.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_005.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_006.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_007.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_008.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_009.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_010.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_011.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_012.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_013.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_014.webp",
+        "runtime_sequences/CHAR_LOSS_SINGLE/rgba/CHAR_LOSS_SINGLE_015.webp"
+      ]
+    },
+    "CHAR_LOSS_STREAK": {
+      "name": "CHAR_LOSS_STREAK",
+      "fps": 12,
+      "loop": false,
+      "frame_count": 20,
+      "duration_ms": 1660,
+      "trigger": "3-5 consecutive zero-win spins",
+      "notes": "Escalates from facepalm to grabbing the head and shaking.",
+      "frame_size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      },
+      "frames": [
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_000.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_001.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_002.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_003.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_004.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_005.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_006.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_007.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_008.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_009.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_010.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_011.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_012.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_013.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_014.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_015.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_016.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_017.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_018.webp",
+        "runtime_sequences/CHAR_LOSS_STREAK/rgba/CHAR_LOSS_STREAK_019.webp"
+      ]
+    },
+    "CHAR_RAGE_PC_SMASH": {
+      "name": "CHAR_RAGE_PC_SMASH",
+      "fps": 14,
+      "loop": false,
+      "frame_count": 24,
+      "duration_ms": 1704,
+      "trigger": "6+ consecutive zero-win spins or rage event",
+      "notes": "Escalation into a PC/monitor smash; extends right into the reel area.",
+      "frame_size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      },
+      "frames": [
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_000.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_001.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_002.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_003.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_004.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_005.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_006.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_007.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_008.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_009.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_010.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_011.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_012.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_013.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_014.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_015.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_016.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_017.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_018.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_019.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_020.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_021.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_022.webp",
+        "runtime_sequences/CHAR_RAGE_PC_SMASH/rgba/CHAR_RAGE_PC_SMASH_023.webp"
+      ]
+    },
+    "CHAR_WIN_HAPPY": {
+      "name": "CHAR_WIN_HAPPY",
+      "fps": 12,
+      "loop": false,
+      "frame_count": 18,
+      "duration_ms": 1494,
+      "trigger": "win > 0 and below big-win threshold",
+      "notes": "Neutral to happy fist-pump reaction.",
+      "frame_size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      },
+      "frames": [
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_000.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_001.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_002.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_003.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_004.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_005.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_006.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_007.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_008.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_009.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_010.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_011.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_012.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_013.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_014.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_015.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_016.webp",
+        "runtime_sequences/CHAR_WIN_HAPPY/rgba/CHAR_WIN_HAPPY_017.webp"
+      ]
+    }
+  },
+  "standalone_fx": {
+    "BONUS_CRATE_PULSE": {
+      "name": "BONUS_CRATE_PULSE",
+      "fps": 12,
+      "loop": true,
+      "frame_count": 16,
+      "duration_ms": 1328,
+      "trigger": "bonus tease/idle",
+      "notes": "Looping glowing bonus crate.",
+      "frame_size": {
+        "width": 512,
+        "height": 512
+      },
+      "anchor": {
+        "x": 256,
+        "y": 256
+      },
+      "frames": [
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_000.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_001.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_002.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_003.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_004.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_005.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_006.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_007.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_008.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_009.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_010.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_011.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_012.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_013.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_014.webp",
+        "standalone_fx/BONUS_CRATE_PULSE/rgba/BONUS_CRATE_PULSE_015.webp"
+      ]
+    },
+    "BONUS_CRATE_SPIN": {
+      "name": "BONUS_CRATE_SPIN",
+      "fps": 15,
+      "loop": true,
+      "frame_count": 20,
+      "duration_ms": 1340,
+      "trigger": "bonus award",
+      "notes": "Looping rotating/pulsing bonus crate.",
+      "frame_size": {
+        "width": 512,
+        "height": 512
+      },
+      "anchor": {
+        "x": 256,
+        "y": 256
+      },
+      "frames": [
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_000.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_001.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_002.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_003.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_004.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_005.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_006.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_007.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_008.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_009.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_010.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_011.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_012.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_013.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_014.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_015.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_016.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_017.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_018.webp",
+        "standalone_fx/BONUS_CRATE_SPIN/rgba/BONUS_CRATE_SPIN_019.webp"
+      ]
+    },
+    "FX_COIN_BURST": {
+      "name": "FX_COIN_BURST",
+      "fps": 12,
+      "loop": false,
+      "frame_count": 20,
+      "duration_ms": 1660,
+      "trigger": "big-win/bonus overlay",
+      "notes": "Transparent gold coin burst overlay.",
+      "frame_size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      },
+      "frames": [
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_000.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_001.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_002.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_003.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_004.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_005.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_006.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_007.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_008.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_009.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_010.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_011.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_012.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_013.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_014.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_015.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_016.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_017.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_018.webp",
+        "standalone_fx/FX_COIN_BURST/rgba/FX_COIN_BURST_019.webp"
+      ]
+    },
+    "FX_SCREEN_IMPACT": {
+      "name": "FX_SCREEN_IMPACT",
+      "fps": 15,
+      "loop": false,
+      "frame_count": 12,
+      "duration_ms": 804,
+      "trigger": "PC smash impact overlay",
+      "notes": "Transparent sparks/cracks impact overlay.",
+      "frame_size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      },
+      "frames": [
+        "standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_000.webp",
+        "standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_001.webp",
+        "standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_002.webp",
+        "standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_003.webp",
+        "standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_004.webp",
+        "standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_005.webp",
+        "standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_006.webp",
+        "standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_007.webp",
+        "standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_008.webp",
+        "standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_009.webp",
+        "standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_010.webp",
+        "standalone_fx/FX_SCREEN_IMPACT/rgba/FX_SCREEN_IMPACT_011.webp"
+      ]
+    },
+    "FX_WIN_FLASH": {
+      "name": "FX_WIN_FLASH",
+      "fps": 15,
+      "loop": false,
+      "frame_count": 10,
+      "duration_ms": 670,
+      "trigger": "win impact overlay",
+      "notes": "Transparent radial win flash.",
+      "frame_size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      },
+      "frames": [
+        "standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_000.webp",
+        "standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_001.webp",
+        "standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_002.webp",
+        "standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_003.webp",
+        "standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_004.webp",
+        "standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_005.webp",
+        "standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_006.webp",
+        "standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_007.webp",
+        "standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_008.webp",
+        "standalone_fx/FX_WIN_FLASH/rgba/FX_WIN_FLASH_009.webp"
+      ]
+    }
+  },
+  "static_keyposes": {
+    "BONUS_CRATE_STATIC": {
+      "rgba": "static_keyposes/rgba/BONUS_CRATE_STATIC.webp",
+      "size": {
+        "width": 512,
+        "height": 512
+      },
+      "anchor": {
+        "x": 256,
+        "y": 256
+      }
+    },
+    "CHAR_POSE_BONUS_TOSS": {
+      "rgba": "static_keyposes/rgba/CHAR_POSE_BONUS_TOSS.webp",
+      "size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      }
+    },
+    "CHAR_POSE_IDLE": {
+      "rgba": "static_keyposes/rgba/CHAR_POSE_IDLE.webp",
+      "size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      }
+    },
+    "CHAR_POSE_LOSS_FACEPALM": {
+      "rgba": "static_keyposes/rgba/CHAR_POSE_LOSS_FACEPALM.webp",
+      "size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      }
+    },
+    "CHAR_POSE_LOSS_STREAK": {
+      "rgba": "static_keyposes/rgba/CHAR_POSE_LOSS_STREAK.webp",
+      "size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      }
+    },
+    "CHAR_POSE_RAGE_PC_SMASH": {
+      "rgba": "static_keyposes/rgba/CHAR_POSE_RAGE_PC_SMASH.webp",
+      "size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      }
+    },
+    "CHAR_POSE_WIN_HAPPY": {
+      "rgba": "static_keyposes/rgba/CHAR_POSE_WIN_HAPPY.webp",
+      "size": {
+        "width": 1280,
+        "height": 1024
+      },
+      "anchor": {
+        "x": 310,
+        "y": 1000
+      }
+    }
+  },
+  "integration_rules": {
+    "production_assets": "Use only the declared RGBA frames and static keyposes shipped in this runtime package.",
+    "event_source": "Trigger reactions only after the RGS/play result is confirmed. Visuals never determine or predict outcomes.",
+    "priority": [
+      "CHAR_RAGE_PC_SMASH",
+      "CHAR_BONUS_TOSS",
+      "CHAR_BIG_WIN",
+      "CHAR_WIN_HAPPY",
+      "CHAR_LOSS_STREAK",
+      "CHAR_LOSS_SINGLE",
+      "CHAR_IDLE_WATCH"
+    ],
+    "fallback": "Return to CHAR_IDLE_WATCH after every non-looping sequence.",
+    "reduced_motion": "Display a final keypose or a 150 ms fade when prefers-reduced-motion is enabled."
+  }
+}

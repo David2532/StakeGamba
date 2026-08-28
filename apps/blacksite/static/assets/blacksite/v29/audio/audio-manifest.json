@@ -1,0 +1,2366 @@
+{
+  "schema": "blacksite-audio-runtime-manifest-v29",
+  "status": "TECHNICAL_IMPORT_PASS_AUDIBLE_QA_PENDING",
+  "sourceArchive": {
+    "fileName": "Blackside_Breach_Audio_Complete_RuntimePack_v1.0.zip",
+    "bytes": 37929735,
+    "sha256": "00bd81eb277623763b5b3626617c3eca0e035b46f0547a8d772b4c63582aad1a",
+    "manifestSha256": "5ef7ee6fb51b47754a5ac4ddae39dddece1fbe48712383a19379b3c3f2d8f7a7",
+    "licensePolicy": "CC0-only; see 03_LICENSES_AND_PROVENANCE"
+  },
+  "runtimeRoot": "assets/blacksite/v29/audio",
+  "budgets": {
+    "runtimeBytes": 3236044,
+    "criticalRuntimeBytes": 980633,
+    "hardMaxRuntimeBytes": 8388608,
+    "pass": true
+  },
+  "typeCounts": {
+    ".flac": 1,
+    ".ogg": 102,
+    ".opus": 1,
+    ".wav": 17
+  },
+  "cues": [
+    {
+      "cueId": "ui.hover",
+      "sourceEvent": "ui.hover.primary",
+      "bus": "UI",
+      "bank": "critical",
+      "priority": 15,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_hover_primary_v01.ogg",
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_hover_primary_v02.ogg",
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_hover_primary_v03.ogg"
+      ]
+    },
+    {
+      "cueId": "ui.press",
+      "sourceEvent": "ui.press.primary",
+      "bus": "UI",
+      "bank": "critical",
+      "priority": 40,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_press_primary_v01.ogg",
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_press_primary_v02.ogg",
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_press_primary_v03.ogg"
+      ]
+    },
+    {
+      "cueId": "ui.confirm",
+      "sourceEvent": "ui.notification.success",
+      "bus": "UI",
+      "bank": "critical",
+      "priority": 55,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_notification_success_v01.ogg"
+      ]
+    },
+    {
+      "cueId": "ui.cancel",
+      "sourceEvent": "ui.back",
+      "bus": "UI",
+      "bank": "critical",
+      "priority": 45,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_back_v01.ogg",
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_back_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "ui.toggle.on",
+      "sourceEvent": "ui.toggle.on",
+      "bus": "UI",
+      "bank": "critical",
+      "priority": 50,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_toggle_on_v01.ogg",
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_toggle_on_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "ui.toggle.off",
+      "sourceEvent": "ui.toggle.off",
+      "bus": "UI",
+      "bank": "critical",
+      "priority": 50,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_toggle_off_v01.ogg",
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_toggle_off_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "ui.modal.open",
+      "sourceEvent": "ui.modal.open",
+      "bus": "UI",
+      "bank": "critical",
+      "priority": 45,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_modal_open_v01.ogg",
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_modal_open_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "ui.modal.close",
+      "sourceEvent": "ui.modal.close",
+      "bus": "UI",
+      "bank": "critical",
+      "priority": 45,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_modal_close_v01.ogg",
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_modal_close_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "ui.error",
+      "sourceEvent": "ui.notification.error",
+      "bus": "UI",
+      "bank": "critical",
+      "priority": 100,
+      "pan": 0.0,
+      "loop": false,
+      "protected": true,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_notification_error_v01.ogg",
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_notification_error_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "ui.deny",
+      "sourceEvent": "system.action.blocked",
+      "bus": "UI",
+      "bank": "critical",
+      "priority": 98,
+      "pan": 0.0,
+      "loop": false,
+      "protected": true,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/system/bsb_sys_system_action_blocked_v01.ogg"
+      ]
+    },
+    {
+      "cueId": "spin.press",
+      "sourceEvent": "spin.press.standard",
+      "bus": "UI",
+      "bank": "critical",
+      "priority": 45,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/spin_controls/bsb_sfx_spin_press_standard_v01.wav",
+        "assets/blacksite/v29/audio/spin_controls/bsb_sfx_spin_press_standard_v02.wav"
+      ]
+    },
+    {
+      "cueId": "spin.confirmed",
+      "sourceEvent": "reel.start.whoosh",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 65,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_start_whoosh_v01.wav",
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_start_whoosh_v02.wav"
+      ]
+    },
+    {
+      "cueId": "reels.motor.loop",
+      "sourceEvent": "reel.loop.standard",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 50,
+      "pan": 0.0,
+      "loop": true,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_loop_standard_v01.ogg"
+      ]
+    },
+    {
+      "cueId": "reels.turbo.attack",
+      "sourceEvent": "spin.press.turbo",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 65,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/spin_controls/bsb_sfx_spin_press_turbo_v01.wav",
+        "assets/blacksite/v29/audio/spin_controls/bsb_sfx_spin_press_turbo_v02.wav"
+      ]
+    },
+    {
+      "cueId": "reel.stop.1",
+      "sourceEvent": "reel.stop.lock",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 70,
+      "pan": -0.8,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v01.ogg",
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v06.ogg"
+      ]
+    },
+    {
+      "cueId": "reel.stop.2",
+      "sourceEvent": "reel.stop.lock",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 70,
+      "pan": -0.4,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v02.ogg",
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v07.ogg"
+      ]
+    },
+    {
+      "cueId": "reel.stop.3",
+      "sourceEvent": "reel.stop.lock",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 70,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v03.ogg",
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v08.ogg"
+      ]
+    },
+    {
+      "cueId": "reel.stop.4",
+      "sourceEvent": "reel.stop.lock",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 70,
+      "pan": 0.4,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v04.ogg",
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v09.ogg"
+      ]
+    },
+    {
+      "cueId": "reel.stop.5",
+      "sourceEvent": "reel.stop.lock",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 72,
+      "pan": 0.8,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v05.ogg",
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v10.ogg"
+      ]
+    },
+    {
+      "cueId": "spin.complete",
+      "sourceEvent": "reel.settle",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 55,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_settle_v01.ogg",
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_settle_v02.ogg",
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_settle_v03.ogg"
+      ]
+    },
+    {
+      "cueId": "symbol.land.regular",
+      "sourceEvent": "symbol.land.low",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 35,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_land_low_v01.ogg",
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_land_low_v02.ogg",
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_land_low_v03.ogg"
+      ]
+    },
+    {
+      "cueId": "symbol.land.high",
+      "sourceEvent": "symbol.land.high",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 62,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_land_high_v01.ogg",
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_land_high_v02.ogg",
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_land_high_v03.ogg"
+      ]
+    },
+    {
+      "cueId": "symbol.land.ghost_wild",
+      "sourceEvent": "wild.land",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 86,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_wild_land_v01.ogg",
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_wild_land_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "breach.land.1",
+      "sourceEvent": "scatter.land",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 78,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_scatter_land_v01.ogg"
+      ]
+    },
+    {
+      "cueId": "breach.land.2",
+      "sourceEvent": "scatter.land",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 84,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_scatter_land_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "breach.trigger",
+      "sourceEvent": "freespins.trigger",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 100,
+      "pan": 0.0,
+      "loop": false,
+      "protected": true,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/freespins/bsb_sfx_freespins_trigger_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "anticipation.confirmed",
+      "sourceEvent": "reel.loop.anticipation",
+      "bus": "Reels",
+      "bank": "base",
+      "priority": 75,
+      "pan": 0.0,
+      "loop": true,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_loop_anticipation_v01.ogg"
+      ]
+    },
+    {
+      "cueId": "anticipation.release",
+      "sourceEvent": "anticipation.success",
+      "bus": "Reels",
+      "bank": "base",
+      "priority": 58,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/anticipation/bsb_sfx_anticipation_success_v01.wav"
+      ]
+    },
+    {
+      "cueId": "mode.deep_access",
+      "sourceEvent": "cinematic.target.acquire",
+      "bus": "Reels",
+      "bank": "base",
+      "priority": 65,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_target_acquire_v01.ogg"
+      ]
+    },
+    {
+      "cueId": "blackout.direct.prep",
+      "sourceEvent": "cinematic.blackout",
+      "bus": "Reels",
+      "bank": "blackout",
+      "priority": 62,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_blackout_v01.ogg"
+      ]
+    },
+    {
+      "cueId": "blackout.enter",
+      "sourceEvent": "freespins.title.reveal",
+      "bus": "Wins",
+      "bank": "blackout",
+      "priority": 96,
+      "pan": 0.0,
+      "loop": false,
+      "protected": true,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/freespins/bsb_sfx_freespins_title_reveal_v01.ogg",
+        "assets/blacksite/v29/audio/freespins/bsb_sfx_freespins_title_reveal_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "feature.target.confirm",
+      "sourceEvent": "symbol.unlock",
+      "bus": "UI",
+      "bank": "blackout",
+      "priority": 72,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_unlock_v01.ogg",
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_unlock_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "feature.spin.count",
+      "sourceEvent": "freespins.award.count",
+      "bus": "UI",
+      "bank": "blackout",
+      "priority": 45,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/freespins/bsb_sfx_freespins_award_count_v01.wav",
+        "assets/blacksite/v29/audio/freespins/bsb_sfx_freespins_award_count_v02.wav"
+      ]
+    },
+    {
+      "cueId": "feature.expand.attack",
+      "sourceEvent": "wild.activate",
+      "bus": "Reels",
+      "bank": "blackout",
+      "priority": 82,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_wild_activate_v01.ogg",
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_wild_activate_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "feature.expand.reel",
+      "sourceEvent": "symbol.drop",
+      "bus": "Reels",
+      "bank": "blackout",
+      "priority": 74,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_drop_v01.ogg",
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_drop_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "feature.expand.settle",
+      "sourceEvent": "symbol.lock",
+      "bus": "Reels",
+      "bank": "blackout",
+      "priority": 68,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_lock_v01.ogg",
+        "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_lock_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "feature.summary.open",
+      "sourceEvent": "freespins.complete",
+      "bus": "Wins",
+      "bank": "blackout",
+      "priority": 88,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": "win",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/freespins/bsb_sfx_freespins_complete_v01.ogg",
+        "assets/blacksite/v29/audio/freespins/bsb_sfx_freespins_complete_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "feature.summary.close",
+      "sourceEvent": "ui.modal.close",
+      "bus": "UI",
+      "bank": "blackout",
+      "priority": 45,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/ui/bsb_sfx_ui_modal_close_v01.ogg"
+      ]
+    },
+    {
+      "cueId": "win.micro",
+      "sourceEvent": "win.micro.hit",
+      "bus": "Wins",
+      "bank": "critical",
+      "priority": 40,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_micro_hit_v01.wav",
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_micro_hit_v02.wav",
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_micro_hit_v03.ogg"
+      ]
+    },
+    {
+      "cueId": "win.small",
+      "sourceEvent": "win.small.hit",
+      "bus": "Wins",
+      "bank": "critical",
+      "priority": 58,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_small_hit_v01.wav",
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_small_hit_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "win.medium",
+      "sourceEvent": "win.medium.hit",
+      "bus": "Wins",
+      "bank": "extended",
+      "priority": 72,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_medium_hit_v01.wav",
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_medium_hit_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "win.big",
+      "sourceEvent": "win.large.hit",
+      "bus": "Wins",
+      "bank": "extended",
+      "priority": 88,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": "win",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_large_hit_v01.wav",
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_large_hit_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "win.top",
+      "sourceEvent": "win.big.intro",
+      "bus": "Wins",
+      "bank": "extended",
+      "priority": 94,
+      "pan": 0.0,
+      "loop": false,
+      "protected": true,
+      "duck": "win",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_big_intro_v01.ogg",
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_big_intro_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "win.rollup.loop",
+      "sourceEvent": "win.count.tick",
+      "bus": "Wins",
+      "bank": "extended",
+      "priority": 68,
+      "pan": 0.0,
+      "loop": true,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_count_tick_v03.wav"
+      ]
+    },
+    {
+      "cueId": "win.rollup.end",
+      "sourceEvent": "win.count.end",
+      "bus": "Wins",
+      "bank": "extended",
+      "priority": 86,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_count_end_v01.ogg",
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_count_end_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "win.max",
+      "sourceEvent": "win.max.intro",
+      "bus": "Wins",
+      "bank": "extended",
+      "priority": 100,
+      "pan": 0.0,
+      "loop": false,
+      "protected": true,
+      "duck": "win",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_max_intro_v01.ogg"
+      ]
+    },
+    {
+      "cueId": "round.loss",
+      "sourceEvent": "round.no.win",
+      "bus": "Reels",
+      "bank": "critical",
+      "priority": 42,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/system/bsb_sfx_round_no_win_v01.ogg",
+        "assets/blacksite/v29/audio/system/bsb_sfx_round_no_win_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "round.complete",
+      "sourceEvent": "win.banner.out",
+      "bus": "Wins",
+      "bank": "critical",
+      "priority": 50,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_banner_out_v01.wav",
+        "assets/blacksite/v29/audio/wins/bsb_sfx_win_banner_out_v02.wav"
+      ]
+    },
+    {
+      "cueId": "ambience.tension",
+      "sourceEvent": "reel.loop.anticipation",
+      "bus": "Ambience",
+      "bank": "base",
+      "priority": 45,
+      "pan": 0.0,
+      "loop": true,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_loop_anticipation_v01.ogg"
+      ]
+    },
+    {
+      "cueId": "music.blackout",
+      "sourceEvent": "music.freespins",
+      "bus": "Music",
+      "bank": "blackout",
+      "priority": 35,
+      "pan": 0.0,
+      "loop": true,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/music_and_ambience_compact/bsb_music_freespins_v02.opus"
+      ]
+    },
+    {
+      "cueId": "vault.hold",
+      "sourceEvent": "cinematic.vault.latch",
+      "bus": "Reels",
+      "bank": "vault",
+      "priority": 75,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_latch_v01.ogg",
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_latch_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "vault.focus",
+      "sourceEvent": "cinematic.target.acquire",
+      "bus": "Reels",
+      "bank": "vault",
+      "priority": 78,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_target_acquire_v01.ogg",
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_target_acquire_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "vault.lock.1",
+      "sourceEvent": "reel.stop.lock",
+      "bus": "Reels",
+      "bank": "vault",
+      "priority": 82,
+      "pan": -0.75,
+      "loop": false,
+      "protected": false,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v01.ogg"
+      ]
+    },
+    {
+      "cueId": "vault.lock.2",
+      "sourceEvent": "reel.stop.lock",
+      "bus": "Reels",
+      "bank": "vault",
+      "priority": 82,
+      "pan": -0.45,
+      "loop": false,
+      "protected": false,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "vault.lock.3",
+      "sourceEvent": "reel.stop.lock",
+      "bus": "Reels",
+      "bank": "vault",
+      "priority": 82,
+      "pan": -0.15,
+      "loop": false,
+      "protected": false,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v03.ogg"
+      ]
+    },
+    {
+      "cueId": "vault.lock.4",
+      "sourceEvent": "reel.stop.lock",
+      "bus": "Reels",
+      "bank": "vault",
+      "priority": 82,
+      "pan": 0.15,
+      "loop": false,
+      "protected": false,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v04.ogg"
+      ]
+    },
+    {
+      "cueId": "vault.lock.5",
+      "sourceEvent": "reel.stop.lock",
+      "bus": "Reels",
+      "bank": "vault",
+      "priority": 82,
+      "pan": 0.45,
+      "loop": false,
+      "protected": false,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v05.ogg"
+      ]
+    },
+    {
+      "cueId": "vault.lock.6",
+      "sourceEvent": "reel.stop.lock",
+      "bus": "Reels",
+      "bank": "vault",
+      "priority": 84,
+      "pan": 0.75,
+      "loop": false,
+      "protected": false,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v06.ogg"
+      ]
+    },
+    {
+      "cueId": "vault.wheel",
+      "sourceEvent": "cinematic.vault.wheel.ratchet",
+      "bus": "Reels",
+      "bank": "vault",
+      "priority": 86,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_wheel_ratchet_v02.flac"
+      ]
+    },
+    {
+      "cueId": "vault.pressure",
+      "sourceEvent": "cinematic.vault.pressure.hiss",
+      "bus": "Reels",
+      "bank": "vault",
+      "priority": 84,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_pressure_hiss_v01.ogg",
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_pressure_hiss_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "vault.bolts",
+      "sourceEvent": "cinematic.vault.bolt.retract",
+      "bus": "Reels",
+      "bank": "vault",
+      "priority": 88,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_bolt_retract_v01.ogg",
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_bolt_retract_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "vault.door",
+      "sourceEvent": "cinematic.vault.door.open",
+      "bus": "Reels",
+      "bank": "vault",
+      "priority": 98,
+      "pan": 0.0,
+      "loop": false,
+      "protected": true,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_door_open_v01.ogg",
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_door_open_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "vault.door.impact",
+      "sourceEvent": "cinematic.vault.door.impact",
+      "bus": "Reels",
+      "bank": "vault",
+      "priority": 100,
+      "pan": 0.0,
+      "loop": false,
+      "protected": true,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_door_impact_v01.ogg",
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_door_impact_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "vault.gold",
+      "sourceEvent": "cinematic.vault.gold.reveal",
+      "bus": "Wins",
+      "bank": "vault",
+      "priority": 98,
+      "pan": 0.0,
+      "loop": false,
+      "protected": true,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_gold_reveal_v01.ogg",
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_gold_reveal_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "vault.camera",
+      "sourceEvent": "cinematic.power.restore",
+      "bus": "Ambience",
+      "bank": "vault",
+      "priority": 72,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_power_restore_v01.ogg"
+      ]
+    },
+    {
+      "cueId": "vault.handoff",
+      "sourceEvent": "cinematic.vault.gold.reveal",
+      "bus": "Wins",
+      "bank": "vault",
+      "priority": 100,
+      "pan": 0.0,
+      "loop": false,
+      "protected": true,
+      "duck": "vault",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_gold_reveal_v01.ogg"
+      ]
+    },
+    {
+      "cueId": "operative.gear",
+      "sourceEvent": "penguin.idle.cloth",
+      "bus": "Voice",
+      "bank": "base",
+      "priority": 20,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_idle_cloth_v01.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_idle_cloth_v02.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_idle_cloth_v03.ogg"
+      ]
+    },
+    {
+      "cueId": "operative.spin",
+      "sourceEvent": "penguin.reaction.positive",
+      "bus": "Voice",
+      "bank": "critical",
+      "priority": 45,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": "voice",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_positive_v01.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_positive_v02.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_positive_v03.ogg"
+      ]
+    },
+    {
+      "cueId": "operative.anticipation",
+      "sourceEvent": "penguin.reaction.gasp",
+      "bus": "Voice",
+      "bank": "base",
+      "priority": 55,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": "voice",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_gasp_v01.ogg"
+      ]
+    },
+    {
+      "cueId": "operative.loss",
+      "sourceEvent": "penguin.reaction.loss",
+      "bus": "Voice",
+      "bank": "extended",
+      "priority": 35,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_loss_v01.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_loss_v02.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_loss_v03.ogg"
+      ]
+    },
+    {
+      "cueId": "operative.loss_streak",
+      "sourceEvent": "penguin.idle.breath",
+      "bus": "Voice",
+      "bank": "extended",
+      "priority": 38,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_idle_breath_v01.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_idle_breath_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "operative.win",
+      "sourceEvent": "penguin.reaction.positive",
+      "bus": "Voice",
+      "bank": "extended",
+      "priority": 55,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": "voice",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_positive_v01.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_positive_v02.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_positive_v03.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_positive_v04.ogg"
+      ]
+    },
+    {
+      "cueId": "operative.big_win",
+      "sourceEvent": "penguin.reaction.big",
+      "bus": "Voice",
+      "bank": "extended",
+      "priority": 78,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": "voice",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_big_v01.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_big_v02.ogg"
+      ]
+    },
+    {
+      "cueId": "operative.bonus",
+      "sourceEvent": "penguin.reaction.positive",
+      "bus": "Voice",
+      "bank": "vault",
+      "priority": 82,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": "voice",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_positive_v02.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_positive_v03.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_positive_v04.ogg"
+      ]
+    },
+    {
+      "cueId": "operative.rage",
+      "sourceEvent": "penguin.reaction.loss",
+      "bus": "Voice",
+      "bank": "extended",
+      "priority": 60,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": "voice",
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_loss_v02.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_loss_v03.ogg"
+      ]
+    },
+    {
+      "cueId": "operative.recover",
+      "sourceEvent": "penguin.idle.chirp",
+      "bus": "Voice",
+      "bank": "critical",
+      "priority": 25,
+      "pan": 0.0,
+      "loop": false,
+      "protected": false,
+      "duck": null,
+      "runtimeFiles": [
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_idle_chirp_v01.ogg",
+        "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_idle_chirp_v02.ogg"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "assets/blacksite/v29/audio/anticipation/bsb_sfx_anticipation_success_v01.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/anticipation/bsb_sfx_anticipation_success_v01.wav",
+      "bytes": 30138,
+      "sha256": "21408ad6855085f74395c2257d4abfffe89bb1e6f3c020bcdcd13648380e182f",
+      "codec": "pcm_s16le",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 341.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_blackout_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_blackout_v01.ogg",
+      "bytes": 5956,
+      "sha256": "e0215fcfd8b9d7877f74d5c46b239a13d7db0d25998da97b80404931ef9eef5d",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 784.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_power_restore_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_power_restore_v01.ogg",
+      "bytes": 6495,
+      "sha256": "d673bfcd3aee32202908708fdadb3ad3033f65162c6dbae4615e181e19eee0d3",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 679.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_target_acquire_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_target_acquire_v01.ogg",
+      "bytes": 12708,
+      "sha256": "cde6464d6dc78ea0a96cd06e2d2777e98f202b30a82c3f5295dfee11a284446e",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 397.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_target_acquire_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_target_acquire_v02.ogg",
+      "bytes": 20380,
+      "sha256": "a670c982772dc3bbd8b0c3c1a876713fb488e412b556e571852c3f741e37bc92",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 331.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_bolt_retract_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_vault_bolt_retract_v01.ogg",
+      "bytes": 47159,
+      "sha256": "b68844e779fd0d4234bd2511d91db1c72cbf10fa9bc0bbd49f3be6bdb311eb6d",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 1150.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_bolt_retract_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_vault_bolt_retract_v02.ogg",
+      "bytes": 21442,
+      "sha256": "8c204ca94eb722d3af95f29221f4551938ca3c217fda32c14dabe2cf6a9c782b",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 529.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_door_impact_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_vault_door_impact_v01.ogg",
+      "bytes": 24256,
+      "sha256": "a335ccf202578bd740f930f0648a4dcbbbce3ebb2519335be023532578f56176",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 573.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_door_impact_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_vault_door_impact_v02.ogg",
+      "bytes": 5788,
+      "sha256": "6d65b463c0555dd5be16b8db6d2cbe23a94e07a4637779b8ad17d0db3e500a87",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 134.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_door_open_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_vault_door_open_v01.ogg",
+      "bytes": 19616,
+      "sha256": "5b7e07eccd4413ad9ef3720c2d14f9cc699f4c50111e9b2f48bd60e6f1a164c3",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 532.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_door_open_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_vault_door_open_v02.ogg",
+      "bytes": 47159,
+      "sha256": "b68844e779fd0d4234bd2511d91db1c72cbf10fa9bc0bbd49f3be6bdb311eb6d",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 1150.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_gold_reveal_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_vault_gold_reveal_v01.ogg",
+      "bytes": 16113,
+      "sha256": "764db253add93d5824a9329faceeb4247e10cf49a4e4e1653a46fa366d5b2138",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 945.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_gold_reveal_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_vault_gold_reveal_v02.ogg",
+      "bytes": 8300,
+      "sha256": "c7742b0e33c1733ddaf902aa68464a4f5364e4d4cb6ff11b76a7aa4151a138dd",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 399.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_latch_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_vault_latch_v01.ogg",
+      "bytes": 10208,
+      "sha256": "ba9ba60b172b3ebc131a940f25793cd2e207aca7af73dc80d637277f060f1708",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 261.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_latch_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_vault_latch_v02.ogg",
+      "bytes": 33021,
+      "sha256": "f37728690c9559d32527b55e25102a1acb7beafdfab7ad12e099285d13d29e01",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 737.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_pressure_hiss_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_vault_pressure_hiss_v01.ogg",
+      "bytes": 28947,
+      "sha256": "5574e69dd04e5f59322c5ddffde5978f077b09170ae5e29cec0bd9901828cd90",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 953.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_pressure_hiss_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_vault_pressure_hiss_v02.ogg",
+      "bytes": 27647,
+      "sha256": "051b0eafc479695af4ca3607d41fd4be41bae7c21f4f9508d004722b09f1bd63",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 955.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/cinematic/bsb_cin_cinematic_vault_wheel_ratchet_v02.flac",
+      "sourceFile": "01_RUNTIME_READY/audio/cinematic/bsb_cin_cinematic_vault_wheel_ratchet_v02.flac",
+      "bytes": 170671,
+      "sha256": "efbe681aa625950174b6642c387c5716ced6d34de38d3212beaad3e5f51c29e7",
+      "codec": "flac",
+      "sampleRateHz": 96000,
+      "channels": 2,
+      "durationMs": 542.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/freespins/bsb_sfx_freespins_award_count_v01.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/freespins/bsb_sfx_freespins_award_count_v01.wav",
+      "bytes": 18110,
+      "sha256": "d67ba7181e88d49e814320a2d3a6052295fb97668944a1cc50fa1241894201d3",
+      "codec": "pcm_s16le",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 205.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/freespins/bsb_sfx_freespins_award_count_v02.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/freespins/bsb_sfx_freespins_award_count_v02.wav",
+      "bytes": 12536,
+      "sha256": "1f9f8104810014ea6bd692f7f912d4d6bbdd4fe71c479cd602d85a02c58211ad",
+      "codec": "pcm_s16le",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 142.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/freespins/bsb_sfx_freespins_complete_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/freespins/bsb_sfx_freespins_complete_v01.ogg",
+      "bytes": 13885,
+      "sha256": "8b0df04c5e9e1adfd1d7a99c111894956e18374db03c681e14f2fd2c7d387626",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 801.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/freespins/bsb_sfx_freespins_complete_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/freespins/bsb_sfx_freespins_complete_v02.ogg",
+      "bytes": 9535,
+      "sha256": "3091bf0be0497f825769ee0733ca7bdc3bcd59bd6c6e8f2ba8f93d580ff38022",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 322.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/freespins/bsb_sfx_freespins_title_reveal_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/freespins/bsb_sfx_freespins_title_reveal_v01.ogg",
+      "bytes": 14615,
+      "sha256": "86e97f88473e77119c24cc2fbcc711b3343a0b665d4297ea684f59ea17fc998e",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 825.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/freespins/bsb_sfx_freespins_title_reveal_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/freespins/bsb_sfx_freespins_title_reveal_v02.ogg",
+      "bytes": 6770,
+      "sha256": "322d62ab7da973880d86c5ad217a2da85916ed95aa6c8d29991de392fd0f7522",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 418.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/freespins/bsb_sfx_freespins_trigger_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/freespins/bsb_sfx_freespins_trigger_v02.ogg",
+      "bytes": 7278,
+      "sha256": "a9387a2cb0b13b8c794579e61ae1fb7e666e22d46a36aec6c77471635096f2fc",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 862.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/music_and_ambience_compact/bsb_music_freespins_v02.opus",
+      "sourceFile": "01_RUNTIME_READY/audio/music_and_ambience_compact/bsb_music_freespins_v02.opus",
+      "bytes": 1002091,
+      "sha256": "6ba2f79922c908dca262d141237758845b6f8834ee30222c2cb062ab960be896",
+      "codec": "opus",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 80392.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_idle_breath_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_idle_breath_v01.ogg",
+      "bytes": 28273,
+      "sha256": "d6ecfd092c261059701fe81581957ce6e67c1737978449bbd98ec6d4f30abb7f",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 670.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_idle_breath_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_idle_breath_v02.ogg",
+      "bytes": 15575,
+      "sha256": "5b32729394cc36667bb8052508115941f21d85804f84ecda4c492d19883cd15e",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 356.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_idle_chirp_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_idle_chirp_v01.ogg",
+      "bytes": 8364,
+      "sha256": "d983bc83f13d544df19eebd2d0f43b9ef8865bcf736e1263f020291f6f175767",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 464.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_idle_chirp_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_idle_chirp_v02.ogg",
+      "bytes": 8673,
+      "sha256": "e290483aff9c94277fd7aaea7b4267d5ccd36728226b59e2f5b619896ff2450c",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 474.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_idle_cloth_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_idle_cloth_v01.ogg",
+      "bytes": 16508,
+      "sha256": "ddb93a3671233f95da0e0b10367f082f7eb42fa6caaddcf776410aa8833c747d",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 661.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_idle_cloth_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_idle_cloth_v02.ogg",
+      "bytes": 11787,
+      "sha256": "8a7451193c38bc05483aec25dd193e163a15d44cf7fff04ac7912573231b0201",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 415.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_idle_cloth_v03.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_idle_cloth_v03.ogg",
+      "bytes": 12432,
+      "sha256": "a48632d17a4f1416541d261a32a31612e01267144c407fa3ecab3ff410f0085b",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 477.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_big_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_reaction_big_v01.ogg",
+      "bytes": 15466,
+      "sha256": "b72456b5ee7f39154f7aea86ada23f281a24fe3a4d4d91704a7b7f5464b77a27",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 293.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_big_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_reaction_big_v02.ogg",
+      "bytes": 26244,
+      "sha256": "2432bc342b5688c390df41fbeb87be6af7fb686d67400d3310dfd1e2922bdbda",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 605.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_gasp_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_reaction_gasp_v01.ogg",
+      "bytes": 16551,
+      "sha256": "6e2323960b6eaa931a75e4f75e3f13926cf3b67d4c21767cae88f2b2f7c83613",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 739.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_loss_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_reaction_loss_v01.ogg",
+      "bytes": 24912,
+      "sha256": "73ee84f2bb3e1b371a72dd66a09f150c98c9000bcb735c3bdd7f607e59385206",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 933.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_loss_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_reaction_loss_v02.ogg",
+      "bytes": 26099,
+      "sha256": "f2a23b32fcf9cbdabf059339d346ce7eead018fda778067827e71b96936989f1",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 666.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_loss_v03.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_reaction_loss_v03.ogg",
+      "bytes": 19409,
+      "sha256": "406b88a519f2b067f99dedbce1b3dc2f472c7f5a50f8443e8dddbcf5e0edaf53",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 629.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_positive_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_reaction_positive_v01.ogg",
+      "bytes": 19125,
+      "sha256": "de478d6aaa052a06ff88351c684a5cd5fbef013248985fbb5ff0cdcddd9904ad",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 390.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_positive_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_reaction_positive_v02.ogg",
+      "bytes": 27354,
+      "sha256": "de5b8609ffcdb6f22865c8dc696dc01bdbc54e78ca54af45cb22116a0641b6c2",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 611.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_positive_v03.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_reaction_positive_v03.ogg",
+      "bytes": 22176,
+      "sha256": "41d1b63ad4f006c09dbc65a686c022633825b01aa20e400b6dce0c6a22970c7c",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 507.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/penguin/bsb_chr_penguin_reaction_positive_v04.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/penguin/bsb_chr_penguin_reaction_positive_v04.ogg",
+      "bytes": 16551,
+      "sha256": "6e2323960b6eaa931a75e4f75e3f13926cf3b67d4c21767cae88f2b2f7c83613",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 739.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_loop_anticipation_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_loop_anticipation_v01.ogg",
+      "bytes": 67988,
+      "sha256": "a9aa0a0de4665619274d3d6020100cf97d9948fcc033ec49f59bae52a8fef802",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 1346.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_loop_standard_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_loop_standard_v01.ogg",
+      "bytes": 56095,
+      "sha256": "06bef91dcdb0a7e034f29196d36ba4d5a55e51038df4b299178d457fb978e6fb",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 1196.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_settle_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_settle_v01.ogg",
+      "bytes": 10474,
+      "sha256": "6e797cf8a5bfc52d7ed5eb47c227974c1cf2a674954fec5b539cea7d62c7282c",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 542.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_settle_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_settle_v02.ogg",
+      "bytes": 11730,
+      "sha256": "947915c2eb6ac57ee08fd3a48b297fd108d69abc72076e79882c21cad0eef56e",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 655.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_settle_v03.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_settle_v03.ogg",
+      "bytes": 9932,
+      "sha256": "8ac5869ea434cf0d364872774efe70b2d666a4f02ba35ddfc1e051d336721be8",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 489.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_start_whoosh_v01.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_start_whoosh_v01.wav",
+      "bytes": 39390,
+      "sha256": "55b100e2c67fa43dad8510e31e85bbd51a68d5ce84a6e0259e21e19030083e24",
+      "codec": "pcm_s24le",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 146.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_start_whoosh_v02.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_start_whoosh_v02.wav",
+      "bytes": 39384,
+      "sha256": "0060f4a7040edce4cc50d1daa10a9cb76764128a942e4688339e69cd1d5d784c",
+      "codec": "pcm_s24le",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 146.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_stop_lock_v01.ogg",
+      "bytes": 7117,
+      "sha256": "a96f879fec0864a8938e0c745b6996a6c5679c16a234ce31a01cc995e8401003",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 272.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_stop_lock_v02.ogg",
+      "bytes": 6151,
+      "sha256": "e8a9eaba7c4d27422e4eeb3e6c7100d5d7dc0f83e005efc98c960adcc5265337",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 143.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v03.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_stop_lock_v03.ogg",
+      "bytes": 5857,
+      "sha256": "7e89ce2ca0dbda95ea2b78d4b50791cab35c10d20e9f5ccd45dd0b00e99ff548",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 119.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v04.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_stop_lock_v04.ogg",
+      "bytes": 6964,
+      "sha256": "2a185e2e57211d02c1bdd33b872d6b6a2fe83e6c14f4e56f426a95e717acf08e",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 254.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v05.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_stop_lock_v05.ogg",
+      "bytes": 5744,
+      "sha256": "03e10f800199c7166208e41c11cf4acfac6cc265467f02357da71972bc967295",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 109.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v06.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_stop_lock_v06.ogg",
+      "bytes": 12422,
+      "sha256": "f5fd185fce454947c1d91ce6757e219c4d7c6c139d4aa9d419cd7a79c7f6df3b",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 269.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v07.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_stop_lock_v07.ogg",
+      "bytes": 17378,
+      "sha256": "9074c0828727bd00834cabcaaf5b8cbff2cfad7b45676b95d86c0919e444f8b1",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 435.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v08.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_stop_lock_v08.ogg",
+      "bytes": 17431,
+      "sha256": "9daf6e7e1fc1871acfb063cb25ce050faab559ee6c42fed84bf18a4067f26a4d",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 395.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v09.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_stop_lock_v09.ogg",
+      "bytes": 15532,
+      "sha256": "dfc5ebc2cafcf2670f3937882c5040abe5c8855885c886023592d9a0779dde48",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 374.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/reels/bsb_sfx_reel_stop_lock_v10.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/reels/bsb_sfx_reel_stop_lock_v10.ogg",
+      "bytes": 13937,
+      "sha256": "04e4d0926afd4bcd7d451884e0a74cea7c9661f56e211aeb8a4ee07bbccf4715",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 329.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/spin_controls/bsb_sfx_spin_press_standard_v01.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/spin_controls/bsb_sfx_spin_press_standard_v01.wav",
+      "bytes": 34138,
+      "sha256": "9a15c881345c1ce1c39cc31f52f081c8c4dc81fa41111e0079400f39d3ba0e45",
+      "codec": "pcm_s24le",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 126.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/spin_controls/bsb_sfx_spin_press_standard_v02.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/spin_controls/bsb_sfx_spin_press_standard_v02.wav",
+      "bytes": 26136,
+      "sha256": "1ce7752cce3d43f16fc222ad7f7ffb69d9a5fc01e64b93d205765fc37b8e9b0d",
+      "codec": "pcm_s24le",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 96.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/spin_controls/bsb_sfx_spin_press_turbo_v01.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/spin_controls/bsb_sfx_spin_press_turbo_v01.wav",
+      "bytes": 41456,
+      "sha256": "113a3709ad889ad2fcf38eaceaf4eb9d67ffe1e96713fed93a6f0aed08769980",
+      "codec": "pcm_s24le",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 154.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/spin_controls/bsb_sfx_spin_press_turbo_v02.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/spin_controls/bsb_sfx_spin_press_turbo_v02.wav",
+      "bytes": 52906,
+      "sha256": "123883f006ce55feecbff11eea5f87c4493df4399989983037144570a23723c1",
+      "codec": "pcm_s24le",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 197.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_scatter_land_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_scatter_land_v01.ogg",
+      "bytes": 46395,
+      "sha256": "bb9c1826553beb87e47a534f9608a7dcd236614bb6194f4323d4661df81e895e",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 2005.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_scatter_land_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_scatter_land_v02.ogg",
+      "bytes": 15577,
+      "sha256": "9df61e3ae9a83dc65e5a1fd3ed19d480876f3b22b963a1b9ef6fa293592dcec4",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 1741.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_drop_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_symbol_drop_v01.ogg",
+      "bytes": 10626,
+      "sha256": "dbfb7c1d002576696df3e9a43d6639ee3f342068398b5e7b55bc2389d20508a9",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 528.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_drop_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_symbol_drop_v02.ogg",
+      "bytes": 11928,
+      "sha256": "9cb33b0c0cce948313f078b60769d2f8e4075472494fc8f8129aa4a23c951897",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 657.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_land_high_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_symbol_land_high_v01.ogg",
+      "bytes": 8400,
+      "sha256": "9252d50bfb85edb17d6073c4a7806e10cdb9de56d3dbfc93a4b9727146d2df6d",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 543.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_land_high_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_symbol_land_high_v02.ogg",
+      "bytes": 8605,
+      "sha256": "d3d806cb3012c9ddd87010b30295ccb74d6d8b690077d19e67afd09a9d8feb03",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 543.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_land_high_v03.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_symbol_land_high_v03.ogg",
+      "bytes": 8341,
+      "sha256": "48616f22c95589ed9fe55babf0fd012721d7b2ef1b9e85c2ad6408a2cd7c164f",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 543.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_land_low_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_symbol_land_low_v01.ogg",
+      "bytes": 5827,
+      "sha256": "f0e982611e97512fee5f777986b67e8b435434b601f94992ec044f7e89fb5acb",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 139.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_land_low_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_symbol_land_low_v02.ogg",
+      "bytes": 5636,
+      "sha256": "c3cd1c073d186ae8fa35788ba94de581f1826e7427a7bb26490b2695fac18efa",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 118.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_land_low_v03.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_symbol_land_low_v03.ogg",
+      "bytes": 5795,
+      "sha256": "d0bf60905b59ff630ffe01eb0edeeacd2504eaa8fb6523aeef7d2458b78264d3",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 140.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_lock_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_symbol_lock_v01.ogg",
+      "bytes": 17452,
+      "sha256": "e828ad2a936e34a0212f3309c5ac706c0ded412b9b383a87f10bcfa1d1445271",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 411.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_lock_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_symbol_lock_v02.ogg",
+      "bytes": 10208,
+      "sha256": "ba9ba60b172b3ebc131a940f25793cd2e207aca7af73dc80d637277f060f1708",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 261.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_unlock_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_symbol_unlock_v01.ogg",
+      "bytes": 15553,
+      "sha256": "e183464a4e28c1764c70e980465faaf6ea8c33c8ea4a2b636a3ae2c58e8740f5",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 397.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_symbol_unlock_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_symbol_unlock_v02.ogg",
+      "bytes": 33021,
+      "sha256": "f37728690c9559d32527b55e25102a1acb7beafdfab7ad12e099285d13d29e01",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 737.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_wild_activate_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_wild_activate_v01.ogg",
+      "bytes": 6363,
+      "sha256": "2a2adebaacbf07cc89c194e5d088c8e01cad8557800559d6cb5b6106b6739508",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 575.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_wild_activate_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_wild_activate_v02.ogg",
+      "bytes": 6101,
+      "sha256": "7dfa3198ab951f09bee096bcd08db6faafcdb57a6bf416c91e1fa9a8321076e5",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 549.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_wild_land_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_wild_land_v01.ogg",
+      "bytes": 8126,
+      "sha256": "4e4bf11c671a4be0723022a7177f8e122329fa32a0c59555581f4193ed111585",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 1019.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/symbols/bsb_sfx_wild_land_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/symbols/bsb_sfx_wild_land_v02.ogg",
+      "bytes": 9819,
+      "sha256": "169cf3876647bae0a28a7eb3fc5b5bd573ab9efae7b56b64a8700ff9bafb3494",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 1228.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/system/bsb_sfx_round_no_win_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/system/bsb_sfx_round_no_win_v01.ogg",
+      "bytes": 7035,
+      "sha256": "b4b3bc7420e71bfbec49a6ea13b8c12d76a5751cbdf063d8a8ac017c0b1e1d87",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 1019.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/system/bsb_sfx_round_no_win_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/system/bsb_sfx_round_no_win_v02.ogg",
+      "bytes": 11924,
+      "sha256": "8481912bc7fa5828924a00ef15b6cd613b994956e0817bd3122065c9b2896d2d",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 258.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/system/bsb_sys_system_action_blocked_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/system/bsb_sys_system_action_blocked_v01.ogg",
+      "bytes": 7266,
+      "sha256": "3f75b11df5b06d68d2c25fbf0e9c9d9e7dd9250562a4007ee34856b8a309a2ae",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 500.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_back_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_back_v01.ogg",
+      "bytes": 6997,
+      "sha256": "07db973f79f6ae0f2edc34561e7592e24d0577455919fb602cb8ecc0da991dcf",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 64.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_back_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_back_v02.ogg",
+      "bytes": 7029,
+      "sha256": "61581c58194e3f19f531072edabbc344204c7e0a2887b8ededce4357bcf09195",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 70.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_hover_primary_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_hover_primary_v01.ogg",
+      "bytes": 5932,
+      "sha256": "4eb47e2e1540c44847b47a89825e21335c820a4e54cacf8c4c1eb5100e36af42",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 227.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_hover_primary_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_hover_primary_v02.ogg",
+      "bytes": 4701,
+      "sha256": "d0bc0fcba496d73df1da8c145e5330df75f87ab5a4f33a9b71461b006b5c338e",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 57.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_hover_primary_v03.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_hover_primary_v03.ogg",
+      "bytes": 4778,
+      "sha256": "641df2c95468f1f035ff0ae964129da10543b4ea8ff6c13f66bcbd899dcfc113",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 69.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_modal_close_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_modal_close_v01.ogg",
+      "bytes": 15648,
+      "sha256": "39a1a7f3bc001766c1881841e9903c6b16f5a10b5666e0791d7f6444677d8b05",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 314.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_modal_close_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_modal_close_v02.ogg",
+      "bytes": 16263,
+      "sha256": "41b41e01ac75f4bc5a9c8dc3b0de744fa7f877757463692783c12a8ae4bfae6b",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 323.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_modal_open_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_modal_open_v01.ogg",
+      "bytes": 9834,
+      "sha256": "a27c6bb0df7da1e6af5dd5937593c98bc58b6e513f42fe6a3254cd6a6949c648",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 148.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_modal_open_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_modal_open_v02.ogg",
+      "bytes": 14975,
+      "sha256": "24ff224fe2c09c6aed1b41249825382dc74cf324b887ff279d8494912ce2beee",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 314.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_notification_error_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_notification_error_v01.ogg",
+      "bytes": 7373,
+      "sha256": "46e67425d16339772e8d328fb36a49426c9467418686e11beeb71ff84b0f6433",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 165.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_notification_error_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_notification_error_v02.ogg",
+      "bytes": 7369,
+      "sha256": "76810ec365f41078fd0507101da5bb7b8730fe011dde43908329fdabd8575e79",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 165.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_notification_success_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_notification_success_v01.ogg",
+      "bytes": 8968,
+      "sha256": "063564703b6094d70718a3e787a55cc9141611e4ecd6b6637f8828f79b4a8c3a",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 290.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_press_primary_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_press_primary_v01.ogg",
+      "bytes": 4983,
+      "sha256": "59175ac17cd49a68dd736285738441287636112a84a6f7ce0d89921bda5a5360",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 94.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_press_primary_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_press_primary_v02.ogg",
+      "bytes": 4656,
+      "sha256": "c394b46bc6737f7f7edfbfa3031ce621b7a43d498d456d6198364eee9cd3e306",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 56.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_press_primary_v03.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_press_primary_v03.ogg",
+      "bytes": 4880,
+      "sha256": "e3e7fc7ccd9c5cfdf77bffa05aee10d4973812076c76dc889ba2b16ea434127f",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 86.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_toggle_off_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_toggle_off_v01.ogg",
+      "bytes": 6753,
+      "sha256": "3b74efad87f1e69dbd1d05c5ad952ab90859b5a3d11da6ec5bd79b4f03b42afa",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 618.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_toggle_off_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_toggle_off_v02.ogg",
+      "bytes": 7097,
+      "sha256": "6fc395be2ad1f99ce318a5d28f98fb76dbeb676d83a0b28239d8c1fb90736180",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 611.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_toggle_on_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_toggle_on_v01.ogg",
+      "bytes": 7369,
+      "sha256": "ca1d2dde5f0b286abac4f070e23edab8f30927c8a533665cdf2ac6492a415e49",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 139.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/ui/bsb_sfx_ui_toggle_on_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/ui/bsb_sfx_ui_toggle_on_v02.ogg",
+      "bytes": 8056,
+      "sha256": "1f564f5520cfa0764028ce245ad97599d3ece8f0ab504554c403af92ac72b900",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 139.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_banner_out_v01.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_banner_out_v01.wav",
+      "bytes": 20892,
+      "sha256": "0513a86d428d9ed8601e93b8554580a5932c6c1a82d39d81a8f48883f1807a67",
+      "codec": "pcm_s24le",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 76.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_banner_out_v02.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_banner_out_v02.wav",
+      "bytes": 19516,
+      "sha256": "698230ba3fe05a68c18d68cd6b3a07fb98e6c1198bb1a4238592ee9912c02c77",
+      "codec": "pcm_s24le",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 71.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_big_intro_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_big_intro_v01.ogg",
+      "bytes": 16151,
+      "sha256": "88a6645658b15dc327a2377ca7354e364625f081cd6ff9fda0b46dc54f664b71",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 909.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_big_intro_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_big_intro_v02.ogg",
+      "bytes": 15019,
+      "sha256": "8e246cd4099bb170dbd53a9c4c1e2113c57f4c5469abf4fcb7953cd6ae894bff",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 746.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_count_end_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_count_end_v01.ogg",
+      "bytes": 19098,
+      "sha256": "bc69b15effae9314e8afb86229bb83acdab6afd79d552b786f53a4812d902980",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 999.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_count_end_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_count_end_v02.ogg",
+      "bytes": 11424,
+      "sha256": "7c20cd8d6b98e583822e1f58abc596900a07ba75ca690ec599efe5ea58981211",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 639.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_count_tick_v03.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_count_tick_v03.wav",
+      "bytes": 4208,
+      "sha256": "8f1f1d1c0cec6235fd23f5ac7f8aaec04a679ef67448e0b462209149fe3a1281",
+      "codec": "pcm_s16le",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 47.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_large_hit_v01.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_large_hit_v01.wav",
+      "bytes": 58634,
+      "sha256": "8d52ca8f3f9a9d411bc06e04723e7b01d92f0cd094a4919dbc78680fdd50330f",
+      "codec": "pcm_s16le",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 664.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_large_hit_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_large_hit_v02.ogg",
+      "bytes": 11145,
+      "sha256": "6eba3198a05a3388be4a1edc2d11135ac2b924d8418704e94636d3e0af3c2854",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 586.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_max_intro_v01.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_max_intro_v01.ogg",
+      "bytes": 15473,
+      "sha256": "03f2048dc74dae100bc29b8cd59b4497ac7a057dae32c207916495c5dc214083",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 909.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_medium_hit_v01.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_medium_hit_v01.wav",
+      "bytes": 66584,
+      "sha256": "bcc17c6be88b271280753b5cc385b17ef748e21229eff0ac26138b6820ca390f",
+      "codec": "pcm_s16le",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 754.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_medium_hit_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_medium_hit_v02.ogg",
+      "bytes": 15082,
+      "sha256": "7e1f170ee00a8265723342c8d30e797a64641603a2c59c2316d3357b8c5f60d6",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 945.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_micro_hit_v01.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_micro_hit_v01.wav",
+      "bytes": 17970,
+      "sha256": "042e8fbf111ad101841a94ee713e2b90a06bdfd8bdbd77b311eee456d636ce69",
+      "codec": "pcm_s16le",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 203.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_micro_hit_v02.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_micro_hit_v02.wav",
+      "bytes": 17466,
+      "sha256": "beca6520c622fa97104f0de5a35dd9df2cf5b78fd51675ab78c92db3de29176b",
+      "codec": "pcm_s16le",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 198.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_micro_hit_v03.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_micro_hit_v03.ogg",
+      "bytes": 18985,
+      "sha256": "4e701b281a4f88768beccbe87af4574d13ac5a4bc5cab6c522f0e79823d6e428",
+      "codec": "vorbis",
+      "sampleRateHz": 48000,
+      "channels": 2,
+      "durationMs": 406.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_small_hit_v01.wav",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_small_hit_v01.wav",
+      "bytes": 48572,
+      "sha256": "74c1243abe26f4577d88ac9a9c740f238c9736941e5ddf6a8050e62503d6b024",
+      "codec": "pcm_s16le",
+      "sampleRateHz": 44100,
+      "channels": 1,
+      "durationMs": 550.0
+    },
+    {
+      "path": "assets/blacksite/v29/audio/wins/bsb_sfx_win_small_hit_v02.ogg",
+      "sourceFile": "01_RUNTIME_READY/audio/wins/bsb_sfx_win_small_hit_v02.ogg",
+      "bytes": 11681,
+      "sha256": "ddca9df332d7cdab525bbbe62ca26e9d61aa64bfa626d9516d5c53eb91c45322",
+      "codec": "vorbis",
+      "sampleRateHz": 44100,
+      "channels": 2,
+      "durationMs": 506.0
+    }
+  ],
+  "audibleQa": "PENDING_USER_AND_DEVICE_AUDITION"
+}

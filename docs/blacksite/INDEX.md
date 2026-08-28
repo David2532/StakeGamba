@@ -1,7 +1,7 @@
 # BLACKSITE // BREACH — Codex Studio Index
 
-Status: **M2 repository greybox gate complete / M3 concept-asset pass started**
-Last official-doc review: **2026-08-07**
+Status: **Math v3 5x3 candidate verified internally / 13-symbol frontend and package integration in progress**
+Last official-doc review: **2026-08-09**
 
 This directory is the durable source of truth for the next original Stake Engine slot. Root `AGENTS.md` is intentionally a routing document; detailed knowledge lives here so Codex does not have to carry the entire project encyclopedia in every turn.
 
@@ -18,9 +18,11 @@ Every major Codex task starts with:
 ## Core product and architecture
 
 - `MASTER_PLAN.md` — product vision, architecture, milestones and Definition of Done.
-- `M1_GAME_MATH_CONTRACT.md` — frozen BLACKSITE M1 mechanic, modes, Ghost Route, events, fixtures and Gate A–D decisions.
+- `MATH_V3_GAME_CONTRACT.md` — current 5x3 line-pay, 13-symbol, WILD, BREACH free-spin and closed-event contract. It supersedes v1 and v2 for all new candidates.
+- `MATH_V2_GAME_CONTRACT.md` — historical frozen v2 six-regular-symbol contract retained for evidence only; its books, hashes, fixtures and cursors are incompatible with v3.
+- `M1_GAME_MATH_CONTRACT.md` — historical frozen v1 cluster/Ghost Route contract retained for evidence only; it must not be mixed with v3 books or runtime state.
 - `M1_COMPLIANCE_REVIEW.md` — truthful requirement-by-requirement M1 status and next-evidence gates for all 51 checklist items.
-- `M2_COMPLIANCE_REVIEW.md` — exact SHA-bound M2 unit/browser/build evidence and truthful current status for every checklist row.
+- `M2_COMPLIANCE_REVIEW.md` — historical SHA-bound v1 greybox evidence. It is not current v3 frontend/package proof.
 - `M3_ASSET_MANIFEST.md` — concept-asset ledger, retained file hashes, production group gaps and the safe runtime/Spine integration gate.
 - `STAKE_REQUIREMENTS_51.md` — the exact 51-point approval checklist supplied for this project, with proof expectations and release ownership.
 - `STAKE_ENGINE_SOURCE_INDEX.md` — official Stake Engine/SDK source map and precedence rules.
@@ -32,6 +34,8 @@ Every major Codex task starts with:
 - `MATH_STANDARD.md` — math file contract, statelessness, lookup/books, RTP, volatility, force/evidence and optimization requirements.
 - `ASSET_ART_STANDARD.md` — original asset pipeline, game-tile package, Spine delivery contract, audio, provenance and bundle budget.
 - `QUALITY_QA_RELEASE.md` — deterministic fixtures, browser QA, extracted-package testing, candidate identity and approval lifecycle.
+- `V19_PACKAGING_EVIDENCE.md` — V18-pinned V19 package roots, final-build hash acceptance and fail-closed release evidence.
+- `V19_PACKAGE_CONTRACT.json` — machine-readable V18 commit/tree/math baseline and exact V19 output/gate contract.
 - `CODEX_MASTER_TASK.md` — reusable autonomous build brief for moving the project through M1–M6 without repeatedly rewriting the whole prompt.
 
 ## Specialist agents
