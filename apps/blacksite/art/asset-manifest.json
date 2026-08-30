@@ -1,8 +1,21 @@
 {
   "schema": "blacksite-asset-manifest-v1",
-  "updatedAt": "2026-08-07",
+  "updatedAt": "2026-08-30",
   "lifecycle": "M3_STARTED_CONCEPT_ONLY",
   "runtimeIntegration": "none",
+  "productIdentity": {
+    "status": "locked",
+    "characterId": "penguin_vaultkeeper",
+    "characterBrief": "Original mature stylized anthropomorphic penguin vault technician; restrained, clever and integrated into the physical security facility without becoming a childish mascot",
+    "themeAnchors": ["penguin", "mechanical-lock", "vault-door", "armored-security-facility"],
+    "forbiddenProductionDirections": [
+      "human-operative-side-character",
+      "generic-cyber-soldier",
+      "childish-or-chibi-mascot",
+      "copied-franchise-penguin"
+    ],
+    "runtimeAuthority": "Presentation only; the character and vault motion never determine results, payout or round state"
+  },
   "generator": {
     "mode": "OpenAI built-in image_gen",
     "inputs": "text-only generation; the accepted environment is a targeted edit of this task's original text-only generation",
@@ -13,7 +26,7 @@
     {
       "id": "concept.environment.server_bunker_board_aperture.v1",
       "type": "environment-concept",
-      "purpose": "Desktop composition, physical material, lighting and empty board-aperture reference",
+      "purpose": "Historical material, lighting and empty board-aperture reference only; its embedded human silhouette and composition are superseded",
       "source": "OpenAI built-in image_gen generation plus one targeted central-aperture edit",
       "originalityProvenance": "Created in this repository task from project-authored text prompts; no third-party or user-supplied visual reference was used",
       "licenseRights": "AI-assisted project concept; legal/originality and final-use rights review pending",
@@ -32,12 +45,13 @@
       "mobileFallback": "Not approved; a separately authored portrait recomposition and Popout crop are required",
       "compression": "Lossless PNG concept source only; excluded from runtime until production extraction and WebP optimization",
       "owner": "asset_director / creative_director",
-      "status": "concept"
+      "status": "reference-only",
+      "excludedElements": ["human side character", "human-authored composition dependency"]
     },
     {
       "id": "concept.character.operative_spine_anchor.v1",
       "type": "character-concept",
-      "purpose": "Adult operative identity, material, silhouette and portrait-crop anchor for a future Spine 4.2 rig",
+      "purpose": "Superseded historical human-operative concept retained only for provenance and negative-direction review",
       "source": "OpenAI built-in image_gen text-only generation",
       "originalityProvenance": "Created in this repository task from a project-authored text prompt; no third-party or user-supplied visual reference was used",
       "licenseRights": "AI-assisted project concept; legal/originality, likeness and final-use rights review pending",
@@ -70,7 +84,9 @@
       "mobileFallback": "The concept includes a waist-up identity inset; a separate production fallback pose/crop is still required",
       "compression": "Lossless PNG concept source only; not a runtime texture",
       "owner": "asset_director / animation_director",
-      "status": "concept"
+      "status": "superseded",
+      "supersededBy": "product.character.penguin_vaultkeeper.v1",
+      "runtimeEligible": false
     },
     {
       "id": "concept.symbols.material_language.v1",
@@ -90,11 +106,7 @@
       "alpha": false,
       "anchorPivot": "Production symbols require identical square bounds and centered pivots",
       "atlasBundle": "Future six-symbol Pixi spritesheet; no atlas exists yet",
-      "statesAnimations": [
-        "idle",
-        "win-readable",
-        "dim-readable"
-      ],
+      "statesAnimations": ["idle", "win-readable", "dim-readable"],
       "mobileFallback": "Each production symbol must remain distinguishable at the measured mobile cell size without relying only on hue",
       "compression": "Lossless PNG concept sheet only; individual alpha sprites, crop and atlas optimization pending",
       "owner": "asset_director / frontend_engineer",
@@ -108,7 +120,7 @@
     },
     {
       "id": "environment-desktop-portrait-popout-blackout",
-      "status": "concept-started"
+      "status": "reference-material-only"
     },
     {
       "id": "board-frame-cells-breach-states",
@@ -119,8 +131,8 @@
       "status": "concept-started"
     },
     {
-      "id": "character-spine-4.2-rig-atlas-events-fallback",
-      "status": "concept-started"
+      "id": "character-penguin-vaultkeeper-spine-4.2-rig-atlas-events-fallback",
+      "status": "planned"
     },
     {
       "id": "ui-controls-icons-mode-art",

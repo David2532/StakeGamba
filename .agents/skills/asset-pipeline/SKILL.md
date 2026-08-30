@@ -6,9 +6,11 @@ description: Use for BLACKSITE art/audio/Spine asset briefs, generation prompts,
 # Production Asset Pipeline
 
 ## Principle
+
 Codex should never improvise final art by scattering random SVG placeholders through the app. Every visible production asset must have an owner, role, contract, provenance, and quality target.
 
 ## Asset stages
+
 1. **Brief** — purpose, composition, visual hierarchy, required variants, viewport use.
 2. **Concept/reference** — prompt/reference sheet approved against the BLACKSITE art direction.
 3. **Production** — source asset or rig produced at required resolution/version.
@@ -18,7 +20,9 @@ Codex should never improvise final art by scattering random SVG placeholders thr
 7. **Manifest + provenance** — record source/originality and final shipped path.
 
 ## Character deliverable contract
+
 For a Spine side character, require:
+
 - skeleton data (`.json` or supported binary);
 - atlas file and texture pages;
 - export version compatible with repo runtime 4.2.x;
@@ -31,6 +35,7 @@ For a Spine side character, require:
 - source/provenance record.
 
 ## Image assets
+
 - Use transparent PNG/WebP only when alpha is needed; otherwise prefer efficient opaque formats supported by the build/runtime.
 - Keep source resolution proportional to maximum on-screen size and DPR target; do not ship 8K textures for 300px UI elements.
 - Crop transparent margins unless required for an authored effect.
@@ -40,9 +45,11 @@ PixiJS notes that spritesheets reduce the number of resource requests and improv
 Reference: https://pixijs.com/8.x/guides/components/assets
 
 ## Naming
+
 Use semantic stable names, e.g.:
-- `character/operative.spine.json`
-- `character/operative.atlas`
+
+- `character/penguin-vaultkeeper.spine.json`
+- `character/penguin-vaultkeeper.atlas`
 - `symbols/core.webp`
 - `fx/breach-sparks.atlas.json`
 - `background/server-room.webp`
@@ -50,7 +57,10 @@ Use semantic stable names, e.g.:
 
 Avoid `final2.png`, `new-new.png`, opaque hashes in source names, or filenames that encode temporary prompt text.
 
+For BLACKSITE, use the semantic `penguin-vaultkeeper` character name; never revive the superseded human character direction.
+
 ## Final-release constraints
+
 - No Stake SDK sample-game visual/audio assets in production.
 - No remote font/image/audio fetches.
 - No asset without a manifest entry.
@@ -59,5 +69,6 @@ Avoid `final2.png`, `new-new.png`, opaque hashes in source names, or filenames t
 - No unused high-resolution source files in the upload package.
 
 ## Asset manifest fields
+
 For each shipped asset record:
 `id`, `type`, `purpose`, `source`, `originality/provenance`, `path`, `dimensions`, `alpha`, `anchor/pivot`, `atlas/bundle`, `states/animations`, `mobile fallback`, `compression`, `owner`, `status`.

@@ -3,7 +3,11 @@
 Generation date: **2026-08-07**
 Generation mode: **OpenAI built-in `image_gen`**
 Input policy: **project-authored text prompts only**; the accepted environment image also uses this task's first generated environment as its sole edit reference
-Lifecycle: **concept/reference only — no runtime import, production approval, rights approval or release claim**
+Lifecycle: **historical concept/reference only — no runtime import, production approval, rights approval or release claim**
+
+## Supersession notice — 2026-08-30
+
+The product identity is now locked to an original mature stylized penguin Vaultkeeper and mechanical lock/vault environment. The human-operative PNG is superseded and may not be used for runtime, key art, rigging, compositing or further production generation. The environment PNG remains usable only for material, lighting and empty-aperture study; its embedded human silhouette and overall character composition are excluded. The exact historical prompts below remain unchanged for provenance.
 
 The three retained PNG files were copied into this directory without pixel modification after generation and were visually re-opened from their repository paths. Their exact dimensions and SHA-256 identities are recorded in `../../asset-manifest.json`.
 
@@ -36,9 +40,9 @@ Primary request: change only the large central board interior. Remove every inte
 Constraints: preserve the entire industrial bunker environment, camera, lighting, frame geometry, cables, side operative, console, colors, materials and all outer details unchanged; the central aperture must contain no grid and no objects; no text, no symbols, no letters, no numbers, no logos, no watermark; do not add anything elsewhere.
 ```
 
-Visual QA: retained as a direction anchor because the board aperture is dominant and empty, the operative remains secondary, and no visible text/logo/watermark was found. It is not a production background: portrait/Popout recompositions, separable layers, final perspective alignment, optimization and human originality/rights review remain open.
+Historical visual QA: the board aperture is dominant and empty and no visible text/logo/watermark was found. The embedded human makes this composition ineligible for production under the locked penguin identity. Only material, lighting and empty-aperture study may carry forward; portrait/Popout vault recompositions, separable layers, final perspective alignment, optimization and human originality/rights review remain open.
 
-## Operative concept
+## Superseded operative concept
 
 Retained file: `operative-spine-anchor-concept-v1.png`
 
@@ -58,7 +62,7 @@ Constraints: original adult character only; one consistent identity across full-
 Avoid: anime, comic-book superhero, military fetish gear, gas mask, glowing eyes, hooded hacker cliché, purple neon, excessive cables, exposed skin, childlike proportions, extra fingers, duplicated limbs, multiple unrelated characters
 ```
 
-Visual QA: one consistent adult identity, complete full-body silhouette, readable hands/feet and compatible waist-up inset were observed; no visible logo or text was found. This is not a turnaround, layered source, transparent cutout, fallback pose or Spine skeleton. Human anatomy/likeness/originality review and a production rig remain open.
+Historical visual QA: one consistent adult identity, complete full-body silhouette, readable hands/feet and compatible waist-up inset were observed; no visible logo or text was found. The asset is now superseded by the locked penguin Vaultkeeper direction and is not eligible for production or runtime use.
 
 ## Six-symbol material concept
 

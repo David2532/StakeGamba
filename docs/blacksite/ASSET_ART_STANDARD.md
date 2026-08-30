@@ -10,6 +10,7 @@ Goal: final production assets must look like one authored game, be original, per
 BLACKSITE is a premium cyber-heist / classified server-bunker slot.
 
 Visual principles:
+
 - physical industrial environment rather than abstract neon wallpaper;
 - tactical, restrained emissive lighting;
 - readable high-contrast symbol silhouettes;
@@ -22,6 +23,7 @@ Visual principles:
 ## 2. Required asset manifest
 
 Every production asset gets a manifest row with:
+
 - stable asset ID;
 - category;
 - repo-relative source path;
@@ -42,12 +44,14 @@ No release candidate may contain an untracked final asset.
 ## 3. Required groups
 
 ### Brand/title
+
 - game logo/title lockup;
 - compact logo variant;
 - provider/studio logo;
 - monochrome/low-size variants where required.
 
 ### Environment
+
 - desktop background layers;
 - portrait/mobile recomposition layers;
 - Popout-compatible fallback/crops;
@@ -56,6 +60,7 @@ No release candidate may contain an untracked final asset.
 - bonus/blackout environment states.
 
 ### Board
+
 - reel/cluster frame;
 - cell plates;
 - breach cell states/levels;
@@ -64,6 +69,7 @@ No release candidate may contain an untracked final asset.
 - readable highlight/glow assets.
 
 ### Symbols
+
 - complete low/high set;
 - wild;
 - scatter/trigger;
@@ -72,6 +78,10 @@ No release candidate may contain an untracked final asset.
 - win/idle states only if they improve readability and remain optimized.
 
 ### Character
+
+- original mature stylized penguin Vaultkeeper identity; no human-operative alternate;
+- unmistakable penguin silhouette, beak/flipper articulation and restrained vault-technician gear;
+- mechanical lock/vault interaction props that cannot obscure or control gameplay;
 - production concept turnaround;
 - Spine source/export package;
 - atlas texture(s);
@@ -81,6 +91,7 @@ No release candidate may contain an untracked final asset.
 - fallback static pose.
 
 ### UI
+
 - control icons;
 - feature-mode art;
 - information/paytable surfaces;
@@ -89,6 +100,7 @@ No release candidate may contain an untracked final asset.
 - Replay-specific assets only when truly needed.
 
 ### FX
+
 - sparks;
 - breach pulses;
 - network lines;
@@ -97,6 +109,7 @@ No release candidate may contain an untracked final asset.
 - particles and spritesheets.
 
 ### Audio
+
 - base music/ambience;
 - spin/stop;
 - symbol/cascade impacts;
@@ -112,6 +125,7 @@ No release candidate may contain an untracked final asset.
 ## 4. Stake game tile package
 
 Prepare current Stake-required tile deliverables:
+
 - high-resolution environmental BG named according to current convention;
 - high-resolution transparent PNG FG/key character/item;
 - high-resolution transparent provider logo;
@@ -123,11 +137,13 @@ Tile should communicate the world and primary hook without needing UI text.
 ## 5. Originality and provenance
 
 Allowed sources:
+
 - original internal art;
 - commissioned art with clear rights;
 - procedurally/AI-assisted source work only when legally usable and substantially art-directed/retouched into a consistent original production set.
 
 Final candidate cannot rely on:
+
 - Stake sample-game art/audio;
 - ripped game assets;
 - copied character designs;
@@ -142,7 +158,10 @@ Keep source/provenance notes sufficient to answer a reviewer question later.
 
 Spine runtime version must match repository integration.
 
+BLACKSITE's production character is the penguin Vaultkeeper. Reject human-operative substitutions, childlike/chibi mascot treatment, copied franchise penguins, generic tactical-soldier anatomy and costume-only penguin cues. The static fallback, mobile crop and every rig export must retain the beak, flipper and body silhouette without relying only on color.
+
 Delivery includes:
+
 - skeleton data (`.json` or supported binary according to chosen pipeline);
 - `.atlas`;
 - atlas textures;
@@ -158,6 +177,7 @@ Animation Director validates runtime compatibility before production rig is cons
 ## 7. Symbol design standard
 
 Every symbol must:
+
 - remain identifiable at mobile reel size;
 - use silhouette/material hierarchy, not tiny text;
 - remain readable under win glow/dimming;
@@ -174,6 +194,7 @@ Required controls stay legible and conventional enough to understand quickly.
 Do not make essential controls decorative puzzles.
 
 UI may be distinct from sample UI but must preserve:
+
 - balance/play amount/win readability;
 - primary play/spin affordance;
 - mode selection clarity;
@@ -195,6 +216,7 @@ UI may be distinct from sample UI but must preserve:
 ## 10. Texture / bundle optimization
 
 Rules:
+
 - atlas related small textures;
 - avoid giant transparent margins;
 - size textures to actual maximum display needs plus reasonable headroom;
@@ -208,6 +230,7 @@ Rules:
 Audio should reinforce state without becoming noisy.
 
 Requirements:
+
 - one mute control disables all game-owned sound/music;
 - no audio starts outside browser policy constraints;
 - resume/tab visibility does not create stacked duplicate music;
@@ -219,6 +242,7 @@ Requirements:
 ## 12. Asset acceptance review
 
 A production asset group is accepted only after:
+
 - manifest completeness;
 - originality/provenance check;
 - desktop composition check;
@@ -231,6 +255,7 @@ A production asset group is accepted only after:
 ## 13. Forbidden final-state shortcuts
 
 Do not ship:
+
 - placeholder SVG wireframes;
 - emoji icons;
 - CSS gradients pretending to be production art;
