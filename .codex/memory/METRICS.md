@@ -1,5 +1,42 @@
 # Rolling automation metrics
 
+## BS-20260831-10
+
+```yaml
+closed_at_utc: 2026-08-30T22:08:00Z
+sprint_day: 2
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_presentation_tests: 87
+focused_presentation_status: PASS
+normal_blackout_lifecycle_ms: 3541
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 87
+local_app_status: PASS
+local_build: PASS
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+diagnostic_ci_run: 33337302587
+diagnostic_browser_failure: scoped_keyframe_names_and_replay_timeout
+verified_ci_run: 33337862476
+verified_ci_status: PASS
+remote_app_tests: 87
+remote_full_math_books: 300000
+remote_browser_scenarios: 39
+remote_browser_checks_pass: 910
+remote_browser_checks_fail: 0
+remote_diagnostics_artifact: 9739702865
+remote_implementation_commit: 90f7c3d48732766e6c3b48e2815282d456bbb250
+manual_identical_retries: 0
+```
+
+Observed categories: compact memory/animation-contract reads, targeted runtime/UI/test edits, focused and one complete local gate chain, exact Git-data fast-forwards, two Actions runs, job/log/artifact reads, and five final screenshot inspections. The diagnostic browser run exposed Svelte-scoped keyframe names and two legitimately longer Replay presentations against a stale 10s harness limit; suffix matching and a bounded 20s Replay wait fixed the evidence layer without weakening production motion. One unavailable fixture path, one unauthenticated push, one malformed local tree revision, one over-broad Actions listing, one rejected temporary cleanup and one malformed log regex were each replaced with a materially different safe route, never repeated unchanged. No subagents, dependencies, binary assets or token estimates were used.
+
 ## BS-20260830-09
 
 ```yaml

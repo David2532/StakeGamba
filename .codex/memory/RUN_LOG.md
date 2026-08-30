@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-10 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `b8138237589a459c1fa301b54f4a6d1305eba9bd`
+- Verified implementation commit: `90f7c3d48732766e6c3b48e2815282d456bbb250`
+- Work item: `BSB-MOTION-001` (authoritative spin/BLACKOUT vault slice; item remains in progress)
+- Selection reason: exact cascade motion existed, but round entry and BLACKOUT feature entry/exit still cut directly between authoritative states without a mechanical-vault presentation.
+- Before/after evidence: `round_started`, initial board reveal, `feature_armed`, `feature_started` and `feature_ended` now drive bounded spin/reveal/anticipation/lock-entry/lock-exit phases. The deterministic direct BLACKOUT lifecycle takes 3,541ms in normal mode; exact Chromium records the active scoped CSS animations, ordered lifecycle, final $0.00, one play request and no event/settlement writes.
+- Changed files: presentation director, slot UI/CSS, contract tests, Chromium QA, and sprint memory closeout files.
+- Gates: focused/full app tests 87/87 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS; exact Chromium 39/39 scenarios and 910/910 checks PASS; console/network/request failures 0; `git diff --check` PASS.
+- Visual review: exact final transition screenshot plus 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 screenshots inspected. The lock geometry reads as a bounded mechanical shutter over the unchanged square grid; background, controls and values remain legible with no new overlap, scroll or crop regression. Full frame-by-frame sharpness and character animation remain open.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Diagnostic CI correctly exposed scoped keyframe names and a stale Replay timeout; the harness was corrected from exact browser evidence.
+- Persistence: implementation and QA-fix trees were fast-forwarded without force through the connected GitHub API; exact run `33337862476` and artifact `9739702865` succeeded.
+- Residual risk: asset rights/Creative approval, penguin cleanup/Spine rig and character reactions, foreground layers, audio and complete gameplay/reconnect/Stake evidence remain open.
+- Next candidate: `BSB-AUDIO-001`, unless a higher-priority gameplay/reconnect contract defect is evidenced first.
+
 ## BS-20260830-09 — SUCCESS
 
 - Sprint day: 1
