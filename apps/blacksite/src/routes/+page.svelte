@@ -2541,6 +2541,7 @@
 		}
 
 		.masthead {
+			position: relative;
 			align-items: center;
 			padding-bottom: 6px;
 		}
@@ -2556,9 +2557,13 @@
 
 		.masthead-actions {
 			flex: 0 0 auto;
+			padding-right: 96px;
 		}
 
 		.sound-action {
+			position: absolute;
+			top: 0;
+			right: 0;
 			min-width: 88px;
 		}
 
