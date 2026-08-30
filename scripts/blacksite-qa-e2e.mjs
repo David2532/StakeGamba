@@ -91,6 +91,7 @@ const MIME_TYPES = Object.freeze({
 
 const viewports = Object.freeze([
 	{ name: 'desktop-1920x1080', width: 1920, height: 1080, minBoard: 320 },
+	{ name: 'desktop-1366x768', width: 1366, height: 768, minBoard: 300 },
 	{
 		name: 'phone-360x740',
 		width: 360,
@@ -2371,6 +2372,8 @@ async function runNetworkScenarios(browser, origin) {
 }
 
 async function geometryAudit(page) {
+	await page.evaluate(() => document.activeElement?.blur());
+	await page.keyboard.press('Tab');
 	return page.evaluate((selectors) => {
 		const rect = (element) => {
 			if (!element) return null;
@@ -2411,6 +2414,7 @@ async function geometryAudit(page) {
 		];
 		const actions = actionSelectors.map((selector) => {
 			const element = document.querySelector(selector);
+			const label = element?.querySelector('span') ?? null;
 			const bounds = rect(element);
 			const hit = bounds
 				? document.elementFromPoint(
@@ -2427,6 +2431,10 @@ async function geometryAudit(page) {
 				centerHit:
 					Boolean(element && hit) &&
 					(element === hit || element.contains(hit) || hit.contains(element)),
+				labelClipped: Boolean(
+					label && (label.scrollWidth > label.clientWidth + 1 || label.scrollHeight > label.clientHeight + 1),
+				),
+				textAlign: element ? getComputedStyle(element).textAlign : null,
 			};
 		});
 		const board = document.querySelector(selectors.board);
@@ -2435,6 +2443,9 @@ async function geometryAudit(page) {
 		const boardStatus = document.querySelector(selectors.boardStatus);
 		const boardBounds = rect(board);
 		const cells = board ? [...board.querySelectorAll('[role="gridcell"]')] : [];
+		const focusedElement = document.activeElement;
+		const focusedStyle = focusedElement ? getComputedStyle(focusedElement) : null;
+		const meterCells = [...document.querySelectorAll('.meter-row > div')];
 		const visibleText = document.body.innerText.toLowerCase();
 		const forbiddenVisibleCopy = [
 			'blacksite-book-events-v1',
@@ -2479,6 +2490,18 @@ async function geometryAudit(page) {
 				boardStatusVisible: isVisible(boardStatus),
 				forbiddenVisibleCopy,
 			},
+			alignment: {
+				baseAmountCentered: getComputedStyle(document.querySelector(selectors.baseAmount)).textAlign === 'center',
+				metersCentered: meterCells.length === 3 && meterCells.every((element) => getComputedStyle(element).textAlign === 'center'),
+				modeLabelsUnclipped: actions.filter(({ selector }) => selector.startsWith('[data-testid="mode-')).every(({ labelClipped }) => !labelClipped),
+			},
+			keyboardFocus: {
+				testId: focusedElement?.getAttribute?.('data-testid') ?? null,
+				outlineWidth: Number.parseFloat(focusedStyle?.outlineWidth ?? '0'),
+				outlineStyle: focusedStyle?.outlineStyle ?? null,
+				outlineColor: focusedStyle?.outlineColor ?? null,
+				borderColor: focusedStyle?.borderTopColor ?? null,
+			},
 			actions,
 		};
 	}, SELECTORS);
@@ -2495,6 +2518,9 @@ function assertGeometryRecord(group, audit, viewport) {
 	check(group, 'board contains 49 visible cells', audit.board.cellCount === 49 && audit.board.visibleCellCount === 49, serialize(audit.board));
 	check(group, 'player HUD and vault connection status are visible', audit.playerHud.visible && audit.playerHud.launchStatusVisible, serialize(audit.playerHud));
 	check(group, 'player HUD exposes no internal schema or greybox diagnostics', audit.playerHud.forbiddenVisibleCopy.length === 0, serialize(audit.playerHud));
+	check(group, 'mode labels are fully visible without ellipsis or clipping', audit.alignment.modeLabelsUnclipped, serialize(audit.alignment));
+	check(group, 'base amount value and all three meters are centered', audit.alignment.baseAmountCentered && audit.alignment.metersCentered, serialize(audit.alignment));
+	check(group, 'keyboard focus exposes a distinct high-contrast action ring', Boolean(audit.keyboardFocus.testId) && audit.keyboardFocus.outlineWidth >= 3 && audit.keyboardFocus.outlineStyle !== 'none' && audit.keyboardFocus.outlineColor !== audit.keyboardFocus.borderColor, serialize(audit.keyboardFocus));
 	const boardRatio = audit.board.bounds ? audit.board.bounds.width / audit.board.bounds.height : 0;
 	check(group, 'board aspect remains square', Math.abs(boardRatio - 1) <= 0.02, serialize(boardRatio));
 	check(group, 'board meets viewport readability floor', Boolean(audit.board.bounds && Math.min(audit.board.bounds.width, audit.board.bounds.height) >= viewport.minBoard), serialize({ bounds: audit.board.bounds, minimum: viewport.minBoard }));

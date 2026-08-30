@@ -1252,12 +1252,16 @@
 	}
 
 	.mode-list button:hover,
-	.mode-list button:focus-visible,
 	.mode-list button.selected {
 		border-color: #e05b55;
 		background: linear-gradient(90deg, rgba(224, 91, 85, 0.13), #182328 72%);
-		outline: 2px solid rgba(240, 92, 85, 0.3);
-		outline-offset: 1px;
+	}
+
+	.mode-list button:focus-visible {
+		z-index: 1;
+		border-color: #efc06a;
+		outline: 3px solid #efc06a;
+		outline-offset: 2px;
 	}
 
 	.mode-list button:disabled {
@@ -1293,18 +1297,20 @@
 		width: 100%;
 		min-width: 0;
 		min-height: 44px;
-		padding: 7px 30px 7px 10px;
+		padding: 7px 30px;
 		border: 1px solid #3c626b;
 		border-radius: 0;
 		background: #0d1b20;
 		color: #dce8ea;
+		text-align: center;
+		text-align-last: center;
 		cursor: pointer;
 	}
 
 	.amount-control select:focus-visible {
 		border-color: #efc06a;
-		outline: 2px solid rgba(239, 192, 106, 0.3);
-		outline-offset: 1px;
+		outline: 3px solid #efc06a;
+		outline-offset: 2px;
 	}
 
 	.amount-control select:disabled {
@@ -1331,7 +1337,7 @@
 	}
 
 	.amount-range input:focus-visible {
-		outline: 2px solid rgba(239, 192, 106, 0.42);
+		outline: 3px solid #efc06a;
 		outline-offset: 3px;
 	}
 
@@ -1596,6 +1602,7 @@
 		padding: 7px 9px;
 		border: 1px solid #29434a;
 		background: #0b171c;
+		text-align: center;
 	}
 
 	.meter-row strong {
@@ -1765,7 +1772,7 @@
 	}
 
 	.primary-action:focus-visible {
-		outline: 2px solid #f4d19b;
+		outline: 3px solid #efc06a;
 		outline-offset: 2px;
 	}
 
@@ -1791,7 +1798,11 @@
 	.info-action:focus-visible {
 		border-color: #efc06a;
 		color: #f0d6a5;
-		outline: none;
+	}
+
+	.info-action:focus-visible {
+		outline: 3px solid #efc06a;
+		outline-offset: 2px;
 	}
 
 	.modal-backdrop {
@@ -2043,15 +2054,30 @@
 		}
 
 		.mode-list button {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 3px;
 			min-height: 44px;
 			padding: 5px 7px;
+			text-align: center;
 		}
 
 		.mode-list button span {
-			overflow: hidden;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 100%;
+			min-height: 2.3em;
 			font-size: 9px;
-			text-overflow: ellipsis;
-			white-space: nowrap;
+			line-height: 1.15;
+			white-space: normal;
+		}
+
+		.mode-list strong {
+			font-size: 14px;
+			line-height: 1;
 		}
 
 		.amount-control {
@@ -2171,6 +2197,8 @@
 		.mode-list button {
 			min-height: 44px;
 			padding: 5px 7px;
+			align-items: center;
+			text-align: center;
 		}
 
 		.amount-control {
