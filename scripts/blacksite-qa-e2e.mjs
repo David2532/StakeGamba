@@ -2498,6 +2498,7 @@ async function geometryAudit(page) {
 			keyboardFocus: {
 				testId: focusedElement?.getAttribute?.('data-testid') ?? null,
 				outlineWidth: Number.parseFloat(focusedStyle?.outlineWidth ?? '0'),
+				outlineOffset: Number.parseFloat(focusedStyle?.outlineOffset ?? '0'),
 				outlineStyle: focusedStyle?.outlineStyle ?? null,
 				outlineColor: focusedStyle?.outlineColor ?? null,
 				borderColor: focusedStyle?.borderTopColor ?? null,
@@ -2520,7 +2521,7 @@ function assertGeometryRecord(group, audit, viewport) {
 	check(group, 'player HUD exposes no internal schema or greybox diagnostics', audit.playerHud.forbiddenVisibleCopy.length === 0, serialize(audit.playerHud));
 	check(group, 'mode labels are fully visible without ellipsis or clipping', audit.alignment.modeLabelsUnclipped, serialize(audit.alignment));
 	check(group, 'base amount value and all three meters are centered', audit.alignment.baseAmountCentered && audit.alignment.metersCentered, serialize(audit.alignment));
-	check(group, 'keyboard focus exposes a distinct high-contrast action ring', Boolean(audit.keyboardFocus.testId) && audit.keyboardFocus.outlineWidth >= 3 && audit.keyboardFocus.outlineStyle !== 'none' && audit.keyboardFocus.outlineColor !== audit.keyboardFocus.borderColor, serialize(audit.keyboardFocus));
+	check(group, 'keyboard focus exposes a distinct high-contrast action ring', Boolean(audit.keyboardFocus.testId) && audit.keyboardFocus.outlineWidth >= 3 && audit.keyboardFocus.outlineOffset >= 2 && audit.keyboardFocus.outlineStyle === 'solid' && audit.keyboardFocus.outlineColor === 'rgb(239, 192, 106)', serialize(audit.keyboardFocus));
 	const boardRatio = audit.board.bounds ? audit.board.bounds.width / audit.board.bounds.height : 0;
 	check(group, 'board aspect remains square', Math.abs(boardRatio - 1) <= 0.02, serialize(boardRatio));
 	check(group, 'board meets viewport readability floor', Boolean(audit.board.bounds && Math.min(audit.board.bounds.width, audit.board.bounds.height) >= viewport.minBoard), serialize({ bounds: audit.board.bounds, minimum: viewport.minBoard }));

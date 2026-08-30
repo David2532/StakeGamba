@@ -16,6 +16,7 @@ test('base amount, meters and keyboard focus use explicit centered high-contrast
 	assert.match(source, /\.amount-control select \{[\s\S]*?text-align: center;[\s\S]*?text-align-last: center;/u);
 	assert.match(source, /\.meter-row > div \{[\s\S]*?text-align: center;/u);
 	assert.equal((source.match(/outline: 3px solid #efc06a;/gu) ?? []).length >= 4, true);
+	assert.match(source, /data-testid="info-action"/u);
 });
 
 test('browser QA covers required desktop and mobile alignment plus focus evidence', async () => {

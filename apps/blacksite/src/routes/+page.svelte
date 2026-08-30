@@ -942,7 +942,7 @@
 				>
 					{actionLabel}
 				</button>
-				<button class="info-action" type="button" on:click={() => void openRules()}>
+				<button class="info-action" data-testid="info-action" type="button" on:click={() => void openRules()}>
 					INFO / RULES
 				</button>
 			</div>
