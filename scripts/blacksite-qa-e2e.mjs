@@ -146,6 +146,7 @@ const sourceIdentityTargets = Object.freeze([
 	join(repoRoot, 'apps', 'blacksite', 'vite.config.js'),
 	join(repoRoot, 'apps', 'blacksite', 'scripts'),
 	join(repoRoot, 'apps', 'blacksite', 'src'),
+	join(repoRoot, 'apps', 'blacksite', 'static'),
 	join(repoRoot, 'apps', 'blacksite', 'tests'),
 	join(repoRoot, 'packages', 'utils-shared', 'currency.js'),
 	join(repoRoot, 'packages', 'utils-shared', 'stake-social.js'),
@@ -2441,6 +2442,8 @@ async function geometryAudit(page) {
 		const playerHud = document.querySelector(selectors.playerHud);
 		const launchStatus = document.querySelector(selectors.launchStatus);
 		const boardStatus = document.querySelector(selectors.boardStatus);
+		const vaultkeeper = document.querySelector('[data-testid="vaultkeeper-presence"]');
+		const vaultkeeperImage = vaultkeeper?.querySelector('img') ?? null;
 		const boardBounds = rect(board);
 		const cells = board ? [...board.querySelectorAll('[role="gridcell"]')] : [];
 		const focusedElement = document.activeElement;
@@ -2490,6 +2493,13 @@ async function geometryAudit(page) {
 				boardStatusVisible: isVisible(boardStatus),
 				forbiddenVisibleCopy,
 			},
+			vaultkeeper: {
+				exists: Boolean(vaultkeeper),
+				visible: isVisible(vaultkeeper),
+				bounds: rect(vaultkeeper),
+				imageComplete: Boolean(vaultkeeperImage?.complete),
+				naturalWidth: vaultkeeperImage?.naturalWidth ?? 0,
+			},
 			alignment: {
 				baseAmountCentered: getComputedStyle(document.querySelector(selectors.baseAmount)).textAlign === 'center',
 				metersCentered: meterCells.length === 3 && meterCells.every((element) => getComputedStyle(element).textAlign === 'center'),
@@ -2519,6 +2529,16 @@ function assertGeometryRecord(group, audit, viewport) {
 	check(group, 'board contains 49 visible cells', audit.board.cellCount === 49 && audit.board.visibleCellCount === 49, serialize(audit.board));
 	check(group, 'player HUD and vault connection status are visible', audit.playerHud.visible && audit.playerHud.launchStatusVisible, serialize(audit.playerHud));
 	check(group, 'player HUD exposes no internal schema or greybox diagnostics', audit.playerHud.forbiddenVisibleCopy.length === 0, serialize(audit.playerHud));
+	const expectsVaultkeeper = viewport.width > 820 && viewport.height > 560;
+	check(
+		group,
+		`vaultkeeper fallback is ${expectsVaultkeeper ? 'visible' : 'compact-hidden'} and loaded`,
+		audit.vaultkeeper.exists &&
+			audit.vaultkeeper.visible === expectsVaultkeeper &&
+			audit.vaultkeeper.imageComplete &&
+			audit.vaultkeeper.naturalWidth > 0,
+		serialize(audit.vaultkeeper),
+	);
 	check(group, 'mode labels are fully visible without ellipsis or clipping', audit.alignment.modeLabelsUnclipped, serialize(audit.alignment));
 	check(group, 'base amount value and all three meters are centered', audit.alignment.baseAmountCentered && audit.alignment.metersCentered, serialize(audit.alignment));
 	check(group, 'keyboard focus exposes a distinct high-contrast action ring', Boolean(audit.keyboardFocus.testId) && audit.keyboardFocus.outlineWidth >= 3 && audit.keyboardFocus.outlineOffset >= 2 && audit.keyboardFocus.outlineStyle === 'solid' && audit.keyboardFocus.outlineColor === 'rgb(239, 192, 106)', serialize(audit.keyboardFocus));

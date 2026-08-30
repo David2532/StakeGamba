@@ -11,6 +11,18 @@ The product identity is now locked to an original mature stylized penguin Vaultk
 
 The three retained PNG files were copied into this directory without pixel modification after generation and were visually re-opened from their repository paths. Their exact dimensions and SHA-256 identities are recorded in `../../asset-manifest.json`.
 
+## Penguin Vaultkeeper static fallback — 2026-08-30
+
+Selected source: apps/blacksite/art/production/character/penguin-vaultkeeper-fallback-v1.png
+
+Runtime export: apps/blacksite/static/assets/blacksite/character/penguin-vaultkeeper-fallback-v1.webp
+
+The selected fallback was generated text-only with the built-in image generation tool. The prompt required exactly one original mature emperor-penguin Vaultkeeper, unmistakable penguin anatomy, natural flippers and feet, a graphite technician harness, a central physical lock dial, right-facing board composition, no weapon/branding/text and transparent alpha outside the character. No retained concept image, third-party work, franchise character or web reference was supplied.
+
+Two non-selected attempts remain outside the repository: the first had detached cyan lighting bars in its alpha field; a targeted background-extraction edit baked a checkerboard into an opaque RGB image and was rejected. A simplified second text-only generation was selected because its silhouette, anatomy, lock motif and small-size readability were stronger. Its remaining soft translucent studio-light accents are documented as a manual cleanup/review limitation rather than silently presented as approved production alpha.
+
+The untouched 1024x1536 RGBA source is retained outside the static build. The runtime derivative was alpha-trimmed, resized to 702x1080 and encoded as a 78,732-byte WebP at quality 88. It is presentation-only, pointer-inert, hidden in compact/mobile layouts and never participates in result, payout, replay or restore state. Built-in generation does not replace human originality/rights review or the required Spine 4.2 rig.
+
 ## Environment concept
 
 Retained file: `environment-server-bunker-board-aperture-concept-v1.png`

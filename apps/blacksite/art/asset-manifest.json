@@ -1,8 +1,8 @@
 {
   "schema": "blacksite-asset-manifest-v1",
   "updatedAt": "2026-08-30",
-  "lifecycle": "M3_STARTED_CONCEPT_ONLY",
-  "runtimeIntegration": "none",
+  "lifecycle": "M3_RUNTIME_FALLBACK_STARTED",
+  "runtimeIntegration": "penguin-static-fallback-v1",
   "productIdentity": {
     "status": "locked",
     "characterId": "penguin_vaultkeeper",
@@ -23,6 +23,38 @@
   },
   "rightsReview": "pending-human-review",
   "assets": [
+    {
+      "id": "product.character.penguin_vaultkeeper.fallback.v1",
+      "type": "character-static-fallback",
+      "purpose": "Original mature penguin Vaultkeeper desktop presence and safe fallback while the authoritative Spine 4.2 rig remains pending",
+      "source": "OpenAI built-in image_gen text-only generation, selected after alpha and identity inspection",
+      "originalityProvenance": "Created in this repository task from a project-authored text prompt with no third-party or user-supplied visual reference",
+      "licenseRights": "AI-assisted original project asset; final legal/originality and human Creative/Compliance review pending",
+      "path": "apps/blacksite/art/production/character/penguin-vaultkeeper-fallback-v1.png",
+      "format": "png",
+      "runtimePath": "apps/blacksite/static/assets/blacksite/character/penguin-vaultkeeper-fallback-v1.webp",
+      "runtimeFormat": "webp",
+      "dimensions": {
+        "width": 702,
+        "height": 1080
+      },
+      "sourceDimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "359732e57619729f2b398fde7e84c79bc155af42bd6b157cabd32e2b209113af",
+      "sourceSha256": "9eda38025f7adc6685215e50def26be7abedeac1406c1984be46c644a107d58d",
+      "alpha": true,
+      "anchorPivot": "center bottom; decorative presentation only",
+      "atlasBundle": "Standalone 78,732-byte WebP fallback; future Spine 4.2 atlas remains required",
+      "statesAnimations": ["idle-static", "asset-missing-safe"],
+      "mobileFallback": "Hidden at <=820px width and low-height landscape so board and controls retain priority",
+      "compression": "1024x1536 RGBA source excluded from runtime; alpha-trimmed 702x1080 WebP quality 88",
+      "owner": "asset_director / creative_director / frontend_engineer",
+      "status": "production-candidate",
+      "runtimeEligible": true,
+      "reviewLimitations": "Human rights/originality review and final feather-edge/light-artifact cleanup remain required before approval"
+    },
     {
       "id": "concept.environment.server_bunker_board_aperture.v1",
       "type": "environment-concept",
@@ -132,7 +164,7 @@
     },
     {
       "id": "character-penguin-vaultkeeper-spine-4.2-rig-atlas-events-fallback",
-      "status": "planned"
+      "status": "static-fallback-integrated-rig-pending"
     },
     {
       "id": "ui-controls-icons-mode-art",

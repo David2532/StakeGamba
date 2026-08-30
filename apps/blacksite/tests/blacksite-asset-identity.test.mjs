@@ -53,7 +53,8 @@ test('production ledger requires a complete penguin Spine delivery', async () =>
 
 	assert.deepEqual(characterGroup, {
 		id: 'character-penguin-vaultkeeper-spine-4.2-rig-atlas-events-fallback',
-		status: 'planned',
+		status: 'static-fallback-integrated-rig-pending',
 	});
-	assert.equal(manifest.runtimeIntegration, 'none');
+	assert.equal(manifest.runtimeIntegration, 'penguin-static-fallback-v1');
+	assert.match(characterGroup.status, /rig-pending/u);
 });

@@ -1,5 +1,6 @@
 <script>
 	import { onMount, tick } from 'svelte';
+	import { BLACKSITE_ASSETS } from '../lib/assets/blacksite-assets.js';
 	import { MODES, getMode, getModeLabel } from '../lib/contracts/modes.js';
 	import {
 		CLUSTER_BANDS,
@@ -766,6 +767,20 @@
 				{/if}
 			</label>
 
+			<div class="vaultkeeper-presence" data-testid="vaultkeeper-presence" aria-hidden="true">
+				<img
+					src={BLACKSITE_ASSETS.character.vaultkeeperFallback}
+					alt=""
+					width="702"
+					height="1080"
+					decoding="async"
+				/>
+				<div class="vaultkeeper-tag">
+					<span>VAULTKEEPER</span>
+					<strong>LOCK CONTROL // PRESENT</strong>
+				</div>
+			</div>
+
 			<div class="mode-readout">
 				<div><span>Mode</span><strong>{getModeLabel(selectedMode.id, social)}</strong></div>
 				<div><span>Cost</span><strong>{selectedMode.costMultiplier}× play amount</strong></div>
@@ -1360,6 +1375,62 @@
 		margin-top: auto;
 		background: #29434a;
 		border: 1px solid #29434a;
+	}
+
+	.vaultkeeper-presence {
+		position: relative;
+		display: grid;
+		flex: 1 1 150px;
+		min-height: 120px;
+		place-items: end center;
+		overflow: hidden;
+		border: 1px solid #29434a;
+		background: #081317;
+		isolation: isolate;
+		pointer-events: none;
+	}
+
+	.vaultkeeper-presence::before {
+		position: absolute;
+		inset: 14% 8% 8%;
+		z-index: -1;
+		border: 1px solid rgba(77, 127, 134, 0.28);
+		border-radius: 50% 50% 12px 12px;
+		box-shadow: inset 0 0 36px rgba(60, 111, 117, 0.12);
+		content: '';
+	}
+
+	.vaultkeeper-presence img {
+		display: block;
+		width: auto;
+		height: 100%;
+		max-width: 100%;
+		max-height: min(29vh, 330px);
+		object-fit: contain;
+		object-position: center bottom;
+		filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
+	}
+
+	.vaultkeeper-tag {
+		position: absolute;
+		inset: auto 7px 7px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		padding: 5px 7px;
+		border: 1px solid rgba(93, 144, 151, 0.5);
+		background: rgba(5, 15, 19, 0.86);
+		color: #789ba1;
+		font-size: 7px;
+		letter-spacing: 0.1em;
+	}
+
+	.vaultkeeper-tag strong {
+		color: #d9b86f;
+		font-size: 7px;
+		font-weight: 600;
+		text-align: right;
 	}
 
 	.mode-readout > div {
@@ -2043,6 +2114,7 @@
 		}
 
 		.panel-heading,
+		.vaultkeeper-presence,
 		.mode-readout,
 		.play-summary {
 			display: none;
@@ -2178,6 +2250,7 @@
 
 		.eyebrow,
 		.panel-heading,
+		.vaultkeeper-presence,
 		.mode-readout,
 		.play-summary,
 		.launch-card small {
