@@ -21,6 +21,10 @@ test('production HUD omits internal greybox and candidate diagnostics', async ()
 		'centi-x uint64',
 		'CANDIDATE_FINGERPRINT_SHA256.slice',
 		'EVENT_SCHEMA_SHA256.slice',
+		'Current runtime status',
+		'BASE BET',
+		'TOTAL BET',
+		'base bet',
 	];
 
 	for (const fragment of forbiddenPlayerFragments) {

@@ -2431,6 +2431,7 @@ async function geometryAudit(page) {
 		});
 		const board = document.querySelector(selectors.board);
 		const playerHud = document.querySelector(selectors.playerHud);
+		const launchStatus = document.querySelector(selectors.launchStatus);
 		const boardStatus = document.querySelector(selectors.boardStatus);
 		const boardBounds = rect(board);
 		const cells = board ? [...board.querySelectorAll('[role="gridcell"]')] : [];
@@ -2474,6 +2475,7 @@ async function geometryAudit(page) {
 			},
 			playerHud: {
 				visible: isVisible(playerHud),
+				launchStatusVisible: isVisible(launchStatus),
 				boardStatusVisible: isVisible(boardStatus),
 				forbiddenVisibleCopy,
 			},
@@ -2491,7 +2493,7 @@ function assertGeometryRecord(group, audit, viewport) {
 	check(group, '7x7 board exists and is visible', audit.board.exists && audit.board.visible, serialize(audit.board));
 	check(group, 'board is fully inside viewport', audit.board.insideViewport, serialize(audit.board.bounds));
 	check(group, 'board contains 49 visible cells', audit.board.cellCount === 49 && audit.board.visibleCellCount === 49, serialize(audit.board));
-	check(group, 'player HUD and board status are visible', audit.playerHud.visible && audit.playerHud.boardStatusVisible, serialize(audit.playerHud));
+	check(group, 'player HUD and vault connection status are visible', audit.playerHud.visible && audit.playerHud.launchStatusVisible, serialize(audit.playerHud));
 	check(group, 'player HUD exposes no internal schema or greybox diagnostics', audit.playerHud.forbiddenVisibleCopy.length === 0, serialize(audit.playerHud));
 	const boardRatio = audit.board.bounds ? audit.board.bounds.width / audit.board.bounds.height : 0;
 	check(group, 'board aspect remains square', Math.abs(boardRatio - 1) <= 0.02, serialize(boardRatio));

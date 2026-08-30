@@ -690,7 +690,7 @@
 			<span class="eyebrow">ARMORED ACCESS FACILITY</span>
 			<h1>BLACKSITE <span>// BREACH</span></h1>
 		</div>
-		<div class="lifecycle" data-testid="launch-status" aria-label="Current runtime status">
+		<div class="lifecycle" data-testid="launch-status" aria-label="Vault connection status">
 			<span class="pulse" class:error-pulse={runtimeError !== null}></span>
 			{playerStatus}
 		</div>
@@ -730,7 +730,7 @@
 			</div>
 
 			<label class="amount-control" for="blacksite-base-amount">
-				<span>BASE BET</span>
+				<span>BASE AMOUNT</span>
 				{#if betLevelsApi.length > 0}
 					<select
 						id="blacksite-base-amount"
@@ -768,7 +768,7 @@
 
 			<div class="mode-readout">
 				<div><span>Mode</span><strong>{getModeLabel(selectedMode.id, social)}</strong></div>
-				<div><span>Cost</span><strong>{selectedMode.costMultiplier}× base bet</strong></div>
+				<div><span>Cost</span><strong>{selectedMode.costMultiplier}× play amount</strong></div>
 				<div><span>RTP</span><strong>96.20%</strong></div>
 				<div><span>Max win</span><strong>10,000×</strong></div>
 			</div>
@@ -841,7 +841,7 @@
 					</strong>
 				</div>
 				<div class="primary-meter">
-					<span>TOTAL BET</span>
+					<span>TOTAL PLAY</span>
 					<strong data-testid="total-play">
 						{launch.kind === 'replay'
 							? formatReplayQueryUnits(replayTotalUnits, launch.currency)
@@ -928,7 +928,7 @@
 
 			<div class="play-summary">
 				<div><span>ACTIVE MODE</span><strong>{getModeLabel(selectedMode.id, social)}</strong></div>
-				<div><span>TOTAL BET</span><strong>{totalAmountText}</strong></div>
+				<div><span>TOTAL PLAY</span><strong>{totalAmountText}</strong></div>
 				<p>Select an access level and breach the vault when you are ready.</p>
 			</div>
 
