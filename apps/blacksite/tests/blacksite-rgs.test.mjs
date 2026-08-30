@@ -17,6 +17,7 @@ import {
 import { createLiveRgsClient } from '../src/lib/rgs/client.js';
 import { LiveSessionController } from '../src/lib/rgs/live-session.js';
 import { BASE_ZERO_FIXTURE } from '../src/lib/fixtures/base-zero.js';
+import { getFixture } from '../src/lib/fixtures/catalog.generated.js';
 import { GameEventAdapter } from '../src/lib/runtime/game-event-adapter.js';
 
 const clone = (value) => structuredClone(value);
@@ -90,7 +91,7 @@ function roundPayload({
 	const resolvedPayout = payout === undefined
 		&& Number.isSafeInteger(amount)
 		&& Number.isSafeInteger(payoutMultiplierRaw)
-		? Number((BigInt(amount) * BigInt(payoutMultiplierRaw)) / 100n)
+		? Number((BigInt(amount) * BigInt(payoutMultiplierRaw) + 50n) / 100n)
 		: (payout ?? 0);
 	return {
 		roundID: id,
@@ -321,17 +322,46 @@ test('round normalization accepts both official state shapes and reconciles mult
 				&& error.details.relation === relation,
 		);
 	}
-	assert.throws(
-		() => normalizeRound(roundPayload({
+	for (const { terminalRaw, expectedPayoutApi, remainder } of [
+		{ terminalRaw: 38, expectedPayoutApi: 38_000, remainder: 38 },
+		{ terminalRaw: 50, expectedPayoutApi: 50_001, remainder: 50 },
+		{ terminalRaw: 75, expectedPayoutApi: 75_001, remainder: 75 },
+	]) {
+		const normalized = normalizeRound(roundPayload({
 			amount: 100_001,
-			payoutMultiplierRaw: 112,
-			payoutMultiplier: 1.12,
-			payout: 112_001,
-		}), { adapter }),
-		(error) => error.code === 'ROUND_PAYOUT_AMOUNT_MISMATCH'
-			&& error.details.expectedCentiMicroUnits === '11200112',
-		'inexact fractions of one API micro-unit must fail closed',
-	);
+			payoutMultiplierRaw: terminalRaw,
+			payoutMultiplier: terminalRaw / 100,
+			payout: expectedPayoutApi,
+		}), { adapter });
+		assert.equal(normalized.payoutApi, expectedPayoutApi, `remainder ${remainder} rounds half-up`);
+		for (const [payoutDelta, relation] of [[-1, 'too-small'], [1, 'too-large']]) {
+			assert.throws(
+				() => normalizeRound(roundPayload({
+					amount: 100_001,
+					payoutMultiplierRaw: terminalRaw,
+					payoutMultiplier: terminalRaw / 100,
+					payout: expectedPayoutApi + payoutDelta,
+				}), { adapter }),
+				(error) => error.code === 'ROUND_PAYOUT_AMOUNT_MISMATCH'
+					&& error.details.expectedPayoutApi === String(expectedPayoutApi)
+					&& error.details.relation === relation,
+				`remainder ${remainder} rejects an adjacent ${relation} payout`,
+			);
+		}
+	}
+	const baseSmall = getFixture('base_small');
+	const normalizedBaseSmall = normalizeRound({
+		roundID: 'real-base-small-rounded-payout',
+		active: false,
+		mode: 'base',
+		amount: 100_001,
+		payout: 38_000,
+		payoutMultiplier: 0.38,
+		event: null,
+		state: clone(baseSmall.book.events),
+	}, { adapter: new GameEventAdapter(), expectedMode: 'base' });
+	assert.equal(baseSmall.book.payoutMultiplier, 38);
+	assert.equal(normalizedBaseSmall.payoutApi, 38_000);
 	const maxSafeNormalized = normalizeRound(roundPayload({
 		amount: Number.MAX_SAFE_INTEGER,
 		payoutMultiplierRaw: 100,
@@ -677,6 +707,76 @@ test('LiveSessionController sends the base amount, never the mode-adjusted debit
 	assert.equal(ready.status, 'ready');
 	assert.equal(ready.balance.amountApi, 46_000_000);
 	assert.equal(client.calls.endRound.length, 0);
+});
+
+test('LiveSessionController accepts half-up rounded payouts for new play and active restore', async (t) => {
+	const amount = 100_001;
+	const payout = 38_000;
+	const config = canonicalConfig({
+		minBet: amount,
+		maxBet: amount,
+		stepBet: 1,
+		defaultBetLevel: amount,
+		betLevels: [amount],
+	});
+
+	await t.test('new play', async () => {
+		const client = fakeClient({
+			authenticate: authPayload({ config }),
+			play: playPayload({
+				amount: 99_937_999,
+				round: roundPayload({
+					active: false,
+					amount,
+					payoutMultiplierRaw: 38,
+					payoutMultiplier: 0.38,
+					payout,
+				}),
+			}),
+		});
+		const controller = new LiveSessionController({
+			client,
+			adapter: contractAdapter(),
+			sessionID: 'session-rounded-live',
+		});
+		await controller.bootstrap();
+		const presenting = await controller.play('base');
+		assert.equal(presenting.round.amountApi, amount);
+		assert.equal(presenting.round.payoutApi, payout);
+		assert.equal(presenting.status, 'presenting');
+		assert.equal(client.calls.play[0].amountApi, amount);
+		const ready = await controller.completePresentation();
+		assert.equal(ready.status, 'ready');
+		assert.equal(client.calls.endRound.length, 0);
+	});
+
+	await t.test('active restore', async () => {
+		const client = fakeClient({
+			authenticate: authPayload({
+				config,
+				round: roundPayload({
+					active: true,
+					amount,
+					payoutMultiplierRaw: 38,
+					payoutMultiplier: 0.38,
+					payout,
+				}),
+			}),
+		});
+		const controller = new LiveSessionController({
+			client,
+			adapter: contractAdapter(),
+			sessionID: 'session-rounded-restore',
+		});
+		const restored = await controller.bootstrap();
+		assert.equal(restored.status, 'presenting');
+		assert.equal(restored.round.amountApi, amount);
+		assert.equal(restored.round.payoutApi, payout);
+		assert.equal(client.calls.play.length, 0);
+		const ready = await controller.completePresentation();
+		assert.equal(ready.status, 'ready');
+		assert.equal(client.calls.endRound.length, 1);
+	});
 });
 
 test('LiveSessionController blocks known insufficient funds without a paid fallback', async () => {

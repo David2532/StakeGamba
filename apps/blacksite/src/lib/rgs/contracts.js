@@ -417,21 +417,23 @@ export function normalizeRound(rawRound, { adapter, expectedMode = null } = {}) 
 	const payoutApi = assertSafeInteger(rawRound.payout, 'round.payout');
 	// The vendored RGS schema defines payoutMultiplier as Payout / Amount. BLACKSITE
 	// carries Amount and Payout as whole API micro-units, while round_end stores
-	// multiplier-x in centi-x. Cross-multiply with BigInt so no float rounding or
-	// Number multiplication overflow can make a contradictory monetary result pass.
-	const payoutInCentiMicroUnits = BigInt(payoutApi) * 100n;
-	const expectedPayoutInCentiMicroUnits = BigInt(amountApi) * BigInt(terminalRaw);
-	if (payoutInCentiMicroUnits !== expectedPayoutInCentiMicroUnits) {
+	// multiplier-x in centi-x. Apply the documented non-negative half-up conversion
+	// with BigInt so fractional micro-units round deterministically without float or
+	// Number multiplication overflow.
+	const payoutNumerator = BigInt(amountApi) * BigInt(terminalRaw);
+	const expectedPayoutApi = (payoutNumerator + 50n) / 100n;
+	const payoutApiBigInt = BigInt(payoutApi);
+	if (payoutApiBigInt !== expectedPayoutApi) {
 		fail(
 			'ROUND_PAYOUT_AMOUNT_MISMATCH',
-			'round.payout micro-units must equal round.amount micro-units multiplied by the terminal centi-x payout multiplier.',
+			'round.payout micro-units must equal the half-up rounded product of round.amount and the terminal centi-x payout multiplier.',
 			{
 				amountApi,
 				payoutApi,
 				terminalRaw,
-				actualCentiMicroUnits: payoutInCentiMicroUnits.toString(),
-				expectedCentiMicroUnits: expectedPayoutInCentiMicroUnits.toString(),
-				relation: payoutInCentiMicroUnits < expectedPayoutInCentiMicroUnits ? 'too-small' : 'too-large',
+				payoutNumerator: payoutNumerator.toString(),
+				expectedPayoutApi: expectedPayoutApi.toString(),
+				relation: payoutApiBigInt < expectedPayoutApi ? 'too-small' : 'too-large',
 			},
 		);
 	}
