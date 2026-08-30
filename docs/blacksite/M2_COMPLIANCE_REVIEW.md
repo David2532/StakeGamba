@@ -20,6 +20,10 @@ This is the BLACKSITE-specific M2 evidence view of the immutable checklist in `S
 
 The browser artifact is the authority for M2 browser assertions: it binds the successful run to the tested commit and both tree hashes. Later source changes require a fresh evidence artifact; a passing run is not silently inherited.
 
+### Later evidence correction — 2026-08-31
+
+The M2 run proved only the amount/payout products present in its enumerated fixtures. It did **not** prove every legal product of a six-decimal API amount and an integer centi-x payout. A later real `base_small` case (`amount = 100001`, raw payout `38`, authoritative payout `38000`) exposed that the M2 live-result validator rejected the documented half-up whole-micro-unit result. Therefore the broad M2 verdict phrase “strict RGS authority ... and exact money domains ... are closed” must not be read as exhaustive cross-product coverage or inherited by a later candidate. The defect was corrected with exact BigInt half-up boundary, new-play and active-restore regressions in commit `2977b4d1ab6ec8250198ce271f0501df509b4bab`; current-head evidence remains separately SHA-bound. The historical row statuses below describe only the exact M2 fixtures and artifact.
+
 M1 math evidence is unchanged: **300,000 books, 90/90 math gates, 48/48 fixtures and 7/7 math tests** remain verified under math fingerprint `d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8` and event-schema fingerprint `bb4f3ff88200519682a539909b196f1462069b865a48afd04cb3219e7b9efe29`. The retained evidence is [`VERIFY_RESULT.json`](../../math/games/blacksite_breach/library/publish_files/VERIFY_RESULT.json), [`CANDIDATE_MANIFEST.json`](../../math/games/blacksite_breach/library/publish_files/CANDIDATE_MANIFEST.json), [`MATH_AUDIT.json`](../../math/games/blacksite_breach/library/publish_files/MATH_AUDIT.json), [`RISK_AUDIT.json`](../../math/games/blacksite_breach/library/publish_files/RISK_AUDIT.json) and [`FIXTURE_INDEX.json`](../../math/games/blacksite_breach/library/publish_files/FIXTURE_INDEX.json).
 
 ## Status summary
@@ -94,7 +98,7 @@ M1 math evidence is unchanged: **300,000 books, 90/90 math gates, 48/48 fixtures
 ## M2 verdict and next gate
 
 - The exact M2 candidate is **green for its repository-owned automated greybox gate**: 66/66 unit tests, lint, production build, and 735/735 browser checks across 36/36 scenarios.
-- Strict RGS authority, restore/recovery, read-only Replay, exact money domains, frozen-event validation, high-cost confirmation, responsive greybox behavior and the enumerated currency/language cases are closed at M2 for the evidence-bound commit.
+- The enumerated M2 RGS, restore/recovery, read-only Replay, money-domain, event, confirmation, responsive and currency/language fixtures passed for the evidence-bound commit. The 2026-08-31 correction above records why those results are not exhaustive cross-product evidence and cannot be inherited by a later candidate.
 - The 51-point matrix is truthfully **18 `PASS_AUTOMATED`, 21 `IMPLEMENTED_UNPROVEN`, 4 `TODO`, 6 `EXTERNAL_PENDING`, 2 `NOT_APPLICABLE`, 0 `PASS_MANUAL`, 0 `BLOCKED`**.
 - M2 does **not** grant release approval, Stake/ACP approval, manual approval, extracted-package approval, production-asset approval or a visual/studio 3-star rating.
 - The next gate is **M3 production asset and animation integration behind the frozen event/state interfaces**, beginning with an original asset manifest and provenance record. M3 must preserve all M1/M2 evidence invariants and re-run unit, lint, build and SHA-bound browser evidence after integration; rows requiring human/external proof remain unpassed until that proof exists.

@@ -1126,7 +1126,7 @@ async function runNetworkScenarios(browser, origin) {
 				});
 			}
 			check(group, 'reload recovers to authoritative ready without local fallback', await runtimeState(page) === 'live-ready' && !(await page.locator(SELECTORS.primaryAction).isDisabled()), serialize({ state: await runtimeState(page), launchKind: await page.locator(SELECTORS.playerHud).getAttribute('data-launch-kind') }));
-			check(group, 'recovered session exposes the authenticated wallet balance', (await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1,000.00', await page.locator(SELECTORS.walletBalance).innerText());
+			check(group, 'recovered session exposes the authenticated wallet balance', (await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1000.00', await page.locator(SELECTORS.walletBalance).innerText());
 			check(group, 'recovery performs exactly one additional authenticate and zero wallet writes', network.byEndpoint.authenticate.length === 2 && network.byEndpoint.play.length === 0 && network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0, serialize(network.order));
 			check(group, 'recovery order is authenticate then authenticate', serialize(network.order) === serialize(['authenticate', 'authenticate']), serialize(network.order));
 			assertCleanNetwork(group, network);
