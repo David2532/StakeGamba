@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260830-08 — SUCCESS
+
+- Sprint day: 1
+- Base commit: `6e9bd13e887d6bf879731bedd405ae519352f461`
+- Verified implementation commit: `e30d0c0de02532d6874ca1a51bde2ddbcd70a116`
+- Work item: `BSB-ASSET-001` (bounded responsive environment slice; item remains in progress)
+- Selection reason: exact screenshots already had the locked penguin fallback but the board still floated in a flat technical surface; the missing responsive physical-vault environment was the highest visible critical release blocker.
+- Before/after evidence: before, all viewports used the flat board-stage surface. After, desktop/landscape load a 1672x941 mechanical-vault plate while <=820px portrait/tablet/Replay load a separately composed 941x1672 plate. Browser evidence records complete, visible, pointer-inert images and exact `currentSrc` per viewport.
+- Changed files: two original PNG sources, two optimized WebP exports, semantic asset map, slot picture/CSS integration, manifest/provenance/asset ledger, two asset tests, Chromium QA, and sprint memory closeout files.
+- Gates: focused asset contracts 3/3 PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 83/83 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS; exact Chromium 37/37 scenarios and 827/827 checks PASS; console/network/request failures 0; `git diff --check` PASS.
+- Visual review: optimized sources plus exact final screenshots at 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 inspected. Vault mechanics frame the square board, correct responsive plates load, controls remain legible and no overlap, scroll, crop-selection or aspect regression is visible.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Built-in generation was text-only with no visual reference; provenance and human-review limits are explicit.
+- Persistence: implementation tree was fast-forwarded without force through the connected GitHub API; exact run `33332083126` and artifact `9738046250` succeeded.
+- Residual risk: human rights/Creative review, penguin alpha cleanup and Spine 4.2 rig, BLACKOUT/foreground environment layers, motion/cinematics, audio and complete gameplay/reconnect/Stake release evidence remain open.
+- Next candidate: `BSB-MOTION-001`, while `BSB-ASSET-001` remains open for approval-dependent rig/BLACKOUT work.
+
 ## BS-20260830-07 — SUCCESS
 
 - Sprint day: 1
