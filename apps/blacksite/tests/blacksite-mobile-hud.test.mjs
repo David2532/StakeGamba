@@ -27,3 +27,11 @@ test('browser QA covers required desktop and mobile alignment plus focus evidenc
 	assert.match(source, /keyboard focus exposes a distinct high-contrast action ring/u);
 	assert.match(source, /Math\.abs\(boardRatio - 1\) <= 0\.002/u);
 });
+
+test('compact motion and info actions retain independent 44px columns', async () => {
+	const source = await readFile(pageUrl, 'utf8');
+	assert.match(
+		source,
+		/@media \(max-width: 480px\) \{[\s\S]*?\.action-stack \{[\s\S]*?grid-template-columns: repeat\(3, minmax\(44px, 1fr\)\);[\s\S]*?\.motion-controls \{[\s\S]*?grid-column: 1 \/ 3;[\s\S]*?\.info-action \{[\s\S]*?grid-column: 3;/u,
+	);
+});

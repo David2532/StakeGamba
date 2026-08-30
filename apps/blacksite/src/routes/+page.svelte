@@ -2470,6 +2470,20 @@
 		.board-frame {
 			width: min(91vw, 38vh);
 		}
+
+		.action-stack {
+			grid-template-columns: repeat(3, minmax(44px, 1fr));
+			gap: 4px;
+		}
+
+		.motion-controls {
+			grid-column: 1 / 3;
+			gap: 4px;
+		}
+
+		.info-action {
+			grid-column: 3;
+		}
 	}
 
 	@media (min-width: 821px) and (max-height: 560px) {
