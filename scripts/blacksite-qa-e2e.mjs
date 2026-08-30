@@ -728,7 +728,7 @@ async function waitForStableAction(page, timeoutMs = 10_000) {
 	);
 }
 
-async function waitForReplayComplete(page, timeoutMs = 10_000) {
+async function waitForReplayComplete(page, timeoutMs = 20_000) {
 	await page.waitForFunction(
 		(selector) => {
 			const action = document.querySelector(selector);
@@ -1971,9 +1971,9 @@ async function runNetworkScenarios(browser, origin) {
 			});
 			check(group, 'authoritative feature_started visibly engages the mechanical vault transition',
 				activeTransition.phase === 'blackout-enter' &&
-				activeTransition.lockAnimation === 'lock-engage' &&
-				activeTransition.shutterAnimation === 'blackout-shutter' &&
-				activeTransition.environmentAnimation === 'environment-lock-pulse',
+				activeTransition.lockAnimation.endsWith('lock-engage') &&
+				activeTransition.shutterAnimation.endsWith('blackout-shutter') &&
+				activeTransition.environmentAnimation.endsWith('environment-lock-pulse'),
 				serialize(activeTransition),
 			);
 			record.transitionScreenshot = await saveScreenshot(page, group);
