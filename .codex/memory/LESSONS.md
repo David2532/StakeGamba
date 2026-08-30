@@ -8,3 +8,5 @@
 - In this sandbox, Vite must bind explicitly to `127.0.0.1`; the default `--host` interface lookup fails. The cloud browser cannot reach that sandbox loopback, so this is not visual evidence.
 - Root targeted ESLint needs legacy config mode; the production app lint script is the authoritative configured gate. Do not treat pre-existing root Turbo env declarations as a new source failure.
 - Read compact memory first and use targeted `rg`/small ranges. Avoid loading lockfiles, generated catalogs, complete logs, or all BLACKSITE docs when the selected slice does not require them.
+- Invoke the repository-declared pnpm version through Corepack. pnpm 11 rewrote 928 unrelated lockfile lines; pnpm 10.5.0 plus a minimal lock update kept the dependency change to 28 lines.
+- A workflow that listens to both target-branch pushes and unrestricted pull requests can execute the full math/browser gate twice for one SHA. Restrict PR base branches and verify the live Actions run count after pushing.

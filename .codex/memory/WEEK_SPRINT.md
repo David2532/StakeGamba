@@ -9,12 +9,12 @@
 
 | Area | Current evidence |
 | --- | --- |
-| Production build | PASS — Vite static build, exit 0, run BS-20260830-01 |
-| Lint | PASS — app lint, exit 0 |
-| Typecheck | BLOCKED — no `typecheck` script or `svelte-check` dependency exists |
-| Automated app tests | PASS — 69/69, exit 0 |
-| Math/package invariants | PASS — 300,000 books; 7/7 gates; fingerprint `d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8` |
-| Current-head browser/E2E | BLOCKED — Chromium binary unavailable; CDN install failed; remote browser cannot reach sandbox localhost |
+| Production build | PASS — Vite static build, exit 0, run BS-20260830-02 |
+| Lint | PASS — app lint, exit 0, run BS-20260830-02 |
+| Typecheck | PASS — production source/config `svelte-check`, `checkJs: true`, 0 errors / 0 warnings, exit 0, run BS-20260830-02 |
+| Automated app tests | PASS — 69/69, exit 0, run BS-20260830-02 |
+| Math/package invariants | PASS — 300,000 books; 7/7 gates; fingerprint `d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8`, run BS-20260830-02 |
+| Current-head browser/E2E | PENDING — local Chromium install BLOCKED by repeated CDN timeouts; exact remote run `33315820538` is executing the repository harness |
 | Desktop/portrait/landscape visual review | BLOCKED — no current-head screenshots; old SHA evidence is not inheritable |
 | Live wallet/replay/restore | PARTIAL — unit coverage is strong; fractional new-play and active-restore rounding fixed; browser network proof pending |
 | Gameplay state matrix | PARTIAL — M2 deterministic fixtures exist; full requested production interaction matrix is not current-head proven |
@@ -27,7 +27,7 @@
 
 ## Day milestones
 
-- Day 1: baseline, memory/runbook, build/test/math status, and top release blockers captured. BlackSite-specific CI and typecheck remain open.
+- Day 1: baseline, memory/runbook, build/test/math status, and top release blockers captured. BlackSite-specific CI and production-source typecheck are implemented; exact remote Chromium evidence is pending.
 - Day 2: wallet/math/state-machine/replay/restore regression closure.
 - Day 3: HUD, centered controls, responsiveness, accessibility, and mobile.
 - Day 4: production reels/cascades, penguin, vault/lock cinematics, and frame pacing.

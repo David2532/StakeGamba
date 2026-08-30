@@ -3,7 +3,7 @@
 | ID | Priority | State | Vertical slice and exit condition |
 | --- | --- | --- | --- |
 | BSB-RGS-001 | High | DONE | Accept only the documented half-up whole-micro-unit payout for fractional centi-x products; real fixture, boundary, new-play, and restore tests pass. Commit `2977b4d`. |
-| BSB-CI-001 | High | OPEN | Add branch-aware BlackSite CI with lint, typecheck, app tests, build, one non-duplicated full math test, browser E2E, and failure artifacts. Exit: clean workflow evidence on this branch. |
+| BSB-CI-001 | High | IN_PROGRESS | Branch-aware CI, production-source typecheck, app gates, one full math pass, Chromium E2E, exact identity, and failure artifacts are implemented at remote HEAD `8feae80f`; exit awaits clean workflow run `33315820538`. |
 | BSB-QA-001 | High | OPEN | Make Playwright Chromium reproducibly available and rerun exact-HEAD E2E/visual QA. Exit: desktop, 390x844, and 844x390 screenshots plus clean console/network and fractional wallet browser cases. |
 | BSB-ID-001 | Critical | OPEN | Reconcile explicit penguin + lock/vault identity across master plan, animation bible, asset manifest, and runtime plan. Exit: no active human-operative production direction; stable original-asset acceptance criteria exist. |
 | BSB-HUD-001 | Critical | OPEN | Replace production-facing greybox diagnostics and 3-letter cells with a player HUD/art integration slice while preserving deterministic authority. Exit: usable desktop/mobile controls with no internal schema/hash copy. |
