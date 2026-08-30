@@ -8,10 +8,13 @@ This file is a router, not the encyclopedia. Detailed source-of-truth documents 
 ## Mandatory context load
 Before substantial work, read:
 
-1. `docs/blacksite/INDEX.md`
-2. the task-relevant BLACKSITE documents linked there
-3. the relevant skill under `.agents/skills/`
-4. the relevant specialist agent contract under `.codex/agents/`
+1. `.codex/memory/INDEX.md` and the compact state it routes to
+2. `docs/blacksite/INDEX.md`
+3. the task-relevant BLACKSITE documents linked there
+4. the relevant skill under `.agents/skills/`
+5. the relevant specialist agent contract under `.codex/agents/`
+
+Scheduled improvement runs follow `.codex/automation/HOURLY_LOOP.md`, execute exactly one bounded vertical slice, and stop after verification, memory closeout, and Git persistence. Keep changing sprint state in `.codex/memory/`; keep this router limited to stable policy.
 
 For Stake approval/compliance work, always read `docs/blacksite/STAKE_REQUIREMENTS_51.md` and `docs/blacksite/STAKE_ENGINE_SOURCE_INDEX.md` first.
 
