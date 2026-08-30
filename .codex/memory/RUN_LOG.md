@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260830-06 — SUCCESS
+
+- Sprint day: 1
+- Base commit: `586b5d0fa4eee1c8de57fce9c11641928a828f46`
+- Verified implementation commit: `fa60a4721f0e898b07f9c1fddac8e9b7c04b244e`
+- Work item: `BSB-MOBILE-001`
+- Selection reason: exact portrait evidence truncated `BLACKOUT PROTOCOL`; Base Amount/meters lacked explicit computed centering, focus treatment was inconsistent, 1366x768 was missing, and the 360x640 Replay board could regress within a permissive 2% aspect tolerance.
+- Before/after evidence: mobile mode labels now wrap and center; Base Amount and all meters report centered; Tab exposes a solid amber 3px ring with 2px separation on every geometry; 1366x768 is covered; Replay remains square under a tightened 0.2% guard. All actions remain >=44px, inside viewport and center-hittable.
+- Changed files: `apps/blacksite/src/routes/+page.svelte`, `apps/blacksite/tests/blacksite-mobile-hud.test.mjs`, `scripts/blacksite-qa-e2e.mjs`, and sprint memory closeout files.
+- Gates: focused mobile tests 3/3 PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 78/78 PASS; production build PASS; exact remote math 7/7 with 300,000 books PASS; exact Chromium 37/37 scenarios and 811/811 checks PASS; console/network/request failures 0; `git diff --check` PASS.
+- Visual review: exact final screenshots at 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 inspected. Labels are complete, values centered, focus visible, boards square/on-screen, and no overlap or scrollbar regression is present. Original penguin/environment art is still absent, so production-art completion is not claimed.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Two evidence-driven QA corrections were required; unchanged failed calls were not repeated.
+- Persistence: implementation was tree-identical and fast-forwarded without force through the connected GitHub API; exact run `33326796710` and artifact `9736580209` succeeded.
+- Residual risk: original rights-cleared penguin/vault assets, production motion/cinematics, audio and complete gameplay/reconnect/Stake release evidence remain open.
+- Next candidate: `BSB-ASSET-001`, then `BSB-MOTION-001`.
+
 ## BS-20260830-05 — SUCCESS
 
 - Sprint day: 1

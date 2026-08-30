@@ -1,5 +1,36 @@
 # Rolling automation metrics
 
+## BS-20260830-06
+
+```yaml
+closed_at_utc: 2026-08-30T18:11:22Z
+sprint_day: 1
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_mobile_tests: 3
+focused_mobile_status: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_lint: PASS
+local_app_tests: 78
+local_app_status: PASS
+local_build: PASS
+verified_ci_run: 33326796710
+verified_ci_status: PASS
+remote_full_math_books: 300000
+remote_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+remote_browser_scenarios: 37
+remote_browser_checks_pass: 811
+remote_browser_checks_fail: 0
+remote_diagnostics_artifact: 9736580209
+remote_implementation_commit: fa60a4721f0e898b07f9c1fddac8e9b7c04b244e
+manual_identical_retries: 0
+```
+
+Observed categories: targeted memory/source reads, focused/full local gates, Git-data fast-forward writes, Actions/job/artifact reads and viewport screenshot inspections. The first remote QA revision exposed an incorrect focus-color comparison and missing Info-button test ID; both harness defects were corrected from computed evidence. Final artifact review then caught a 1.0% Replay aspect drift, leading to a compact-height fix and a stricter 0.2% square guard before closeout. One incorrect agent-document extension, one oversized combined image read and one `pnpm exec` formatter check that attempted an unnecessary install failed without identical retry; the existing pinned formatter binary completed the check. No subagents, dependencies, binary assets or token estimates were used.
+
 ## BS-20260830-01
 
 ```yaml
