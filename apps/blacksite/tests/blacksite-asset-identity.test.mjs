@@ -55,6 +55,9 @@ test('production ledger requires a complete penguin Spine delivery', async () =>
 		id: 'character-penguin-vaultkeeper-spine-4.2-rig-atlas-events-fallback',
 		status: 'static-fallback-integrated-rig-pending',
 	});
-	assert.equal(manifest.runtimeIntegration, 'penguin-static-fallback-v1');
+	assert.equal(
+		manifest.runtimeIntegration,
+		'penguin-static-fallback-v1+mechanical-vault-environment-v1',
+	);
 	assert.match(characterGroup.status, /rig-pending/u);
 });

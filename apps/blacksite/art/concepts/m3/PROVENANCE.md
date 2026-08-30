@@ -23,6 +23,22 @@ Two non-selected attempts remain outside the repository: the first had detached 
 
 The untouched 1024x1536 RGBA source is retained outside the static build. The runtime derivative was alpha-trimmed, resized to 702x1080 and encoded as a 78,732-byte WebP at quality 88. It is presentation-only, pointer-inert, hidden in compact/mobile layouts and never participates in result, payout, replay or restore state. Built-in generation does not replace human originality/rights review or the required Spine 4.2 rig.
 
+## Mechanical vault runtime environment — 2026-08-30
+
+Selected sources:
+
+- `apps/blacksite/art/production/environment/mechanical-vault-desktop-v1.png`
+- `apps/blacksite/art/production/environment/mechanical-vault-portrait-v1.png`
+
+Runtime exports:
+
+- `apps/blacksite/static/assets/blacksite/environment/mechanical-vault-desktop-v1.webp`
+- `apps/blacksite/static/assets/blacksite/environment/mechanical-vault-portrait-v1.webp`
+
+Both plates were generated text-only with no retained concept image, third-party work, franchise asset or web reference. The wide prompt required a straight-on classified server-bunker vault with a large empty dark board aperture, physical locking rings, bolts, graphite steel, sparse cyan/amber/red practical light and no character, grid, symbols, gameplay, branding or text. The portrait prompt independently recomposed that contract for a tall phone, concentrated mechanism at the top and sides, and kept the lower third quiet for controls; it explicitly prohibited a desktop crop.
+
+The untouched opaque PNG sources are retained outside the static build. Same-size stripped quality-82 WebP derivatives are 77,992 bytes at 1672×941 and 48,628 bytes at 941×1672. A semantic `<picture>` selects the portrait plate at widths up to 820px; both remain decorative, pointer-inert and behind the unchanged authoritative DOM board and controls. The environment is a production candidate only: manual Creative/Compliance and rights/originality review, BLACKOUT treatment and separable foreground layers remain open.
+
 ## Environment concept
 
 Retained file: `environment-server-bunker-board-aperture-concept-v1.png`

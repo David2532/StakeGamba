@@ -1,6 +1,6 @@
 # BLACKSITE // BREACH — M3 Asset Manifest and Integration Gate
 
-Status: **M3 STARTED — ORIGINAL PENGUIN STATIC FALLBACK INTEGRATED; SPINE RIG AND HUMAN APPROVAL PENDING**
+Status: **M3 STARTED — PENGUIN FALLBACK AND RESPONSIVE BASE VAULT ENVIRONMENT INTEGRATED; SPINE, BLACKOUT AND HUMAN APPROVAL PENDING**
 Date: **2026-08-30**
 Machine-readable manifest: [`apps/blacksite/art/asset-manifest.json`](../../apps/blacksite/art/asset-manifest.json)
 
@@ -10,10 +10,11 @@ Machine-readable manifest: [`apps/blacksite/art/asset-manifest.json`](../../apps
 - Original direction anchors exist for bunker material/lighting and all six frozen symbol identities. The former human-operative character anchor and its embedded environment silhouette are superseded and cannot direct production.
 - Each retained file has a semantic path, exact dimensions, SHA-256 identity, owner, status and explicit non-runtime contract.
 - The corrected environment intentionally contains an empty board aperture; the authoritative 7 × 7 topology remains code/event-owned rather than baked into uncertain artwork.
-- Historical M3 concept sheets remain excluded from the runtime; only the separately generated, tracked and optimized penguin fallback is imported.
+- Historical M3 concept sheets remain excluded from the runtime; only separately generated, tracked and optimized production candidates are imported.
 - An original mature penguin Vaultkeeper static fallback is imported through a semantic asset map, optimized to a 78,732-byte WebP, pointer-inert and hidden in compact layouts. It is a production candidate, not a human-approved rig or final character group.
+- Independently composed desktop and portrait mechanical-vault plates are imported through the same semantic map. The 77,992-byte wide plate and 48,628-byte tall plate retain an empty board aperture, while `<picture>` selection prevents an automatic desktop crop on compact layouts.
 
-This does not close M3. The fallback has exact source/runtime hashes and a responsive runtime contract, but generation is not a substitute for the required turnaround, Spine authoring, final alpha cleanup or human art/rights review.
+This does not close M3. The integrated candidates have exact source/runtime hashes and responsive runtime contracts, but generation is not a substitute for the required turnaround, Spine authoring, BLACKOUT/foreground environment layers, final cleanup or human art/rights review.
 
 ## Retained concept set
 
@@ -23,6 +24,8 @@ This does not close M3. The fallback has exact source/runtime hashes and a respo
 | `concept.character.operative_spine_anchor.v1`         | `apps/blacksite/art/concepts/m3/operative-spine-anchor-concept-v1.png`                   | 1024 × 1536 | `3b2cb5013bede3ea786f538f77b66dc716cc4ef4439268d428e4990c361f4869` | `superseded`           | Historical provenance/negative reference only; never runtime-eligible                                      |
 | `concept.symbols.material_language.v1`                | `apps/blacksite/art/concepts/m3/symbols-material-language-concept-v1.png`                | 1254 × 1254 | `e63ff125b5fbdc4b361176a3019a5590cca942ef710fbdb82c11fbf6fb148662` | `concept`              | BYTE/RELAY/PROXY/CIPHER/DAEMON/VAULT family language in reading order                                      |
 | `product.character.penguin_vaultkeeper.fallback.v1`   | `apps/blacksite/art/production/character/penguin-vaultkeeper-fallback-v1.png`            | 1024 × 1536 | `9eda38025f7adc6685215e50def26be7abedeac1406c1984be46c644a107d58d` | `production-candidate` | Original static fallback; optimized runtime WebP is integrated, while human approval and Spine remain open |
+| `product.environment.mechanical_vault.desktop.v1`     | `apps/blacksite/art/production/environment/mechanical-vault-desktop-v1.png`              |  1672 × 941 | `6a66ab13003b4e92228bdf4cfa7c19dddf7bd46725604ca1846ed8c8d13a680b` | `production-candidate` | Original wide base-vault plate; optimized runtime WebP is integrated behind the desktop board              |
+| `product.environment.mechanical_vault.portrait.v1`    | `apps/blacksite/art/production/environment/mechanical-vault-portrait-v1.png`             |  941 × 1672 | `e7786bbf289a1655cabc9a53199353913bc0a214c0563259c5dce2560f6ba44c` | `production-candidate` | Independent tall base-vault recomposition; selected for compact/mobile rather than cropped from desktop     |
 
 Exact prompts, iteration history and observed limitations are recorded in [`PROVENANCE.md`](../../apps/blacksite/art/concepts/m3/PROVENANCE.md). The first environment generation was rejected rather than retained because it invented a non-authoritative grid.
 
@@ -31,7 +34,7 @@ Exact prompts, iteration history and observed limitations are recorded in [`PROV
 | Group               | Current state                | Production deliverable before integration/approval                                                                                                                                                       |
 | ------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Title/brand         | `planned`                    | Original full/compact lockups, provider mark, monochrome variants and title/legal review                                                                                                                 |
-| Environment         | `reference-material-only`    | New independently composed desktop, portrait and Popout vault-facility layers plus BLACKOUT state; original penguin integration; opaque optimized WebP/AVIF as supported; no automatic portrait crop     |
+| Environment         | `base-desktop-portrait-integrated` | Base desktop and independently composed portrait/Popout plates are runtime-integrated; BLACKOUT state, separable foreground layers and human approval remain required                                  |
 | Board               | `planned`                    | Frame, cell plates, breach levels, masks and feature overlays aligned to the exact DOM/Pixi 7 × 7 geometry                                                                                               |
 | Symbols             | `concept-started`            | Six isolated alpha sprites with identical square bounds/pivots, idle/win/dim readability and a measured Pixi spritesheet                                                                                 |
 | Penguin Vaultkeeper | `static-fallback-integrated` | Original approved turnaround plus Spine **4.2.x** skeleton data, atlas/pages, root/bounds convention and all 13 semantic clips/events from `ANIMATION_BIBLE.md`; current fallback remains review-pending |
@@ -83,4 +86,4 @@ The locked penguin brief is the identity authority. A production character is no
 
 ## Truthful M3 status
 
-M3 is **started, not complete**. The exact built app now contains an original review-pending static penguin fallback; no asset is marked `approved`. The next production actions are a separately composed responsive mechanical-vault environment, manual cleanup/Creative/Compliance review of the fallback, and a real Spine 4.2 penguin delivery behind the frozen M2 interface.
+M3 is **started, not complete**. The exact built app now contains an original review-pending static penguin fallback and responsive base mechanical-vault environment; no asset is marked `approved`. The next production actions are BLACKOUT/foreground environment states, manual cleanup/Creative/Compliance review, and a real Spine 4.2 penguin delivery behind the frozen M2 interface.

@@ -12,6 +12,20 @@ const sourceAssetUrl = new URL(
 	'../art/production/character/penguin-vaultkeeper-fallback-v1.png',
 	import.meta.url,
 );
+const environmentAssets = Object.freeze([
+	{
+		id: 'product.environment.mechanical_vault.desktop.v1',
+		source: new URL('../art/production/environment/mechanical-vault-desktop-v1.png', import.meta.url),
+		runtime: new URL('../static/assets/blacksite/environment/mechanical-vault-desktop-v1.webp', import.meta.url),
+		bytes: 77_992,
+	},
+	{
+		id: 'product.environment.mechanical_vault.portrait.v1',
+		source: new URL('../art/production/environment/mechanical-vault-portrait-v1.png', import.meta.url),
+		runtime: new URL('../static/assets/blacksite/environment/mechanical-vault-portrait-v1.webp', import.meta.url),
+		bytes: 48_628,
+	},
+]);
 const pageUrl = new URL('../src/routes/+page.svelte', import.meta.url);
 const assetMapUrl = new URL('../src/lib/assets/blacksite-assets.js', import.meta.url);
 const browserQaUrl = new URL('../../../scripts/blacksite-qa-e2e.mjs', import.meta.url);
@@ -55,8 +69,41 @@ test('runtime uses the semantic asset map and hides decorative character in comp
 	assert.equal((page.match(/\.vaultkeeper-presence,/gu) ?? []).length >= 2, true);
 });
 
+test('responsive mechanical vault sources and optimized runtime exports match the manifest', async () => {
+	const manifest = JSON.parse(await readFile(manifestUrl, 'utf8'));
+	for (const expected of environmentAssets) {
+		const asset = manifest.assets.find((candidate) => candidate.id === expected.id);
+		const [source, runtime] = await Promise.all([
+			readFile(expected.source),
+			readFile(expected.runtime),
+		]);
+
+		assert.ok(asset);
+		assert.equal(asset.status, 'production-candidate');
+		assert.equal(asset.runtimeEligible, true);
+		assert.equal(asset.sourceSha256, sha256(source));
+		assert.equal(asset.sha256, sha256(runtime));
+		assert.equal(runtime.byteLength, expected.bytes);
+	}
+});
+
+test('runtime selects an independent portrait vault plate without exposing decorative semantics', async () => {
+	const [page, assetMap] = await Promise.all([
+		readFile(pageUrl, 'utf8'),
+		readFile(assetMapUrl, 'utf8'),
+	]);
+
+	assert.match(assetMap, /vaultDesktop:[\s\S]*mechanical-vault-desktop-v1\.webp/u);
+	assert.match(assetMap, /vaultPortrait:[\s\S]*mechanical-vault-portrait-v1\.webp/u);
+	assert.match(page, /data-testid="vault-environment" aria-hidden="true"/u);
+	assert.match(page, /media="\(max-width: 820px\)"[\s\S]*BLACKSITE_ASSETS\.environment\.vaultPortrait/u);
+	assert.match(page, /BLACKSITE_ASSETS\.environment\.vaultDesktop/u);
+	assert.match(page, /\.vault-environment \{[\s\S]*pointer-events: none;/u);
+});
+
 test('browser evidence identity includes shipped static assets', async () => {
 	const source = await readFile(browserQaUrl, 'utf8');
 	assert.match(source, /join\(repoRoot, 'apps', 'blacksite', 'static'\)/u);
 	assert.match(source, /vaultkeeper fallback is.*compact-hidden.*and loaded/u);
+	assert.match(source, /responsive mechanical vault environment selects/u);
 });

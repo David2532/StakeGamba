@@ -790,6 +790,19 @@
 		</aside>
 
 		<section class="board-stage" aria-label="BLACKSITE seven by seven vault grid">
+			<picture class="vault-environment" data-testid="vault-environment" aria-hidden="true">
+				<source
+					media="(max-width: 820px)"
+					srcset={BLACKSITE_ASSETS.environment.vaultPortrait}
+				/>
+				<img
+					src={BLACKSITE_ASSETS.environment.vaultDesktop}
+					alt=""
+					width="1672"
+					height="941"
+					decoding="async"
+				/>
+			</picture>
 			<div class="stage-heading">
 				<div>
 					<span>GHOST ROUTE // VAULT GRID</span>
@@ -1453,10 +1466,37 @@
 	}
 
 	.board-stage {
+		position: relative;
 		display: grid;
 		grid-template-rows: auto minmax(0, 1fr) auto;
 		gap: clamp(8px, 1vh, 12px);
 		padding: clamp(9px, 1vw, 15px);
+		overflow: hidden;
+		background: #071014;
+		isolation: isolate;
+	}
+
+	.vault-environment {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		display: block;
+		pointer-events: none;
+	}
+
+	.vault-environment img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center;
+	}
+
+	.stage-heading,
+	.board-frame,
+	.meter-row {
+		position: relative;
+		z-index: 1;
 	}
 
 	.stage-heading {

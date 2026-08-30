@@ -2444,6 +2444,8 @@ async function geometryAudit(page) {
 		const boardStatus = document.querySelector(selectors.boardStatus);
 		const vaultkeeper = document.querySelector('[data-testid="vaultkeeper-presence"]');
 		const vaultkeeperImage = vaultkeeper?.querySelector('img') ?? null;
+		const environment = document.querySelector('[data-testid="vault-environment"]');
+		const environmentImage = environment?.querySelector('img') ?? null;
 		const boardBounds = rect(board);
 		const cells = board ? [...board.querySelectorAll('[role="gridcell"]')] : [];
 		const focusedElement = document.activeElement;
@@ -2502,6 +2504,16 @@ async function geometryAudit(page) {
 				imageComplete: Boolean(vaultkeeperImage?.complete),
 				naturalWidth: vaultkeeperImage?.naturalWidth ?? 0,
 			},
+			environment: {
+				exists: Boolean(environment),
+				visible: isVisible(environment),
+				bounds: rect(environment),
+				imageVisible: isVisible(environmentImage),
+				imageComplete: Boolean(environmentImage?.complete),
+				naturalWidth: environmentImage?.naturalWidth ?? 0,
+				currentSrc: environmentImage?.currentSrc ?? '',
+				pointerEvents: environment ? getComputedStyle(environment).pointerEvents : null,
+			},
 			alignment: {
 				baseAmountCentered: getComputedStyle(document.querySelector(selectors.baseAmount)).textAlign === 'center',
 				metersCentered: meterCells.length === 3 && meterCells.every((element) => getComputedStyle(element).textAlign === 'center'),
@@ -2546,6 +2558,21 @@ function assertGeometryRecord(group, audit, viewport) {
 			audit.vaultkeeper.imageComplete &&
 			audit.vaultkeeper.naturalWidth > 0,
 		serialize(audit.vaultkeeper),
+	);
+	const expectedEnvironment = viewport.width <= 820
+		? 'mechanical-vault-portrait-v1.webp'
+		: 'mechanical-vault-desktop-v1.webp';
+	check(
+		group,
+		`responsive mechanical vault environment selects ${expectedEnvironment}`,
+		audit.environment.exists &&
+			audit.environment.visible &&
+			audit.environment.imageVisible &&
+			audit.environment.imageComplete &&
+			audit.environment.naturalWidth > 0 &&
+			audit.environment.currentSrc.endsWith(expectedEnvironment) &&
+			audit.environment.pointerEvents === 'none',
+		serialize(audit.environment),
 	);
 	check(group, 'mode labels are fully visible without ellipsis or clipping', audit.alignment.modeLabelsUnclipped, serialize(audit.alignment));
 	check(group, 'base amount value and all three meters are centered', audit.alignment.baseAmountCentered && audit.alignment.metersCentered, serialize(audit.alignment));

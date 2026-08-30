@@ -1,8 +1,8 @@
 {
   "schema": "blacksite-asset-manifest-v1",
   "updatedAt": "2026-08-30",
-  "lifecycle": "M3_RUNTIME_FALLBACK_STARTED",
-  "runtimeIntegration": "penguin-static-fallback-v1",
+  "lifecycle": "M3_RUNTIME_ASSET_INTEGRATION",
+  "runtimeIntegration": "penguin-static-fallback-v1+mechanical-vault-environment-v1",
   "productIdentity": {
     "status": "locked",
     "characterId": "penguin_vaultkeeper",
@@ -54,6 +54,70 @@
       "status": "production-candidate",
       "runtimeEligible": true,
       "reviewLimitations": "Human rights/originality review and final feather-edge/light-artifact cleanup remain required before approval"
+    },
+    {
+      "id": "product.environment.mechanical_vault.desktop.v1",
+      "type": "environment-static-layer",
+      "purpose": "Original wide mechanical-vault facility plate behind the unchanged desktop board and controls",
+      "source": "OpenAI built-in image_gen text-only generation selected after composition and text-artifact inspection",
+      "originalityProvenance": "Created in this repository task from a project-authored text prompt with no third-party, user-supplied or retained concept visual reference",
+      "licenseRights": "AI-assisted original project asset; final legal/originality and human Creative/Compliance review pending",
+      "path": "apps/blacksite/art/production/environment/mechanical-vault-desktop-v1.png",
+      "format": "png",
+      "runtimePath": "apps/blacksite/static/assets/blacksite/environment/mechanical-vault-desktop-v1.webp",
+      "runtimeFormat": "webp",
+      "dimensions": {
+        "width": 1672,
+        "height": 941
+      },
+      "sourceDimensions": {
+        "width": 1672,
+        "height": 941
+      },
+      "sha256": "7403b24ab7ecfbf02b12de941e5c07fc6affb7a497ae81242e0537f7d25cfbe7",
+      "sourceSha256": "6a66ab13003b4e92228bdf4cfa7c19dddf7bd46725604ca1846ed8c8d13a680b",
+      "alpha": false,
+      "anchorPivot": "center; cover crop preserves the empty central board aperture",
+      "atlasBundle": "Standalone 77,992-byte opaque WebP desktop plate",
+      "statesAnimations": ["base-vault-static"],
+      "mobileFallback": "Replaced by the independently composed portrait plate at viewport widths up to 820px",
+      "compression": "1672x941 opaque PNG source excluded from runtime; same-size stripped WebP quality 82",
+      "owner": "asset_director / creative_director / frontend_engineer",
+      "status": "production-candidate",
+      "runtimeEligible": true,
+      "reviewLimitations": "Human rights/originality and final Creative/Compliance review remain required; BLACKOUT and separable foreground layers remain pending"
+    },
+    {
+      "id": "product.environment.mechanical_vault.portrait.v1",
+      "type": "environment-static-layer",
+      "purpose": "Original portrait mechanical-vault recomposition behind the unchanged mobile and Popout board and controls",
+      "source": "OpenAI built-in image_gen text-only generation selected after portrait composition and text-artifact inspection",
+      "originalityProvenance": "Created in this repository task from a project-authored text prompt with no third-party, user-supplied or retained concept visual reference",
+      "licenseRights": "AI-assisted original project asset; final legal/originality and human Creative/Compliance review pending",
+      "path": "apps/blacksite/art/production/environment/mechanical-vault-portrait-v1.png",
+      "format": "png",
+      "runtimePath": "apps/blacksite/static/assets/blacksite/environment/mechanical-vault-portrait-v1.webp",
+      "runtimeFormat": "webp",
+      "dimensions": {
+        "width": 941,
+        "height": 1672
+      },
+      "sourceDimensions": {
+        "width": 941,
+        "height": 1672
+      },
+      "sha256": "aa871e4f0dcf7261464e200837a537a3af50dc0cc1ffc510cf5e8a02da9280cc",
+      "sourceSha256": "e7786bbf289a1655cabc9a53199353913bc0a214c0563259c5dce2560f6ba44c",
+      "alpha": false,
+      "anchorPivot": "center; independently authored portrait framing keeps the board and lower controls quiet",
+      "atlasBundle": "Standalone 48,628-byte opaque WebP portrait plate",
+      "statesAnimations": ["base-vault-static"],
+      "mobileFallback": "Primary mobile and small-Popout plate; no automatic desktop crop",
+      "compression": "941x1672 opaque PNG source excluded from runtime; same-size stripped WebP quality 82",
+      "owner": "asset_director / creative_director / frontend_engineer",
+      "status": "production-candidate",
+      "runtimeEligible": true,
+      "reviewLimitations": "Human rights/originality and final Creative/Compliance review remain required; BLACKOUT and separable foreground layers remain pending"
     },
     {
       "id": "concept.environment.server_bunker_board_aperture.v1",
@@ -152,7 +216,7 @@
     },
     {
       "id": "environment-desktop-portrait-popout-blackout",
-      "status": "reference-material-only"
+      "status": "base-desktop-portrait-integrated-blackout-pending"
     },
     {
       "id": "board-frame-cells-breach-states",
