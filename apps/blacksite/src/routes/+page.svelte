@@ -1401,11 +1401,11 @@
 	}
 
 	.vaultkeeper-presence img {
+		position: absolute;
+		inset: 8px 10px 18px;
 		display: block;
-		width: auto;
-		height: 100%;
-		max-width: 100%;
-		max-height: min(29vh, 330px);
+		width: calc(100% - 20px);
+		height: calc(100% - 26px);
 		object-fit: contain;
 		object-position: center bottom;
 		filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));

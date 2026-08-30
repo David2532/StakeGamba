@@ -2497,6 +2497,8 @@ async function geometryAudit(page) {
 				exists: Boolean(vaultkeeper),
 				visible: isVisible(vaultkeeper),
 				bounds: rect(vaultkeeper),
+				imageVisible: isVisible(vaultkeeperImage),
+				imageBounds: rect(vaultkeeperImage),
 				imageComplete: Boolean(vaultkeeperImage?.complete),
 				naturalWidth: vaultkeeperImage?.naturalWidth ?? 0,
 			},
@@ -2535,6 +2537,12 @@ function assertGeometryRecord(group, audit, viewport) {
 		`vaultkeeper fallback is ${expectsVaultkeeper ? 'visible' : 'compact-hidden'} and loaded`,
 		audit.vaultkeeper.exists &&
 			audit.vaultkeeper.visible === expectsVaultkeeper &&
+			audit.vaultkeeper.imageVisible === expectsVaultkeeper &&
+			(!expectsVaultkeeper ||
+				Boolean(
+					audit.vaultkeeper.imageBounds?.width > 0 &&
+						audit.vaultkeeper.imageBounds?.height > 0,
+				)) &&
 			audit.vaultkeeper.imageComplete &&
 			audit.vaultkeeper.naturalWidth > 0,
 		serialize(audit.vaultkeeper),
