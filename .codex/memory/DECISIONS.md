@@ -2,7 +2,7 @@
 
 ## D-001 — Product identity authority
 
-The user's explicit BLACKSITE requirement is a penguin character integrated with the lock/vault theme. Existing human-operative concept language and assets are not authority for further production and must be reconciled before character implementation. Preserve the cyber-blacksite tone, board readability, and original-asset requirement.
+The user's explicit BLACKSITE requirement is a penguin character integrated with the physical lock/vault theme. `apps/blacksite/art/asset-manifest.json` is the machine-readable identity authority: the production character is the original mature penguin Vaultkeeper, while retained human-operative concepts are superseded, runtime-ineligible provenance records only. Preserve the cyber-blacksite tone, board readability and original-asset requirement; reject childlike/chibi, franchise-derived or human-in-costume substitutions.
 
 ## D-002 — Wallet payout conversion
 

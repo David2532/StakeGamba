@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260830-04 — SUCCESS
+
+- Sprint day: 1
+- Base commit: `f24e3ae1aa3eeaee453264dbd51926ac7f5f7eb0`
+- Verified implementation commit: `e243fe7ad3c0306af5f991366c6fd473e97871de`
+- Work item: `BSB-ID-001`
+- Selection reason: the user's explicit penguin + lock/vault identity conflicted with active master-plan, animation, agent and manifest direction that still promoted a human operative.
+- Before evidence: the retained character PNG is a human operative; the environment concept embeds a human; the manifest marked both concepts active and requested an operative Spine group. The exact running slot remained a technical greybox without production character/vault art.
+- After evidence: a machine-readable locked identity names the original mature penguin Vaultkeeper and four physical vault anchors; human concepts are superseded/runtime-ineligible; art/animation/intro plans, durable director prompts, production ledger and original-asset acceptance criteria agree. Three regression tests prevent reactivation.
+- Changed files: active asset/animation/master-plan docs, asset manifest/provenance, asset/intro skills, creative/asset director prompts, identity regression test, and sprint memory closeout files.
+- Gates: focused identity tests 3/3 PASS exit 0; lint PASS exit 0; `svelte-check` 0 errors/0 warnings PASS exit 0; app tests 72/72 PASS exit 0; production build PASS exit 0; exact remote full math 7/7 with 300,000 books PASS; exact Chromium 36/36 scenarios and 736/736 checks PASS; `git diff --check` PASS exit 0.
+- Visual review: exact current-commit screenshots at 1920x1080, 390x844 and 844x390 were inspected from run `33320205882`. Runtime is geometrically clean but visibly remains a greybox with no production penguin/vault asset; no visual-art completion is claimed. No runtime CSS/DOM/math change occurred in this slice.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0.
+- Persistence: source tree was GitHub/local tree-identical and fast-forwarded without force through the connected GitHub API; exact run `33320205882` and diagnostics artifact `9734778601` completed successfully.
+- Residual risk: original production penguin/vault assets, rights review, runtime integration, HUD, motion, audio and full release evidence remain open.
+- Next candidate: `BSB-HUD-001`, then `BSB-MOBILE-001` or the first production penguin/vault integration slice.
+
 ## BS-20260830-03 — SUCCESS
 
 - Sprint day: 1
