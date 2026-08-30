@@ -1997,7 +1997,7 @@
 
 	@media (max-width: 480px) {
 		.board-frame {
-			width: min(91vw, 43vh);
+			width: min(91vw, 38vh);
 		}
 	}
 
