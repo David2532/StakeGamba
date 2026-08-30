@@ -82,9 +82,16 @@ export function planPresentationRestore(cues, nextEventIndex = 0) {
 }
 
 export class PresentationDirector {
-	/** @param {(state: any) => void} [onState] */
-	constructor(onState = () => {}) {
+	/**
+	 * @param {(state: any) => void} [onState]
+	 * @param {(cue: any, state: any) => void} [onCue]
+	 */
+	constructor(onState = () => {}, onCue = () => {}) {
+		if (typeof onState !== 'function')
+			throw new TypeError('Presentation onState must be a function.');
+		if (typeof onCue !== 'function') throw new TypeError('Presentation onCue must be a function.');
 		this.onState = onState;
+		this.onCue = onCue;
 		this.state = createInitialPresentationState();
 		this.playbackGeneration = 0;
 		this.timers = new Map();
@@ -244,6 +251,7 @@ export class PresentationDirector {
 			default:
 				throw new Error(`Unhandled presentation cue: ${String(cue.kind)}`);
 		}
+		this.onCue(cue, this.state);
 		return this.state;
 	}
 
@@ -360,5 +368,6 @@ export class PresentationDirector {
 		this.reset();
 		this.destroyed = true;
 		this.onState = () => {};
+		this.onCue = () => {};
 	}
 }

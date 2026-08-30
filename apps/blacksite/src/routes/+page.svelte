@@ -18,6 +18,7 @@
 	import { createLiveRgsClient } from '../lib/rgs/client.js';
 	import { InsufficientBalanceError, totalPlayAmountApi } from '../lib/rgs/contracts.js';
 	import { LiveSessionController } from '../lib/rgs/live-session.js';
+	import { AudioDirector, createInitialAudioState } from '../lib/runtime/audio-director.js';
 	import { GameEventAdapter } from '../lib/runtime/game-event-adapter.js';
 	import {
 		formatBalanceApi,
@@ -61,6 +62,8 @@
 	let activeFixture = null;
 	let activeCues = [];
 	let director = null;
+	let audioDirector = null;
+	let audioState = createInitialAudioState();
 	let liveSession = null;
 	let replayController = null;
 	let liveSnapshot = {
@@ -193,6 +196,8 @@
 	$: if (typeof document !== 'undefined') {
 		document.body.dataset.motionPhase = presentation.motion?.phase ?? 'idle';
 		document.body.dataset.motionProfile = presentationTimingProfile;
+		document.body.dataset.audioStatus = audioState.status;
+		document.body.dataset.audioLevel = audioState.level;
 	}
 
 	function cellKey(cell) {
@@ -441,11 +446,26 @@
 
 	function toggleMotionMode() {
 		if (reducedMotion) return;
+		audioDirector?.playUi();
 		motionMode = motionMode === 'normal' ? 'turbo' : 'normal';
 	}
 
 	function skipPresentation() {
+		audioDirector?.playUi();
 		director?.skip();
+	}
+
+	async function toggleAudio() {
+		if (!audioDirector) return;
+		if (!audioState.unlocked) {
+			if (await audioDirector.unlock()) {
+				if (audioState.volume === 0) audioDirector.cycleVolume();
+				audioDirector.playUi();
+			}
+			return;
+		}
+		const nextState = audioDirector.cycleVolume();
+		if (nextState.volume > 0) audioDirector.playUi();
 	}
 
 	async function confirmLivePlay() {
@@ -543,6 +563,7 @@
 
 	async function activatePrimary() {
 		if (actionDisabled) return;
+		await audioDirector?.unlock();
 		if (launch.kind === 'fixture') return playFixture();
 		if (launch.kind === 'replay') {
 			if (replaySnapshot.status === 'completed') return replayController.playAgain();
@@ -637,9 +658,23 @@
 		syncReducedMotion();
 		reducedMotionQuery.addEventListener('change', syncReducedMotion);
 		const adapter = new GameEventAdapter();
-		director = new PresentationDirector((nextState) => {
-			presentation = nextState;
+		audioDirector = new AudioDirector({
+			audioContextFactory: window.AudioContext ? () => new window.AudioContext() : null,
+			storage: window.localStorage,
+			documentRef: document,
+			onState: (nextState) => {
+				audioState = nextState;
+			},
 		});
+		audioState = audioDirector.state;
+		director = new PresentationDirector(
+			(nextState) => {
+				presentation = nextState;
+			},
+			(cue) => {
+				audioDirector?.consume(cue, { timingProfile: presentationTimingProfile });
+			},
+		);
 		launch = resolveLaunchMode(window.location.search, { dev: __BLACKSITE_DEV_FIXTURES__ });
 		window.addEventListener('keydown', keydown);
 
@@ -703,9 +738,12 @@
 			}
 			if (replayController) replayController.destroy();
 			else director?.destroy();
+			audioDirector?.destroy();
 			delete document.body.dataset.runtimeState;
 			delete document.body.dataset.motionPhase;
 			delete document.body.dataset.motionProfile;
+			delete document.body.dataset.audioStatus;
+			delete document.body.dataset.audioLevel;
 		};
 	});
 </script>
@@ -721,9 +759,26 @@
 			<span class="eyebrow">ARMORED ACCESS FACILITY</span>
 			<h1>BLACKSITE <span>// BREACH</span></h1>
 		</div>
-		<div class="lifecycle" data-testid="launch-status" aria-label="Vault connection status">
-			<span class="pulse" class:error-pulse={runtimeError !== null}></span>
-			{playerStatus}
+		<div class="masthead-actions">
+			<div class="lifecycle" data-testid="launch-status" aria-label="Vault connection status">
+				<span class="pulse" class:error-pulse={runtimeError !== null}></span>
+				{playerStatus}
+			</div>
+			<button
+				class="sound-action"
+				data-testid="sound-action"
+				type="button"
+				aria-label={`Game audio ${audioState.unlocked ? audioState.level.toLowerCase() : 'off until enabled'}`}
+				aria-pressed={audioState.volume === 0}
+				data-audio-status={audioState.status}
+				data-audio-level={audioState.level}
+				data-audio-cues={audioState.cueCount}
+				data-audio-voices={audioState.activeVoices}
+				data-ambience-instances={audioState.ambienceInstances}
+				on:click={() => void toggleAudio()}
+			>
+				SOUND {audioState.unlocked ? audioState.level : 'OFF'}
+			</button>
 		</div>
 	</header>
 
@@ -1262,11 +1317,47 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		max-width: 50%;
 		color: #a7bdc1;
 		font-size: clamp(8px, 0.75vw, 11px);
 		letter-spacing: 0.08em;
 		text-align: right;
+	}
+
+	.masthead-actions {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		min-width: 0;
+		gap: 10px;
+	}
+
+	.sound-action {
+		min-width: 94px;
+		min-height: 44px;
+		padding: 0 10px;
+		border: 1px solid #48646b;
+		background: #0a181d;
+		color: #a9c0c4;
+		font-size: 9px;
+		font-weight: 800;
+		letter-spacing: 0.07em;
+		white-space: nowrap;
+		cursor: pointer;
+	}
+
+	.sound-action[data-audio-status='running'] {
+		border-color: #6d9994;
+		color: #bce2dc;
+	}
+
+	.sound-action[aria-pressed='true'] {
+		border-color: #9a5552;
+		color: #e69a95;
+	}
+
+	.sound-action:focus-visible {
+		outline: 3px solid #efc06a;
+		outline-offset: 2px;
 	}
 
 	.pulse {
@@ -2459,7 +2550,16 @@
 		}
 
 		.lifecycle {
-			max-width: 58%;
+			gap: 0;
+			font-size: 0;
+		}
+
+		.masthead-actions {
+			flex: 0 0 auto;
+		}
+
+		.sound-action {
+			min-width: 88px;
 		}
 
 		.studio {

@@ -1,0 +1,266 @@
+export const AUDIO_STORAGE_KEY = 'blacksite.audio.volume.v1';
+
+export const AUDIO_LEVELS = Object.freeze([0, 0.28, 0.62]);
+
+const CUE_TONES = Object.freeze({
+	round_started: Object.freeze({ frequency: 82, target: 138, duration: 0.16, gain: 0.12 }),
+	board_snapshot: Object.freeze({ frequency: 190, target: 118, duration: 0.11, gain: 0.075 }),
+	win: Object.freeze({ frequency: 330, target: 660, duration: 0.24, gain: 0.1 }),
+	access_changed: Object.freeze({ frequency: 260, target: 390, duration: 0.18, gain: 0.08 }),
+	feature_armed: Object.freeze({ frequency: 110, target: 220, duration: 0.42, gain: 0.1 }),
+	feature_started: Object.freeze({ frequency: 64, target: 96, duration: 0.72, gain: 0.14 }),
+	feature_cycle: Object.freeze({ frequency: 150, target: 225, duration: 0.13, gain: 0.07 }),
+	exfil_reached: Object.freeze({ frequency: 420, target: 840, duration: 0.28, gain: 0.1 }),
+	tumble: Object.freeze({ frequency: 140, target: 76, duration: 0.1, gain: 0.075 }),
+	feature_ended: Object.freeze({ frequency: 180, target: 90, duration: 0.45, gain: 0.11 }),
+	cap_reached: Object.freeze({ frequency: 520, target: 1040, duration: 0.55, gain: 0.12 }),
+	settled: Object.freeze({ frequency: 220, target: 165, duration: 0.16, gain: 0.065 }),
+	ui: Object.freeze({ frequency: 360, target: 300, duration: 0.055, gain: 0.04 }),
+});
+
+function clampVolume(value) {
+	if (!Number.isFinite(value)) return AUDIO_LEVELS.at(-1);
+	return Math.min(1, Math.max(0, value));
+}
+
+function readStoredVolume(storage) {
+	try {
+		const stored = storage?.getItem(AUDIO_STORAGE_KEY);
+		if (stored === null || stored === undefined || stored === '') return AUDIO_LEVELS.at(-1);
+		const value = Number(stored);
+		return Number.isFinite(value) && value >= 0 && value <= 1 ? value : AUDIO_LEVELS.at(-1);
+	} catch {
+		return AUDIO_LEVELS.at(-1);
+	}
+}
+
+function levelLabel(volume) {
+	if (volume === 0) return 'MUTED';
+	if (volume <= AUDIO_LEVELS[1]) return 'LOW';
+	return 'FULL';
+}
+
+export function createInitialAudioState(storage = null) {
+	const volume = readStoredVolume(storage);
+	return Object.freeze({
+		status: 'locked',
+		unlocked: false,
+		volume,
+		level: levelLabel(volume),
+		contextState: 'none',
+		lastCue: null,
+		cueCount: 0,
+		activeVoices: 0,
+		ambienceInstances: 0,
+	});
+}
+
+export class AudioDirector {
+	constructor({
+		audioContextFactory = null,
+		storage = null,
+		documentRef = null,
+		onState = () => {},
+		now = () => Date.now(),
+	} = {}) {
+		if (audioContextFactory !== null && typeof audioContextFactory !== 'function') {
+			throw new TypeError('audioContextFactory must be a function when supplied.');
+		}
+		if (typeof onState !== 'function') throw new TypeError('Audio onState must be a function.');
+		this.audioContextFactory = audioContextFactory;
+		this.storage = storage;
+		this.documentRef = documentRef;
+		/** @type {(state: any) => void} */
+		this.onState = onState;
+		this.now = now;
+		this.context = null;
+		this.masterGain = null;
+		this.ambienceGain = null;
+		this.ambienceOscillator = null;
+		this.voices = new Set();
+		this.cooldowns = new Map();
+		this.destroyed = false;
+		/** @type {any} */
+		this.state = createInitialAudioState(storage);
+		this.handleVisibilityChange = () => {
+			if (this.documentRef?.hidden) void this.suspend();
+			else void this.resume();
+		};
+		this.documentRef?.addEventListener?.('visibilitychange', this.handleVisibilityChange);
+	}
+
+	emit(patch = {}) {
+		if (this.destroyed) return;
+		this.state = Object.freeze({
+			...this.state,
+			...patch,
+			contextState: this.context?.state ?? 'none',
+			activeVoices: this.voices.size,
+			ambienceInstances: this.ambienceOscillator ? 1 : 0,
+		});
+		this.onState(this.state);
+	}
+
+	async unlock() {
+		if (this.destroyed) return false;
+		if (!this.context) {
+			if (!this.audioContextFactory) {
+				this.emit({ status: 'unsupported' });
+				return false;
+			}
+			try {
+				this.context = this.audioContextFactory();
+				this.masterGain = this.context.createGain();
+				this.masterGain.gain.setValueAtTime(this.state.volume, this.context.currentTime);
+				this.masterGain.connect(this.context.destination);
+			} catch {
+				this.context = null;
+				this.masterGain = null;
+				this.emit({ status: 'unsupported' });
+				return false;
+			}
+		}
+		try {
+			if (this.context.state === 'suspended') await this.context.resume();
+			this.ensureAmbience();
+			this.emit({ status: this.state.volume === 0 ? 'muted' : 'running', unlocked: true });
+			return true;
+		} catch {
+			this.emit({ status: 'suspended', unlocked: false });
+			return false;
+		}
+	}
+
+	ensureAmbience() {
+		if (!this.context || !this.masterGain || this.ambienceOscillator) return;
+		const oscillator = this.context.createOscillator();
+		const gain = this.context.createGain();
+		oscillator.type = 'sine';
+		oscillator.frequency.setValueAtTime(43, this.context.currentTime);
+		gain.gain.setValueAtTime(0.018, this.context.currentTime);
+		oscillator.connect(gain);
+		gain.connect(this.masterGain);
+		oscillator.start();
+		this.ambienceOscillator = oscillator;
+		this.ambienceGain = gain;
+	}
+
+	setVolume(value) {
+		if (this.destroyed) return this.state;
+		const volume = clampVolume(value);
+		try {
+			this.storage?.setItem(AUDIO_STORAGE_KEY, String(volume));
+		} catch {
+			// Audio remains usable when storage is unavailable.
+		}
+		if (this.masterGain && this.context) {
+			this.masterGain.gain.setValueAtTime(volume, this.context.currentTime);
+		}
+		this.emit({
+			volume,
+			level: levelLabel(volume),
+			status: volume === 0 ? 'muted' : this.state.unlocked ? 'running' : 'locked',
+		});
+		return this.state;
+	}
+
+	cycleVolume() {
+		const currentIndex = AUDIO_LEVELS.findIndex((level) => level === this.state.volume);
+		const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % AUDIO_LEVELS.length;
+		return this.setVolume(AUDIO_LEVELS[nextIndex]);
+	}
+
+	consume(cue, { timingProfile = 'normal' } = {}) {
+		if (!cue || !Object.hasOwn(CUE_TONES, cue.kind)) return false;
+		return this.playTone(cue.kind, { timingProfile });
+	}
+
+	playUi() {
+		return this.playTone('ui', { timingProfile: 'normal' });
+	}
+
+	playTone(kind, { timingProfile = 'normal' } = {}) {
+		if (
+			this.destroyed ||
+			!this.state.unlocked ||
+			this.state.volume === 0 ||
+			this.documentRef?.hidden ||
+			!this.context ||
+			this.context.state !== 'running' ||
+			!this.masterGain
+		) {
+			return false;
+		}
+		const tone = CUE_TONES[kind];
+		if (!tone) return false;
+		const cooldownMs = timingProfile === 'turbo' ? 70 : 24;
+		const nowMs = this.now();
+		if (nowMs - (this.cooldowns.get(kind) ?? -Infinity) < cooldownMs) return false;
+		this.cooldowns.set(kind, nowMs);
+
+		while (this.voices.size >= 8) {
+			const oldest = this.voices.values().next().value;
+			oldest.stop();
+			this.voices.delete(oldest);
+		}
+		const oscillator = this.context.createOscillator();
+		const gain = this.context.createGain();
+		const startedAt = this.context.currentTime;
+		const duration =
+			timingProfile === 'turbo' ? Math.max(0.045, tone.duration * 0.58) : tone.duration;
+		oscillator.type = kind.includes('feature') ? 'sawtooth' : 'triangle';
+		oscillator.frequency.setValueAtTime(tone.frequency, startedAt);
+		oscillator.frequency.exponentialRampToValueAtTime(tone.target, startedAt + duration);
+		gain.gain.setValueAtTime(0.0001, startedAt);
+		gain.gain.exponentialRampToValueAtTime(tone.gain, startedAt + Math.min(0.02, duration / 3));
+		gain.gain.exponentialRampToValueAtTime(0.0001, startedAt + duration);
+		oscillator.connect(gain);
+		gain.connect(this.masterGain);
+		oscillator.onended = () => {
+			this.voices.delete(oscillator);
+			oscillator.disconnect?.();
+			gain.disconnect?.();
+			this.emit();
+		};
+		this.voices.add(oscillator);
+		oscillator.start(startedAt);
+		oscillator.stop(startedAt + duration + 0.01);
+		this.emit({ lastCue: kind, cueCount: this.state.cueCount + 1 });
+		return true;
+	}
+
+	async suspend() {
+		if (!this.context || this.context.state !== 'running') return false;
+		await this.context.suspend();
+		this.emit({ status: 'suspended' });
+		return true;
+	}
+
+	async resume() {
+		if (
+			!this.state.unlocked ||
+			this.documentRef?.hidden ||
+			!this.context ||
+			this.context.state !== 'suspended'
+		) {
+			return false;
+		}
+		await this.context.resume();
+		this.ensureAmbience();
+		this.emit({ status: this.state.volume === 0 ? 'muted' : 'running' });
+		return true;
+	}
+
+	destroy() {
+		if (this.destroyed) return;
+		this.documentRef?.removeEventListener?.('visibilitychange', this.handleVisibilityChange);
+		for (const voice of this.voices) voice.stop();
+		this.voices.clear();
+		this.ambienceOscillator?.stop();
+		this.ambienceOscillator = null;
+		this.ambienceGain = null;
+		void this.context?.close?.();
+		this.destroyed = true;
+		this.onState = () => {};
+	}
+}

@@ -64,6 +64,7 @@ const SELECTORS = Object.freeze({
 	primaryAction: '[data-testid="primary-action"]',
 	motionMode: '[data-testid="motion-mode"]',
 	skipPresentation: '[data-testid="skip-presentation"]',
+	soundAction: '[data-testid="sound-action"]',
 	modeBase: '[data-testid="mode-base"]',
 	modeDeepAccess: '[data-testid="mode-deep_access"]',
 	modeBlackout: '[data-testid="mode-blackout"]',
@@ -1730,6 +1731,97 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('audio-policy-cues-mute-and-persistence', async (record) => {
+		const group = 'audio-policy-cues-mute-and-persistence';
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: () => playResponse({ active: false }),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			const sound = page.locator(SELECTORS.soundAction);
+			const locked = await sound.evaluate((element) => ({
+				status: element.getAttribute('data-audio-status'),
+				level: element.getAttribute('data-audio-level'),
+				cues: Number(element.getAttribute('data-audio-cues')),
+				ambience: Number(element.getAttribute('data-ambience-instances')),
+			}));
+			check(group, 'audio creates no graph or cue before a user gesture',
+				locked.status === 'locked' && locked.cues === 0 && locked.ambience === 0,
+				serialize(locked),
+			);
+
+			await sound.click();
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.getAttribute('data-audio-status') === 'running',
+				SELECTORS.soundAction,
+			);
+			const enabled = await sound.evaluate((element) => ({
+				status: element.getAttribute('data-audio-status'),
+				level: element.getAttribute('data-audio-level'),
+				cues: Number(element.getAttribute('data-audio-cues')),
+				ambience: Number(element.getAttribute('data-ambience-instances')),
+			}));
+			check(group, 'one gesture unlocks one ambience graph and an audible UI cue',
+				enabled.status === 'running' && enabled.level === 'FULL' && enabled.cues === 1 && enabled.ambience === 1,
+				serialize(enabled),
+			);
+
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 1);
+			await waitForStableAction(page);
+			const completed = await sound.evaluate((element) => ({
+				cues: Number(element.getAttribute('data-audio-cues')),
+				voices: Number(element.getAttribute('data-audio-voices')),
+				ambience: Number(element.getAttribute('data-ambience-instances')),
+			}));
+			check(group, 'authoritative round cues use the same bounded graph',
+				completed.cues >= 4 && completed.voices <= 8 && completed.ambience === 1,
+				serialize(completed),
+			);
+
+			await sound.click();
+			const muted = await sound.evaluate((element) => ({
+				status: element.getAttribute('data-audio-status'),
+				level: element.getAttribute('data-audio-level'),
+				pressed: element.getAttribute('aria-pressed'),
+				stored: localStorage.getItem('blacksite.audio.volume.v1'),
+			}));
+			check(group, 'mute disables the game-owned master bus and persists exact zero volume',
+				muted.status === 'muted' && muted.level === 'MUTED' && muted.pressed === 'true' && muted.stored === '0',
+				serialize(muted),
+			);
+
+			await page.reload({ waitUntil: 'domcontentloaded' });
+			await waitForEndpoint(network, 'authenticate', 2);
+			await waitForStableAction(page);
+			const restored = await page.locator(SELECTORS.soundAction).evaluate((element) => ({
+				status: element.getAttribute('data-audio-status'),
+				level: element.getAttribute('data-audio-level'),
+				pressed: element.getAttribute('aria-pressed'),
+				ambience: Number(element.getAttribute('data-ambience-instances')),
+			}));
+			check(group, 'reload restores mute without autoplay or a duplicate ambience graph',
+				restored.status === 'locked' && restored.level === 'MUTED' && restored.pressed === 'true' && restored.ambience === 0,
+				serialize(restored),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.audio = { locked, enabled, completed, muted, restored };
+			record.screenshot = await saveScreenshot(page, group);
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('minimum-round-duration-hides-result-until-ready', async (record) => {
 		const group = 'minimum-round-duration-hides-result-until-ready';
 		const minimumRoundDurationMs = 400;
@@ -2613,6 +2705,7 @@ async function geometryAudit(page) {
 			selectors.primaryAction,
 			selectors.motionMode,
 			selectors.skipPresentation,
+			selectors.soundAction,
 			selectors.modeBase,
 			selectors.modeDeepAccess,
 			selectors.modeBlackout,
