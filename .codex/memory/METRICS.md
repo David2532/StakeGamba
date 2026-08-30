@@ -61,3 +61,41 @@ manual_identical_retries: 0
 ```
 
 Observed failures: three expected red `svelte-check` baselines (183 → 29 → 1), one local Playwright install command whose five built-in CDN attempts timed out, one credential-blocked HTTPS push, and one corrected connector response-shape parse. The first remote SHA exposed two workflows for one commit; narrowing the PR base produced exactly one workflow for the final SHA. No subagents or token estimates were used. The pnpm-major mismatch caused broad lockfile churn once; it was removed before commit and the repository-declared pnpm 10.5.0 frozen install passed.
+
+## BS-20260830-03
+
+```yaml
+closed_at_utc: 2026-08-30T14:52:00Z
+sprint_day: 1
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens:
+  input: null
+  cached_input: null
+  output: null
+  total: null
+  source: not_exposed
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 69
+local_app_status: PASS
+local_build: PASS
+local_browser_install: BLOCKED_CDN_TIMEOUT
+baseline_ci_run: 33315820538
+baseline_browser_checks_pass: 707
+baseline_browser_checks_fail: 1
+verified_ci_run: 33317660876
+verified_ci_status: PASS
+verified_ci_seconds: 425
+verified_browser_scenarios: 36
+verified_browser_checks_pass: 736
+verified_browser_checks_fail: 0
+replay_board_before_css_px: 263.1875x234.5
+replay_board_after_css_px: 231.1875x231.1875
+remote_implementation_commit: a2a2e623af01405cda64ad94d350906691e75c39
+```
+
+Exact aggregate tool/file counts were not exposed and are not estimated. Observed categories were targeted repository reads/searches, local install/gates/diff review, GitHub Actions/job/log/artifact reads, four screenshot inspections, one source patch, and Git-data fast-forward writes. Failures: one shell command was policy-rejected for destructive temporary cleanup and was replaced with a unique non-destructive directory; one Playwright install command exhausted its five built-in CDN mirrors and was not manually repeated. Repeated Actions status polling while the expected eight-minute math gate ran added avoidable reads; future runs should inspect job steps once, wait until the recorded math-duration window, then fetch final status and artifacts once.

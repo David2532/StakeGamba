@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260830-03 — SUCCESS
+
+- Sprint day: 1
+- Base commit: `04a43c395f968cee1a631313816c59df35d94829`
+- Verified implementation commit: `a2a2e623af01405cda64ad94d350906691e75c39`
+- Work items: `BSB-CI-001`, `BSB-QA-001`
+- Selection reason: exact run `33315820538` passed install/lint/typecheck/tests/build/math/Chromium install but failed the built frontend because completed Replay at 360x640 distorted the board to 263.1875x234.5 CSS pixels.
+- Before evidence: SHA-bound artifact reported 707 PASS / 1 FAIL across 36 scenarios; only `geometry-replay-popout-s-360x640` failed, at ratio 1.1223. Desktop, phone, tablet and landscape geometry plus console/network were already clean.
+- After evidence: portrait board sizing now uses the constrained viewport height. Exact clean run `33317660876` passed 36/36 scenarios and 736/736 checks; Replay board is 231.1875x231.1875, above the 220-pixel floor, all 49 cells visible, no scroll, and every required control visible, inside the viewport, at least 44x44 and center-hittable.
+- Changed files: `apps/blacksite/src/routes/+page.svelte` and sprint memory closeout files.
+- Gates: frozen install PASS; lint PASS exit 0; `svelte-check` 0 errors/0 warnings PASS exit 0; app tests 69/69 PASS exit 0; production build PASS exit 0; remote full math PASS; remote Chromium E2E 736/736 PASS; `git diff --check` PASS. Local browser install BLOCKED exit 1 by CDN and not repeated.
+- Visual review: exact current-commit screenshots inspected at 1920x1080, 390x844, 844x390 and Replay 360x640. No new overlap/cutoff; Replay distortion resolved. Known greybox, truncated mobile Blackout label and missing production art remain release work.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0.
+- Persistence: source tree was verified tree-identical and fast-forwarded without force through the connected GitHub API; exact run succeeded and diagnostics artifact `9734033969` was retained for 30 days.
+- Residual risk: this closes the technical CI/browser baseline, not the production HUD, product identity, animation, audio, full device or Stake release gates.
+- Next candidate: `BSB-ID-001`, then `BSB-HUD-001`.
+
 ## BS-20260830-02 — SUCCESS (remote CI pending)
 
 - Sprint day: 1
