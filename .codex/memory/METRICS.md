@@ -100,6 +100,36 @@ remote_implementation_commit: a2a2e623af01405cda64ad94d350906691e75c39
 
 Exact aggregate tool/file counts were not exposed and are not estimated. Observed categories were targeted repository reads/searches, local install/gates/diff review, GitHub Actions/job/log/artifact reads, four screenshot inspections, one source patch, and Git-data fast-forward writes. Failures: one shell command was policy-rejected for destructive temporary cleanup and was replaced with a unique non-destructive directory; one Playwright install command exhausted its five built-in CDN mirrors and was not manually repeated. Repeated Actions status polling while the expected eight-minute math gate ran added avoidable reads; future runs should inspect job steps once, wait until the recorded math-duration window, then fetch final status and artifacts once.
 
+## BS-20260830-05
+
+```yaml
+closed_at_utc: 2026-08-30T17:12:00Z
+sprint_day: 1
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_hud_tests: 3
+focused_hud_status: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_lint: PASS
+local_app_tests: 75
+local_app_status: PASS
+local_build: PASS
+verified_ci_run: 33324002432
+verified_ci_status: PASS
+remote_full_math_books: 300000
+remote_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+remote_browser_scenarios: 36
+remote_browser_checks_pass: 750
+remote_browser_checks_fail: 0
+remote_diagnostics_artifact: 9735814868
+remote_implementation_commit: cde685d09759a05f446004f6ba4dd89fd1cf6c4f
+```
+
+Observed categories: targeted memory/source reads, focused/full gates, diff review, Git-data fast-forward writes, Actions/log/artifact reads, and seven before/after screenshot inspections. One over-broad formatter pass created review churn and was reversed before commit. The first exact CI exposed two real contract mismatches (Social terminology and compact-layout status visibility); both were corrected with new regression coverage, then the final exact run passed. No subagents, new dependencies, binary assets or token estimates were used.
+
 ## BS-20260830-04
 
 ```yaml

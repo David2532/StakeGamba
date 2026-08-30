@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260830-05 — SUCCESS
+
+- Sprint day: 1
+- Base commit: `cc2a0a57d2ffb4ecf94646d6e6c13e323579ef3c`
+- Verified implementation commit: `cde685d09759a05f446004f6ba4dd89fd1cf6c4f`
+- Work item: `BSB-HUD-001`
+- Selection reason: exact current-head screenshots exposed a production-facing technical greybox: coordinates, `--` placeholders, three-letter symbol codes, schema/unit/event hashes and internal panel language.
+- Before/after evidence: exact 1920x1080, 390x844 and 844x390 screenshots changed from diagnostic cells/panels to a player-facing vault HUD with semantic symbols and concealed states. A populated Replay screenshot proves full symbol names/marks. Geometry remained square/on-screen and all required controls remained hittable.
+- Changed files: `apps/blacksite/src/routes/+page.svelte`, `apps/blacksite/tests/blacksite-player-hud.test.mjs`, `scripts/blacksite-qa-e2e.mjs`, and sprint memory closeout files.
+- Gates: focused HUD tests 3/3 PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 75/75 PASS; production build PASS; exact remote math 7/7 with 300,000 books PASS; exact Chromium 36/36 scenarios and 750/750 checks PASS; console/network/request failures 0; `git diff --check` PASS.
+- Visual review: exact final screenshots at 1920x1080, 390x844, 844x390 and Replay 1280x720 inspected. Internal copy is absent and no overlap/scroll regression was observed. Original penguin/environment assets are still absent, so production-art completion is not claimed.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Initial CI correctly caught Social-restricted `BET` copy and an over-strict compact-status assertion; both were fixed before closeout.
+- Persistence: implementation was tree-identical and fast-forwarded without force through the connected GitHub API; exact run `33324002432` and artifact `9735814868` succeeded.
+- Residual risk: production penguin/vault assets and rights review, mobile truncation/centering/focus polish, motion/cinematics, audio and complete release evidence remain open.
+- Next candidate: `BSB-MOBILE-001`, then the first original production penguin/vault asset integration slice.
+
 ## BS-20260830-04 — SUCCESS
 
 - Sprint day: 1
