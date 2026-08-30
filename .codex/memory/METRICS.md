@@ -197,3 +197,36 @@ manual_identical_retries: 0
 ```
 
 Observed categories: targeted repository searches/reads, three existing concept-image inspections, focused/full gates, diff review, and GitHub tree/Actions reads and fast-forward writes. No subagents, new dependencies, browser-install retries or binary asset writes were used. One tool-registry discovery returned excessive description text after a name-plus-description filter; subsequent discovery was restricted to exact tool names. Exact aggregate tool/file/token counts were not exposed and are not estimated.
+
+## BS-20260830-07
+
+```yaml
+closed_at_utc: 2026-08-30T19:12:00Z
+sprint_day: 1
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_asset_tests: 6
+focused_asset_status: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 81
+local_app_status: PASS
+local_build: PASS
+runtime_asset_bytes: 78732
+runtime_asset_dimensions: 702x1080
+verified_ci_run: 33329648477
+verified_ci_status: PASS
+remote_full_math_books: 300000
+remote_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+remote_browser_scenarios: 37
+remote_browser_checks_pass: 819
+remote_browser_checks_fail: 0
+remote_diagnostics_artifact: 9737374574
+remote_implementation_commit: 85eb4f2bd773e44261044edc3f836a429411f389
+manual_identical_retries: 0
+```
+
+Observed categories: compact memory/source reads, asset-pipeline and image-generation guidance, three generated candidates/edits, image inspection/optimization, focused and full gates, Git-data fast-forward writes, Actions/log/artifact reads, and exact screenshot review. One extraction edit was rejected for a baked checkerboard; the first candidate was rejected for detached light bars. The first green browser run exposed a real 1366x768 invisible-image defect during manual screenshot review; intrinsic image geometry plus a stricter pixel-bounds assertion fixed it before the final exact run. One no-TTY pnpm wrapper and one incorrect local binary path failed without unchanged retry. Broad formatter churn in two files was removed before commit. No subagents or dependency additions; token telemetry was not exposed.

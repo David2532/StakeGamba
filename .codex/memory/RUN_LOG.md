@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260830-07 — SUCCESS
+
+- Sprint day: 1
+- Base commit: `af752b0640718ffd4a0cb60edb2e8006586f3181`
+- Verified implementation commit: `85eb4f2bd773e44261044edc3f836a429411f389`
+- Work item: `BSB-ASSET-001` (bounded first character slice; item remains in progress)
+- Selection reason: the exact slot had no runtime character despite the locked penguin/Vaultkeeper identity, making product identity the highest visible release blocker.
+- Before/after evidence: before, the desktop character well was empty. After, an original mature penguin with physical chest lock is visible at 1920x1080 and 1366x768; its 702x1080 WebP loads at natural width 702 and is intentionally hidden at 390x844, 844x390 and 360x640 Replay. The first 1366 screenshot exposed an invisible-image sizing bug; the final screenshot and pixel-bounds assertion prove the fix.
+- Changed files: original/optimized character assets, semantic asset map, slot UI, asset manifest/provenance/ledger, two asset tests, Chromium QA, and sprint memory closeout files.
+- Gates: focused asset tests 6/6 PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 81/81 PASS; production build PASS; exact remote math 7/7 with 300,000 books PASS; exact Chromium 37/37 scenarios and 819/819 checks PASS; console/network/request failures 0; `git diff --check` PASS.
+- Visual review: exact final screenshots at 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 inspected. Desktop character silhouette/lock are legible; compact surfaces preserve board/control priority; no overlap, scroll or board regression observed. Asset is a production candidate, not approved final art.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Image generation was built-in text-only with no visual reference; prompt and rejected-attempt limitations are retained in provenance.
+- Persistence: both implementation commits were tree-identical and fast-forwarded without force through the connected GitHub API; final exact run `33329648477` and artifact `9737374574` succeeded.
+- Residual risk: manual light/alpha cleanup, human rights/Creative review, Spine 4.2 rig, responsive vault environment, motion/cinematics, audio and complete gameplay/reconnect/Stake release evidence remain open.
+- Next candidate: continue `BSB-ASSET-001` with the responsive mechanical-vault environment, then `BSB-MOTION-001`.
+
 ## BS-20260830-06 — SUCCESS
 
 - Sprint day: 1
