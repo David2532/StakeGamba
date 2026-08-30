@@ -1,12 +1,6 @@
 <script>
 	import { onMount, tick } from 'svelte';
-	import {
-		CANDIDATE_FINGERPRINT_SHA256,
-		EVENT_SCHEMA_SHA256,
-		MODES,
-		getMode,
-		getModeLabel,
-	} from '../lib/contracts/modes.js';
+	import { MODES, getMode, getModeLabel } from '../lib/contracts/modes.js';
 	import {
 		CLUSTER_BANDS,
 		RULES_CONTRACT,
@@ -42,13 +36,13 @@
 		column: index % 7,
 		row: Math.floor(index / 7),
 	}));
-	const symbolCodes = Object.freeze({
-		byte: 'BYT',
-		relay: 'RLY',
-		proxy: 'PRX',
-		cipher: 'CPH',
-		daemon: 'DMN',
-		vault: 'VLT',
+	const symbolPresentation = Object.freeze({
+		byte: Object.freeze({ label: 'BYTE', mark: '01' }),
+		relay: Object.freeze({ label: 'RELAY', mark: '↯' }),
+		proxy: Object.freeze({ label: 'PROXY', mark: '◆' }),
+		cipher: Object.freeze({ label: 'CIPHER', mark: '⌁' }),
+		daemon: Object.freeze({ label: 'DAEMON', mark: '△' }),
+		vault: Object.freeze({ label: 'VAULT', mark: '⬡' }),
 	});
 	const presentationCheckpointKinds = new Set([
 		'board_snapshot',
@@ -107,44 +101,47 @@
 	);
 	$: displayNetPosition = liveSnapshot.config?.jurisdiction?.displayNetPosition === true;
 	$: displaySessionTimer = liveSnapshot.config?.jurisdiction?.displaySessionTimer === true;
-	$: netPositionText = liveSnapshot.balance && sessionOpeningBalanceApi !== null
-		? formatSignedExactApi(
-			sessionOpeningBalanceApi - liveSnapshot.balance.amountApi,
-			liveSnapshot.balance.currency,
-		)
-		: '—';
+	$: netPositionText =
+		liveSnapshot.balance && sessionOpeningBalanceApi !== null
+			? formatSignedExactApi(
+					sessionOpeningBalanceApi - liveSnapshot.balance.amountApi,
+					liveSnapshot.balance.currency,
+				)
+			: '—';
 	$: sessionTimerText = `${String(Math.floor(sessionElapsedSeconds / 60)).padStart(2, '0')}:${String(sessionElapsedSeconds % 60).padStart(2, '0')}`;
 	$: totalAmountApi = safeTotalAmount(baseAmountApi, selectedModeId);
 	$: insufficientKnown = Boolean(
 		launch.kind === 'live' &&
-		liveSnapshot.balance &&
-		totalAmountApi > liveSnapshot.balance.amountApi,
+			liveSnapshot.balance &&
+			totalAmountApi > liveSnapshot.balance.amountApi,
 	);
 	$: balanceText = liveSnapshot.balance
 		? formatBalanceApi(liveSnapshot.balance.amountApi, liveSnapshot.balance.currency)
 		: '—';
 	$: totalAmountText = totalAmountApi > 0 ? formatExactApi(totalAmountApi, currency) : '—';
-	$: replayTotalUnits = launch.kind === 'replay' && replaySnapshot.replay
-		? replayQueryUnitsTimesInteger(
-			launch.amountUnitsRaw,
-			replaySnapshot.replay.costMultiplier,
-		)
-		: launch.kind === 'replay' ? launch.amountUnitsRaw : null;
-	$: replayWinUnits = launch.kind === 'replay' && replaySnapshot.replay
-		? replayQueryUnitsTimesCentiX(
-			launch.amountUnitsRaw,
-			replaySnapshot.replay.packagePayoutCentiX,
-		)
-		: null;
-	$: finalWinText = launch.kind === 'replay'
-		? replaySnapshot.status === 'completed'
-			? formatReplayQueryUnits(replayWinUnits, launch.currency)
-			: '—'
-		: launch.kind === 'fixture'
-			? formatCentiMultiplier(finalWinRaw)
-			: finalWinApi !== null
-				? formatExactApi(finalWinApi, currency)
-				: '—';
+	$: replayTotalUnits =
+		launch.kind === 'replay' && replaySnapshot.replay
+			? replayQueryUnitsTimesInteger(launch.amountUnitsRaw, replaySnapshot.replay.costMultiplier)
+			: launch.kind === 'replay'
+				? launch.amountUnitsRaw
+				: null;
+	$: replayWinUnits =
+		launch.kind === 'replay' && replaySnapshot.replay
+			? replayQueryUnitsTimesCentiX(
+					launch.amountUnitsRaw,
+					replaySnapshot.replay.packagePayoutCentiX,
+				)
+			: null;
+	$: finalWinText =
+		launch.kind === 'replay'
+			? replaySnapshot.status === 'completed'
+				? formatReplayQueryUnits(replayWinUnits, launch.currency)
+				: '—'
+			: launch.kind === 'fixture'
+				? formatCentiMultiplier(finalWinRaw)
+				: finalWinApi !== null
+					? formatExactApi(finalWinApi, currency)
+					: '—';
 	$: modalOpen = confirmationOpen || rulesOpen;
 	$: actionLabel = primaryActionLabel({
 		launchKind: launch.kind,
@@ -164,10 +161,13 @@
 		insufficient: insufficientKnown,
 		modeBlocked: selectedModeBlocked,
 	});
-	$: visibleRuntimeMessage = social && runtimeError
-		? 'The authoritative game flow could not continue.'
-		: runtimeError?.message;
+	$: visibleRuntimeMessage =
+		social && runtimeError
+			? 'The authoritative game flow could not continue.'
+			: runtimeError?.message;
 	$: legalDisclaimer = getRulesDisclaimer(social);
+	$: playerStatus = playerStatusLabel(runtimeState, runtimeError);
+	$: boardStatus = boardStatusLabel(runtimeState, presentation.activeClusters?.length ?? 0);
 	$: if (typeof document !== 'undefined') document.body.dataset.runtimeState = runtimeState;
 	$: liveKeys = new Set(
 		(presentation.routeSnapshot?.live_cells ?? []).map((cell) => cellKey(cell)),
@@ -189,8 +189,26 @@
 	}
 
 	function symbolAt(cell) {
-		const symbol = presentation.board?.[cell.column]?.[cell.row];
-		return symbol ? symbolCodes[symbol] : '--';
+		return presentation.board?.[cell.column]?.[cell.row] ?? null;
+	}
+
+	function playerStatusLabel(state, error) {
+		if (error) return 'ATTENTION REQUIRED';
+		if (state.includes('authenticating') || state === 'booting') return 'CONNECTING';
+		if (state.includes('requesting') || state.includes('presenting') || state.includes('playing')) {
+			return 'BREACH IN PROGRESS';
+		}
+		if (state.includes('settling') || state.includes('minimum-duration')) return 'SECURING RESULT';
+		if (state.startsWith('replay-')) return 'REPLAY MODE';
+		return 'VAULT READY';
+	}
+
+	function boardStatusLabel(state, activeClusterCount) {
+		if (activeClusterCount > 0) return 'ACCESS CLUSTER FOUND';
+		if (state.includes('presenting') || state.includes('playing')) return 'BREACHING VAULT GRID';
+		if (state.includes('settling') || state.includes('minimum-duration')) return 'VERIFYING RESULT';
+		if (state.includes('error')) return 'CONNECTION INTERRUPTED';
+		return 'CHOOSE ACCESS LEVEL AND SPIN';
 	}
 
 	function safeTotalAmount(amountApi, modeId) {
@@ -238,7 +256,10 @@
 		if (sessionOpeningBalanceApi === null && nextState.balance) {
 			sessionOpeningBalanceApi = nextState.balance.amountApi;
 		}
-		if (nextState.config?.jurisdiction?.displaySessionTimer === true && sessionTimerHandle === null) {
+		if (
+			nextState.config?.jurisdiction?.displaySessionTimer === true &&
+			sessionTimerHandle === null
+		) {
 			const sessionStartedAtMs = Date.now();
 			sessionTimerHandle = window.setInterval(() => {
 				sessionElapsedSeconds = Math.floor((Date.now() - sessionStartedAtMs) / 1_000);
@@ -270,7 +291,11 @@
 				finalWinRaw = nextState.replay.packagePayoutCentiX;
 			}
 		}
-		if (nextState.status === 'loading' || nextState.status === 'ready' || nextState.status === 'playing') {
+		if (
+			nextState.status === 'loading' ||
+			nextState.status === 'ready' ||
+			nextState.status === 'playing'
+		) {
 			finalWinRaw = 0;
 		}
 		if (nextState.error) runtimeError = nextState.error;
@@ -309,9 +334,10 @@
 		try {
 			director.reset();
 			if (pendingRoundOrigin === 'play') await waitForMinimumRoundDuration();
-			const plan = pendingRoundOrigin === 'restore'
-				? planPresentationRestore(round.cues, round.eventCursor ?? 0)
-				: planPresentationRestore(round.cues, 0);
+			const plan =
+				pendingRoundOrigin === 'restore'
+					? planPresentationRestore(round.cues, round.eventCursor ?? 0)
+					: planPresentationRestore(round.cues, 0);
 			for (const cue of plan.primeCues) director.consume(cue);
 			const completed = await director.play(plan.resumeCues, {
 				stepDelayMs: 35,
@@ -410,9 +436,8 @@
 	}
 
 	function rememberFocus() {
-		returnFocusElement = document.activeElement instanceof HTMLElement
-			? document.activeElement
-			: null;
+		returnFocusElement =
+			document.activeElement instanceof HTMLElement ? document.activeElement : null;
 	}
 
 	async function openConfirmation() {
@@ -447,9 +472,11 @@
 
 	function trapDialogFocus(event, dialog) {
 		if (event.key !== 'Tab' || !dialog) return false;
-		const focusable = [...dialog.querySelectorAll(
-			'button:not([disabled]), select:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
-		)].filter((element) => element instanceof HTMLElement && element.offsetParent !== null);
+		const focusable = [
+			...dialog.querySelectorAll(
+				'button:not([disabled]), select:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+			),
+		].filter((element) => element instanceof HTMLElement && element.offsetParent !== null);
 		if (focusable.length === 0) {
 			event.preventDefault();
 			dialog.focus();
@@ -548,9 +575,11 @@
 		if (launchKind === 'fixture') return !fixtureReady;
 		if (launchKind === 'replay') return !['ready', 'completed'].includes(replayStatus);
 		if (launchKind === 'live') {
-			return insufficient
-				|| (modeBlocked && liveStatus === 'ready')
-				|| !['ready', 'presenting'].includes(liveStatus);
+			return (
+				insufficient ||
+				(modeBlocked && liveStatus === 'ready') ||
+				!['ready', 'presenting'].includes(liveStatus)
+			);
 		}
 		return true;
 	}
@@ -651,22 +680,19 @@
 </script>
 
 <svelte:head>
-	<title>BLACKSITE // BREACH — M2 Greybox</title>
-	<meta
-		name="description"
-		content="BLACKSITE // BREACH M2 authoritative-event presentation greybox"
-	/>
+	<title>BLACKSITE // BREACH</title>
+	<meta name="description" content="Enter the BLACKSITE vault and breach the Ghost Route." />
 </svelte:head>
 
-<main class="app-shell" data-launch-kind={launch.kind}>
+<main class="app-shell" data-launch-kind={launch.kind} data-testid="player-hud">
 	<header class="masthead" inert={modalOpen} aria-hidden={modalOpen ? 'true' : undefined}>
 		<div class="identity">
-			<span class="eyebrow">CLASSIFIED SYSTEM / AUTHORITATIVE PRESENTATION</span>
+			<span class="eyebrow">ARMORED ACCESS FACILITY</span>
 			<h1>BLACKSITE <span>// BREACH</span></h1>
 		</div>
 		<div class="lifecycle" data-testid="launch-status" aria-label="Current runtime status">
 			<span class="pulse" class:error-pulse={runtimeError !== null}></span>
-			{runtimeState.replaceAll('-', ' ').toUpperCase()}
+			{playerStatus}
 		</div>
 	</header>
 
@@ -678,10 +704,10 @@
 	>
 		<aside class="panel mode-panel">
 			<div class="panel-heading">
-				<span>01</span>
+				<span aria-hidden="true">⌁</span>
 				<div>
-					<p>ACCESS PROFILE</p>
-					<h2>Mode control</h2>
+					<p>ACCESS LEVEL</p>
+					<h2>Choose your route</h2>
 				</div>
 			</div>
 
@@ -698,14 +724,13 @@
 						>
 							<span>{getModeLabel(mode.id, social)}</span>
 							<strong>{mode.costMultiplier}×</strong>
-							<small>{mode.id}</small>
 						</button>
 					{/if}
 				{/each}
 			</div>
 
 			<label class="amount-control" for="blacksite-base-amount">
-				<span>PLAY AMOUNT</span>
+				<span>BASE BET</span>
 				{#if betLevelsApi.length > 0}
 					<select
 						id="blacksite-base-amount"
@@ -742,69 +767,70 @@
 			</label>
 
 			<div class="mode-readout">
-				<div><span>Selected</span><strong>{getModeLabel(selectedMode.id, social)}</strong></div>
-				<div><span>Play factor</span><strong>{selectedMode.costMultiplier}× base</strong></div>
+				<div><span>Mode</span><strong>{getModeLabel(selectedMode.id, social)}</strong></div>
+				<div><span>Cost</span><strong>{selectedMode.costMultiplier}× base bet</strong></div>
 				<div><span>RTP</span><strong>96.20%</strong></div>
-				<div><span>Max</span><strong>10,000×</strong></div>
+				<div><span>Max win</span><strong>10,000×</strong></div>
 			</div>
 		</aside>
 
-		<section class="board-stage" aria-label="Authoritative 7 by 7 board">
+		<section class="board-stage" aria-label="BLACKSITE seven by seven vault grid">
 			<div class="stage-heading">
 				<div>
-					<span>GHOST ROUTE // 7×7</span>
-					<strong>{presentation.notice}</strong>
+					<span>GHOST ROUTE // VAULT GRID</span>
+					<strong data-testid="board-status">{boardStatus}</strong>
 				</div>
-				<div class="phase-chip">{presentation.phase.toUpperCase()}</div>
+				<div class="phase-chip">{getModeLabel(selectedMode.id, social)}</div>
 			</div>
 
 			<div class="board-frame">
-				<div
-					class="board"
-					data-testid="board"
-					role="grid"
-					aria-rowcount="7"
-					aria-colcount="7"
-				>
+				<div class="board" data-testid="board" role="grid" aria-rowcount="7" aria-colcount="7">
 					{#each boardCells as cell}
-					<div
-						class="cell"
-						class:live={liveKeys.has(cellKey(cell))}
-						class:dormant={dormantKeys.has(cellKey(cell))}
-						class:sealed={sealedKeys.has(cellKey(cell))}
-						class:cluster-active={activeClusterKeys.has(cellKey(cell))}
-						data-column={cell.column}
-						data-row={cell.row}
-						data-symbol={symbolAt(cell)}
-						data-cluster-active={activeClusterKeys.has(cellKey(cell))}
-						role="gridcell"
-						aria-label={`Column ${cell.column + 1}, row ${cell.row + 1}, ${symbolAt(cell)}${activeClusterKeys.has(cellKey(cell)) ? ', active cluster' : ''}`}
+						{@const symbol = symbolAt(cell)}
+						<div
+							class="cell"
+							class:live={liveKeys.has(cellKey(cell))}
+							class:dormant={dormantKeys.has(cellKey(cell))}
+							class:sealed={sealedKeys.has(cellKey(cell))}
+							class:cluster-active={activeClusterKeys.has(cellKey(cell))}
+							data-column={cell.column}
+							data-row={cell.row}
+							data-symbol={symbol ?? ''}
+							data-cluster-active={activeClusterKeys.has(cellKey(cell))}
+							role="gridcell"
+							aria-label={`Column ${cell.column + 1}, row ${cell.row + 1}, ${symbol ? symbolPresentation[symbol].label : 'concealed'}${activeClusterKeys.has(cellKey(cell)) ? ', active cluster' : ''}`}
 						>
-							<small>{cell.column}{cell.row}</small>
-							<strong>{symbolAt(cell)}</strong>
+							{#if symbol}
+								<span class="symbol-mark" aria-hidden="true">{symbolPresentation[symbol].mark}</span
+								>
+								<strong>{symbolPresentation[symbol].label}</strong>
+							{:else}
+								<span class="concealed-cell" aria-hidden="true"></span>
+							{/if}
 						</div>
 					{/each}
 				</div>
 				<div class="ingress ingress-left" title="Ingress"></div>
 				<div class="ingress ingress-center" title="Ingress"></div>
-			<div class="ingress ingress-right" title="Ingress"></div>
-			{#if presentation.activeClusters?.length > 0}
-				<div class="cluster-cue" data-testid="cluster-cue" role="status">
-					{#each presentation.activeClusters as cluster}
-						<span
-							data-symbol={cluster.symbol}
-							data-size={cluster.cluster_size}
-							data-access-multiplier={cluster.access_multiplier}
-							data-applied-raw={cluster.applied_award_raw}
-						>
-							{cluster.symbol.toUpperCase()} · {cluster.cluster_size} CELLS ·
-							{formatCentiMultiplier(cluster.base_payout_raw)} × {cluster.access_multiplier} ACCESS =
-							{formatCentiMultiplier(cluster.applied_award_raw)}
-						</span>
-					{/each}
-					<strong>STEP {formatCentiMultiplier(presentation.stepWinRaw)}</strong>
-				</div>
-			{/if}
+				<div class="ingress ingress-right" title="Ingress"></div>
+				{#if presentation.activeClusters?.length > 0}
+					<div class="cluster-cue" data-testid="cluster-cue" role="status">
+						{#each presentation.activeClusters as cluster}
+							<span
+								data-symbol={cluster.symbol}
+								data-size={cluster.cluster_size}
+								data-access-multiplier={cluster.access_multiplier}
+								data-applied-raw={cluster.applied_award_raw}
+							>
+								{cluster.symbol.toUpperCase()} · {cluster.cluster_size} CELLS ·
+								{formatCentiMultiplier(cluster.base_payout_raw)} × {cluster.access_multiplier} ACCESS
+								=
+								{formatCentiMultiplier(cluster.applied_award_raw)}
+							</span>
+						{/each}
+						<strong>STEP {formatCentiMultiplier(presentation.stepWinRaw)}</strong>
+					</div>
+				{/if}
 			</div>
 
 			<div class="meter-row" aria-live="polite">
@@ -815,13 +841,15 @@
 					</strong>
 				</div>
 				<div class="primary-meter">
-					<span>TOTAL PLAY</span>
+					<span>TOTAL BET</span>
 					<strong data-testid="total-play">
-					{launch.kind === 'replay' ? formatReplayQueryUnits(replayTotalUnits, launch.currency) : totalAmountText}
+						{launch.kind === 'replay'
+							? formatReplayQueryUnits(replayTotalUnits, launch.currency)
+							: totalAmountText}
 					</strong>
 				</div>
 				<div>
-					<span>FINAL WIN</span>
+					<span>WIN</span>
 					<strong data-testid="final-win">{finalWinText}</strong>
 				</div>
 			</div>
@@ -829,10 +857,10 @@
 
 		<aside class="panel contract-panel">
 			<div class="panel-heading">
-				<span>02</span>
+				<span aria-hidden="true">⬡</span>
 				<div>
-					<p>AUTHORITY BOUNDARY</p>
-					<h2>Runtime status</h2>
+					<p>PLAY CONTROL</p>
+					<h2>Vault console</h2>
 				</div>
 			</div>
 
@@ -841,7 +869,9 @@
 					<strong>{social ? 'AUTHORITATIVE_ERROR' : (runtimeError?.code ?? launch.code)}</strong>
 					<span>{visibleRuntimeMessage ?? launch.message}</span>
 					{#if runtimeError && (launch.kind === 'live' || launch.kind === 'replay')}
-						<button type="button" data-testid="recovery-action" on:click={recoverRuntime}>RELOAD / RESTORE</button>
+						<button type="button" data-testid="recovery-action" on:click={recoverRuntime}
+							>RELOAD / RESTORE</button
+						>
 					{/if}
 					<small>No local round or development fallback was started.</small>
 				</div>
@@ -857,38 +887,49 @@
 				<div class="launch-card replay-card">
 					<strong>REPLAY / {replaySnapshot.status.toUpperCase()}</strong>
 					<span>
-					{getModeLabel(launch.mode, social)} · {social ? 'record verified' : `event ${launch.event}`} · base {formatReplayQueryUnits(launch.amountUnitsRaw, launch.currency)} ·
-					{replaySnapshot.replay?.costMultiplier ?? selectedMode.costMultiplier}× play factor ·
-					{replaySnapshot.status === 'completed'
-						? formatCentiMultiplier(replaySnapshot.replay?.packagePayoutCentiX ?? 0)
-						: '—'} result
+						{getModeLabel(launch.mode, social)} · {social
+							? 'record verified'
+							: `event ${launch.event}`} · base {formatReplayQueryUnits(
+							launch.amountUnitsRaw,
+							launch.currency,
+						)} ·
+						{replaySnapshot.replay?.costMultiplier ?? selectedMode.costMultiplier}× play factor ·
+						{replaySnapshot.status === 'completed'
+							? formatCentiMultiplier(replaySnapshot.replay?.packagePayoutCentiX ?? 0)
+							: '—'} result
 					</span>
 					<small>Read-only presentation with zero wallet or event write calls.</small>
 				</div>
 			{:else}
-			<div class="launch-card live-card">
-				<strong>LIVE SERVICE / {liveSnapshot.status.toUpperCase()}</strong>
-				<span>{getModeLabel(selectedMode.id, social)} · {totalAmountText}</span>
-				<small>Balance, round state and final result remain service-authoritative.</small>
-			</div>
+				<div class="launch-card live-card">
+					<strong>VAULT LINK / {liveSnapshot.status === 'ready' ? 'READY' : 'SECURING'}</strong>
+					<span>{getModeLabel(selectedMode.id, social)} · {totalAmountText}</span>
+					<small>Rounds and wins are securely settled by the game service.</small>
+				</div>
 			{/if}
 
 			{#if launch.kind === 'live' && (displayNetPosition || displaySessionTimer)}
 				<div class="jurisdiction-readouts" aria-live="polite">
 					{#if displayNetPosition}
-						<span><em>SESSION POSITION</em><strong data-testid="session-net-position">{netPositionText}</strong></span>
+						<span
+							><em>SESSION POSITION</em><strong data-testid="session-net-position"
+								>{netPositionText}</strong
+							></span
+						>
 					{/if}
 					{#if displaySessionTimer}
-						<span><em>SESSION TIME</em><strong data-testid="session-timer">{sessionTimerText}</strong></span>
+						<span
+							><em>SESSION TIME</em><strong data-testid="session-timer">{sessionTimerText}</strong
+							></span
+						>
 					{/if}
 				</div>
 			{/if}
 
-			<div class="contract-grid">
-				<div><span>Event</span><strong>blacksite-book-events-v1</strong></div>
-				<div><span>Board</span><strong>column-major 7×7</strong></div>
-				<div><span>Result unit</span><strong>centi-x uint64</strong></div>
-				<div><span>Final authority</span><strong>book / RGS round</strong></div>
+			<div class="play-summary">
+				<div><span>ACTIVE MODE</span><strong>{getModeLabel(selectedMode.id, social)}</strong></div>
+				<div><span>TOTAL BET</span><strong>{totalAmountText}</strong></div>
+				<p>Select an access level and breach the vault when you are ready.</p>
 			</div>
 
 			<div class="action-stack">
@@ -901,14 +942,9 @@
 				>
 					{actionLabel}
 				</button>
-			<button class="info-action" type="button" on:click={() => void openRules()}>
+				<button class="info-action" type="button" on:click={() => void openRules()}>
 					INFO / RULES
 				</button>
-			</div>
-
-			<div class="hashes">
-				<span>Candidate {CANDIDATE_FINGERPRINT_SHA256.slice(0, 12)}…</span>
-				<span>Schema {EVENT_SCHEMA_SHA256.slice(0, 12)}…</span>
 			</div>
 		</aside>
 	</section>
@@ -933,7 +969,11 @@
 				</p>
 				<strong>{totalAmountText}</strong>
 				<div class="modal-actions">
-					<button bind:this={confirmationCancelButton} type="button" on:click={() => void closeConfirmation()}>CANCEL</button>
+					<button
+						bind:this={confirmationCancelButton}
+						type="button"
+						on:click={() => void closeConfirmation()}>CANCEL</button
+					>
 					<button class="confirm-action" type="button" on:click={confirmLivePlay}>CONFIRM</button>
 				</div>
 			</section>
@@ -957,7 +997,12 @@
 						<span>GAME INFORMATION</span>
 						<h2 id="rules-title">BLACKSITE // BREACH</h2>
 					</div>
-					<button bind:this={rulesCloseButton} type="button" aria-label="Close game information" on:click={() => void closeRules()}>CLOSE</button>
+					<button
+						bind:this={rulesCloseButton}
+						type="button"
+						aria-label="Close game information"
+						on:click={() => void closeRules()}>CLOSE</button
+					>
 				</header>
 
 				<div class="rules-scroll">
@@ -965,12 +1010,16 @@
 						<h3>Mode profiles</h3>
 						<div class="table-wrap">
 							<table>
-							<thead><tr><th>Profile</th><th>Action</th><th>Play factor</th><th>RTP</th><th>Max</th></tr></thead>
+								<thead
+									><tr
+										><th>Profile</th><th>Action</th><th>Play factor</th><th>RTP</th><th>Max</th></tr
+									></thead
+								>
 								<tbody>
 									{#each MODES as mode}
-								<tr>
-									<td>{getModeLabel(mode.id, social)}</td>
-									<td class="mode-action-description">{mode.actionDescription}</td>
+										<tr>
+											<td>{getModeLabel(mode.id, social)}</td>
+											<td class="mode-action-description">{mode.actionDescription}</td>
 											<td>{mode.costMultiplier}×</td>
 											<td>{(mode.targetRtp * 100).toFixed(2)}%</td>
 											<td>{formatCentiMultiplier(mode.maxWinRaw)}</td>
@@ -986,7 +1035,9 @@
 						<div class="table-wrap result-table">
 							<table>
 								<thead>
-									<tr><th>Symbol</th>{#each CLUSTER_BANDS as band}<th>{band.label}</th>{/each}</tr>
+									<tr
+										><th>Symbol</th>{#each CLUSTER_BANDS as band}<th>{band.label}</th>{/each}</tr
+									>
 								</thead>
 								<tbody>
 									{#each Object.entries(SYMBOL_PAYOUTS) as [symbol, values]}
@@ -1001,12 +1052,24 @@
 					</section>
 
 					<div class="rules-copy-grid">
-						<section><h3>How it works</h3>{#each RULES_CONTRACT.mechanic as line}<p>{line}</p>{/each}</section>
-						<section><h3>Blackout Protocol</h3>{#each RULES_CONTRACT.feature as line}<p>{line}</p>{/each}</section>
-						<section><h3>Controls</h3>{#each RULES_CONTRACT.controls as line}<p>{line}</p>{/each}</section>
+						<section>
+							<h3>How it works</h3>
+							{#each RULES_CONTRACT.mechanic as line}<p>{line}</p>{/each}
+						</section>
+						<section>
+							<h3>Blackout Protocol</h3>
+							{#each RULES_CONTRACT.feature as line}<p>{line}</p>{/each}
+						</section>
+						<section>
+							<h3>Controls</h3>
+							{#each RULES_CONTRACT.controls as line}<p>{line}</p>{/each}
+						</section>
 					</div>
 
-					<section class="disclaimer"><h3>Disclaimer</h3><p>{legalDisclaimer}</p></section>
+					<section class="disclaimer">
+						<h3>Disclaimer</h3>
+						<p>{legalDisclaimer}</p>
+					</section>
 				</div>
 			</section>
 		</div>
@@ -1045,9 +1108,9 @@
 		padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
 			max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
 		background:
-			linear-gradient(rgba(69, 114, 121, 0.07) 1px, transparent 1px),
-			linear-gradient(90deg, rgba(69, 114, 121, 0.07) 1px, transparent 1px),
-			#081015;
+			radial-gradient(circle at 50% 44%, rgba(38, 101, 108, 0.16), transparent 38%),
+			linear-gradient(rgba(69, 114, 121, 0.055) 1px, transparent 1px),
+			linear-gradient(90deg, rgba(69, 114, 121, 0.055) 1px, transparent 1px), #081015;
 		background-size: 32px 32px;
 	}
 
@@ -1070,7 +1133,7 @@
 	.stage-heading span,
 	.meter-row span,
 	.mode-readout span,
-	.contract-grid span {
+	.play-summary span {
 		color: #6f939a;
 		font-size: clamp(8px, 0.65vw, 11px);
 		letter-spacing: 0.13em;
@@ -1128,8 +1191,10 @@
 		min-width: 0;
 		min-height: 0;
 		border: 1px solid #29434a;
-		background: rgba(9, 20, 25, 0.93);
-		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+		background: linear-gradient(145deg, rgba(12, 27, 33, 0.96), rgba(7, 16, 20, 0.96));
+		box-shadow:
+			0 14px 44px rgba(0, 0, 0, 0.34),
+			inset 0 1px rgba(154, 197, 202, 0.04);
 	}
 
 	.panel {
@@ -1190,8 +1255,9 @@
 	.mode-list button:focus-visible,
 	.mode-list button.selected {
 		border-color: #e05b55;
-		background: #182328;
-		outline: none;
+		background: linear-gradient(90deg, rgba(224, 91, 85, 0.13), #182328 72%);
+		outline: 2px solid rgba(240, 92, 85, 0.3);
+		outline-offset: 1px;
 	}
 
 	.mode-list button:disabled {
@@ -1212,11 +1278,6 @@
 		align-self: center;
 		color: #efc06a;
 		font-size: clamp(14px, 1.3vw, 20px);
-	}
-
-	.mode-list small {
-		color: #55767d;
-		font-size: 9px;
 	}
 
 	.amount-control {
@@ -1287,8 +1348,7 @@
 		white-space: nowrap;
 	}
 
-	.mode-readout,
-	.contract-grid {
+	.mode-readout {
 		display: grid;
 		gap: 1px;
 		margin-top: auto;
@@ -1296,8 +1356,7 @@
 		border: 1px solid #29434a;
 	}
 
-	.mode-readout > div,
-	.contract-grid > div {
+	.mode-readout > div {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -1307,8 +1366,7 @@
 		background: #0b171c;
 	}
 
-	.mode-readout strong,
-	.contract-grid strong {
+	.mode-readout strong {
 		overflow: hidden;
 		color: #c8d7da;
 		font-size: clamp(9px, 0.72vw, 11px);
@@ -1361,9 +1419,13 @@
 		max-height: 100%;
 		aspect-ratio: 1;
 		padding: clamp(5px, 0.6vw, 9px);
-		border: 1px solid #48646b;
-		background: #071015;
-		box-shadow: inset 0 0 0 3px #0e2228;
+		border: 1px solid #63777a;
+		border-radius: clamp(12px, 1.2vw, 20px);
+		background: linear-gradient(145deg, #17262a, #050b0e 24%, #071015 76%, #18282c);
+		box-shadow:
+			0 18px 45px rgba(0, 0, 0, 0.42),
+			inset 0 0 0 3px #0e2228,
+			inset 0 0 28px rgba(84, 142, 148, 0.08);
 	}
 
 	.board {
@@ -1381,30 +1443,74 @@
 		place-items: center;
 		min-width: 0;
 		min-height: 0;
-		border: 1px solid #263d43;
-		background: #112126;
+		border: 1px solid #31494f;
+		border-radius: clamp(3px, 0.42vw, 8px);
+		background: linear-gradient(145deg, #14272c, #0c191d);
 		color: #8fa8ad;
-		transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+		transition:
+			border-color 140ms ease,
+			background 140ms ease,
+			color 140ms ease;
 	}
 
 	.cell::after {
 		position: absolute;
 		inset: 7%;
-		border: 1px solid rgba(129, 163, 170, 0.12);
+		border: 1px solid rgba(129, 163, 170, 0.1);
+		border-radius: inherit;
 		content: '';
 	}
 
-	.cell small {
-		position: absolute;
-		top: 3px;
-		left: 4px;
-		color: #38555c;
-		font-size: clamp(5px, 0.42vw, 8px);
+	.cell strong {
+		position: relative;
+		z-index: 1;
+		font-size: clamp(6px, 0.55vw, 9px);
+		letter-spacing: 0.08em;
 	}
 
-	.cell strong {
-		font-size: clamp(8px, 1.05vw, 17px);
-		letter-spacing: 0.04em;
+	.symbol-mark {
+		position: relative;
+		z-index: 1;
+		color: var(--symbol-color, #a8c2c7);
+		font-family: Arial, Helvetica, sans-serif;
+		font-size: clamp(14px, 2.15vw, 34px);
+		font-weight: 800;
+		line-height: 0.8;
+		text-shadow: 0 0 14px color-mix(in srgb, var(--symbol-color, #a8c2c7) 35%, transparent);
+	}
+
+	.concealed-cell {
+		position: relative;
+		z-index: 1;
+		width: 18%;
+		aspect-ratio: 1;
+		border: 1px solid #547178;
+		transform: rotate(45deg);
+		opacity: 0.5;
+	}
+
+	.cell[data-symbol='byte'] {
+		--symbol-color: #78d9df;
+	}
+
+	.cell[data-symbol='relay'] {
+		--symbol-color: #f0c26d;
+	}
+
+	.cell[data-symbol='proxy'] {
+		--symbol-color: #81a8e8;
+	}
+
+	.cell[data-symbol='cipher'] {
+		--symbol-color: #d49be8;
+	}
+
+	.cell[data-symbol='daemon'] {
+		--symbol-color: #ef7d72;
+	}
+
+	.cell[data-symbol='vault'] {
+		--symbol-color: #f5d888;
 	}
 
 	.cell.sealed {
@@ -1429,7 +1535,9 @@
 		border-color: #f4d06f;
 		background: #4a3717;
 		color: #fff0bd;
-		box-shadow: inset 0 0 18px rgba(244, 208, 111, 0.42), 0 0 8px rgba(244, 208, 111, 0.36);
+		box-shadow:
+			inset 0 0 18px rgba(244, 208, 111, 0.42),
+			0 0 8px rgba(244, 208, 111, 0.36);
 	}
 
 	.cluster-cue {
@@ -1574,6 +1682,40 @@
 		color: #9bc6cd;
 	}
 
+	.play-summary {
+		display: grid;
+		gap: 1px;
+		border: 1px solid #29434a;
+		background: #29434a;
+	}
+
+	.play-summary > div {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+		padding: 9px 10px;
+		background: #0b171c;
+	}
+
+	.play-summary strong {
+		overflow: hidden;
+		color: #dce8ea;
+		font-size: clamp(9px, 0.72vw, 11px);
+		text-align: right;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.play-summary p {
+		margin: 0;
+		padding: 12px 10px;
+		background: #0b171c;
+		color: #78969c;
+		font-size: 9px;
+		line-height: 1.5;
+	}
+
 	.jurisdiction-readouts {
 		display: flex;
 		grid-column: 1 / -1;
@@ -1650,14 +1792,6 @@
 		border-color: #efc06a;
 		color: #f0d6a5;
 		outline: none;
-	}
-
-	.hashes {
-		display: grid;
-		gap: 3px;
-		color: #4f7077;
-		font-size: clamp(7px, 0.58vw, 9px);
-		word-break: break-all;
 	}
 
 	.modal-backdrop {
@@ -1899,8 +2033,7 @@
 
 		.panel-heading,
 		.mode-readout,
-		.contract-grid,
-		.hashes {
+		.play-summary {
 			display: none;
 		}
 
@@ -1921,10 +2054,6 @@
 			white-space: nowrap;
 		}
 
-		.mode-list button small {
-			display: none;
-		}
-
 		.amount-control {
 			grid-template-columns: auto minmax(130px, 1fr);
 			align-items: center;
@@ -1933,6 +2062,14 @@
 
 		.board-frame {
 			width: min(92vw, 51vh);
+		}
+
+		.cell strong {
+			display: none;
+		}
+
+		.symbol-mark {
+			font-size: clamp(13px, 4.2vw, 24px);
 		}
 
 		.launch-card {
@@ -2016,8 +2153,7 @@
 		.eyebrow,
 		.panel-heading,
 		.mode-readout,
-		.contract-grid,
-		.hashes,
+		.play-summary,
 		.launch-card small {
 			display: none;
 		}

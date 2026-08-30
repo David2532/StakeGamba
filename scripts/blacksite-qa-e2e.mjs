@@ -56,6 +56,7 @@ const REPLAY_VERSION = '0.1.0-m2';
 const MODE_COSTS = Object.freeze({ base: 1, deep_access: 4, blackout: 80 });
 
 const SELECTORS = Object.freeze({
+	playerHud: '[data-testid="player-hud"]',
 	launchStatus: '[data-testid="launch-status"]',
 	launchError: '[data-testid="launch-error"]',
 	board: '[data-testid="board"]',
@@ -67,6 +68,7 @@ const SELECTORS = Object.freeze({
 	walletBalance: '[data-testid="wallet-balance"]',
 	totalPlay: '[data-testid="total-play"]',
 	finalWin: '[data-testid="final-win"]',
+	boardStatus: '[data-testid="board-status"]',
 	sessionNetPosition: '[data-testid="session-net-position"]',
 	sessionTimer: '[data-testid="session-timer"]',
 });
@@ -939,6 +941,12 @@ async function replayPresentationSnapshot(page) {
 	};
 }
 
+async function boardSymbols(page) {
+	return page.locator(`${SELECTORS.board} [role="gridcell"]`).evaluateAll((cells) =>
+		cells.map((cell) => cell.getAttribute('data-symbol') ?? ''),
+	);
+}
+
 async function runScenario(name, execute) {
 	const record = { name, status: 'RUNNING', screenshot: null, network: null, diagnostics: null };
 	evidence.scenarios.push(record);
@@ -1032,7 +1040,7 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForEndpoint(network, 'authenticate', 1);
 			await waitForStableAction(page);
 			const beforeResultSurface = {
-				board: await page.locator(`${SELECTORS.board} [role="gridcell"]`).allInnerTexts(),
+				board: await boardSymbols(page),
 				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
 			};
 			await page.locator(SELECTORS.primaryAction).click();
@@ -1040,7 +1048,7 @@ async function runNetworkScenarios(browser, origin) {
 			await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 10_000 });
 			const state = await runtimeState(page);
 			const errorText = await page.locator(SELECTORS.launchError).innerText();
-			const boardText = await page.locator(`${SELECTORS.board} [role="gridcell"]`).allInnerTexts();
+			const board = await boardSymbols(page);
 			const finalWin = (await page.locator(SELECTORS.finalWin).innerText()).trim();
 			assertExactRequest(group, network.byEndpoint.play[0], {
 				method: 'POST',
@@ -1056,9 +1064,9 @@ async function runNetworkScenarios(browser, origin) {
 			check(group, 'ERR_IPB race reaches a fail-closed insufficient/error state', /insufficient|error/i.test(state ?? ''), serialize(state));
 			check(group, 'ERR_IPB race sends exactly one play request', network.byEndpoint.play.length === 1, serialize(network.order));
 			check(group, 'ERR_IPB race sends no settlement/event request', network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0, serialize(network.order));
-			check(group, 'ERR_IPB race consumes no local result board', boardText.length === 49 && boardText.every((text) => text.includes('--')), serialize(boardText));
+			check(group, 'ERR_IPB race consumes no local result board', board.length === 49 && board.every((symbol) => symbol === ''), serialize(board));
 			check(group, 'ERR_IPB race exposes no invented final result', finalWin === '—', finalWin);
-			check(group, 'ERR_IPB leaves the result surface byte-for-byte unchanged from pre-play', serialize({ board: boardText, finalWin }) === serialize(beforeResultSurface), serialize({ beforeResultSurface, afterResultSurface: { board: boardText, finalWin } }));
+			check(group, 'ERR_IPB leaves the result surface byte-for-byte unchanged from pre-play', serialize({ board, finalWin }) === serialize(beforeResultSurface), serialize({ beforeResultSurface, afterResultSurface: { board, finalWin } }));
 			check(group, 'ERR_IPB race disables further play until authoritative reauthentication', await page.locator(SELECTORS.primaryAction).isDisabled(), await page.locator(SELECTORS.primaryAction).innerText());
 			check(group, 'ERR_IPB network order is authenticate then one play', serialize(network.order) === serialize(['authenticate', 'play']), serialize(network.order));
 			assertCleanNetwork(group, network);
@@ -1751,10 +1759,10 @@ async function runNetworkScenarios(browser, origin) {
 				elapsedMs: Date.now() - startedAtMs,
 				runtimeState: await runtimeState(page),
 				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
-				board: await page.locator(`${SELECTORS.board} [role="gridcell"]`).allInnerTexts(),
+				board: await boardSymbols(page),
 				actionDisabled: await page.locator(SELECTORS.primaryAction).isDisabled(),
 			};
-			check(group, 'immediately after Play the result and outcome board remain hidden', immediate.finalWin === '—' && immediate.board.every((cell) => cell.includes('--')), serialize(immediate));
+			check(group, 'immediately after Play the result and outcome board remain hidden', immediate.finalWin === '—' && immediate.board.every((symbol) => symbol === ''), serialize(immediate));
 			check(group, 'immediately after Play the round is not ready and cannot be replayed', immediate.runtimeState !== 'live-ready' && immediate.actionDisabled, serialize(immediate));
 
 			await waitForEndpoint(network, 'play', 1);
@@ -1763,21 +1771,21 @@ async function runNetworkScenarios(browser, origin) {
 				elapsedMs: Date.now() - startedAtMs,
 				runtimeState: await runtimeState(page),
 				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
-				board: await page.locator(`${SELECTORS.board} [role="gridcell"]`).allInnerTexts(),
+				board: await boardSymbols(page),
 				actionDisabled: await page.locator(SELECTORS.primaryAction).isDisabled(),
 			};
-			check(group, 'minimum-duration hold exposes neither result, outcome board, nor a ready action', held.runtimeState === 'live-minimum-duration' && held.finalWin === '—' && held.board.every((cell) => cell.includes('--')) && held.actionDisabled, serialize(held));
+			check(group, 'minimum-duration hold exposes neither result, outcome board, nor a ready action', held.runtimeState === 'live-minimum-duration' && held.finalWin === '—' && held.board.every((symbol) => symbol === '') && held.actionDisabled, serialize(held));
 
 			await waitForStableAction(page);
 			const completed = {
 				elapsedMs: Date.now() - startedAtMs,
 				runtimeState: await runtimeState(page),
 				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
-				board: await page.locator(`${SELECTORS.board} [role="gridcell"]`).allInnerTexts(),
+				board: await boardSymbols(page),
 				actionDisabled: await page.locator(SELECTORS.primaryAction).isDisabled(),
 			};
 			check(group, 'round cannot become ready before the configured minimum duration', completed.elapsedMs >= minimumRoundDurationMs - lowerBoundToleranceMs, serialize({ minimumRoundDurationMs, lowerBoundToleranceMs, completed }));
-			check(group, 'completed live round exposes the exact authoritative result, board, and ready action', completed.runtimeState === 'live-ready' && completed.finalWin === '$0.00' && completed.board.some((cell) => !cell.includes('--')) && !completed.actionDisabled, serialize(completed));
+			check(group, 'completed live round exposes the exact authoritative result, board, and ready action', completed.runtimeState === 'live-ready' && completed.finalWin === '$0.00' && completed.board.some((symbol) => symbol !== '') && !completed.actionDisabled, serialize(completed));
 			check(group, 'minimum-duration round sends exactly one play and no end-round write', network.byEndpoint.play.length === 1 && network.byEndpoint.endRound.length === 0, serialize(network.order));
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
@@ -2035,8 +2043,8 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForEndpoint(network, 'endRound', 1);
 			await waitForRuntimeState(page, 'live-ready');
 			await page.waitForTimeout(200);
-			const restoredBoard = await page.locator(`${SELECTORS.board} [role="gridcell"]`).allInnerTexts();
-			check(group, 'disabled Buy Feature does not block presentation of an already-active feature round', restoredBoard.length === 49 && restoredBoard.some((text) => !text.includes('--')), serialize(restoredBoard));
+			const restoredBoard = await boardSymbols(page);
+			check(group, 'disabled Buy Feature does not block presentation of an already-active feature round', restoredBoard.length === 49 && restoredBoard.some((symbol) => symbol !== ''), serialize(restoredBoard));
 			check(group, 'restored feature round exposes its exact result only after completion', (await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00', await page.locator(SELECTORS.finalWin).innerText());
 			check(group, 'restore sends zero play requests', network.byEndpoint.play.length === 0, serialize(network.order));
 			check(group, 'restore does not rewrite already-persisted checkpoints', network.byEndpoint.event.length === 0, serialize(network.order));
@@ -2422,8 +2430,19 @@ async function geometryAudit(page) {
 			};
 		});
 		const board = document.querySelector(selectors.board);
+		const playerHud = document.querySelector(selectors.playerHud);
+		const boardStatus = document.querySelector(selectors.boardStatus);
 		const boardBounds = rect(board);
 		const cells = board ? [...board.querySelectorAll('[role="gridcell"]')] : [];
+		const visibleText = document.body.innerText.toLowerCase();
+		const forbiddenVisibleCopy = [
+			'blacksite-book-events-v1',
+			'column-major',
+			'centi-x uint64',
+			'authoritative presentation',
+			'mode control',
+			'runtime status',
+		].filter((fragment) => visibleText.includes(fragment));
 		return {
 			viewport: { width: innerWidth, height: innerHeight, devicePixelRatio },
 			interaction: {
@@ -2453,6 +2472,11 @@ async function geometryAudit(page) {
 				cellCount: cells.length,
 				visibleCellCount: cells.filter(isVisible).length,
 			},
+			playerHud: {
+				visible: isVisible(playerHud),
+				boardStatusVisible: isVisible(boardStatus),
+				forbiddenVisibleCopy,
+			},
 			actions,
 		};
 	}, SELECTORS);
@@ -2467,6 +2491,8 @@ function assertGeometryRecord(group, audit, viewport) {
 	check(group, '7x7 board exists and is visible', audit.board.exists && audit.board.visible, serialize(audit.board));
 	check(group, 'board is fully inside viewport', audit.board.insideViewport, serialize(audit.board.bounds));
 	check(group, 'board contains 49 visible cells', audit.board.cellCount === 49 && audit.board.visibleCellCount === 49, serialize(audit.board));
+	check(group, 'player HUD and board status are visible', audit.playerHud.visible && audit.playerHud.boardStatusVisible, serialize(audit.playerHud));
+	check(group, 'player HUD exposes no internal schema or greybox diagnostics', audit.playerHud.forbiddenVisibleCopy.length === 0, serialize(audit.playerHud));
 	const boardRatio = audit.board.bounds ? audit.board.bounds.width / audit.board.bounds.height : 0;
 	check(group, 'board aspect remains square', Math.abs(boardRatio - 1) <= 0.02, serialize(boardRatio));
 	check(group, 'board meets viewport readability floor', Boolean(audit.board.bounds && Math.min(audit.board.bounds.width, audit.board.bounds.height) >= viewport.minBoard), serialize({ bounds: audit.board.bounds, minimum: viewport.minBoard }));
