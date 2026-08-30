@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-11 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `7f14d360af055a0c164f2533a69e504879d36f4c`
+- Verified implementation commit: `db848506f17a02ff7d4d7b98ae69902500d57f72`
+- Work item: `BSB-AUDIO-001` (policy-safe procedural foundation; item remains in progress)
+- Selection reason: exact motion existed but the runtime had no audio graph, user-gesture policy, cues, mute persistence, visibility lifecycle or leak evidence, leaving Audio as the sole blocked DoD area.
+- Before/after evidence: before, no production audio path existed. After, one master bus creates one low ambience graph and bounded original procedural cues from the exact authoritative presentation stream; mute/three levels persist, hidden tabs suspend, resume does not duplicate ambience, turbo uses cooldown, voices cap at eight and teardown closes the graph. Exact Chromium proves locked/no graph before gesture, one graph after gesture, four bounded round cues, persisted zero mute, and locked/no-autoplay reload.
+- Changed files: new audio director and regression suite, presentation cue bridge, slot UI/CSS and sound control, Chromium QA, and sprint memory closeout files.
+- Gates: focused audio/mobile 8/8 PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 91/91 PASS; production build PASS; exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; exact Chromium 40/40 scenarios and 952/952 checks PASS; console/network/request failures 0; `git diff --check` PASS.
+- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640 and audio-state screenshots inspected. The sound control is visible, focused/hittable and non-overlapping; all boards remain square/on-screen. Final Replay is 220.3125x220.3125. Headless graph/state proof is not a listening-quality or clipping claim.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Two diagnostic CI runs converted measured short-Replay geometry deficits into bounded responsive fixes; no failure was repeated unchanged.
+- Persistence: implementation and two responsive-fix commits were fast-forwarded without force through the connected GitHub API; exact run `33341067497` and artifact `9740632934` succeeded.
+- Residual risk: authored reel-stop/character/feature sound detail, mix/ducking and manual device listening; asset rights/Creative approval; penguin cleanup/Spine; character/reel polish; complete gameplay/reconnect/Stake evidence.
+- Next candidate: continue `BSB-AUDIO-001` with authored cue assets/mix and manual listening evidence, unless `BSB-EVIDENCE-001` exposes a higher gameplay/provider blocker.
+
 ## BS-20260831-10 — SUCCESS
 
 - Sprint day: 2

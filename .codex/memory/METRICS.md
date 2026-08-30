@@ -1,5 +1,40 @@
 # Rolling automation metrics
 
+## BS-20260831-11
+
+```yaml
+closed_at_utc: 2026-08-30T23:18:00Z
+sprint_day: 2
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_audio_mobile_tests: 8
+focused_audio_mobile_status: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 91
+local_app_status: PASS
+local_build: PASS
+diagnostic_ci_runs: [33339904628, 33340501482]
+diagnostic_browser_failures: [replay_board_231.1875x208.90625, replay_board_231.1875x216.71875]
+verified_ci_run: 33341067497
+verified_ci_status: PASS
+remote_app_tests: 91
+remote_full_math_books: 300000
+remote_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+remote_browser_scenarios: 40
+remote_browser_checks_pass: 952
+remote_browser_checks_fail: 0
+replay_board_final_css_px: 220.3125x220.3125
+remote_diagnostics_artifact: 9740632934
+remote_implementation_commit: db848506f17a02ff7d4d7b98ae69902500d57f72
+manual_identical_retries: 0
+```
+
+Observed categories: compact memory/audio-contract reads, one new runtime module, targeted UI/director/test edits, focused and complete local gates, exact GitHub writes, three Actions runs, job/log/artifact reads and five final screenshot inspections. The first exact browser run exposed a real 360x640 board regression from the 44px sound control; the second quantified the remaining 14.5px deficit, and the final short-portrait constraint restored an exact 220.3125px square without weakening touch targets. No unchanged failure was repeated, and no subagents, dependencies, external audio assets or token estimates were used.
+
 ## BS-20260831-10
 
 ```yaml
