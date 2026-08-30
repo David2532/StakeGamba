@@ -2728,6 +2728,16 @@
 		}
 	}
 
+	@media (max-width: 480px) and (max-height: 680px) {
+		.studio {
+			gap: 4px;
+		}
+
+		.board-frame {
+			width: min(91vw, 36.3vh);
+		}
+	}
+
 	@media (min-width: 821px) and (max-height: 560px) {
 		.app-shell {
 			gap: 6px;
