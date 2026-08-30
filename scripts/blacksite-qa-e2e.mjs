@@ -2523,7 +2523,7 @@ function assertGeometryRecord(group, audit, viewport) {
 	check(group, 'base amount value and all three meters are centered', audit.alignment.baseAmountCentered && audit.alignment.metersCentered, serialize(audit.alignment));
 	check(group, 'keyboard focus exposes a distinct high-contrast action ring', Boolean(audit.keyboardFocus.testId) && audit.keyboardFocus.outlineWidth >= 3 && audit.keyboardFocus.outlineOffset >= 2 && audit.keyboardFocus.outlineStyle === 'solid' && audit.keyboardFocus.outlineColor === 'rgb(239, 192, 106)', serialize(audit.keyboardFocus));
 	const boardRatio = audit.board.bounds ? audit.board.bounds.width / audit.board.bounds.height : 0;
-	check(group, 'board aspect remains square', Math.abs(boardRatio - 1) <= 0.02, serialize(boardRatio));
+	check(group, 'board aspect remains square', Math.abs(boardRatio - 1) <= 0.002, serialize(boardRatio));
 	check(group, 'board meets viewport readability floor', Boolean(audit.board.bounds && Math.min(audit.board.bounds.width, audit.board.bounds.height) >= viewport.minBoard), serialize({ bounds: audit.board.bounds, minimum: viewport.minBoard }));
 	for (const action of audit.actions) {
 		check(group, `${action.selector} exists and is visible`, action.exists && action.visible, serialize(action));

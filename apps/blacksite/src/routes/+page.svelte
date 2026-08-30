@@ -2058,9 +2058,9 @@
 			flex-direction: column;
 			align-items: center;
 			justify-content: center;
-			gap: 3px;
+			gap: 2px;
 			min-height: 44px;
-			padding: 5px 7px;
+			padding: 3px 7px;
 			text-align: center;
 		}
 
@@ -2196,7 +2196,7 @@
 
 		.mode-list button {
 			min-height: 44px;
-			padding: 5px 7px;
+			padding: 3px 7px;
 			align-items: center;
 			text-align: center;
 		}

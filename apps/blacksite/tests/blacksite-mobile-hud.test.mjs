@@ -25,4 +25,5 @@ test('browser QA covers required desktop and mobile alignment plus focus evidenc
 	assert.match(source, /mode labels are fully visible without ellipsis or clipping/u);
 	assert.match(source, /base amount value and all three meters are centered/u);
 	assert.match(source, /keyboard focus exposes a distinct high-contrast action ring/u);
+	assert.match(source, /Math\.abs\(boardRatio - 1\) <= 0\.002/u);
 });
