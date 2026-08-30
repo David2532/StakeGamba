@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260830-09 — SUCCESS
+
+- Sprint day: 1
+- Base commit: `3a5eae5c881b982e16434a46f6e9bf47f83bf0ba`
+- Verified implementation commit: `e659668256d2367f2aa9e4637d67100968b48848`
+- Work item: `BSB-MOTION-001` (bounded authoritative cascade slice; item remains in progress)
+- Selection reason: the current slot had no production cascade presentation despite deterministic authority; motion/cinematics was the highest safe release blocker after the asset integration.
+- Before/after evidence: authority previously stepped cues without hit/remove/drop/settle presentation. The canonical `base_cascade_3` now records three ordered turbo cascade cycles, exact cell masks, normal/turbo/reduced profiles and cancellable cleanup; skip returns ready/idle in 110ms while preserving the exact $2.07 payout and exactly two play calls.
+- Changed files: presentation director, slot UI/CSS, contract and mobile regressions, Chromium QA, and sprint memory closeout files.
+- Gates: focused motion/mobile 19/19 PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; exact remote app tests 86/86 PASS; production build PASS; math 7/7 with 300,000 books PASS; exact Chromium 38/38 scenarios and 902/902 checks PASS; console/network/request failures 0; `git diff --check` PASS.
+- Visual review: exact final screenshots at 1920x1080, 1366x768, 390x844, 844x390, Replay 360x640 and populated cascade completion inspected. Motion controls are legible and hittable, including the corrected compact 360x640 layout; boards remain square and no overlap, scroll or crop regression is visible. Ordered phase timing is browser-recorded; frame-by-frame sharpness remains broader follow-up work.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. The first exact Chromium run found a real 32px Replay motion target; a three-column compact layout plus regression raised every target to >=44px before the final run.
+- Persistence: both implementation commits were tree-identical and fast-forwarded without force through the connected GitHub API; exact run `33335278205` and artifact `9738959370` succeeded.
+- Residual risk: asset rights/Creative approval, penguin cleanup/Spine rig, BLACKOUT/foreground layers, reel/vault/character cinematics, audio and complete gameplay/reconnect/Stake evidence remain open.
+- Next candidate: continue `BSB-MOTION-001` with deterministic reel anticipation and BLACKOUT/vault transition fallback, then `BSB-AUDIO-001`.
+
 ## BS-20260830-08 — SUCCESS
 
 - Sprint day: 1

@@ -9,17 +9,17 @@
 
 | Area                                     | Current evidence                                                                                                                                                                                   |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Production build                         | PASS — Vite static build on exact run `33332083126`, exit 0, run BS-20260830-08 |
-| Lint                                     | PASS — app lint on exact run `33332083126`, exit 0, run BS-20260830-08 |
-| Typecheck                                | PASS — production source/config `svelte-check`, `checkJs: true`, 0 errors / 0 warnings locally and on exact run `33332083126`, exit 0 |
-| Automated app tests                      | PASS — 83/83, exit 0, run BS-20260830-08; includes source/runtime hash and responsive picture-contract regressions |
-| Math/package invariants                  | PASS — 300,000 books; 7/7 gates; fingerprint `d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8`, exact run `33332083126`, BS-20260830-08 |
-| Current-head browser/E2E                 | PASS — clean exact commit `e30d0c0`; run `33332083126`; 37/37 scenarios and 827/827 checks; console/network/request failures 0 |
-| Desktop/portrait/landscape visual review | PASS — exact screenshots inspected at 1920x1080, 1366x768, 390x844, 844x390 and 360x640 Replay; correct wide/portrait vault plates load, boards remain square/on-screen, and no overlap/scroll regression is visible |
+| Production build                         | PASS — Vite static build on exact run `33335278205`, exit 0, run BS-20260830-09 |
+| Lint                                     | PASS — app lint on exact run `33335278205`, exit 0, run BS-20260830-09 |
+| Typecheck                                | PASS — production source/config `svelte-check`, `checkJs: true`, 0 errors / 0 warnings locally and on exact run `33335278205`, exit 0 |
+| Automated app tests                      | PASS — 86/86, exit 0, run BS-20260830-09; includes timing grammar, skip settlement and compact motion-target regressions |
+| Math/package invariants                  | PASS — 300,000 books; 7/7 gates; fingerprint `d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8`, exact run `33335278205`, BS-20260830-09 |
+| Current-head browser/E2E                 | PASS — clean exact commit `e659668`; run `33335278205`; 38/38 scenarios and 902/902 checks; console/network/request failures 0 |
+| Desktop/portrait/landscape visual review | PASS — exact screenshots inspected at 1920x1080, 1366x768, 390x844, 844x390 and 360x640 Replay plus populated cascade completion; controls remain legible, boards square/on-screen, and no overlap/scroll regression is visible |
 | Live wallet/replay/restore               | PARTIAL — unit coverage and exact browser network proof are clean, including fractional new-play and active restore; reconnect and broader production-state evidence remain                        |
 | Gameplay state matrix                    | PARTIAL — M2 deterministic fixtures exist; full requested production interaction matrix is not current-head proven                                                                                 |
 | Player HUD/responsiveness/accessibility  | PASS for the current control surface — computed centering, uncut labels, >=44px touch geometry, safe viewport placement and 3px/2px keyboard focus evidence pass all required viewports            |
-| Animation/cinematics                     | BLOCKED — no production cascade, penguin, or vault cinematic runtime                                                                                                                               |
+| Animation/cinematics                     | PARTIAL — authoritative hit/remove/drop/settle cascade runtime, normal/turbo/reduced profiles, skip, cleanup and exact-payout browser proof pass; reel anticipation, penguin/vault cinematics and full frame-pacing evidence remain |
 | Audio                                    | BLOCKED — production audio, mute, persistence, pause/resume, and leak evidence absent                                                                                                              |
 | Product identity/assets/licenses         | PARTIAL — original penguin fallback and separate desktop/portrait base-vault plates are hash/provenance-bound, optimized and exact-browser integrated; human approval, cleanup/Spine, BLACKOUT and foreground layers remain open |
 | Stake/provider checklist                 | PARTIAL — historical M2 evidence exists, but current-head browser/package and later milestone evidence remain open                                                                                 |
@@ -27,7 +27,7 @@
 
 ## Day milestones
 
-- Day 1: baseline, memory/runbook, build/test/math status, and top release blockers captured. CI/typecheck/Chromium are clean; responsive HUD, penguin fallback and independent desktop/portrait base-vault environments are exact-browser integrated. Proceed to rig/BLACKOUT completion and motion.
+- Day 1: baseline, memory/runbook, build/test/math status, and top release blockers captured. CI/typecheck/Chromium are clean; responsive HUD, penguin/vault environments and authoritative cascade presentation are exact-browser integrated. Proceed to rig/BLACKOUT and remaining cinematic completion.
 - Day 2: wallet/math/state-machine/replay/restore regression closure.
 - Day 3: HUD, centered controls, responsiveness, accessibility, and mobile.
 - Day 4: production reels/cascades, penguin, vault/lock cinematics, and frame pacing.

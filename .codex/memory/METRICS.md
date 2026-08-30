@@ -1,5 +1,41 @@
 # Rolling automation metrics
 
+## BS-20260830-09
+
+```yaml
+closed_at_utc: 2026-08-30T21:12:00Z
+sprint_day: 1
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_motion_mobile_tests: 19
+focused_motion_mobile_status: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests_before_compact_fix: 85
+local_app_status: PASS
+local_build: PASS
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+diagnostic_ci_run: 33334764536
+diagnostic_browser_failure: replay_motion_target_32px
+verified_ci_run: 33335278205
+verified_ci_status: PASS
+remote_app_tests: 86
+remote_full_math_books: 300000
+remote_browser_scenarios: 38
+remote_browser_checks_pass: 902
+remote_browser_checks_fail: 0
+remote_diagnostics_artifact: 9738959370
+remote_implementation_commit: e659668256d2367f2aa9e4637d67100968b48848
+skip_completion_ms: 110
+manual_identical_retries: 0
+```
+
+Observed categories: compact memory/animation-contract reads, focused/full local gates, diff review, Git-data fast-forward writes, two exact Actions runs, job/log/artifact reads, and six final screenshot inspections. The first CI correctly exposed a 32px Replay motion control; the narrow layout and regression were corrected before the final exact run. One over-broad formatter created churn and was fully removed; one GitHub branch URL, one initial tree mode, and one attached-branch rebase command required corrected alternatives without unchanged retries. No subagents, dependencies, binary assets or token estimates were used.
+
 ## BS-20260830-08
 
 ```yaml
