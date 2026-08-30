@@ -1,6 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
+// @ts-ignore -- workspace peers currently materialize two equivalent Vite type identities.
 export default defineConfig(({ command }) => ({
 	plugins: [sveltekit()],
 	define: {

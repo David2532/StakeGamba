@@ -3,6 +3,7 @@ import { MODES, getMode, isCanonicalMode } from '../contracts/modes.js';
 export const API_AMOUNT_SCALE = 1_000_000;
 
 export class RgsContractError extends Error {
+	/** @param {string} code @param {string} message @param {{details?: any, cause?: any}} [options] */
 	constructor(code, message, { details = null, cause } = {}) {
 		super(message, cause === undefined ? undefined : { cause });
 		this.name = 'RgsContractError';
@@ -12,6 +13,7 @@ export class RgsContractError extends Error {
 }
 
 export class InsufficientBalanceError extends RgsContractError {
+	/** @param {{requiredAmountApi?: number | null, availableAmountApi?: number | null, source?: string, cause?: any}} [options] */
 	constructor({ requiredAmountApi = null, availableAmountApi = null, source = 'client', cause } = {}) {
 		super('INSUFFICIENT_BALANCE', 'The authoritative balance cannot cover this play.', {
 			details: { requiredAmountApi, availableAmountApi, source },
@@ -363,6 +365,7 @@ function normalizeEventCursor(value) {
 	return parsed;
 }
 
+/** @param {any} rawRound @param {{adapter?: any, expectedMode?: string | null}} [options] */
 export function normalizeRound(rawRound, { adapter, expectedMode = null } = {}) {
 	assertObject(rawRound, 'round');
 	if (typeof rawRound.active !== 'boolean') fail('ROUND_ACTIVE_INVALID', 'round.active must be boolean.');
@@ -457,6 +460,7 @@ export function normalizeRound(rawRound, { adapter, expectedMode = null } = {}) 
 	});
 }
 
+/** @param {any} rawResponse @param {{expectedEvent?: string}} [options] */
 export function normalizeEventResponse(rawResponse, { expectedEvent } = {}) {
 	assertObject(rawResponse, 'event response');
 	if (rawResponse.event === undefined || rawResponse.event === null) {
@@ -471,6 +475,7 @@ export function normalizeEventResponse(rawResponse, { expectedEvent } = {}) {
 	return deepFreeze({ event: rawResponse.event, echoed: true });
 }
 
+/** @param {any} rawResponse @param {{adapter?: any}} [options] */
 export function normalizeAuthenticateResponse(rawResponse, { adapter } = {}) {
 	assertObject(rawResponse, 'authenticate response');
 	const balance = normalizeBalance(rawResponse.balance, 'authenticate.balance');
@@ -482,7 +487,9 @@ export function normalizeAuthenticateResponse(rawResponse, { adapter } = {}) {
 }
 
 export function normalizePlayResponse(
+	/** @type {any} */
 	rawResponse,
+	/** @type {{adapter?: any, expectedMode?: string | null, expectedAmountApi?: number | null, expectedCurrency?: string | null}} */
 	{ adapter, expectedMode = null, expectedAmountApi = null, expectedCurrency = null } = {},
 ) {
 	assertObject(rawResponse, 'play response');

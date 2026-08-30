@@ -24,6 +24,9 @@ function initialState() {
 }
 
 export class ReplayController {
+	/**
+	 * @param {{client?: any, normalizer?: any, director?: any, onState?: (state: any) => void, stepDelayMs?: number, winDelayMs?: number}} [options]
+	 */
 	constructor({
 		client,
 		normalizer,
@@ -59,6 +62,7 @@ export class ReplayController {
 		this.onState = onState;
 		this.stepDelayMs = stepDelayMs;
 		this.winDelayMs = winDelayMs;
+		/** @type {Readonly<{status: string, error: any, replay: any, canPlay: boolean, canPlayAgain: boolean}>} */
 		this.state = initialState();
 		this.replay = null;
 		this.loadAttempted = false;

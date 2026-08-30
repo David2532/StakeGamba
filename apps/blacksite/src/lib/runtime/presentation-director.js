@@ -35,6 +35,7 @@ export function planPresentationRestore(cues, nextEventIndex = 0) {
 }
 
 export class PresentationDirector {
+	/** @param {(state: any) => void} [onState] */
 	constructor(onState = () => {}) {
 		this.onState = onState;
 		this.state = createInitialPresentationState();

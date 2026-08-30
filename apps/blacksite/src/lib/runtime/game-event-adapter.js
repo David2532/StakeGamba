@@ -9,11 +9,14 @@ import { CLUSTER_BANDS, SYMBOL_PAYOUTS } from '../contracts/rules.js';
 
 const SYMBOLS = new Set(['byte', 'relay', 'proxy', 'cipher', 'daemon', 'vault']);
 const PHASES = new Set(['base', 'feature']);
-const PORT_BY_ID = new Map([
-	['north', Object.freeze({ column: 3, row: 0 })],
-	['west', Object.freeze({ column: 0, row: 3 })],
-	['east', Object.freeze({ column: 6, row: 3 })],
-]);
+/** @type {Map<string, Readonly<{column: number, row: number}>>} */
+const PORT_BY_ID = new Map(
+	/** @type {Array<[string, Readonly<{column: number, row: number}>]>} */ ([
+		['north', Object.freeze({ column: 3, row: 0 })],
+		['west', Object.freeze({ column: 0, row: 3 })],
+		['east', Object.freeze({ column: 6, row: 3 })],
+	]),
+);
 const PORTS = new Set(PORT_BY_ID.keys());
 const CORE_KEY = '3,3';
 const INGRESS_KEYS = new Set(['2,6', '3,6', '4,6']);

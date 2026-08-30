@@ -64,6 +64,9 @@ importers:
       eslint-config-custom:
         specifier: workspace:*
         version: link:../../packages/eslint-config-custom
+      svelte-check:
+        specifier: 4.7.6
+        version: 4.7.6(picomatch@4.0.4)(svelte@5.20.5)(typescript@5.8.3)
 
   apps/cluster:
     dependencies:
@@ -2097,6 +2100,10 @@ packages:
       svelte: ^4.0.0 || ^5.0.0-next.0
       vite: ^5.0.3 || ^6.0.0 || ^7.0.0-beta.0
 
+  '@sveltejs/load-config@0.2.3':
+    resolution: {integrity: sha512-VT3qmUb8pRV2QrZjd8iAmtg8lf4W0TIjZbvXtz5MKei/q96teWZgGJyyidJzOjzZzvdq616eSRVeMYIQChUTAQ==}
+    engines: {node: '>= 18.0.0'}
+
   '@sveltejs/package@2.3.10':
     resolution: {integrity: sha512-A4fQacgjJ7C/7oSmxR61/TdB14u6ecyMZ8V9JCR5Lol0bLj/PdJPU4uFodFBsKzO3iFiJMpNTgZZ+zYsYZNpUg==}
     engines: {node: ^16.14 || >=18}
@@ -3759,6 +3766,14 @@ packages:
     peerDependencies:
       svelte: ^5.0.0
 
+  svelte-check@4.7.6:
+    resolution: {integrity: sha512-t2scM//ZuVbSY/T2w6FSBw1v9s2NEmh/g+sy1lqtosW5ylBV5AF4wFb1Ts9Kf3MbfPDUDJDZ9L436YT0SPTdvw==}
+    engines: {node: '>= 18.0.0'}
+    hasBin: true
+    peerDependencies:
+      svelte: ^4.0.0 || ^5.0.0-next.0
+      typescript: ^5.0.0 || ^6.0.0
+
   svelte-eslint-parser@0.43.0:
     resolution: {integrity: sha512-GpU52uPKKcVnh8tKN5P4UZpJ/fUDndmq7wfsvoVXsyP+aY0anol7Yqo01fyrlaWGMFfm4av5DyrjlaXdLRJvGA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
@@ -4803,6 +4818,8 @@ snapshots:
       sirv: 3.0.1
       svelte: 5.20.5
       vite: 6.2.0(@types/node@26.1.0)(jiti@1.21.7)(sass-embedded@1.89.2)
+
+  '@sveltejs/load-config@0.2.3': {}
 
   '@sveltejs/kit@2.17.3(@sveltejs/vite-plugin-svelte@5.1.0(svelte@5.20.5)(vite@6.2.0(@types/node@26.1.0)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.2.0(@types/node@26.1.0)(jiti@1.21.7)(sass-embedded@1.89.2))':
     dependencies:
@@ -6588,6 +6605,17 @@ snapshots:
       esrap: 1.2.2
       svelte: 5.35.1
       zimmerframe: 1.1.2
+
+  svelte-check@4.7.6(picomatch@4.0.4)(svelte@5.20.5)(typescript@5.8.3):
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.29
+      '@sveltejs/load-config': 0.2.3
+      chokidar: 4.0.3
+      fdir: 6.5.0(picomatch@4.0.4)
+      picocolors: 1.1.1
+      sade: 1.8.1
+      svelte: 5.20.5
+      typescript: 5.8.3
 
   svelte-eslint-parser@0.43.0(svelte@5.35.1):
     dependencies:

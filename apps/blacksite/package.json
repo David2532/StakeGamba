@@ -7,6 +7,7 @@
 	"scripts": {
 		"dev": "vite dev --host --port 3002",
 		"build": "vite build",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"fixtures:build": "node scripts/build-fixture-catalog.mjs",
 		"preview": "vite preview --host --port 4302",
 		"lint": "cross-env ESLINT_USE_FLAT_CONFIG=false eslint \"src\"",
@@ -25,6 +26,7 @@
 		"config-ts": "workspace:*",
 		"cross-env": "^10.1.0",
 		"eslint": "9.21.0",
-		"eslint-config-custom": "workspace:*"
+		"eslint-config-custom": "workspace:*",
+		"svelte-check": "4.7.6"
 	}
 }

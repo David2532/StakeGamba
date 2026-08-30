@@ -90,6 +90,7 @@ function terminalPayout(events, expectedMode) {
 	}
 }
 
+/** @param {{gameEventAdapter?: any}} [options] */
 export function createReplayNormalizer({ gameEventAdapter } = {}) {
 	if (!gameEventAdapter || typeof gameEventAdapter.adaptRoundEvents !== 'function') {
 		throw new TypeError('createReplayNormalizer requires GameEventAdapter.adaptRoundEvents.');

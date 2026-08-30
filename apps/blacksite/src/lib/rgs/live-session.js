@@ -55,6 +55,7 @@ function nextValidBaseAmount(state) {
 }
 
 export class LiveSessionController {
+	/** @param {{client?: any, adapter?: any, sessionID?: string, language?: string, onState?: (state: any) => void}} [options] */
 	constructor({ client, adapter, sessionID, language = 'en', onState = () => {} } = {}) {
 		requireDependency(client, 'authenticate', 'client');
 		requireDependency(client, 'play', 'client');

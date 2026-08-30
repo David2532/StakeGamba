@@ -1,0 +1,117 @@
+name: BlackSite CI
+
+on:
+  push:
+    branches:
+      - codex/blacksite-aaa-studio
+    paths:
+      - .github/workflows/blacksite-ci.yml
+      - apps/blacksite/**
+      - math/games/blacksite_breach/**
+      - packages/config-svelte/**
+      - packages/config-ts/**
+      - packages/utils-shared/**
+      - scripts/blacksite-*.mjs
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+  pull_request:
+    paths:
+      - .github/workflows/blacksite-ci.yml
+      - apps/blacksite/**
+      - math/games/blacksite_breach/**
+      - packages/config-svelte/**
+      - packages/config-ts/**
+      - packages/utils-shared/**
+      - scripts/blacksite-*.mjs
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: blacksite-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  blacksite-quality:
+    name: blacksite/quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: '1'
+      NODE_NO_WARNINGS: '1'
+      NODE_OPTIONS: '--max-old-space-size=6144'
+      NPM_CONFIG_LOGLEVEL: error
+
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+        with:
+          version: 10.5.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+
+      - name: Record exact test identity
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          actual_sha="$(git rev-parse HEAD)"
+          test "${#EXPECTED_SHA}" -eq 40
+          test "$actual_sha" = "$EXPECTED_SHA"
+          test -z "$(git status --porcelain=v1)"
+          mkdir -p artifacts/blacksite-ci
+          {
+            printf 'git_sha=%s\n' "$actual_sha"
+            printf 'node=%s\n' "$(node --version)"
+            printf 'pnpm=%s\n' "$(pnpm --version)"
+          } > artifacts/blacksite-ci/identity.txt
+
+      - name: Install frozen dependencies
+        run: pnpm install --frozen-lockfile --reporter=silent
+
+      - name: Lint BlackSite
+        run: pnpm --filter blacksite lint
+
+      - name: Typecheck BlackSite
+        run: pnpm --filter blacksite check
+
+      - name: Test BlackSite contracts
+        run: pnpm --filter blacksite test
+
+      - name: Build BlackSite production frontend
+        run: pnpm --filter blacksite build
+
+      - name: Verify BlackSite math candidate
+        run: pnpm blacksite:math:test
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Test exact built frontend in Chromium
+        run: node scripts/blacksite-qa-e2e.mjs
+
+      - name: Upload BlackSite diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: blacksite-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            artifacts/blacksite-ci/**
+            artifacts/blacksite-qa/**
