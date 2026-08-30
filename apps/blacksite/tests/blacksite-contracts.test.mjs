@@ -671,14 +671,44 @@ test('PresentationDirector preserves authoritative cluster positions and award a
 
 test('PresentationDirector exposes bounded normal, turbo and reduced timing grammars', () => {
 	assert.deepEqual(Object.keys(PRESENTATION_TIMINGS), ['normal', 'turbo', 'reduced']);
-	for (const phase of ['step', 'hit', 'remove', 'drop', 'settle']) {
+	for (const phase of [
+		'step',
+		'spin',
+		'reveal',
+		'anticipation',
+		'feature',
+		'hit',
+		'remove',
+		'drop',
+		'settle',
+	]) {
 		assert(PRESENTATION_TIMINGS.normal[phase] > PRESENTATION_TIMINGS.turbo[phase]);
 		assert(PRESENTATION_TIMINGS.turbo[phase] > 0);
 		assert.equal(PRESENTATION_TIMINGS.reduced[phase], 0);
 	}
 	assert(PRESENTATION_TIMINGS.normal.hit >= 180);
 	assert(PRESENTATION_TIMINGS.normal.drop <= 550);
+	assert(PRESENTATION_TIMINGS.normal.anticipation >= 450);
+	assert(PRESENTATION_TIMINGS.normal.feature >= 900);
+	assert(PRESENTATION_TIMINGS.normal.feature <= 2_200);
 	assert(Object.isFrozen(PRESENTATION_TIMINGS));
+});
+
+test('PresentationDirector binds BLACKOUT transitions to authoritative feature cues', async () => {
+	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'blackout_zero');
+	assert(fixture);
+	const cues = new GameEventAdapter().adaptBook(fixture.book, { expectedMode: 'blackout' });
+	const phases = [];
+	const director = new PresentationDirector((state) => phases.push(state.motion.phase));
+	director.setTimingProfile('reduced');
+	assert.equal(await director.play(cues), true);
+	for (const phase of ['spin', 'blackout-enter', 'reveal', 'blackout-exit']) {
+		assert(phases.includes(phase), `missing ${phase} presentation phase`);
+	}
+	assert.equal(director.state.status, 'complete');
+	assert.equal(director.state.finalWinRaw, fixture.book.payoutMultiplier);
+	assert.equal(director.state.motion.phase, 'idle');
+	assert.equal(director.timers.size, 0);
 });
 
 test('PresentationDirector skip drains authority, preserves motion order and settles cleanly', async () => {
@@ -694,6 +724,8 @@ test('PresentationDirector skip drains authority, preserves motion order and set
 	assert.equal(director.state.status, 'complete');
 	assert.equal(director.state.finalWinRaw, fixture.book.payoutMultiplier);
 	assert(phases.includes('hit'));
+	assert(phases.includes('spin'));
+	assert(phases.includes('reveal'));
 	assert(phases.includes('remove'));
 	assert(phases.includes('drop'));
 	assert(phases.includes('settle'));

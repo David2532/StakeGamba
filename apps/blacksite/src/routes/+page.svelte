@@ -819,7 +819,12 @@
 			</div>
 		</aside>
 
-		<section class="board-stage" aria-label="BLACKSITE seven by seven vault grid">
+		<section
+			class="board-stage"
+			data-motion-phase={presentation.motion?.phase ?? 'idle'}
+			data-motion-profile={presentationTimingProfile}
+			aria-label="BLACKSITE seven by seven vault grid"
+		>
 			<picture class="vault-environment" data-testid="vault-environment" aria-hidden="true">
 				<source media="(max-width: 820px)" srcset={BLACKSITE_ASSETS.environment.vaultPortrait} />
 				<img
@@ -838,7 +843,11 @@
 				<div class="phase-chip">{getModeLabel(selectedMode.id, social)}</div>
 			</div>
 
-			<div class="board-frame">
+			<div
+				class="board-frame"
+				data-motion-phase={presentation.motion?.phase ?? 'idle'}
+				data-motion-profile={presentationTimingProfile}
+			>
 				<div
 					class="board"
 					data-testid="board"
@@ -1612,6 +1621,65 @@
 			inset 0 0 28px rgba(84, 142, 148, 0.08);
 	}
 
+	.board-frame::before,
+	.board-frame::after {
+		position: absolute;
+		inset: 3%;
+		z-index: 4;
+		border-radius: inherit;
+		content: '';
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.board-frame::before {
+		border: 2px solid rgba(216, 184, 111, 0.82);
+		background:
+			radial-gradient(circle at center, transparent 0 31%, rgba(216, 184, 111, 0.42) 31.5% 32%, transparent 32.5%),
+			repeating-conic-gradient(from 0deg, rgba(216, 184, 111, 0.7) 0 2deg, transparent 2deg 22.5deg);
+		box-shadow:
+			inset 0 0 55px rgba(216, 184, 111, 0.18),
+			0 0 34px rgba(216, 184, 111, 0.2);
+	}
+
+	.board-frame::after {
+		inset: 0;
+		background: radial-gradient(circle, transparent 18%, rgba(1, 5, 7, 0.82) 72%);
+	}
+
+	.board-frame[data-motion-phase='spin'] .board {
+		animation: vault-prime 160ms ease-out both;
+	}
+
+	.board-frame[data-motion-phase='reveal'] .cell {
+		animation: board-reveal 180ms ease-out both;
+	}
+
+	.board-frame[data-motion-phase='anticipation']::before {
+		animation: lock-anticipation 600ms ease-in-out both;
+	}
+
+	.board-frame[data-motion-phase='blackout-enter']::before {
+		animation: lock-engage 1000ms cubic-bezier(0.16, 0.72, 0.18, 1) both;
+	}
+
+	.board-frame[data-motion-phase='blackout-enter']::after {
+		animation: blackout-shutter 1000ms ease-in-out both;
+	}
+
+	.board-frame[data-motion-phase='blackout-exit']::before {
+		animation: lock-release 1000ms ease-in-out both;
+	}
+
+	.board-frame[data-motion-phase='blackout-exit']::after {
+		animation: blackout-release 1000ms ease-in-out both;
+	}
+
+	.board-stage[data-motion-phase='blackout-enter'] .vault-environment,
+	.board-stage[data-motion-phase='blackout-exit'] .vault-environment {
+		animation: environment-lock-pulse 1000ms ease-in-out both;
+	}
+
 	.board {
 		display: grid;
 		grid-template-columns: repeat(7, 1fr);
@@ -1676,6 +1744,75 @@
 
 	.board[data-motion-profile='turbo'] .cell.motion-settle {
 		animation-duration: 35ms;
+	}
+
+	.board-frame[data-motion-profile='turbo'][data-motion-phase='spin'] .board,
+	.board-frame[data-motion-profile='turbo'][data-motion-phase='reveal'] .cell {
+		animation-duration: 70ms;
+		animation-delay: 0ms;
+	}
+
+	.board-frame[data-motion-profile='turbo'][data-motion-phase='anticipation']::before {
+		animation-duration: 180ms;
+	}
+
+	.board-frame[data-motion-profile='turbo'][data-motion-phase^='blackout-']::before,
+	.board-frame[data-motion-profile='turbo'][data-motion-phase^='blackout-']::after,
+	.board-stage[data-motion-profile='turbo'][data-motion-phase^='blackout-'] .vault-environment {
+		animation-duration: 360ms;
+	}
+
+	.board-frame[data-motion-profile='reduced']::before,
+	.board-frame[data-motion-profile='reduced']::after,
+	.board-frame[data-motion-profile='reduced'] .board,
+	.board-frame[data-motion-profile='reduced'] .cell,
+	.board-stage[data-motion-profile='reduced'] .vault-environment {
+		animation: none !important;
+	}
+
+	@keyframes vault-prime {
+		0% { filter: brightness(0.76); transform: scale(0.992); }
+		100% { filter: brightness(1); transform: scale(1); }
+	}
+
+	@keyframes board-reveal {
+		0% { filter: brightness(0.58); opacity: 0.42; transform: translateY(-5%); }
+		100% { filter: brightness(1); opacity: 1; transform: translateY(0); }
+	}
+
+	@keyframes lock-anticipation {
+		0%, 100% { opacity: 0; transform: rotate(-3deg) scale(0.92); }
+		35%, 72% { opacity: 0.78; }
+		52% { opacity: 1; transform: rotate(1deg) scale(1); }
+	}
+
+	@keyframes lock-engage {
+		0% { opacity: 0; transform: rotate(-20deg) scale(1.18); }
+		38% { opacity: 0.96; }
+		72% { opacity: 0.72; transform: rotate(0deg) scale(0.98); }
+		100% { opacity: 0; transform: rotate(2deg) scale(1); }
+	}
+
+	@keyframes blackout-shutter {
+		0%, 100% { opacity: 0; }
+		48% { opacity: 0.92; }
+		70% { opacity: 0.44; }
+	}
+
+	@keyframes lock-release {
+		0% { opacity: 0; transform: rotate(0deg) scale(0.98); }
+		35% { opacity: 0.78; }
+		100% { opacity: 0; transform: rotate(18deg) scale(1.14); }
+	}
+
+	@keyframes blackout-release {
+		0%, 100% { opacity: 0; }
+		32% { opacity: 0.72; }
+	}
+
+	@keyframes environment-lock-pulse {
+		0%, 100% { filter: brightness(1) saturate(1); }
+		48% { filter: brightness(0.42) saturate(0.72); }
 	}
 
 	@keyframes cluster-hit {

@@ -1908,6 +1908,101 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('authoritative-blackout-vault-transition', async (record) => {
+		const group = 'authoritative-blackout-vault-transition';
+		const fixture = getGeneratedFixture('blackout_zero');
+		const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: () => ({
+						status: successStatus(),
+						balance: {
+							amount: DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT * MODE_COSTS.blackout,
+							currency: 'USD',
+						},
+						round: authoritativeFixtureRound({
+							fixture,
+							active: false,
+							id: 'blacksite-qa-blackout-transition',
+						}),
+					}),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			await page.evaluate((selector) => {
+				const board = document.querySelector(selector);
+				window.__blacksiteFeaturePhases = [];
+				const capture = () => window.__blacksiteFeaturePhases.push({
+					phase: board?.getAttribute('data-motion-phase'),
+					at: performance.now(),
+				});
+				capture();
+				window.__blacksiteFeatureObserver = new MutationObserver(capture);
+				window.__blacksiteFeatureObserver.observe(board, {
+					attributes: true,
+					attributeFilter: ['data-motion-phase'],
+				});
+			}, SELECTORS.board);
+
+			await page.locator(SELECTORS.modeBlackout).click();
+			await page.locator(SELECTORS.primaryAction).click();
+			const dialog = page.getByRole('dialog', { name: /Confirm complete play amount/i });
+			await dialog.waitFor({ state: 'visible' });
+			await dialog.getByRole('button', { name: /^CONFIRM$/i }).click();
+			await waitForEndpoint(network, 'play', 1);
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'blackout-enter',
+				SELECTORS.board,
+			);
+			const activeTransition = await page.evaluate(() => {
+				const frame = document.querySelector('.board-frame');
+				const environment = document.querySelector('.vault-environment');
+				return {
+					phase: frame?.getAttribute('data-motion-phase'),
+					lockAnimation: getComputedStyle(frame, '::before').animationName,
+					shutterAnimation: getComputedStyle(frame, '::after').animationName,
+					environmentAnimation: getComputedStyle(environment).animationName,
+				};
+			});
+			check(group, 'authoritative feature_started visibly engages the mechanical vault transition',
+				activeTransition.phase === 'blackout-enter' &&
+				activeTransition.lockAnimation === 'lock-engage' &&
+				activeTransition.shutterAnimation === 'blackout-shutter' &&
+				activeTransition.environmentAnimation === 'environment-lock-pulse',
+				serialize(activeTransition),
+			);
+			record.transitionScreenshot = await saveScreenshot(page, group);
+			await page.locator(SELECTORS.skipPresentation).click();
+			await waitForStableAction(page);
+			const phases = await page.evaluate(() => window.__blacksiteFeaturePhases);
+			const phaseNames = phases.map(({ phase }) => phase);
+			check(group, 'the feature lifecycle traverses authoritative entry, reveal and exit phases',
+				['blackout-enter', 'reveal', 'blackout-exit'].every((phase) => phaseNames.includes(phase)),
+				serialize(phases),
+			);
+			check(group, 'vault transition preserves the exact zero payout and one paid request',
+				(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00' &&
+				network.byEndpoint.play.length === 1 &&
+				network.byEndpoint.endRound.length === 0 &&
+				network.byEndpoint.event.length === 0,
+				serialize({ finalWin: await page.locator(SELECTORS.finalWin).innerText(), order: network.order }),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.motion = { fixture: fixture.id, activeTransition, phases };
+			record.network = network;
+			record.diagnostics = diagnostics;
+			await page.evaluate(() => window.__blacksiteFeatureObserver?.disconnect());
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('session-position-and-timer-follow-authoritative-balance', async (record) => {
 		const group = 'session-position-and-timer-follow-authoritative-balance';
 		const authoritativePostPlayBalance = DEFAULT_BALANCE - 7 * API_UNIT;

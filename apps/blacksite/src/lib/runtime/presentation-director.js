@@ -1,9 +1,39 @@
 const EMPTY_CELLS = Object.freeze([]);
 
 export const PRESENTATION_TIMINGS = Object.freeze({
-	normal: Object.freeze({ step: 32, hit: 280, remove: 150, drop: 250, settle: 90 }),
-	turbo: Object.freeze({ step: 12, hit: 110, remove: 55, drop: 105, settle: 35 }),
-	reduced: Object.freeze({ step: 0, hit: 0, remove: 0, drop: 0, settle: 0 }),
+	normal: Object.freeze({
+		step: 32,
+		spin: 160,
+		reveal: 180,
+		anticipation: 600,
+		feature: 1_000,
+		hit: 280,
+		remove: 150,
+		drop: 250,
+		settle: 90,
+	}),
+	turbo: Object.freeze({
+		step: 12,
+		spin: 60,
+		reveal: 70,
+		anticipation: 180,
+		feature: 360,
+		hit: 110,
+		remove: 55,
+		drop: 105,
+		settle: 35,
+	}),
+	reduced: Object.freeze({
+		step: 0,
+		spin: 0,
+		reveal: 0,
+		anticipation: 0,
+		feature: 0,
+		hit: 0,
+		remove: 0,
+		drop: 0,
+		settle: 0,
+	}),
 });
 
 function freezeCells(cells = []) {
@@ -84,6 +114,7 @@ export class PresentationDirector {
 					status: 'presenting',
 					mode: event.mode,
 					phase: event.initial_phase,
+					motion: motionState('spin'),
 					notice: `${event.mode} round accepted`,
 				});
 				break;
@@ -93,7 +124,7 @@ export class PresentationDirector {
 					: EMPTY_CELLS;
 				const boardMotion = this.pendingTumble
 					? motionState('drop', enteringCells, this.pendingTumble.tumble_index)
-					: motionState('settle');
+					: motionState('reveal');
 				this.pendingTumble = null;
 				this.update({
 					...common,
@@ -137,7 +168,11 @@ export class PresentationDirector {
 				});
 				break;
 			case 'feature_armed':
-				this.update({ ...common, notice: 'BLACKOUT armed after cascade chain' });
+				this.update({
+					...common,
+					motion: motionState('anticipation'),
+					notice: 'BLACKOUT armed after cascade chain',
+				});
 				break;
 			case 'feature_started':
 				this.update({
@@ -146,6 +181,7 @@ export class PresentationDirector {
 					routeSnapshot: event.initial_route,
 					featureCyclesAwarded: event.total_cycles,
 					accessMultiplier: event.access_multiplier,
+					motion: motionState('blackout-enter'),
 					notice: event.direct ? 'Direct BLACKOUT entry' : 'Natural BLACKOUT entry',
 				});
 				break;
@@ -178,6 +214,7 @@ export class PresentationDirector {
 				this.update({
 					...common,
 					cumulativeWinRaw: event.cumulative_payout_raw,
+					motion: motionState('blackout-exit'),
 					notice: 'BLACKOUT complete',
 				});
 				break;
@@ -263,9 +300,14 @@ export class PresentationDirector {
 			if (onCue) await onCue(cue, this.state);
 			if (this.destroyed || generation !== this.playbackGeneration) return false;
 			let delayMs = cue.kind === 'win' ? winDelayMs : stepDelayMs;
+			if (cue.kind === 'round_started') delayMs = timings.spin;
+			if (cue.kind === 'feature_armed') delayMs = timings.anticipation;
+			if (cue.kind === 'feature_started' || cue.kind === 'feature_ended') {
+				delayMs = timings.feature;
+			}
 			if (cue.kind === 'tumble') delayMs = timings.remove;
-			if (cue.kind === 'board_snapshot' && this.state.motion.phase === 'drop') {
-				delayMs = timings.drop;
+			if (cue.kind === 'board_snapshot') {
+				delayMs = this.state.motion.phase === 'drop' ? timings.drop : timings.reveal;
 			}
 			if (delayMs > 0 && !(await this.delay(delayMs, generation))) return false;
 			if (cue.kind === 'board_snapshot' && this.state.motion.phase === 'drop') {
@@ -273,6 +315,15 @@ export class PresentationDirector {
 					motion: motionState('settle', this.state.motion.cells, this.state.motion.tumbleIndex),
 				});
 				if (timings.settle > 0 && !(await this.delay(timings.settle, generation))) return false;
+				this.update({ motion: motionState() });
+			}
+			if (
+				cue.kind === 'round_started' ||
+				cue.kind === 'feature_armed' ||
+				cue.kind === 'feature_started' ||
+				cue.kind === 'feature_ended' ||
+				(cue.kind === 'board_snapshot' && this.state.motion.phase === 'reveal')
+			) {
 				this.update({ motion: motionState() });
 			}
 		}
