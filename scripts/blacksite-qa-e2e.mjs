@@ -1085,20 +1085,22 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
-	await runScenario('recoverable-auth-http-503-visible-no-fallback', async (record) => {
-		const group = 'recoverable-auth-http-503-visible-no-fallback';
+	await runScenario('recoverable-auth-http-503-reloads-and-recovers', async (record) => {
+		const group = 'recoverable-auth-http-503-reloads-and-recovers';
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 		try {
 			const network = await installMockRgs(context, {
 				pageOrigin: origin,
 				handlers: {
-					authenticate: () =>
-						mockHttpResponse(503, {
-							error: {
-								code: 'SERVICE_UNAVAILABLE',
-								message: 'Authoritative service temporarily unavailable.',
-							},
-						}),
+					authenticate: (_request, networkEvidence) =>
+						networkEvidence.byEndpoint.authenticate.length === 1
+							? mockHttpResponse(503, {
+									error: {
+										code: 'SERVICE_UNAVAILABLE',
+										message: 'Authoritative service temporarily unavailable.',
+									},
+								})
+							: authenticateResponse(),
 				},
 			});
 			const { page, diagnostics } = await openPage(context, origin, liveQuery());
@@ -1111,10 +1113,25 @@ async function runNetworkScenarios(browser, origin) {
 			check(group, 'authenticate 503 performs exactly one auth request', network.byEndpoint.authenticate.length === 1, serialize(network.order));
 			check(group, 'authenticate 503 sends no wallet play/settlement writes', network.byEndpoint.play.length === 0 && network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0, serialize(network.order));
 			check(group, 'authenticate 503 leaves primary action fail-closed', await page.locator(SELECTORS.primaryAction).isDisabled(), await page.locator(SELECTORS.primaryAction).innerText());
-			check(group, 'authenticate 503 exposes an explicit reload/restore control', await page.locator('[data-testid="recovery-action"]').isVisible(), await page.locator(SELECTORS.launchError).innerText());
+			const recovery = page.locator('[data-testid="recovery-action"]');
+			check(group, 'authenticate 503 exposes an enabled reload/restore control', await recovery.isVisible() && !(await recovery.isDisabled()), await page.locator(SELECTORS.launchError).innerText());
+			await recovery.click();
+			await waitForEndpoint(network, 'authenticate', 2);
+			await waitForStableAction(page);
+			for (const request of network.byEndpoint.authenticate) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/wallet/authenticate',
+					body: { sessionID: SESSION_ID, language: 'en' },
+				});
+			}
+			check(group, 'reload recovers to authoritative ready without local fallback', await runtimeState(page) === 'live-ready' && !(await page.locator(SELECTORS.primaryAction).isDisabled()), serialize({ state: await runtimeState(page), launchKind: await page.locator(SELECTORS.playerHud).getAttribute('data-launch-kind') }));
+			check(group, 'recovered session exposes the authenticated wallet balance', (await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1,000.00', await page.locator(SELECTORS.walletBalance).innerText());
+			check(group, 'recovery performs exactly one additional authenticate and zero wallet writes', network.byEndpoint.authenticate.length === 2 && network.byEndpoint.play.length === 0 && network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0, serialize(network.order));
+			check(group, 'recovery order is authenticate then authenticate', serialize(network.order) === serialize(['authenticate', 'authenticate']), serialize(network.order));
 			assertCleanNetwork(group, network);
 			assertOnlyExpectedHttpDiagnostic(group, diagnostics, 503);
-			record.screenshot = await saveScreenshot(page, 'recoverable-auth-503');
+			record.screenshot = await saveScreenshot(page, group);
 			record.network = network;
 			record.diagnostics = diagnostics;
 		} finally {
