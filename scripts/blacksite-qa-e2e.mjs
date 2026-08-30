@@ -23,6 +23,7 @@ import {
 } from '../apps/blacksite/src/lib/contracts/rules.js';
 import { BASE_ZERO_FIXTURE } from '../apps/blacksite/src/lib/fixtures/base-zero.js';
 import { encodePresentationCursor } from '../apps/blacksite/src/lib/rgs/contracts.js';
+import { formatExactApi } from '../apps/blacksite/src/lib/runtime/display-money.js';
 import {
 	FIXTURE_IDS as GENERATED_FIXTURE_IDS,
 	getFixture as getGeneratedFixture,
@@ -61,6 +62,8 @@ const SELECTORS = Object.freeze({
 	launchError: '[data-testid="launch-error"]',
 	board: '[data-testid="board"]',
 	primaryAction: '[data-testid="primary-action"]',
+	motionMode: '[data-testid="motion-mode"]',
+	skipPresentation: '[data-testid="skip-presentation"]',
 	modeBase: '[data-testid="mode-base"]',
 	modeDeepAccess: '[data-testid="mode-deep_access"]',
 	modeBlackout: '[data-testid="mode-blackout"]',
@@ -1800,6 +1803,111 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('authoritative-cascade-motion-turbo-and-skip', async (record) => {
+		const group = 'authoritative-cascade-motion-turbo-and-skip';
+		const fixture = getGeneratedFixture('base_cascade_3');
+		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: () => ({
+						status: successStatus(),
+						balance: { amount: DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT, currency: 'USD' },
+						round: authoritativeFixtureRound({
+							fixture,
+							active: false,
+							id: `blacksite-qa-motion-${network.byEndpoint.play.length + 1}`,
+						}),
+					}),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			await page.evaluate((selector) => {
+				const board = document.querySelector(selector);
+				window.__blacksiteMotionPhases = [];
+				const capture = () => window.__blacksiteMotionPhases.push({
+					phase: board?.getAttribute('data-motion-phase'),
+					profile: board?.getAttribute('data-motion-profile'),
+					at: performance.now(),
+				});
+				capture();
+				window.__blacksiteMotionObserver = new MutationObserver(capture);
+				window.__blacksiteMotionObserver.observe(board, {
+					attributes: true,
+					attributeFilter: ['data-motion-phase', 'data-motion-profile'],
+				});
+			}, SELECTORS.board);
+
+			await page.locator(SELECTORS.motionMode).click();
+			check(group, 'Turbo control selects the bounded turbo presentation profile',
+				(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) === 'turbo' &&
+					(await page.locator(SELECTORS.motionMode).getAttribute('aria-pressed')) === 'true',
+				serialize({
+					profile: await page.locator(SELECTORS.board).getAttribute('data-motion-profile'),
+					pressed: await page.locator(SELECTORS.motionMode).getAttribute('aria-pressed'),
+				}),
+			);
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 1);
+			await waitForStableAction(page);
+			const turboPhases = await page.evaluate(() => window.__blacksiteMotionPhases);
+			const turboNames = turboPhases.map(({ phase }) => phase);
+			let previousIndex = -1;
+			const orderedTurbo = ['hit', 'remove', 'drop', 'settle'].every((phase) => {
+				const index = turboNames.indexOf(phase, previousIndex + 1);
+				previousIndex = index;
+				return index >= 0;
+			});
+			check(group, 'authoritative turbo cascade visibly traverses hit, remove, drop and settle', orderedTurbo, serialize(turboPhases));
+
+			await page.locator(SELECTORS.motionMode).click();
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 2);
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'hit',
+				SELECTORS.board,
+			);
+			const skippedAt = Date.now();
+			check(group, 'Skip becomes available only while authoritative presentation is active',
+				!(await page.locator(SELECTORS.skipPresentation).isDisabled()),
+				String(await page.locator(SELECTORS.skipPresentation).isDisabled()),
+			);
+			await page.locator(SELECTORS.skipPresentation).click();
+			await waitForStableAction(page);
+			const completed = {
+				state: await runtimeState(page),
+				phase: await page.locator(SELECTORS.board).getAttribute('data-motion-phase'),
+				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
+				skipElapsedMs: Date.now() - skippedAt,
+			};
+			check(group, 'Skip drains remaining cues and returns to an idle ready state without deadlock',
+				completed.state === 'live-ready' && completed.phase === 'idle' && completed.skipElapsedMs < 1_000,
+				serialize(completed),
+			);
+			check(group, 'Turbo and skipped plays preserve the exact authoritative final payout',
+				completed.finalWin === formatExactApi(DEFAULT_BASE_AMOUNT * fixture.book.payoutMultiplier / 100, 'USD'),
+				serialize({ completed, payoutCentiX: fixture.book.payoutMultiplier }),
+			);
+			check(group, 'motion controls never add settlement or event-write calls for inactive rounds',
+				network.byEndpoint.play.length === 2 && network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.motion = { fixture: fixture.id, turboPhases, completed };
+			record.screenshot = await saveScreenshot(page, group);
+			record.network = network;
+			record.diagnostics = diagnostics;
+			await page.evaluate(() => window.__blacksiteMotionObserver?.disconnect());
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('session-position-and-timer-follow-authoritative-balance', async (record) => {
 		const group = 'session-position-and-timer-follow-authoritative-balance';
 		const authoritativePostPlayBalance = DEFAULT_BALANCE - 7 * API_UNIT;
@@ -2408,6 +2516,8 @@ async function geometryAudit(page) {
 			bounds.bottom <= innerHeight + 0.5;
 		const actionSelectors = [
 			selectors.primaryAction,
+			selectors.motionMode,
+			selectors.skipPresentation,
 			selectors.modeBase,
 			selectors.modeDeepAccess,
 			selectors.modeBlackout,

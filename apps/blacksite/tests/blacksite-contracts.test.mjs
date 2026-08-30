@@ -27,6 +27,7 @@ import {
 } from '../src/lib/runtime/game-event-adapter.js';
 import { resolveLaunchMode } from '../src/lib/runtime/launch-mode.js';
 import {
+	PRESENTATION_TIMINGS,
 	PresentationDirector,
 	createInitialPresentationState,
 	planPresentationRestore,
@@ -653,7 +654,49 @@ test('PresentationDirector preserves authoritative cluster positions and award a
 	const tumbleCue = cues.find(({ kind }) => kind === 'tumble');
 	if (tumbleCue) {
 		director.consume(tumbleCue);
+		assert.equal(director.state.activeClusters, winCue.event.clusters);
+		assert.equal(director.state.motion.phase, 'remove');
+		assert.deepEqual(director.state.motion.cells, tumbleCue.event.removed_positions);
+		const nextBoardCue = cues.find(
+			(cue) => cue.kind === 'board_snapshot' && cue.eventIndex > tumbleCue.eventIndex,
+		);
+		assert(nextBoardCue);
+		director.consume(nextBoardCue);
 		assert.deepEqual(director.state.activeClusters, []);
 		assert.equal(director.state.stepWinRaw, 0);
+		assert.equal(director.state.motion.phase, 'drop');
+		assert.deepEqual(director.state.motion.cells, tumbleCue.event.entering_symbols);
 	}
+});
+
+test('PresentationDirector exposes bounded normal, turbo and reduced timing grammars', () => {
+	assert.deepEqual(Object.keys(PRESENTATION_TIMINGS), ['normal', 'turbo', 'reduced']);
+	for (const phase of ['step', 'hit', 'remove', 'drop', 'settle']) {
+		assert(PRESENTATION_TIMINGS.normal[phase] > PRESENTATION_TIMINGS.turbo[phase]);
+		assert(PRESENTATION_TIMINGS.turbo[phase] > 0);
+		assert.equal(PRESENTATION_TIMINGS.reduced[phase], 0);
+	}
+	assert(PRESENTATION_TIMINGS.normal.hit >= 180);
+	assert(PRESENTATION_TIMINGS.normal.drop <= 550);
+	assert(Object.isFrozen(PRESENTATION_TIMINGS));
+});
+
+test('PresentationDirector skip drains authority, preserves motion order and settles cleanly', async () => {
+	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'base_cascade_3');
+	assert(fixture);
+	const cues = new GameEventAdapter().adaptBook(fixture.book, { expectedMode: 'base' });
+	const phases = [];
+	const director = new PresentationDirector((state) => phases.push(state.motion.phase));
+	director.setTimingProfile('normal');
+	const pending = director.play(cues);
+	assert.equal(director.skip(), true);
+	assert.equal(await pending, true);
+	assert.equal(director.state.status, 'complete');
+	assert.equal(director.state.finalWinRaw, fixture.book.payoutMultiplier);
+	assert(phases.includes('hit'));
+	assert(phases.includes('remove'));
+	assert(phases.includes('drop'));
+	assert(phases.includes('settle'));
+	assert.equal(director.state.motion.phase, 'idle');
+	assert.equal(director.timers.size, 0);
 });

@@ -1,3 +1,19 @@
+const EMPTY_CELLS = Object.freeze([]);
+
+export const PRESENTATION_TIMINGS = Object.freeze({
+	normal: Object.freeze({ step: 32, hit: 280, remove: 150, drop: 250, settle: 90 }),
+	turbo: Object.freeze({ step: 12, hit: 110, remove: 55, drop: 105, settle: 35 }),
+	reduced: Object.freeze({ step: 0, hit: 0, remove: 0, drop: 0, settle: 0 }),
+});
+
+function freezeCells(cells = []) {
+	return Object.freeze(cells.map((cell) => Object.freeze({ ...cell })));
+}
+
+function motionState(phase = 'idle', cells = EMPTY_CELLS, tumbleIndex = null) {
+	return Object.freeze({ phase, cells, tumbleIndex });
+}
+
 export function createInitialPresentationState() {
 	return Object.freeze({
 		status: 'idle',
@@ -14,6 +30,7 @@ export function createInitialPresentationState() {
 		cumulativeWinRaw: 0,
 		finalWinRaw: null,
 		capped: false,
+		motion: motionState(),
 		notice: 'Awaiting authoritative events',
 	});
 }
@@ -41,6 +58,9 @@ export class PresentationDirector {
 		this.state = createInitialPresentationState();
 		this.playbackGeneration = 0;
 		this.timers = new Map();
+		this.pendingTumble = null;
+		this.skipGeneration = null;
+		this.defaultTimingProfile = 'reduced';
 		this.destroyed = false;
 	}
 
@@ -57,6 +77,7 @@ export class PresentationDirector {
 
 		switch (cue.kind) {
 			case 'round_started':
+				this.pendingTumble = null;
 				this.update({
 					...createInitialPresentationState(),
 					...common,
@@ -66,7 +87,14 @@ export class PresentationDirector {
 					notice: `${event.mode} round accepted`,
 				});
 				break;
-			case 'board_snapshot':
+			case 'board_snapshot': {
+				const enteringCells = this.pendingTumble
+					? freezeCells(this.pendingTumble.entering_symbols)
+					: EMPTY_CELLS;
+				const boardMotion = this.pendingTumble
+					? motionState('drop', enteringCells, this.pendingTumble.tumble_index)
+					: motionState('settle');
+				this.pendingTumble = null;
 				this.update({
 					...common,
 					board: event.board,
@@ -74,19 +102,24 @@ export class PresentationDirector {
 					stepWinRaw: 0,
 					phase: event.phase,
 					featureCycle: event.feature_cycle,
+					motion: boardMotion,
 					notice: `Authoritative board ${event.tumble_index}`,
 				});
 				break;
-			case 'win':
+			}
+			case 'win': {
+				const winningCells = freezeCells(event.clusters.flatMap((cluster) => cluster.positions));
 				this.update({
 					...common,
 					phase: event.phase,
 					activeClusters: event.clusters,
 					stepWinRaw: event.step_payout_raw,
 					cumulativeWinRaw: event.cumulative_after_raw,
+					motion: motionState('hit', winningCells),
 					notice: `${event.clusters.length} authoritative cluster cue(s)`,
 				});
 				break;
+			}
 			case 'route_snapshot':
 				this.update({
 					...common,
@@ -134,10 +167,10 @@ export class PresentationDirector {
 				});
 				break;
 			case 'tumble':
+				this.pendingTumble = event;
 				this.update({
 					...common,
-					activeClusters: Object.freeze([]),
-					stepWinRaw: 0,
+					motion: motionState('remove', freezeCells(event.removed_positions), event.tumble_index),
 					notice: `Tumble ${event.tumble_index}`,
 				});
 				break;
@@ -157,6 +190,7 @@ export class PresentationDirector {
 				});
 				break;
 			case 'settled':
+				this.pendingTumble = null;
 				this.update({
 					...common,
 					status: 'complete',
@@ -164,6 +198,9 @@ export class PresentationDirector {
 					finalWinRaw: event.payout_multiplier_raw,
 					cumulativeWinRaw: event.payout_multiplier_raw,
 					capped: event.capped,
+					activeClusters: Object.freeze([]),
+					stepWinRaw: 0,
+					motion: motionState(),
 					notice: 'Authoritative round_end reached',
 				});
 				break;
@@ -175,15 +212,40 @@ export class PresentationDirector {
 
 	delay(milliseconds, generation) {
 		return new Promise((resolve) => {
+			if (this.skipGeneration === generation) {
+				resolve(true);
+				return;
+			}
 			const timer = setTimeout(() => {
 				this.timers.delete(timer);
 				resolve(generation === this.playbackGeneration);
 			}, milliseconds);
-			this.timers.set(timer, resolve);
+			this.timers.set(timer, { generation, resolve });
 		});
 	}
 
-	async play(cues, { stepDelayMs = 0, winDelayMs = stepDelayMs, onCue = null } = {}) {
+	setTimingProfile(timingProfile) {
+		if (!Object.hasOwn(PRESENTATION_TIMINGS, timingProfile)) {
+			throw new TypeError('timingProfile must be normal, turbo, or reduced.');
+		}
+		this.defaultTimingProfile = timingProfile;
+	}
+
+	async play(
+		cues,
+		{
+			stepDelayMs = null,
+			winDelayMs = null,
+			timingProfile = this.defaultTimingProfile,
+			onCue = null,
+		} = {},
+	) {
+		if (!Object.hasOwn(PRESENTATION_TIMINGS, timingProfile)) {
+			throw new TypeError('timingProfile must be normal, turbo, or reduced.');
+		}
+		const timings = PRESENTATION_TIMINGS[timingProfile];
+		stepDelayMs ??= timings.step;
+		winDelayMs ??= timings.hit;
 		if (!Number.isSafeInteger(stepDelayMs) || stepDelayMs < 0) {
 			throw new TypeError('stepDelayMs must be a non-negative safe integer.');
 		}
@@ -194,24 +256,51 @@ export class PresentationDirector {
 			throw new TypeError('onCue must be a function when supplied.');
 		}
 		const generation = ++this.playbackGeneration;
+		this.skipGeneration = null;
 		for (const cue of cues) {
 			if (this.destroyed || generation !== this.playbackGeneration) return false;
 			this.consume(cue);
 			if (onCue) await onCue(cue, this.state);
 			if (this.destroyed || generation !== this.playbackGeneration) return false;
-			const delayMs = cue.kind === 'win' ? winDelayMs : stepDelayMs;
+			let delayMs = cue.kind === 'win' ? winDelayMs : stepDelayMs;
+			if (cue.kind === 'tumble') delayMs = timings.remove;
+			if (cue.kind === 'board_snapshot' && this.state.motion.phase === 'drop') {
+				delayMs = timings.drop;
+			}
 			if (delayMs > 0 && !(await this.delay(delayMs, generation))) return false;
+			if (cue.kind === 'board_snapshot' && this.state.motion.phase === 'drop') {
+				this.update({
+					motion: motionState('settle', this.state.motion.cells, this.state.motion.tumbleIndex),
+				});
+				if (timings.settle > 0 && !(await this.delay(timings.settle, generation))) return false;
+				this.update({ motion: motionState() });
+			}
+		}
+		this.skipGeneration = null;
+		return true;
+	}
+
+	skip() {
+		if (this.destroyed || this.playbackGeneration === 0) return false;
+		this.skipGeneration = this.playbackGeneration;
+		for (const [timer, pending] of this.timers) {
+			if (pending.generation !== this.playbackGeneration) continue;
+			clearTimeout(timer);
+			this.timers.delete(timer);
+			pending.resolve(true);
 		}
 		return true;
 	}
 
 	reset() {
 		this.playbackGeneration += 1;
-		for (const [timer, resolve] of this.timers) {
+		for (const [timer, pending] of this.timers) {
 			clearTimeout(timer);
-			resolve(false);
+			pending.resolve(false);
 		}
 		this.timers.clear();
+		this.pendingTumble = null;
+		this.skipGeneration = null;
 		this.state = createInitialPresentationState();
 		this.onState(this.state);
 	}

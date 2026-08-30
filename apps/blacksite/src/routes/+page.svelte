@@ -89,6 +89,8 @@
 	let rulesDialog = null;
 	let rulesCloseButton = null;
 	let returnFocusElement = null;
+	let motionMode = 'normal';
+	let reducedMotion = false;
 
 	$: selectedMode = getMode(selectedModeId);
 	$: social = launch.social === true || liveSnapshot.config?.jurisdiction?.socialCasino === true;
@@ -162,6 +164,7 @@
 		insufficient: insufficientKnown,
 		modeBlocked: selectedModeBlocked,
 	});
+	$: presentationBusy = primaryBusy || replaySnapshot.status === 'playing';
 	$: visibleRuntimeMessage =
 		social && runtimeError
 			? 'The authoritative game flow could not continue.'
@@ -184,6 +187,13 @@
 			cluster.positions.map((cell) => cellKey(cell)),
 		),
 	);
+	$: activeMotionKeys = new Set((presentation.motion?.cells ?? []).map((cell) => cellKey(cell)));
+	$: presentationTimingProfile = reducedMotion ? 'reduced' : motionMode;
+	$: if (director) director.setTimingProfile(presentationTimingProfile);
+	$: if (typeof document !== 'undefined') {
+		document.body.dataset.motionPhase = presentation.motion?.phase ?? 'idle';
+		document.body.dataset.motionProfile = presentationTimingProfile;
+	}
 
 	function cellKey(cell) {
 		return `${cell.column},${cell.row}`;
@@ -244,7 +254,10 @@
 		runtimeState = 'fixture-playing';
 		try {
 			director.reset();
-			await director.play(activeCues, { stepDelayMs: 45 });
+			const completed = await director.play(activeCues, {
+				timingProfile: presentationTimingProfile,
+			});
+			if (!completed) throw new Error('Fixture presentation was cancelled.');
 			finalWinRaw = activeFixture.book.payoutMultiplier;
 			runtimeState = 'fixture-completed';
 		} finally {
@@ -341,8 +354,7 @@
 					: planPresentationRestore(round.cues, 0);
 			for (const cue of plan.primeCues) director.consume(cue);
 			const completed = await director.play(plan.resumeCues, {
-				stepDelayMs: 35,
-				winDelayMs: 220,
+				timingProfile: presentationTimingProfile,
 				onCue: async (cue) => {
 					if (round.active && presentationCheckpointKinds.has(cue.kind)) {
 						await liveSession.savePresentationCursor(cue.eventIndex + 1);
@@ -425,6 +437,15 @@
 		if (selectedModeBlocked) return;
 		if (selectedMode.costMultiplier > 1) void openConfirmation();
 		else void executeLivePlay();
+	}
+
+	function toggleMotionMode() {
+		if (reducedMotion) return;
+		motionMode = motionMode === 'normal' ? 'turbo' : 'normal';
+	}
+
+	function skipPresentation() {
+		director?.skip();
 	}
 
 	async function confirmLivePlay() {
@@ -609,6 +630,12 @@
 
 	onMount(() => {
 		let disposed = false;
+		const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+		const syncReducedMotion = () => {
+			reducedMotion = reducedMotionQuery.matches;
+		};
+		syncReducedMotion();
+		reducedMotionQuery.addEventListener('change', syncReducedMotion);
 		const adapter = new GameEventAdapter();
 		director = new PresentationDirector((nextState) => {
 			presentation = nextState;
@@ -665,6 +692,7 @@
 
 		return () => {
 			disposed = true;
+			reducedMotionQuery.removeEventListener('change', syncReducedMotion);
 			window.removeEventListener('keydown', keydown);
 			liveSession?.destroy();
 			if (sessionTimerHandle !== null) window.clearInterval(sessionTimerHandle);
@@ -676,6 +704,8 @@
 			if (replayController) replayController.destroy();
 			else director?.destroy();
 			delete document.body.dataset.runtimeState;
+			delete document.body.dataset.motionPhase;
+			delete document.body.dataset.motionProfile;
 		};
 	});
 </script>
@@ -791,10 +821,7 @@
 
 		<section class="board-stage" aria-label="BLACKSITE seven by seven vault grid">
 			<picture class="vault-environment" data-testid="vault-environment" aria-hidden="true">
-				<source
-					media="(max-width: 820px)"
-					srcset={BLACKSITE_ASSETS.environment.vaultPortrait}
-				/>
+				<source media="(max-width: 820px)" srcset={BLACKSITE_ASSETS.environment.vaultPortrait} />
 				<img
 					src={BLACKSITE_ASSETS.environment.vaultDesktop}
 					alt=""
@@ -812,7 +839,15 @@
 			</div>
 
 			<div class="board-frame">
-				<div class="board" data-testid="board" role="grid" aria-rowcount="7" aria-colcount="7">
+				<div
+					class="board"
+					data-testid="board"
+					data-motion-phase={presentation.motion?.phase ?? 'idle'}
+					data-motion-profile={presentationTimingProfile}
+					role="grid"
+					aria-rowcount="7"
+					aria-colcount="7"
+				>
 					{#each boardCells as cell}
 						{@const symbol = symbolAt(cell)}
 						<div
@@ -821,6 +856,14 @@
 							class:dormant={dormantKeys.has(cellKey(cell))}
 							class:sealed={sealedKeys.has(cellKey(cell))}
 							class:cluster-active={activeClusterKeys.has(cellKey(cell))}
+							class:motion-hit={presentation.motion?.phase === 'hit' &&
+								activeMotionKeys.has(cellKey(cell))}
+							class:motion-remove={presentation.motion?.phase === 'remove' &&
+								activeMotionKeys.has(cellKey(cell))}
+							class:motion-drop={presentation.motion?.phase === 'drop' &&
+								activeMotionKeys.has(cellKey(cell))}
+							class:motion-settle={presentation.motion?.phase === 'settle' &&
+								activeMotionKeys.has(cellKey(cell))}
 							data-column={cell.column}
 							data-row={cell.row}
 							data-symbol={symbol ?? ''}
@@ -961,6 +1004,25 @@
 			</div>
 
 			<div class="action-stack">
+				<div class="motion-controls" aria-label="Presentation speed controls">
+					<button
+						class="motion-action"
+						data-testid="motion-mode"
+						type="button"
+						aria-pressed={presentationTimingProfile === 'turbo'}
+						disabled={reducedMotion || presentationBusy}
+						on:click={toggleMotionMode}
+					>
+						{reducedMotion ? 'REDUCED' : motionMode === 'turbo' ? 'TURBO' : 'NORMAL'}
+					</button>
+					<button
+						class="motion-action"
+						data-testid="skip-presentation"
+						type="button"
+						disabled={!presentationBusy}
+						on:click={skipPresentation}>SKIP</button
+					>
+				</div>
 				<button
 					class="primary-action"
 					data-testid="primary-action"
@@ -970,7 +1032,12 @@
 				>
 					{actionLabel}
 				</button>
-				<button class="info-action" data-testid="info-action" type="button" on:click={() => void openRules()}>
+				<button
+					class="info-action"
+					data-testid="info-action"
+					type="button"
+					on:click={() => void openRules()}
+				>
 					INFO / RULES
 				</button>
 			</div>
@@ -1567,7 +1634,95 @@
 		transition:
 			border-color 140ms ease,
 			background 140ms ease,
-			color 140ms ease;
+			color 140ms ease,
+			filter 140ms ease,
+			opacity 140ms ease,
+			transform 140ms ease;
+		transform-origin: center;
+	}
+
+	.cell.motion-hit {
+		z-index: 2;
+		border-color: #f2c36e;
+		animation: cluster-hit 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+		background: linear-gradient(145deg, #46381e, #14282c);
+		filter: brightness(1.3) saturate(1.18);
+	}
+
+	.cell.motion-remove {
+		z-index: 2;
+		animation: cluster-remove 150ms ease-in both;
+	}
+
+	.cell.motion-drop {
+		animation: symbol-drop 250ms cubic-bezier(0.18, 0.72, 0.2, 1) both;
+	}
+
+	.cell.motion-settle {
+		animation: symbol-settle 90ms ease-out both;
+	}
+
+	.board[data-motion-profile='turbo'] .cell.motion-hit {
+		animation-duration: 110ms;
+	}
+
+	.board[data-motion-profile='turbo'] .cell.motion-remove {
+		animation-duration: 55ms;
+	}
+
+	.board[data-motion-profile='turbo'] .cell.motion-drop {
+		animation-duration: 105ms;
+	}
+
+	.board[data-motion-profile='turbo'] .cell.motion-settle {
+		animation-duration: 35ms;
+	}
+
+	@keyframes cluster-hit {
+		0% {
+			transform: scale(1);
+		}
+		52% {
+			transform: scale(1.075);
+		}
+		100% {
+			transform: scale(1.025);
+		}
+	}
+
+	@keyframes cluster-remove {
+		0% {
+			opacity: 1;
+			transform: scale(1.025);
+		}
+		100% {
+			opacity: 0;
+			transform: scale(0.72);
+		}
+	}
+
+	@keyframes symbol-drop {
+		0% {
+			opacity: 0;
+			transform: translateY(-44%) scale(0.92);
+		}
+		72% {
+			opacity: 1;
+			transform: translateY(4%) scale(1.015);
+		}
+		100% {
+			opacity: 1;
+			transform: translateY(0) scale(1);
+		}
+	}
+
+	@keyframes symbol-settle {
+		0% {
+			transform: translateY(3%);
+		}
+		100% {
+			transform: translateY(0);
+		}
 	}
 
 	.cell::after {
@@ -1867,11 +2022,50 @@
 
 	.action-stack {
 		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 7px;
 		margin-top: auto;
 	}
 
+	.motion-controls {
+		grid-row: 2;
+		grid-column: 1;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 5px;
+	}
+
+	.motion-action {
+		min-width: 0;
+		min-height: 44px;
+		padding: 0 4px;
+		border: 1px solid #48646b;
+		background: #0a181d;
+		color: #9fb6ba;
+		font-size: clamp(7px, 0.58vw, 9px);
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		cursor: pointer;
+	}
+
+	.motion-action[aria-pressed='true'] {
+		border-color: #efc06a;
+		color: #efc06a;
+	}
+
+	.motion-action:focus-visible {
+		outline: 3px solid #efc06a;
+		outline-offset: 2px;
+	}
+
+	.motion-action:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
 	.primary-action {
+		grid-row: 1;
+		grid-column: 1 / -1;
 		min-height: 44px;
 		border: 1px solid #d55b55;
 		background: #d55b55;
@@ -1895,6 +2089,8 @@
 	}
 
 	.info-action {
+		grid-row: 2;
+		grid-column: 2;
 		min-height: 44px;
 		border: 1px solid #48646b;
 		background: #0d1b20;
@@ -2334,6 +2530,7 @@
 
 	@media (prefers-reduced-motion: reduce) {
 		.cell {
+			animation: none !important;
 			transition: none;
 		}
 	}
