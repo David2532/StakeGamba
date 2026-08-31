@@ -1,7 +1,8 @@
 # BLACKSITE // BREACH — Codex Studio Index
 
-Status: **Math v3 5x3 candidate verified internally / 13-symbol frontend and package integration in progress**
-Last official-doc review: **2026-08-09**
+Status: **V39 presentation snapshot under internal QA / Math v3 unchanged / not released or Stake-approved**
+Current-state review: **2026-08-31**
+Last official Stake-doc review: **2026-08-09**
 
 This directory is the durable source of truth for the next original Stake Engine slot. Root `AGENTS.md` is intentionally a routing document; detailed knowledge lives here so Codex does not have to carry the entire project encyclopedia in every turn.
 
@@ -10,13 +11,17 @@ This directory is the durable source of truth for the next original Stake Engine
 Every major Codex task starts with:
 
 1. `/AGENTS.md`
-2. this file
-3. the task-relevant documents below
-4. the relevant repo skill under `/.agents/skills/`
-5. the relevant specialist agent under `/.codex/agents/`
+2. `CURRENT_SLOT_STATE.md` — exact branch, implementation identity, active
+   runtime lineages and superseded-package rules for the visible slot
+3. this file
+4. the task-relevant documents below
+5. the relevant repo skill under `/.agents/skills/`
+6. the relevant specialist agent under `/.codex/agents/`
 
 ## Core product and architecture
 
+- `CURRENT_SLOT_STATE.md` — first source of truth for the current V39 slot;
+  use it before historical V19/V36 presentation documents.
 - `MASTER_PLAN.md` — product vision, architecture, milestones and Definition of Done.
 - `MATH_V3_GAME_CONTRACT.md` — current 5x3 line-pay, 13-symbol, WILD, BREACH free-spin and closed-event contract. It supersedes v1 and v2 for all new candidates.
 - `MATH_V2_GAME_CONTRACT.md` — historical frozen v2 six-regular-symbol contract retained for evidence only; its books, hashes, fixtures and cursors are incompatible with v3.

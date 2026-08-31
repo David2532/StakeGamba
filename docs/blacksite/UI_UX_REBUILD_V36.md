@@ -1,7 +1,13 @@
 # BLACKSITE // BREACH — UI/UX Rebuild V36
 
-Status: implementation baseline
+Status: **historical layout baseline; superseded as current-state authority by `CURRENT_SLOT_STATE.md`**
 Scope: presentation and interaction only; Math, RGS events, settlement, replay normalization and mode costs remain authoritative and unchanged.
+
+V36 still owns the command-layout lineage used by V39, but it no longer
+describes the complete visible asset/runtime state. V37 hard-clean rules, V38
+HUD asset restoration and the versioned V39 cart/symbol pass were layered on
+top. Use this document for the original layout intent and
+`CURRENT_SLOT_STATE.md` for the exact state to load.
 
 ## Design intent
 
