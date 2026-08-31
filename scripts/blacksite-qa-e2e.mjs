@@ -772,7 +772,7 @@ async function waitForAssetPaint(page, timeoutMs = 10_000) {
 			const characterState = character?.getAttribute('data-asset-paint-state');
 			const environmentState = environment?.getAttribute('data-asset-paint-state');
 			return (
-				['painted', 'fallback', 'failed'].includes(characterState ?? '') &&
+				['painted', 'fallback'].includes(characterState ?? '') &&
 				['painted', 'failed'].includes(environmentState ?? '')
 			);
 		},

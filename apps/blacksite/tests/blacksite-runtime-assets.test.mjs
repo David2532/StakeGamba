@@ -139,6 +139,8 @@ test('asset paint barrier decodes, reveals and waits for two compositor frames',
 test('browser evidence identity includes shipped static assets', async () => {
 	const source = await readFile(browserQaUrl, 'utf8');
 	assert.match(source, /join\(repoRoot, 'apps', 'blacksite', 'static'\)/u);
+	assert.match(source, /\['painted', 'fallback'\]\.includes\(characterState \?\? ''\)/u);
+	assert.doesNotMatch(source, /\['painted', 'fallback', 'failed'\]\.includes/u);
 	assert.match(source, /vaultkeeper fallback is.*compact-hidden.*and loaded/u);
 	assert.match(source, /missing Vaultkeeper image switches to the deterministic mechanical silhouette/u);
 	assert.match(source, /responsive mechanical vault environment selects/u);
