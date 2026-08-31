@@ -1919,10 +1919,10 @@ async function runNetworkScenarios(browser, origin) {
 			const ready = {
 				balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
 				totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
-				baseAmount: await page.locator(SELECTORS.baseAmount).getAttribute('aria-valuetext'),
+				baseAmount: await page.locator(SELECTORS.baseAmount).inputValue(),
 			};
 			check(group, 'JPY wallet balance uses native zero-decimal rounding', ready.balance === '¥2', serialize(ready));
-			check(group, 'JPY complete play and range expose the exact one-yen Base amount', ready.totalPlay === '¥1' && ready.baseAmount === '¥1', serialize(ready));
+			check(group, 'JPY complete play decorates the canonical micro-unit Base amount', ready.totalPlay === '¥1' && ready.baseAmount === String(DEFAULT_BASE_AMOUNT), serialize(ready));
 
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 1);
@@ -1983,10 +1983,10 @@ async function runNetworkScenarios(browser, origin) {
 			const ready = {
 				balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
 				totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
-				baseAmount: await page.locator(SELECTORS.baseAmount).getAttribute('aria-valuetext'),
+				baseAmount: await page.locator(SELECTORS.baseAmount).inputValue(),
 			};
 			check(group, 'unknown currency wallet falls back to the normalized code', ready.balance === '1.23 ZZZ', serialize(ready));
-			check(group, 'unknown currency complete play and range retain exact code-suffixed units', ready.totalPlay === '1.00 ZZZ' && ready.baseAmount === '1.00 ZZZ', serialize(ready));
+			check(group, 'unknown currency complete play decorates the canonical micro-unit Base amount', ready.totalPlay === '1.00 ZZZ' && ready.baseAmount === String(DEFAULT_BASE_AMOUNT), serialize(ready));
 
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 1);
