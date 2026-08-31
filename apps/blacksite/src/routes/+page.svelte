@@ -834,7 +834,14 @@
 			<h1>BLACKSITE <span>// BREACH</span></h1>
 		</div>
 		<div class="masthead-actions">
-			<div class="lifecycle" data-testid="launch-status" aria-label="Vault connection status">
+			<div
+				class="lifecycle"
+				data-testid="launch-status"
+				role="status"
+				aria-label="Vault connection status"
+				aria-live="polite"
+				aria-atomic="true"
+			>
 				<span class="pulse" class:error-pulse={runtimeError !== null}></span>
 				{playerStatus}
 			</div>
@@ -871,11 +878,11 @@
 				<span aria-hidden="true">⌁</span>
 				<div>
 					<p>ACCESS LEVEL</p>
-					<h2>Choose your route</h2>
+					<h2 id="access-level-title">Choose your route</h2>
 				</div>
 			</div>
 
-			<div class="mode-list">
+			<div class="mode-list" role="group" aria-labelledby="access-level-title">
 				{#each MODES as mode}
 					{#if !(buyFeatureDisabled && liveSnapshot.config?.betModes?.[mode.id]?.feature)}
 						<button
@@ -993,7 +1000,12 @@
 			<div class="stage-heading">
 				<div>
 					<span>GHOST ROUTE // VAULT GRID</span>
-					<strong data-testid="board-status">{boardStatus}</strong>
+					<strong
+						data-testid="board-status"
+						role="status"
+						aria-live="polite"
+						aria-atomic="true">{boardStatus}</strong
+					>
 				</div>
 				<div class="phase-chip">{getModeLabel(selectedMode.id, social)}</div>
 			</div>
@@ -1169,7 +1181,11 @@
 			</div>
 
 			<div class="action-stack">
-				<div class="motion-controls" aria-label="Presentation speed controls">
+				<div
+					class="motion-controls"
+					role="group"
+					aria-label="Presentation speed controls"
+				>
 					<button
 						class="motion-action"
 						data-testid="motion-mode"
@@ -1218,16 +1234,17 @@
 				role="dialog"
 				aria-modal="true"
 				aria-labelledby="confirm-title"
+				aria-describedby="confirm-description confirm-total"
 				tabindex="-1"
 				bind:this={confirmationDialog}
 			>
 				<span>SECOND EXPLICIT ACTION</span>
 				<h2 id="confirm-title">Confirm complete play amount</h2>
-				<p>
+				<p id="confirm-description">
 					{getModeLabel(selectedMode.id, social)} uses {selectedMode.costMultiplier}× the selected
 					Play Amount.
 				</p>
-				<strong>{totalAmountText}</strong>
+				<strong id="confirm-total">{totalAmountText}</strong>
 				<div class="modal-actions">
 					<button
 						bind:this={confirmationCancelButton}

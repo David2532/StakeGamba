@@ -971,6 +971,14 @@ async function modalAccessibilitySnapshot(dialog) {
 		);
 		return {
 			ariaModal: dialogElement.getAttribute('aria-modal'),
+			labelledBy: dialogElement.getAttribute('aria-labelledby'),
+			describedBy: dialogElement.getAttribute('aria-describedby'),
+			descriptionText: (dialogElement.getAttribute('aria-describedby') ?? '')
+				.split(/\s+/u)
+				.filter(Boolean)
+				.map((id) => document.getElementById(id)?.textContent?.trim().replace(/\s+/gu, ' ') ?? '')
+				.filter(Boolean)
+				.join(' '),
 			nativeModal,
 			dialogInsideInertSubtree: Boolean(dialogElement.closest('[inert]')),
 			activeInside: dialogElement.contains(document.activeElement),
@@ -1952,6 +1960,14 @@ async function runNetworkScenarios(browser, origin) {
 				let dialog = page.getByRole('dialog', { name: /Confirm complete play amount/i });
 				await dialog.waitFor({ state: 'visible' });
 				const modalAccessibility = await auditModalAccessibility(page, dialog, group);
+				check(
+					group,
+					'confirmation accessible description binds the mode factor and exact complete amount',
+					modalAccessibility.initial.describedBy === 'confirm-description confirm-total' &&
+						modalAccessibility.initial.descriptionText.includes(`${cost}×`) &&
+						modalAccessibility.initial.descriptionText.includes(exactTotal),
+					serialize(modalAccessibility.initial),
+				);
 				const firstDialogText = await dialog.innerText();
 				check(group, 'first action opens confirmation before any play', network.byEndpoint.play.length === 0, serialize(network.order));
 				check(group, 'confirmation shows the exact complete play amount', exactTotal.length > 0 && firstDialogText.includes(exactTotal), serialize({ exactTotal, firstDialogText }));
@@ -4034,6 +4050,27 @@ async function geometryAudit(page) {
 				metersCentered: meterCells.length === 3 && meterCells.every((element) => getComputedStyle(element).textAlign === 'center'),
 				modeLabelsUnclipped: actions.filter(({ selector }) => selector.startsWith('[data-testid="mode-')).every(({ labelClipped }) => !labelClipped),
 			},
+			semantics: {
+				modeGroup: {
+					role: document.querySelector('.mode-list')?.getAttribute('role') ?? null,
+					labelledBy: document.querySelector('.mode-list')?.getAttribute('aria-labelledby') ?? null,
+					label: document.getElementById('access-level-title')?.textContent?.trim() ?? null,
+				},
+				motionGroup: {
+					role: document.querySelector('.motion-controls')?.getAttribute('role') ?? null,
+					label: document.querySelector('.motion-controls')?.getAttribute('aria-label') ?? null,
+				},
+				launchStatus: {
+					role: launchStatus?.getAttribute('role') ?? null,
+					live: launchStatus?.getAttribute('aria-live') ?? null,
+					atomic: launchStatus?.getAttribute('aria-atomic') ?? null,
+				},
+				boardStatus: {
+					role: boardStatus?.getAttribute('role') ?? null,
+					live: boardStatus?.getAttribute('aria-live') ?? null,
+					atomic: boardStatus?.getAttribute('aria-atomic') ?? null,
+				},
+			},
 			keyboardFocus: {
 				testId: focusedElement?.getAttribute?.('data-testid') ?? null,
 				outlineWidth: Number.parseFloat(focusedStyle?.outlineWidth ?? '0'),
@@ -4093,6 +4130,24 @@ function assertGeometryRecord(group, audit, viewport) {
 	);
 	check(group, 'mode labels are fully visible without ellipsis or clipping', audit.alignment.modeLabelsUnclipped, serialize(audit.alignment));
 	check(group, 'base amount value and all three meters are centered', audit.alignment.baseAmountCentered && audit.alignment.metersCentered, serialize(audit.alignment));
+	check(
+		group,
+		'route and presentation controls expose named accessibility groups',
+		audit.semantics.modeGroup.role === 'group' &&
+			audit.semantics.modeGroup.labelledBy === 'access-level-title' &&
+			audit.semantics.modeGroup.label === 'Choose your route' &&
+			audit.semantics.motionGroup.role === 'group' &&
+			audit.semantics.motionGroup.label === 'Presentation speed controls',
+		serialize(audit.semantics),
+	);
+	check(
+		group,
+		'connection and board states expose atomic polite status announcements',
+		[audit.semantics.launchStatus, audit.semantics.boardStatus].every(
+			(status) => status.role === 'status' && status.live === 'polite' && status.atomic === 'true',
+		),
+		serialize(audit.semantics),
+	);
 	check(group, 'keyboard focus exposes a distinct high-contrast action ring', Boolean(audit.keyboardFocus.testId) && audit.keyboardFocus.outlineWidth >= 3 && audit.keyboardFocus.outlineOffset >= 2 && audit.keyboardFocus.outlineStyle === 'solid' && audit.keyboardFocus.outlineColor === 'rgb(239, 192, 106)', serialize(audit.keyboardFocus));
 	const boardRatio = audit.board.bounds ? audit.board.bounds.width / audit.board.bounds.height : 0;
 	check(group, 'board aspect remains square', Math.abs(boardRatio - 1) <= 0.002, serialize(boardRatio));
