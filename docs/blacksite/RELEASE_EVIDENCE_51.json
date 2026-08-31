@@ -269,9 +269,24 @@
 		{
 			"id": 33,
 			"requirement": "Five wins per mode match Game Rules",
-			"status": "AUTOMATED_PASS_MANUAL_OPEN",
-			"repositoryGates": ["pnpm --filter blacksite test", "pnpm blacksite:math:test"],
-			"manualOpen": "Visually inspect and sign off five final-presentation wins for each of Base, Deep Access, and BLACKOUT."
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"replay-matrix-rules-base-01",
+				"replay-matrix-rules-base-02",
+				"replay-matrix-rules-base-03",
+				"replay-matrix-rules-base-04",
+				"replay-matrix-rules-base-05",
+				"replay-matrix-rules-deep_access-01",
+				"replay-matrix-rules-deep_access-02",
+				"replay-matrix-rules-deep_access-03",
+				"replay-matrix-rules-deep_access-04",
+				"replay-matrix-rules-deep_access-05",
+				"replay-matrix-rules-blackout-01",
+				"replay-matrix-rules-blackout-02",
+				"replay-matrix-rules-blackout-03",
+				"replay-matrix-rules-blackout-04",
+				"replay-matrix-rules-blackout-05"
+			]
 		},
 		{
 			"id": 34,

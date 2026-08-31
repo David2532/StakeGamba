@@ -2840,6 +2840,19 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	const ruleWinCases = ['base', 'deep_access', 'blackout'].flatMap((modeId) =>
+		Array.from({ length: 5 }, (_, index) => {
+			const ordinal = String(index + 1).padStart(2, '0');
+			return {
+				caseId: `rules-${modeId}-${ordinal}`,
+				fixture: getGeneratedFixture(`${modeId}_win_${ordinal}`),
+				amountUnitsRaw: String(DEFAULT_BASE_AMOUNT),
+				expectedClass: 'rules-win',
+				ruleAudit: true,
+			};
+		}),
+	);
+
 	const replayMatrixCases = [
 		{
 			caseId: 'base-zero',
@@ -2871,12 +2884,13 @@ async function runNetworkScenarios(browser, origin) {
 			amountUnitsRaw: '0.0496',
 			expectedClass: 'fractional',
 		},
+		...ruleWinCases,
 	];
 
 	for (const matrixCase of replayMatrixCases) {
 		await runScenario(`replay-matrix-${matrixCase.caseId}`, async (record) => {
 			const group = `replay-matrix-${matrixCase.caseId}`;
-			const { fixture, amountUnitsRaw, expectedClass } = matrixCase;
+			const { fixture, amountUnitsRaw, expectedClass, ruleAudit = false } = matrixCase;
 			const currency = 'USD';
 			const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 			try {
@@ -2916,8 +2930,17 @@ async function runNetworkScenarios(browser, origin) {
 				check(group, 'Replay TOTAL PLAY is exact query amount times canonical cost', readyPresentation.totalPlay === expectedTotalPlay, serialize({ actual: readyPresentation.totalPlay, expected: expectedTotalPlay, amountUnitsRaw, costMultiplier: MODE_COSTS[fixture.mode] }));
 				check(group, 'Replay ready card shows canonical cost while keeping result multiplier hidden', readyPresentation.replayCard.includes(`${MODE_COSTS[fixture.mode]}× play factor`) && readyPresentation.replayCard.includes('— result') && !readyPresentation.replayCard.includes(`${expectedResultMultiplier} result`), serialize({ replayCard: readyPresentation.replayCard, expectedResultMultiplier, expectedCostMultiplier: MODE_COSTS[fixture.mode] }));
 
+				if (ruleAudit) {
+					await page.locator(SELECTORS.motionMode).click();
+					check(
+						group,
+						'five-win audit uses bounded TURBO presentation',
+						(await page.locator(SELECTORS.motionMode).innerText()).includes('TURBO'),
+						await page.locator(SELECTORS.motionMode).innerText(),
+					);
+				}
 				await page.locator(SELECTORS.primaryAction).click();
-				await waitForReplayComplete(page);
+				await waitForReplayComplete(page, ruleAudit ? 60_000 : 20_000);
 				const firstPresentation = await replayPresentationSnapshot(page);
 				check(group, 'Replay completes rather than remaining loading/playing', firstPresentation.runtimeState === 'replay-completed', serialize(firstPresentation.runtimeState));
 				check(group, 'Replay FINAL WIN is exact query amount times authoritative package payout', firstPresentation.finalWin === expectedFinalWin, serialize({ actual: firstPresentation.finalWin, expected: expectedFinalWin, amountUnitsRaw, packagePayoutCentiX: fixture.book.payoutMultiplier }));
@@ -2939,12 +2962,82 @@ async function runNetworkScenarios(browser, origin) {
 					check(group, 'fractional BLACKOUT arithmetic remains exact and lossless', fixture.mode === 'blackout' && fixture.book.payoutMultiplier === 1423 && firstPresentation.totalPlay === '$3.968 units' && firstPresentation.finalWin === '$0.705808 units', serialize({ fixture: fixture.id, mode: fixture.mode, payoutCentiX: fixture.book.payoutMultiplier, firstPresentation }));
 				}
 
-				await page.locator(SELECTORS.primaryAction).click();
-				await page.waitForTimeout(50);
-				await waitForReplayComplete(page);
-				const secondPresentation = await replayPresentationSnapshot(page);
-				check(group, 'Play Again reproduces the exact result and board presentation', serialize(secondPresentation) === serialize(firstPresentation), serialize({ firstPresentation, secondPresentation }));
-				check(group, 'Play Again does not refetch Replay', network.byEndpoint.replay.length === 1, serialize(network.order));
+				let ruleWinAudit = null;
+				if (ruleAudit) {
+					const winEvents = fixture.book.events.filter(
+						(eventValue) => eventValue.type === 'cluster_win',
+					);
+					const clusters = winEvents.flatMap((eventValue) =>
+						eventValue.clusters.map((cluster) => ({
+							eventIndex: eventValue.index,
+							phase: eventValue.phase,
+							...cluster,
+						})),
+					);
+					const clustersMatchRules = clusters.every((cluster) => {
+						const bandIndex = CLUSTER_BANDS.findIndex((band) => band.id === cluster.cluster_band);
+						const uniquePositions = new Set(
+							cluster.positions.map(({ column, row }) => `${column}:${row}`),
+						);
+						return (
+							bandIndex >= 0 &&
+							SYMBOL_PAYOUTS[cluster.symbol]?.[bandIndex] === cluster.base_payout_raw &&
+							cluster.positions.length === cluster.cluster_size &&
+							uniquePositions.size === cluster.cluster_size &&
+							cluster.positions.every(
+								({ column, row }) =>
+									column >= 0 &&
+									column < RULES_CONTRACT.board.columns &&
+									row >= 0 &&
+									row < RULES_CONTRACT.board.rows,
+							) &&
+							cluster.calculated_award_raw === cluster.base_payout_raw * cluster.access_multiplier
+						);
+					});
+					const stepsMatchAwards = winEvents.every(
+						(eventValue) =>
+							eventValue.step_payout_raw ===
+							eventValue.clusters.reduce((total, cluster) => total + cluster.applied_award_raw, 0),
+					);
+					check(
+						group,
+						'five-win case contains at least one authoritative cluster award',
+						clusters.length > 0,
+						serialize({
+							fixture: fixture.id,
+							winEvents: winEvents.length,
+							clusters: clusters.length,
+						}),
+					);
+					check(
+						group,
+						'every cluster position, symbol, paytable band and multiplier matches Game Rules',
+						clustersMatchRules,
+						serialize(clusters),
+					);
+					check(
+						group,
+						'every cascade step equals its authoritative applied awards',
+						stepsMatchAwards,
+						serialize(winEvents),
+					);
+					ruleWinAudit = {
+						winEvents: winEvents.length,
+						clusters: clusters.length,
+						clustersMatchRules,
+						stepsMatchAwards,
+					};
+				}
+
+				let secondPresentation = null;
+				if (!ruleAudit) {
+					await page.locator(SELECTORS.primaryAction).click();
+					await page.waitForTimeout(50);
+					await waitForReplayComplete(page);
+					secondPresentation = await replayPresentationSnapshot(page);
+					check(group, 'Play Again reproduces the exact result and board presentation', serialize(secondPresentation) === serialize(firstPresentation), serialize({ firstPresentation, secondPresentation }));
+					check(group, 'Play Again does not refetch Replay', network.byEndpoint.replay.length === 1, serialize(network.order));
+				}
 				check(group, 'Replay matrix sends zero wallet/event writes', walletWriteCount(network) === 0, serialize(network.order));
 				assertCleanNetwork(group, network);
 				assertCleanDiagnostics(group, diagnostics);
@@ -2963,6 +3056,7 @@ async function runNetworkScenarios(browser, origin) {
 				record.readyPresentation = readyPresentation;
 				record.firstPresentation = firstPresentation;
 				record.secondPresentation = secondPresentation;
+				record.ruleWinAudit = ruleWinAudit;
 				record.screenshot = await saveScreenshot(page, group);
 				record.network = network;
 				record.diagnostics = diagnostics;
