@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-12 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `403a98376d8dc49dbee647de8b8ab14b8f405e2d`
+- Verified implementation commit: `c38b1262f5ef8fcc1a3047f9c07180a985c722d2`
+- Work item: `BSB-EVIDENCE-001` (bounded reconnect/evidence slice; item remains in progress)
+- Selection reason: the exact browser matrix showed a recoverable authentication failure but stopped before proving that the player could explicitly reconnect to authoritative ready without a fallback or wallet write; historical M2 wording also overclaimed exhaustive money-domain coverage.
+- Before/after evidence: a first exact `POST /wallet/authenticate` now returns 503 and exposes enabled `RELOAD / RESTORE`; the click sends exactly one second identical authenticate, returns `live-ready` with `$1000.00`, leaves launch live and sends zero play/endRound/event writes. M2 documentation now limits its historical verdict to enumerated fixtures and records the later real fractional-product correction.
+- Changed files: `scripts/blacksite-qa-e2e.mjs`, `docs/blacksite/M2_COMPLIANCE_REVIEW.md`, and sprint memory closeout files.
+- Gates: frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 91/91 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; exact Chromium 40/40 scenarios and 964/964 checks PASS; unexpected console/network/request failures 0; `git diff --check` PASS.
+- Visual review: exact final recovery screenshot plus current-head 1920x1080, 390x844, 844x390 and uncertain-paid-play restore screenshots inspected. Recovery returns the normal ready HUD with authoritative balance; boards/controls remain visible, square, reachable and free of new overlap, scroll or crop regressions. No runtime UI changed in this slice.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Diagnostic run `33342704030` isolated one test-only thousands-separator assumption; final run `33343244848` is green. A formatter-churn attempt was fully removed before commit and no unchanged failure was repeated.
+- Persistence: implementation/evidence commits were fast-forwarded without force through the connected GitHub API; exact run `33343244848` and artifact `9741325685` succeeded.
+- Residual risk: complete extracted-package/gameplay/Stake matrix, manual audio/device listening, authored reel/character sound, asset rights/Creative approval, penguin cleanup/Spine and character/reel polish remain open.
+- Next candidate: continue `BSB-EVIDENCE-001` with the extracted-package and full gameplay/provider matrix; manual audio approval remains explicitly external.
+
 ## BS-20260831-11 — SUCCESS
 
 - Sprint day: 2

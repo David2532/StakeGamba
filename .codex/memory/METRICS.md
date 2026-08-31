@@ -1,5 +1,41 @@
 # Rolling automation metrics
 
+## BS-20260831-12
+
+```yaml
+closed_at_utc: 2026-08-31T00:10:00Z
+sprint_day: 2
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 91
+local_app_status: PASS
+local_build: PASS
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+diagnostic_ci_run: 33342704030
+diagnostic_browser_failure: reconnect_balance_thousands_separator_assumption
+diagnostic_browser_checks_pass: 956
+diagnostic_browser_checks_fail: 1
+verified_ci_run: 33343244848
+verified_ci_status: PASS
+remote_app_tests: 91
+remote_full_math_books: 300000
+remote_browser_scenarios: 40
+remote_browser_checks_pass: 964
+remote_browser_checks_fail: 0
+remote_diagnostics_artifact: 9741325685
+remote_implementation_commit: c38b1262f5ef8fcc1a3047f9c07180a985c722d2
+manual_identical_retries: 0
+```
+
+Observed categories: compact memory/RGS-contract reads, targeted Chromium evidence edits, one complete local gate chain, exact Git-data fast-forwards, two Actions runs, artifact inspection and five screenshot reviews. An over-broad Prettier write was fully removed before commit. The diagnostic run then separated a test-only `$1,000.00` assumption from the product's unchanged `$1000.00` display; the focused assertion correction produced exact green reconnect evidence without weakening any network invariant. No unchanged failure was repeated, and no subagents, dependencies or token estimates were used.
+
 ## BS-20260831-11
 
 ```yaml

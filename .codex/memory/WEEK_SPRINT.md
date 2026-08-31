@@ -9,14 +9,14 @@
 
 | Area                                     | Current evidence                                                                                                                                                                                   |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Production build                         | PASS — Vite static build on exact run `33341067497`, exit 0, run BS-20260831-11 |
-| Lint                                     | PASS — app lint on exact run `33341067497`, exit 0, run BS-20260831-11 |
-| Typecheck                                | PASS — production source/config `svelte-check`, `checkJs: true`, 0 errors / 0 warnings locally and on exact run `33341067497`, exit 0 |
-| Automated app tests                      | PASS — 91/91, exit 0, run BS-20260831-11; includes gesture policy, persistence, visibility lifecycle, voice bounding and exact presentation-cue forwarding |
-| Math/package invariants                  | PASS — 300,000 books; 7/7 gates; fingerprint `d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8`, exact run `33341067497`, BS-20260831-11 |
-| Current-head browser/E2E                 | PASS — clean exact commit `db84850`; run `33341067497`; 40/40 scenarios and 952/952 checks; console/network/request failures 0 |
+| Production build                         | PASS — Vite static build on exact run `33343244848`, exit 0, run BS-20260831-12 |
+| Lint                                     | PASS — app lint on exact run `33343244848`, exit 0, run BS-20260831-12 |
+| Typecheck                                | PASS — production source/config `svelte-check`, `checkJs: true`, 0 errors / 0 warnings locally and on exact run `33343244848`, exit 0 |
+| Automated app tests                      | PASS — 91/91, exit 0, exact run `33343244848`, BS-20260831-12; includes wallet, reconnect, audio and presentation contracts |
+| Math/package invariants                  | PASS — 300,000 books; 7/7 gates; fingerprint `d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8`, exact run `33343244848`, BS-20260831-12 |
+| Current-head browser/E2E                 | PASS — clean exact commit `c38b126`; run `33343244848`; 40/40 scenarios and 964/964 checks; unexpected console/network/request failures 0 |
 | Desktop/portrait/landscape visual review | PASS — exact screenshots inspected at 1920x1080, 390x844, 844x390 and 360x640 Replay plus the audio state; controls remain legible, boards square/on-screen, and no overlap/scroll regression is visible |
-| Live wallet/replay/restore               | PARTIAL — unit coverage and exact browser network proof are clean, including fractional new-play and active restore; reconnect and broader production-state evidence remain                        |
+| Live wallet/replay/restore               | PARTIAL — fractional new-play/restore, uncertain paid-play reload/restore and auth-503 explicit reload/re-auth are exact-browser proven with no duplicate writes; broader production-state/package evidence remains |
 | Gameplay state matrix                    | PARTIAL — M2 deterministic fixtures exist; full requested production interaction matrix is not current-head proven                                                                                 |
 | Player HUD/responsiveness/accessibility  | PASS for the current control surface — computed centering, uncut labels, >=44px touch geometry, safe viewport placement and 3px/2px keyboard focus evidence pass all required viewports            |
 | Animation/cinematics                     | PARTIAL — authoritative spin/reveal/feature anticipation, BLACKOUT vault entry/exit, hit/remove/drop/settle cascades, normal/turbo/reduced profiles, skip, cleanup and exact-payout browser proof pass; character/rig fallback and full frame-pacing evidence remain |
