@@ -77,6 +77,7 @@
 			"status": "AUTOMATED_PASS",
 			"browserScenarios": [
 				"active-restore-no-duplicate-play",
+				"active-feature-restore-resumes-at-checkpoint-once",
 				"uncertain-live-play-reloads-and-restores-without-retry"
 			]
 		},

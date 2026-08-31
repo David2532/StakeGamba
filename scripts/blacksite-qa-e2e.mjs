@@ -3028,6 +3028,145 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('active-feature-restore-resumes-at-checkpoint-once', async (record) => {
+		const group = 'active-feature-restore-resumes-at-checkpoint-once';
+		const fixture = getGeneratedFixture('base_natural_blackout');
+		const resumeEventIndex = 69;
+		const round = authoritativeFixtureRound({
+			fixture,
+			active: true,
+			id: 'blacksite-qa-active-feature-restore',
+			event: encodePresentationCursor(resumeEventIndex),
+		});
+		const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT * MODE_COSTS.base;
+		const settledBalance = debitedBalance + round.payout;
+		const checkpointEventTypes = new Set([
+			'board_set',
+			'breach_state',
+			'feature_start',
+			'feature_cycle',
+			'feature_end',
+			'cap_reached',
+		]);
+		const expectedCheckpointCursors = fixture.book.events
+			.slice(resumeEventIndex)
+			.filter(({ type }) => checkpointEventTypes.has(type))
+			.map(({ index }) => encodePresentationCursor(index + 1));
+		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () =>
+						authenticateResponse({
+							balance: debitedBalance,
+							round,
+						}),
+					event: (request) => ({ event: request.body.event }),
+					endRound: () => endRoundResponse({ balance: settledBalance }),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await page.waitForFunction(
+				() => document.querySelector('[data-testid="blacksite-player-hud"]')?.getAttribute('data-runtime-state') === 'live-restoring',
+				undefined,
+				{ timeout: 10_000 },
+			);
+			const restoring = {
+				state: await runtimeState(page),
+				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
+				board: await boardSymbols(page),
+				mode: (await page.locator('.mode-readout').innerText()).trim(),
+			};
+			check(group, 'restore primes the persisted feature checkpoint before resuming later events',
+				restoring.state === 'live-restoring' &&
+					restoring.finalWin === '—' &&
+					restoring.board.length === 49 &&
+					restoring.board.some((symbol) => symbol !== '') &&
+					/BASE BREACH/i.test(restoring.mode),
+				serialize(restoring),
+			);
+
+			await waitForEndpoint(network, 'endRound', 1, 30_000);
+			await waitForRuntimeState(page, 'live-ready');
+			await page.waitForTimeout(200);
+			const actualCheckpointCursors = network.byEndpoint.event.map(({ body }) => body.event);
+			const completed = {
+				state: await runtimeState(page),
+				phase: await page.locator(SELECTORS.board).getAttribute('data-motion-phase'),
+				character: await page.locator(SELECTORS.vaultkeeper).getAttribute('data-character-state'),
+				boardCells: (await boardSymbols(page)).length,
+				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
+				balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
+				baseAmount: await page.locator(SELECTORS.baseAmount).inputValue(),
+				totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
+			};
+			check(group, 'restore sends zero duplicate plays and settles the active round exactly once',
+				network.byEndpoint.play.length === 0 && network.byEndpoint.endRound.length === 1,
+				serialize(network.order),
+			);
+			check(group, 'restore persists each remaining durable checkpoint exactly once in order',
+				serialize(actualCheckpointCursors) === serialize(expectedCheckpointCursors) &&
+					new Set(actualCheckpointCursors).size === actualCheckpointCursors.length,
+				serialize({ resumeEventIndex, expectedCheckpointCursors, actualCheckpointCursors }),
+			);
+			check(group, 'restore never rewrites the already-persisted checkpoint',
+				actualCheckpointCursors.every((cursor) => cursor !== encodePresentationCursor(resumeEventIndex)),
+				serialize(actualCheckpointCursors),
+			);
+			for (const request of network.byEndpoint.event) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/bet/event',
+					body: {
+						sessionID: SESSION_ID,
+						event: request.body.event,
+					},
+				});
+			}
+			assertExactRequest(group, network.byEndpoint.endRound[0], {
+				method: 'POST',
+				path: '/wallet/end-round',
+				body: { sessionID: SESSION_ID },
+			});
+			check(group, 'restored feature completes to the exact authoritative payout, balance and ready shell',
+				completed.state === 'live-ready' &&
+					completed.phase === 'idle' &&
+					completed.character === 'idle_a' &&
+					completed.boardCells === 49 &&
+					completed.finalWin === formatExactApi(round.payout, 'USD') &&
+					completed.balance === formatExactApi(settledBalance, 'USD') &&
+					completed.baseAmount === String(DEFAULT_BASE_AMOUNT) &&
+					completed.totalPlay === '$1.00',
+				serialize({ completed, payoutApi: round.payout, settledBalance }),
+			);
+			check(group, 'network order remains authenticate, ordered checkpoints, then one settlement',
+				serialize(network.order) === serialize([
+					'authenticate',
+					...expectedCheckpointCursors.map(() => 'event'),
+					'endRound',
+				]),
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.restore = {
+				fixture: fixture.id,
+				resumeEventIndex,
+				expectedCheckpointCursors,
+				actualCheckpointCursors,
+				restoring,
+				completed,
+			};
+			record.screenshot = await saveScreenshot(page, group);
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('known-insufficient-balance-blocks-play', async (record) => {
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 		try {
