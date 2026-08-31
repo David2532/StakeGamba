@@ -1,5 +1,43 @@
 # Rolling automation metrics
 
+## BS-20260831-29
+
+```yaml
+closed_at_utc: 2026-08-31T21:27:00Z
+sprint_day: 2
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+local_frozen_install: PASS
+focused_syntax_and_json: PASS
+focused_contract_and_compliance_tests: 40
+focused_contract_and_compliance_status: PASS
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 108
+exact_app_status: PASS
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+verified_ci_run: 33439810616
+verified_ci_status: PASS
+remote_browser: { scenarios: 62, checks_pass: 1518, checks_fail: 0, unexpected_failures: 0 }
+remote_expired_session_recovery: { authenticate_requests: 2, play_requests: 2, automatic_play_retries: 0, automatic_auth_retries: 0, event_requests: 0, end_round_requests: 0, final_balance: '$999.00', final_win: '$0.00', final_state: live-ready }
+remote_diagnostics_artifact: 9776234530
+remote_diagnostics_digest: sha256:da5cdded82fe36b508978117ac0e0c0da029d8eda22ecd583859df437f7d4e53
+remote_implementation_commit: 5767f33f948e1b43552812d806da4e347493db1b
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/Stake-contract reads, one frozen install, focused syntax/contracts/compliance, exact Actions verification, structured artifact extraction, six screenshot inspections, diff/secret review and content-addressed fast-forward persistence. The first large-file blob transfer was truncated and rejected by a local/remote tree identity guard; bounded line chunks then reproduced the exact Git blob. One malformed log-filter regex was corrected once. No unchanged semantic failure was repeated; no subagent, dependency or binary product asset was added. Exact token telemetry was unavailable.
+
 ## BS-20260831-28
 
 ```yaml
