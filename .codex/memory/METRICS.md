@@ -1,5 +1,43 @@
 # Rolling automation metrics
 
+## BS-20260831-22
+
+```yaml
+closed_at_utc: 2026-08-31T09:46:00Z
+sprint_day: 2
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_currency_tests: 11
+focused_currency_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 103
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+diagnostic_ci_runs: { 33375442109: missing_normal_currency_aria_value, 33376695647: low_balance_action_expected_enabled }
+verified_ci_run: 33378233377
+verified_ci_status: PASS
+remote_browser_scenarios: 43
+remote_browser_checks_pass: 1015
+remote_browser_checks_fail: 0
+remote_jpy_ui: { ready_balance: "¥2", total_play: "¥1", final_balance: "¥1", final_win: "¥0.38" }
+remote_unknown_currency_ui: { ready_balance: "1.23 ZZZ", total_play: "1.00 ZZZ", final_balance: "0.23 ZZZ", final_win: "0.00 ZZZ" }
+remote_unexpected_network_page_request_failures: 0
+remote_expected_negative_path_console_messages: 5
+remote_diagnostics_artifact: 9753064218
+remote_implementation_commit: 9f2d8888da7956cf7d847f52ff1a2d1216b9496a
+manual_identical_retries: 0
+```
+
+Observed categories: compact memory/source reads, official Stake RGS verification, focused syntax/currency contracts, one complete local code/math gate chain, diff/secret review, three exact Actions runs, structured artifact inspection and seven exact screenshot reviews. The full local math gate took about 626 seconds and remained the largest local cost. The first two browser runs exposed distinct harness assumptions (normal currency inputs have no social-only ARIA value; a sub-wager balance correctly leaves the action disabled); both were corrected from computed browser evidence without weakening product behavior. A broad formatter diff and an invalid raw reverse-patch attempt were discarded before commit. Direct HTTPS push lacked credentials, so the connected GitHub Git Data API performed fast-forward-only writes. No unchanged semantic retry, subagent, dependency, binary asset or token estimate was used.
+
 ## BS-20260831-21
 
 ```yaml
