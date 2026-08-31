@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-20 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `e1e3ad5c6f8077d12df12f0e63daaae5bbb41729`
+- Verified implementation commit: `77faaa5b3204dd34f431913bfdc26093e963d476`
+- Work item: `BSB-README-001` (complete)
+- Selection reason: the app README still described an M2 greybox with no paid play and no Replay, contradicting the exact M3 runtime, scripts and fail-closed release process.
+- Before/after evidence: README now documents live RGS launch, sessionless read-only Replay, fixtures, actual package commands, exact-package candidate verification and the explicit `QA_BLOCKED`/not-release-ready boundary. Three regressions reject stale claims and script drift. The first exact CI run then exposed a transient character `failed` state being asserted before the accepted mechanical fallback; the harness now waits only for terminal `painted` or `fallback`.
+- Changed files: app README, README regression, Chromium QA asset wait, runtime-asset regression, and sprint memory closeout files.
+- Gates: focused README 3/3 and asset 6/6 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 101/101 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; isolated package and 51-row evidence resolution PASS; exact Chromium 40/40 scenarios and 975/975 checks PASS; unexpected network/page/request failures 0; `git diff --check` PASS. Local Chromium was BLOCKED only because its Playwright executable is absent; exact CI supplies the required clean-package browser proof.
+- Visual review: exact 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 screenshots from artifact `9748384857` inspected. Boards are square and fully visible, controls remain reachable, and no overlap, scrollbar, crop or broken-image regression is visible. Replay copy wraps within its narrow panel without escaping it.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. One transient exec transport disconnect was retried once; no unchanged semantic failure was repeated.
+- Persistence: README implementation `68ddaca` and verification fix `77faaa5` were tree-identical fast-forwards without force through the connected GitHub API; exact run `33365621986` and artifact `9748384857` succeeded.
+- Residual risk: human rights/Creative approval and cleanup, approved Spine 4.2 rig/authored clips, BLACKOUT/foreground layers, final audio assets and manual listening/device QA, real-device pacing, 23 manual checklist gates and 6 external approvals remain open.
+- Next candidate: continue `BSB-EVIDENCE-001` with the highest safe automatable gameplay/provider evidence slice while external/manual approvals remain explicitly unclaimed.
+
 ## BS-20260831-19 — SUCCESS
 
 - Sprint day: 2

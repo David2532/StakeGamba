@@ -1,5 +1,46 @@
 # Rolling automation metrics
 
+## BS-20260831-20
+
+```yaml
+closed_at_utc: 2026-08-31T07:00:00Z
+sprint_day: 2
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_readme_tests: 3
+focused_readme_status: PASS
+focused_asset_tests: 6
+focused_asset_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 101
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_browser: BLOCKED
+local_browser_blocker: playwright_executable_not_installed
+diagnostic_ci_run: 33364517136
+diagnostic_ci_failure: transient_character_failed_state_treated_as_terminal_before_fallback
+verified_ci_run: 33365621986
+verified_ci_status: PASS
+remote_browser_scenarios: 40
+remote_browser_checks_pass: 975
+remote_browser_checks_fail: 0
+remote_unexpected_network_page_request_failures: 0
+remote_expected_negative_path_console_messages: 5
+remote_diagnostics_artifact: 9748384857
+remote_implementation_commit: 77faaa5b3204dd34f431913bfdc26093e963d476
+manual_identical_retries: 0
+```
+
+Observed categories: safe branch/memory/runbook reads, targeted README/package-script and QA-harness inspection, focused README/asset regressions, one complete local code/math gate chain, diff/mode review, Git-data fast-forward writes, two exact Actions runs, structured artifact evidence inspection and five exact screenshot reviews. The diagnostic CI run exposed a real transient paint-state race; the terminal fallback predicate was tightened without weakening runtime acceptance. One exec transport disconnect was retried once unchanged; no semantic failure was repeated unchanged. No subagents, dependencies, binary product assets or token estimates were used.
+
 ## BS-20260831-19
 
 ```yaml
