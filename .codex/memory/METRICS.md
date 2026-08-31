@@ -1,5 +1,35 @@
 # Rolling automation metrics
 
+## BS-20260831-15
+
+```yaml
+closed_at_utc: 2026-08-31T03:10:00Z
+sprint_day: 2
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_character_contracts: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 95
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+verified_ci_run: 33352237842
+verified_ci_status: PASS
+remote_browser_scenarios: 40
+remote_browser_checks_pass: 968
+remote_browser_checks_fail: 0
+remote_diagnostics_artifact: 9744182047
+remote_implementation_commit: 176422ee721eb90a4f8507073758bbb2253946f4
+manual_identical_retries: 0
+```
+
+Observed categories: targeted memory/source/skill reads, focused and one corrected full gate, diff review, Git-data fast-forward writes, Actions/artifact reads, structured browser evidence inspection and six exact screenshots. One broad formatter attempt was fully reversed before the material patch; the first fail-fast full gate exposed only a stale markup-order assertion and was corrected semantically. One public artifact download returned 401 before the authenticated connector path succeeded. No subagents, dependencies, binary assets or token estimates were used.
+
 ## BS-20260831-14
 
 ```yaml

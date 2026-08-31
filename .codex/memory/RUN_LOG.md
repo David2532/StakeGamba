@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-15 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `c4c861217129e8922e25b3d622d0bf5eb6d1a581`
+- Verified implementation commit: `176422ee721eb90a4f8507073758bbb2253946f4`
+- Work item: `BSB-MOTION-001` (semantic Vaultkeeper fallback slice; item remains in progress)
+- Selection reason: board/cascade/vault motion was exact, but the static production-candidate penguin never reacted to authoritative gameplay and a missing image left a broken character well while the external Spine rig remained unavailable.
+- Before/after evidence: round, board, win, feature, cap and settlement cues now drive immutable semantic character states with bounded normal/turbo/reduced CSS motion. Exact Chromium records `spin_start → monitoring → win_acknowledge → recover → idle_a`; SKIP reaches ready/idle in 103ms with exact `$2.07`, and an injected image error swaps to a deterministic mechanical penguin silhouette without blocking play.
+- Changed files: presentation director, slot UI/CSS, contract/runtime-asset regressions, Chromium QA, and sprint memory closeout files.
+- Gates: frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 95/95 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; isolated package/evidence resolution PASS; exact Chromium 40/40 scenarios and 968/968 checks PASS; unexpected console/network/request failures 0; `git diff --check` PASS.
+- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640, populated character-motion and forced fallback screenshots inspected. Desktop character and mechanical silhouette stay within the dedicated well; compact modes preserve board/control priority; no new overlap, scroll, crop or broken-image UI is visible.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Formatter churn was fully removed, one stale markup-order assertion was fixed, and authenticated artifact retrieval replaced one 401 without repeating it unchanged.
+- Persistence: the tree-identical implementation was fast-forwarded without force through the connected GitHub API; exact run `33352237842` and artifact `9744182047` succeeded.
+- Residual risk: approved Spine 4.2 rig/authored clips, reel-stop and broad frame-pacing polish, asset rights/Creative approval, manual audio/device QA, 23 manual checklist gates and 6 external approvals remain open.
+- Next candidate: continue `BSB-MOTION-001` with reel-stop polish and measurable frame-pacing evidence; then return to authored audio detail/manual QA.
+
 ## BS-20260831-14 — SUCCESS
 
 - Sprint day: 2
