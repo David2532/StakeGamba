@@ -1,6 +1,7 @@
 <script>
 	import { onMount, tick } from 'svelte';
 	import { BLACKSITE_ASSETS } from '../lib/assets/blacksite-assets.js';
+	import { waitForDecodedImagePaint } from '../lib/assets/image-paint.js';
 	import { MODES, getMode, getModeLabel } from '../lib/contracts/modes.js';
 	import {
 		CLUSTER_BANDS,
@@ -95,6 +96,14 @@
 	let motionMode = 'normal';
 	let reducedMotion = false;
 	let characterAssetFailed = false;
+	let characterAssetState = 'loading';
+	let environmentAssetState = 'loading';
+	/** @type {HTMLImageElement | null} */
+	let characterAssetElement = null;
+	/** @type {HTMLImageElement | null} */
+	let environmentAssetElement = null;
+	let characterPaintRequest = 0;
+	let environmentPaintRequest = 0;
 
 	$: selectedMode = getMode(selectedModeId);
 	$: social = launch.social === true || liveSnapshot.config?.jurisdiction?.socialCasino === true;
@@ -199,6 +208,63 @@
 		document.body.dataset.motionProfile = presentationTimingProfile;
 		document.body.dataset.audioStatus = audioState.status;
 		document.body.dataset.audioLevel = audioState.level;
+		document.body.dataset.assetPaintState =
+			['painted', 'fallback'].includes(characterAssetState) &&
+			environmentAssetState === 'painted'
+				? 'painted'
+				: characterAssetState === 'failed' || environmentAssetState === 'failed'
+					? 'failed'
+					: 'loading';
+	}
+
+	async function confirmAssetPaint(kind, image) {
+		const request =
+			kind === 'character' ? ++characterPaintRequest : ++environmentPaintRequest;
+		if (kind === 'character') characterAssetState = 'loading';
+		else environmentAssetState = 'loading';
+
+		try {
+			await waitForDecodedImagePaint(image, {
+				reveal: async () => {
+					if (kind === 'character') {
+						if (request !== characterPaintRequest) return;
+						characterAssetState = 'decoded';
+					} else {
+						if (request !== environmentPaintRequest) return;
+						environmentAssetState = 'decoded';
+					}
+					await tick();
+				},
+			});
+			if (kind === 'character' && request === characterPaintRequest) {
+				characterAssetState = 'painted';
+			}
+			if (kind === 'environment' && request === environmentPaintRequest) {
+				environmentAssetState = 'painted';
+			}
+		} catch {
+			if (kind === 'character' && request === characterPaintRequest) {
+				characterAssetFailed = true;
+				characterAssetState = 'failed';
+				await tick();
+				await new Promise((resolve) =>
+					requestAnimationFrame(() => requestAnimationFrame(resolve)),
+				);
+				characterAssetState = 'fallback';
+			}
+			if (kind === 'environment' && request === environmentPaintRequest) {
+				environmentAssetState = 'failed';
+			}
+		}
+	}
+
+	function handleCharacterAssetError() {
+		void confirmAssetPaint('character', null);
+	}
+
+	function handleEnvironmentAssetError() {
+		environmentPaintRequest += 1;
+		environmentAssetState = 'failed';
 	}
 
 	function cellKey(cell) {
@@ -678,6 +744,12 @@
 		);
 		launch = resolveLaunchMode(window.location.search, { dev: __BLACKSITE_DEV_FIXTURES__ });
 		window.addEventListener('keydown', keydown);
+		if (characterAssetElement?.complete) {
+			void confirmAssetPaint('character', characterAssetElement);
+		}
+		if (environmentAssetElement?.complete) {
+			void confirmAssetPaint('environment', environmentAssetElement);
+		}
 
 		void (async () => {
 			if (launch.kind === 'error') {
@@ -745,6 +817,7 @@
 			delete document.body.dataset.motionProfile;
 			delete document.body.dataset.audioStatus;
 			delete document.body.dataset.audioLevel;
+			delete document.body.dataset.assetPaintState;
 		};
 	});
 </script>
@@ -863,15 +936,18 @@
 				data-character-state={presentation.character?.state ?? 'idle_a'}
 				data-motion-profile={presentationTimingProfile}
 				data-asset-state={characterAssetFailed ? 'fallback' : 'image'}
+				data-asset-paint-state={characterAssetState}
 				aria-hidden="true"
 			>
 				<img
+					bind:this={characterAssetElement}
 					src={BLACKSITE_ASSETS.character.vaultkeeperFallback}
 					alt=""
 					width="702"
 					height="1080"
 					decoding="async"
-					on:error={() => (characterAssetFailed = true)}
+					on:load={(event) => void confirmAssetPaint('character', event.currentTarget)}
+					on:error={handleCharacterAssetError}
 				/>
 				<div class="vaultkeeper-safe-fallback" data-testid="vaultkeeper-safe-fallback">
 					<span></span>
@@ -896,14 +972,22 @@
 			data-motion-profile={presentationTimingProfile}
 			aria-label="BLACKSITE seven by seven vault grid"
 		>
-			<picture class="vault-environment" data-testid="vault-environment" aria-hidden="true">
+			<picture
+				class="vault-environment"
+				data-testid="vault-environment"
+				data-asset-paint-state={environmentAssetState}
+				aria-hidden="true"
+			>
 				<source media="(max-width: 820px)" srcset={BLACKSITE_ASSETS.environment.vaultPortrait} />
 				<img
+					bind:this={environmentAssetElement}
 					src={BLACKSITE_ASSETS.environment.vaultDesktop}
 					alt=""
 					width="1672"
 					height="941"
 					decoding="async"
+					on:load={(event) => void confirmAssetPaint('environment', event.currentTarget)}
+					on:error={handleEnvironmentAssetError}
 				/>
 			</picture>
 			<div class="stage-heading">
@@ -1608,6 +1692,12 @@
 		filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
 		transform-origin: 50% 88%;
 		will-change: transform, filter;
+		opacity: 0;
+	}
+
+	.vaultkeeper-presence[data-asset-paint-state='decoded'] img,
+	.vaultkeeper-presence[data-asset-paint-state='painted'] img {
+		opacity: 1;
 	}
 
 	.vaultkeeper-presence[data-character-state='spin_start'] img {
@@ -1751,6 +1841,12 @@
 		height: 100%;
 		object-fit: cover;
 		object-position: center;
+		opacity: 0;
+	}
+
+	.vault-environment[data-asset-paint-state='decoded'] img,
+	.vault-environment[data-asset-paint-state='painted'] img {
+		opacity: 1;
 	}
 
 	.stage-heading,

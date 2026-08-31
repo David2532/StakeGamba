@@ -28,6 +28,7 @@ const environmentAssets = Object.freeze([
 ]);
 const pageUrl = new URL('../src/routes/+page.svelte', import.meta.url);
 const assetMapUrl = new URL('../src/lib/assets/blacksite-assets.js', import.meta.url);
+const imagePaintUrl = new URL('../src/lib/assets/image-paint.js', import.meta.url);
 const browserQaUrl = new URL('../../../scripts/blacksite-qa-e2e.mjs', import.meta.url);
 
 function sha256(buffer) {
@@ -68,7 +69,8 @@ test('runtime uses the semantic asset map and hides decorative character in comp
 		page,
 		/data-testid="vaultkeeper-presence"[\s\S]*data-character-state=[\s\S]*data-asset-state=[\s\S]*aria-hidden="true"/u,
 	);
-	assert.match(page, /on:error=\{\(\) => \(characterAssetFailed = true\)\}/u);
+	assert.match(page, /on:error=\{handleCharacterAssetError\}/u);
+	assert.match(page, /data-asset-paint-state=\{characterAssetState\}/u);
 	assert.match(page, /data-testid="vaultkeeper-safe-fallback"/u);
 	assert.match(page, /\[data-asset-state='fallback'\][\s\S]*vaultkeeper-safe-fallback/u);
 	assert.match(page, /\.vaultkeeper-presence \{[\s\S]*pointer-events: none;/u);
@@ -101,10 +103,37 @@ test('runtime selects an independent portrait vault plate without exposing decor
 
 	assert.match(assetMap, /vaultDesktop:[\s\S]*mechanical-vault-desktop-v1\.webp/u);
 	assert.match(assetMap, /vaultPortrait:[\s\S]*mechanical-vault-portrait-v1\.webp/u);
-	assert.match(page, /data-testid="vault-environment" aria-hidden="true"/u);
+	assert.match(page, /data-testid="vault-environment"[\s\S]*aria-hidden="true"/u);
 	assert.match(page, /media="\(max-width: 820px\)"[\s\S]*BLACKSITE_ASSETS\.environment\.vaultPortrait/u);
 	assert.match(page, /BLACKSITE_ASSETS\.environment\.vaultDesktop/u);
 	assert.match(page, /\.vault-environment \{[\s\S]*pointer-events: none;/u);
+	assert.match(page, /data-asset-paint-state=\{environmentAssetState\}/u);
+	assert.match(page, /waitForDecodedImagePaint/u);
+});
+
+test('asset paint barrier decodes, reveals and waits for two compositor frames', async () => {
+	const { waitForDecodedImagePaint } = await import(imagePaintUrl.href);
+	const order = [];
+	const image = {
+		complete: true,
+		naturalWidth: 64,
+		async decode() {
+			order.push('decode');
+		},
+	};
+	await waitForDecodedImagePaint(image, {
+		reveal: () => order.push('reveal'),
+		nextFrame: (callback) => {
+			order.push('frame');
+			callback(0);
+			return 1;
+		},
+	});
+	assert.deepEqual(order, ['decode', 'reveal', 'frame', 'frame']);
+	await assert.rejects(
+		waitForDecodedImagePaint({ complete: false, naturalWidth: 0 }),
+		/IMAGE_NOT_LOADED/u,
+	);
 });
 
 test('browser evidence identity includes shipped static assets', async () => {

@@ -757,10 +757,52 @@ async function openPage(context, origin, query) {
 }
 
 async function saveScreenshot(page, name) {
+	await waitForAssetPaint(page);
 	mkdirSync(screenshotRoot, { recursive: true });
 	const path = join(screenshotRoot, `${name}.png`);
 	await page.screenshot({ path, fullPage: false });
 	return relative(repoRoot, path).replaceAll('\\', '/');
+}
+
+async function waitForAssetPaint(page, timeoutMs = 10_000) {
+	await page.waitForFunction(
+		() => {
+			const character = document.querySelector('[data-testid="vaultkeeper-presence"]');
+			const environment = document.querySelector('[data-testid="vault-environment"]');
+			const characterState = character?.getAttribute('data-asset-paint-state');
+			const environmentState = environment?.getAttribute('data-asset-paint-state');
+			return (
+				['painted', 'fallback', 'failed'].includes(characterState ?? '') &&
+				['painted', 'failed'].includes(environmentState ?? '')
+			);
+		},
+		undefined,
+		{ timeout: timeoutMs },
+	);
+	const states = await page.evaluate(() => ({
+		body: document.body.dataset.assetPaintState ?? null,
+		character:
+			document
+				.querySelector('[data-testid="vaultkeeper-presence"]')
+				?.getAttribute('data-asset-paint-state') ?? null,
+		environment:
+			document
+				.querySelector('[data-testid="vault-environment"]')
+				?.getAttribute('data-asset-paint-state') ?? null,
+	}));
+	assert.equal(states.body, 'painted', `Asset paint barrier failed: ${serialize(states)}`);
+	assert.ok(
+		['painted', 'fallback'].includes(states.character),
+		`Character paint barrier failed: ${serialize(states)}`,
+	);
+	assert.equal(
+		states.environment,
+		'painted',
+		`Environment paint barrier failed: ${serialize(states)}`,
+	);
+	await page.evaluate(
+		() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+	);
 }
 
 async function startFrameSampler(page, samplerKey) {
@@ -2848,6 +2890,7 @@ async function runNetworkScenarios(browser, origin) {
 }
 
 async function geometryAudit(page) {
+	await waitForAssetPaint(page);
 	await page.evaluate(() => document.activeElement?.blur());
 	await page.keyboard.press('Tab');
 	return page.evaluate((selectors) => {
@@ -2981,6 +3024,7 @@ async function geometryAudit(page) {
 				imageBounds: rect(vaultkeeperImage),
 				imageComplete: Boolean(vaultkeeperImage?.complete),
 				naturalWidth: vaultkeeperImage?.naturalWidth ?? 0,
+				paintState: vaultkeeper?.getAttribute('data-asset-paint-state') ?? null,
 			},
 			environment: {
 				exists: Boolean(environment),
@@ -2990,6 +3034,7 @@ async function geometryAudit(page) {
 				imageComplete: Boolean(environmentImage?.complete),
 				naturalWidth: environmentImage?.naturalWidth ?? 0,
 				currentSrc: environmentImage?.currentSrc ?? '',
+				paintState: environment?.getAttribute('data-asset-paint-state') ?? null,
 				pointerEvents: environment ? getComputedStyle(environment).pointerEvents : null,
 			},
 			alignment: {
@@ -3034,7 +3079,8 @@ function assertGeometryRecord(group, audit, viewport) {
 						audit.vaultkeeper.imageBounds?.height > 0,
 				)) &&
 			audit.vaultkeeper.imageComplete &&
-			audit.vaultkeeper.naturalWidth > 0,
+			audit.vaultkeeper.naturalWidth > 0 &&
+			audit.vaultkeeper.paintState === 'painted',
 		serialize(audit.vaultkeeper),
 	);
 	const expectedEnvironment = viewport.width <= 820
@@ -3049,6 +3095,7 @@ function assertGeometryRecord(group, audit, viewport) {
 			audit.environment.imageComplete &&
 			audit.environment.naturalWidth > 0 &&
 			audit.environment.currentSrc.endsWith(expectedEnvironment) &&
+			audit.environment.paintState === 'painted' &&
 			audit.environment.pointerEvents === 'none',
 		serialize(audit.environment),
 	);
