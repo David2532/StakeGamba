@@ -44,6 +44,10 @@ function motionState(phase = 'idle', cells = EMPTY_CELLS, tumbleIndex = null) {
 	return Object.freeze({ phase, cells, tumbleIndex });
 }
 
+function characterState(state = 'idle_a', sourceEventIndex = -1) {
+	return Object.freeze({ state, sourceEventIndex });
+}
+
 export function createInitialPresentationState() {
 	return Object.freeze({
 		status: 'idle',
@@ -61,6 +65,7 @@ export function createInitialPresentationState() {
 		finalWinRaw: null,
 		capped: false,
 		motion: motionState(),
+		character: characterState(),
 		notice: 'Awaiting authoritative events',
 	});
 }
@@ -122,6 +127,7 @@ export class PresentationDirector {
 					mode: event.mode,
 					phase: event.initial_phase,
 					motion: motionState('spin'),
+					character: characterState('spin_start', cue.eventIndex),
 					notice: `${event.mode} round accepted`,
 				});
 				break;
@@ -141,6 +147,7 @@ export class PresentationDirector {
 					phase: event.phase,
 					featureCycle: event.feature_cycle,
 					motion: boardMotion,
+					character: characterState('monitoring', cue.eventIndex),
 					notice: `Authoritative board ${event.tumble_index}`,
 				});
 				break;
@@ -154,6 +161,7 @@ export class PresentationDirector {
 					stepWinRaw: event.step_payout_raw,
 					cumulativeWinRaw: event.cumulative_after_raw,
 					motion: motionState('hit', winningCells),
+					character: characterState('win_acknowledge', cue.eventIndex),
 					notice: `${event.clusters.length} authoritative cluster cue(s)`,
 				});
 				break;
@@ -178,6 +186,7 @@ export class PresentationDirector {
 				this.update({
 					...common,
 					motion: motionState('anticipation'),
+					character: characterState('feature_tease', cue.eventIndex),
 					notice: 'BLACKOUT armed after cascade chain',
 				});
 				break;
@@ -189,6 +198,7 @@ export class PresentationDirector {
 					featureCyclesAwarded: event.total_cycles,
 					accessMultiplier: event.access_multiplier,
 					motion: motionState('blackout-enter'),
+					character: characterState('feature_trigger', cue.eventIndex),
 					notice: event.direct ? 'Direct BLACKOUT entry' : 'Natural BLACKOUT entry',
 				});
 				break;
@@ -198,6 +208,7 @@ export class PresentationDirector {
 					featureCycle: event.cycle,
 					featureCyclesAwarded: event.total_cycles_awarded,
 					accessMultiplier: event.access_multiplier,
+					character: characterState('bonus_idle', cue.eventIndex),
 					notice: `Feature cycle ${event.cycle}`,
 				});
 				break;
@@ -222,6 +233,7 @@ export class PresentationDirector {
 					...common,
 					cumulativeWinRaw: event.cumulative_payout_raw,
 					motion: motionState('blackout-exit'),
+					character: characterState('recover', cue.eventIndex),
 					notice: 'BLACKOUT complete',
 				});
 				break;
@@ -230,6 +242,7 @@ export class PresentationDirector {
 					...common,
 					capped: true,
 					cumulativeWinRaw: event.cumulative_payout_raw,
+					character: characterState('max_win', cue.eventIndex),
 					notice: 'Complete-round cap reached',
 				});
 				break;
@@ -245,6 +258,7 @@ export class PresentationDirector {
 					activeClusters: Object.freeze([]),
 					stepWinRaw: 0,
 					motion: motionState(),
+					character: characterState('recover', cue.eventIndex),
 					notice: 'Authoritative round_end reached',
 				});
 				break;
@@ -336,6 +350,9 @@ export class PresentationDirector {
 			}
 		}
 		this.skipGeneration = null;
+		if (this.state.character.state !== 'idle_a') {
+			this.update({ character: characterState('idle_a', this.state.lastEventIndex) });
+		}
 		return true;
 	}
 

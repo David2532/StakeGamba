@@ -64,7 +64,13 @@ test('runtime uses the semantic asset map and hides decorative character in comp
 
 	assert.match(assetMap, /vaultkeeperFallback:[\s\S]*penguin-vaultkeeper-fallback-v1\.webp/u);
 	assert.match(page, /BLACKSITE_ASSETS\.character\.vaultkeeperFallback/u);
-	assert.match(page, /data-testid="vaultkeeper-presence" aria-hidden="true"/u);
+	assert.match(
+		page,
+		/data-testid="vaultkeeper-presence"[\s\S]*data-character-state=[\s\S]*data-asset-state=[\s\S]*aria-hidden="true"/u,
+	);
+	assert.match(page, /on:error=\{\(\) => \(characterAssetFailed = true\)\}/u);
+	assert.match(page, /data-testid="vaultkeeper-safe-fallback"/u);
+	assert.match(page, /\[data-asset-state='fallback'\][\s\S]*vaultkeeper-safe-fallback/u);
 	assert.match(page, /\.vaultkeeper-presence \{[\s\S]*pointer-events: none;/u);
 	assert.equal((page.match(/\.vaultkeeper-presence,/gu) ?? []).length >= 2, true);
 });
@@ -105,5 +111,6 @@ test('browser evidence identity includes shipped static assets', async () => {
 	const source = await readFile(browserQaUrl, 'utf8');
 	assert.match(source, /join\(repoRoot, 'apps', 'blacksite', 'static'\)/u);
 	assert.match(source, /vaultkeeper fallback is.*compact-hidden.*and loaded/u);
+	assert.match(source, /missing Vaultkeeper image switches to the deterministic mechanical silhouette/u);
 	assert.match(source, /responsive mechanical vault environment selects/u);
 });

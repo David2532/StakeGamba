@@ -711,6 +711,42 @@ test('PresentationDirector binds BLACKOUT transitions to authoritative feature c
 	assert.equal(director.timers.size, 0);
 });
 
+test('PresentationDirector drives the static Vaultkeeper fallback from authoritative cues only', async () => {
+	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'base_natural_blackout');
+	assert(fixture);
+	const cues = new GameEventAdapter().adaptBook(fixture.book, { expectedMode: 'base' });
+	const director = new PresentationDirector();
+	const expectedStates = new Map([
+		['round_started', 'spin_start'],
+		['board_snapshot', 'monitoring'],
+		['win', 'win_acknowledge'],
+		['feature_armed', 'feature_tease'],
+		['feature_started', 'feature_trigger'],
+		['feature_cycle', 'bonus_idle'],
+		['feature_ended', 'recover'],
+		['settled', 'recover'],
+	]);
+	const seen = new Set();
+	for (const cue of cues) {
+		director.consume(cue);
+		const expected = expectedStates.get(cue.kind);
+		if (!expected) continue;
+		seen.add(cue.kind);
+		assert.equal(director.state.character.state, expected);
+		assert.equal(director.state.character.sourceEventIndex, cue.eventIndex);
+		assert(Object.isFrozen(director.state.character));
+	}
+	for (const kind of expectedStates.keys()) assert(seen.has(kind), `missing ${kind} cue`);
+	director.reset();
+	director.setTimingProfile('reduced');
+	assert.equal(await director.play(cues), true);
+	assert.deepEqual(director.state.character, {
+		state: 'idle_a',
+		sourceEventIndex: cues.at(-1).eventIndex,
+	});
+	assert.equal(director.timers.size, 0);
+});
+
 test('PresentationDirector skip drains authority, preserves motion order and settles cleanly', async () => {
 	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'base_cascade_3');
 	assert(fixture);
@@ -730,5 +766,6 @@ test('PresentationDirector skip drains authority, preserves motion order and set
 	assert(phases.includes('drop'));
 	assert(phases.includes('settle'));
 	assert.equal(director.state.motion.phase, 'idle');
+	assert.equal(director.state.character.state, 'idle_a');
 	assert.equal(director.timers.size, 0);
 });

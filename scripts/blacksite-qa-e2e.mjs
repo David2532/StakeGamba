@@ -61,6 +61,8 @@ const SELECTORS = Object.freeze({
 	launchStatus: '[data-testid="launch-status"]',
 	launchError: '[data-testid="launch-error"]',
 	board: '[data-testid="board"]',
+	vaultkeeper: '[data-testid="vaultkeeper-presence"]',
+	vaultkeeperFallback: '[data-testid="vaultkeeper-safe-fallback"]',
 	primaryAction: '[data-testid="primary-action"]',
 	motionMode: '[data-testid="motion-mode"]',
 	skipPresentation: '[data-testid="skip-presentation"]',
@@ -1935,21 +1937,38 @@ async function runNetworkScenarios(browser, origin) {
 			const { page, diagnostics } = await openPage(context, origin, liveQuery());
 			await waitForEndpoint(network, 'authenticate', 1);
 			await waitForStableAction(page);
-			await page.evaluate((selector) => {
-				const board = document.querySelector(selector);
+			await page.evaluate(({ boardSelector, characterSelector }) => {
+				const board = document.querySelector(boardSelector);
+				const character = document.querySelector(characterSelector);
 				window.__blacksiteMotionPhases = [];
-				const capture = () => window.__blacksiteMotionPhases.push({
+				window.__blacksiteCharacterStates = [];
+				const captureBoard = () => window.__blacksiteMotionPhases.push({
 					phase: board?.getAttribute('data-motion-phase'),
 					profile: board?.getAttribute('data-motion-profile'),
 					at: performance.now(),
 				});
-				capture();
-				window.__blacksiteMotionObserver = new MutationObserver(capture);
+				const captureCharacter = () => {
+					const image = character?.querySelector('img');
+					window.__blacksiteCharacterStates.push({
+						state: character?.getAttribute('data-character-state'),
+						profile: character?.getAttribute('data-motion-profile'),
+						animation: image ? getComputedStyle(image).animationName : 'none',
+						at: performance.now(),
+					});
+				};
+				captureBoard();
+				captureCharacter();
+				window.__blacksiteMotionObserver = new MutationObserver(captureBoard);
 				window.__blacksiteMotionObserver.observe(board, {
 					attributes: true,
 					attributeFilter: ['data-motion-phase', 'data-motion-profile'],
 				});
-			}, SELECTORS.board);
+				window.__blacksiteCharacterObserver = new MutationObserver(captureCharacter);
+				window.__blacksiteCharacterObserver.observe(character, {
+					attributes: true,
+					attributeFilter: ['data-character-state', 'data-motion-profile'],
+				});
+			}, { boardSelector: SELECTORS.board, characterSelector: SELECTORS.vaultkeeper });
 
 			await page.locator(SELECTORS.motionMode).click();
 			check(group, 'Turbo control selects the bounded turbo presentation profile',
@@ -1964,6 +1983,7 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForEndpoint(network, 'play', 1);
 			await waitForStableAction(page);
 			const turboPhases = await page.evaluate(() => window.__blacksiteMotionPhases);
+			const turboCharacterStates = await page.evaluate(() => window.__blacksiteCharacterStates);
 			const turboNames = turboPhases.map(({ phase }) => phase);
 			let previousIndex = -1;
 			const orderedTurbo = ['hit', 'remove', 'drop', 'settle'].every((phase) => {
@@ -1972,6 +1992,15 @@ async function runNetworkScenarios(browser, origin) {
 				return index >= 0;
 			});
 			check(group, 'authoritative turbo cascade visibly traverses hit, remove, drop and settle', orderedTurbo, serialize(turboPhases));
+			const characterNames = turboCharacterStates.map(({ state }) => state);
+			let previousCharacterIndex = -1;
+			const orderedCharacterFallback = ['spin_start', 'monitoring', 'win_acknowledge', 'idle_a'].every((state) => {
+				const index = characterNames.indexOf(state, previousCharacterIndex + 1);
+				previousCharacterIndex = index;
+				return index >= 0;
+			});
+			check(group, 'static Vaultkeeper fallback follows authoritative spin, board, win and recovery states', orderedCharacterFallback, serialize(turboCharacterStates));
+			check(group, 'Vaultkeeper fallback uses bounded CSS motion only while its semantic state is active', turboCharacterStates.some(({ state, animation }) => state === 'win_acknowledge' && animation.endsWith('vaultkeeper-win-acknowledge')), serialize(turboCharacterStates));
 
 			await page.locator(SELECTORS.motionMode).click();
 			await page.locator(SELECTORS.primaryAction).click();
@@ -1990,11 +2019,12 @@ async function runNetworkScenarios(browser, origin) {
 			const completed = {
 				state: await runtimeState(page),
 				phase: await page.locator(SELECTORS.board).getAttribute('data-motion-phase'),
+				characterState: await page.locator(SELECTORS.vaultkeeper).getAttribute('data-character-state'),
 				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
 				skipElapsedMs: Date.now() - skippedAt,
 			};
 			check(group, 'Skip drains remaining cues and returns to an idle ready state without deadlock',
-				completed.state === 'live-ready' && completed.phase === 'idle' && completed.skipElapsedMs < 1_000,
+				completed.state === 'live-ready' && completed.phase === 'idle' && completed.characterState === 'idle_a' && completed.skipElapsedMs < 1_000,
 				serialize(completed),
 			);
 			check(group, 'Turbo and skipped plays preserve the exact authoritative final payout',
@@ -2007,11 +2037,34 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
-			record.motion = { fixture: fixture.id, turboPhases, completed };
-			record.screenshot = await saveScreenshot(page, group);
+			const normalScreenshot = await saveScreenshot(page, group);
+			await page.locator(`${SELECTORS.vaultkeeper} img`).evaluate((image) => {
+				image.dispatchEvent(new Event('error'));
+			});
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.getAttribute('data-asset-state') === 'fallback',
+				SELECTORS.vaultkeeper,
+			);
+			const assetFallback = await page.evaluate(({ characterSelector, fallbackSelector }) => {
+				const character = document.querySelector(characterSelector);
+				const image = character?.querySelector('img');
+				const fallback = document.querySelector(fallbackSelector);
+				return {
+					assetState: character?.getAttribute('data-asset-state'),
+					imageDisplay: image ? getComputedStyle(image).display : null,
+					fallbackDisplay: fallback ? getComputedStyle(fallback).display : null,
+				};
+			}, { characterSelector: SELECTORS.vaultkeeper, fallbackSelector: SELECTORS.vaultkeeperFallback });
+			check(group, 'missing Vaultkeeper image switches to the deterministic mechanical silhouette without blocking play', assetFallback.assetState === 'fallback' && assetFallback.imageDisplay === 'none' && assetFallback.fallbackDisplay === 'block' && (await runtimeState(page)) === 'live-ready', serialize(assetFallback));
+			record.motion = { fixture: fixture.id, turboPhases, turboCharacterStates, completed, assetFallback };
+			record.screenshot = normalScreenshot;
+			record.assetFallbackScreenshot = await saveScreenshot(page, `${group}-asset-fallback`);
 			record.network = network;
 			record.diagnostics = diagnostics;
-			await page.evaluate(() => window.__blacksiteMotionObserver?.disconnect());
+			await page.evaluate(() => {
+				window.__blacksiteMotionObserver?.disconnect();
+				window.__blacksiteCharacterObserver?.disconnect();
+			});
 		} finally {
 			await context.close();
 		}

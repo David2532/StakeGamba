@@ -94,6 +94,7 @@
 	let returnFocusElement = null;
 	let motionMode = 'normal';
 	let reducedMotion = false;
+	let characterAssetFailed = false;
 
 	$: selectedMode = getMode(selectedModeId);
 	$: social = launch.social === true || liveSnapshot.config?.jurisdiction?.socialCasino === true;
@@ -852,14 +853,25 @@
 				{/if}
 			</label>
 
-			<div class="vaultkeeper-presence" data-testid="vaultkeeper-presence" aria-hidden="true">
+			<div
+				class="vaultkeeper-presence"
+				data-testid="vaultkeeper-presence"
+				data-character-state={presentation.character?.state ?? 'idle_a'}
+				data-motion-profile={presentationTimingProfile}
+				data-asset-state={characterAssetFailed ? 'fallback' : 'image'}
+				aria-hidden="true"
+			>
 				<img
 					src={BLACKSITE_ASSETS.character.vaultkeeperFallback}
 					alt=""
 					width="702"
 					height="1080"
 					decoding="async"
+					on:error={() => (characterAssetFailed = true)}
 				/>
+				<div class="vaultkeeper-safe-fallback" data-testid="vaultkeeper-safe-fallback">
+					<span></span>
+				</div>
 				<div class="vaultkeeper-tag">
 					<span>VAULTKEEPER</span>
 					<strong>LOCK CONTROL // PRESENT</strong>
@@ -1589,6 +1601,83 @@
 		object-fit: contain;
 		object-position: center bottom;
 		filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
+		transform-origin: 50% 88%;
+		will-change: transform, filter;
+	}
+
+	.vaultkeeper-presence[data-character-state='spin_start'] img {
+		animation: vaultkeeper-spin-start 160ms ease-out both;
+	}
+
+	.vaultkeeper-presence[data-character-state='win_acknowledge'] img {
+		animation: vaultkeeper-win-acknowledge 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	}
+
+	.vaultkeeper-presence[data-character-state='feature_tease'] img {
+		animation: vaultkeeper-feature-tease 600ms ease-in-out both;
+	}
+
+	.vaultkeeper-presence[data-character-state='feature_trigger'] img,
+	.vaultkeeper-presence[data-character-state='recover'] img {
+		animation: vaultkeeper-feature-shift 1000ms cubic-bezier(0.16, 0.72, 0.18, 1) both;
+	}
+
+	.vaultkeeper-presence[data-character-state='bonus_idle'] img {
+		filter: brightness(1.08) saturate(1.1) drop-shadow(0 12px 18px rgba(216, 184, 111, 0.24));
+		transform: translateY(-1.5%) scale(1.012);
+	}
+
+	.vaultkeeper-presence[data-character-state='max_win'] img {
+		animation: vaultkeeper-max-win 1000ms cubic-bezier(0.18, 0.76, 0.18, 1) both;
+	}
+
+	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='spin_start'] img,
+	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='win_acknowledge'] img {
+		animation-duration: 110ms;
+	}
+
+	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='feature_tease'] img {
+		animation-duration: 180ms;
+	}
+
+	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='feature_trigger'] img,
+	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='recover'] img,
+	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='max_win'] img {
+		animation-duration: 360ms;
+	}
+
+	.vaultkeeper-safe-fallback {
+		position: absolute;
+		inset: 15% 24% 15%;
+		display: none;
+		border: 1px solid rgba(104, 156, 163, 0.52);
+		border-radius: 48% 48% 38% 38%;
+		background:
+			radial-gradient(ellipse at 50% 59%, #c9d6d7 0 27%, transparent 28%),
+			radial-gradient(circle at 38% 30%, #8fd4df 0 2.5%, transparent 3.5%),
+			radial-gradient(circle at 62% 30%, #8fd4df 0 2.5%, transparent 3.5%),
+			linear-gradient(145deg, #16282d, #071115 74%);
+		box-shadow: inset 0 0 28px rgba(95, 161, 170, 0.18), 0 12px 20px rgba(0, 0, 0, 0.48);
+	}
+
+	.vaultkeeper-safe-fallback span {
+		position: absolute;
+		left: 50%;
+		bottom: 24%;
+		width: 28%;
+		aspect-ratio: 1;
+		border: 2px solid #d9b86f;
+		border-radius: 5px;
+		box-shadow: 0 0 14px rgba(216, 184, 111, 0.24);
+		transform: translateX(-50%) rotate(45deg);
+	}
+
+	.vaultkeeper-presence[data-asset-state='fallback'] img {
+		display: none;
+	}
+
+	.vaultkeeper-presence[data-asset-state='fallback'] .vaultkeeper-safe-fallback {
+		display: block;
 	}
 
 	.vaultkeeper-tag {
@@ -1904,6 +1993,36 @@
 	@keyframes environment-lock-pulse {
 		0%, 100% { filter: brightness(1) saturate(1); }
 		48% { filter: brightness(0.42) saturate(0.72); }
+	}
+
+	@keyframes vaultkeeper-spin-start {
+		0% { filter: brightness(0.88) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) rotate(0); }
+		45% { filter: brightness(1.12) drop-shadow(0 13px 18px rgba(92, 174, 184, 0.22)); transform: translateY(-1.2%) rotate(-0.7deg); }
+		100% { filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) rotate(0); }
+	}
+
+	@keyframes vaultkeeper-win-acknowledge {
+		0% { filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) scale(1); }
+		52% { filter: brightness(1.18) saturate(1.12) drop-shadow(0 14px 20px rgba(216, 184, 111, 0.3)); transform: translateY(-2.2%) scale(1.016); }
+		100% { filter: brightness(1.04) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(-0.4%) scale(1.004); }
+	}
+
+	@keyframes vaultkeeper-feature-tease {
+		0%, 100% { filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateX(0) rotate(0); }
+		35% { filter: brightness(0.82) saturate(1.18) drop-shadow(-7px 8px 18px rgba(220, 86, 82, 0.28)); transform: translateX(-1.2%) rotate(-0.8deg); }
+		68% { filter: brightness(1.12) saturate(1.08) drop-shadow(5px 10px 18px rgba(216, 184, 111, 0.22)); transform: translateX(0.8%) rotate(0.5deg); }
+	}
+
+	@keyframes vaultkeeper-feature-shift {
+		0% { filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) scale(1); }
+		42% { filter: brightness(0.58) saturate(0.78) drop-shadow(0 14px 20px rgba(220, 86, 82, 0.3)); transform: translateY(1.4%) scale(0.992); }
+		72% { filter: brightness(1.16) saturate(1.1) drop-shadow(0 10px 22px rgba(216, 184, 111, 0.3)); transform: translateY(-1.8%) scale(1.014); }
+		100% { filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) scale(1); }
+	}
+
+	@keyframes vaultkeeper-max-win {
+		0%, 100% { filter: brightness(1) saturate(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) scale(1); }
+		48% { filter: brightness(1.24) saturate(1.18) drop-shadow(0 10px 25px rgba(216, 184, 111, 0.42)); transform: translateY(-2.8%) scale(1.022); }
 	}
 
 	@keyframes cluster-hit {
@@ -2795,7 +2914,8 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.cell {
+		.cell,
+		.vaultkeeper-presence img {
 			animation: none !important;
 			transition: none;
 		}
