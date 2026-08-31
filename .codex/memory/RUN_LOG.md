@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-01 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `b0a66ddcb6bdb22b246131f864513479f131e1a1`
+- Verified implementation commit: `24eb2fe37d227053373a3defb5b793d2424e5f3c`
+- Work item: `BSB-EVIDENCE-001` (bounded ambiguous authenticate-step slice; item remains in progress)
+- Selection reason: unit contracts rejected conflicting `stepBet` and `minStep`, but the exact extracted package did not prove that this ambiguous provider configuration remains visibly fail-closed without exposing a paid action or sending a wallet write.
+- Before/after evidence: exact Chromium receives one successful authenticate response with `stepBet=100000` and `minStep=200000`, displays `STEP_BET_CONFLICT`, leaves the primary action `UNAVAILABLE`, starts no local fallback and sends exactly one authenticate plus zero play, event or settlement writes.
+- Changed files: Chromium QA, 51-point evidence map, compliance regression and five sprint-memory files; runtime UI, math, assets, lockfile and dependencies unchanged.
+- Gates: focused contracts/compliance 41/41 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 109/109 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; isolated package/readback and 51-row resolver PASS; exact Chromium 64/64 scenarios and 1558/1558 checks PASS; unexpected network/page/request failures 0; `git diff --check` PASS. Local Chromium was BLOCKED only by the missing Playwright executable and is superseded by the exact isolated CI package run.
+- Visual review: exact 1280x720 ambiguous-auth failure plus 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9779098528` inspected. The error/reload card and disabled action are centered and visible; boards, values, controls and penguin/vault pixels remain complete without overlap, scroll, crop or broken-image regression. Prior 1366x768 evidence remains source-identical; manual/device approval is unclaimed.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One wrong Git base-tree identifier and one unauthenticated CLI push were replaced with exact content-addressed alternatives; no unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33448128514` and artifact `9779098528` succeeded.
+- Residual risk: deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
+- Next candidate: complete the highest-impact day-3 HUD/responsive/accessibility gap still evidenced by current-package geometry; otherwise choose another distinct provider gap and defer mid-feature restore until event-triggered observation exists.
+
 ## BS-20260831-30 — SUCCESS
 
 - Sprint day: 2
@@ -305,19 +321,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation/evidence commits were fast-forwarded without force through the connected GitHub API; exact run `33343244848` and artifact `9741325685` succeeded.
 - Residual risk: complete extracted-package/gameplay/Stake matrix, manual audio/device listening, authored reel/character sound, asset rights/Creative approval, penguin cleanup/Spine and character/reel polish remain open.
 - Next candidate: continue `BSB-EVIDENCE-001` with the extracted-package and full gameplay/provider matrix; manual audio approval remains explicitly external.
-
-## BS-20260831-11 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `7f14d360af055a0c164f2533a69e504879d36f4c`
-- Verified implementation commit: `db848506f17a02ff7d4d7b98ae69902500d57f72`
-- Work item: `BSB-AUDIO-001` (policy-safe procedural foundation; item remains in progress)
-- Selection reason: exact motion existed but the runtime had no audio graph, user-gesture policy, cues, mute persistence, visibility lifecycle or leak evidence, leaving Audio as the sole blocked DoD area.
-- Before/after evidence: before, no production audio path existed. After, one master bus creates one low ambience graph and bounded original procedural cues from the exact authoritative presentation stream; mute/three levels persist, hidden tabs suspend, resume does not duplicate ambience, turbo uses cooldown, voices cap at eight and teardown closes the graph. Exact Chromium proves locked/no graph before gesture, one graph after gesture, four bounded round cues, persisted zero mute, and locked/no-autoplay reload.
-- Changed files: new audio director and regression suite, presentation cue bridge, slot UI/CSS and sound control, Chromium QA, and sprint memory closeout files.
-- Gates: focused audio/mobile 8/8 PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 91/91 PASS; production build PASS; exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; exact Chromium 40/40 scenarios and 952/952 checks PASS; console/network/request failures 0; `git diff --check` PASS.
-- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640 and audio-state screenshots inspected. The sound control is visible, focused/hittable and non-overlapping; all boards remain square/on-screen. Final Replay is 220.3125x220.3125. Headless graph/state proof is not a listening-quality or clipping claim.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Two diagnostic CI runs converted measured short-Replay geometry deficits into bounded responsive fixes; no failure was repeated unchanged.
-- Persistence: implementation and two responsive-fix commits were fast-forwarded without force through the connected GitHub API; exact run `33341067497` and artifact `9740632934` succeeded.
-- Residual risk: authored reel-stop/character/feature sound detail, mix/ducking and manual device listening; asset rights/Creative approval; penguin cleanup/Spine; character/reel polish; complete gameplay/reconnect/Stake evidence.
-- Next candidate: continue `BSB-AUDIO-001` with authored cue assets/mix and manual listening evidence, unless `BSB-EVIDENCE-001` exposes a higher gameplay/provider blocker.

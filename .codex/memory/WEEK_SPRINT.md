@@ -1,7 +1,7 @@
 # BLACKSITE seven-day sprint
 
 - Sprint window: 2026-08-30 through 2026-09-05 (Europe/Berlin calendar days)
-- Current sprint day: 2
+- Current sprint day: 3
 - Lifecycle: `QA_BLOCKED`
 - Release candidate ready: no
 
@@ -9,14 +9,14 @@
 
 | Area                                     | Current evidence                                                                                                                                                                                   |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Production build                         | PASS — Vite static build on exact run `33442885524`, exit 0, run BS-20260831-30 |
-| Lint                                     | PASS — app lint on exact run `33442885524`, exit 0, run BS-20260831-30 |
-| Typecheck                                | PASS — production source/config `svelte-check`, `checkJs: true`, 0 errors / 0 warnings on exact run `33442885524`, exit 0 |
-| Automated app tests                      | PASS — 108/108, exit 0, exact run `33442885524`, BS-20260831-30; includes fail-closed binding for expired settlement-session reauthentication plus canonical mode wins and live feature lifecycles |
-| Math/package invariants                  | PASS — 7/7 math gates and 300,000 books; exact package generation/readback PASS; fingerprint `d03fab…78d8`; exact run `33442885524` |
-| Current-head browser/E2E                 | PASS — clean exact commit `50533a5`; isolated-package Chromium passed 63/63 scenarios plus 1550/1550 checks; settlement `ERR_SESSION` never auto-retries, explicit reload reauthenticates once and settles the restored active round once; unexpected network/page/request failures 0 |
-| Desktop/portrait/landscape visual review | PASS for current surfaces — exact-package settlement-session failure/recovery screenshots and geometry from artifact `9777256465` inspected at 1280x720, 1920x1080, 390x844, 844x390 and Replay 360x640. Error/recovery controls, authoritative board/win, penguin/vault pixels, square boards and values remain visible without overlap, scroll or crop regression; prior 1366x768 evidence remains source-identical and manual/device sign-off remains open |
-| Live wallet/replay/restore               | PARTIAL — fractional new-play/restore, uncertain paid-play reload/restore, auth-503, expired-play and expired-settlement explicit reauthentication, failed-settlement and `ERR_IPB` recovery with no automatic or duplicate write, competing-input deduplication, exact currency families and natural/confirmed feature plays are current-package browser proven; broader provider evidence remains |
+| Production build                         | PASS — Vite static build on exact run `33448128514`, exit 0, run BS-20260901-01 |
+| Lint                                     | PASS — app lint on exact run `33448128514`, exit 0, run BS-20260901-01 |
+| Typecheck                                | PASS — production source/config `svelte-check`, `checkJs: true`, 0 errors / 0 warnings on exact run `33448128514`, exit 0 |
+| Automated app tests                      | PASS — 109/109, exit 0, exact run `33448128514`, BS-20260901-01; includes exact-browser binding for ambiguous authenticate-step rejection plus canonical mode wins and live feature lifecycles |
+| Math/package invariants                  | PASS — 7/7 math gates and 300,000 books; exact package generation/readback PASS; fingerprint `d03fab…78d8`; exact run `33448128514` |
+| Current-head browser/E2E                 | PASS — clean exact commit `24eb2fe`; isolated-package Chromium passed 64/64 scenarios plus 1558/1558 checks; conflicting `stepBet`/`minStep` fails closed after one authenticate with zero wallet/event writes; unexpected network/page/request failures 0 |
+| Desktop/portrait/landscape visual review | PASS for current surfaces — exact-package ambiguous-auth failure and geometry from artifact `9779098528` inspected at 1280x720, 1920x1080, 390x844, 844x390 and Replay 360x640. Error/recovery controls, disabled paid action, penguin/vault pixels, square boards and values remain visible without overlap, scroll or crop regression; prior 1366x768 evidence remains source-identical and manual/device sign-off remains open |
+| Live wallet/replay/restore               | PARTIAL — dynamic/ambiguous authenticate parameters, fractional new-play/restore, uncertain paid-play reload/restore, auth-503, expired-play and expired-settlement explicit reauthentication, failed-settlement and `ERR_IPB` recovery with no automatic or duplicate write, competing-input deduplication, exact currency families and natural/confirmed feature plays are current-package browser proven; broader provider evidence remains |
 | Gameplay state matrix                    | PARTIAL — exact current-package proof covers five deterministic rule wins per canonical mode plus natural Base and confirmed Deep Access feature entry/cycles/exit/ready cleanup; the full requested production interaction matrix is not yet current-head proven |
 | Player HUD/responsiveness/accessibility  | PASS for the current control surface — computed centering, uncut labels, >=44px touch geometry, safe viewport placement and 3px/2px keyboard focus evidence pass all required viewports            |
 | Animation/cinematics                     | PARTIAL — authoritative spin/reveal/feature anticipation, BLACKOUT entry/exit, cascades, semantic Vaultkeeper reactions and seven-column stops pass normal/turbo/reduced, skip, cleanup and exact-payout proof. Turbo and normal cascade are 16.7ms p95/16.8ms max with no >50ms stalls; full BLACKOUT is 33.4ms p95/66.7ms max with one >50ms stall. Approved Spine clips and real-device pacing remain |
@@ -36,6 +36,8 @@ Run `BS-20260831-28` proves the distinct API-level `ERR_IPB` recovery path. A ba
 Run `BS-20260831-29` proves the distinct expired-session path. API `ERR_SESSION` rejects one play fail-closed, explicit reload performs one reauthentication without resubmitting that action, and only a subsequent deliberate click sends one new successful play. Exact CI run `33439810616` passes 108 tests, full math/package gates and 62 Chromium scenarios / 1518 checks without changing runtime, math, assets or dependencies.
 
 Run `BS-20260831-30` proves the distinct expired-settlement-session path. After one accepted play and checkpoint, API `ERR_SESSION` leaves settlement fail-closed without automatic retry; explicit reload reauthenticates once and completes the restored active round once without duplicate play/checkpoint. Exact CI run `33442885524` passes 108 tests, full math/package gates and 63 Chromium scenarios / 1550 checks without changing runtime, math, assets or dependencies.
+
+Run `BS-20260901-01` proves the ambiguous authenticate-step path. A nominally successful response with conflicting official `stepBet` and supported `minStep` aliases is visibly rejected as `STEP_BET_CONFLICT`; the exact package keeps paid play unavailable after one authenticate and sends no play, event or settlement writes. Exact CI run `33448128514` passes 109 tests, full math/package gates and 64 Chromium scenarios / 1558 checks without changing runtime, math, assets or dependencies.
 
 ## Day milestones
 

@@ -1,5 +1,50 @@
 # Rolling automation metrics
 
+## BS-20260901-01
+
+```yaml
+closed_at_utc: 2026-08-31T23:08:44Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+local_frozen_install: PASS
+focused_contract_and_compliance_tests: 41
+focused_contract_and_compliance_status: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 109
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_browser: BLOCKED_PLAYWRIGHT_BROWSER_MISSING
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 109
+exact_app_status: PASS
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+verified_ci_run: 33448128514
+verified_ci_status: PASS
+remote_browser: { scenarios: 64, checks_pass: 1558, checks_fail: 0, unexpected_failures: 0 }
+remote_conflicting_auth_steps: { authenticate_requests: 1, play_requests: 0, event_requests: 0, end_round_requests: 0, final_state: live-error, action: UNAVAILABLE, error: STEP_BET_CONFLICT }
+remote_diagnostics_artifact: 9779098528
+remote_diagnostics_digest: sha256:02fe8f6fd5a6e319bc70b6aa4a6dc0bc132d00757088a2c3dd650d517cf20a18
+remote_implementation_commit: 24eb2fe37d227053373a3defb5b793d2424e5f3c
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/RGS-contract reads, one frozen install, focused contracts/compliance, one full local app/build/math cycle, exact package generation/readback, one locally blocked Chromium launch, exact Actions verification, artifact extraction, five screenshot inspections, diff/secret review and content-addressed fast-forward persistence. One initial Git tree call used the implementation tree instead of the parent tree and was corrected from exact object identity; the HTTPS CLI push was replaced by the connected Git-data path. No unchanged semantic failure was repeated; no subagent, dependency, runtime file or binary product asset was added. Exact token telemetry was unavailable.
+
 ## BS-20260831-30
 
 ```yaml
