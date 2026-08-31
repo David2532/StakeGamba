@@ -86,6 +86,8 @@
 			"status": "AUTOMATED_PASS",
 			"browserScenarios": [
 				"social-xsc-rules-paytable-and-terminology",
+				"live-jpy-native-balance-and-exact-win",
+				"live-unknown-currency-code-fallback",
 				"session-position-and-timer-follow-authoritative-balance"
 			]
 		},

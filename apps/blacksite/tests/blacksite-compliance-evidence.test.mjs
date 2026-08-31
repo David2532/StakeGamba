@@ -91,6 +91,21 @@ test('51-point candidate evidence is complete, identity-bound, and keeps open ga
 	}
 });
 
+test('currency evidence binds social, native fiat, fallback, and authoritative balance families', () => {
+	const currencyItem = map.items.find((item) => item.id === 11);
+	assert(currencyItem);
+	assert.deepEqual(currencyItem.browserScenarios, [
+		'social-xsc-rules-paytable-and-terminology',
+		'live-jpy-native-balance-and-exact-win',
+		'live-unknown-currency-code-fallback',
+		'session-position-and-timer-follow-authoritative-balance',
+	]);
+	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
+	for (const scenario of currencyItem.browserScenarios) {
+		assert.match(browserQa, new RegExp(`runScenario\\('${scenario}'`, 'u'));
+	}
+});
+
 test('candidate evidence fails closed when a referenced browser scenario is absent', () => {
 	const value = fixture();
 	try {

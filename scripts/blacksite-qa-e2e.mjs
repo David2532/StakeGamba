@@ -1883,6 +1883,141 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('live-jpy-native-balance-and-exact-win', async (record) => {
+		const group = 'live-jpy-native-balance-and-exact-win';
+		const currency = 'JPY';
+		const openingBalance = 1_500_000;
+		const fixture = getGeneratedFixture('base_small');
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse({ balance: openingBalance, currency }),
+					play: (request) => {
+						const round = authoritativeFixtureRound({
+							fixture,
+							active: false,
+							amount: request.body.amount,
+							currency,
+							id: 'blacksite-qa-jpy-small-win',
+						});
+						return {
+							status: successStatus(),
+							balance: {
+								amount: openingBalance - request.body.amount + round.payout,
+								currency,
+							},
+							round,
+						};
+					},
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery({ currency }));
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			const ready = {
+				balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
+				totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
+				baseAmount: await page.locator(SELECTORS.baseAmount).getAttribute('aria-valuetext'),
+			};
+			check(group, 'JPY wallet balance uses native zero-decimal rounding', ready.balance === '¥2', serialize(ready));
+			check(group, 'JPY complete play and range expose the exact one-yen Base amount', ready.totalPlay === '¥1' && ready.baseAmount === '¥1', serialize(ready));
+
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 1);
+			await waitForStableAction(page);
+			const completed = {
+				balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
+				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
+				totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
+			};
+			check(group, 'JPY exact result preserves the authoritative sub-yen payout', completed.finalWin === '¥0.38', serialize(completed));
+			check(group, 'JPY wallet returns to native precision while complete play stays exact', completed.balance === '¥1' && completed.totalPlay === '¥1', serialize(completed));
+			assertExactRequest(group, network.byEndpoint.play[0], {
+				method: 'POST',
+				path: '/wallet/play',
+				body: {
+					sessionID: SESSION_ID,
+					currency,
+					amount: DEFAULT_BASE_AMOUNT,
+					mode: 'base',
+				},
+			});
+			check(group, 'JPY scenario sends exactly one paid play and no settlement write', network.byEndpoint.play.length === 1 && network.byEndpoint.endRound.length === 0, serialize(network.order));
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.currencyUi = { ready, completed, fixture: fixture.id };
+			record.screenshot = await saveScreenshot(page, group);
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('live-unknown-currency-code-fallback', async (record) => {
+		const group = 'live-unknown-currency-code-fallback';
+		const currency = 'ZZZ';
+		const openingBalance = 1_234_567;
+		const context = await browser.newContext({
+			viewport: { width: 390, height: 844 },
+			isMobile: true,
+			hasTouch: true,
+		});
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse({ balance: openingBalance, currency }),
+					play: () => playResponse({ balanceBefore: openingBalance, currency }),
+				},
+			});
+			const { page, diagnostics } = await openPage(
+				context,
+				origin,
+				liveQuery({ currency, device: 'mobile' }),
+			);
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			const ready = {
+				balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
+				totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
+				baseAmount: await page.locator(SELECTORS.baseAmount).getAttribute('aria-valuetext'),
+			};
+			check(group, 'unknown currency wallet falls back to the normalized code', ready.balance === '1.23 ZZZ', serialize(ready));
+			check(group, 'unknown currency complete play and range retain exact code-suffixed units', ready.totalPlay === '1.00 ZZZ' && ready.baseAmount === '1.00 ZZZ', serialize(ready));
+
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 1);
+			await waitForStableAction(page);
+			const completed = {
+				balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
+				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
+			};
+			check(group, 'unknown currency fallback remains stable after authoritative play', completed.balance === '0.23 ZZZ' && completed.finalWin === '0.00 ZZZ', serialize(completed));
+			assertExactRequest(group, network.byEndpoint.play[0], {
+				method: 'POST',
+				path: '/wallet/play',
+				body: {
+					sessionID: SESSION_ID,
+					currency,
+					amount: DEFAULT_BASE_AMOUNT,
+					mode: 'base',
+				},
+			});
+			check(group, 'unknown currency scenario sends exactly one paid play and no settlement write', network.byEndpoint.play.length === 1 && network.byEndpoint.endRound.length === 0, serialize(network.order));
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.currencyUi = { ready, completed };
+			record.screenshot = await saveScreenshot(page, group);
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('live-auth-exact', async (record) => {
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 		try {
