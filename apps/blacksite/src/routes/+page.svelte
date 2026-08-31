@@ -942,6 +942,7 @@
 								activeMotionKeys.has(cellKey(cell))}
 							data-column={cell.column}
 							data-row={cell.row}
+							style={`--reel-column: ${cell.column}; --reel-row: ${cell.row};`}
 							data-symbol={symbol ?? ''}
 							data-cluster-active={activeClusterKeys.has(cellKey(cell))}
 							role="gridcell"
@@ -1833,6 +1834,7 @@
 
 	.board-frame[data-motion-phase='reveal'] .cell {
 		animation: board-reveal 180ms ease-out both;
+		animation-delay: calc(var(--reel-column) * 24ms + var(--reel-row) * 2ms);
 	}
 
 	.board-frame[data-motion-phase='anticipation']::before {
@@ -1926,10 +1928,13 @@
 		animation-duration: 35ms;
 	}
 
-	.board-frame[data-motion-profile='turbo'][data-motion-phase='spin'] .board,
+	.board-frame[data-motion-profile='turbo'][data-motion-phase='spin'] .board {
+		animation-duration: 70ms;
+	}
+
 	.board-frame[data-motion-profile='turbo'][data-motion-phase='reveal'] .cell {
 		animation-duration: 70ms;
-		animation-delay: 0ms;
+		animation-delay: calc(var(--reel-column) * 8ms + var(--reel-row) * 1ms);
 	}
 
 	.board-frame[data-motion-profile='turbo'][data-motion-phase='anticipation']::before {

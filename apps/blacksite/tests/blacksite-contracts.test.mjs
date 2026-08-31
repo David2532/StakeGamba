@@ -687,6 +687,8 @@ test('PresentationDirector exposes bounded normal, turbo and reduced timing gram
 		assert.equal(PRESENTATION_TIMINGS.reduced[phase], 0);
 	}
 	assert(PRESENTATION_TIMINGS.normal.hit >= 180);
+	assert.equal(PRESENTATION_TIMINGS.normal.reveal, 360);
+	assert.equal(PRESENTATION_TIMINGS.turbo.reveal, 130);
 	assert(PRESENTATION_TIMINGS.normal.drop <= 550);
 	assert(PRESENTATION_TIMINGS.normal.anticipation >= 450);
 	assert(PRESENTATION_TIMINGS.normal.feature >= 900);

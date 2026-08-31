@@ -4,7 +4,7 @@ export const PRESENTATION_TIMINGS = Object.freeze({
 	normal: Object.freeze({
 		step: 32,
 		spin: 160,
-		reveal: 180,
+		reveal: 360,
 		anticipation: 600,
 		feature: 1_000,
 		hit: 280,
@@ -15,7 +15,7 @@ export const PRESENTATION_TIMINGS = Object.freeze({
 	turbo: Object.freeze({
 		step: 12,
 		spin: 60,
-		reveal: 70,
+		reveal: 130,
 		anticipation: 180,
 		feature: 360,
 		hit: 110,

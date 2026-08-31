@@ -1942,6 +1942,12 @@ async function runNetworkScenarios(browser, origin) {
 				const character = document.querySelector(characterSelector);
 				window.__blacksiteMotionPhases = [];
 				window.__blacksiteCharacterStates = [];
+				window.__blacksiteFrameTimes = [];
+				const sampleFrame = (at) => {
+					window.__blacksiteFrameTimes.push(at);
+					window.__blacksiteFrameSampler = requestAnimationFrame(sampleFrame);
+				};
+				window.__blacksiteFrameSampler = requestAnimationFrame(sampleFrame);
 				const captureBoard = () => window.__blacksiteMotionPhases.push({
 					phase: board?.getAttribute('data-motion-phase'),
 					profile: board?.getAttribute('data-motion-profile'),
@@ -1981,7 +1987,33 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 1);
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'reveal',
+				SELECTORS.board,
+			);
+			const reelStopCadence = await page.locator(SELECTORS.board).evaluate((board) => {
+				const firstRow = [...board.querySelectorAll('.cell[data-row="0"]')];
+				return firstRow.map((cell) => ({
+					column: Number(cell.getAttribute('data-column')),
+					delayMs: Number.parseFloat(getComputedStyle(cell).animationDelay) * 1_000,
+					durationMs: Number.parseFloat(getComputedStyle(cell).animationDuration) * 1_000,
+					animation: getComputedStyle(cell).animationName,
+				}));
+			});
+			const reelStopScreenshot = await saveScreenshot(page, `${group}-reel-stop-cadence`);
 			await waitForStableAction(page);
+			const framePacing = await page.evaluate(() => {
+				cancelAnimationFrame(window.__blacksiteFrameSampler);
+				const deltas = window.__blacksiteFrameTimes.slice(1).map((at, index) => at - window.__blacksiteFrameTimes[index]);
+				const ordered = [...deltas].sort((left, right) => left - right);
+				const percentile95 = ordered.length ? ordered[Math.min(ordered.length - 1, Math.floor(ordered.length * 0.95))] : null;
+				return {
+					samples: deltas.length,
+					percentile95Ms: percentile95,
+					maxMs: ordered.at(-1) ?? null,
+					over50Ms: deltas.filter((delta) => delta > 50).length,
+				};
+			});
 			const turboPhases = await page.evaluate(() => window.__blacksiteMotionPhases);
 			const turboCharacterStates = await page.evaluate(() => window.__blacksiteCharacterStates);
 			const turboNames = turboPhases.map(({ phase }) => phase);
@@ -1992,6 +2024,16 @@ async function runNetworkScenarios(browser, origin) {
 				return index >= 0;
 			});
 			check(group, 'authoritative turbo cascade visibly traverses hit, remove, drop and settle', orderedTurbo, serialize(turboPhases));
+			check(group, 'seven reel columns stop in a strictly staggered turbo cadence',
+				reelStopCadence.length === 7 && reelStopCadence.every(({ column, durationMs, animation }, index) =>
+					column === index && durationMs === 70 && animation.endsWith('board-reveal')) &&
+					reelStopCadence.every(({ delayMs }, index) => index === 0 || delayMs > reelStopCadence[index - 1].delayMs),
+				serialize(reelStopCadence),
+			);
+			check(group, 'turbo cascade has no sustained frame-pacing stalls',
+				framePacing.samples >= 20 && framePacing.percentile95Ms <= 50 && framePacing.over50Ms <= Math.max(2, Math.ceil(framePacing.samples * 0.05)),
+				serialize(framePacing),
+			);
 			const characterNames = turboCharacterStates.map(({ state }) => state);
 			let previousCharacterIndex = -1;
 			const orderedCharacterFallback = ['spin_start', 'monitoring', 'win_acknowledge', 'idle_a'].every((state) => {
@@ -2056,12 +2098,14 @@ async function runNetworkScenarios(browser, origin) {
 				};
 			}, { characterSelector: SELECTORS.vaultkeeper, fallbackSelector: SELECTORS.vaultkeeperFallback });
 			check(group, 'missing Vaultkeeper image switches to the deterministic mechanical silhouette without blocking play', assetFallback.assetState === 'fallback' && assetFallback.imageDisplay === 'none' && assetFallback.fallbackDisplay === 'block' && (await runtimeState(page)) === 'live-ready', serialize(assetFallback));
-			record.motion = { fixture: fixture.id, turboPhases, turboCharacterStates, completed, assetFallback };
+			record.motion = { fixture: fixture.id, reelStopCadence, framePacing, turboPhases, turboCharacterStates, completed, assetFallback };
 			record.screenshot = normalScreenshot;
+			record.reelStopScreenshot = reelStopScreenshot;
 			record.assetFallbackScreenshot = await saveScreenshot(page, `${group}-asset-fallback`);
 			record.network = network;
 			record.diagnostics = diagnostics;
 			await page.evaluate(() => {
+				cancelAnimationFrame(window.__blacksiteFrameSampler);
 				window.__blacksiteMotionObserver?.disconnect();
 				window.__blacksiteCharacterObserver?.disconnect();
 			});
