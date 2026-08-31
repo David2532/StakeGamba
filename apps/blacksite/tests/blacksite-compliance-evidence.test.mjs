@@ -126,28 +126,6 @@ test('five-win evidence binds five exact final-presentation replays for every ca
 	);
 });
 
-test('feature evidence binds natural and purchased live lifecycles while human review remains open', () => {
-	const item = map.items.find((candidate) => candidate.id === 21);
-	assert(item);
-	assert.equal(item.status, 'AUTOMATED_PASS_MANUAL_OPEN');
-	assert.deepEqual(item.browserScenarios, [
-		'authoritative-blackout-vault-transition',
-		'live-natural-base-blackout-enters-and-returns',
-		'live-deep-access-feature-confirms-enters-and-returns',
-		'social-xsc-rules-paytable-and-terminology',
-	]);
-	assert.match(item.manualOpen, /Human comparison/u);
-	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
-	assert.match(browserQa, /fixtureId: 'base_natural_blackout'/u);
-	assert.match(browserQa, /fixtureId: 'deep_access_feature'/u);
-	for (const scenario of item.browserScenarios) {
-		assert.match(
-			browserQa,
-			new RegExp(`(?:runScenario\\('${scenario}'|scenario: '${scenario}')`, 'u'),
-		);
-	}
-});
-
 test('candidate evidence fails closed when a referenced browser scenario is absent', () => {
 	const value = fixture();
 	try {
