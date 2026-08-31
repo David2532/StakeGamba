@@ -696,6 +696,13 @@ test('PresentationDirector exposes bounded normal, turbo and reduced timing gram
 	assert(Object.isFrozen(PRESENTATION_TIMINGS));
 });
 
+test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () => {
+	const source = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
+	assert.match(source, /normal cascade has no sustained frame-pacing stalls/u);
+	assert.match(source, /normal BLACKOUT transition has no sustained frame-pacing stalls/u);
+	assert.match(source, /normalReelStopCadence/u);
+});
+
 test('PresentationDirector binds BLACKOUT transitions to authoritative feature cues', async () => {
 	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'blackout_zero');
 	assert(fixture);

@@ -763,6 +763,42 @@ async function saveScreenshot(page, name) {
 	return relative(repoRoot, path).replaceAll('\\', '/');
 }
 
+async function startFrameSampler(page, samplerKey) {
+	await page.evaluate((key) => {
+		const samplers = (window.__blacksiteFrameSamplers ??= {});
+		const previous = samplers[key];
+		if (previous?.requestId) cancelAnimationFrame(previous.requestId);
+		const sampler = { times: [], requestId: 0 };
+		const sample = (at) => {
+			sampler.times.push(at);
+			sampler.requestId = requestAnimationFrame(sample);
+		};
+		sampler.requestId = requestAnimationFrame(sample);
+		samplers[key] = sampler;
+	}, samplerKey);
+}
+
+async function stopFrameSampler(page, samplerKey) {
+	return page.evaluate((key) => {
+		const samplers = window.__blacksiteFrameSamplers ?? {};
+		const sampler = samplers[key];
+		if (!sampler) return { samples: 0, percentile95Ms: null, maxMs: null, over50Ms: 0 };
+		cancelAnimationFrame(sampler.requestId);
+		delete samplers[key];
+		const deltas = sampler.times.slice(1).map((at, index) => at - sampler.times[index]);
+		const ordered = [...deltas].sort((left, right) => left - right);
+		const percentile95 = ordered.length
+			? ordered[Math.min(ordered.length - 1, Math.floor(ordered.length * 0.95))]
+			: null;
+		return {
+			samples: deltas.length,
+			percentile95Ms: percentile95,
+			maxMs: ordered.at(-1) ?? null,
+			over50Ms: deltas.filter((delta) => delta > 50).length,
+		};
+	}, samplerKey);
+}
+
 function assertExactRequest(group, request, { method, path, body }) {
 	check(group, `${path} uses ${method}`, request?.method === method, serialize(request));
 	check(group, `${path} endpoint is exact`, request?.path === path, serialize(request));
@@ -1937,17 +1973,12 @@ async function runNetworkScenarios(browser, origin) {
 			const { page, diagnostics } = await openPage(context, origin, liveQuery());
 			await waitForEndpoint(network, 'authenticate', 1);
 			await waitForStableAction(page);
+			await startFrameSampler(page, 'turbo-cascade');
 			await page.evaluate(({ boardSelector, characterSelector }) => {
 				const board = document.querySelector(boardSelector);
 				const character = document.querySelector(characterSelector);
 				window.__blacksiteMotionPhases = [];
 				window.__blacksiteCharacterStates = [];
-				window.__blacksiteFrameTimes = [];
-				const sampleFrame = (at) => {
-					window.__blacksiteFrameTimes.push(at);
-					window.__blacksiteFrameSampler = requestAnimationFrame(sampleFrame);
-				};
-				window.__blacksiteFrameSampler = requestAnimationFrame(sampleFrame);
 				const captureBoard = () => window.__blacksiteMotionPhases.push({
 					phase: board?.getAttribute('data-motion-phase'),
 					profile: board?.getAttribute('data-motion-profile'),
@@ -2002,18 +2033,7 @@ async function runNetworkScenarios(browser, origin) {
 			});
 			const reelStopScreenshot = await saveScreenshot(page, `${group}-reel-stop-cadence`);
 			await waitForStableAction(page);
-			const framePacing = await page.evaluate(() => {
-				cancelAnimationFrame(window.__blacksiteFrameSampler);
-				const deltas = window.__blacksiteFrameTimes.slice(1).map((at, index) => at - window.__blacksiteFrameTimes[index]);
-				const ordered = [...deltas].sort((left, right) => left - right);
-				const percentile95 = ordered.length ? ordered[Math.min(ordered.length - 1, Math.floor(ordered.length * 0.95))] : null;
-				return {
-					samples: deltas.length,
-					percentile95Ms: percentile95,
-					maxMs: ordered.at(-1) ?? null,
-					over50Ms: deltas.filter((delta) => delta > 50).length,
-				};
-			});
+			const framePacing = await stopFrameSampler(page, 'turbo-cascade');
 			const turboPhases = await page.evaluate(() => window.__blacksiteMotionPhases);
 			const turboCharacterStates = await page.evaluate(() => window.__blacksiteCharacterStates);
 			const turboNames = turboPhases.map(({ phase }) => phase);
@@ -2045,8 +2065,37 @@ async function runNetworkScenarios(browser, origin) {
 			check(group, 'Vaultkeeper fallback uses bounded CSS motion only while its semantic state is active', turboCharacterStates.some(({ state, animation }) => state === 'win_acknowledge' && animation.endsWith('vaultkeeper-win-acknowledge')), serialize(turboCharacterStates));
 
 			await page.locator(SELECTORS.motionMode).click();
+			await startFrameSampler(page, 'normal-cascade');
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 2);
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'reveal',
+				SELECTORS.board,
+			);
+			const normalReelStopCadence = await page.locator(SELECTORS.board).evaluate((board) => {
+				const firstRow = [...board.querySelectorAll('.cell[data-row="0"]')];
+				return firstRow.map((cell) => ({
+					column: Number(cell.getAttribute('data-column')),
+					delayMs: Number.parseFloat(getComputedStyle(cell).animationDelay) * 1_000,
+					durationMs: Number.parseFloat(getComputedStyle(cell).animationDuration) * 1_000,
+					animation: getComputedStyle(cell).animationName,
+				}));
+			});
+			const normalReelStopScreenshot = await saveScreenshot(page, `${group}-normal-reel-stop-cadence`);
+			await waitForStableAction(page);
+			const normalFramePacing = await stopFrameSampler(page, 'normal-cascade');
+			check(group, 'seven reel columns stop in the authored normal cadence',
+				normalReelStopCadence.length === 7 && normalReelStopCadence.every(({ column, delayMs, durationMs, animation }, index) =>
+					column === index && delayMs === index * 24 && durationMs === 180 && animation.endsWith('board-reveal')),
+				serialize(normalReelStopCadence),
+			);
+			check(group, 'normal cascade has no sustained frame-pacing stalls',
+				normalFramePacing.samples >= 20 && normalFramePacing.percentile95Ms <= 50 && normalFramePacing.over50Ms <= Math.max(2, Math.ceil(normalFramePacing.samples * 0.05)),
+				serialize(normalFramePacing),
+			);
+
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 3);
 			await page.waitForFunction(
 				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'hit',
 				SELECTORS.board,
@@ -2074,7 +2123,7 @@ async function runNetworkScenarios(browser, origin) {
 				serialize({ completed, payoutCentiX: fixture.book.payoutMultiplier }),
 			);
 			check(group, 'motion controls never add settlement or event-write calls for inactive rounds',
-				network.byEndpoint.play.length === 2 && network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0,
+				network.byEndpoint.play.length === 3 && network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0,
 				serialize(network.order),
 			);
 			assertCleanNetwork(group, network);
@@ -2098,14 +2147,14 @@ async function runNetworkScenarios(browser, origin) {
 				};
 			}, { characterSelector: SELECTORS.vaultkeeper, fallbackSelector: SELECTORS.vaultkeeperFallback });
 			check(group, 'missing Vaultkeeper image switches to the deterministic mechanical silhouette without blocking play', assetFallback.assetState === 'fallback' && assetFallback.imageDisplay === 'none' && assetFallback.fallbackDisplay === 'block' && (await runtimeState(page)) === 'live-ready', serialize(assetFallback));
-			record.motion = { fixture: fixture.id, reelStopCadence, framePacing, turboPhases, turboCharacterStates, completed, assetFallback };
+			record.motion = { fixture: fixture.id, reelStopCadence, framePacing, normalReelStopCadence, normalFramePacing, turboPhases, turboCharacterStates, completed, assetFallback };
 			record.screenshot = normalScreenshot;
 			record.reelStopScreenshot = reelStopScreenshot;
+			record.normalReelStopScreenshot = normalReelStopScreenshot;
 			record.assetFallbackScreenshot = await saveScreenshot(page, `${group}-asset-fallback`);
 			record.network = network;
 			record.diagnostics = diagnostics;
 			await page.evaluate(() => {
-				cancelAnimationFrame(window.__blacksiteFrameSampler);
 				window.__blacksiteMotionObserver?.disconnect();
 				window.__blacksiteCharacterObserver?.disconnect();
 			});
@@ -2140,6 +2189,7 @@ async function runNetworkScenarios(browser, origin) {
 			const { page, diagnostics } = await openPage(context, origin, liveQuery());
 			await waitForEndpoint(network, 'authenticate', 1);
 			await waitForStableAction(page);
+			await startFrameSampler(page, 'blackout-transition');
 			await page.evaluate((selector) => {
 				const board = document.querySelector(selector);
 				window.__blacksiteFeaturePhases = [];
@@ -2183,13 +2233,17 @@ async function runNetworkScenarios(browser, origin) {
 				serialize(activeTransition),
 			);
 			record.transitionScreenshot = await saveScreenshot(page, group);
-			await page.locator(SELECTORS.skipPresentation).click();
 			await waitForStableAction(page);
+			const framePacing = await stopFrameSampler(page, 'blackout-transition');
 			const phases = await page.evaluate(() => window.__blacksiteFeaturePhases);
 			const phaseNames = phases.map(({ phase }) => phase);
 			check(group, 'the feature lifecycle traverses authoritative entry, reveal and exit phases',
 				['blackout-enter', 'reveal', 'blackout-exit'].every((phase) => phaseNames.includes(phase)),
 				serialize(phases),
+			);
+			check(group, 'normal BLACKOUT transition has no sustained frame-pacing stalls',
+				framePacing.samples >= 20 && framePacing.percentile95Ms <= 50 && framePacing.over50Ms <= Math.max(2, Math.ceil(framePacing.samples * 0.05)),
+				serialize(framePacing),
 			);
 			check(group, 'vault transition preserves the exact zero payout and one paid request',
 				(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00' &&
@@ -2200,7 +2254,7 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
-			record.motion = { fixture: fixture.id, activeTransition, phases };
+			record.motion = { fixture: fixture.id, activeTransition, phases, framePacing };
 			record.network = network;
 			record.diagnostics = diagnostics;
 			await page.evaluate(() => window.__blacksiteFeatureObserver?.disconnect());
