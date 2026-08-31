@@ -27,6 +27,8 @@
 
 Run `BS-20260831-25` corrected the delayed-Actions diagnosis from run 24: the previously cancelled source run was resumed and passed exactly, then the byte-identical three-file patch was fast-forwarded as `b94c059` and verified again on current HEAD. This closes the bounded live natural-Base/confirmed-Deep-Access browser-evidence gap without claiming the still-open human wording review.
 
+Run `BS-20260831-26` attempted the next interrupted-feature restore proof. Frozen install, lint, typecheck, 106 tests, build, full math and package generation passed in both exact source runs, but Chromium timed out twice on two distinct transient-state observations in the new scenario. The slice was reverted after the second attempt; DoD evidence is unchanged and the final product tree matches the previously verified `30cf194` tree exactly.
+
 ## Day milestones
 
 - Day 1: baseline, memory/runbook, build/test/math status, and top release blockers captured. CI/typecheck/Chromium are clean; responsive HUD, penguin/vault environments and authoritative cascade presentation are exact-browser integrated. Proceed to rig/BLACKOUT and remaining cinematic completion.

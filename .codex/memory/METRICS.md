@@ -1,5 +1,34 @@
 # Rolling automation metrics
 
+## BS-20260831-26
+
+```yaml
+closed_at_utc: 2026-08-31T15:34:41Z
+sprint_day: 2
+status: BLOCKED
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+local_frozen_install: PASS
+focused_syntax: PASS
+focused_contract_tests: 25
+focused_contract_status: PASS
+focused_compliance_tests: 6
+focused_compliance_status: PASS
+attempt_1_ci: { id: 33405747107, non_browser_gates: PASS, chromium: FAIL, reason: wrong_transient_state_selector }
+attempt_2_ci: { id: 33407436116, non_browser_gates: PASS, chromium: FAIL, reason: transient_live_restoring_timeout }
+attempt_exact_app_tests: 106
+attempt_exact_full_math_tests: 7
+attempt_exact_full_math_books: 300000
+attempt_exact_package_generation: PASS
+final_product_tree_matches_base_30cf194: true
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: targeted branch/memory/contract reads, one frozen install, focused syntax/contracts/compliance, two exact CI runs, failure-log diagnosis, normal fast-forward reverts, diff review and memory closeout. The two browser failures came from distinct transient-state assumptions; no third attempt was made. No subagent, dependency change, binary asset, unchanged failed-tool retry, token estimate or force update was used.
+
 ## BS-20260831-25
 
 ```yaml

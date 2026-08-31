@@ -148,22 +148,6 @@ test('feature evidence binds natural and purchased live lifecycles while human r
 	}
 });
 
-test('active-round evidence binds an interrupted feature checkpoint through exact settlement', () => {
-	const item = map.items.find((candidate) => candidate.id === 10);
-	assert(item);
-	assert.equal(item.status, 'AUTOMATED_PASS');
-	assert.deepEqual(item.browserScenarios, [
-		'active-restore-no-duplicate-play',
-		'active-feature-restore-resumes-at-checkpoint-once',
-		'uncertain-live-play-reloads-and-restores-without-retry',
-	]);
-	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
-	assert.match(browserQa, /getGeneratedFixture\('base_natural_blackout'\)/u);
-	assert.match(browserQa, /resumeEventIndex = 69/u);
-	assert.match(browserQa, /restore persists each remaining durable checkpoint exactly once in order/u);
-	assert.match(browserQa, /restore sends zero duplicate plays and settles the active round exactly once/u);
-});
-
 test('candidate evidence fails closed when a referenced browser scenario is absent', () => {
 	const value = fixture();
 	try {

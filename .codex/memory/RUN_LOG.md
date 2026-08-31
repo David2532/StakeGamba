@@ -2,6 +2,21 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-26 — BLOCKED
+
+- Sprint day: 2
+- Base commit: `30cf1945fe6f77ed6fe726c2585908e2ec84e39a`
+- Final product tree: exactly matches base; attempted source commits `a078df1` and `1a6f985` were reverted by normal fast-forward commits before closeout.
+- Work item: `BSB-EVIDENCE-001` (mid-feature interrupted restore; deferred after two failed browser-harness attempts)
+- Selection reason: current exact evidence proves whole feature lifecycles but not resumption from a nonzero authoritative feature cursor without duplicate checkpoint, play or settlement writes.
+- Attempted evidence: `base_natural_blackout` was restored at cursor 69 with expected ordered later checkpoints, zero play writes, one settlement and exact `$1000.00` / `$1999.00` completion. Focused contracts passed, but exact Chromium never reached the assertions because two distinct observations of transient `live-restoring` timed out.
+- Gates: local frozen install, syntax, contracts 25/25, compliance 6/6 and diff check PASS. Both exact CI runs passed frozen install, lint, typecheck, 106/106 tests, build, math 7/7 with 300,000 books and package generation, then failed only the experimental Chromium scenario. Evidence resolution was not reached; no current-head release claim is made.
+- Visual review: NOT_RUN for the attempted restore state; no runtime/UI change remains. The final product tree is byte-identical to the prior exact visual evidence.
+- Changed files: final executable/product files unchanged; only five memory closeout files remain.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. No unchanged failed retry or third browser attempt.
+- Residual risk: mid-feature restore remains unproven alongside 23 manual gates, 6 external approvals, rights/Creative cleanup, Spine rig/clips, BLACKOUT/foreground layers, final audio/device QA and real-device pacing.
+- Next candidate: choose a different safe provider/gameplay evidence gap; revisit mid-feature restore only with event-triggered instrumentation rather than a transient runtime-state wait.
+
 ## BS-20260831-25 — SUCCESS
 
 - Sprint day: 2
@@ -306,19 +321,3 @@ Newest entries first; retain at most 20.
 - Persistence: both implementation commits were tree-identical and fast-forwarded without force through the connected GitHub API; final exact run `33329648477` and artifact `9737374574` succeeded.
 - Residual risk: manual light/alpha cleanup, human rights/Creative review, Spine 4.2 rig, responsive vault environment, motion/cinematics, audio and complete gameplay/reconnect/Stake release evidence remain open.
 - Next candidate: continue `BSB-ASSET-001` with the responsive mechanical-vault environment, then `BSB-MOTION-001`.
-
-## BS-20260830-06 — SUCCESS
-
-- Sprint day: 1
-- Base commit: `586b5d0fa4eee1c8de57fce9c11641928a828f46`
-- Verified implementation commit: `fa60a4721f0e898b07f9c1fddac8e9b7c04b244e`
-- Work item: `BSB-MOBILE-001`
-- Selection reason: exact portrait evidence truncated `BLACKOUT PROTOCOL`; Base Amount/meters lacked explicit computed centering, focus treatment was inconsistent, 1366x768 was missing, and the 360x640 Replay board could regress within a permissive 2% aspect tolerance.
-- Before/after evidence: mobile mode labels now wrap and center; Base Amount and all meters report centered; Tab exposes a solid amber 3px ring with 2px separation on every geometry; 1366x768 is covered; Replay remains square under a tightened 0.2% guard. All actions remain >=44px, inside viewport and center-hittable.
-- Changed files: `apps/blacksite/src/routes/+page.svelte`, `apps/blacksite/tests/blacksite-mobile-hud.test.mjs`, `scripts/blacksite-qa-e2e.mjs`, and sprint memory closeout files.
-- Gates: focused mobile tests 3/3 PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 78/78 PASS; production build PASS; exact remote math 7/7 with 300,000 books PASS; exact Chromium 37/37 scenarios and 811/811 checks PASS; console/network/request failures 0; `git diff --check` PASS.
-- Visual review: exact final screenshots at 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 inspected. Labels are complete, values centered, focus visible, boards square/on-screen, and no overlap or scrollbar regression is present. Original penguin/environment art is still absent, so production-art completion is not claimed.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Two evidence-driven QA corrections were required; unchanged failed calls were not repeated.
-- Persistence: implementation was tree-identical and fast-forwarded without force through the connected GitHub API; exact run `33326796710` and artifact `9736580209` succeeded.
-- Residual risk: original rights-cleared penguin/vault assets, production motion/cinematics, audio and complete gameplay/reconnect/Stake release evidence remain open.
-- Next candidate: `BSB-ASSET-001`, then `BSB-MOTION-001`.
