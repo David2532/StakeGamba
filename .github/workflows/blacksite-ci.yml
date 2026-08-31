@@ -76,12 +76,12 @@ jobs:
           test "${#EXPECTED_SHA}" -eq 40
           test "$actual_sha" = "$EXPECTED_SHA"
           test -z "$(git status --porcelain=v1)"
-          mkdir -p artifacts/blacksite-ci
+          mkdir -p "${RUNNER_TEMP}/blacksite-ci"
           {
             printf 'git_sha=%s\n' "$actual_sha"
             printf 'node=%s\n' "$(node --version)"
             printf 'pnpm=%s\n' "$(pnpm --version)"
-          } > artifacts/blacksite-ci/identity.txt
+          } > "${RUNNER_TEMP}/blacksite-ci/identity.txt"
 
       - name: Install frozen dependencies
         run: pnpm install --frozen-lockfile --reporter=silent
@@ -101,11 +101,42 @@ jobs:
       - name: Verify BlackSite math candidate
         run: pnpm blacksite:math:test
 
+      - name: Generate and verify isolated BlackSite package
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          candidate_root="${RUNNER_TEMP}/blacksite-candidate-${EXPECTED_SHA}"
+          frontend_tree="$(node scripts/blacksite-package-candidate.mjs --print-frontend-tree-sha256)"
+          test "${#frontend_tree}" -eq 64
+          node scripts/blacksite-package-candidate.mjs \
+            --output "$candidate_root" \
+            --expected-commit "$EXPECTED_SHA" \
+            --expected-frontend-tree "$frontend_tree"
+          node scripts/blacksite-package-verify.mjs \
+            --candidate "$candidate_root" \
+            --write-result
+          mkdir -p artifacts/blacksite-ci
+          mkdir -p artifacts/blacksite-package
+          cp "${RUNNER_TEMP}/blacksite-ci/identity.txt" artifacts/blacksite-ci/
+          cp "$candidate_root/candidate-manifest.json" artifacts/blacksite-package/
+          cp "$candidate_root/package-verification.json" artifacts/blacksite-package/
+          cp "$candidate_root/README_UPLOAD_CANDIDATE.txt" artifacts/blacksite-package/
+          printf 'candidate_root=%s\nfrontend_tree_sha256=%s\n' \
+            "$candidate_root" "$frontend_tree" \
+            > artifacts/blacksite-package/identity.txt
+          printf 'BLACKSITE_CANDIDATE_ROOT=%s\n' "$candidate_root" >> "$GITHUB_ENV"
+          printf 'BLACKSITE_FRONTEND_TREE_SHA256=%s\n' "$frontend_tree" >> "$GITHUB_ENV"
+
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Test exact built frontend in Chromium
-        run: node scripts/blacksite-qa-e2e.mjs
+      - name: Test exact extracted frontend in Chromium
+        run: |
+          BLACKSITE_QA_BUILD_ROOT="${BLACKSITE_CANDIDATE_ROOT}/frontend" \
+          BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256="${BLACKSITE_FRONTEND_TREE_SHA256}" \
+          node scripts/blacksite-qa-e2e.mjs
 
       - name: Upload BlackSite diagnostics
         if: always()
@@ -116,4 +147,5 @@ jobs:
           retention-days: 30
           path: |
             artifacts/blacksite-ci/**
+            artifacts/blacksite-package/**
             artifacts/blacksite-qa/**

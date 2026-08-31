@@ -40,8 +40,11 @@ function requiredArgument(name) {
 
 function parseArguments() {
 	const usage =
-		'Usage: node scripts/blacksite-package-candidate.mjs --output <new-directory> --expected-commit <full-sha> --expected-frontend-tree <sha256>';
+		'Usage: node scripts/blacksite-package-candidate.mjs --output <new-directory> --expected-commit <full-sha> --expected-frontend-tree <sha256> | --print-frontend-tree-sha256';
 	try {
+		if (process.argv.includes('--print-frontend-tree-sha256')) {
+			return { printFrontendTreeSha256: true };
+		}
 		const outputRoot = resolve(repoRoot, requiredArgument('--output'));
 		const expectedCommit = requiredArgument('--expected-commit');
 		const expectedFrontendTreeSha256 = requiredArgument('--expected-frontend-tree');
@@ -244,11 +247,16 @@ function copyMath(files, mathRoot) {
 }
 
 function main() {
-	const { outputRoot, expectedCommit, expectedFrontendTreeSha256 } = parseArguments();
-	assertSafeNewOutput(outputRoot);
+	const arguments_ = parseArguments();
 	if (!existsSync(join(frontendSource, 'index.html'))) {
 		fail('Missing BLACKSITE frontend build; run pnpm --filter blacksite build first');
 	}
+	if (arguments_.printFrontendTreeSha256) {
+		process.stdout.write(`${createFileManifest(frontendSource).treeSha256}\n`);
+		return;
+	}
+	const { outputRoot, expectedCommit, expectedFrontendTreeSha256 } = arguments_;
+	assertSafeNewOutput(outputRoot);
 	for (const path of [
 		mathIndexSource,
 		mathConfigSource,
@@ -364,7 +372,7 @@ function main() {
 			math: 'math/',
 		},
 		warnings: [
-			'M2 authoritative greybox frontend; final production assets, animation and audio are not present.',
+			'In-progress production frontend; final asset rights/Creative approval, penguin Spine rig, authored character/reel polish, final audio mix and real-device review remain open.',
 			'M1 initial non-release math candidate; the math upload root contains only the seven official minimal payload files and no Stake Math approval is claimed.',
 			'No manual visual/device, extracted archive, Stake/ACP, upload, release or live approval is claimed.',
 		],
@@ -388,7 +396,7 @@ function main() {
 			'Do not upload the repository publish/ folder; it belongs to Golden Goal Rush.',
 			'',
 			'IMPORTANT: This is a SHA-bound technical package candidate, not Stake-approved or release-ready.',
-			'Production art/Spine/audio, manual device/visual review and external Stake gates remain open.',
+			'Final asset approval/Spine work/audio mix, manual device/visual review and external Stake gates remain open.',
 			'',
 		].join('\n'),
 	);
