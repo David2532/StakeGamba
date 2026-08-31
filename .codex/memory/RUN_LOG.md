@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-28 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `d937e7247591fce7a4fbebf695768f9957db0be4`
+- Verified implementation commit: `54c3afc29fcdfded09d36082808c6a8df2b347ad`
+- Work item: `BSB-EVIDENCE-001` (bounded `ERR_IPB` explicit-recovery slice; item remains in progress)
+- Selection reason: exact browser proof stopped at the fail-closed balance-race error and did not prove what an explicit player reload must do when authority exposes an active round after the rejected play.
+- Before/after evidence: one legal play receives API `ERR_IPB`, enters `live-insufficient`, clears board/win and disables Play. A 300ms guard proves no automatic retry. Explicit `RELOAD / RESTORE` makes exactly one second authentication, receives the authoritative active zero-win round, sends exactly one `/wallet/end-round`, and returns `live-ready` with `$999.00` / `$0.00`. Exact order is `authenticate → play → authenticate → endRound`; there is no duplicate play, event or checkpoint write.
+- Changed files: Chromium QA, compliance evidence regression, and sprint memory closeout files.
+- Gates: focused syntax/contracts/compliance 39/39 PASS; frozen install PASS; exact lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 107/107 PASS; production build PASS; full math 7/7 with 300,000 books PASS and unchanged fingerprint; isolated package and 51-row evidence resolution PASS; exact Chromium 61/61 scenarios and 1490/1490 checks PASS; unexpected network/page/request failures 0; `git diff --check` PASS.
+- Visual review: exact 1280x720 `ERR_IPB` failure/recovery captures plus 1920x1080, 390x844 and 844x390 geometry from artifact `9775142447` were inspected. Error/reload treatment, restored board, balances, controls and penguin/vault identity remain visible and centered without overlap, scroll, crop or broken-image regression. Prior 1366x768 and Replay 360x640 coverage remains source-identical; manual/device approval is not claimed.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. No failed or unchanged semantic tool call was repeated, and no dependency or binary product asset changed.
+- Persistence: implementation was fast-forwarded without force through connected GitHub data; exact run `33436799735` and artifact `9775142447` succeeded.
+- Residual risk: deferred mid-feature restore evidence, 23 manual checklist gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
+- Next candidate: choose the next distinct safe provider/gameplay evidence gap; retry mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260831-27 — SUCCESS
 
 - Sprint day: 2
@@ -305,19 +321,3 @@ Newest entries first; retain at most 20.
 - Persistence: both implementation commits were tree-identical and fast-forwarded without force through the connected GitHub API; exact run `33335278205` and artifact `9738959370` succeeded.
 - Residual risk: asset rights/Creative approval, penguin cleanup/Spine rig, BLACKOUT/foreground layers, reel/vault/character cinematics, audio and complete gameplay/reconnect/Stake evidence remain open.
 - Next candidate: continue `BSB-MOTION-001` with deterministic reel anticipation and BLACKOUT/vault transition fallback, then `BSB-AUDIO-001`.
-
-## BS-20260830-08 — SUCCESS
-
-- Sprint day: 1
-- Base commit: `6e9bd13e887d6bf879731bedd405ae519352f461`
-- Verified implementation commit: `e30d0c0de02532d6874ca1a51bde2ddbcd70a116`
-- Work item: `BSB-ASSET-001` (bounded responsive environment slice; item remains in progress)
-- Selection reason: exact screenshots already had the locked penguin fallback but the board still floated in a flat technical surface; the missing responsive physical-vault environment was the highest visible critical release blocker.
-- Before/after evidence: before, all viewports used the flat board-stage surface. After, desktop/landscape load a 1672x941 mechanical-vault plate while <=820px portrait/tablet/Replay load a separately composed 941x1672 plate. Browser evidence records complete, visible, pointer-inert images and exact `currentSrc` per viewport.
-- Changed files: two original PNG sources, two optimized WebP exports, semantic asset map, slot picture/CSS integration, manifest/provenance/asset ledger, two asset tests, Chromium QA, and sprint memory closeout files.
-- Gates: focused asset contracts 3/3 PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 83/83 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS; exact Chromium 37/37 scenarios and 827/827 checks PASS; console/network/request failures 0; `git diff --check` PASS.
-- Visual review: optimized sources plus exact final screenshots at 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 inspected. Vault mechanics frame the square board, correct responsive plates load, controls remain legible and no overlap, scroll, crop-selection or aspect regression is visible.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Built-in generation was text-only with no visual reference; provenance and human-review limits are explicit.
-- Persistence: implementation tree was fast-forwarded without force through the connected GitHub API; exact run `33332083126` and artifact `9738046250` succeeded.
-- Residual risk: human rights/Creative review, penguin alpha cleanup and Spine 4.2 rig, BLACKOUT/foreground environment layers, motion/cinematics, audio and complete gameplay/reconnect/Stake release evidence remain open.
-- Next candidate: `BSB-MOTION-001`, while `BSB-ASSET-001` remains open for approval-dependent rig/BLACKOUT work.

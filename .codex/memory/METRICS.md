@@ -1,5 +1,43 @@
 # Rolling automation metrics
 
+## BS-20260831-28
+
+```yaml
+closed_at_utc: 2026-08-31T20:53:00Z
+sprint_day: 2
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+local_frozen_install: PASS
+focused_syntax_and_json: PASS
+focused_contract_and_compliance_tests: 39
+focused_contract_and_compliance_status: PASS
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 107
+exact_app_status: PASS
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+verified_ci_run: 33436799735
+verified_ci_status: PASS
+remote_browser: { scenarios: 61, checks_pass: 1490, checks_fail: 0, unexpected_failures: 0 }
+remote_err_ipb_recovery: { authenticate_requests: 2, play_requests: 1, event_requests: 0, end_round_requests: 1, automatic_play_retries: 0, checkpoint_writes: 0, final_balance: '$999.00', final_win: '$0.00', final_state: live-ready }
+remote_diagnostics_artifact: 9775142447
+remote_diagnostics_digest: sha256:a5a0b99c61058cef00deb48f2d8fb236c0ed4de3b2f582e0030733aaece2949f
+remote_implementation_commit: 54c3afc29fcdfded09d36082808c6a8df2b347ad
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/Stake-contract reads, one frozen install, focused syntax/contracts/compliance, exact Actions verification, structured artifact extraction, five screenshot inspections, diff/secret review and content-addressed fast-forward persistence. No failed or unchanged semantic tool call was repeated; no subagent, dependency or binary product asset was added. Exact token telemetry was unavailable.
+
 ## BS-20260831-27
 
 ```yaml
