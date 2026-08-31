@@ -1,21 +1,88 @@
-# BLACKSITE // BREACH greybox
+# BLACKSITE // BREACH
 
-Lifecycle: **M2_STARTED / GREYBOX / NOT A RELEASE CANDIDATE**
+Lifecycle: **M3 integration / QA_BLOCKED / NOT A RELEASE CANDIDATE**
 
-This app is an isolated presentation-contract start for the verified M1 math candidate. It contains no final art, no Golden Goal Rush assets, no Stake Engine Loader and no paid local simulation.
+This package is the static SvelteKit frontend for the frozen BLACKSITE math candidate. It now includes live RGS play, authoritative active-round restore, read-only Replay, deterministic development fixtures, responsive vault presentation, bounded motion and a policy-safe procedural audio foundation. It does not include an approved Spine rig, final audio assets, complete manual device evidence or external Stake approval.
 
-## Launch boundaries
+The RGS/book result is always payout authority. The frontend does not simulate paid outcomes, invent settlement or fall back to local play in production.
 
-- Live launch requires a valid `rgs_url` query parameter. Missing or invalid values produce a visible fatal launch error. The M2 start intentionally exposes no paid-play button or wallet request yet.
-- Replay query parsing is isolated and read-only. Replay fetching remains an explicit later M2 task.
-- Development fixtures require Vite development mode and the explicit query `?dev_fixture=base_zero`. A production build rejects that query instead of falling back to a simulated game.
+## Launch contracts
 
-## Commands
+### Live play
+
+A live launch requires a valid HTTP(S) `rgs_url`, non-empty `sessionID`, supported `lang` and supported `device`. The runtime authenticates before enabling play and uses the authenticate response for wallet state, available levels, limits and active-round restore.
 
 ```text
-pnpm --filter blacksite test
-pnpm --filter blacksite build
-pnpm --filter blacksite dev
+?sessionID=<session>&rgs_url=https%3A%2F%2F<rgs-host>&currency=USD&lang=en&device=desktop
 ```
 
-The `base_zero` fixture mirrors published BLACKSITE book `base/1`, event contract `blacksite-book-events-v1`, from M1 candidate fingerprint `d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8` and canonical event-schema SHA-256 `bb4f3ff88200519682a539909b196f1462069b865a48afd04cb3219e7b9efe29`.
+Missing, malformed, credential-bearing or query/hash-bearing `rgs_url` values fail closed before a wallet request. Paid play never switches to a fixture or local result.
+
+### Replay
+
+Replay is sessionless and read-only. Required identity parameters are `replay=true`, `game`, `version`, `mode`, `event` and a valid HTTP(S) `rgs_url`; `currency`, `amount`, `lang`, `device` and `social` are optional launch context.
+
+```text
+?replay=true&game=blacksite_breach&version=0.1.0-m1&mode=base&event=1&rgs_url=https%3A%2F%2F<rgs-host>&currency=USD&amount=1.00
+```
+
+Replay performs one GET for the authoritative book. `PLAY AGAIN` replays the already-fetched result without authentication, wallet mutation or a second Replay request.
+
+### Deterministic development fixtures
+
+Fixtures are available only through the Vite development server and an explicit `dev_fixture` query. Production builds reject fixture queries.
+
+```text
+http://localhost:3002/?dev_fixture=base_zero
+```
+
+The generated catalog contains M1-backed deterministic states used for gameplay, motion and visual review. Rebuild it only when the frozen fixture index intentionally changes:
+
+```sh
+pnpm --filter blacksite fixtures:build
+```
+
+## Local commands
+
+Run from the repository root:
+
+```sh
+pnpm --filter blacksite dev       # Vite development server on :3002
+pnpm --filter blacksite lint      # production-source ESLint
+pnpm --filter blacksite check     # Svelte production-source typecheck
+pnpm --filter blacksite test      # app contracts and regressions
+pnpm --filter blacksite build     # static production frontend
+pnpm blacksite:math:test          # frozen math/package invariants
+pnpm blacksite:qa:e2e             # fresh build plus Chromium QA
+```
+
+Chromium QA exercises live RGS flows, Replay, restore/reconnect, Social Mode, fractional currency, deterministic motion/audio, missing-asset fallback and required desktop/mobile geometry. A green local run is technical evidence, not manual device, listening, Creative or Stake approval.
+
+## Exact candidate evidence
+
+The branch workflow performs frozen install, lint, typecheck, app tests, build, full math verification, isolated-package generation/readback, exact-package Chromium QA and current-SHA resolution of the 51-point evidence matrix.
+
+Generate technical candidate folders outside the repository; the packager refuses a dirty worktree, an unpinned commit, a mismatched frontend tree or an existing output directory:
+
+```sh
+pnpm --filter blacksite build
+node scripts/blacksite-package-candidate.mjs \
+  --output <new-candidate-directory> \
+  --expected-commit <full-git-sha> \
+  --expected-frontend-tree <fresh-frontend-tree-sha256>
+node scripts/blacksite-package-verify.mjs \
+  --candidate <new-candidate-directory> \
+  --write-result
+```
+
+The generated manifest deliberately keeps `uploadAuthorized: false`. Exact automated evidence does not close rights/Creative review, authored Spine/audio work, real-device visual/listening gates or external Stake lifecycle actions.
+
+## Sources of truth
+
+- `docs/blacksite/INDEX.md` — project documentation map
+- `docs/blacksite/RGS_REPLAY_CONTRACT.md` — live, restore and Replay invariants
+- `docs/blacksite/QUALITY_QA_RELEASE.md` — exact-package and release-evidence rules
+- `docs/blacksite/RELEASE_EVIDENCE_51.json` — machine-resolved checklist mapping
+- `.codex/memory/CURRENT_STATE.md` — latest verified branch evidence and blockers
+
+The frozen math candidate fingerprint is `d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8`. Any intentional math or gameplay change requires deterministic regeneration, regression evidence and Stake-controlled review handling.
