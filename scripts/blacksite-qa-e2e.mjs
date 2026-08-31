@@ -3068,11 +3068,7 @@ async function runNetworkScenarios(browser, origin) {
 			});
 			const { page, diagnostics } = await openPage(context, origin, liveQuery());
 			await waitForEndpoint(network, 'authenticate', 1);
-			await page.waitForFunction(
-				() => document.querySelector('[data-testid="blacksite-player-hud"]')?.getAttribute('data-runtime-state') === 'live-restoring',
-				undefined,
-				{ timeout: 10_000 },
-			);
+			await waitForRuntimeState(page, 'live-restoring');
 			const restoring = {
 				state: await runtimeState(page),
 				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
