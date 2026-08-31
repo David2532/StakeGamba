@@ -1,5 +1,43 @@
 # Rolling automation metrics
 
+## BS-20260831-25
+
+```yaml
+closed_at_utc: 2026-08-31T14:28:00Z
+sprint_day: 2
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_syntax_and_contract_tests: 24
+focused_syntax_and_contract_status: PASS
+exact_frozen_install: PASS
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 105
+exact_app_status: PASS
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+recovery_ci_run: { id: 33395722878, attempt: 2, status: PASS }
+current_head_ci_run: 33399981559
+current_head_ci_attempts: { 1: existing_blackout_frame_pacing_p95_50_1ms_fail, 2: PASS }
+remote_browser: { scenarios: 60, checks_pass: 1440, checks_fail: 0, unexpected_failures: 0 }
+remote_natural_base: { fixture: base_natural_blackout, event_count: 85, play_requests: 1, end_round_writes: 0, event_writes: 0, win: '$1000.00', balance: '$1999.00', final_state: live-ready }
+remote_confirmed_deep_access: { fixture: deep_access_feature, event_count: 87, play_requests: 1, end_round_writes: 0, event_writes: 0, win: '$2000.00', balance: '$2996.00', final_state: live-ready }
+remote_diagnostics_artifact: 9761861140
+remote_diagnostics_digest: sha256:6933636db9b21dd618da13ad46b0c1394b4f1407f87f9f3f7b7f4c3557541ab1
+remote_implementation_commit: b94c0595d237e49c5e680a66362d5df520f29a36
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/compliance reads, delayed Actions diagnosis, focused syntax/contracts, exact recovery/current-head CI, artifact extraction, seven screenshot inspections, diff/secret review, content-addressed Git persistence and memory closeout. Four patch-conversion attempts and one missing-`gh` monitor failed without unchanged retry. Current-head attempt 1 found a transient pre-existing BLACKOUT p95 of 50.1ms; no threshold/code was weakened and one retry passed. The original checkout was pruned after remote verification, so closeout used a fresh exact-HEAD clone. No subagent, dependency, binary product asset, token estimate or force update was used.
+
 ## BS-20260831-24
 
 ```yaml

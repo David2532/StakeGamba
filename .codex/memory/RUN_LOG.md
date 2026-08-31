@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-25 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `72d643f16941f8bfd662fabebe6f8fd60907d040`
+- Verified implementation commit: `b94c0595d237e49c5e680a66362d5df520f29a36`
+- Work item: `BSB-EVIDENCE-001` (live natural-Base and confirmed Deep-Access feature lifecycle; remains in progress)
+- Selection reason: the prior run specified the highest-value missing live-feature path but reverted it when Actions appeared absent; delayed workflow discovery made exact Chromium execution available.
+- Before/after evidence: natural Base and confirmed Deep Access now traverse ordered feature/BLACKOUT/Vaultkeeper entry, cycles, exit and recovery. Base ends `$1000.00` / `$1999.00`; Deep Access stays request-free until its `$4.00` / `4×` confirmation and ends `$2000.00` / `$2996.00`. Each has one exact play, zero settlement/event writes, 49 cells and final `live-ready`/idle.
+- Changed files: browser QA, fail-closed evidence map, compliance regression and five memory files; runtime UI/math/assets unchanged.
+- Gates: focused syntax/contracts 24/24 PASS; frozen install, lint, typecheck 0/0, app tests 105/105, build, math 7/7 with 300,000 books, isolated package/resolver PASS; Chromium 60/60 scenarios and 1440/1440 checks PASS; unexpected failures 0; diff/secret review PASS.
+- Visual review: both feature entry/completion captures and 1920x1080, 390x844, 844x390 inspected without overlap, scroll, crop or broken assets; human wording/device approval remains open.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0.
+- Persistence: recovery run `33395722878` attempt 2 and current-head run `33399981559` attempt 2 succeeded; fast-forward without force; artifact `9761861140`. Attempt 1 isolated transient existing BLACKOUT p95 50.1ms; no threshold was weakened.
+- Residual risk: 23 manual gates, 6 external approvals, rights/Creative cleanup, Spine rig/clips, BLACKOUT/foreground layers, final audio/device QA and real-device pacing.
+- Next candidate: next safe provider/gameplay state within `BSB-EVIDENCE-001`; manual/external evidence remains unclaimed.
+
 ## BS-20260831-24 — BLOCKED
 
 - Sprint day: 2
@@ -306,19 +322,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation was tree-identical and fast-forwarded without force through the connected GitHub API; exact run `33326796710` and artifact `9736580209` succeeded.
 - Residual risk: original rights-cleared penguin/vault assets, production motion/cinematics, audio and complete gameplay/reconnect/Stake release evidence remain open.
 - Next candidate: `BSB-ASSET-001`, then `BSB-MOTION-001`.
-
-## BS-20260830-05 — SUCCESS
-
-- Sprint day: 1
-- Base commit: `cc2a0a57d2ffb4ecf94646d6e6c13e323579ef3c`
-- Verified implementation commit: `cde685d09759a05f446004f6ba4dd89fd1cf6c4f`
-- Work item: `BSB-HUD-001`
-- Selection reason: exact current-head screenshots exposed a production-facing technical greybox: coordinates, `--` placeholders, three-letter symbol codes, schema/unit/event hashes and internal panel language.
-- Before/after evidence: exact 1920x1080, 390x844 and 844x390 screenshots changed from diagnostic cells/panels to a player-facing vault HUD with semantic symbols and concealed states. A populated Replay screenshot proves full symbol names/marks. Geometry remained square/on-screen and all required controls remained hittable.
-- Changed files: `apps/blacksite/src/routes/+page.svelte`, `apps/blacksite/tests/blacksite-player-hud.test.mjs`, `scripts/blacksite-qa-e2e.mjs`, and sprint memory closeout files.
-- Gates: focused HUD tests 3/3 PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 75/75 PASS; production build PASS; exact remote math 7/7 with 300,000 books PASS; exact Chromium 36/36 scenarios and 750/750 checks PASS; console/network/request failures 0; `git diff --check` PASS.
-- Visual review: exact final screenshots at 1920x1080, 390x844, 844x390 and Replay 1280x720 inspected. Internal copy is absent and no overlap/scroll regression was observed. Original penguin/environment assets are still absent, so production-art completion is not claimed.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Initial CI correctly caught Social-restricted `BET` copy and an over-strict compact-status assertion; both were fixed before closeout.
-- Persistence: implementation was tree-identical and fast-forwarded without force through the connected GitHub API; exact run `33324002432` and artifact `9735814868` succeeded.
-- Residual risk: production penguin/vault assets and rights review, mobile truncation/centering/focus polish, motion/cinematics, audio and complete release evidence remain open.
-- Next candidate: `BSB-MOBILE-001`, then the first original production penguin/vault asset integration slice.
