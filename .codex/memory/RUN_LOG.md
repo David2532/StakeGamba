@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-02 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `16c67bb76f236d12bc4a14c55efc3a3879fb9b3a`
+- Verified implementation commit: `9099585503f8a33be06a456ade501bff689f7d21`
+- Work item: `BSB-MOBILE-001` (bounded HUD accessibility-semantics continuation; remains DONE)
+- Selection reason: geometry, focus and touch targets were exact, but the access-level/motion control collections lacked exposed group semantics, asynchronous launch/board messages were not atomic status regions, and high-cost confirmation did not bind its factor/total explanation to the dialog.
+- Before/after evidence: route and presentation controls are named groups; launch/board updates are atomic polite statuses; Deep Access and BLACKOUT dialogs expose descriptions containing exact 4×/$4.00 and 80×/$80.00 values. Exact geometry proves the semantics across invalid-language, desktop, portrait, landscape and Replay surfaces.
+- Changed files: `+page.svelte`, Chromium QA, one new three-case accessibility regression and five sprint-memory files; CSS/layout, math, wallet, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused accessibility/HUD tests 10/10 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 112/112 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; isolated package/readback and 51-row resolver PASS; exact Chromium 64/64 scenarios and 1576/1576 checks PASS; unexpected network/page/request failures 0; `git diff --check` and secret/debug review PASS. Local Chromium was BLOCKED by the absent Playwright executable and is superseded by the exact isolated CI package run.
+- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640 and completed Deep Access/BLACKOUT captures from artifact `9779949482` were inspected. Boards, values, controls and penguin/vault pixels remain complete without overlap, scroll, crop or broken-image regression; confirmed totals are $4.00/$80.00. The semantics do not intentionally change pixels; real screen-reader/device approval remains unclaimed.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. A changed loopback server command recovered from a container interface error; no unchanged semantic failure was repeated. Clean CI's 9-file frontend tree exposed local stale-bundle accumulation as follow-up `BSB-PACKAGE-CLEAN-001`.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33450641637`, artifact `9779949482` and digest `sha256:03395f9741d5cbcd488247f3943cebf1fa4cbfc334ce658db22e9b16a8096c27` succeeded.
+- Residual risk: real screen-reader/device approval, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
+- Next candidate: harden repeated local package/build cleanup so stale hashed bundles cannot enter a candidate; then choose the next distinct safe provider gap.
+
 ## BS-20260901-01 — SUCCESS
 
 - Sprint day: 3
@@ -305,19 +321,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation commits were fast-forwarded without force through the connected GitHub API; exact run `33345753819` and artifact `9742066991` succeeded.
 - Residual risk: the complete 51-point automated/manual/external matrix, manual audio/device listening, authored reel/character sound, asset rights/Creative approval, penguin cleanup/Spine and character/reel polish remain open.
 - Next candidate: continue `BSB-EVIDENCE-001` with the complete gameplay/provider checklist matrix; manual approvals remain explicitly external.
-
-## BS-20260831-12 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `403a98376d8dc49dbee647de8b8ab14b8f405e2d`
-- Verified implementation commit: `c38b1262f5ef8fcc1a3047f9c07180a985c722d2`
-- Work item: `BSB-EVIDENCE-001` (bounded reconnect/evidence slice; item remains in progress)
-- Selection reason: the exact browser matrix showed a recoverable authentication failure but stopped before proving that the player could explicitly reconnect to authoritative ready without a fallback or wallet write; historical M2 wording also overclaimed exhaustive money-domain coverage.
-- Before/after evidence: a first exact `POST /wallet/authenticate` now returns 503 and exposes enabled `RELOAD / RESTORE`; the click sends exactly one second identical authenticate, returns `live-ready` with `$1000.00`, leaves launch live and sends zero play/endRound/event writes. M2 documentation now limits its historical verdict to enumerated fixtures and records the later real fractional-product correction.
-- Changed files: `scripts/blacksite-qa-e2e.mjs`, `docs/blacksite/M2_COMPLIANCE_REVIEW.md`, and sprint memory closeout files.
-- Gates: frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 91/91 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; exact Chromium 40/40 scenarios and 964/964 checks PASS; unexpected console/network/request failures 0; `git diff --check` PASS.
-- Visual review: exact final recovery screenshot plus current-head 1920x1080, 390x844, 844x390 and uncertain-paid-play restore screenshots inspected. Recovery returns the normal ready HUD with authoritative balance; boards/controls remain visible, square, reachable and free of new overlap, scroll or crop regressions. No runtime UI changed in this slice.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Diagnostic run `33342704030` isolated one test-only thousands-separator assumption; final run `33343244848` is green. A formatter-churn attempt was fully removed before commit and no unchanged failure was repeated.
-- Persistence: implementation/evidence commits were fast-forwarded without force through the connected GitHub API; exact run `33343244848` and artifact `9741325685` succeeded.
-- Residual risk: complete extracted-package/gameplay/Stake matrix, manual audio/device listening, authored reel/character sound, asset rights/Creative approval, penguin cleanup/Spine and character/reel polish remain open.
-- Next candidate: continue `BSB-EVIDENCE-001` with the extracted-package and full gameplay/provider matrix; manual audio approval remains explicitly external.

@@ -1,5 +1,54 @@
 # Rolling automation metrics
 
+## BS-20260901-02
+
+```yaml
+closed_at_utc: 2026-08-31T23:42:13Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+local_frozen_install: PASS
+focused_syntax_status: PASS
+focused_accessibility_and_hud_tests: 10
+focused_accessibility_and_hud_status: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 112
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_package_generation: PASS
+local_package_verification: PASS
+local_browser: BLOCKED_PLAYWRIGHT_BROWSER_MISSING
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 112
+exact_app_status: PASS
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: ff641492cdddbb142220cd20f620b4ac2f119adf94341544d6fde4978c7ae98d
+verified_ci_run: 33450641637
+verified_ci_status: PASS
+remote_browser: { scenarios: 64, checks_pass: 1576, checks_fail: 0, unexpected_failures: 0 }
+remote_accessibility: { named_groups_surfaces: 8, atomic_status_surfaces: 8, deep_access_description: '4x / $4.00', blackout_description: '80x / $80.00' }
+remote_diagnostics_artifact: 9779949482
+remote_diagnostics_digest: sha256:03395f9741d5cbcd488247f3943cebf1fa4cbfc334ce658db22e9b16a8096c27
+remote_implementation_commit: 9099585503f8a33be06a456ade501bff689f7d21
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/semantic-source reads, one frozen install, focused syntax/accessibility/HUD tests, one full local lint/typecheck/app/build/math cycle, local and exact package generation/readback, exact Actions verification, artifact extraction, six screenshot inspections, diff/secret review and content-addressed fast-forward persistence. The first dev-server command hit a container network-interface error and a changed loopback command started Vite; cross-exec curl isolation and the missing local Playwright executable prevented a local browser claim. An unauthenticated HTTPS push was replaced by the connected Git-data path. The local accumulated build exposed stale hashed bundles (11 files versus clean CI's 9), recorded as a separate backlog item rather than expanding this slice. No unchanged semantic failure was repeated; no subagent, dependency or binary product asset was added. Exact token telemetry was unavailable.
+
 ## BS-20260901-01
 
 ```yaml
