@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-30 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `342574ba7e86893defaf4d2705fb6b6edec3ae40`
+- Verified implementation commit: `50533a5ac45594c67caaee9946c0e3049afec5d3`
+- Work item: `BSB-EVIDENCE-001` (bounded expired-settlement-session recovery slice; item remains in progress)
+- Selection reason: exact package evidence covered transport-level failed settlement and session expiry before play acceptance, but not a session expiring after one authoritative play/checkpoint and before end-round completion.
+- Before/after evidence: one accepted Base play persists one durable checkpoint; the first end-round returns API `ERR_SESSION`, exposes fail-closed `RELOAD / RESTORE`, and two 300ms guards prove no automatic auth/settlement retry. Explicit reload reauthenticates once, restores the active cursor and sends one successful completion. Exact order is `authenticate → play → event → endRound → authenticate → endRound`; no duplicate play/checkpoint occurs.
+- Changed files: Chromium QA, 51-point evidence map, compliance regression and sprint memory closeout files; runtime UI, math, assets, lockfile and dependencies unchanged.
+- Gates: focused syntax/contracts/compliance 40/40 PASS; frozen install PASS; local and exact lint PASS; local and exact `svelte-check` 0 errors/0 warnings PASS; local and exact app tests 108/108 PASS; production build PASS; full math 7/7 with 300,000 books PASS and unchanged fingerprint; isolated package and 51-row evidence resolution PASS; exact Chromium 63/63 scenarios and 1550/1550 checks PASS; unexpected network/page/request failures 0; `git diff --check` PASS.
+- Visual review: exact 1280x720 expired-settlement failure/recovery captures plus 1920x1080, 390x844, 844x390 and Replay 360x640 geometry from artifact `9777256465` were inspected. Error/reload treatment, authoritative board/win, recovered values, controls and penguin/vault identity remain visible and centered without overlap, scroll, crop or broken-image regression. Prior 1366x768 coverage remains source-identical; manual/device approval is not claimed.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Exact chunked blob/tree identity guards passed. One destructive temporary-path command was blocked and safely replaced; one log-filter regex was corrected once. No unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33442885524` and artifact `9777256465` succeeded.
+- Residual risk: deferred mid-feature restore evidence, 23 manual checklist gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
+- Next candidate: choose the next distinct safe provider/gameplay evidence gap; retry mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260831-29 — SUCCESS
 
 - Sprint day: 2
@@ -305,19 +321,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation and two responsive-fix commits were fast-forwarded without force through the connected GitHub API; exact run `33341067497` and artifact `9740632934` succeeded.
 - Residual risk: authored reel-stop/character/feature sound detail, mix/ducking and manual device listening; asset rights/Creative approval; penguin cleanup/Spine; character/reel polish; complete gameplay/reconnect/Stake evidence.
 - Next candidate: continue `BSB-AUDIO-001` with authored cue assets/mix and manual listening evidence, unless `BSB-EVIDENCE-001` exposes a higher gameplay/provider blocker.
-
-## BS-20260831-10 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `b8138237589a459c1fa301b54f4a6d1305eba9bd`
-- Verified implementation commit: `90f7c3d48732766e6c3b48e2815282d456bbb250`
-- Work item: `BSB-MOTION-001` (authoritative spin/BLACKOUT vault slice; item remains in progress)
-- Selection reason: exact cascade motion existed, but round entry and BLACKOUT feature entry/exit still cut directly between authoritative states without a mechanical-vault presentation.
-- Before/after evidence: `round_started`, initial board reveal, `feature_armed`, `feature_started` and `feature_ended` now drive bounded spin/reveal/anticipation/lock-entry/lock-exit phases. The deterministic direct BLACKOUT lifecycle takes 3,541ms in normal mode; exact Chromium records the active scoped CSS animations, ordered lifecycle, final $0.00, one play request and no event/settlement writes.
-- Changed files: presentation director, slot UI/CSS, contract tests, Chromium QA, and sprint memory closeout files.
-- Gates: focused/full app tests 87/87 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS; exact Chromium 39/39 scenarios and 910/910 checks PASS; console/network/request failures 0; `git diff --check` PASS.
-- Visual review: exact final transition screenshot plus 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 screenshots inspected. The lock geometry reads as a bounded mechanical shutter over the unchanged square grid; background, controls and values remain legible with no new overlap, scroll or crop regression. Full frame-by-frame sharpness and character animation remain open.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Diagnostic CI correctly exposed scoped keyframe names and a stale Replay timeout; the harness was corrected from exact browser evidence.
-- Persistence: implementation and QA-fix trees were fast-forwarded without force through the connected GitHub API; exact run `33337862476` and artifact `9739702865` succeeded.
-- Residual risk: asset rights/Creative approval, penguin cleanup/Spine rig and character reactions, foreground layers, audio and complete gameplay/reconnect/Stake evidence remain open.
-- Next candidate: `BSB-AUDIO-001`, unless a higher-priority gameplay/reconnect contract defect is evidenced first.
