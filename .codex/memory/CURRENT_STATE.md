@@ -1,14 +1,14 @@
 # Current verified state
 
 - Branch: `codex/blacksite-aaa-studio`
-- Verified implementation commit: `f333f220c9299e6f2c44765ff08fad7c93c97591`
-- Verified CI run: `33359618133` — SUCCESS against the clean exact implementation commit
+- Verified implementation commit: `fbfe4ed0cabe40d2df7a6c1f7962e3cc3c2f0da5`
+- Verified CI run: `33362124623` — SUCCESS against the clean exact implementation commit
 - App lifecycle: responsive vault HUD, original penguin fallback, independent desktop/portrait vault environments, deterministic authoritative board/Vaultkeeper motion and a policy-safe procedural audio foundation are integrated; approved Spine rig, authored character cinematics, final audio mix and complete release evidence remain absent; not a release candidate
-- App gates: lint PASS, production-source `svelte-check` PASS (0 errors / 0 warnings), 97/97 tests PASS, production build PASS
-- Math/package gates: 300,000 books and 7/7 candidate/math/risk tests PASS; exact package generation/readback and the 51-point evidence resolver PASS in run `33359618133`; candidate fingerprint remains `d03fab…78d8`.
-- Fixed in the latest implementation: the original procedural bus now gives every board snapshot a seven-pulse, column-staggered reel-stop cadence (`0/24/48/72/96/120/144ms` normal; `0/8/16/24/32/40/48ms` turbo), maps authoritative feature/win/cap/settlement cues to semantic Vaultkeeper/lock recipes, and ducks/restores ambience for priority cues without creating another graph.
-- Browser status: exact packaged frontend PASS — 40/40 scenarios and 975/975 checks in run `33359618133`; unexpected console/network/request errors are 0. Audio evidence records exactly seven normal reel pulses, one priority cue/duck, one ambience instance, persisted mute and locked/no-autoplay reload. Existing motion evidence remains: turbo and normal cascade 16.7ms p95 with no >50ms stalls; full BLACKOUT 33.4ms p95 with one >50ms stall. Exact payouts, request counts and ready/idle cleanup are preserved. Artifact: `9746470203`.
-- Visual evidence caveat: the exact 1920x1080 geometry capture omitted both character and vault pixels even though DOM checks reported complete, visible images with natural widths; a later exact audio capture rendered the vault plate. Treat this as a high decode/paint-readiness race until deterministic screenshot and runtime proof close it.
+- App gates: lint PASS, production-source `svelte-check` PASS (0 errors / 0 warnings), 98/98 tests PASS, production build PASS
+- Math/package gates: 300,000 books and 7/7 candidate/math/risk tests PASS; exact package generation/readback and the 51-point evidence resolver PASS in run `33362124623`; candidate fingerprint remains `d03fab…78d8`.
+- Fixed in the latest implementation: character and responsive vault images now decode, reveal and receive two compositor frames before reaching an explicit `painted` state. Screenshots and geometry audits fail closed until the runtime barrier is terminal; the existing missing-character silhouette remains the only accepted fallback.
+- Browser status: exact packaged frontend PASS — 40/40 scenarios and 975/975 checks in run `33362124623`; unexpected console/network/request errors are 0. Every recorded geometry surface reports both character and environment paint barriers `painted`; exact payouts, request counts and ready/idle cleanup are preserved. Artifact: `9747264261`.
+- Visual evidence: exact 1920x1080 and 1366x768 captures now contain both penguin and mechanical vault pixels. Exact 390x844, 844x390 and 360x640 Replay captures contain the intended responsive vault plate with the character deliberately compact-hidden; boards remain square and controls remain visible.
 - Stake evidence status: all 51 checklist rows are mapped; 20 are automated PASS, 18 have automated proof but retain manual gates, 5 are manual-only open, 6 require external approval, and 2 are not applicable. Automated references resolve for 38/51 rows; manual evidence, external approval and release readiness are deliberately `NOT_CLAIMED`.
 - CI status: `.github/workflows/blacksite-ci.yml` gates the target branch with frozen install, lint, production-source typecheck, app tests, build, full math verification, isolated-package generation/readback, exact-package Chromium E2E, current-SHA evidence resolution, identity, screenshots/evidence, and always-on diagnostics.
 - Latest visual fix: mode labels wrap without truncation, Base Amount and all meters are computed-centered, every primary keyboard action exposes a 3px amber focus ring with 2px separation, and the completed 360x640 Replay board remains square under a tightened 0.2% aspect guard. Exact geometry now also covers 1366x768.
@@ -18,7 +18,7 @@
 
 ## Highest release blockers
 
-1. Eliminate the exact-browser asset decode/paint-readiness race, then complete manual cleanup and rights/Creative review of the integrated candidates, author the penguin Spine 4.2 rig, and add BLACKOUT/foreground vault layers; retained human concepts are not eligible inputs.
+1. Complete manual cleanup and rights/Creative review of the integrated candidates, author the penguin Spine 4.2 rig, and add BLACKOUT/foreground vault layers; retained human concepts are not eligible inputs.
 2. Complete the approved Spine 4.2 rig and authored character clips, final approved audio assets/manual listening and clipping QA, contractually allowed autoplay, and real-device frame-pacing validation beyond the now-proven desktop turbo, normal-cascade and BLACKOUT contracts.
 3. Supply the 23 open manual checklist records and 6 external approvals; the exact automated 51-row matrix is complete but cannot replace device, listening, rights, Creative or Stake acceptance.
 

@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-19 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `3be001a84adb28400970c422c8e4de08c2c5dc18`
+- Verified implementation commit: `fbfe4ed0cabe40d2df7a6c1f7962e3cc3c2f0da5`
+- Work item: `BSB-ASSET-002` (complete)
+- Selection reason: the previous exact 1920 geometry screenshot omitted character and vault pixels despite loaded/visible/natural-width DOM checks, proving those checks could race browser decode/compositing.
+- Before/after evidence: images now follow decode → Svelte reveal → two animation-frame compositor barrier with explicit loading/decoded/painted/failure states. The exact harness blocks every screenshot and geometry audit until the barrier is terminal and fails closed on environment failure. Run `33362124623` records `painted` for both assets on every geometry surface; exact 1920 and 1366 screenshots contain penguin/vault pixels, while portrait, landscape and Replay contain the intended responsive vault plate.
+- Changed files: image paint utility, slot asset lifecycle/CSS, runtime-asset regression, Chromium QA, and sprint memory closeout files.
+- Gates: focused asset 6/6 PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 98/98 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; isolated package/evidence resolution PASS; exact Chromium 40/40 scenarios and 975/975 checks PASS; unexpected console/page/request failures 0; `git diff --check` PASS.
+- Visual review: exact 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 screenshots inspected. Desktop penguin and vault plate are visibly rastered; compact surfaces select the intended plate and keep the character hidden by design. Boards remain square, controls visible, and no overlap, scroll or crop regression is present.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Broad formatter churn was removed before commit; content-addressed Git-data persistence retained the executable QA mode and exact local/remote tree identity.
+- Persistence: the implementation tree was fast-forwarded without force through the connected GitHub API; exact run `33362124623` and artifact `9747264261` succeeded.
+- Residual risk: human rights/Creative approval and cleanup, approved Spine 4.2 rig/authored clips, BLACKOUT/foreground layers, final audio assets and manual listening/device QA, real-device pacing, 23 manual checklist gates and 6 external approvals remain open.
+- Next candidate: `BSB-README-001` lifecycle/runbook freshness, then the highest safe non-external asset/audio evidence slice.
+
 ## BS-20260831-18 — SUCCESS
 
 - Sprint day: 2

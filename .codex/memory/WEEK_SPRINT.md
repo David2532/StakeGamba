@@ -9,13 +9,13 @@
 
 | Area                                     | Current evidence                                                                                                                                                                                   |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Production build                         | PASS — Vite static build on exact run `33359618133`, exit 0, run BS-20260831-18 |
-| Lint                                     | PASS — app lint on exact run `33359618133`, exit 0, run BS-20260831-18 |
-| Typecheck                                | PASS — production source/config `svelte-check`, `checkJs: true`, 0 errors / 0 warnings locally and on exact run `33359618133`, exit 0 |
-| Automated app tests                      | PASS — 97/97, exit 0, exact run `33359618133`, BS-20260831-18; includes exact reel-audio cadence, recipe, ducking and voice-cap retention |
-| Math/package invariants                  | PASS — 7/7 math gates and 300,000 books; exact package generation/readback PASS; fingerprint `d03fab…78d8`; exact run `33359618133` |
-| Current-head browser/E2E                 | PASS — clean exact commit `f333f22`; isolated-package Chromium passed 40/40 scenarios plus 975/975 checks; unexpected console/network/request failures 0 |
-| Desktop/portrait/landscape visual review | PARTIAL — exact-package geometry/control checks pass at 1920x1080, 1366x768, 390x844, 844x390 and 360x640 Replay, but the final 1920 capture omitted loaded character/vault pixels while a later capture rendered the vault. Decode/paint readiness is not yet deterministic |
+| Production build                         | PASS — Vite static build on exact run `33362124623`, exit 0, run BS-20260831-19 |
+| Lint                                     | PASS — app lint on exact run `33362124623`, exit 0, run BS-20260831-19 |
+| Typecheck                                | PASS — production source/config `svelte-check`, `checkJs: true`, 0 errors / 0 warnings locally and on exact run `33362124623`, exit 0 |
+| Automated app tests                      | PASS — 98/98, exit 0, exact run `33362124623`, BS-20260831-19; includes decoded/revealed/two-frame asset paint barrier |
+| Math/package invariants                  | PASS — 7/7 math gates and 300,000 books; exact package generation/readback PASS; fingerprint `d03fab…78d8`; exact run `33362124623` |
+| Current-head browser/E2E                 | PASS — clean exact commit `fbfe4ed`; isolated-package Chromium passed 40/40 scenarios plus 975/975 checks; unexpected console/network/request failures 0 |
+| Desktop/portrait/landscape visual review | PASS for current surfaces — exact-package screenshots inspected at 1920x1080, 1366x768, 390x844, 844x390 and 360x640 Replay. Paint barriers report `painted`; intended penguin/vault pixels render, boards remain square and controls remain visible without overlap, scroll or crop regression |
 | Live wallet/replay/restore               | PARTIAL — fractional new-play/restore, uncertain paid-play reload/restore and auth-503 explicit reload/re-auth are exact-browser proven with no duplicate writes; broader gameplay-state/provider evidence remains |
 | Gameplay state matrix                    | PARTIAL — M2 deterministic fixtures exist; full requested production interaction matrix is not current-head proven                                                                                 |
 | Player HUD/responsiveness/accessibility  | PASS for the current control surface — computed centering, uncut labels, >=44px touch geometry, safe viewport placement and 3px/2px keyboard focus evidence pass all required viewports            |

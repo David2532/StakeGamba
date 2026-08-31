@@ -1,5 +1,40 @@
 # Rolling automation metrics
 
+## BS-20260831-19
+
+```yaml
+closed_at_utc: 2026-08-31T06:08:00Z
+sprint_day: 2
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_asset_tests: 6
+focused_asset_status: PASS
+local_frozen_install: NOT_RUN
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 98
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+verified_ci_run: 33362124623
+verified_ci_status: PASS
+remote_browser_scenarios: 40
+remote_browser_checks_pass: 975
+remote_browser_checks_fail: 0
+remote_geometry_paint_states: painted
+remote_unexpected_console_page_request_failures: 0
+remote_diagnostics_artifact: 9747264261
+remote_implementation_commit: fbfe4ed0cabe40d2df7a6c1f7962e3cc3c2f0da5
+manual_identical_retries: 0
+```
+
+Observed categories: compact memory/art/visual-QA reads, targeted Svelte/asset/browser inspection, one focused asset regression, one complete local code/math gate chain, diff/mode review, Git-data fast-forward writes, one exact Actions run, structured artifact evidence inspection and five exact screenshot reviews. One broad formatter pass was fully removed before the semantic patch. An initial connector-result parser missed direct blob SHAs; the unchanged branch ref and content-addressed blob checks kept the retry safe. No subagents, dependencies, binary product assets or token estimates were used.
+
 ## BS-20260831-18
 
 ```yaml
