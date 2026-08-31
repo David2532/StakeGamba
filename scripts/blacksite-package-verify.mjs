@@ -218,7 +218,7 @@ async function main() {
 	assertManifestEqual(mathManifest, manifest.packages?.math, 'Math');
 
 	const frontendTopLevel = readdirSync(frontendRoot).sort();
-	if (JSON.stringify(frontendTopLevel) !== JSON.stringify(['_app', 'index.html'])) {
+	if (JSON.stringify(frontendTopLevel) !== JSON.stringify(['_app', 'assets', 'index.html'])) {
 		fail(`Unexpected frontend root entries: ${frontendTopLevel.join(', ')}`);
 	}
 

@@ -6,11 +6,13 @@ const packageScriptUrl = new URL(
 	'../../../scripts/blacksite-package-candidate.mjs',
 	import.meta.url,
 );
+const verifyScriptUrl = new URL('../../../scripts/blacksite-package-verify.mjs', import.meta.url);
 const workflowUrl = new URL('../../../.github/workflows/blacksite-ci.yml', import.meta.url);
 
 test('CI packages, verifies and browser-tests the exact extracted BlackSite frontend', async () => {
-	const [packageScript, workflow] = await Promise.all([
+	const [packageScript, verifyScript, workflow] = await Promise.all([
 		readFile(packageScriptUrl, 'utf8'),
+		readFile(verifyScriptUrl, 'utf8'),
 		readFile(workflowUrl, 'utf8'),
 	]);
 
@@ -20,6 +22,7 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 		packageScript,
 		/final production assets, animation and audio are not present/u,
 	);
+	assert.match(verifyScript, /JSON\.stringify\(\['_app', 'assets', 'index\.html'\]\)/u);
 
 	const packageStep = workflow.indexOf('Generate and verify isolated BlackSite package');
 	const browserStep = workflow.indexOf('Test exact extracted frontend in Chromium');
