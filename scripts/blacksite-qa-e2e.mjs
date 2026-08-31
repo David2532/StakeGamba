@@ -1618,6 +1618,89 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('concurrent-click-spacebar-deduplicates-paid-play', async (record) => {
+		const group = 'concurrent-click-spacebar-deduplicates-paid-play';
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: async () => {
+						await new Promise((resolvePromise) => setTimeout(resolvePromise, 500));
+						return playResponse();
+					},
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+
+			const burst = await page.evaluate((primarySelector) => {
+				document.activeElement?.blur();
+				const primary = document.querySelector(primarySelector);
+				if (!(primary instanceof HTMLButtonElement)) {
+					throw new Error('Primary action is unavailable for concurrent-input QA.');
+				}
+				primary.click();
+				primary.click();
+				window.dispatchEvent(new KeyboardEvent('keydown', {
+					key: ' ',
+					code: 'Space',
+					bubbles: true,
+					cancelable: true,
+				}));
+				return { clickCount: 2, spaceCount: 1 };
+			}, SELECTORS.primaryAction);
+
+			await waitForEndpoint(network, 'play', 1);
+			await page.waitForTimeout(150);
+			check(
+				group,
+				'button-button-Space burst emits exactly one paid play while RGS is pending',
+				network.byEndpoint.play.length === 1,
+				serialize({ burst, order: network.order }),
+			);
+			check(
+				group,
+				'primary action is disabled while the authoritative play request is pending',
+				await page.locator(SELECTORS.primaryAction).isDisabled(),
+				serialize({ burst, runtimeState: await runtimeState(page) }),
+			);
+			check(
+				group,
+				'base amount is locked while the authoritative play request is pending',
+				await page.locator(SELECTORS.baseAmount).isDisabled(),
+				serialize({ burst, runtimeState: await runtimeState(page) }),
+			);
+			assertExactRequest(group, network.byEndpoint.play[0], {
+				method: 'POST',
+				path: '/wallet/play',
+				body: {
+					sessionID: SESSION_ID,
+					currency: 'USD',
+					amount: DEFAULT_BASE_AMOUNT,
+					mode: 'base',
+				},
+			});
+			await waitForStableAction(page);
+			check(
+				group,
+				'deduplicated round returns to one ready authoritative state',
+				await runtimeState(page) === 'live-ready' && network.byEndpoint.play.length === 1,
+				serialize({ state: await runtimeState(page), order: network.order }),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.screenshot = await saveScreenshot(page, group);
+			record.network = network;
+			record.diagnostics = diagnostics;
+			record.concurrentInput = burst;
+		} finally {
+			await context.close();
+		}
+	});
+
 	for (const { modeId, selector, cost } of [
 		{ modeId: 'deep_access', selector: SELECTORS.modeDeepAccess, cost: 4 },
 		{ modeId: 'blackout', selector: SELECTORS.modeBlackout, cost: 80 },

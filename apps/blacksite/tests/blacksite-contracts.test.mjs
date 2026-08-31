@@ -703,6 +703,13 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /normalReelStopCadence/u);
 });
 
+test('exact-browser QA deduplicates competing paid-play input paths', () => {
+	const source = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
+	assert.match(source, /concurrent-click-spacebar-deduplicates-paid-play/u);
+	assert.match(source, /button-button-Space burst emits exactly one paid play while RGS is pending/u);
+	assert.match(source, /base amount is locked while the authoritative play request is pending/u);
+});
+
 test('PresentationDirector binds BLACKOUT transitions to authoritative feature cues', async () => {
 	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'blackout_zero');
 	assert(fixture);
