@@ -1,5 +1,9 @@
 import { BLACKSITE_ASSETS, SYMBOL_MASTER_IDS } from './blacksite-assets.js';
-import { BLACKSITE_UI_V21_GLYPHS, BLACKSITE_UI_V21_STATES } from './blacksite-ui-v21.js';
+import {
+	BLACKSITE_UI_V21_GLYPHS,
+	BLACKSITE_UI_V21_STATES,
+	BLACKSITE_UI_V39_GLYPH_ROOT,
+} from './blacksite-ui-v21.js';
 import { BLACKSITE_UI_V27_KINDS } from './blacksite-ui-v27.js';
 import { PENGUIN_OPERATOR_ASSETS } from './penguin-operator-assets.js';
 import { SYMBOL_DISPLAY_NAMES } from '../contracts/reels.js';
@@ -27,6 +31,24 @@ const SYMBOL_DEFINITIONS = Object.freeze([
 	Object.freeze({ id: 'j', code: 'SYM_12', tier: 'low' }),
 	Object.freeze({ id: 'ten', code: 'SYM_13', tier: 'low' }),
 ]);
+
+const V39_REDESIGNED_SYMBOL_DIRECTORIES = Object.freeze({
+	tactical_radio: 'sym_03_tactical_radio',
+	classified_folder: 'sym_04_classified_folder',
+	night_vision_goggles: 'sym_05_night_vision_goggles',
+	supply_crate: 'sym_06_supply_crate',
+	breach: 'sym_08_breach_vault',
+	a: 'sym_09_a',
+	q: 'sym_11_q',
+	ten: 'sym_13_ten',
+});
+
+const RETAINED_V4_SYMBOL_DIRECTORIES = Object.freeze({
+	encrypted_drive: 'sym_02_encrypted_drive',
+	ghost_wild: 'sym_07_ghost_wild',
+	k: 'sym_10_k',
+	j: 'sym_12_j',
+});
 
 export const BLACKSITE_SYMBOL_LIBRARY = Object.freeze(
 	SYMBOL_DEFINITIONS.map((definition) =>
@@ -94,15 +116,7 @@ export const BLACKSITE_UI_ASSET_REGISTRY = Object.freeze({
 	v22: BLACKSITE_ASSETS.ui.v22,
 	v27: BLACKSITE_ASSETS.ui.v27,
 	v19: Object.freeze({
-		vaultSymbol: BLACKSITE_ASSETS.v19.vaultSymbol,
 		cinematic: BLACKSITE_ASSETS.v19.cinematic,
-		logicalVaultStates: Object.freeze({
-			base: BLACKSITE_ASSETS.v19.vaultSymbol.base,
-			win: BLACKSITE_ASSETS.v19.vaultSymbol.triggered,
-			dim: BLACKSITE_ASSETS.v19.vaultSymbol.dim,
-			anticipation: BLACKSITE_ASSETS.v19.vaultSymbol.anticipation,
-			triggered: BLACKSITE_ASSETS.v19.vaultSymbol.triggered,
-		}),
 		scenes: BLACKSITE_ASSETS.v19.scenes,
 		modes: BLACKSITE_ASSETS.v19.modes,
 		reelStripVaultStopsZeroBased: Object.freeze([4, 6, 8, 10, 12]),
@@ -155,7 +169,7 @@ export const BLACKSITE_UI_ASSET_REGISTRY = Object.freeze({
 		'blackout-transition',
 		'spin-ring-energy',
 	]),
-	delivery: 'v28-vertical-slice-v22-shell-v21-v22-v27-ui-canonical-penguin-webp-canonical-reels-v28-environment-candidate-v26-vault-film',
+	delivery: 'v39-webp-symbols-reel-strips-glyph-overlay-v22-shell-v27-ui-canonical-penguin-v28-environment-v26-vault-film',
 });
 
 export function assertBlacksiteAssetRegistry() {
@@ -167,7 +181,6 @@ export function assertBlacksiteAssetRegistry() {
 		...Object.values(BLACKSITE_UI_ASSET_REGISTRY.environment.v28CandidatePlates.blackout),
 	];
 	const dialogFrames = Object.values(BLACKSITE_UI_ASSET_REGISTRY.dialogFrames);
-	const v19VaultFiles = Object.values(BLACKSITE_UI_ASSET_REGISTRY.v19.vaultSymbol);
 	const v19CinematicFiles = Object.values(BLACKSITE_UI_ASSET_REGISTRY.v19.cinematic);
 	const v19Scenes = Object.values(BLACKSITE_UI_ASSET_REGISTRY.v19.scenes);
 	const v19Modes = Object.values(BLACKSITE_UI_ASSET_REGISTRY.v19.modes);
@@ -228,16 +241,31 @@ export function assertBlacksiteAssetRegistry() {
 	) {
 		throw new Error('BLACKSITE dialog-frame registry is incomplete');
 	}
-	if (
-		v19VaultFiles.length !== 4
-		|| new Set(v19VaultFiles).size !== 4
-		|| v19VaultFiles.some((asset) => !asset)
-		|| BLACKSITE_SYMBOL_LIBRARY.find(({ id }) => id === 'breach')?.master
-			!== BLACKSITE_UI_ASSET_REGISTRY.v19.vaultSymbol.base
-		|| BLACKSITE_UI_ASSET_REGISTRY.v19.logicalVaultStates.win
-			!== BLACKSITE_UI_ASSET_REGISTRY.v19.vaultSymbol.triggered
-	) {
-		throw new Error('BLACKSITE V19 Vault symbol registry is incomplete');
+	for (const [symbolId, directory] of Object.entries(V39_REDESIGNED_SYMBOL_DIRECTORIES)) {
+		const states = BLACKSITE_ASSETS.symbols.states[symbolId];
+		const expectedStates = symbolId === 'breach'
+			? ['base', 'win', 'dim', 'anticipation', 'triggered']
+			: ['base', 'win', 'dim'];
+		if (
+			JSON.stringify(Object.keys(states ?? {})) !== JSON.stringify(expectedStates)
+			|| !Object.entries(states ?? {}).every(([state, asset]) =>
+				asset.endsWith(`/v39/symbols/${directory}/${state}.webp`))
+		) {
+			throw new Error(`BLACKSITE V39 ${symbolId} symbol registry is incomplete`);
+		}
+	}
+	for (const [symbolId, directory] of Object.entries(RETAINED_V4_SYMBOL_DIRECTORIES)) {
+		const states = BLACKSITE_ASSETS.symbols.states[symbolId];
+		const expectedStates = symbolId === 'ghost_wild'
+			? ['base', 'win', 'dim', 'anticipation', 'triggered']
+			: ['base', 'win', 'dim'];
+		if (
+			JSON.stringify(Object.keys(states ?? {})) !== JSON.stringify(expectedStates)
+			|| !Object.entries(states ?? {}).every(([state, asset]) =>
+				asset.endsWith(`/symbols/${directory}/states-v4/${state}-v4.webp`))
+		) {
+			throw new Error(`BLACKSITE retained V4 ${symbolId} symbol registry is incomplete`);
+		}
 	}
 	if (
 		v19CinematicFiles.length !== 2
@@ -278,6 +306,8 @@ export function assertBlacksiteAssetRegistry() {
 		|| new Set(v21Sources).size !== 12
 		|| !v21Sources.every((source) => source.endsWith('.webp'))
 		|| !v21.manifest?.endsWith('/v21/ui-kit/manifest.json')
+		|| v21.glyphAtlasRoot !== BLACKSITE_UI_V39_GLYPH_ROOT
+		|| !v21.glyphAtlasManifest?.endsWith(`/${BLACKSITE_UI_V39_GLYPH_ROOT}/manifest.json`)
 	) {
 		throw new Error('BLACKSITE shared production V21 UI asset catalog is incomplete');
 	}
@@ -302,6 +332,7 @@ export function assertBlacksiteAssetRegistry() {
 		|| Object.keys(v21.atlases.roundStates.states).join(',') !== BLACKSITE_UI_V21_STATES.join(',')
 		|| v21.atlases.glyphs.width !== 1536
 		|| v21.atlases.glyphs.height !== 480
+		|| !v21.atlases.glyphs.source?.endsWith(`/${BLACKSITE_UI_V39_GLYPH_ROOT}/atlas/glyphs.webp`)
 		|| Object.keys(v21.atlases.glyphs.glyphs).join(',') !== BLACKSITE_UI_V21_GLYPHS.join(',')
 	) {
 		throw new Error('BLACKSITE V21 atlas geometry contract is invalid');
@@ -311,7 +342,7 @@ export function assertBlacksiteAssetRegistry() {
 		|| v22.productionScope !== 'penguin-operative-reels-surface-and-depth'
 		|| v22.version !== 22
 		|| JSON.stringify(v22.reelStrips) !== JSON.stringify(BLACKSITE_ASSETS.ui.reelStrips)
-		|| !v22.reelStrips.every((source) => source.includes('/v22/ui/reel-strips/'))
+		|| !v22.reelStrips.every((source) => source.includes('/v39/ui/reel-strips/'))
 		|| !v22.reelStage?.innerBezel?.source?.includes('/v22/ui-kit/reel-stage/')
 		|| !v22.reelStage?.cellDepth?.source?.includes('/v22/ui-kit/reel-stage/')
 	) {

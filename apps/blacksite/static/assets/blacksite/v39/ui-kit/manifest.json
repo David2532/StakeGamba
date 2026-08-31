@@ -1,0 +1,72 @@
+{
+  "schema": "blacksite-ui-glyph-overlay-v39",
+  "version": 39,
+  "runtimeRoot": "assets/blacksite/v39/ui-kit",
+  "provenance": {
+    "builder": "apps/blacksite/scripts/build-blacksite-v39-glyph-atlas.py",
+    "baseAtlas": {
+      "path": "apps/blacksite/static/assets/blacksite/v21/ui-kit/atlas/glyphs.webp",
+      "bytes": 101978,
+      "sha256": "b4a274be327929ec5c1a3afeb99c53ee7ddac4b255c154687584faebb107b614",
+      "width": 1536,
+      "height": 480
+    },
+    "authoredMaster": {
+      "path": "apps/blacksite/art/generated/v39/ui-kit/source/shop-cart-master.png",
+      "bytes": 887045,
+      "sha256": "a3e3ecb90d8432dd5e3199381eaec68d85450a07c555a7e368c0d0a9a1c27ef8",
+      "width": 1254,
+      "height": 1254,
+      "alphaBounds": [
+        95,
+        53,
+        1111,
+        1142
+      ]
+    },
+    "toolchain": {
+      "python": "3.12.13",
+      "pillow": "12.3.0",
+      "encoder": "Pillow WebP lossless quality=100 method=6 exact=false"
+    }
+  },
+  "atlas": {
+    "path": "atlas/glyphs.webp",
+    "bytes": 364768,
+    "sha256": "94eb6a1b02300840754acbbeecba9d5c7b8c6e721e7aebb7e72ee458a1cf96bf",
+    "width": 1536,
+    "height": 480,
+    "columns": 16,
+    "rows": 5,
+    "cellWidth": 96,
+    "cellHeight": 96,
+    "safeInset": 12
+  },
+  "overlay": {
+    "glyph": "buy",
+    "column": 1,
+    "stateRows": [
+      "idle",
+      "hover-focus",
+      "pressed-selected",
+      "disabled",
+      "danger"
+    ],
+    "generatedRowRgbaSha256": {
+      "idle": "e72ca1624aae436d667833da16c4d9f17961f72bf8266ef7a5b384d45150c20a",
+      "hover-focus": "3d06c69a7e542e4979b8f8a6a28954189d972c99802c1b52c754982810441fd0",
+      "pressed-selected": "a907cefdd074578a8069f23dbf8f8c223cd65b2c970733818dece13f039485ad",
+      "disabled": "a97c4d05b200f80f76945caa77e279f0a221672859aa89079212d9b4dc55e11b",
+      "danger": "403e4522a894e1624048a62bea7e1648544e79895a77e3ddd13d2fabe06b4179"
+    },
+    "unchangedOutsideColumnRgbaSha256": "8df87b0e4138182182040b6a475b3d1f023fec52537f6655d51cf5c2e0620f49"
+  },
+  "files": [
+    {
+      "path": "atlas/glyphs.webp",
+      "bytes": 364768,
+      "sha256": "94eb6a1b02300840754acbbeecba9d5c7b8c6e721e7aebb7e72ee458a1cf96bf"
+    }
+  ],
+  "totalBytes": 364768
+}

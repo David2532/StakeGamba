@@ -44,7 +44,7 @@ test('production catalog keeps the BLACKSITE BREACH title while presenting the t
 	assert.equal(BLACKSITE_ASSETS.symbols.master.operative.includes('/v22/symbols/operative/base.webp'), true);
 	assert.equal(Object.values(BLACKSITE_ASSETS.symbols.states.operative).every((path) => path.includes('/v22/symbols/operative/')), true);
 	assert.equal(BLACKSITE_ASSETS.ui.reelStrips.length, 5);
-	assert.equal(BLACKSITE_ASSETS.ui.reelStrips.every((path) => path.includes('/v22/ui/reel-strips/')), true);
+	assert.equal(BLACKSITE_ASSETS.ui.reelStrips.every((path) => path.includes('/v39/ui/reel-strips/')), true);
 	assert.deepEqual(BLACKSITE_ASSETS.ui.v22.reelStrips, BLACKSITE_ASSETS.ui.reelStrips);
 	assert.equal(BLACKSITE_ASSETS.symbols.special.feature.label, 'VAULT');
 	assert.match(pageSource, /activeReelStripSources = BLACKSITE_ASSETS\.ui\.reelStrips/u);
@@ -261,7 +261,7 @@ test('production pruner keeps canonical media, six V28 environment plates and th
 	assert.match(prunerSource, /v22\/environment\/premium-machine-shell-v22\.webp/u);
 	assert.match(prunerSource, /v20\/penguin-operator\/transitions\/idle-to-spin\.webp/u);
 	assert.match(prunerSource, /v22\/symbols\/operative\/base\.webp/u);
-	assert.match(prunerSource, /v22\/ui\/reel-strips\/reel-01\.webp/u);
+	assert.match(prunerSource, /v39\/ui\/reel-strips\/reel-01\.webp/u);
 	assert.match(prunerSource, /v22\/ui-kit\/reel-stage\/inner-bezel-depth-overlay\.webp/u);
 	assert.match(prunerSource, /rgbaFrameFiles\('standalone_fx', 'FX_WIN_FLASH', 10\)/u);
 	assert.match(prunerSource, /v28: Object\.freeze\(\[/u);

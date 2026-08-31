@@ -182,7 +182,7 @@
 		}
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4 / 3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2 / 1) {
 		.blacksite-atmosphere {
 			--atmosphere-vignette-opacity: .68;
 			--atmosphere-grain-opacity: .03;

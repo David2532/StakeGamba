@@ -230,26 +230,37 @@ test('fixture mode preview copy is explicit and never renders a disabled START a
 	assert.doesNotMatch(previewActionSource, /confirmation-start|START \{|disabled=/u);
 });
 
-test('V19 Vault scenes, mode key art and trigger states join the controlled async preload set', () => {
+test('active V39 Vault states plus V19 scenes and mode key art join the controlled async preload set', () => {
 	const preloadSource = sourceBetween(
 		pageSource,
 		'const requiredVisualUrls = Array.from(new Set([',
 		'void (async () => {',
 	);
 	for (const collection of [
-		'BLACKSITE_ASSETS.v19.vaultSymbol',
+		'BLACKSITE_ASSETS.symbols.states.breach',
 		'BLACKSITE_ASSETS.v19.scenes',
 		'BLACKSITE_ASSETS.v19.modes',
 	]) {
 		assert.match(
 			preloadSource,
 			new RegExp(`\\.\\.\\.Object\\.values\\(${collection.replaceAll('.', '\\.') }\\)`, 'u'),
-			`${collection} must be in the V19 preload set`,
+			`${collection} must be in the deferred visual preload set`,
 		);
 	}
 	assert.match(preloadSource, /image\.decoding\s*=\s*['"]async['"]/u);
 	assert.match(preloadSource, /Promise\.all\(visualPreloadImages\.map\(\(image\)\s*=>\s*image\.decode\(\)\)\)/u);
 	assert.match(preloadSource, /ASSET_LOAD_ERROR/u);
+	assert.equal(Object.values(BLACKSITE_ASSETS.symbols.states.breach).length, 5);
+	assert.doesNotMatch(
+		combinedSvelteSource,
+		/BLACKSITE_ASSETS\.v19\.vaultSymbol/u,
+		'no Svelte boot, preload, or guide path may dereference the removed V19 Vault catalog',
+	);
+	assert.match(
+		combinedSvelteSource,
+		/BLACKSITE_ASSETS\.symbols\.states\.breach\.triggered/u,
+		'boot and guide surfaces use the active V39 Vault trigger state',
+	);
 });
 
 test('Vault presentation exposes deterministic state, skip, access, extraction and return hooks', () => {
@@ -361,14 +372,14 @@ test('five-tab Guide contains the canonical Vault timeline and derives RTP/max w
 	);
 });
 
-test('V19 presentation surfaces and runtime asset references remain raster-only and non-authoritative', () => {
-	const v19AssetPaths = [
-		...Object.values(BLACKSITE_ASSETS.v19.vaultSymbol),
+test('V39 presentation surfaces and runtime asset references remain raster-only and non-authoritative', () => {
+	const currentAssetPaths = [
+		...Object.values(BLACKSITE_ASSETS.symbols.states).flatMap((states) => Object.values(states)),
 		...Object.values(BLACKSITE_ASSETS.v19.scenes),
 		...Object.values(BLACKSITE_ASSETS.v19.modes),
 	];
-	assert.ok(v19AssetPaths.length >= 10, 'focused V19 contract includes the shipped Vault, scene and mode rasters');
-	for (const assetPath of v19AssetPaths) {
+	assert.ok(currentAssetPaths.length >= 49, 'current contract includes every symbol state plus retained V19 scene and mode rasters');
+	for (const assetPath of currentAssetPaths) {
 		assert.match(assetPath, /^assets\/blacksite\/.*\.webp$/u);
 		assert.doesNotMatch(assetPath, /\.svg(?:$|[?#])/iu);
 	}
@@ -415,8 +426,8 @@ test('V22 reflow profiles restore live surfaces above exactly one opaque rail', 
 	const precisionSource = pageSource.slice(pageSource.indexOf('/* Final V22 precision pass.'));
 	const tabletRailSource = sourceBetween(
 		precisionSource,
-		'@media (min-width: 481px) and (max-width: 1040px) and (min-height: 561px),',
-		'@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
+		'@media (min-width: 481px) and (min-height: 561px) and (max-aspect-ratio: 5/4)',
+		'@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
 	);
 	assert.equal((tabletRailSource.match(/\.premium-hud::before/gu) ?? []).length, 1);
 	assert.match(tabletRailSource, /\.premium-hud::before\s*\{[\s\S]*?z-index:\s*0;[\s\S]*?background:[\s\S]*?rgba\(3, 6, 7, \.995\)[\s\S]*?content:\s*'';[\s\S]*?pointer-events:\s*none;/u);
@@ -429,8 +440,8 @@ test('V22 reflow profiles restore live surfaces above exactly one opaque rail', 
 
 	const shortRailSource = sourceBetween(
 		precisionSource,
-		'@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
-		'@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
+		'@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
+		'@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
 	);
 	assert.match(shortRailSource, /\.premium-hud\s*\{[\s\S]*?isolation:\s*isolate;[\s\S]*?background:[\s\S]*?rgba\(3, 6, 7, \.998\)/u);
 	assert.match(
@@ -444,8 +455,8 @@ test('desktop V22 operator clearance and HUD registration stay pinned to the mas
 	const precisionSource = pageSource.slice(pageSource.indexOf('/* Final V22 precision pass.'));
 	const desktopSource = sourceBetween(
 		precisionSource,
-		'@media (min-width: 1041px) and (min-height: 561px) and (min-aspect-ratio: 4/3)',
-		'@media (min-width: 481px) and (max-width: 1040px) and (min-height: 561px),',
+		'@media (min-aspect-ratio: 5/4)',
+		'@media (min-width: 481px) and (min-height: 561px) and (max-aspect-ratio: 5/4)',
 	);
 	assert.match(desktopSource, /\.operative-stage\s*\{\s*width:\s*44%;\s*height:\s*61\.4%;/u);
 	assertOrderedText(
@@ -497,7 +508,7 @@ test('tablet responsive HUD assigns ten square controls to ten deterministic gri
 	);
 	const tabletSource = sourceBetween(
 		responsiveGeometrySource,
-		'@media (min-width: 481px) and (max-width: 1040px) and (min-height: 561px),',
+		'@media (min-width: 481px) and (min-height: 561px) and (max-aspect-ratio: 5/4)',
 		'@media (min-width: 381px) and (max-width: 480px) and (orientation: portrait)',
 	);
 	assert.match(tabletSource, /--responsive-control-size:\s*clamp\(44px,\s*calc\(10cqw - 4px\),\s*64px\);/u);
@@ -531,12 +542,12 @@ test('narrow tablet scene container falls back to a padded five-by-two control g
 	);
 	const containerFallbackSource = sourceBetween(
 		responsiveGeometrySource,
-		'@media (min-width: 481px) and (min-height: 561px)',
+		'@media (min-width: 481px) and (min-height: 561px) {\n\t\t@container (width < 440px)',
 		'@media (max-width: 480px) and (orientation: portrait)',
 	);
 	assert.match(
 		containerFallbackSource,
-		/^@media \(min-width: 481px\) and \(min-height: 561px\)\s*\{\s*@container \(width < 440px\)\s*\{/u,
+		/^@media \(min-width: 481px\) and \(min-height: 561px\)\s*\{\s*@container \(width < 440px\)/u,
 	);
 	assert.match(containerFallbackSource, /--responsive-control-size:\s*44px;/u);
 	assert.match(containerFallbackSource, /grid-template-columns:\s*repeat\(5,\s*minmax\(44px,\s*1fr\)\);/u);
@@ -568,8 +579,8 @@ test('short landscape switches cleanly from one ten-cell row to two five-cell ro
 	const precisionSource = pageSource.slice(pageSource.indexOf('/* Final V22 precision pass.'));
 	const oneRowSource = sourceBetween(
 		finalGeometrySource,
-		'@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
-		'@media (max-width: 467px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
+		'@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
+		'@media (max-width: 467px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
 	);
 	assert.match(oneRowSource, /width:\s*44px;[\s\S]*?height:\s*44px;[\s\S]*?grid-row:\s*1;/u);
 	assertOrderedText(
@@ -590,8 +601,8 @@ test('short landscape switches cleanly from one ten-cell row to two five-cell ro
 	);
 	const effectiveOneRowSource = sourceBetween(
 		precisionSource,
-		'@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
-		'@media (max-width: 467px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
+		'@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
+		'@media (max-width: 467px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
 	);
 	assert.match(effectiveOneRowSource, /grid-template-columns:\s*repeat\(10,\s*44px\);/u);
 	assert.match(effectiveOneRowSource, /grid-template-rows:\s*44px;/u);
@@ -600,7 +611,7 @@ test('short landscape switches cleanly from one ten-cell row to two five-cell ro
 
 	const twoRowSource = sourceBetween(
 		finalGeometrySource,
-		'@media (max-width: 467px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
+		'@media (max-width: 467px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
 		'@media (max-width: 380px) and (max-height: 700px) and (orientation: portrait)',
 	);
 	assert.match(twoRowSource, /\.scene-world\s*\{[\s\S]*?overflow:\s*visible;/u);
@@ -624,7 +635,7 @@ test('short landscape switches cleanly from one ten-cell row to two five-cell ro
 	);
 	const effectiveTwoRowSource = sourceBetween(
 		precisionSource,
-		'@media (max-width: 467px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
+		'@media (max-width: 467px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
 		'@media (max-width: 620px)',
 	);
 	assert.match(effectiveTwoRowSource, /height:\s*92px;/u);
@@ -636,8 +647,8 @@ test('short landscape switches cleanly from one ten-cell row to two five-cell ro
 
 	const authoredShortLandscapeSource = sourceBetween(
 		finalGeometrySource,
-		'@media (min-width: 701px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
-		'@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
+		'@media (min-width: 701px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
+		'@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
 	);
 	assert.match(
 		authoredShortLandscapeSource,
@@ -652,13 +663,13 @@ test('responsive amount field aligns to the same square cell as adjacent hit tar
 	);
 	const tabletSource = sourceBetween(
 		responsiveGeometrySource,
-		'@media (min-width: 481px) and (max-width: 1040px) and (min-height: 561px),',
+		'@media (min-width: 481px) and (min-height: 561px) and (max-aspect-ratio: 5/4)',
 		'@media (min-width: 381px) and (max-width: 480px) and (orientation: portrait)',
 	);
 	const shortLandscapeSource = sourceBetween(
 		responsiveGeometrySource,
-		'@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
-		'@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
+		'@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
+		'@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
 	);
 	const compactPortraitSource = sourceBetween(
 		responsiveGeometrySource,
@@ -721,7 +732,7 @@ test('dialog close targets, Guide tabs and short-menu scrolling retain non-overl
 
 	const shortDialogSource = sourceBetween(
 		pageSource.slice(pageSource.indexOf('/* V22 extreme visual pass.')),
-		'@media (max-height: 560px) and (min-aspect-ratio: 4/3)',
+		'@media (max-height: 560px) and (min-aspect-ratio: 2/1)',
 		'@media (min-width: 701px) and (min-height: 561px)',
 	);
 	assert.match(shortDialogSource, /\.settings-dialog\s*\{\s*display:\s*grid;[\s\S]*?grid-template-rows:\s*auto minmax\(0,\s*1fr\);/u);
@@ -729,8 +740,8 @@ test('dialog close targets, Guide tabs and short-menu scrolling retain non-overl
 
 	const shortLandscapeSource = sourceBetween(
 		responsiveGeometrySource,
-		'@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
-		'@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3)',
+		'@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
+		'@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1)',
 	);
 	assert.match(shortLandscapeSource, /\.menu-dialog:not\(\.mode-dialog\)\s*\{[\s\S]*?grid-template-rows:\s*auto minmax\(0,\s*1fr\);[\s\S]*?overflow:\s*hidden\s*!important;/u);
 	assert.match(shortLandscapeSource, /\.menu-actions\s*\{[\s\S]*?min-height:\s*0;[\s\S]*?overflow-y:\s*auto;[\s\S]*?overscroll-behavior:\s*contain;/u);
@@ -945,7 +956,7 @@ test('V27 free-spin telemetry replaces the normal header with large responsive c
 
 	const shortLandscapeSource = sourceBetween(
 		tallTelemetrySource,
-		'@media (max-height: 560px) and (min-aspect-ratio: 4 / 3)',
+		'@media (max-height: 560px) and (min-aspect-ratio: 2 / 1)',
 		'@media (max-width: 699px) and (max-height: 560px)',
 	);
 	assert.match(shortLandscapeSource, /data-feature-hud-kind='target'\] \.feature-hud-surface__label\.has-compact-label \.feature-hud-surface__label-full\s*\{\s*display:\s*none;/u);
@@ -975,16 +986,16 @@ test('V27 free-spin telemetry replaces the normal header with large responsive c
 	);
 	assert.match(
 		featureRailSource,
-		/@media \(min-width: 1041px\) and \(min-height: 561px\) and \(min-aspect-ratio: 4\/3\)\s*\{[\s\S]*?\.breach-monitor\.feature-active \.reel-mechanic-strip\.feature-strip\s*\{\s*top:\s*8\.077%;\s*height:\s*12\.15%;/u,
+		/@media \(min-aspect-ratio: 5\/4\)\s*\{[\s\S]*?\.breach-monitor\.feature-active \.reel-mechanic-strip\.feature-strip\s*\{\s*top:\s*8\.077%;\s*height:\s*12\.15%;/u,
 	);
 	assert.match(
 		featureRailSource,
-		/@media \(min-width: 481px\) and \(max-width: 1040px\) and \(min-height: 561px\),[\s\S]*?\(max-aspect-ratio: 4\/3\)\s*\{[\s\S]*?\.breach-monitor\.feature-active \.reel-mechanic-strip\.feature-strip\s*\{\s*top:\s*4\.2%;\s*height:\s*15\.6%;/u,
+		/@media \(min-width: 481px\) and \(min-height: 561px\) and \(max-aspect-ratio: 5\/4\)\s*\{[\s\S]*?\.breach-monitor\.feature-active \.reel-mechanic-strip\.feature-strip\s*\{\s*top:\s*4\.2%;\s*height:\s*15\.6%;/u,
 	);
 	const phoneRailSource = sourceBetween(
 		featureRailSource,
 		'@media (max-width: 480px) and (orientation: portrait)',
-		'@media (max-height: 560px) and (min-aspect-ratio: 4/3)',
+		'@media (max-height: 560px) and (min-aspect-ratio: 2/1)',
 	);
 	assert.match(
 		phoneRailSource,
@@ -994,7 +1005,7 @@ test('V27 free-spin telemetry replaces the normal header with large responsive c
 
 	const shortRailSource = sourceBetween(
 		featureRailSource,
-		'@media (max-height: 560px) and (min-aspect-ratio: 4/3)',
+		'@media (max-height: 560px) and (min-aspect-ratio: 2/1)',
 		'@media (prefers-reduced-motion: reduce)',
 	);
 	assert.match(
@@ -1039,9 +1050,9 @@ test('every V27 surface has an automatic inherited V22 raster fallback', () => {
 	assert.match(uiSurfaceSource, /\{:else if effectiveFallbackSrc\}[\s\S]*src=\{effectiveFallbackSrc\}/u);
 });
 
-test('V36 command UI owns one event line, readable controls and recomposed portrait metrics', () => {
+test('V39 snapshot keeps the V36 command UI lineage and current revision marker', () => {
 	assert.match(pageSource, /class:blacksite-ui-v36=\{devUiV22Enabled\}/u);
-	assert.match(pageSource, /data-ui-revision=\{devUiV22Enabled \? 'v36'/u);
+	assert.match(pageSource, /data-ui-revision=\{devUiV22Enabled \? 'v39'/u);
 	assert.match(pageSource, /class:result-ticker-passive=\{resultTickerPassive\}/u);
 	assert.match(pageSource, /activeLineWins\.length === 1 \? `LINE[\s\S]*?: `\$\{activeLineWins\.length\} LINES WON`/u);
 	assert.match(pageSource, /hudPhase === 'feature'[\s\S]*?featureRunningWinText/u);

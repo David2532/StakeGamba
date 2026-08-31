@@ -23,7 +23,7 @@ function timingValue(block, variableName) {
 test('overlay mounts exactly five pre-rendered raster strips and no per-stop symbol stack', () => {
 	assert.deepEqual(BLACKSITE_ASSETS.ui.reelStrips, Array.from(
 		{ length: 5 },
-		(_, index) => `assets/blacksite/v22/ui/reel-strips/reel-${String(index + 1).padStart(2, '0')}.webp`,
+		(_, index) => `assets/blacksite/v39/ui/reel-strips/reel-${String(index + 1).padStart(2, '0')}.webp`,
 	));
 	assert.match(
 		componentSource,

@@ -16,5 +16,9 @@
 /apps/blacksite/static/assets/blacksite/v29/audio/audio-manifest.json -text -diff
 /apps/blacksite/static/assets/blacksite/v33/intro/blacksite-startup-manifest-v33.json text eol=lf
 /apps/blacksite/art/audio/runtimepack-v1/source-audio-manifest.json text eol=lf
+/apps/blacksite/art/asset-manifest.json text eol=lf
+/apps/blacksite/art/generated/v39/**/*.json text eol=lf
+/apps/blacksite/art/generated/v39/**/*.md text eol=lf
+/apps/blacksite/static/assets/blacksite/v39/**/*.json text eol=lf
 /scripts/** text eol=lf
 /docs/blacksite/** text eol=lf

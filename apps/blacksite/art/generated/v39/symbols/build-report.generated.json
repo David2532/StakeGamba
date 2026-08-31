@@ -1,0 +1,1415 @@
+{
+  "schema": "blacksite-v39-symbol-pack-build-v1",
+  "generator": "art/generated/v39/symbols/build_v39_symbol_pack.py",
+  "toolchain": {
+    "python": "3.12.13",
+    "pillow": "12.3.0",
+    "webp": "1.6.0"
+  },
+  "policy": {
+    "canonicalIdsPreserved": true,
+    "mathRgsWalletPayoutUntouched": true,
+    "registryTestsAndMainAssetManifestUntouchedByBuilder": true,
+    "newVersionedRuntimeRoot": "static/assets/blacksite/v39",
+    "redesignedSymbolsOnlyInV39StateRoot": [
+      "tactical_radio",
+      "classified_folder",
+      "night_vision_goggles",
+      "supply_crate",
+      "breach",
+      "a",
+      "q",
+      "ten"
+    ],
+    "retainedSymbolsStayAtExistingRuntimePaths": [
+      "operative",
+      "encrypted_drive",
+      "ghost_wild",
+      "k",
+      "j"
+    ],
+    "runtimeWebp": {
+      "states": {
+        "quality": 86,
+        "alphaQuality": 100,
+        "method": 6
+      },
+      "reels": {
+        "quality": 84,
+        "method": 6
+      }
+    },
+    "externalRuntimeDependencies": false,
+    "fullStripRecompositionFromAllActiveBaseStates": true
+  },
+  "budget": {
+    "runtimeBytes": 1715892,
+    "runtimeBudgetBytes": 2000000,
+    "withinBudget": true,
+    "replacementContract": {
+      "requiresSupersededRuntimePruning": true,
+      "supersededRedesignedStateBytes": 1359552,
+      "supersededV22ReelBytes": 2793632,
+      "supersededRuntimeBytes": 4153184,
+      "replacementDeltaBytes": -2437292,
+      "finalCompleteBuildUnder64MiBIsAuthoritative": true
+    }
+  },
+  "geometry": {
+    "symbol": [
+      512,
+      512
+    ],
+    "symbolContentLimit": 420,
+    "reelStrip": [
+      320,
+      3840
+    ],
+    "reelStop": [
+      320,
+      240
+    ],
+    "reelCount": 5,
+    "stopsPerReel": 16,
+    "logicalStopsPerReel": 13,
+    "seamlessTailStops": 3
+  },
+  "canonicalSymbolIds": [
+    "operative",
+    "encrypted_drive",
+    "tactical_radio",
+    "classified_folder",
+    "night_vision_goggles",
+    "supply_crate",
+    "ghost_wild",
+    "breach",
+    "a",
+    "k",
+    "q",
+    "j",
+    "ten"
+  ],
+  "newMasters": [
+    {
+      "symbolId": "tactical_radio",
+      "code": "SYM_03",
+      "inputKind": "master_png",
+      "path": "art/generated/v39/symbols/source/sym_03_tactical_radio-master-v39.png",
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleBounds": [
+        252,
+        6,
+        1003,
+        1219
+      ],
+      "bytes": 1473327,
+      "sha256": "6f84be2c347b59c6fb1582d52f5d95bfe50463403c61ed4d05c78de6e0688249",
+      "decodedRgbaSha256": "232aa206533a79df4e177cb018f79b6013e840f39f2db62b17beda2c8b159479"
+    },
+    {
+      "symbolId": "classified_folder",
+      "code": "SYM_04",
+      "inputKind": "master_png",
+      "path": "art/generated/v39/symbols/source/sym_04_classified_folder-master-v39.png",
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleBounds": [
+        217,
+        50,
+        1075,
+        1204
+      ],
+      "bytes": 1957562,
+      "sha256": "8fd844521e3b6e5a54e38d1b508b6d593eb8506a89e410568f381fcea1886245",
+      "decodedRgbaSha256": "8a15ebe99a3df4d9b99e6db5c49a2aee08d3282404515a8062a8a40d297d0616"
+    },
+    {
+      "symbolId": "night_vision_goggles",
+      "code": "SYM_05",
+      "inputKind": "master_png",
+      "path": "art/generated/v39/symbols/source/sym_05_night_vision_goggles-master-v39.png",
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleBounds": [
+        40,
+        139,
+        1214,
+        1028
+      ],
+      "bytes": 1482202,
+      "sha256": "d3c4d06ebf7c5911eac65371596333fb92a9712b540bb6dc736f45eec45bbdc3",
+      "decodedRgbaSha256": "8ecdcfad4bc22903c794f42998245dc035d3b9817b4b0fe0f3e76168d63470f7"
+    },
+    {
+      "symbolId": "supply_crate",
+      "code": "SYM_06",
+      "inputKind": "master_png",
+      "path": "art/generated/v39/symbols/source/sym_06_supply_crate-master-v39.png",
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleBounds": [
+        78,
+        180,
+        1179,
+        1075
+      ],
+      "bytes": 1881287,
+      "sha256": "fdbd2916d5f76825a539588579a5cf10cd7b8a7419a025801ea78439135fa9f8",
+      "decodedRgbaSha256": "15bfe0c12ff7465bb390661d6d4210c9df9166fc27ba7e30ab85b302e5591d25"
+    },
+    {
+      "symbolId": "breach",
+      "code": "SYM_08",
+      "inputKind": "master_png",
+      "path": "art/generated/v39/symbols/source/sym_08_breach-master-v39.png",
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleBounds": [
+        79,
+        48,
+        1174,
+        1167
+      ],
+      "bytes": 2315038,
+      "sha256": "8cad9e8e38fd40276566ef67b24aac0e38d9cc79a005c1d2a38d515747332dfb",
+      "decodedRgbaSha256": "6a4163ca2ad566565d84d729f9d1e2ad58292b6c2dc04d58caa45c6b42524211"
+    },
+    {
+      "symbolId": "a",
+      "code": "SYM_09",
+      "inputKind": "master_png",
+      "path": "art/generated/v39/symbols/source/sym_09_a-master-v39.png",
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleBounds": [
+        87,
+        73,
+        1168,
+        1146
+      ],
+      "bytes": 1524059,
+      "sha256": "8a2e70d4ca575caeb2f23d54cda5400406f36d725ad7ade35a0680d715cbe1b2",
+      "decodedRgbaSha256": "5479a5265fd69659c959849d05618a6dd89210587740ef457760ca71b8740a72"
+    },
+    {
+      "symbolId": "q",
+      "code": "SYM_11",
+      "inputKind": "master_png",
+      "path": "art/generated/v39/symbols/source/sym_11_q-master-v39.png",
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleBounds": [
+        227,
+        70,
+        1093,
+        1120
+      ],
+      "bytes": 1515773,
+      "sha256": "c886538b9640665a8cfef85fc5d1199501a04df712bc9ade2a42bf8975e35a0d",
+      "decodedRgbaSha256": "9a53d02875712ec0ad5c513a6db80da3bb9d9cee94eabb976306988e26afdbe7"
+    },
+    {
+      "symbolId": "ten",
+      "code": "SYM_13",
+      "inputKind": "master_png",
+      "path": "art/generated/v39/symbols/source/sym_13_ten-master-v39.png",
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleBounds": [
+        50,
+        98,
+        1239,
+        1092
+      ],
+      "bytes": 1963696,
+      "sha256": "5ffd7ee8cb8df3c9ed3f1bc7c489c9ab5decc7f42a761cdd4d866bc1ab9cdefb",
+      "decodedRgbaSha256": "2c19dcb63d7a42b9e62cd20053afb29c4b0b35fd8ea9b6279102cf7e503cacc4"
+    }
+  ],
+  "retainedStateInputs": [
+    {
+      "symbolId": "operative",
+      "code": "SYM_01",
+      "state": "base",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/v22/symbols/operative/base.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bytes": 46996,
+      "sha256": "0db1443e6b03e32f475e4080411abfbcc01d7caf4a172eeaa62cc64ec2dde802",
+      "decodedRgbaSha256": "46a5129f1fdb35d272d6f659ee692c4fc2f19f688078222efe5a038999fae52b"
+    },
+    {
+      "symbolId": "operative",
+      "code": "SYM_01",
+      "state": "win",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/v22/symbols/operative/win.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bytes": 54200,
+      "sha256": "d347cfc88cb437dbe2fcc643634aac9eebeabf5dd36322f8dde257f87a954c54",
+      "decodedRgbaSha256": "e7ef0f5307240ee34cdd0dd2bb801b4a44b46dafd1d534a0e81535f11f313dc0"
+    },
+    {
+      "symbolId": "operative",
+      "code": "SYM_01",
+      "state": "dim",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/v22/symbols/operative/dim.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bytes": 44338,
+      "sha256": "14691eb87543257819c79d0043cb3560664e523bce65c1934313f38a55bf2181",
+      "decodedRgbaSha256": "1a1c15d43ffb893f75d50003c66abd75f8d57413c14e34a4f39ba9d84feb902e"
+    },
+    {
+      "symbolId": "encrypted_drive",
+      "code": "SYM_02",
+      "state": "base",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/symbols/sym_02_encrypted_drive/states-v4/base-v4.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bytes": 56572,
+      "sha256": "c6e9cfb31d1c24d67d3a88070a17c01a6ef1bd69ba218881c6408eecd8b577e8",
+      "decodedRgbaSha256": "8fb60a20c6883d2bc58ffcf39bd6bcae83e469b994882c6ba697454397df553e"
+    },
+    {
+      "symbolId": "encrypted_drive",
+      "code": "SYM_02",
+      "state": "win",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/symbols/sym_02_encrypted_drive/states-v4/win-v4.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bytes": 81430,
+      "sha256": "5219c9abf7a07404a642d8f6299c7e34779bcfcb72fde2cd3412121c0d10440f",
+      "decodedRgbaSha256": "0815df156853112ad9f6cc1a7c712bcbadb95b93de4c301fb4a61687e51baf41"
+    },
+    {
+      "symbolId": "encrypted_drive",
+      "code": "SYM_02",
+      "state": "dim",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/symbols/sym_02_encrypted_drive/states-v4/dim-v4.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        166
+      ],
+      "bytes": 24768,
+      "sha256": "e8f022ec5c1f38ae1205f8c7b6ff3d2793f931bf4d6d67ad0ba031f11dc1d9f2",
+      "decodedRgbaSha256": "a125bc1607807719e80fc68e0a22e7c6ea5608d004d4d2f2d09a36113c5caa28"
+    },
+    {
+      "symbolId": "ghost_wild",
+      "code": "SYM_07",
+      "state": "base",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/symbols/sym_07_ghost_wild/states-v4/base-v4.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bytes": 58550,
+      "sha256": "44b74978f02208082133dd916aadfbdb92fad8fe8d40d023ab049fcde119dfeb",
+      "decodedRgbaSha256": "0a577b21eb0a9b281393fdd79bf76fe5a89d1999f5fcd59ad200dee13135f0eb"
+    },
+    {
+      "symbolId": "ghost_wild",
+      "code": "SYM_07",
+      "state": "win",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/symbols/sym_07_ghost_wild/states-v4/win-v4.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bytes": 67408,
+      "sha256": "f81e25ffc5f13209fcd4b35f6915d618c6d57023c978f2cd46977419abac872f",
+      "decodedRgbaSha256": "3d7dd76fa7b8bbe2cf762e4f63ba0d1d67bc19dac2ca0f3a9972e6361c9e4bac"
+    },
+    {
+      "symbolId": "ghost_wild",
+      "code": "SYM_07",
+      "state": "dim",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/symbols/sym_07_ghost_wild/states-v4/dim-v4.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        214
+      ],
+      "bytes": 26842,
+      "sha256": "952d65fc79a31a350bcccc6bad76590b0995fbd5d8c16aee8a40e459ff99a0e0",
+      "decodedRgbaSha256": "3cc5442e1c32ad9bfb4835eef118d5ad6aede6d384fd924e49c185e09b72b55d"
+    },
+    {
+      "symbolId": "ghost_wild",
+      "code": "SYM_07",
+      "state": "anticipation",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/symbols/sym_07_ghost_wild/states-v4/anticipation-v4.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bytes": 65672,
+      "sha256": "ad9ed09210e82ab5323c6925b3878552a48c766c576390da2766fea74298b8c5",
+      "decodedRgbaSha256": "c656b8df6bf52a10583afe4a0ab970651e9893d09d9016366a9396050220c458"
+    },
+    {
+      "symbolId": "ghost_wild",
+      "code": "SYM_07",
+      "state": "triggered",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/symbols/sym_07_ghost_wild/states-v4/triggered-v4.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bytes": 68512,
+      "sha256": "4d95182169f6a1306635fd34ba15a8ec73ce0bb79c504968be70d4ee4dd1aa7d",
+      "decodedRgbaSha256": "479d2d1991310cb5736695e4bc4347c783de0a7ffa47604d66b8edfe6b57c6a5"
+    },
+    {
+      "symbolId": "k",
+      "code": "SYM_10",
+      "state": "base",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/symbols/sym_10_k/states-v4/base-v4.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bytes": 56200,
+      "sha256": "b474df14b9d109ea3216ecf112edeccd46b70ca97b1abbad3b0dddc8d1b56474",
+      "decodedRgbaSha256": "59c2851419313f2d67eab1b68fba2eb74a27e5bbe9d282335c9cbe462a46c70b"
+    },
+    {
+      "symbolId": "k",
+      "code": "SYM_10",
+      "state": "win",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/symbols/sym_10_k/states-v4/win-v4.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bytes": 81484,
+      "sha256": "46a4ed83cc7e7af4dbf2b2b25ddd41229028c827b7e264019abf8c9b096b4fb0",
+      "decodedRgbaSha256": "b14efba71988306c9a9ed4554223897e692b34a877c64e5437dbda719b8732bc"
+    },
+    {
+      "symbolId": "k",
+      "code": "SYM_10",
+      "state": "dim",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/symbols/sym_10_k/states-v4/dim-v4.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        171
+      ],
+      "bytes": 20602,
+      "sha256": "f7dd0afa79372e312c6d0001370b6aebb1aaad2ee5ed250ffbf9315d0bc37e03",
+      "decodedRgbaSha256": "32114ba8e7730c35b3b9b8cdd181e032ec0efa90070eafcadd8b055949e1b4f0"
+    },
+    {
+      "symbolId": "j",
+      "code": "SYM_12",
+      "state": "base",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/symbols/sym_12_j/states-v4/base-v4.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bytes": 44494,
+      "sha256": "a5fa21ba927004da1a21aa4ff73f09b2cb673c38d4ab6d5c9a9b4acf595dba27",
+      "decodedRgbaSha256": "50b7aff7811613adce2ceeeb60c19dc8e159542df8c134ade9c7c8eaf726576e"
+    },
+    {
+      "symbolId": "j",
+      "code": "SYM_12",
+      "state": "win",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/symbols/sym_12_j/states-v4/win-v4.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bytes": 68388,
+      "sha256": "985020b3f547b9ff84c08b236096a254258489310bb0eecff12fdcec03bf1898",
+      "decodedRgbaSha256": "b0fc6bbcea8d71039e786eb8de1b9cd3f4af3c7d07ee514bca34201dd9159620"
+    },
+    {
+      "symbolId": "j",
+      "code": "SYM_12",
+      "state": "dim",
+      "inputKind": "retained_state_pack",
+      "path": "static/assets/blacksite/symbols/sym_12_j/states-v4/dim-v4.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        171
+      ],
+      "bytes": 18466,
+      "sha256": "d9434ea462859b3b371b32d75d39a344bb09fae33a3e2a9647e669dbf6b80501",
+      "decodedRgbaSha256": "c39567b073721372ffc58d4876194aea21234c4f5abd80a7dc21fbfce3e03216"
+    }
+  ],
+  "generatedStates": [
+    {
+      "symbolId": "tactical_radio",
+      "code": "SYM_03",
+      "state": "base",
+      "sourcePath": "art/generated/v39/symbols/source/sym_03_tactical_radio-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_03_tactical_radio/base.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 35710,
+      "sha256": "5fa3c7f2dc9af1c4a7c3b1823a409fc0ac377b44ac1973d22888b60e378c0faf",
+      "decodedSha256": "f2fe41def76651af6c0421bd791904167b77b3eb0a9bdb7a28b3f49aeb29af44",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "tactical_radio",
+      "code": "SYM_03",
+      "state": "win",
+      "sourcePath": "art/generated/v39/symbols/source/sym_03_tactical_radio-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_03_tactical_radio/win.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 48710,
+      "sha256": "7ee633edc4aca6ea1233d49a5e7a32b81f9645fbff46f0d944d9674ac3643d2d",
+      "decodedSha256": "49e11959dbb3de6ae200aca58c08881c1079a794800e38a44c12dd9d63ef7b00",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "tactical_radio",
+      "code": "SYM_03",
+      "state": "dim",
+      "sourcePath": "art/generated/v39/symbols/source/sym_03_tactical_radio-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_03_tactical_radio/dim.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 20978,
+      "sha256": "2030c99b42499575b6e0c4bbef0cb388c4a33e9b98151693996c11f027aed34a",
+      "decodedSha256": "1856f684254ba34010cf064105e784318ff3d33aa4764a2e2f5fcf8d55e11041",
+      "alphaExtrema": [
+        0,
+        184
+      ]
+    },
+    {
+      "symbolId": "classified_folder",
+      "code": "SYM_04",
+      "state": "base",
+      "sourcePath": "art/generated/v39/symbols/source/sym_04_classified_folder-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_04_classified_folder/base.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 43062,
+      "sha256": "157e605f31de96008d33d843094df7734207d6a20c6220057dc33fd0853c611e",
+      "decodedSha256": "030dddc6216fdfce0a3e2c9c96c3b6d56ec66f734f06aa6fbaa832a2f6ee22de",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "classified_folder",
+      "code": "SYM_04",
+      "state": "win",
+      "sourcePath": "art/generated/v39/symbols/source/sym_04_classified_folder-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_04_classified_folder/win.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 54732,
+      "sha256": "2c28162ce4b20ada270a0ee3524285bf7e27b3fdf56896550bd007a7165f65dc",
+      "decodedSha256": "3ad37cbf1e435fc5b8c015e414ef817c51514ee7db83b9354320b4bffb24986a",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "classified_folder",
+      "code": "SYM_04",
+      "state": "dim",
+      "sourcePath": "art/generated/v39/symbols/source/sym_04_classified_folder-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_04_classified_folder/dim.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 23230,
+      "sha256": "c07040df6702a752e6f2322e546c823e3dc45eb92b0f7bac850155d1f31ee052",
+      "decodedSha256": "8a9626cbe645ab37f8414756131760d8aeb4da48e31710d47c4bf7ba1bb35da8",
+      "alphaExtrema": [
+        0,
+        184
+      ]
+    },
+    {
+      "symbolId": "night_vision_goggles",
+      "code": "SYM_05",
+      "state": "base",
+      "sourcePath": "art/generated/v39/symbols/source/sym_05_night_vision_goggles-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_05_night_vision_goggles/base.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 39364,
+      "sha256": "fb9b751d242bd7dd3f61ff9d81366dd1eefddfce2645151070c022ba0bc0aa90",
+      "decodedSha256": "600e5c023529f6c945970d5fa5e231bbd6bfdcab4ad169685ccd2f6dab33185f",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "night_vision_goggles",
+      "code": "SYM_05",
+      "state": "win",
+      "sourcePath": "art/generated/v39/symbols/source/sym_05_night_vision_goggles-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_05_night_vision_goggles/win.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 55806,
+      "sha256": "0f374c0f5f546e50d1a978b9ee2d0b98b7113c904669ba053584b43ef2c6002b",
+      "decodedSha256": "33b79c2427f48c27dfe24c8b2cfb67a03cfc02ed95ba0f2afb9c0cb744dfe3ce",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "night_vision_goggles",
+      "code": "SYM_05",
+      "state": "dim",
+      "sourcePath": "art/generated/v39/symbols/source/sym_05_night_vision_goggles-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_05_night_vision_goggles/dim.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 21682,
+      "sha256": "2111d10e4632894232498b0b93b8447e93895c5ca96db569e66800304dbd1d24",
+      "decodedSha256": "54c7b28105dbf0f1a44ccdf281e6636722171242d1952feb78d817827c3cd4d0",
+      "alphaExtrema": [
+        0,
+        184
+      ]
+    },
+    {
+      "symbolId": "supply_crate",
+      "code": "SYM_06",
+      "state": "base",
+      "sourcePath": "art/generated/v39/symbols/source/sym_06_supply_crate-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_06_supply_crate/base.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 47048,
+      "sha256": "6334dd25b8b9c0a31ce9c86d1e1bbb9f4195ff6367054766e539b06a414b8bf7",
+      "decodedSha256": "df90af2b20d2c54ff90b13b61a7b200530a87ccc9c5c366b8b36fe096217423b",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "supply_crate",
+      "code": "SYM_06",
+      "state": "win",
+      "sourcePath": "art/generated/v39/symbols/source/sym_06_supply_crate-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_06_supply_crate/win.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 61360,
+      "sha256": "f9e35dc252f2ff430787e3703dad11ca0c6d068a3ca130b03d5eee6b4aa4683a",
+      "decodedSha256": "f6638cd60008cf71c5b913e2937b5ef0f5a773604831472e01fd27ebf850187b",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "supply_crate",
+      "code": "SYM_06",
+      "state": "dim",
+      "sourcePath": "art/generated/v39/symbols/source/sym_06_supply_crate-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_06_supply_crate/dim.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 25380,
+      "sha256": "541ec5fd5dda4cfc1e9db8799266f4eb320957c6186dffa868f481e993193e08",
+      "decodedSha256": "9de675c82e0105a83e18cdb026394445147eb1aee663eb02a1629c65145056e2",
+      "alphaExtrema": [
+        0,
+        184
+      ]
+    },
+    {
+      "symbolId": "breach",
+      "code": "SYM_08",
+      "state": "base",
+      "sourcePath": "art/generated/v39/symbols/source/sym_08_breach-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_08_breach_vault/base.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 59236,
+      "sha256": "ceece86e7a2fa047986fa18032f065513be5651fa02594fd54556d2eac3a884a",
+      "decodedSha256": "d34090ba0e89c6282be909d50714f82eba4e010c203fa101843227f9e3b11124",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "breach",
+      "code": "SYM_08",
+      "state": "win",
+      "sourcePath": "art/generated/v39/symbols/source/sym_08_breach-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_08_breach_vault/win.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 75192,
+      "sha256": "87fd1dc7e608a579f7b5b3f73a63683da9212d39f3e0570688dcc0d55d58fafe",
+      "decodedSha256": "aac8b9158fec30d567376b74a39ff6b383abdea81edf80f2d1d61a8a2cf1408e",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "breach",
+      "code": "SYM_08",
+      "state": "dim",
+      "sourcePath": "art/generated/v39/symbols/source/sym_08_breach-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_08_breach_vault/dim.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 32798,
+      "sha256": "57576f9325a695b1ee7e61956f6b98969f9e8b097b81477ad19538cdc09263c8",
+      "decodedSha256": "d7dc427821d737a30357c88dfbca45c4ddb23a8f7b93530542ebb9351694f2cd",
+      "alphaExtrema": [
+        0,
+        184
+      ]
+    },
+    {
+      "symbolId": "breach",
+      "code": "SYM_08",
+      "state": "anticipation",
+      "sourcePath": "art/generated/v39/symbols/source/sym_08_breach-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_08_breach_vault/anticipation.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 80758,
+      "sha256": "bb85c8bfd87fd892bd1c35b792d62da94588d73ea06350eb9091910db3e121f1",
+      "decodedSha256": "64b11dcbac4b363d1a46b52ed4f633a5784ab2e8dbc82d2dd7c7b8674ed8b553",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "breach",
+      "code": "SYM_08",
+      "state": "triggered",
+      "sourcePath": "art/generated/v39/symbols/source/sym_08_breach-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_08_breach_vault/triggered.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 75812,
+      "sha256": "b37342faa94d54e70e8a0ebd33bba7053c25a0cf9cf6807c92fde678b52e3bb3",
+      "decodedSha256": "2f67c309ae83079ee16fb42fbc8dee805634cfe223c311504d06841a4f895422",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "a",
+      "code": "SYM_09",
+      "state": "base",
+      "sourcePath": "art/generated/v39/symbols/source/sym_09_a-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_09_a/base.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 39922,
+      "sha256": "1c28b10faf47fa08b5fe48ec9ad05cacec9938b585b44278efd3603f18e7865e",
+      "decodedSha256": "9a47126e614db8574eb186d58a28705748906306bd2c5f60d0f93b18396b8cf8",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "a",
+      "code": "SYM_09",
+      "state": "win",
+      "sourcePath": "art/generated/v39/symbols/source/sym_09_a-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_09_a/win.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 54722,
+      "sha256": "b8ba481ff4e3ec84c6afbac51ca18f23bf3f9a93520be150e752554204de3393",
+      "decodedSha256": "3d618cb6baa56cfaf796a10f5fb6dacebd8db42b42f7418cac50595d7f551bc5",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "a",
+      "code": "SYM_09",
+      "state": "dim",
+      "sourcePath": "art/generated/v39/symbols/source/sym_09_a-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_09_a/dim.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 19372,
+      "sha256": "12745149e82ec17878dd75c7b8691769e852f1e5dbf1ad1ff9f026c11c53be25",
+      "decodedSha256": "69d7152f3194ed35615b94343639ad4c28bb4b354d8e1de87603f5d0131fdd9b",
+      "alphaExtrema": [
+        0,
+        184
+      ]
+    },
+    {
+      "symbolId": "q",
+      "code": "SYM_11",
+      "state": "base",
+      "sourcePath": "art/generated/v39/symbols/source/sym_11_q-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_11_q/base.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 41444,
+      "sha256": "a1713cc0c5b1d02423457e446b04a7c32390df3695f19f9f7a1ae99be8e68138",
+      "decodedSha256": "6df60768f8f8c04ef39bcc709b731da8c483768bfbe8dd694b83635baf8b9b9f",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "q",
+      "code": "SYM_11",
+      "state": "win",
+      "sourcePath": "art/generated/v39/symbols/source/sym_11_q-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_11_q/win.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 56144,
+      "sha256": "e7451eec5c942554ba952e4d292affc3c16d3e5969a7a687732333e889626e88",
+      "decodedSha256": "05645b41eb3b6143c0776d62cf7f85d3cef9f10f536af24c8666d7bcaf69ba8c",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "q",
+      "code": "SYM_11",
+      "state": "dim",
+      "sourcePath": "art/generated/v39/symbols/source/sym_11_q-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_11_q/dim.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 21302,
+      "sha256": "7dac903869ce21c42f6491bce57e306ec6777f758af3e6ae25b6735137a9a973",
+      "decodedSha256": "01a109ba88157e0797d7e69175ff64f247a99057a776f515e8351a525dbdec6d",
+      "alphaExtrema": [
+        0,
+        184
+      ]
+    },
+    {
+      "symbolId": "ten",
+      "code": "SYM_13",
+      "state": "base",
+      "sourcePath": "art/generated/v39/symbols/source/sym_13_ten-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_13_ten/base.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 44258,
+      "sha256": "011eb12d2172ead1d0ce3c26233b539031acb5bef43cd4f13dd4b32282ae9041",
+      "decodedSha256": "d94e2e27c01264c44c9a0ec642097067f71abadcf834a59b854c8346574313cd",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "ten",
+      "code": "SYM_13",
+      "state": "win",
+      "sourcePath": "art/generated/v39/symbols/source/sym_13_ten-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_13_ten/win.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 57500,
+      "sha256": "5b74cb346164570903feb022c0368bcaa368f6999adc82ff3f220d36315e7771",
+      "decodedSha256": "2d340a300ffae67b3bb212cb097a3fc61bd13bfe2b3f214c7adc0601e12b5a05",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "symbolId": "ten",
+      "code": "SYM_13",
+      "state": "dim",
+      "sourcePath": "art/generated/v39/symbols/source/sym_13_ten-master-v39.png",
+      "path": "static/assets/blacksite/v39/symbols/sym_13_ten/dim.webp",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "hasAlpha": true,
+      "bytes": 24096,
+      "sha256": "1a15fb7c311805a5241758a96cee46075f4dc979bbb9d70ced3dce5c974ad26d",
+      "decodedSha256": "f08dab445534c53d7f82deb222062a584a7042533c6607dc2ea9c27e7e966252",
+      "alphaExtrema": [
+        0,
+        184
+      ]
+    }
+  ],
+  "reels": [
+    {
+      "reel": 1,
+      "symbols": [
+        "operative",
+        "supply_crate",
+        "q",
+        "tactical_radio",
+        "breach",
+        "ten",
+        "night_vision_goggles",
+        "k",
+        "encrypted_drive",
+        "ghost_wild",
+        "j",
+        "classified_folder",
+        "a",
+        "operative",
+        "supply_crate",
+        "q"
+      ],
+      "seamlessTailSourcePixelExact": true,
+      "decodedTailRms": [
+        {
+          "sourceStop": 0,
+          "tailStop": 13,
+          "channelRms": [
+            1.737635,
+            1.561387,
+            1.716548
+          ],
+          "maxChannelRms": 1.737635
+        },
+        {
+          "sourceStop": 1,
+          "tailStop": 14,
+          "channelRms": [
+            1.87526,
+            1.738377,
+            1.996856
+          ],
+          "maxChannelRms": 1.996856
+        },
+        {
+          "sourceStop": 2,
+          "tailStop": 15,
+          "channelRms": [
+            1.736511,
+            1.561183,
+            1.774593
+          ],
+          "maxChannelRms": 1.774593
+        }
+      ],
+      "decodedTailMaxChannelRmsGate": 3.0,
+      "path": "static/assets/blacksite/v39/ui/reel-strips/reel-01.webp",
+      "format": "webp",
+      "width": 320,
+      "height": 3840,
+      "mode": "RGB",
+      "hasAlpha": false,
+      "bytes": 112104,
+      "sha256": "f3e3d0f7fe6220b8da4b0722228d2020b55c685b6fc2edabe0d4f37dbe7592ed",
+      "decodedSha256": "5c1416b33ad88792752bb4904bba32fac4b215e229b0007ae50e5d8a3fcceb9d"
+    },
+    {
+      "reel": 2,
+      "symbols": [
+        "classified_folder",
+        "a",
+        "operative",
+        "supply_crate",
+        "q",
+        "tactical_radio",
+        "breach",
+        "ten",
+        "night_vision_goggles",
+        "k",
+        "encrypted_drive",
+        "ghost_wild",
+        "j",
+        "classified_folder",
+        "a",
+        "operative"
+      ],
+      "seamlessTailSourcePixelExact": true,
+      "decodedTailRms": [
+        {
+          "sourceStop": 0,
+          "tailStop": 13,
+          "channelRms": [
+            1.757506,
+            1.542628,
+            1.766791
+          ],
+          "maxChannelRms": 1.766791
+        },
+        {
+          "sourceStop": 1,
+          "tailStop": 14,
+          "channelRms": [
+            1.689046,
+            1.641356,
+            1.889548
+          ],
+          "maxChannelRms": 1.889548
+        },
+        {
+          "sourceStop": 2,
+          "tailStop": 15,
+          "channelRms": [
+            1.52917,
+            1.434272,
+            1.649144
+          ],
+          "maxChannelRms": 1.649144
+        }
+      ],
+      "decodedTailMaxChannelRmsGate": 3.0,
+      "path": "static/assets/blacksite/v39/ui/reel-strips/reel-02.webp",
+      "format": "webp",
+      "width": 320,
+      "height": 3840,
+      "mode": "RGB",
+      "hasAlpha": false,
+      "bytes": 110450,
+      "sha256": "82cff8dd49f3a0d72cc7243a435e66143c20c59f397bc3f752de826ecc3b18ff",
+      "decodedSha256": "443925a07aa33ad55baa34eaaa4ba76ef9d3248af29c789c8367d26b8eae2675"
+    },
+    {
+      "reel": 3,
+      "symbols": [
+        "ghost_wild",
+        "j",
+        "classified_folder",
+        "a",
+        "operative",
+        "supply_crate",
+        "q",
+        "tactical_radio",
+        "breach",
+        "ten",
+        "night_vision_goggles",
+        "k",
+        "encrypted_drive",
+        "ghost_wild",
+        "j",
+        "classified_folder"
+      ],
+      "seamlessTailSourcePixelExact": true,
+      "decodedTailRms": [
+        {
+          "sourceStop": 0,
+          "tailStop": 13,
+          "channelRms": [
+            2.097022,
+            1.960814,
+            2.172346
+          ],
+          "maxChannelRms": 2.172346
+        },
+        {
+          "sourceStop": 1,
+          "tailStop": 14,
+          "channelRms": [
+            1.519556,
+            1.398646,
+            1.530276
+          ],
+          "maxChannelRms": 1.530276
+        },
+        {
+          "sourceStop": 2,
+          "tailStop": 15,
+          "channelRms": [
+            1.56755,
+            1.430408,
+            1.599381
+          ],
+          "maxChannelRms": 1.599381
+        }
+      ],
+      "decodedTailMaxChannelRmsGate": 3.0,
+      "path": "static/assets/blacksite/v39/ui/reel-strips/reel-03.webp",
+      "format": "webp",
+      "width": 320,
+      "height": 3840,
+      "mode": "RGB",
+      "hasAlpha": false,
+      "bytes": 111410,
+      "sha256": "3620b4e46d44a9a0247cfd9566819ae62ff04f98a4378f7dd1bfe77649926a8f",
+      "decodedSha256": "cf4774a61eb68bb1dcd02824500bdaa73b5b39711a4a5393be7d714e5550e755"
+    },
+    {
+      "reel": 4,
+      "symbols": [
+        "k",
+        "encrypted_drive",
+        "ghost_wild",
+        "j",
+        "classified_folder",
+        "a",
+        "operative",
+        "supply_crate",
+        "q",
+        "tactical_radio",
+        "breach",
+        "ten",
+        "night_vision_goggles",
+        "k",
+        "encrypted_drive",
+        "ghost_wild"
+      ],
+      "seamlessTailSourcePixelExact": true,
+      "decodedTailRms": [
+        {
+          "sourceStop": 0,
+          "tailStop": 13,
+          "channelRms": [
+            1.827663,
+            1.667376,
+            1.940371
+          ],
+          "maxChannelRms": 1.940371
+        },
+        {
+          "sourceStop": 1,
+          "tailStop": 14,
+          "channelRms": [
+            1.716552,
+            1.650596,
+            1.876333
+          ],
+          "maxChannelRms": 1.876333
+        },
+        {
+          "sourceStop": 2,
+          "tailStop": 15,
+          "channelRms": [
+            1.837486,
+            1.75506,
+            1.794907
+          ],
+          "maxChannelRms": 1.837486
+        }
+      ],
+      "decodedTailMaxChannelRmsGate": 3.0,
+      "path": "static/assets/blacksite/v39/ui/reel-strips/reel-04.webp",
+      "format": "webp",
+      "width": 320,
+      "height": 3840,
+      "mode": "RGB",
+      "hasAlpha": false,
+      "bytes": 111324,
+      "sha256": "ed9f0f9b821dd9c60073501c711c0bd09e02e68dcc82adb91001e8b2f5913488",
+      "decodedSha256": "fc93691967a083740cbb0e304e0c9b56a53dbf57bbaa37654fff94999cd1e8f1"
+    },
+    {
+      "reel": 5,
+      "symbols": [
+        "ten",
+        "night_vision_goggles",
+        "k",
+        "encrypted_drive",
+        "ghost_wild",
+        "j",
+        "classified_folder",
+        "a",
+        "operative",
+        "supply_crate",
+        "q",
+        "tactical_radio",
+        "breach",
+        "ten",
+        "night_vision_goggles",
+        "k"
+      ],
+      "seamlessTailSourcePixelExact": true,
+      "decodedTailRms": [
+        {
+          "sourceStop": 0,
+          "tailStop": 13,
+          "channelRms": [
+            1.817239,
+            1.710708,
+            2.023373
+          ],
+          "maxChannelRms": 2.023373
+        },
+        {
+          "sourceStop": 1,
+          "tailStop": 14,
+          "channelRms": [
+            1.748113,
+            1.683692,
+            1.776994
+          ],
+          "maxChannelRms": 1.776994
+        },
+        {
+          "sourceStop": 2,
+          "tailStop": 15,
+          "channelRms": [
+            1.523403,
+            1.499644,
+            1.676577
+          ],
+          "maxChannelRms": 1.676577
+        }
+      ],
+      "decodedTailMaxChannelRmsGate": 3.0,
+      "path": "static/assets/blacksite/v39/ui/reel-strips/reel-05.webp",
+      "format": "webp",
+      "width": 320,
+      "height": 3840,
+      "mode": "RGB",
+      "hasAlpha": false,
+      "bytes": 110986,
+      "sha256": "4f59d61c23c0a33e04ea40d05956c5711e540ba71e1b411f7a15b614befb7baf",
+      "decodedSha256": "18308dfc56a12487e4c3309f36cc0e1ba8f1fc47f2e9577e1434819e2d41f186"
+    }
+  ],
+  "proof": {
+    "path": "art/generated/v39/symbols/proof-v39-symbols.webp",
+    "format": "webp",
+    "width": 1600,
+    "height": 1040,
+    "mode": "RGB",
+    "hasAlpha": false,
+    "bytes": 534538,
+    "sha256": "5762d03b56fb179c18f715a63d3bb4b3f0746543da99d0126200ca0b8697af7f",
+    "decodedSha256": "ce7b3d3b402bf56a33d33e99383d020d045a8fd9bf5adbc547072067db9f0f43"
+  }
+}

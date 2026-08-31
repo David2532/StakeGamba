@@ -395,7 +395,7 @@
 		tabindex="-1"
 	>
 		<picture class="boot-backdrop" aria-hidden="true">
-			<source media="(max-height: 560px) and (min-aspect-ratio: 4/3)" srcset={introManifest.poster.shortLandscape} />
+			<source media="(max-height: 560px) and (min-aspect-ratio: 2/1)" srcset={introManifest.poster.shortLandscape} />
 			<source media="(max-width: 700px) and (orientation: portrait)" srcset={introManifest.poster.portrait} />
 			<img src={introManifest.poster.desktop} alt="" draggable="false" />
 		</picture>
@@ -552,7 +552,7 @@
 									<img src={feature.id === 'wild'
 										? BLACKSITE_ASSETS.symbols.states.ghost_wild.base
 										: feature.id === 'breach'
-											? BLACKSITE_ASSETS.v19.vaultSymbol.triggered
+											? BLACKSITE_ASSETS.symbols.states.breach.triggered
 											: BLACKSITE_ASSETS.symbols.states.night_vision_goggles.base} alt="" aria-hidden="true" draggable="false" />
 									<div><h4>{feature.title}</h4><p>{feature.copy}</p></div>
 								</article>
@@ -744,7 +744,7 @@
 		.mission-briefing footer button { width: 100%; min-width: 0; }
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.loading-console { width: min(740px,calc(100vw - 24px)); padding: 18px 28px; }
 		.loading-console > p { margin-top: 18px; }
 		.loading-status-grid { margin-top: 24px; }

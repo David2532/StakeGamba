@@ -44,13 +44,24 @@ const SYMBOL_DIRECTORIES = Object.freeze({
 	night_vision_goggles: 'sym_05_night_vision_goggles',
 	supply_crate: 'sym_06_supply_crate',
 	ghost_wild: 'sym_07_ghost_wild',
-	breach: 'sym_08_breach_scatter',
+	breach: 'sym_08_breach_vault',
 	a: 'sym_09_a',
 	k: 'sym_10_k',
 	q: 'sym_11_q',
 	j: 'sym_12_j',
 	ten: 'sym_13_ten',
 });
+
+const V39_REDESIGNED_SYMBOL_IDS = Object.freeze([
+	'tactical_radio',
+	'classified_folder',
+	'night_vision_goggles',
+	'supply_crate',
+	'breach',
+	'a',
+	'q',
+	'ten',
+]);
 
 const EXPECTED_SYMBOL_STATES = Object.freeze(Object.fromEntries(
 	Object.entries(SYMBOL_DIRECTORIES).map(([symbolId, directory]) => {
@@ -61,14 +72,13 @@ const EXPECTED_SYMBOL_STATES = Object.freeze(Object.fromEntries(
 				dim: 'v22/symbols/operative/dim.webp',
 			})];
 		}
-		if (symbolId === 'breach') {
-			return [symbolId, Object.freeze({
-				base: 'v19/vault-symbol/base.webp',
-				win: 'v19/vault-symbol/triggered.webp',
-				dim: 'v19/vault-symbol/dim.webp',
-				anticipation: 'v19/vault-symbol/anticipation.webp',
-				triggered: 'v19/vault-symbol/triggered.webp',
-			})];
+		if (V39_REDESIGNED_SYMBOL_IDS.includes(symbolId)) {
+			const stateNames = ['base', 'win', 'dim'];
+			if (symbolId === 'breach') stateNames.push('anticipation', 'triggered');
+			return [symbolId, Object.freeze(Object.fromEntries(stateNames.map((state) => [
+				state,
+				`v39/symbols/${directory}/${state}.webp`,
+			])))];
 		}
 		const stateNames = ['base', 'win', 'dim'];
 		if (symbolId === 'ghost_wild') {
@@ -246,6 +256,34 @@ const EXPECTED_V22_REEL_STRIPS = Object.freeze([
 		path: 'v22/ui/reel-strips/reel-05.webp',
 		bytes: 563832,
 		sha256: '94da7858c7b7c1b808b66486ea0ffff9b877f6ccc971b57db4fd624470cff740',
+	}),
+]);
+
+const EXPECTED_V39_REEL_STRIPS = Object.freeze([
+	Object.freeze({
+		path: 'v39/ui/reel-strips/reel-01.webp',
+		bytes: 112104,
+		sha256: 'f3e3d0f7fe6220b8da4b0722228d2020b55c685b6fc2edabe0d4f37dbe7592ed',
+	}),
+	Object.freeze({
+		path: 'v39/ui/reel-strips/reel-02.webp',
+		bytes: 110450,
+		sha256: '82cff8dd49f3a0d72cc7243a435e66143c20c59f397bc3f752de826ecc3b18ff',
+	}),
+	Object.freeze({
+		path: 'v39/ui/reel-strips/reel-03.webp',
+		bytes: 111410,
+		sha256: '3620b4e46d44a9a0247cfd9566819ae62ff04f98a4378f7dd1bfe77649926a8f',
+	}),
+	Object.freeze({
+		path: 'v39/ui/reel-strips/reel-04.webp',
+		bytes: 111324,
+		sha256: 'ed9f0f9b821dd9c60073501c711c0bd09e02e68dcc82adb91001e8b2f5913488',
+	}),
+	Object.freeze({
+		path: 'v39/ui/reel-strips/reel-05.webp',
+		bytes: 110986,
+		sha256: '4f59d61c23c0a33e04ea40d05956c5711e540ba71e1b411f7a15b614befb7baf',
 	}),
 ]);
 
@@ -476,7 +514,7 @@ test('every manifest-declared runtime WebP is package-relative, alpha-capable an
 	}
 });
 
-test('V19 exposes exactly thirteen ordered raster symbol state packs with the Vault trigger family', () => {
+test('V39 exposes exactly thirteen ordered raster symbol state packs without changing canonical IDs', () => {
 	assert.equal(assertBlacksiteAssetRegistry(), true);
 	assert.deepEqual(SYMBOL_MASTER_IDS, Object.keys(EXPECTED_SYMBOL_MASTERS));
 	assert.deepEqual(BLACKSITE_SYMBOL_LIBRARY.map(({ id }) => id), SYMBOL_MASTER_IDS);
@@ -505,14 +543,7 @@ test('all thirteen symbol packs decode as 512-square alpha WebP delivery rasters
 		for (const [state, relativePath] of Object.entries(states)) {
 			const bytes = await readFile(new URL(relativePath, assetRoot));
 			const sha256 = createHash('sha256').update(bytes).digest('hex');
-			const expectedSharedTriggeredState = symbolId === 'breach' && state === 'triggered';
-			assert.equal(
-				hashes.has(sha256),
-				expectedSharedTriggeredState,
-				expectedSharedTriggeredState
-					? 'BREACH win and triggered intentionally share the one V19 armed Vault raster'
-					: `${symbolId}/${state} must be a dedicated raster`,
-			);
+			assert.equal(hashes.has(sha256), false, `${symbolId}/${state} must be a dedicated raster`);
 			hashes.add(sha256);
 			stateCount += 1;
 			const metadata = metadataFromWebpBytes(bytes, { width: 512, height: 512 }, `${symbolId}/${state}`);
@@ -521,7 +552,15 @@ test('all thirteen symbol packs decode as 512-square alpha WebP delivery rasters
 		}
 	}
 	assert.equal(stateCount, 43);
-	assert.equal(hashes.size, stateCount - 1);
+	assert.equal(hashes.size, stateCount);
+	assert.deepEqual(
+		await collectRelativeFiles(new URL('v39/symbols/', assetRoot)),
+		[...new Set(Object.values(EXPECTED_SYMBOL_STATES).flatMap(Object.values))]
+			.filter((path) => path.startsWith('v39/symbols/'))
+			.map((path) => path.slice('v39/symbols/'.length))
+			.sort(),
+		'V39 symbol subtree contains exactly the 26 redesigned runtime state rasters',
+	);
 });
 
 test('V22 production environment shells and Penguin operative states match immutable catalog rasters', async () => {
@@ -659,11 +698,11 @@ test('ten paylines ship as dedicated unique 1000x600 alpha WebP rasters', async 
 	assert.equal(hashes.size, 10, 'each authoritative payline must have unique raster geometry');
 });
 
-test('spin overlay selects exactly five unique V22 Penguin 320x3840 opaque WebP reel strips', async () => {
-	assert.deepEqual(BLACKSITE_ASSETS.ui.reelStrips, EXPECTED_V22_REEL_STRIPS.map(({ path }) =>
+test('spin overlay selects exactly five unique V39 320x3840 opaque WebP reel strips', async () => {
+	assert.deepEqual(BLACKSITE_ASSETS.ui.reelStrips, EXPECTED_V39_REEL_STRIPS.map(({ path }) =>
 		`assets/blacksite/${path}`));
 	const hashes = new Set();
-	for (const [index, { path: relativePath }] of EXPECTED_V22_REEL_STRIPS.entries()) {
+	for (const [index, { path: relativePath }] of EXPECTED_V39_REEL_STRIPS.entries()) {
 		const bytes = await readFile(new URL(relativePath, assetRoot));
 		const metadata = metadataFromWebpBytes(
 			bytes,
@@ -676,31 +715,46 @@ test('spin overlay selects exactly five unique V22 Penguin 320x3840 opaque WebP 
 	assert.equal(hashes.size, 5, 'each reel must ship a dedicated deterministic strip');
 });
 
-test('V22 catalog orders exactly five immutable 320x3840 opaque WebP reel strips', async () => {
-	const expectedCatalogPaths = EXPECTED_V22_REEL_STRIPS.map(({ path }) => `assets/blacksite/${path}`);
+test('V22 surface catalog orders the five immutable V39 320x3840 opaque WebP reel strips', async () => {
+	const expectedCatalogPaths = EXPECTED_V39_REEL_STRIPS.map(({ path }) => `assets/blacksite/${path}`);
 	assert.deepEqual(BLACKSITE_ASSETS.ui.v22.reelStrips, expectedCatalogPaths);
 
 	let totalBytes = 0;
 	const hashes = new Set();
-	for (const [index, entry] of EXPECTED_V22_REEL_STRIPS.entries()) {
+	for (const [index, entry] of EXPECTED_V39_REEL_STRIPS.entries()) {
 		const bytes = await readFile(new URL(entry.path, assetRoot));
 		totalBytes += bytes.byteLength;
-		assert.equal(bytes.byteLength, entry.bytes, `V22 reel ${index + 1} byte count`);
+		assert.equal(bytes.byteLength, entry.bytes, `V39 reel ${index + 1} byte count`);
 		assert.equal(
 			createHash('sha256').update(bytes).digest('hex'),
 			entry.sha256,
-			`V22 reel ${index + 1} SHA-256`,
+			`V39 reel ${index + 1} SHA-256`,
 		);
 		const metadata = metadataFromWebpBytes(
 			bytes,
 			{ width: 320, height: 3840, hasAlpha: false },
-			`V22 reel ${index + 1}`,
+			`V39 reel ${index + 1}`,
 		);
-		assert.equal(metadata.has_alpha, false, `V22 reel ${index + 1} remains intentionally opaque`);
+		assert.equal(metadata.has_alpha, false, `V39 reel ${index + 1} remains intentionally opaque`);
 		hashes.add(entry.sha256);
 	}
+	assert.equal(totalBytes, 556274);
+	assert.equal(hashes.size, 5, 'each V39 reel remains a dedicated deterministic strip');
+	assert.deepEqual(
+		await collectRelativeFiles(new URL('v39/ui/reel-strips/', assetRoot)),
+		EXPECTED_V39_REEL_STRIPS.map(({ path }) => path.slice('v39/ui/reel-strips/'.length)).sort(),
+	);
+});
+
+test('superseded V22 reel-strip source files remain byte-identical outside production', async () => {
+	let totalBytes = 0;
+	for (const [index, entry] of EXPECTED_V22_REEL_STRIPS.entries()) {
+		const bytes = await readFile(new URL(entry.path, assetRoot));
+		totalBytes += bytes.byteLength;
+		assert.equal(bytes.byteLength, entry.bytes, `historical V22 reel ${index + 1} byte count`);
+		assert.equal(createHash('sha256').update(bytes).digest('hex'), entry.sha256);
+	}
 	assert.equal(totalBytes, 2793632);
-	assert.equal(hashes.size, 5, 'each V22 reel remains a dedicated deterministic strip');
 	assert.deepEqual(
 		await collectRelativeFiles(new URL('v22/ui/reel-strips/', assetRoot)),
 		EXPECTED_V22_REEL_STRIPS.map(({ path }) => path.slice('v22/ui/reel-strips/'.length)).sort(),
@@ -853,6 +907,10 @@ test('V21 UI catalog is byte-and-geometry identical to its closed 12-raster mani
 	const manifest = JSON.parse(await readFile(new URL(manifestPath, assetRoot), 'utf8'));
 	const root = `${catalog.root}/`;
 	const catalogPaths = catalog.preload.map(relativeToBlacksiteRoot);
+	const runtimeGlyphPath = relativeToBlacksiteRoot(catalog.atlases.glyphs.source);
+	const authoredGlyphPath = `${root}atlas/glyphs.webp`;
+	const authoredCatalogPaths = catalogPaths.map((path) =>
+		path === runtimeGlyphPath ? authoredGlyphPath : path);
 	const manifestPaths = manifest.files.map(({ path }) => `${root}${path}`);
 	assert.equal(catalog.devOnly, false);
 	assert.equal(catalog.sourceManifestDevOnly, true);
@@ -860,7 +918,7 @@ test('V21 UI catalog is byte-and-geometry identical to its closed 12-raster mani
 	assert.equal(manifest.schema, 'blacksite-ui-kit-v21');
 	assert.deepEqual(manifest.statePriority, catalog.statePrecedence);
 	assert.deepEqual(manifest.control.states, catalog.states);
-	assert.deepEqual(catalogPaths.sort(), manifestPaths.sort());
+	assert.deepEqual(authoredCatalogPaths.sort(), manifestPaths.sort());
 	assert.equal(new Set(catalogPaths).size, 12);
 
 	const geometryByPath = new Map([
@@ -881,7 +939,7 @@ test('V21 UI catalog is byte-and-geometry identical to its closed 12-raster mani
 			{ width: catalog.atlases.roundStates.width, height: catalog.atlases.roundStates.height, hasAlpha: true },
 		],
 		[
-			relativeToBlacksiteRoot(catalog.atlases.glyphs.source),
+			authoredGlyphPath,
 			{ width: catalog.atlases.glyphs.width, height: catalog.atlases.glyphs.height, hasAlpha: true },
 		],
 	]);
@@ -901,6 +959,63 @@ test('V21 UI catalog is byte-and-geometry identical to its closed 12-raster mani
 	assert.deepEqual(
 		await collectRelativeFiles(new URL(root, assetRoot)),
 		['manifest.json', ...manifest.files.map(({ path }) => path)].sort(),
+	);
+});
+
+test('V39 replaces only the V21 buy glyph column with the authored shopping-cart master', async () => {
+	const catalog = BLACKSITE_ASSETS.ui.v21;
+	const runtimeGlyphPath = relativeToBlacksiteRoot(catalog.atlases.glyphs.source);
+	const manifestPath = relativeToBlacksiteRoot(catalog.glyphAtlasManifest);
+	const manifest = JSON.parse(await readFile(new URL(manifestPath, assetRoot), 'utf8'));
+	const sourceAtlasBytes = await readFile(new URL('v21/ui-kit/atlas/glyphs.webp', assetRoot));
+	const outputAtlasBytes = await readFile(new URL(runtimeGlyphPath, assetRoot));
+	const masterBytes = await readFile(new URL('../art/generated/v39/ui-kit/source/shop-cart-master.png', import.meta.url));
+
+	assert.equal(catalog.glyphAtlasRoot, 'v39/ui-kit');
+	assert.equal(runtimeGlyphPath, 'v39/ui-kit/atlas/glyphs.webp');
+	assert.equal(manifestPath, 'v39/ui-kit/manifest.json');
+	assert.equal(manifest.schema, 'blacksite-ui-glyph-overlay-v39');
+	assert.equal(manifest.version, 39);
+	assert.deepEqual(manifest.overlay, {
+		glyph: 'buy',
+		column: 1,
+		stateRows: ['idle', 'hover-focus', 'pressed-selected', 'disabled', 'danger'],
+		generatedRowRgbaSha256: manifest.overlay.generatedRowRgbaSha256,
+		unchangedOutsideColumnRgbaSha256: manifest.overlay.unchangedOutsideColumnRgbaSha256,
+	});
+	assert.deepEqual(Object.keys(manifest.overlay.generatedRowRgbaSha256), manifest.overlay.stateRows);
+	assert.match(manifest.overlay.unchangedOutsideColumnRgbaSha256, /^[a-f0-9]{64}$/u);
+	assert.deepEqual(
+		manifest.provenance.baseAtlas,
+		{
+			path: 'apps/blacksite/static/assets/blacksite/v21/ui-kit/atlas/glyphs.webp',
+			bytes: sourceAtlasBytes.byteLength,
+			sha256: createHash('sha256').update(sourceAtlasBytes).digest('hex'),
+			width: 1536,
+			height: 480,
+		},
+	);
+	assert.equal(manifest.provenance.authoredMaster.path, 'apps/blacksite/art/generated/v39/ui-kit/source/shop-cart-master.png');
+	assert.equal(manifest.provenance.authoredMaster.bytes, masterBytes.byteLength);
+	assert.equal(manifest.provenance.authoredMaster.sha256, createHash('sha256').update(masterBytes).digest('hex'));
+	assert.deepEqual(manifest.provenance.authoredMaster.alphaBounds, [95, 53, 1111, 1142]);
+	assert.equal(outputAtlasBytes.byteLength, manifest.atlas.bytes);
+	assert.equal(createHash('sha256').update(outputAtlasBytes).digest('hex'), manifest.atlas.sha256);
+	assert.deepEqual(manifest.files, [{
+		path: 'atlas/glyphs.webp',
+		bytes: outputAtlasBytes.byteLength,
+		sha256: manifest.atlas.sha256,
+	}]);
+	assert.equal(manifest.totalBytes, outputAtlasBytes.byteLength);
+	const metadata = metadataFromWebpBytes(outputAtlasBytes, {
+		width: 1536,
+		height: 480,
+		hasAlpha: true,
+	}, 'V39 glyph atlas');
+	assert.equal(metadata.has_alpha, true);
+	assert.deepEqual(
+		await collectRelativeFiles(new URL('v39/ui-kit/', assetRoot)),
+		['atlas/glyphs.webp', 'manifest.json'],
 	);
 });
 
@@ -1000,11 +1115,11 @@ test('V22 UI catalog and manifest close over five runtime masters plus five auth
 		[...new Set(catalog.preload.map(relativeToBlacksiteRoot))].sort(),
 		[
 			...ownCatalogPaths,
-			...EXPECTED_V22_REEL_STRIPS.map(({ path }) => path),
+			...EXPECTED_V39_REEL_STRIPS.map(({ path }) => path),
 			relativeToBlacksiteRoot(BLACKSITE_ASSETS.ui.v21.atlases.roundStates.source),
 			relativeToBlacksiteRoot(BLACKSITE_ASSETS.ui.v21.atlases.glyphs.source),
 		].sort(),
-		'V22 catalog preloads all five masters, five reel strips, and deliberately reused V21 atlases only',
+		'V22 catalog preloads all five masters, five reel strips, the V21 round atlas, and the V39 glyph overlay',
 	);
 
 	let runtimeBytes = 0;
@@ -1179,6 +1294,13 @@ test('production build closes exactly over the Penguin/V29/V33 asset contract an
 	const expectedSymbolFiles = [...new Set(Object.values(EXPECTED_SYMBOL_STATES).flatMap(Object.values))].sort();
 	const legacySourceOperativeFiles = ['base', 'win', 'dim'].map((state) =>
 		`symbols/sym_01_operative/states-v4/${state}-v4.webp`);
+	const sourceV4SymbolFiles = Object.entries(SYMBOL_DIRECTORIES)
+		.filter(([symbolId]) => !['operative', 'breach'].includes(symbolId))
+		.flatMap(([symbolId, directory]) => {
+			const states = ['base', 'win', 'dim'];
+			if (symbolId === 'ghost_wild') states.push('anticipation', 'triggered');
+			return states.map((state) => `symbols/${directory}/states-v4/${state}-v4.webp`);
+		});
 	const expectedSourceUiFiles = [
 		...Object.keys(EXPECTED_PREMIUM_HUD_ART).flatMap((name) => PREMIUM_HUD_STATES.map((state) => `ui/premium-hud-v2/controls/${name}/${state}.webp`)),
 		...Object.values(EXPECTED_PREMIUM_PANEL_ART).map(({ path }) => path),
@@ -1192,10 +1314,10 @@ test('production build closes exactly over the Penguin/V29/V33 asset contract an
 	assert.deepEqual(
 		staticFiles.filter((path) => path.startsWith('symbols/')).sort(),
 		[
-			...expectedSymbolFiles.filter((path) => path.startsWith('symbols/')),
+			...sourceV4SymbolFiles,
 			...legacySourceOperativeFiles,
 		].sort(),
-		'the superseded adult operative remains source-only and never enters the production closure',
+		'superseded symbol packs remain source-only and never enter the production closure',
 	);
 	assert.deepEqual(staticFiles.filter((path) => path.startsWith('ui/')).sort(), expectedSourceUiFiles);
 	assert.deepEqual(staticFiles.filter((path) => /\.svg$/iu.test(path)), []);
@@ -1233,7 +1355,15 @@ test('production build closes exactly over the Penguin/V29/V33 asset contract an
 	const v21Catalog = BLACKSITE_ASSETS.ui.v21;
 	const productionV21Files = [
 		relativeToBlacksiteRoot(v21Catalog.manifest),
-		...v21Catalog.preload.map(relativeToBlacksiteRoot),
+		...v21Catalog.preload
+			.map(relativeToBlacksiteRoot)
+			.filter((path) => path.startsWith('v21/')),
+	];
+	const productionV39Files = [
+		...expectedSymbolFiles.filter((path) => path.startsWith('v39/')),
+		...EXPECTED_V39_REEL_STRIPS.map(({ path }) => path),
+		relativeToBlacksiteRoot(v21Catalog.glyphAtlasManifest),
+		relativeToBlacksiteRoot(v21Catalog.atlases.glyphs.source),
 	];
 	const v22Catalog = BLACKSITE_ASSETS.ui.v22;
 	const v22Manifest = JSON.parse(await readFile(
@@ -1245,7 +1375,6 @@ test('production build closes exactly over the Penguin/V29/V33 asset contract an
 		...Object.values(v22Manifest.masters).map(({ path }) => `${v22Catalog.root}/${path}`),
 		...Object.values(EXPECTED_V22_ENVIRONMENT_ART).map(({ path }) => path),
 		...Object.values(EXPECTED_V22_OPERATIVE_ART).map(({ path }) => path),
-		...EXPECTED_V22_REEL_STRIPS.map(({ path }) => path),
 	];
 	const productionV26Files = Object.values(EXPECTED_V26_CINEMATIC_ART).map(({ path }) => path);
 	const v27Catalog = BLACKSITE_ASSETS.ui.v27;
@@ -1327,21 +1456,22 @@ test('production build closes exactly over the Penguin/V29/V33 asset contract an
 		...productionV28Files,
 		...productionV29Files,
 		...productionV33Files,
+		...productionV39Files,
 	];
 	const productionFileSet = new Set(productionFiles);
 	assert.equal(productionFileSet.size, productionFiles.length, 'production declarations contain no duplicate paths');
 	const sortedProductionFiles = [...productionFileSet].sort((left, right) => left.localeCompare(right, 'en'));
 	const buildFiles = await collectRelativeFiles(buildAssetRoot);
 	assert.deepEqual(buildFiles, sortedProductionFiles);
-	assert.equal(buildFiles.length, 408);
+	assert.equal(buildFiles.length, 410);
 	assert.deepEqual(countFileTypes(buildFiles), {
 		'.flac': 1,
-		'.json': 6,
+		'.json': 7,
 		'.mp4': 2,
 		'.ogg': 102,
 		'.opus': 1,
 		'.wav': 17,
-		'.webp': 279,
+		'.webp': 280,
 	});
 	assert.deepEqual(
 		buildFiles.filter((path) => path.endsWith('.json')),
@@ -1352,12 +1482,13 @@ test('production build closes exactly over the Penguin/V29/V33 asset contract an
 			'v27/ui-kit/manifest.json',
 			'v29/audio/audio-manifest.json',
 			'v33/intro/blacksite-startup-manifest-v33.json',
+			'v39/ui-kit/manifest.json',
 		],
 	);
 	assert.deepEqual(
-		buildFiles.filter((path) => /(?:sym_01_operative|runtime_sequences|static_keyposes|reel-strips-v1|reel-depth-v1|audio\/v19|^environment\/|^v24\/|^v28\/audio\/|^v30\/|^v31\/|2160p)/iu.test(path)),
+		buildFiles.filter((path) => /(?:sym_01_operative|^symbols\/(?:sym_03_tactical_radio|sym_04_classified_folder|sym_05_night_vision_goggles|sym_06_supply_crate|sym_08_breach_scatter|sym_09_a|sym_11_q|sym_13_ten)\/|^v19\/vault-symbol\/|^v21\/ui-kit\/atlas\/glyphs\.webp$|^v22\/ui\/reel-strips\/|runtime_sequences|static_keyposes|reel-strips-v1|reel-depth-v1|audio\/v19|^environment\/|^v24\/|^v28\/audio\/|^v30\/|^v31\/|2160p)/iu.test(path)),
 		[],
-		'production excludes adult operative, DEV films, V24 Vault media, legacy reel chrome, V28 audio, retired V30/V31 startup assets, and 2160p media',
+		'production excludes all superseded symbols, reel strips, glyph atlas, DEV films, legacy chrome, V28 audio, retired startup assets, and 2160p media',
 	);
 	assert.deepEqual(
 		buildFiles.filter((path) => path.endsWith('.mp4')),
@@ -1386,71 +1517,72 @@ test('production build closes exactly over the Penguin/V29/V33 asset contract an
 		authority: 'apps/blacksite/tests/blacksite-character-assets.test.mjs',
 		pruner: 'apps/blacksite/scripts/prune-production-assets.mjs',
 		buildAssetRoot: 'apps/blacksite/build/assets/blacksite',
-		runtimeFileCount: 408,
-		runtimeBytes: 63282387,
+		runtimeFileCount: 410,
+		runtimeBytes: 61110097,
 		runtimeTypeCounts: {
 			'.flac': 1,
-			'.json': 6,
+			'.json': 7,
 			'.mp4': 2,
 			'.ogg': 102,
 			'.opus': 1,
 			'.wav': 17,
-			'.webp': 279,
+			'.webp': 280,
 		},
-		runtimeTreeSha256: '6d3b851b319c6f0197d7905370ba8189fe9a932ced23350bb1d872add96d099d',
+		runtimeTreeSha256: '6cf5b1ddf2189e6e4bfbb5573f00370959fa013de2eaafbda730ac8cf60af1cf',
 		productionGroups: {
 			'runtime-rgba-v1': { files: 78, bytes: 2383822, treeSha256: 'be3e99e96729152f610f2feb09e34c515d7805eb60f44653306c88cd6f420b0c' },
-			symbols: { files: 35, bytes: 1737668, treeSha256: '2ca4dd8273abd370d9d4ff3399d8d18e643002de246a513b808876ab3836157a' },
+			symbols: { files: 14, bytes: 739388, treeSha256: '25a540075ac847c1ff8eb6bf6c9fab97d9c7fd11978478d702d9933e0544ec7a' },
 			ui: { files: 85, bytes: 942964, treeSha256: '564829f9e40a62b107ef02014ca375a1126418a14e8e980a876dc8d73dec3acc' },
-			v19: { files: 10, bytes: 1776158, treeSha256: '8d810683482a1d4eb0ae18e1aef27cb927272ad65e5c6dc6868895162f8a4228' },
+			v19: { files: 6, bytes: 1414886, treeSha256: '5e4aae37b1585a1be07123be47d78e55a356ae682e396b8323d13dd713df65d5' },
 			v20: { files: 27, bytes: 35703284, treeSha256: '81ed9910ab2d8009d54e9aa53ba9a1fd38c277ad3dace6abf7303dbd81da6a8c' },
-			v21: { files: 13, bytes: 192091, treeSha256: '9d6b62c4afd6dfe357500d0501af78f4a397e6be272a076e1c3c7d064cea16f1' },
-			v22: { files: 19, bytes: 5181068, treeSha256: '9fee55d1241763e14c500a798d028de90f07ec5359eaae8d80809484ddc72645' },
+			v21: { files: 12, bytes: 90113, treeSha256: '327974b9a40e55471f56804d962cc8ae70d7dae225e5929d8242cc985c5b6ce9' },
+			v22: { files: 14, bytes: 2387436, treeSha256: 'c10758a883579b11d84fe8b6e605d6cfe907c27da86f1f3ee88267a940d48c3a' },
 			v26: { files: 2, bytes: 6030885, treeSha256: '655f2b780f1bb47fa35b797451f3f3716e38a547c98737e5d13603ac6a79d2f4' },
 			v27: { files: 8, bytes: 1646936, treeSha256: '13d616a17122eff3e62645cafa4d988da57281f081cf8bad60ef4ef0f2aaee1a' },
 			v28: { files: 6, bytes: 1352930, treeSha256: 'c6f244c29c1e01e47017159f09d1cb5930402034bfea358c273987dcf0c3daa0' },
 			v29: { files: 122, bytes: 3318590, treeSha256: '6916a04cded0667224aa1466cf8c92cd4ba8d63b9bd5a894eef8a7047858e47a' },
 			v33: { files: 3, bytes: 3015991, treeSha256: '1cd4c04e565c8ab7f244bfdf985b540a42feb457ba79023508f74ee0464240b8' },
+			v39: { files: 33, bytes: 2082872, treeSha256: '7ddc04ff39c7a56317ea25ddc3e1ce2c56806bbf399333fb598de339f842becf' },
 		},
 		hardMaxBytes: 64 * 1024 * 1024,
-		headroomBytes: 3826477,
+		headroomBytes: 5998767,
 		pass: true,
 		completeBuild: {
-			fileCount: 414,
-			bytes: 65546227,
-			treeSha256: '7ae6db730ed606eea59ece217df9ed3e9ce7fc5cc5d121100489e523ddab5be0',
+			fileCount: 416,
+			bytes: 63474175,
+			treeSha256: '6c6dba3cff2621d226c103d0667c16e5ff76049175da162d7b9387119fb8cda6',
 			typeCounts: {
 				'.css': 2,
 				'.flac': 1,
 				'.html': 1,
 				'.js': 2,
-				'.json': 7,
+				'.json': 8,
 				'.mp4': 2,
 				'.ogg': 102,
 				'.opus': 1,
 				'.wav': 17,
-				'.webp': 279,
+				'.webp': 280,
 			},
 			hardMaxBytes: 64 * 1024 * 1024,
-			headroomBytes: 1562637,
+			headroomBytes: 3634689,
 			gate: 'the generated build is measured after production pruning; source JS/CSS identity is deliberately not part of the immutable asset closure',
 			pass: true,
 		},
 	});
 	assert.deepEqual(productionStats, {
-		fileCount: 408,
-		bytes: 63282387,
-		treeSha256: '6d3b851b319c6f0197d7905370ba8189fe9a932ced23350bb1d872add96d099d',
-		typeCounts: { '.flac': 1, '.json': 6, '.mp4': 2, '.ogg': 102, '.opus': 1, '.wav': 17, '.webp': 279 },
+		fileCount: 410,
+		bytes: 61110097,
+		treeSha256: '6cf5b1ddf2189e6e4bfbb5573f00370959fa013de2eaafbda730ac8cf60af1cf',
+		typeCounts: { '.flac': 1, '.json': 7, '.mp4': 2, '.ogg': 102, '.opus': 1, '.wav': 17, '.webp': 280 },
 	});
 	assert.deepEqual(productionGroups, assetManifest.currentProductionDelivery.productionGroups);
 	assert.equal(completeBuildStats.fileCount, completeBuildFiles.length);
 	assert.deepEqual(completeBuildStats.typeCounts, countFileTypes(completeBuildFiles));
 	assert.deepEqual(completeBuildStats, {
-		fileCount: 414,
-		bytes: 65546227,
-		treeSha256: '7ae6db730ed606eea59ece217df9ed3e9ce7fc5cc5d121100489e523ddab5be0',
-		typeCounts: { '.css': 2, '.flac': 1, '.html': 1, '.js': 2, '.json': 7, '.mp4': 2, '.ogg': 102, '.opus': 1, '.wav': 17, '.webp': 279 },
+		fileCount: 416,
+		bytes: 63474175,
+		treeSha256: '6c6dba3cff2621d226c103d0667c16e5ff76049175da162d7b9387119fb8cda6',
+		typeCounts: { '.css': 2, '.flac': 1, '.html': 1, '.js': 2, '.json': 8, '.mp4': 2, '.ogg': 102, '.opus': 1, '.wav': 17, '.webp': 280 },
 	});
 	assert.ok(completeBuildStats.bytes < assetManifest.currentProductionDelivery.completeBuild.hardMaxBytes);
 });

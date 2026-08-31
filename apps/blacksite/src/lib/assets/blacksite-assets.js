@@ -1,5 +1,8 @@
 /* global __BLACKSITE_DEV_FIXTURES__ */
-import { createBlacksiteUiV21Catalog } from './blacksite-ui-v21.js';
+import {
+	BLACKSITE_UI_V39_GLYPH_ROOT,
+	createBlacksiteUiV21Catalog,
+} from './blacksite-ui-v21.js';
 import { createBlacksiteUiV22Catalog } from './blacksite-ui-v22.js';
 import { createBlacksiteUiV27Catalog } from './blacksite-ui-v27.js';
 
@@ -67,13 +70,20 @@ function symbolStateSet(directoryName, special = false) {
 	});
 }
 
-const V19_VAULT_ASSETS = Object.freeze({
-	base: packageAsset('v19/vault-symbol/base.webp'),
-	anticipation: packageAsset('v19/vault-symbol/anticipation.webp'),
-	triggered: packageAsset('v19/vault-symbol/triggered.webp'),
-	dim: packageAsset('v19/vault-symbol/dim.webp'),
-});
-const V19_VAULT_STATE_SET = Object.freeze({ ...V19_VAULT_ASSETS, win: V19_VAULT_ASSETS.triggered });
+function v39SymbolStateSet(directoryName, special = false) {
+	const root = `v39/symbols/${directoryName}`;
+	return Object.freeze({
+		base: packageAsset(`${root}/base.webp`),
+		win: packageAsset(`${root}/win.webp`),
+		dim: packageAsset(`${root}/dim.webp`),
+		...(special
+			? {
+				anticipation: packageAsset(`${root}/anticipation.webp`),
+				triggered: packageAsset(`${root}/triggered.webp`),
+			}
+			: {}),
+	});
+}
 
 const SYMBOL_STATE_SETS = Object.freeze({
 	operative: Object.freeze({
@@ -82,25 +92,27 @@ const SYMBOL_STATE_SETS = Object.freeze({
 		dim: packageAsset('v22/symbols/operative/dim.webp'),
 	}),
 	encrypted_drive: symbolStateSet('sym_02_encrypted_drive'),
-	tactical_radio: symbolStateSet('sym_03_tactical_radio'),
-	classified_folder: symbolStateSet('sym_04_classified_folder'),
-	night_vision_goggles: symbolStateSet('sym_05_night_vision_goggles'),
-	supply_crate: symbolStateSet('sym_06_supply_crate'),
+	tactical_radio: v39SymbolStateSet('sym_03_tactical_radio'),
+	classified_folder: v39SymbolStateSet('sym_04_classified_folder'),
+	night_vision_goggles: v39SymbolStateSet('sym_05_night_vision_goggles'),
+	supply_crate: v39SymbolStateSet('sym_06_supply_crate'),
 	ghost_wild: symbolStateSet('sym_07_ghost_wild', true),
-	breach: V19_VAULT_STATE_SET,
-	a: symbolStateSet('sym_09_a'),
+	breach: v39SymbolStateSet('sym_08_breach_vault', true),
+	a: v39SymbolStateSet('sym_09_a'),
 	k: symbolStateSet('sym_10_k'),
-	q: symbolStateSet('sym_11_q'),
+	q: v39SymbolStateSet('sym_11_q'),
 	j: symbolStateSet('sym_12_j'),
-	ten: symbolStateSet('sym_13_ten'),
+	ten: v39SymbolStateSet('sym_13_ten'),
 });
 
 const PENGUIN_REEL_STRIPS = Object.freeze(Array.from(
 	{ length: 5 },
-	(_, index) => packageAsset(`v22/ui/reel-strips/reel-${String(index + 1).padStart(2, '0')}.webp`),
+	(_, index) => packageAsset(`v39/ui/reel-strips/reel-${String(index + 1).padStart(2, '0')}.webp`),
 ));
 
-const BLACKSITE_UI_V21 = createBlacksiteUiV21Catalog(packageAsset);
+const BLACKSITE_UI_V21 = createBlacksiteUiV21Catalog(packageAsset, {
+	glyphAtlasRoot: BLACKSITE_UI_V39_GLYPH_ROOT,
+});
 const BLACKSITE_UI_V22 = createBlacksiteUiV22Catalog(
 	packageAsset,
 	BLACKSITE_UI_V21,
@@ -202,7 +214,6 @@ export const BLACKSITE_ASSETS = Object.freeze({
 		}),
 	}),
 	v19: Object.freeze({
-		vaultSymbol: V19_VAULT_ASSETS,
 		cinematic: Object.freeze({
 			vaultOpeningVideoV26: packageAsset('v26/cinematic/vault-opening-blackout-v26-720p24.mp4'),
 			vaultOpeningPoster: packageAsset('v26/cinematic/vault-opening-blackout-v26-poster-720p.webp'),

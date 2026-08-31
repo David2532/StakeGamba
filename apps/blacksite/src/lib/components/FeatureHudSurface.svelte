@@ -550,7 +550,7 @@
 		.feature-hud-surface[data-feature-hud-kind='target'] .feature-hud-surface__value--icon-label { font-size: 11px; }
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4 / 3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2 / 1) {
 		.feature-hud-surface:is(
 			[data-feature-hud-kind='progress'],
 			[data-feature-hud-kind='target'],
@@ -696,7 +696,7 @@
 		}
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4 / 3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2 / 1) {
 		.feature-hud-surface[data-feature-hud-kind='target'] .feature-hud-surface__label.has-compact-label .feature-hud-surface__label-full {
 			display: none;
 		}
@@ -778,7 +778,7 @@
 		}
 	}
 
-	@media (max-width: 699px) and (max-height: 560px) and (min-aspect-ratio: 4 / 3) {
+	@media (max-width: 699px) and (max-height: 560px) and (min-aspect-ratio: 2 / 1) {
 		.feature-hud-surface:is(
 			[data-feature-hud-kind='progress'],
 			[data-feature-hud-kind='target'],

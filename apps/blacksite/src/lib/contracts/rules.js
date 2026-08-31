@@ -27,7 +27,7 @@ export const RULES_INTERFACE_COPY = Object.freeze({
 		amountLabel: 'BET',
 		rulesLead:
 			'Choose the entry mode and BET, check TOTAL, then press SPIN. All ten paylines are fixed and always active.',
-		totalFormula: 'TOTAL = BET x MODE COST',
+		totalFormula: 'TOTAL = BET × MODE COST',
 		resultHeading: 'PAYOUTS / CONSECUTIVE SYMBOLS / BET MULTIPLIER',
 		resultExplanation:
 			'Values are multiples of BET. Each line pays at most one deterministic symbol result; VAULT is a non-paying trigger.',
@@ -38,7 +38,7 @@ export const RULES_INTERFACE_COPY = Object.freeze({
 		amountLabel: 'PLAY AMOUNT',
 		rulesLead:
 			'Choose the entry mode and play amount, check TOTAL PLAY, then press SPIN. All ten paylines are fixed and always active.',
-		totalFormula: 'TOTAL PLAY = PLAY AMOUNT x MODE COST',
+		totalFormula: 'TOTAL PLAY = PLAY AMOUNT × MODE COST',
 		resultHeading: 'RESULTS / CONSECUTIVE SYMBOLS / PLAY AMOUNT MULTIPLIER',
 		resultExplanation:
 			'Values are multiples of the play amount. Each line awards at most one deterministic symbol result; VAULT is a trigger with no line award.',

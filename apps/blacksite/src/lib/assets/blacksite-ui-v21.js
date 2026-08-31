@@ -1,4 +1,5 @@
 export const BLACKSITE_UI_V21_ROOT = 'v21/ui-kit';
+export const BLACKSITE_UI_V39_GLYPH_ROOT = 'v39/ui-kit';
 
 export const BLACKSITE_UI_V21_STATES = Object.freeze([
 	'idle',
@@ -126,11 +127,18 @@ export function resolveBlacksiteUiV21Glyph(name) {
 	return BLACKSITE_UI_V21_GLYPHS.includes(normalized) ? normalized : 'info';
 }
 
-export function createBlacksiteUiV21Catalog(resolveAsset) {
+export function createBlacksiteUiV21Catalog(
+	resolveAsset,
+	{ glyphAtlasRoot = BLACKSITE_UI_V21_ROOT } = {},
+) {
 	if (typeof resolveAsset !== 'function') {
 		throw new TypeError('BLACKSITE v21 UI catalog requires an asset resolver.');
 	}
+	if (typeof glyphAtlasRoot !== 'string' || glyphAtlasRoot.length === 0) {
+		throw new TypeError('BLACKSITE v21 UI catalog requires a glyph atlas root.');
+	}
 	const asset = (path) => resolveAsset(`${BLACKSITE_UI_V21_ROOT}/${path}`);
+	const glyphAsset = (path) => resolveAsset(`${glyphAtlasRoot}/${path}`);
 	const controlStates = Object.freeze(Object.fromEntries(
 		BLACKSITE_UI_V21_STATES.map((state) => [
 			state,
@@ -158,7 +166,7 @@ export function createBlacksiteUiV21Catalog(resolveAsset) {
 		GLYPH_ROWS.map((row, index) => [row, atlasRow(index, GLYPH_ROWS.length, 96)]),
 	));
 	const roundSource = asset('atlas/round-states.webp');
-	const glyphSource = asset('atlas/glyphs.webp');
+	const glyphSource = glyphAsset('atlas/glyphs.webp');
 	const preload = Object.freeze([
 		...Object.values(controlStates),
 		...Object.values(panelStates),
@@ -174,6 +182,8 @@ export function createBlacksiteUiV21Catalog(resolveAsset) {
 		version: 21,
 		root: BLACKSITE_UI_V21_ROOT,
 		manifest: asset('manifest.json'),
+		glyphAtlasRoot,
+		glyphAtlasManifest: glyphAsset('manifest.json'),
 		contexts: Object.freeze(['breach', 'blackout']),
 		states: BLACKSITE_UI_V21_STATES,
 		statePrecedence: BLACKSITE_UI_V21_STATE_PRECEDENCE,

@@ -458,9 +458,9 @@
 			: presentation.status !== 'idle' && presentation.lastEventIndex >= 0
 				? formatPresentedWin(winRollupActive ? winRollupDisplayedRaw : presentation.cumulativeWinRaw)
 				: finalWinText;
-	$: hudBalanceText = launch.kind === 'fixture' && !liveSnapshot.balance ? 'DEMO' : balanceText;
+	$: hudBalanceText = launch.kind === 'fixture' && !liveSnapshot.balance ? '—' : balanceText;
 	$: hudTotalAmountText = launch.kind === 'fixture' && totalAmountApi <= 0
-		? `${selectedMode.costMultiplier}x`
+		? `${selectedMode.costMultiplier}×`
 		: totalAmountText;
 	$: hudWinText = hudPhase === 'feature'
 		? featureRunningWinText
@@ -3051,20 +3051,20 @@
 			? (__BLACKSITE_MODERN_PRESENTATION__
 				? BLACKSITE_ASSETS.environment.premiumMachinePhoneV22
 				: BLACKSITE_ASSETS.environment.premiumMachinePhone)
-			: window.matchMedia('(max-height: 560px) and (min-aspect-ratio: 4/3)').matches
+			: window.matchMedia('(max-height: 560px) and (min-aspect-ratio: 2/1)').matches
 				? (__BLACKSITE_MODERN_PRESENTATION__
 					? BLACKSITE_ASSETS.environment.premiumMachineShortLandscapeV22
 					: BLACKSITE_ASSETS.environment.premiumMachineShortLandscape)
-				: window.matchMedia('(max-width: 1040px), (max-aspect-ratio: 4/3)').matches
+				: window.matchMedia('(max-aspect-ratio: 5/4)').matches
 					? (__BLACKSITE_MODERN_PRESENTATION__
 						? BLACKSITE_ASSETS.environment.premiumMachinePortraitV22
 						: BLACKSITE_ASSETS.environment.premiumMachinePortrait)
 					: (__BLACKSITE_MODERN_PRESENTATION__
 						? BLACKSITE_ASSETS.environment.premiumMachineV22
 						: BLACKSITE_ASSETS.environment.premiumMachine);
-		const v28EnvironmentCandidateVariant = window.matchMedia('(max-height: 560px) and (min-aspect-ratio: 4/3)').matches
+		const v28EnvironmentCandidateVariant = window.matchMedia('(max-height: 560px) and (min-aspect-ratio: 2/1)').matches
 			? 'shortLandscape'
-			: window.matchMedia('(max-width: 1040px), (max-aspect-ratio: 4/3)').matches
+			: window.matchMedia('(max-aspect-ratio: 5/4)').matches
 				? 'portrait'
 				: 'desktop';
 		v28EnvironmentCandidateSources = Object.freeze({
@@ -3094,7 +3094,7 @@
 			]),
 			...activeReelStripSources,
 			...(__BLACKSITE_MODERN_PRESENTATION__ ? BLACKSITE_ASSETS.ui.v27.preload : []),
-			...Object.values(BLACKSITE_ASSETS.v19.vaultSymbol),
+			...Object.values(BLACKSITE_ASSETS.symbols.states.breach),
 			...Object.values(BLACKSITE_ASSETS.v19.modes),
 			...Object.values(BLACKSITE_ASSETS.v19.scenes),
 			...(__BLACKSITE_DEV_FIXTURES__ && launch.kind === 'fixture'
@@ -3299,10 +3299,10 @@
 	{:else}
 		<link rel="preload" as="image" href={OPERATOR_ANIMATION_CATALOG.idle.frames[0]} />
 	{/if}
-	<link rel="preload" as="image" href={__BLACKSITE_MODERN_PRESENTATION__ ? BLACKSITE_ASSETS.environment.premiumMachineV22 : BLACKSITE_ASSETS.environment.premiumMachine} media="(min-width: 1041px) and (min-height: 561px) and (min-aspect-ratio: 4/3)" />
+	<link rel="preload" as="image" href={__BLACKSITE_MODERN_PRESENTATION__ ? BLACKSITE_ASSETS.environment.premiumMachineV22 : BLACKSITE_ASSETS.environment.premiumMachine} media="(min-aspect-ratio: 5/4) and (max-aspect-ratio: 2/1), (min-height: 561px) and (min-aspect-ratio: 2/1)" />
 	<link rel="preload" as="image" href={__BLACKSITE_MODERN_PRESENTATION__ ? BLACKSITE_ASSETS.environment.premiumMachineCompactPhoneV22 : BLACKSITE_ASSETS.environment.premiumMachinePhone} media="(max-width: 380px) and (max-height: 700px) and (orientation: portrait), (min-width: 381px) and (max-width: 480px) and (max-height: 430px) and (orientation: portrait)" />
 	<link rel="preload" as="image" href={__BLACKSITE_MODERN_PRESENTATION__ ? BLACKSITE_ASSETS.environment.premiumMachinePhoneV22 : BLACKSITE_ASSETS.environment.premiumMachinePhone} media="(min-width: 381px) and (max-width: 480px) and (min-height: 431px) and (orientation: portrait)" />
-	<link rel="preload" as="image" href={__BLACKSITE_MODERN_PRESENTATION__ ? BLACKSITE_ASSETS.environment.premiumMachineShortLandscapeV22 : BLACKSITE_ASSETS.environment.premiumMachineShortLandscape} media="(max-height: 560px) and (min-aspect-ratio: 4/3)" />
+	<link rel="preload" as="image" href={__BLACKSITE_MODERN_PRESENTATION__ ? BLACKSITE_ASSETS.environment.premiumMachineShortLandscapeV22 : BLACKSITE_ASSETS.environment.premiumMachineShortLandscape} media="(max-height: 560px) and (min-aspect-ratio: 2/1)" />
 	{#each activeReelStripSources as stripUrl (stripUrl)}
 		<link rel="preload" as="image" href={stripUrl} />
 	{/each}
@@ -3324,9 +3324,11 @@
 	class:dev-ui-v22={devUiV22Enabled}
 	class:dev-ui-v27={devUiV22Enabled}
 	class:blacksite-ui-v36={devUiV22Enabled}
+	class:blacksite-ui-v37={devUiV22Enabled}
 	data-launch-kind={launch.kind}
 	data-ui-kit={devUiV22Enabled ? 'v27' : devUiV21Enabled ? 'v21' : undefined}
-	data-ui-revision={devUiV22Enabled ? 'v36' : undefined}
+	data-ui-revision={devUiV22Enabled ? 'v39' : undefined}
+	data-polish-revision={devUiV22Enabled ? 'repo-snapshot-v39' : undefined}
 	data-dev-math-book={__BLACKSITE_DEV_FIXTURES__ && isRandomDevelopmentFixture()
 		? activeFixture.bookId ?? 'pending'
 		: undefined}
@@ -3354,8 +3356,8 @@
 		<picture class="premium-machine-shell-picture" aria-hidden="true">
 			<source media="(max-width: 380px) and (max-height: 700px) and (orientation: portrait), (min-width: 381px) and (max-width: 480px) and (max-height: 430px) and (orientation: portrait)" srcset={__BLACKSITE_MODERN_PRESENTATION__ ? BLACKSITE_ASSETS.environment.premiumMachineCompactPhoneV22 : BLACKSITE_ASSETS.environment.premiumMachinePhone} />
 			<source media="(max-width: 480px) and (orientation: portrait)" srcset={__BLACKSITE_MODERN_PRESENTATION__ ? BLACKSITE_ASSETS.environment.premiumMachinePhoneV22 : BLACKSITE_ASSETS.environment.premiumMachinePhone} />
-			<source media="(max-height: 560px) and (min-aspect-ratio: 4/3)" srcset={__BLACKSITE_MODERN_PRESENTATION__ ? BLACKSITE_ASSETS.environment.premiumMachineShortLandscapeV22 : BLACKSITE_ASSETS.environment.premiumMachineShortLandscape} />
-			<source media="(max-width: 1040px), (max-aspect-ratio: 4/3)" srcset={__BLACKSITE_MODERN_PRESENTATION__ ? BLACKSITE_ASSETS.environment.premiumMachinePortraitV22 : BLACKSITE_ASSETS.environment.premiumMachinePortrait} />
+			<source media="(max-height: 560px) and (min-aspect-ratio: 2/1)" srcset={__BLACKSITE_MODERN_PRESENTATION__ ? BLACKSITE_ASSETS.environment.premiumMachineShortLandscapeV22 : BLACKSITE_ASSETS.environment.premiumMachineShortLandscape} />
+			<source media="(max-aspect-ratio: 5/4)" srcset={__BLACKSITE_MODERN_PRESENTATION__ ? BLACKSITE_ASSETS.environment.premiumMachinePortraitV22 : BLACKSITE_ASSETS.environment.premiumMachinePortrait} />
 			<img
 				class="premium-machine-shell"
 				src={__BLACKSITE_MODERN_PRESENTATION__ ? BLACKSITE_ASSETS.environment.premiumMachineV22 : BLACKSITE_ASSETS.environment.premiumMachine}
@@ -3715,14 +3717,13 @@
 						<span>ROUND COMPLETE</span><strong>NO LINE WIN</strong>
 					{:else if reelsSpinning}
 						{#if visualPhase === 'feature' && featureSpin > 0}
-							<span>FREE SPIN {featureSpin} OF {featureSpinsAwarded}</span><strong>{remainingFeatureSpins} REMAINING</strong>
+							<span>BLACKOUT</span><strong>REELS IN MOTION</strong>
 						{:else}
 							<span>REELS SPINNING</span><strong>AWAITING RESULT</strong>
 						{/if}
 					{:else if presentationActive}
 						{#if visualPhase === 'feature'}
-							<span>{featureSpin > 0 ? `FREE SPIN ${featureSpin} OF ${featureSpinsAwarded}` : `${featureSpinsAwarded} FREE SPINS AWARDED`}</span>
-							<strong>{featureSpin > 0 ? `${remainingFeatureSpins} REMAINING` : `TARGET ${featureTargetLabel}`}</strong>
+							<span>BLACKOUT</span><strong>{featureSpin > 0 ? 'CHECKING EXPANSION' : 'FEATURE ARMED'}</strong>
 						{:else}
 							<span>CHECKING PAYLINES</span><strong>10 LINES ACTIVE</strong>
 						{/if}
@@ -3748,16 +3749,16 @@
 			<div class="premium-hud" data-testid="bottom-hud" aria-label="BLACKSITE game controls">
 				{#if devUiV22Enabled}<div class="v27-responsive-hud-rail" aria-hidden="true"><UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="feature" interactive={false} /></div>{/if}
 				<nav class="hud-tools hud-tools-left" aria-label="Game tools">
-					<button class="round-tool" data-testid="hud-menu" type="button" aria-label="Open game menu" disabled={primaryBusy || vaultCinematicState.active} on:click={() => void openMenu()}><HudIcon name="menu" /><span>MENU</span></button>
-					<button class="round-tool shop-tool" data-testid="hud-shop" type="button" aria-label={devFixtureUiPreview ? 'Preview entry modes' : 'Select entry mode'} disabled={autoRunning || primaryBusy || vaultCinematicState.active || (launch.kind === 'live' && liveSnapshot.status !== 'ready') || (launch.kind !== 'live' && !devFixtureUiPreview)} on:click={() => void openModeDialog()}><HudIcon name="shop" /><span>{devFixtureUiPreview ? 'MODES' : social ? 'FEATURES' : 'BUY'}</span></button>
-					<button class="round-tool" class:active={autoRunning} data-testid="hud-auto" type="button" aria-label={launch.kind === 'replay' ? 'Replay round' : autoRunning ? `Stop autoplay with ${autoRemaining} spins remaining` : 'Open autoplay selection'} disabled={primaryBusy || vaultCinematicState.active || (launch.kind === 'live' && autoplayDisabled && !autoRunning)} on:click={activateHudAuto}><HudIcon name="auto" /><span>{launch.kind === 'replay' ? 'REPLAY' : autoRunning ? `STOP ${autoRemaining}` : 'AUTO'}</span></button>
+					<button class="round-tool" data-testid="hud-menu" type="button" aria-label="Open game menu" disabled={primaryBusy || vaultCinematicState.active} on:click={() => void openMenu()}><HudIcon name="menu" /><span class="hud-tool-label">MENU</span></button>
+					<button class="round-tool shop-tool" data-testid="hud-shop" type="button" aria-label={devFixtureUiPreview ? 'Preview entry modes' : 'Select entry mode'} disabled={autoRunning || primaryBusy || vaultCinematicState.active || (launch.kind === 'live' && liveSnapshot.status !== 'ready') || (launch.kind !== 'live' && !devFixtureUiPreview)} on:click={() => void openModeDialog()}><HudIcon name="shop" /><span class="hud-tool-label">{devFixtureUiPreview ? 'MODES' : social ? 'FEATURES' : 'BUY'}</span></button>
+					<button class="round-tool" class:active={autoRunning} data-testid="hud-auto" type="button" aria-label={launch.kind === 'replay' ? 'Replay round' : autoRunning ? `Stop autoplay with ${autoRemaining} spins remaining` : 'Open autoplay selection'} disabled={primaryBusy || vaultCinematicState.active || (launch.kind === 'live' && autoplayDisabled && !autoRunning)} on:click={activateHudAuto}><HudIcon name="auto" /><span class="hud-tool-label">{launch.kind === 'replay' ? 'REPLAY' : autoRunning ? `STOP ${autoRemaining}` : 'AUTO'}</span></button>
 				</nav>
 
 			<div class="control-deck" aria-label={rulesInterfaceCopy.controlDeckLabel}>
 				<button class="bet-step bet-step-minus" data-testid="hud-bet-minus" type="button" aria-label={social ? 'Decrease play amount' : 'Decrease bet'} disabled={autoRunning || launch.kind !== 'live' || liveSnapshot.status !== 'ready' || primaryBusy} on:click={() => shiftBaseAmount(-1)}><HudIcon name="minus" size={20} /></button>
 				<label class="amount-control reel-bet-control" for="blacksite-base-amount-stage">
 					{#if devUiV21Enabled}<div class="premium-panel-art" aria-hidden="true"><UiSurface enabled kind="readout" fallbackSrc={BLACKSITE_ASSETS.ui.premiumPanels.meters.bet} /></div>{:else}<img class="premium-panel-art" src={BLACKSITE_ASSETS.ui.premiumPanels.meters.bet} alt="" draggable="false" aria-hidden="true" />{/if}
-					<span>{rulesInterfaceCopy.amountLabel}</span>
+					<span class="hud-meter-label">{rulesInterfaceCopy.amountLabel}</span>
 					{#if betLevelsApi.length > 0}
 						<select
 							id="blacksite-base-amount-stage"
@@ -3785,13 +3786,13 @@
 							<output for="blacksite-base-amount-stage">{formatExactApi(baseAmountApi, currency)}</output>
 						</span>
 					{:else}
-						<select id="blacksite-base-amount-stage" data-testid="base-amount" disabled><option value="">{launch.kind === 'fixture' ? 'DEMO' : '—'}</option></select>
+						<select id="blacksite-base-amount-stage" data-testid="base-amount" disabled><option value="">—</option></select>
 					{/if}
 				</label>
 				<button class="bet-step bet-step-plus" data-testid="hud-bet-plus" type="button" aria-label={social ? 'Increase play amount' : 'Increase bet'} disabled={autoRunning || launch.kind !== 'live' || liveSnapshot.status !== 'ready' || primaryBusy} on:click={() => shiftBaseAmount(1)}><HudIcon name="plus" size={20} /></button>
-				<div class="balance-meter">{#if devUiV21Enabled}<div class="premium-panel-art" aria-hidden="true"><UiSurface enabled kind="readout" fallbackSrc={BLACKSITE_ASSETS.ui.premiumPanels.meters.balance} /></div>{:else}<img class="premium-panel-art" src={BLACKSITE_ASSETS.ui.premiumPanels.meters.balance} alt="" draggable="false" aria-hidden="true" />{/if}<span>BALANCE</span><strong data-testid="wallet-balance">{launch.kind === 'replay' ? 'READ-ONLY' : hudBalanceText}</strong></div>
-				<div class="control-meter total-meter">{#if devUiV21Enabled}<div class="premium-panel-art" aria-hidden="true"><UiSurface enabled kind="readout" fallbackSrc={BLACKSITE_ASSETS.ui.premiumPanels.meters.total} /></div>{:else}<img class="premium-panel-art" src={BLACKSITE_ASSETS.ui.premiumPanels.meters.total} alt="" draggable="false" aria-hidden="true" />{/if}<span>{social ? 'TOTAL PLAY' : 'TOTAL BET'}</span><strong data-testid="total-play">{launch.kind === 'replay' ? formatReplayQueryUnits(replayTotalUnits, launch.currency) : hudTotalAmountText}</strong></div>
-				<div class="control-meter win-meter">{#if devUiV21Enabled}<div class="premium-panel-art" aria-hidden="true"><UiSurface enabled kind="readout" fallbackSrc={BLACKSITE_ASSETS.ui.premiumPanels.meters.win} /></div>{:else}<img class="premium-panel-art" src={BLACKSITE_ASSETS.ui.premiumPanels.meters.win} alt="" draggable="false" aria-hidden="true" />{/if}<span>{social ? 'RESULTS' : 'WIN'}</span><strong data-testid="final-win">{hudWinText}</strong></div>
+				<div class="balance-meter">{#if devUiV21Enabled}<div class="premium-panel-art" aria-hidden="true"><UiSurface enabled kind="readout" fallbackSrc={BLACKSITE_ASSETS.ui.premiumPanels.meters.balance} /></div>{:else}<img class="premium-panel-art" src={BLACKSITE_ASSETS.ui.premiumPanels.meters.balance} alt="" draggable="false" aria-hidden="true" />{/if}<span class="hud-meter-label">BALANCE</span><strong data-testid="wallet-balance">{launch.kind === 'replay' ? 'READ-ONLY' : hudBalanceText}</strong></div>
+				<div class="control-meter total-meter">{#if devUiV21Enabled}<div class="premium-panel-art" aria-hidden="true"><UiSurface enabled kind="readout" fallbackSrc={BLACKSITE_ASSETS.ui.premiumPanels.meters.total} /></div>{:else}<img class="premium-panel-art" src={BLACKSITE_ASSETS.ui.premiumPanels.meters.total} alt="" draggable="false" aria-hidden="true" />{/if}<span class="hud-meter-label">{social ? 'TOTAL PLAY' : 'TOTAL BET'}</span><strong data-testid="total-play">{launch.kind === 'replay' ? formatReplayQueryUnits(replayTotalUnits, launch.currency) : hudTotalAmountText}</strong></div>
+				<div class="control-meter win-meter">{#if devUiV21Enabled}<div class="premium-panel-art" aria-hidden="true"><UiSurface enabled kind="readout" fallbackSrc={BLACKSITE_ASSETS.ui.premiumPanels.meters.win} /></div>{:else}<img class="premium-panel-art" src={BLACKSITE_ASSETS.ui.premiumPanels.meters.win} alt="" draggable="false" aria-hidden="true" />{/if}<span class="hud-meter-label">{social ? 'RESULTS' : 'WIN'}</span><strong data-testid="final-win">{hudWinText}</strong></div>
 				<button
 					bind:this={primaryActionButton}
 					class="primary-action reel-spin"
@@ -3813,9 +3814,9 @@
 			</div>
 
 				<nav class="hud-tools hud-tools-right" aria-label="Play settings">
-					<button class="round-tool" class:active={turboEnabled} data-testid="hud-turbo" type="button" aria-label="Toggle turbo presentation" aria-pressed={turboEnabled} disabled={turboDisabled || primaryBusy || vaultCinematicState.active} on:click={() => turboEnabled = !turboEnabled}><HudIcon name="turbo" /><span>TURBO</span></button>
-					<button class="round-tool info-tool" data-testid="hud-info" type="button" aria-label={social ? 'Open game guide and results' : 'Open game guide and paytable'} disabled={primaryBusy || vaultCinematicState.active} on:click={() => void openRules()}><HudIcon name="info" /><span>INFO</span></button>
-					<button class="round-tool" data-testid="hud-settings" type="button" aria-label="Open settings" disabled={primaryBusy || vaultCinematicState.active} on:click={() => void openSettings()}><HudIcon name="settings" /><span>SETTINGS</span></button>
+					<button class="round-tool" class:active={turboEnabled} data-testid="hud-turbo" type="button" aria-label="Toggle turbo presentation" aria-pressed={turboEnabled} disabled={turboDisabled || primaryBusy || vaultCinematicState.active} on:click={() => turboEnabled = !turboEnabled}><HudIcon name="turbo" /><span class="hud-tool-label">TURBO</span></button>
+					<button class="round-tool info-tool" data-testid="hud-info" type="button" aria-label={social ? 'Open game guide and results' : 'Open game guide and paytable'} disabled={primaryBusy || vaultCinematicState.active} on:click={() => void openRules()}><HudIcon name="info" /><span class="hud-tool-label">INFO</span></button>
+					<button class="round-tool" data-testid="hud-settings" type="button" aria-label="Open settings" disabled={primaryBusy || vaultCinematicState.active} on:click={() => void openSettings()}><HudIcon name="settings" /><span class="hud-tool-label">SETTINGS</span></button>
 				</nav>
 			</div>
 
@@ -3948,7 +3949,7 @@
 								<span>{getModeLabel(mode.id, social)}</span>
 								<small class="mode-card-effect">{displaySpecialSymbolCopy(getModeActionDescription(mode.id, social))}</small>
 								<div class="mode-card-meta">
-								<span class="mode-card-facts" aria-hidden="true"><b>RTP {(mode.targetRtp * 100).toFixed(2)}%</b><b>MAX {mode.maxWinRaw / 100}x</b></span>
+								<span class="mode-card-facts" aria-hidden="true"><b>RTP {(mode.targetRtp * 100).toFixed(2)}%</b><b>MAX {mode.maxWinRaw / 100}×</b></span>
 								{#if !devFixtureUiPreview}<span class="mode-card-total"><small>{social ? 'TOTAL PLAY' : 'TOTAL'}</small><b>{modeTotalText(mode.id)}</b></span>{/if}
 									<em class="v27-surface-carrier v27-chip-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="chip" state={['ACTIVE', 'CURRENT'].includes(modeCardState(mode.id)) ? 'selected' : 'idle'} selected={['ACTIVE', 'CURRENT'].includes(modeCardState(mode.id))} interactive={false} />{/if}<span>{modeCardState(mode.id)}</span></em>
 								</div>
@@ -4041,13 +4042,13 @@
 							<h3>{rulesInterfaceCopy.resultHeading}</h3><p>{displaySpecialSymbolCopy(rulesInterfaceCopy.resultExplanation)}</p>
 							<section class="symbol-card-section"><h4>HIGH VALUE</h4><div class="symbol-card-grid">{#each GUIDE_HIGH_SYMBOLS as symbol}<article class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<img src={baseSymbolAsset(symbol)} alt="" aria-hidden="true" /><strong>{SYMBOL_DISPLAY_NAMES[symbol]}</strong><span>{#each LINE_LENGTHS as band, index}<small><b>{band.label}</b>{formatCentiMultiplier(SYMBOL_PAYOUTS[symbol][index])}</small>{/each}</span></article>{/each}</div></section>
 							<section class="symbol-card-section"><h4>CARDS</h4><div class="symbol-card-grid compact">{#each GUIDE_CARD_SYMBOLS as symbol}<article class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<img src={BLACKSITE_ASSETS.symbols.states[symbol].base} alt="" aria-hidden="true" /><strong>{SYMBOL_DISPLAY_NAMES[symbol]}</strong><span>{#each LINE_LENGTHS as band, index}<small><b>{band.label}</b>{formatCentiMultiplier(SYMBOL_PAYOUTS[symbol][index])}</small>{/each}</span></article>{/each}</div></section>
-						<div class="special-symbol-cards"><article class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<img src={BLACKSITE_ASSETS.symbols.states.ghost_wild.base} alt="" aria-hidden="true" /><div><h4>GHOST WILD</h4><p>{displaySpecialSymbolCopy(RULES_CONTRACT.specialSymbols[0].copy)}</p><span>{#each LINE_LENGTHS as band, index}<small><b>{band.label}</b>{formatCentiMultiplier(SYMBOL_PAYOUTS.ghost_wild[index])}</small>{/each}</span></div></article><article class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<img src={BLACKSITE_ASSETS.v19.vaultSymbol.base} alt="" aria-hidden="true" /><div><h4>VAULT TRIGGER</h4><p>{displaySpecialSymbolCopy(RULES_CONTRACT.specialSymbols[1].copy)} It has no line award.</p></div></article></div>
+						<div class="special-symbol-cards"><article class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<img src={BLACKSITE_ASSETS.symbols.states.ghost_wild.base} alt="" aria-hidden="true" /><div><h4>GHOST WILD</h4><p>{displaySpecialSymbolCopy(RULES_CONTRACT.specialSymbols[0].copy)}</p><span>{#each LINE_LENGTHS as band, index}<small><b>{band.label}</b>{formatCentiMultiplier(SYMBOL_PAYOUTS.ghost_wild[index])}</small>{/each}</span></div></article><article class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<img src={BLACKSITE_ASSETS.symbols.states.breach.base} alt="" aria-hidden="true" /><div><h4>VAULT TRIGGER</h4><p>{displaySpecialSymbolCopy(RULES_CONTRACT.specialSymbols[1].copy)} It has no line award.</p></div></article></div>
 						{:else if guideTab === 'modes'}
-							<h3>ENTRY MODES</h3><div class="guide-mode-cards">{#each MODES as mode}<article class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<img src={BLACKSITE_ASSETS.v19.modes[mode.id]} alt="" aria-hidden="true" /><div><h4>{getModeLabel(mode.id, social)}</h4><p>{displaySpecialSymbolCopy(getModeActionDescription(mode.id, social))}</p><span class="guide-mode-facts"><small>RTP {(mode.targetRtp * 100).toFixed(2)}%</small><small>MAX WIN {mode.maxWinRaw / 100}x</small></span></div><strong>{mode.costMultiplier}×</strong></article>{/each}</div>
+							<h3>ENTRY MODES</h3><div class="guide-mode-cards">{#each MODES as mode}<article class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<img src={BLACKSITE_ASSETS.v19.modes[mode.id]} alt="" aria-hidden="true" /><div><h4>{getModeLabel(mode.id, social)}</h4><p>{displaySpecialSymbolCopy(getModeActionDescription(mode.id, social))}</p><span class="guide-mode-facts"><small>RTP {(mode.targetRtp * 100).toFixed(2)}%</small><small>MAX WIN {mode.maxWinRaw / 100}×</small></span></div><strong>{mode.costMultiplier}×</strong></article>{/each}</div>
 						{:else if guideTab === 'vault'}
-						<h3>BLACKOUT BONUS</h3><div class="vault-guide-hero v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<img src={BLACKSITE_ASSETS.v19.vaultSymbol.triggered} alt="" aria-hidden="true" /><div>{#each RULES_CONTRACT.feature as line}<p>{displaySpecialSymbolCopy(line)}</p>{/each}</div></div><div class="vault-timeline" data-cinematic-stage-count={VAULT_TIMELINE.length} aria-label="BLACKOUT bonus timeline">{#each VAULT_GUIDE_STEPS as step, index}<span class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<b>{String(index + 1).padStart(2, '0')}</b><small class="v27-live-copy">{displaySpecialSymbolCopy(step)}</small></span>{/each}</div>
+						<h3>BLACKOUT BONUS</h3><div class="vault-guide-hero v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<img src={BLACKSITE_ASSETS.symbols.states.breach.triggered} alt="" aria-hidden="true" /><div>{#each RULES_CONTRACT.feature as line}<p>{displaySpecialSymbolCopy(line)}</p>{/each}</div></div><div class="vault-timeline" data-cinematic-stage-count={VAULT_TIMELINE.length} aria-label="BLACKOUT bonus timeline">{#each VAULT_GUIDE_STEPS as step, index}<span class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<b>{String(index + 1).padStart(2, '0')}</b><small class="v27-live-copy">{displaySpecialSymbolCopy(step)}</small></span>{/each}</div>
 						{:else}
-							<h3>CONTROLS & LEGAL</h3><div class="guide-contract-facts"><span class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<small>AUTHORITATIVE RTP</small><strong>{(RULES_CONTRACT.targetRtp * 100).toFixed(2)}%</strong></span><span class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<small>MAX WIN</small><strong>{RULES_CONTRACT.maxWinRaw / 100}x</strong></span></div><div class="rules-copy-grid"><section class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}{#each RULES_CONTRACT.controls as line}<p>{displaySpecialSymbolCopy(line)}</p>{/each}</section><section class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<p>Turbo and Skip change presentation time only. Mute affects game audio only. Neither changes the outcome, price or settlement.</p><p>{legalDisclaimer}</p></section></div>
+							<h3>CONTROLS & LEGAL</h3><div class="guide-contract-facts"><span class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<small>AUTHORITATIVE RTP</small><strong>{(RULES_CONTRACT.targetRtp * 100).toFixed(2)}%</strong></span><span class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<small>MAX WIN</small><strong>{RULES_CONTRACT.maxWinRaw / 100}×</strong></span></div><div class="rules-copy-grid"><section class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}{#each RULES_CONTRACT.controls as line}<p>{displaySpecialSymbolCopy(line)}</p>{/each}</section><section class="v27-surface-carrier v27-content-surface">{#if devUiV22Enabled}<UiSurface enabled kit={BLACKSITE_ASSETS.ui.v27} kind="content" interactive={false} />{/if}<p>Turbo and Skip change presentation time only. Mute affects game audio only. Neither changes the outcome, price or settlement.</p><p>{legalDisclaimer}</p></section></div>
 						{/if}
 					</div>
 				</div>
@@ -5743,7 +5744,7 @@
 		.app-shell.dev-ui-v22 .guide-boot-actions button { min-height: 48px; padding: 8px; }
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v22 .monitor-header {
 			top: 0 !important;
 			height: 24px !important;
@@ -7665,7 +7666,7 @@
 		.monitor-footer strong { font-size: 7px; }
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.operative-stage { display: none; }
 
 		.breach-monitor {
@@ -8375,7 +8376,7 @@
 		.reel-footer { justify-content: center; }
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.breach-monitor { grid-template-rows: 36px minmax(0, 1fr) 22px; }
 		.reel-console { grid-template-rows: 24px minmax(0, 1fr) 48px 44px; gap: 3px; padding: 3px 5px; }
 		.reel-mechanic-strip > span { min-height: 24px; }
@@ -9179,7 +9180,7 @@
 
 	@keyframes reel-column-spin { 0%{transform:translateY(-12%) scaleY(1.05)} 50%{transform:translateY(12%) scaleY(.96)} 100%{transform:translateY(-12%) scaleY(1.05)} }
 
-	@media (max-width: 1040px), (max-aspect-ratio: 4/3), (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-aspect-ratio: 5/4), (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.operative-stage { display:none; }
 		.breach-monitor { inset:8px; grid-template-rows:58px minmax(0,1fr) 22px; }
 		.monitor-identity h1 { font-size:clamp(23px,5vw,36px); }
@@ -9300,7 +9301,7 @@
 		.line-gutter span { width:14px; height:14px; font-size:5px; }
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.breach-monitor { inset:3px; grid-template-rows:38px minmax(0,1fr) 18px; }
 		.monitor-header { padding:3px 9px; }
 		.monitor-identity > span { display:none; }
@@ -9943,7 +9944,7 @@
 		.mode-dialog-list button strong { top: 14px; right: 14px; font-size: 20px; }
 	}
 
-	@media (min-width: 1041px) and (min-height: 561px) and (min-aspect-ratio: 4/3) {
+	@media (min-aspect-ratio: 5/4) {
 		.scene-world {
 			inset: 50% auto auto 50%;
 			width: min(100vw, calc(100vh * 1672 / 941));
@@ -10629,7 +10630,7 @@
 		z-index: 1;
 	}
 
-	@media (min-width: 1041px) and (min-height: 561px) and (min-aspect-ratio: 4/3) {
+	@media (min-aspect-ratio: 5/4) {
 		.reel-mechanic-strip .armed,
 		.reel-mechanic-strip .feature-state,
 		.reel-mechanic-strip .target-state {
@@ -10754,7 +10755,7 @@
 		max-width: none;
 	}
 
-	@media (min-width: 1041px) and (min-height: 561px) and (min-aspect-ratio: 4/3) {
+	@media (min-aspect-ratio: 5/4) {
 		.premium-machine-shell-picture { display: block; }
 	}
 
@@ -10803,7 +10804,7 @@
 		line-height: 1;
 	}
 
-	@media (max-width: 1040px), (max-aspect-ratio: 4/3), (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-aspect-ratio: 5/4), (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.scene-world {
 			inset: 50% auto auto 50%;
 			width: min(100vw, calc(100dvh * 3 / 4));
@@ -11239,7 +11240,7 @@
 		.reel-console .reel-spin { top: 31%; left: 40%; width: 22%; height: 31%; }
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.scene-world {
 			width: min(100vw, calc(100dvh * 844 / 390));
 			aspect-ratio: 844 / 390;
@@ -11529,7 +11530,7 @@
 		.vault-guide-hero > img { max-height: 150px; }
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.mode-dialog {
 			height: calc(100dvh - 36px);
 			min-height: 0 !important;
@@ -12103,7 +12104,7 @@
 		}
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v21 .modal-backdrop {
 			padding: 8px;
 		}
@@ -12132,7 +12133,7 @@
 		.app-shell.dev-ui-v21 .reel-console .reel-spin { left: 47.8%; width: 9.7%; }
 	}
 
-	@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v21 .compact-value-strip {
 			position: absolute;
 			z-index: 24;
@@ -12300,7 +12301,7 @@
 		.app-shell.dev-ui-v21 .lifecycle--cinematic :global(.cinematic-status__progress) { grid-column: 1; }
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v21 .lifecycle.lifecycle--cinematic {
 			width: clamp(154px, 22cqw, 214px);
 			min-width: 154px;
@@ -12362,7 +12363,7 @@
 		.app-shell.dev-ui-v21 .mode-card-meta > em { font-size: 8px; }
 	}
 
-	@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v21 .mode-dialog > header {
 			min-height: 52px;
 			padding-block: 5px !important;
@@ -12454,7 +12455,7 @@
 		}
 	}
 
-	@media (max-width: 1040px), (max-aspect-ratio: 4/3), (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-aspect-ratio: 5/4), (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v21 .result-ticker {
 			padding-left: 40px !important;
 		}
@@ -12489,7 +12490,7 @@
 	}
 
 	@media (max-width: 380px) and (max-height: 700px) and (orientation: portrait),
-		(max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3) {
+		(max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v21 .responsive-penguin-cameo { display: none; }
 		.app-shell.dev-ui-v21 .result-ticker { padding-left: 4px !important; }
 	}
@@ -12541,7 +12542,7 @@
 		line-height: 1.45;
 	}
 
-	@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v21 .confirmation-dialog {
 			height: calc(100dvh - 16px);
 			overflow: hidden !important;
@@ -12976,7 +12977,7 @@
 		color: #ffe3a1;
 	}
 
-	@media (min-width: 1041px) and (min-height: 561px) and (min-aspect-ratio: 4/3) {
+	@media (min-aspect-ratio: 5/4) {
 		.app-shell.dev-ui-v22 .monitor-identity > span { font-size: clamp(7px, .56cqw, 10px); }
 		.app-shell.dev-ui-v22 .monitor-identity h1 { font-size: clamp(28px, 2.12cqw, 36px); }
 		.app-shell.dev-ui-v22 .result-ticker { font-size: clamp(8px, .7cqw, 12px); }
@@ -13098,7 +13099,7 @@
 		}
 	}
 
-	@media (max-width: 1040px), (max-aspect-ratio: 4/3) {
+	@media (max-aspect-ratio: 5/4) {
 		.app-shell.dev-ui-v22 {
 			background:
 				linear-gradient(180deg, rgba(0, 0, 0, .32), transparent 24% 74%, rgba(0, 0, 0, .48)),
@@ -13110,7 +13111,7 @@
 		}
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v22 {
 			background:
 				linear-gradient(180deg, rgba(0, 0, 0, .42), transparent 24% 72%, rgba(0, 0, 0, .56)),
@@ -13302,8 +13303,7 @@
 	}
 
 	/* Keep every responsive control square and in one deterministic reading-order grid. */
-	@media (min-width: 481px) and (max-width: 1040px) and (min-height: 561px),
-		(min-width: 481px) and (min-height: 561px) and (max-aspect-ratio: 4/3) {
+	@media (min-width: 481px) and (min-height: 561px) and (max-aspect-ratio: 5/4) {
 		.app-shell.dev-ui-v22 .premium-hud {
 			--responsive-control-size: clamp(44px, calc(10cqw - 4px), 64px);
 			display: grid;
@@ -13463,7 +13463,7 @@
 	}
 
 	/* Final responsive control geometry: every hit target owns a distinct grid cell. */
-	@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v22 .premium-hud {
 			box-sizing: border-box;
 		}
@@ -13518,7 +13518,7 @@
 		}
 	}
 
-	@media (min-width: 701px) and (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (min-width: 701px) and (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		/* The authored short-landscape Spin well is circular. Keep the live target
 		   square so it cannot stretch below the viewport on shallow displays. */
 		.app-shell.dev-ui-v22 .reel-console .reel-spin {
@@ -13527,7 +13527,7 @@
 		}
 	}
 
-	@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v22 .premium-hud {
 			display: grid;
 			grid-template-columns: repeat(10, minmax(0, 1fr));
@@ -13565,7 +13565,7 @@
 		.app-shell.dev-ui-v22 .hud-tools-right .round-tool:nth-child(3) { grid-column: 10; }
 	}
 
-	@media (max-width: 467px) and (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-width: 467px) and (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v22 .scene-world {
 			top: calc(50% - 3px);
 			overflow: visible;
@@ -13701,7 +13701,7 @@
 		font-size: clamp(11px, 1.05vw, 13px);
 	}
 
-	@media (min-width: 1041px) and (min-height: 561px) and (min-aspect-ratio: 4/3) {
+	@media (min-aspect-ratio: 5/4) {
 		/* Register the live hitboxes to the 1672x941 desktop master. CSS translate
 		   is independent of the hover transform, so interaction remains smooth. */
 		.app-shell.dev-ui-v22 .operative-stage {
@@ -13720,8 +13720,7 @@
 		}
 	}
 
-	@media (min-width: 481px) and (max-width: 1040px) and (min-height: 561px),
-		(min-width: 481px) and (min-height: 561px) and (max-aspect-ratio: 4/3) {
+	@media (min-width: 481px) and (min-height: 561px) and (max-aspect-ratio: 5/4) {
 		.app-shell.dev-ui-v22 .premium-hud {
 			--v22-live-rail-height: calc(var(--responsive-control-size) + 40px);
 			isolation: isolate;
@@ -13754,7 +13753,7 @@
 		}
 	}
 
-	@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v22 .premium-hud {
 			isolation: isolate;
 			border-block: 1px solid rgba(204, 164, 94, .58);
@@ -13770,7 +13769,7 @@
 		}
 	}
 
-	@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (min-width: 468px) and (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v22 .premium-hud {
 			grid-template-columns: repeat(10, 44px);
 			grid-template-rows: 44px;
@@ -13780,7 +13779,7 @@
 		}
 	}
 
-	@media (max-width: 467px) and (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-width: 467px) and (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v22 .premium-hud {
 			top: min(73.35%, calc(50dvh + 50% - 92px));
 			height: 92px;
@@ -14028,8 +14027,7 @@
 		inset: 0;
 	}
 
-	@media (min-width: 481px) and (max-width: 1040px) and (min-height: 561px),
-		(min-width: 481px) and (min-height: 561px) and (max-aspect-ratio: 4/3) {
+	@media (min-width: 481px) and (min-height: 561px) and (max-aspect-ratio: 5/4) {
 		.app-shell.dev-ui-v27 .premium-hud::before { display: none !important; }
 		.app-shell.dev-ui-v27 .v27-responsive-hud-rail {
 			top: 0;
@@ -14040,7 +14038,7 @@
 		}
 	}
 
-	@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-width: 700px) and (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v27 .premium-hud {
 			border-color: transparent !important;
 			background: transparent !important;
@@ -14128,15 +14126,14 @@
 		grid-template-columns: 1.3fr 1.5fr .7fr;
 	}
 
-	@media (min-width: 1041px) and (min-height: 561px) and (min-aspect-ratio: 4/3) {
+	@media (min-aspect-ratio: 5/4) {
 		.app-shell.dev-ui-v22 .breach-monitor.feature-active .reel-mechanic-strip.feature-strip {
 			top: 8.077%;
 			height: 12.15%;
 		}
 	}
 
-	@media (min-width: 481px) and (max-width: 1040px) and (min-height: 561px),
-		(min-width: 481px) and (min-height: 561px) and (max-aspect-ratio: 4/3) {
+	@media (min-width: 481px) and (min-height: 561px) and (max-aspect-ratio: 5/4) {
 		.app-shell.dev-ui-v22 .breach-monitor.feature-active .reel-mechanic-strip.feature-strip {
 			top: 4.2%;
 			height: 15.6%;
@@ -14151,7 +14148,7 @@
 		}
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v22 .breach-monitor.feature-active .reel-mechanic-strip.feature-strip {
 			top: 0;
 			left: 0;
@@ -14383,7 +14380,7 @@
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 
-	@media (min-width: 1041px) and (min-height: 561px) and (min-aspect-ratio: 4/3) {
+	@media (min-aspect-ratio: 5/4) {
 		.app-shell.dev-ui-v22 .monitor-header {
 			display: grid;
 			grid-template-columns: minmax(0, 1fr) max-content minmax(200px, 230px);
@@ -14479,7 +14476,7 @@
 		}
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.dev-ui-v22 .mode-dialog {
 			height: calc(100dvh - 16px) !important;
 			max-height: calc(100dvh - 16px) !important;
@@ -15115,7 +15112,7 @@
 		}
 	}
 
-	@media (max-height: 560px) and (min-aspect-ratio: 4/3) {
+	@media (max-height: 560px) and (min-aspect-ratio: 2/1) {
 		.app-shell.blacksite-ui-v36 .monitor-header {
 			height: 24px !important;
 			min-height: 24px !important;
@@ -15153,6 +15150,1121 @@
 		.app-shell.blacksite-ui-v36 .result-ticker > span,
 		.app-shell.blacksite-ui-v36 .result-ticker > strong {
 			transition: none;
+		}
+	}
+
+	/* ---------------------------------------------------------------------
+	 * V37 HARD CLEAN
+	 *
+	 * This is the only final owner for live hierarchy, controls and dialogs.
+	 * Earlier generations still own the authored cabinet, reel aperture and
+	 * animation timing; no V37 rule creates a second cabinet coordinate plane.
+	 * ------------------------------------------------------------------ */
+	.app-shell.blacksite-ui-v37 {
+		--v37-bg: rgba(4, 7, 8, .975);
+		--v37-panel: rgba(8, 12, 13, .965);
+		--v37-panel-hover: rgba(18, 22, 21, .98);
+		--v37-line: rgba(190, 148, 78, .58);
+		--v37-line-soft: rgba(142, 151, 146, .24);
+		--v37-gold: #f2ca79;
+		--v37-gold-bright: #ffe5a7;
+		--v37-copy: #f7f2e9;
+		--v37-muted: #aab5b1;
+		--v37-danger: #ef7568;
+		--v37-control: 52px;
+		--v37-spin: 88px;
+		font-variant-numeric: tabular-nums;
+		-webkit-font-smoothing: antialiased;
+		text-rendering: geometricPrecision;
+	}
+
+	.app-shell.blacksite-ui-v37 :is(button, select, input) {
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.app-shell.blacksite-ui-v37 :is(button, select, input, [tabindex='0']):focus-visible {
+		outline: 2px solid var(--v37-gold-bright) !important;
+		outline-offset: 3px !important;
+	}
+
+	/* One quiet header line: title, mode, runtime. */
+	.app-shell.blacksite-ui-v37 .monitor-header {
+		display: grid !important;
+		grid-template-columns: minmax(0, 1fr) auto auto !important;
+		align-items: center !important;
+		gap: clamp(8px, .9cqw, 16px) !important;
+		padding-inline: clamp(12px, 1.2cqw, 22px) !important;
+		border-bottom: 1px solid var(--v37-line-soft) !important;
+		background: linear-gradient(90deg, rgba(4, 7, 8, .98), rgba(11, 14, 14, .94), rgba(4, 7, 8, .98)) !important;
+		box-shadow: none !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .monitor-identity {
+		display: grid !important;
+		min-width: 0;
+		align-content: center;
+		gap: 2px;
+	}
+
+	.app-shell.blacksite-ui-v37 .monitor-identity > span {
+		color: #8e9a96 !important;
+		font-size: clamp(8px, .56cqw, 10px) !important;
+		line-height: 1 !important;
+		letter-spacing: .14em !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .monitor-identity h1 {
+		display: flex !important;
+		min-width: 0;
+		align-items: baseline;
+		gap: .32em;
+		margin: 0;
+		font-size: clamp(24px, 2cqw, 34px) !important;
+		line-height: .96 !important;
+		white-space: nowrap;
+	}
+
+	.app-shell.blacksite-ui-v37 :is(.selected-mode-carrier, .lifecycle) {
+		position: relative !important;
+		inset: auto !important;
+		display: grid !important;
+		width: auto !important;
+		height: auto !important;
+		min-width: 0 !important;
+		min-height: 34px !important;
+		place-content: center !important;
+		place-items: center !important;
+		gap: 2px !important;
+		padding: 5px 10px !important;
+		overflow: hidden;
+		border: 1px solid var(--v37-line-soft) !important;
+		border-radius: 999px;
+		background: rgba(6, 10, 11, .9) !important;
+		box-shadow: none !important;
+		text-align: center;
+		transform: none !important;
+	}
+
+	.app-shell.blacksite-ui-v37 :is(.selected-mode-carrier, .lifecycle) > :global(.ui-surface) {
+		display: none !important;
+	}
+
+	.app-shell.blacksite-ui-v37 :is(.selected-mode-carrier, .lifecycle) > small {
+		display: none !important;
+	}
+
+	.app-shell.blacksite-ui-v37 :is(.selected-mode-carrier, .lifecycle) > strong {
+		display: flex !important;
+		align-items: baseline !important;
+		justify-content: center !important;
+		gap: .35em;
+		color: var(--v37-copy) !important;
+		font-size: clamp(10px, .72cqw, 12px) !important;
+		line-height: 1 !important;
+		letter-spacing: .06em !important;
+		white-space: nowrap;
+	}
+
+	.app-shell.blacksite-ui-v37 .lifecycle .pulse {
+		position: absolute !important;
+		top: 50% !important;
+		left: 8px !important;
+		width: 6px !important;
+		height: 6px !important;
+		border: 0 !important;
+		border-radius: 50%;
+		background: #d6b364 !important;
+		box-shadow: 0 0 8px rgba(224, 184, 98, .45) !important;
+		transform: translateY(-50%) !important;
+	}
+
+	/* The shell contains four baked bays. One opaque rail makes the two useful
+	   base facts deliberate instead of visually misregistered. */
+	.app-shell.blacksite-ui-v37 .reel-mechanic-strip:not(.feature-strip) {
+		display: grid !important;
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+		align-items: stretch !important;
+		gap: 0 !important;
+		padding: 0 !important;
+		overflow: hidden !important;
+		border: 1px solid var(--v37-line-soft) !important;
+		border-radius: 4px;
+		background: var(--v37-bg) !important;
+		box-shadow: inset 0 1px rgba(255, 242, 212, .035) !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .reel-mechanic-strip .mechanic-contract-copy {
+		display: none !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .reel-mechanic-strip:not(.feature-strip) > :global(.feature-hud-surface) {
+		display: flex !important;
+		width: 100% !important;
+		height: 100% !important;
+		min-height: 0 !important;
+		align-items: center !important;
+		justify-content: center !important;
+		gap: 8px !important;
+		padding: 4px 10px !important;
+		border: 0 !important;
+		background: transparent !important;
+		text-align: center;
+	}
+
+	.app-shell.blacksite-ui-v37 .reel-mechanic-strip:not(.feature-strip) > :global(.feature-hud-surface:first-of-type) {
+		border-right: 1px solid var(--v37-line-soft) !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .reel-mechanic-strip:not(.feature-strip) :global(.feature-hud-surface__value-row) {
+		flex: 0 0 auto !important;
+		align-self: center !important;
+		min-width: 0 !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .reel-mechanic-strip:not(.feature-strip) :global(.feature-hud-surface__value) {
+		color: var(--v37-copy) !important;
+		font-size: clamp(15px, 1.22cqw, 22px) !important;
+		line-height: 1 !important;
+		letter-spacing: .03em !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .reel-mechanic-strip:not(.feature-strip) :global(.feature-hud-surface__secondary) {
+		flex: 0 0 auto !important;
+		align-self: center !important;
+		color: var(--v37-muted) !important;
+		font-size: clamp(10px, .68cqw, 12px) !important;
+		font-style: normal !important;
+		line-height: 1 !important;
+		letter-spacing: .12em !important;
+	}
+
+	/* Reels remain dominant; inactive line numbers and heavy cell chrome recede. */
+	.app-shell.blacksite-ui-v37 .line-gutter > span {
+		opacity: .2 !important;
+		filter: saturate(.35) brightness(.72);
+		transition: opacity 120ms ease-out, filter 120ms ease-out;
+	}
+
+	.app-shell.blacksite-ui-v37 .line-gutter > span.active {
+		opacity: 1 !important;
+		filter: none;
+	}
+
+	.app-shell.blacksite-ui-v37 .v22-reel-bezel {
+		opacity: .76;
+	}
+
+	.app-shell.blacksite-ui-v37 .breach-monitor .reel-cell::after {
+		opacity: .62;
+	}
+
+	.app-shell.blacksite-ui-v37 .reel-cell > .symbol-art {
+		inset: 7% !important;
+		display: grid !important;
+		place-items: center !important;
+		transform: translateY(-1%) scale(.96) !important;
+		transform-origin: center !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .reel-cell.rank-glyph > .symbol-art {
+		inset: 9% !important;
+		transform: translateY(-1%) scale(1.04) !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .reel-cell:is(.wild-cell, .breach-cell) > .symbol-art {
+		inset: 5% !important;
+		transform: translateY(-1%) scale(.98) !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .symbol-art > img {
+		width: 100% !important;
+		height: 100% !important;
+		object-fit: contain !important;
+		object-position: center !important;
+	}
+
+	/* One contextual status line; no footer IDs and no resurrected status well. */
+	.app-shell.blacksite-ui-v37 .result-ticker {
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		gap: .55em !important;
+		padding-inline: 12px !important;
+		border: 0 !important;
+		background: rgba(3, 6, 7, .96) !important;
+		box-shadow: inset 0 1px var(--v37-line-soft) !important;
+		color: var(--v37-muted) !important;
+		font-size: clamp(10px, .7cqw, 12px) !important;
+		letter-spacing: .08em !important;
+		text-align: center !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .result-ticker::before,
+	.app-shell.blacksite-ui-v37 .result-ticker .premium-panel-art,
+	.app-shell.blacksite-ui-v37 .result-ticker .responsive-penguin-cameo,
+	.app-shell.blacksite-ui-v37 .compact-value-strip,
+	.app-shell.blacksite-ui-v37 .secondary-deck,
+	.app-shell.blacksite-ui-v37 .status-plate,
+	.app-shell.blacksite-ui-v37 .reel-footer,
+	.app-shell.blacksite-ui-v37 .reel-footer > :is(.premium-footer-id, .premium-footer-clearance),
+	.app-shell.blacksite-ui-v37 .reel-footer > strong {
+		display: none !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .result-ticker > strong {
+		color: var(--v37-gold) !important;
+		font-size: 1em !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .reel-footer {
+		min-height: 20px !important;
+		justify-content: center !important;
+		padding: 2px 10px !important;
+		border-top: 1px solid rgba(142, 151, 146, .18) !important;
+		background: #030607 !important;
+		font-size: clamp(8px, .55cqw, 10px) !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .reel-footer .footer-guide {
+		max-width: 100%;
+		color: #889491 !important;
+		text-align: center;
+	}
+
+	/* V38 HUD ASSET RESTORE
+	 * The V22 cabinet and V27 reflow rail remain the only physical HUD chrome.
+	 * Keep their authored raster wells visible and centre only the live content. */
+	.app-shell.blacksite-ui-v37 .premium-hud :is(
+		.hud-tools .round-tool,
+		.control-deck .bet-step,
+		.control-deck .reel-spin
+	) > :global(.hud-icon) {
+		position: absolute !important;
+		inset: 0 !important;
+		margin: auto !important;
+		transform: none !important;
+		transform-origin: center !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .premium-hud :is(
+		.reel-bet-control,
+		.balance-meter,
+		.control-meter
+	) {
+		align-content: center !important;
+		align-items: center !important;
+		justify-content: center !important;
+		justify-items: center !important;
+		text-align: center !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .premium-hud :is(
+		.reel-bet-control,
+		.balance-meter,
+		.control-meter
+	) > :is(.hud-meter-label, strong, select, .amount-range, output) {
+		position: relative;
+		z-index: 2;
+		width: 100%;
+		margin-inline: auto;
+		text-align: center !important;
+		text-align-last: center !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .premium-hud .hud-tools .round-tool > .hud-tool-label,
+	.app-shell.blacksite-ui-v37 .premium-hud .reel-spin > .responsive-spin-label {
+		left: 50% !important;
+		margin-inline: 0 !important;
+		text-align: center !important;
+		transform: translateX(-50%) !important;
+	}
+
+	/* Free spins have one persistent telemetry rail. The bottom rail retains
+	   only authoritative money values; no mask, blank socket or duplicate CTA. */
+	.app-shell.blacksite-ui-v37 .breach-monitor.feature-active .reel-mechanic-strip.feature-strip {
+		display: grid !important;
+		grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.25fr) minmax(0, .8fr) !important;
+		align-items: stretch !important;
+		gap: 8px !important;
+		padding: 0 !important;
+		background: transparent !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .breach-monitor.feature-active .reel-mechanic-strip.feature-strip > :global(.feature-hud-surface) {
+		position: relative !important;
+		inset: auto !important;
+		display: grid !important;
+		width: 100% !important;
+		height: 100% !important;
+		min-width: 0 !important;
+		min-height: 0 !important;
+		place-content: center !important;
+		place-items: center !important;
+		gap: 3px !important;
+		padding: 8px 10px !important;
+		overflow: hidden !important;
+		text-align: center !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .breach-monitor.feature-active .reel-mechanic-strip.feature-strip :global(.feature-hud-surface__label) {
+		position: relative !important;
+		inset: auto !important;
+		display: block !important;
+		grid-row: 1 !important;
+		grid-column: 1 / -1 !important;
+		align-self: center !important;
+		justify-self: center !important;
+		color: var(--v37-muted) !important;
+		font-size: clamp(10px, .7cqw, 12px) !important;
+		font-weight: 850 !important;
+		line-height: 1 !important;
+		letter-spacing: .12em !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .breach-monitor.feature-active .reel-mechanic-strip.feature-strip :global(.feature-hud-surface__value-row) {
+		position: relative !important;
+		inset: auto !important;
+		display: flex !important;
+		grid-row: 2 !important;
+		grid-column: 1 / -1 !important;
+		align-items: center !important;
+		justify-content: center !important;
+		align-self: center !important;
+		justify-self: center !important;
+		gap: 7px !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .breach-monitor.feature-active :global(.feature-hud-surface[data-feature-hud-kind='progress']) {
+		grid-template-columns: minmax(0, 1fr) auto !important;
+		grid-template-rows: auto minmax(0, 1fr) !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .breach-monitor.feature-active :global(.feature-hud-surface[data-feature-hud-kind='progress'] .feature-hud-surface__value) {
+		color: var(--v37-copy) !important;
+		font-size: clamp(24px, 2.1cqw, 34px) !important;
+		line-height: 1 !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .breach-monitor.feature-active :global(.feature-hud-surface[data-feature-hud-kind='progress'] .feature-hud-surface__secondary) {
+		position: relative !important;
+		inset: auto !important;
+		display: block !important;
+		grid-row: 2 !important;
+		grid-column: 2 !important;
+		align-self: center !important;
+		justify-self: end !important;
+		color: var(--v37-gold) !important;
+		font-size: clamp(13px, 1cqw, 18px) !important;
+		font-style: normal !important;
+		line-height: 1 !important;
+		letter-spacing: .06em !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .breach-monitor.feature-active :global(.feature-hud-surface[data-feature-hud-kind='target'] .feature-hud-surface__icon) {
+		width: clamp(48px, 5.2cqw, 72px) !important;
+		height: clamp(48px, 5.2cqw, 72px) !important;
+		min-width: 48px !important;
+		min-height: 48px !important;
+		object-fit: contain !important;
+		object-position: center !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .breach-monitor.feature-active :global(.feature-hud-surface[data-feature-hud-kind='target'] .feature-hud-surface__value--icon-label) {
+		position: absolute !important;
+		width: 1px !important;
+		height: 1px !important;
+		padding: 0 !important;
+		overflow: hidden !important;
+		clip: rect(0 0 0 0) !important;
+		white-space: nowrap !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .breach-monitor.feature-active :global(.feature-hud-surface[data-feature-hud-kind='win'] .feature-hud-surface__value) {
+		color: var(--v37-gold-bright) !important;
+		font-size: clamp(20px, 1.75cqw, 30px) !important;
+		line-height: 1 !important;
+	}
+
+	/* Dialogs: one matte shell, one header, one scroll owner. Decorative raster
+	   frames no longer stack behind every card and every action. */
+	.app-shell.blacksite-ui-v37 .modal-backdrop {
+		display: grid !important;
+		place-items: center !important;
+		padding:
+			max(12px, env(safe-area-inset-top))
+			max(12px, env(safe-area-inset-right))
+			max(12px, env(safe-area-inset-bottom))
+			max(12px, env(safe-area-inset-left)) !important;
+		background: rgba(0, 0, 0, .86) !important;
+		backdrop-filter: blur(6px) saturate(.75) !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .modal-backdrop > :is(.menu-dialog, .mode-dialog, .confirmation-dialog, .rules-dialog, .auto-dialog, .settings-dialog) {
+		position: relative !important;
+		inset: auto !important;
+		display: grid !important;
+		width: min(920px, calc(100vw - 24px)) !important;
+		height: auto !important;
+		min-width: 0 !important;
+		min-height: 0 !important;
+		max-height: calc(100dvh - 24px) !important;
+		grid-template-rows: auto minmax(0, 1fr) !important;
+		align-self: center !important;
+		justify-self: center !important;
+		overflow: hidden !important;
+		border: 1px solid var(--v37-line) !important;
+		border-radius: 8px !important;
+		background: rgba(5, 8, 9, .985) !important;
+		box-shadow: 0 24px 70px rgba(0, 0, 0, .7), inset 0 1px rgba(255, 238, 202, .05) !important;
+		transform: none;
+	}
+
+	.app-shell.blacksite-ui-v37 .modal-backdrop > .confirmation-dialog {
+		width: min(640px, calc(100vw - 24px)) !important;
+		grid-template-rows: minmax(0, 1fr) !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .modal-backdrop > :is(.auto-dialog, .settings-dialog) {
+		width: min(560px, calc(100vw - 24px)) !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .premium-dialog-frame,
+	.app-shell.blacksite-ui-v37 :global(.panel-state-art),
+	.app-shell.blacksite-ui-v37 .v27-modal-header > :global(.ui-surface),
+	.app-shell.blacksite-ui-v37 .mode-card-meta :global(.ui-surface),
+	.app-shell.blacksite-ui-v37 .game-guide-panel :global(.ui-surface) {
+		display: none !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .v27-modal-header {
+		position: sticky !important;
+		top: 0 !important;
+		z-index: 10 !important;
+		display: grid !important;
+		min-height: 72px !important;
+		grid-template-columns: minmax(0, 1fr) 48px !important;
+		align-items: center !important;
+		gap: 12px !important;
+		padding: 10px 12px 10px 20px !important;
+		border: 0 !important;
+		border-bottom: 1px solid var(--v37-line-soft) !important;
+		background: rgba(7, 11, 12, .99) !important;
+		box-shadow: none !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .v27-modal-header > div {
+		display: grid !important;
+		min-width: 0;
+		gap: 4px;
+	}
+
+	.app-shell.blacksite-ui-v37 .v27-modal-header > div > span {
+		color: var(--v37-muted) !important;
+		font-size: 10px !important;
+		font-weight: 800 !important;
+		line-height: 1 !important;
+		letter-spacing: .14em !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .v27-modal-header h2 {
+		margin: 0 !important;
+		color: var(--v37-copy) !important;
+		font-size: clamp(22px, 2.3vw, 32px) !important;
+		line-height: 1 !important;
+		letter-spacing: .055em !important;
+		white-space: normal !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .v27-modal-header > button {
+		position: relative !important;
+		inset: auto !important;
+		display: grid !important;
+		width: 48px !important;
+		height: 48px !important;
+		min-width: 48px !important;
+		min-height: 48px !important;
+		place-items: center !important;
+		padding: 0 !important;
+		border: 1px solid var(--v37-line-soft) !important;
+		border-radius: 12px !important;
+		background: rgba(14, 18, 18, .98) !important;
+		box-shadow: none !important;
+		color: var(--v37-copy) !important;
+		transform: none !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .v27-modal-header > button > :global(.hud-icon) {
+		position: relative !important;
+		inset: auto !important;
+		width: 28px !important;
+		height: 28px !important;
+		transform: none !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .menu-dialog:not(.mode-dialog) {
+		width: min(760px, calc(100vw - 24px)) !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .menu-dialog:not(.mode-dialog) .menu-actions {
+		display: grid !important;
+		min-height: 0 !important;
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+		grid-auto-rows: minmax(112px, auto) !important;
+		gap: 10px !important;
+		align-content: start !important;
+		padding: 14px !important;
+		overflow-y: auto !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .menu-dialog:not(.mode-dialog) .menu-actions > button {
+		position: relative !important;
+		display: grid !important;
+		height: auto !important;
+		min-height: 112px !important;
+		grid-template-rows: auto auto !important;
+		place-content: center !important;
+		place-items: center !important;
+		gap: 8px !important;
+		padding: 16px !important;
+		border: 1px solid var(--v37-line-soft) !important;
+		border-radius: 6px !important;
+		background: var(--v37-panel) !important;
+		box-shadow: none !important;
+		text-align: center !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .menu-dialog:not(.mode-dialog) .menu-actions > button:last-child:nth-child(odd) {
+		width: calc(50% - 5px) !important;
+		grid-column: 1 / -1 !important;
+		justify-self: center !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .menu-actions > button > span:not(.menu-action-icon) {
+		color: var(--v37-copy) !important;
+		font-size: 13px !important;
+		font-weight: 900 !important;
+		line-height: 1.15 !important;
+		letter-spacing: .07em !important;
+		text-align: center !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .menu-actions > button > small {
+		color: var(--v37-muted) !important;
+		font-size: 12px !important;
+		line-height: 1.45 !important;
+		text-align: center !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .mode-dialog-list {
+		display: grid !important;
+		min-height: 0 !important;
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+		grid-auto-rows: minmax(126px, auto) !important;
+		gap: 10px !important;
+		align-content: start !important;
+		padding: 14px !important;
+		overflow-y: auto !important;
+		overscroll-behavior: contain;
+	}
+
+	.app-shell.blacksite-ui-v37 .mode-dialog-list > button {
+		position: relative !important;
+		display: grid !important;
+		height: auto !important;
+		min-height: 126px !important;
+		grid-template-columns: 82px minmax(0, 1fr) auto !important;
+		grid-template-rows: auto minmax(0, 1fr) auto !important;
+		gap: 5px 10px !important;
+		padding: 12px !important;
+		overflow: hidden !important;
+		border: 1px solid var(--v37-line-soft) !important;
+		border-radius: 6px !important;
+		background: var(--v37-panel) !important;
+		box-shadow: none !important;
+		text-align: left !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .mode-dialog-list > button:last-child:nth-child(odd) {
+		grid-column: 1 / -1 !important;
+		width: calc(50% - 5px) !important;
+		justify-self: center !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .mode-dialog-list > button.selected {
+		border-color: var(--v37-gold) !important;
+		box-shadow: inset 3px 0 var(--v37-gold) !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .mode-dialog-list .mode-key-art {
+		position: relative !important;
+		inset: auto !important;
+		width: 82px !important;
+		height: 82px !important;
+		grid-column: 1 !important;
+		grid-row: 1 / -1 !important;
+		align-self: center !important;
+		object-fit: contain !important;
+		filter: grayscale(.45) sepia(.22) saturate(.8) !important;
+		transform: none !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .mode-dialog-list > button > span {
+		grid-column: 2 !important;
+		grid-row: 1 !important;
+		align-self: end !important;
+		color: var(--v37-copy) !important;
+		font-size: 13px !important;
+		font-weight: 900 !important;
+		line-height: 1.15 !important;
+		letter-spacing: .06em !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .mode-dialog-list .mode-card-effect {
+		grid-column: 2 / -1 !important;
+		grid-row: 2 !important;
+		align-self: start !important;
+		max-height: none !important;
+		overflow: visible !important;
+		color: var(--v37-muted) !important;
+		font-size: 12px !important;
+		line-height: 1.42 !important;
+		-webkit-line-clamp: unset !important;
+		line-clamp: unset !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .mode-dialog-list > button > strong {
+		position: relative !important;
+		inset: auto !important;
+		display: grid !important;
+		grid-column: 3 !important;
+		grid-row: 1 !important;
+		align-self: start !important;
+		justify-items: end !important;
+		color: var(--v37-gold-bright) !important;
+		font-size: 18px !important;
+		line-height: 1 !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .mode-dialog-list > button > strong > small {
+		font-size: 8px !important;
+		letter-spacing: .08em !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .mode-dialog-list .mode-card-meta {
+		position: relative !important;
+		inset: auto !important;
+		display: flex !important;
+		min-width: 0;
+		grid-column: 2 / -1 !important;
+		grid-row: 3 !important;
+		align-items: center !important;
+		justify-content: space-between !important;
+		gap: 8px !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .mode-card-meta :is(.mode-card-facts, .mode-card-total) {
+		font-size: 9px !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .mode-card-meta > em {
+		position: relative !important;
+		inset: auto !important;
+		display: grid !important;
+		min-height: 24px !important;
+		place-items: center !important;
+		padding: 3px 8px !important;
+		border: 1px solid var(--v37-line-soft) !important;
+		border-radius: 999px !important;
+		background: rgba(3, 6, 7, .85) !important;
+		font-size: 8px !important;
+		font-style: normal !important;
+		letter-spacing: .08em !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .guide-tabs {
+		position: sticky !important;
+		top: 72px !important;
+		z-index: 9 !important;
+		display: grid !important;
+		grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+		gap: 6px !important;
+		padding: 8px 12px !important;
+		border-bottom: 1px solid var(--v37-line-soft) !important;
+		background: rgba(5, 8, 9, .99) !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .guide-tabs > button {
+		min-width: 0 !important;
+		min-height: 46px !important;
+		padding: 7px 6px !important;
+		border: 1px solid var(--v37-line-soft) !important;
+		border-radius: 5px !important;
+		background: var(--v37-panel) !important;
+		color: var(--v37-muted) !important;
+		font-size: 11px !important;
+		font-weight: 850 !important;
+		letter-spacing: .06em !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .guide-tabs > button.active {
+		border-color: var(--v37-gold) !important;
+		color: var(--v37-gold-bright) !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .game-guide-scroll,
+	.app-shell.blacksite-ui-v37 :is(.auto-body, .settings-body),
+	.app-shell.blacksite-ui-v37 .confirmation-scroll {
+		min-height: 0 !important;
+		max-height: none !important;
+		overflow-y: auto !important;
+		overscroll-behavior: contain;
+	}
+
+	.app-shell.blacksite-ui-v37 .game-guide-panel {
+		padding: 16px !important;
+		color: var(--v37-copy) !important;
+		font-size: 13px !important;
+		line-height: 1.5 !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .game-guide-panel :is(p, small),
+	.app-shell.blacksite-ui-v37 .rules-copy-grid p {
+		font-size: 12.5px !important;
+		line-height: 1.52 !important;
+	}
+
+	.app-shell.blacksite-ui-v37 :is(.guide-four-steps article, .symbol-card-grid article, .rules-copy-grid > section, .vault-timeline > span, .confirmation-ledger > p) {
+		border: 1px solid var(--v37-line-soft) !important;
+		border-radius: 5px !important;
+		background: var(--v37-panel) !important;
+		box-shadow: none !important;
+	}
+
+	.app-shell.blacksite-ui-v37 :is(.auto-body, .settings-body) {
+		align-content: start !important;
+		gap: 10px !important;
+		padding: 14px !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .settings-body > button,
+	.app-shell.blacksite-ui-v37 .auto-options > button,
+	.app-shell.blacksite-ui-v37 .modal-actions > button {
+		min-height: 52px !important;
+		padding: 10px 14px !important;
+		border: 1px solid var(--v37-line-soft) !important;
+		border-radius: 5px !important;
+		background: var(--v37-panel) !important;
+		box-shadow: none !important;
+		color: var(--v37-copy) !important;
+		font-size: 12px !important;
+	}
+
+	.app-shell.blacksite-ui-v37 .modal-actions > .confirm-action {
+		border-color: var(--v37-gold) !important;
+		color: var(--v37-gold-bright) !important;
+	}
+
+	/* Portrait and narrow Stake iframe: three metric wells, one aligned action
+	   row and one icon-only utility row. */
+	@media (max-aspect-ratio: 1249 / 1000) {
+		.app-shell.blacksite-ui-v37 {
+			--v37-control: 48px;
+			--v37-spin: 64px;
+		}
+
+		.app-shell.blacksite-ui-v37 .monitor-header {
+			grid-template-columns: minmax(0, 1fr) auto !important;
+			grid-template-rows: minmax(0, 1fr) !important;
+			align-items: center !important;
+			gap: 7px !important;
+			padding-inline: 10px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .monitor-identity {
+			grid-column: 1 !important;
+			grid-row: 1 !important;
+			align-self: center !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .monitor-identity > span {
+			display: none !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .monitor-identity h1 {
+			font-size: clamp(17px, 3.4cqw, 25px) !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .selected-mode-carrier {
+			display: none !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .lifecycle {
+			grid-column: 2 !important;
+			grid-row: 1 !important;
+			align-self: center !important;
+			justify-self: end !important;
+			min-height: 30px !important;
+			padding: 4px 8px 4px 18px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .lifecycle > strong {
+			font-size: 9px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .reel-mechanic-strip:not(.feature-strip) :global(.feature-hud-surface__value) {
+			font-size: clamp(15px, 3.2cqw, 20px) !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .reel-mechanic-strip:not(.feature-strip) :global(.feature-hud-surface__secondary) {
+			font-size: clamp(9px, 1.8cqw, 11px) !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .breach-monitor.feature-active .reel-mechanic-strip.feature-strip {
+			grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.25fr) minmax(0, .9fr) !important;
+			gap: 5px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .breach-monitor.feature-active .reel-mechanic-strip.feature-strip > :global(.feature-hud-surface) {
+			padding: 5px 4px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .breach-monitor.feature-active :global(.feature-hud-surface[data-feature-hud-kind='progress']) {
+			grid-template-columns: minmax(0, 1fr) !important;
+			grid-template-rows: auto minmax(0, 1fr) auto !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .breach-monitor.feature-active :global(.feature-hud-surface[data-feature-hud-kind='progress'] .feature-hud-surface__value-row) {
+			grid-row: 2 !important;
+			grid-column: 1 !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .breach-monitor.feature-active :global(.feature-hud-surface[data-feature-hud-kind='progress'] .feature-hud-surface__secondary) {
+			grid-row: 3 !important;
+			grid-column: 1 !important;
+			justify-self: center !important;
+			font-size: 10px !important;
+			letter-spacing: .04em !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .breach-monitor.feature-active :global(.feature-hud-surface[data-feature-hud-kind='target'] .feature-hud-surface__icon) {
+			width: clamp(40px, 9cqw, 56px) !important;
+			height: clamp(40px, 9cqw, 56px) !important;
+			min-width: 40px !important;
+			min-height: 40px !important;
+		}
+	}
+
+	@media (max-width: 700px) {
+		.app-shell.blacksite-ui-v37 .modal-backdrop {
+			padding: 0 !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .modal-backdrop > :is(.menu-dialog, .mode-dialog, .confirmation-dialog, .rules-dialog, .auto-dialog, .settings-dialog) {
+			width: 100vw !important;
+			height: 100dvh !important;
+			max-height: 100dvh !important;
+			border-inline: 0 !important;
+			border-radius: 0 !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .v27-modal-header {
+			min-height: 64px !important;
+			grid-template-columns: minmax(0, 1fr) 46px !important;
+			gap: 8px !important;
+			padding: max(8px, env(safe-area-inset-top)) 9px 8px 13px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .v27-modal-header h2 {
+			font-size: clamp(20px, 6vw, 28px) !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .v27-modal-header > button {
+			width: 46px !important;
+			height: 46px !important;
+			min-width: 46px !important;
+			min-height: 46px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .menu-dialog:not(.mode-dialog) .menu-actions {
+			grid-template-columns: minmax(0, 1fr) !important;
+			grid-auto-rows: minmax(92px, auto) !important;
+			gap: 8px !important;
+			padding: 10px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .menu-dialog:not(.mode-dialog) .menu-actions > button,
+		.app-shell.blacksite-ui-v37 .menu-dialog:not(.mode-dialog) .menu-actions > button:last-child:nth-child(odd) {
+			width: 100% !important;
+			min-height: 92px !important;
+			grid-column: 1 !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .mode-dialog-list {
+			grid-template-columns: minmax(0, 1fr) !important;
+			grid-auto-rows: minmax(126px, auto) !important;
+			gap: 8px !important;
+			padding: 10px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .mode-dialog-list > button {
+			grid-template-columns: 72px minmax(0, 1fr) auto !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .mode-dialog-list > button:last-child:nth-child(odd) {
+			grid-column: 1 !important;
+			width: 100% !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .mode-dialog-list .mode-key-art {
+			width: 72px !important;
+			height: 72px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .guide-tabs {
+			top: 64px !important;
+			display: flex !important;
+			gap: 6px !important;
+			padding: 7px 10px !important;
+			overflow-x: auto !important;
+			scrollbar-width: thin;
+		}
+
+		.app-shell.blacksite-ui-v37 .guide-tabs > button {
+			flex: 0 0 min(126px, 34vw) !important;
+			min-height: 44px !important;
+			font-size: 10px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .game-guide-panel {
+			padding: 12px 10px 18px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .game-guide-panel :is(p, small),
+		.app-shell.blacksite-ui-v37 .rules-copy-grid p {
+			font-size: 12px !important;
+			line-height: 1.5 !important;
+		}
+	}
+
+	@media (max-width: 480px) and (min-height: 431px) and (orientation: portrait) {
+		.app-shell.blacksite-ui-v37 .premium-hud .hud-tools {
+			display: grid !important;
+			place-items: center !important;
+		}
+	}
+
+	/* The 390x844 shell owns one six-well row. Keep V36's exact horizontal
+	   registration and move only that row and its raster glyphs onto the wells. */
+	@media (max-width: 380px) and (min-height: 701px) and (orientation: portrait),
+		(min-width: 381px) and (max-width: 480px) and (min-height: 431px) and (orientation: portrait) {
+		.app-shell.blacksite-ui-v37 .premium-hud .hud-tools {
+			top: 66% !important;
+			bottom: auto !important;
+			height: 22% !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .premium-hud .hud-tools-left {
+			left: 2% !important;
+			width: 46% !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .premium-hud .hud-tools-right {
+			left: 52% !important;
+			width: 46% !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .premium-hud .hud-tools .round-tool > .hud-tool-label {
+			bottom: -8.2cqw !important;
+		}
+	}
+
+	/* The compact 320x568 shell owns two authored rows of three wells. Restore
+	   the package geometry that V36's one-row override displaced. */
+	@media (max-width: 380px) and (min-height: 431px) and (max-height: 700px) and (orientation: portrait) {
+		.app-shell.blacksite-ui-v37 .premium-hud .hud-tools-left,
+		.app-shell.blacksite-ui-v37 .premium-hud .hud-tools-right {
+			left: calc(50% - 72px) !important;
+			width: 144px !important;
+			height: 44px !important;
+			bottom: auto !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .premium-hud .hud-tools-left { top: 51% !important; }
+		.app-shell.blacksite-ui-v37 .premium-hud .hud-tools-right { top: 73% !important; }
+	}
+
+	/* Ultra-short landscape retains true 44px targets but uses a two-row rail,
+	   preventing the old ten-way squeeze and oval icons. */
+	@media (max-height: 560px) and (min-aspect-ratio: 2 / 1) {
+		.app-shell.blacksite-ui-v37 {
+			--v37-control: 44px;
+			--v37-spin: 60px;
+		}
+
+		.app-shell.blacksite-ui-v37 .monitor-header {
+			min-height: 26px !important;
+			height: 26px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .monitor-identity > span,
+		.app-shell.blacksite-ui-v37 .selected-mode-carrier {
+			display: none !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .monitor-identity h1 {
+			font-size: 12px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .lifecycle {
+			min-height: 22px !important;
+			padding-block: 2px !important;
+		}
+
+		/* The 844x390 short-landscape cabinet owns three fixed wells on the
+		   right. Register the live rail to those wells instead of stretching it
+		   across the wider desktop percentage track. */
+		@media (min-width: 701px) {
+			.app-shell.blacksite-ui-v37 .premium-hud .hud-tools-right {
+				width: 15.7% !important;
+			}
+
+			.app-shell.blacksite-ui-v37 .premium-hud .total-meter > .hud-meter-label {
+				font-size: 7px !important;
+				letter-spacing: .02em !important;
+				line-height: 1 !important;
+				white-space: nowrap !important;
+			}
+		}
+
+		.app-shell.blacksite-ui-v37 .breach-monitor.feature-active .reel-mechanic-strip.feature-strip {
+			display: grid !important;
+			grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.2fr) minmax(0, .85fr) !important;
+			gap: 5px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .breach-monitor.feature-active .reel-mechanic-strip.feature-strip > :global(.feature-hud-surface) {
+			position: relative !important;
+			inset: auto !important;
+			width: 100% !important;
+			height: 100% !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .v27-modal-header {
+			min-height: 54px !important;
+		}
+
+		.app-shell.blacksite-ui-v37 .guide-tabs {
+			top: 54px !important;
+			padding-block: 4px !important;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.app-shell.blacksite-ui-v37 *,
+		.app-shell.blacksite-ui-v37 *::before,
+		.app-shell.blacksite-ui-v37 *::after {
+			scroll-behavior: auto !important;
+			transition-duration: .01ms !important;
 		}
 	}
 </style>

@@ -60,8 +60,8 @@ export function createBlacksiteUiV22Catalog(resolveAsset, v21Catalog, penguinRee
 				states: repeatedStates(readoutSource),
 			}),
 		}),
-		// V22 deliberately reuses the compact, stateful V21 atlases for round
-		// controls and glyphs; the new material masters skin rectangular surfaces.
+		// V22 deliberately reuses the compact V21 atlas geometry: the round
+		// controls stay authored V21 while the glyph source carries the V39 buy overlay.
 		atlases: v21Catalog?.atlases,
 		reelStrips,
 		reelStage: Object.freeze({
