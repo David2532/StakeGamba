@@ -23,6 +23,7 @@ Every major Codex task starts with:
 - `M2_COMPLIANCE_REVIEW.md` — exact SHA-bound M2 unit/browser/build evidence and truthful current status for every checklist row.
 - `M3_ASSET_MANIFEST.md` — concept-asset ledger, retained file hashes, production group gaps and the safe runtime/Spine integration gate.
 - `STAKE_REQUIREMENTS_51.md` — the exact 51-point approval checklist supplied for this project, with proof expectations and release ownership.
+- `RELEASE_EVIDENCE_51.json` — machine-checked current-candidate mapping for all 51 rows; separates automated proof from open manual and external gates.
 - `STAKE_ENGINE_SOURCE_INDEX.md` — official Stake Engine/SDK source map and precedence rules.
 - `OFFICIAL_DOC_REVIEW_2026-08-07.md` — dated review map covering current approval, RGS, math SDK, frontend SDK and Codex-source conclusions.
 - `STAKEGAMBA_LESSONS.md` — reusable lessons from Golden Goal Rush, previous Stake feedback, PRs, release evidence and conversation history.
@@ -99,6 +100,8 @@ When sources disagree, use this order:
 6. historical chat/PR notes.
 
 A current official requirement always wins. Update the affected document when that happens.
+
+The exact candidate CI resolves every browser reference in `RELEASE_EVIDENCE_51.json` against the packaged-frontend evidence. A complete matrix does not convert manual or external rows into repository-owned passes.
 
 ## Definition of a truthful PASS
 

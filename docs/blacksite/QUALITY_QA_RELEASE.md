@@ -250,6 +250,8 @@ Candidate manifest records:
 - tool/runtime versions where material;
 - CI run IDs.
 
+The evidence bundle also contains `blacksite-51-evidence.json`. Its source map must contain exactly rows 1–51 in order, and CI must resolve every claimed browser scenario/check against the same green packaged-frontend run. Rows marked manual or external remain explicitly open; matrix completeness is not release approval.
+
 ### BLACKSITE isolated technical package command
 
 BLACKSITE must not use the repository `publish/` directory while that path remains the Golden Goal Rush upload target. Generate a new candidate directory outside the repository so the worktree stays clean and the two games cannot be confused:

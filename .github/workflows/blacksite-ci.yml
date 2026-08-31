@@ -12,6 +12,7 @@ on:
       - packages/config-ts/**
       - packages/utils-shared/**
       - scripts/blacksite-*.mjs
+      - docs/blacksite/RELEASE_EVIDENCE_51.json
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
@@ -26,6 +27,7 @@ on:
       - packages/config-ts/**
       - packages/utils-shared/**
       - scripts/blacksite-*.mjs
+      - docs/blacksite/RELEASE_EVIDENCE_51.json
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
@@ -138,6 +140,17 @@ jobs:
           BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256="${BLACKSITE_FRONTEND_TREE_SHA256}" \
           node scripts/blacksite-qa-e2e.mjs
 
+      - name: Resolve exact 51-point candidate evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t browser_evidence < <(find artifacts/blacksite-qa -type f -name blacksite-browser-evidence.json -print)
+          test "${#browser_evidence[@]}" -eq 1
+          node scripts/blacksite-compliance-evidence.mjs \
+            --candidate "${BLACKSITE_CANDIDATE_ROOT}" \
+            --browser-evidence "${browser_evidence[0]}" \
+            --output artifacts/blacksite-compliance/blacksite-51-evidence.json
+
       - name: Upload BlackSite diagnostics
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -149,3 +162,4 @@ jobs:
             artifacts/blacksite-ci/**
             artifacts/blacksite-package/**
             artifacts/blacksite-qa/**
+            artifacts/blacksite-compliance/**
