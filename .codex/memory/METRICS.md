@@ -1,5 +1,46 @@
 # Rolling automation metrics
 
+## BS-20260831-14
+
+```yaml
+closed_at_utc: 2026-08-31T01:55:00Z
+sprint_day: 2
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 94
+local_app_status: PASS
+local_build: PASS
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+focused_compliance_tests: 3
+focused_compliance_status: PASS
+diagnostic_ci_run: 33347537804
+diagnostic_ci_failure: stale_tracked_browser_evidence_selected_with_current_candidate
+verified_ci_run: 33348321475
+verified_ci_status: PASS
+remote_app_tests: 94
+remote_full_math_books: 300000
+remote_browser_scenarios: 40
+remote_browser_checks_pass: 965
+remote_browser_checks_fail: 0
+remote_compliance_total: 51
+remote_automated_proof_complete: 38
+remote_manual_gate_open: 23
+remote_external_gate_open: 6
+remote_not_applicable: 2
+remote_diagnostics_artifact: 9742920099
+remote_implementation_commit: bd11699e9b9937c4fba5b1766968467e8c5921dc
+manual_identical_retries: 0
+```
+
+Observed categories: compact memory/checklist/package-contract reads, targeted evidence-map/resolver/workflow/test edits, one focused and one complete local gate chain, two exact Actions runs, logs/artifact reads, and four current package screenshot inspections. The diagnostic run exposed a stale tracked browser-evidence selection; current-SHA filtering fixed the harness without weakening the matrix. One unauthenticated CLI push used the existing safe Git-data fast-forward route; no unchanged failure was repeated. No subagents, dependencies or token estimates were used.
+
 ## BS-20260831-13
 
 ```yaml

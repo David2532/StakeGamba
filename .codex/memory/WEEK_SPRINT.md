@@ -9,12 +9,12 @@
 
 | Area                                     | Current evidence                                                                                                                                                                                   |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Production build                         | PASS — Vite static build on exact run `33345753819`, exit 0, run BS-20260831-13 |
-| Lint                                     | PASS — app lint on exact run `33345753819`, exit 0, run BS-20260831-13 |
-| Typecheck                                | PASS — production source/config `svelte-check`, `checkJs: true`, 0 errors / 0 warnings locally and on exact run `33345753819`, exit 0 |
-| Automated app tests                      | PASS — 92/92, exit 0, exact run `33345753819`, BS-20260831-13; includes the package/CI identity regression |
-| Math/package invariants                  | PASS — 7/7 math gates and 300,000 books; isolated package has exact 9-file frontend tree `fc20dd2a…e303`, exact 7-file math tree `6bd0c4c7…01da`, and a second 300,000-book readback; fingerprint `d03fab…78d8`; exact run `33345753819` |
-| Current-head browser/E2E                 | PASS — clean exact commit `49d1134`; Chromium served the isolated copied frontend, verified its pinned tree, and passed 40/40 scenarios plus 965/965 checks; unexpected console/network/request failures 0 |
+| Production build                         | PASS — Vite static build on exact run `33348321475`, exit 0, run BS-20260831-14 |
+| Lint                                     | PASS — app lint on exact run `33348321475`, exit 0, run BS-20260831-14 |
+| Typecheck                                | PASS — production source/config `svelte-check`, `checkJs: true`, 0 errors / 0 warnings locally and on exact run `33348321475`, exit 0 |
+| Automated app tests                      | PASS — 94/94, exit 0, exact run `33348321475`, BS-20260831-14; includes fail-closed compliance and current-SHA selection regressions |
+| Math/package invariants                  | PASS — 7/7 math gates and 300,000 books; isolated package has exact frontend tree `e646e245…cc1a`, exact 7-file math tree `6bd0c4c7…01da`, and a 300,000-book readback; fingerprint `d03fab…78d8`; exact run `33348321475` |
+| Current-head browser/E2E                 | PASS — clean exact commit `bd11699`; Chromium served the isolated copied frontend, verified its pinned tree, and passed 40/40 scenarios plus 965/965 checks; unexpected console/network/request failures 0 |
 | Desktop/portrait/landscape visual review | PASS — exact-package screenshots inspected at 1920x1080, 1366x768, 390x844, 844x390 and 360x640 Replay; controls remain legible, boards square/on-screen, and no overlap/scroll regression is visible |
 | Live wallet/replay/restore               | PARTIAL — fractional new-play/restore, uncertain paid-play reload/restore and auth-503 explicit reload/re-auth are exact-browser proven with no duplicate writes; broader gameplay-state/provider evidence remains |
 | Gameplay state matrix                    | PARTIAL — M2 deterministic fixtures exist; full requested production interaction matrix is not current-head proven                                                                                 |
@@ -22,7 +22,7 @@
 | Animation/cinematics                     | PARTIAL — authoritative spin/reveal/feature anticipation, BLACKOUT vault entry/exit, hit/remove/drop/settle cascades, normal/turbo/reduced profiles, skip, cleanup and exact-payout browser proof pass; character/rig fallback and full frame-pacing evidence remain |
 | Audio                                    | PARTIAL — one procedural master bus, authoritative/UI cues, one ambience instance, gesture unlock, mute/level persistence, visibility suspend/resume, turbo cooldown, voice cap and teardown are unit/browser proven; final authored mix, reel/character detail and manual clipping/listening/device QA remain open |
 | Product identity/assets/licenses         | PARTIAL — original penguin fallback and separate desktop/portrait base-vault plates are hash/provenance-bound, optimized and exact-browser integrated; human approval, cleanup/Spine, BLACKOUT and foreground layers remain open |
-| Stake/provider checklist                 | PARTIAL — current-head isolated-package and Chromium evidence now exist; the complete 51-point automated/manual/external matrix and later milestone approvals remain open                          |
+| Stake/provider checklist                 | PARTIAL — all 51 rows are exactly mapped: 20 automated PASS, 18 automated-proof/manual-open, 5 manual-only, 6 external and 2 N/A; 38 automated references resolve against current package/browser identity, while 23 manual gates and 6 external approvals remain explicitly unclaimed |
 | Release blockers                         | OPEN — known critical/high blockers remain; do not claim `RELEASE_CANDIDATE_READY`                                                                                                                 |
 
 ## Day milestones

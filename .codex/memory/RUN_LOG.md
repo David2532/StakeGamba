@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-14 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `30c551d985a784bb75b96613fb13ac7256a807d8`
+- Verified implementation commit: `bd11699e9b9937c4fba5b1766968467e8c5921dc`
+- Work item: `BSB-EVIDENCE-001` (exact 51-point candidate matrix; item remains in progress for real manual/external evidence)
+- Selection reason: package/browser gates were exact, but the repository's numbered Stake checklist remained scattered and had no machine-enforced completeness, identity binding or honest separation of automated, manual and external claims.
+- Before/after evidence: all IDs 1–51 are now ordered and statused; the resolver verifies package SHA/tree identity plus every referenced current-browser scenario/check, fails closed on omissions, and emits 20 automated PASS, 18 automated-proof/manual-open, 5 manual-only, 6 external-open and 2 N/A rows. Thus 38 automated references are complete, while 23 manual gates and 6 external approvals remain explicitly `NOT_CLAIMED`.
+- Changed files: BlackSite workflow, machine-readable evidence map, compliance resolver, two regression suites, release documentation, and sprint memory closeout files.
+- Gates: focused compliance/package regressions 3/3 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 94/94 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS; exact package verification PASS; exact packaged Chromium 40/40 scenarios and 965/965 checks PASS; unexpected console/network/request failures 0; compliance matrix/reference resolution PASS; `git diff --check` PASS.
+- Visual review: product-identical exact-package screenshots at 1920x1080, 390x844, 844x390 and Replay 360x640 were inspected. Boards remain square/on-screen, controls readable and reachable, and no overlap, scroll or crop regression is visible. This slice did not change runtime UI.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Diagnostic run `33347537804` isolated stale tracked evidence selection; current-SHA filtering produced green run `33348321475` without an unchanged retry.
+- Persistence: implementation/fix trees were fast-forwarded without force through the connected GitHub API; exact run `33348321475` and artifact `9742920099` succeeded.
+- Residual risk: 23 manual checklist gates, 6 external approvals, manual audio/device QA, final reel/character sound and motion, rights/Creative approval, penguin cleanup and Spine rig remain open.
+- Next candidate: return to `BSB-MOTION-001` for character/rig fallback, reel-stop polish and frame-pacing evidence while manual/external approvals proceed outside automation.
+
 ## BS-20260831-13 — SUCCESS
 
 - Sprint day: 2
