@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-16 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `efb41da1eb5ffb7462c41f68ceedf58816b22c28`
+- Verified implementation commit: `2926692756d8f98222ef40b923b083e216f28f07`
+- Work item: `BSB-MOTION-001` (reel-stop/frame-pacing slice; item remains in progress)
+- Selection reason: authoritative cascade and Vaultkeeper semantics were exact, but all seven columns revealed simultaneously and no measured frame-pacing evidence existed.
+- Before/after evidence: the board reveal now uses bounded per-column/per-row custom properties. Exact Chromium records turbo first-row offsets `0/8/16/24/32/40/48ms`, each at 70ms, and 79 rAF deltas at 16.7ms p95, 16.8ms maximum and zero >50ms stalls. The canonical three-cascade round still settles at exact `$2.07` with ready/idle cleanup.
+- Changed files: presentation director, slot UI/CSS, contract regression, Chromium QA, and sprint memory closeout files.
+- Gates: frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 95/95 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; package/evidence resolution PASS; exact Chromium 40/40 scenarios and 970/970 checks PASS; unexpected console/network/request failures 0; `git diff --check` PASS.
+- Visual review: exact 1920x1080, 1366x768, 390x844, 844x390, Replay 360x640 and active reel-stop screenshots inspected. The stagger reads across the populated vault grid; boards/controls remain visible, square and free of new overlap, scroll or crop regressions.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. One quoting error, one unauthenticated CLI push and one policy-rejected temporary cleanup each used a safer changed alternative; nothing failed twice unchanged.
+- Persistence: the tree-identical implementation was fast-forwarded without force through the connected GitHub API; exact run `33355037527` and artifact `9745037349` succeeded.
+- Residual risk: approved Spine 4.2 rig/authored clips, broader normal/feature/device frame-pacing evidence, rights/Creative approval, manual audio/device QA, 23 manual checklist gates and 6 external approvals remain open.
+- Next candidate: continue `BSB-MOTION-001` with normal/feature pacing and authored-clip integration if the approved rig becomes available; otherwise complete `BSB-AUDIO-001` authored reel/character detail and listening evidence.
+
 ## BS-20260831-15 — SUCCESS
 
 - Sprint day: 2

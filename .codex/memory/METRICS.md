@@ -1,5 +1,41 @@
 # Rolling automation metrics
 
+## BS-20260831-16
+
+```yaml
+closed_at_utc: 2026-08-31T04:05:00Z
+sprint_day: 2
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 95
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+verified_ci_run: 33355037527
+verified_ci_status: PASS
+remote_browser_scenarios: 40
+remote_browser_checks_pass: 970
+remote_browser_checks_fail: 0
+reel_stop_delays_ms: [0, 8, 16, 24, 32, 40, 48]
+frame_samples: 79
+frame_p95_ms: 16.7
+frame_max_ms: 16.8
+frame_over_50_ms: 0
+remote_diagnostics_artifact: 9745037349
+remote_implementation_commit: 2926692756d8f98222ef40b923b083e216f28f07
+manual_identical_retries: 0
+```
+
+Observed categories: targeted memory/source/animation-skill reads, focused and one complete local gate chain, diff review, Git-data fast-forward writes, one exact Actions run, artifact/evidence inspection and six exact screenshots. One shell search had a quoting error and was replaced with a simpler targeted command; direct HTTPS push lacked credentials and used the established Git-data path. One destructive temporary-cleanup command was policy-rejected and replaced with a unique non-destructive extraction directory. No unchanged failures, subagents, dependencies, binary assets or token estimates were used.
+
 ## BS-20260831-15
 
 ```yaml
