@@ -2712,7 +2712,7 @@ async function runNetworkScenarios(browser, origin) {
 					balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
 					totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
 				};
-				check(group, 'authoritative feature completes once and returns to the playable base-game shell',
+				check(group, 'authoritative feature completes once and returns to the live ready shell',
 					completed.state === 'live-ready' &&
 						completed.phase === 'idle' &&
 						completed.character === 'idle_a' &&
