@@ -1,5 +1,51 @@
 # Rolling automation metrics
 
+## BS-20260831-23
+
+```yaml
+closed_at_utc: 2026-08-31T11:27:08Z
+sprint_day: 2
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_contract_tests: 23
+focused_contract_status: PASS
+focused_final_compliance_tests: 4
+focused_final_compliance_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 104
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_full_math_duration_seconds_approx: 692
+local_diff_check: PASS
+superseded_ci_runs: { 33385307848: cancelled_after_manual_gate_correction }
+verified_ci_run: 33385664641
+verified_ci_status: PASS
+remote_browser_scenarios: 58
+remote_browser_checks_pass: 1405
+remote_browser_checks_fail: 0
+remote_rule_win_scenarios: 15
+remote_rule_win_events: 121
+remote_rule_win_clusters: 122
+remote_rule_win_clusters_match_rules: true
+remote_rule_win_steps_match_awards: true
+remote_unexpected_network_page_request_failures: 0
+remote_expected_negative_path_console_messages: 5
+remote_diagnostics_artifact: 9755786881
+remote_diagnostics_digest: sha256:26da2d8ff8b4b37b681b65d08564417e49addd581ce43e83e1713e2bf7e550a8
+remote_implementation_commit: b10d4460c4c2db49f36dec45ee0d175c20a965cc
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/compliance reads, official Stake documentation verification, targeted harness/fixture inspection, focused contract and fail-closed compliance suites, one complete local code/math gate chain, diff/secret review, exact Actions verification, structured artifact inspection and 20 exact screenshot reviews. The full local math gate took about 692 seconds and remained the largest local cost. An exact-context patch miss made no change; broad formatter churn was removed; an over-broad JSON edit failed closed and was corrected by item ID; and a rejected destructive artifact-extraction command was replaced with a fresh-directory extraction. No semantic failure was retried unchanged. No subagents, dependencies, binary product assets or token estimates were used.
+
 ## BS-20260831-22
 
 ```yaml
