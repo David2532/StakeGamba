@@ -26,8 +26,10 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 
 	const packageStep = workflow.indexOf('Generate and verify isolated BlackSite package');
 	const browserStep = workflow.indexOf('Test exact extracted frontend in Chromium');
+	const complianceStep = workflow.indexOf('Resolve exact 51-point candidate evidence');
 	assert(packageStep > 0);
 	assert(browserStep > packageStep);
+	assert(complianceStep > browserStep);
 	assert.match(workflow, /--expected-commit "\$EXPECTED_SHA"/u);
 	assert.match(workflow, /--expected-frontend-tree "\$frontend_tree"/u);
 	assert.match(workflow, /blacksite-package-verify\.mjs[\s\S]*--write-result/u);
@@ -42,4 +44,9 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 		/BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256="\$\{BLACKSITE_FRONTEND_TREE_SHA256\}"/u,
 	);
 	assert.match(workflow, /artifacts\/blacksite-package\/\*\*/u);
+	assert.match(workflow, /value\.identity\?\.testedGitSha/u);
+	assert.match(workflow, /if \[\[ "\$tested_sha" = "\$EXPECTED_SHA" \]\]/u);
+	assert.match(workflow, /test "\$\{#browser_evidence\[@\]\}" -eq 1/u);
+	assert.match(workflow, /blacksite-compliance-evidence\.mjs/u);
+	assert.match(workflow, /artifacts\/blacksite-compliance\/\*\*/u);
 });

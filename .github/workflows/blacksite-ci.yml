@@ -142,9 +142,17 @@ jobs:
 
       - name: Resolve exact 51-point candidate evidence
         shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
-          mapfile -t browser_evidence < <(find artifacts/blacksite-qa -type f -name blacksite-browser-evidence.json -print)
+          browser_evidence=()
+          while IFS= read -r evidence_path; do
+            tested_sha="$(node -e 'const fs = require("node:fs"); const value = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); process.stdout.write(value.identity?.testedGitSha ?? "")' "$evidence_path")"
+            if [[ "$tested_sha" = "$EXPECTED_SHA" ]]; then
+              browser_evidence+=("$evidence_path")
+            fi
+          done < <(find artifacts/blacksite-qa -type f -name blacksite-browser-evidence.json -print)
           test "${#browser_evidence[@]}" -eq 1
           node scripts/blacksite-compliance-evidence.mjs \
             --candidate "${BLACKSITE_CANDIDATE_ROOT}" \
