@@ -776,6 +776,10 @@
 				data-audio-cues={audioState.cueCount}
 				data-audio-voices={audioState.activeVoices}
 				data-ambience-instances={audioState.ambienceInstances}
+				data-audio-recipe={audioState.lastRecipe ?? 'none'}
+				data-audio-reel-pulses={audioState.reelStopPulses}
+				data-audio-priority-cues={audioState.priorityCues}
+				data-audio-ducks={audioState.duckCount}
 				on:click={() => void toggleAudio()}
 			>
 				SOUND {audioState.unlocked ? audioState.level : 'OFF'}

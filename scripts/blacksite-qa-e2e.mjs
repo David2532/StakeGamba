@@ -1835,9 +1835,21 @@ async function runNetworkScenarios(browser, origin) {
 				cues: Number(element.getAttribute('data-audio-cues')),
 				voices: Number(element.getAttribute('data-audio-voices')),
 				ambience: Number(element.getAttribute('data-ambience-instances')),
+				recipe: element.getAttribute('data-audio-recipe'),
+				reelPulses: Number(element.getAttribute('data-audio-reel-pulses')),
+				priorityCues: Number(element.getAttribute('data-audio-priority-cues')),
+				ducks: Number(element.getAttribute('data-audio-ducks')),
 			}));
 			check(group, 'authoritative round cues use the same bounded graph',
 				completed.cues >= 4 && completed.voices <= 8 && completed.ambience === 1,
+				serialize(completed),
+			);
+			check(group, 'normal board reveal schedules one seven-stop mechanical reel cadence',
+				completed.reelPulses === 7,
+				serialize(completed),
+			);
+			check(group, 'foreground cues apply explicit ambience ducking without another graph',
+				completed.priorityCues >= 1 && completed.ducks === completed.priorityCues && completed.ambience === 1,
 				serialize(completed),
 			);
 

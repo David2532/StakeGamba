@@ -10,12 +10,18 @@ import { PresentationDirector } from '../src/lib/runtime/presentation-director.j
 class FakeAudioParam {
 	constructor() {
 		this.value = 0;
+		this.automation = [];
 	}
-	setValueAtTime(value) {
+	setValueAtTime(value, time) {
 		this.value = value;
+		this.automation.push(['set', value, time]);
 	}
-	exponentialRampToValueAtTime(value) {
+	exponentialRampToValueAtTime(value, time) {
 		this.value = value;
+		this.automation.push(['ramp', value, time]);
+	}
+	cancelScheduledValues(time) {
+		this.automation.push(['cancel', time]);
 	}
 }
 
@@ -46,12 +52,16 @@ class FakeOscillator extends FakeNode {
 		this.started = false;
 		this.stopped = false;
 		this.onended = null;
+		this.startedAt = null;
+		this.stoppedAt = null;
 	}
-	start() {
+	start(time) {
 		this.started = true;
+		this.startedAt = time;
 	}
-	stop() {
+	stop(time) {
 		this.stopped = true;
+		this.stoppedAt = time ?? this.stoppedAt;
 	}
 	finish() {
 		this.onended?.();
@@ -216,5 +226,31 @@ test('authoritative cues are bounded in turbo and presentation forwards exact cu
 	});
 	assert.deepEqual(forwarded, ['round_started', 'board_snapshot']);
 	presentation.destroy();
+	audio.destroy();
+});
+
+test('reel stops schedule seven mechanical pulses and priority cues duck ambience', async () => {
+	const context = new FakeAudioContext();
+	const audio = new AudioDirector({
+		audioContextFactory: () => context,
+		storage: createStorage(),
+		documentRef: createDocument(),
+	});
+	await audio.unlock();
+	assert.equal(audio.consume({ kind: 'board_snapshot' }, { timingProfile: 'normal' }), true);
+	assert.deepEqual(
+		context.oscillators.slice(1).map((oscillator) => Number((oscillator.startedAt - 1).toFixed(3))),
+		[0, 0.024, 0.048, 0.072, 0.096, 0.12, 0.144],
+	);
+	assert.equal(audio.state.lastRecipe, 'reel_stop_cadence');
+	assert.equal(audio.state.reelStopPulses, 7);
+	assert.equal(audio.state.activeVoices, 7);
+
+	assert.equal(audio.consume({ kind: 'feature_started' }), true);
+	assert.equal(audio.state.lastRecipe, 'blackout_lock');
+	assert.equal(audio.state.priorityCues, 1);
+	assert.equal(audio.state.duckCount, 1);
+	assert.ok(context.gains[1].gain.automation.some(([kind, value]) => kind === 'ramp' && value === 0.0045));
+	assert.ok(audio.state.activeVoices <= 8);
 	audio.destroy();
 });

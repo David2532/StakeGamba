@@ -2,18 +2,27 @@ export const AUDIO_STORAGE_KEY = 'blacksite.audio.volume.v1';
 
 export const AUDIO_LEVELS = Object.freeze([0, 0.28, 0.62]);
 
+const AMBIENCE_GAIN = 0.018;
+const DUCKED_AMBIENCE_GAIN = 0.0045;
+const MAX_VOICES = 8;
+
+const REEL_STOP_OFFSETS = Object.freeze({
+	normal: Object.freeze([0, 0.024, 0.048, 0.072, 0.096, 0.12, 0.144]),
+	turbo: Object.freeze([0, 0.008, 0.016, 0.024, 0.032, 0.04, 0.048]),
+});
+
 const CUE_TONES = Object.freeze({
-	round_started: Object.freeze({ frequency: 82, target: 138, duration: 0.16, gain: 0.12 }),
-	board_snapshot: Object.freeze({ frequency: 190, target: 118, duration: 0.11, gain: 0.075 }),
-	win: Object.freeze({ frequency: 330, target: 660, duration: 0.24, gain: 0.1 }),
+	round_started: Object.freeze({ frequency: 82, target: 138, duration: 0.16, gain: 0.12, priority: 2, recipe: 'vault_motor' }),
+	board_snapshot: Object.freeze({ frequency: 176, target: 118, duration: 0.055, gain: 0.052, priority: 1, recipe: 'reel_stop_cadence' }),
+	win: Object.freeze({ frequency: 330, target: 660, duration: 0.24, gain: 0.1, priority: 2, recipe: 'vaultkeeper_acknowledge' }),
 	access_changed: Object.freeze({ frequency: 260, target: 390, duration: 0.18, gain: 0.08 }),
-	feature_armed: Object.freeze({ frequency: 110, target: 220, duration: 0.42, gain: 0.1 }),
-	feature_started: Object.freeze({ frequency: 64, target: 96, duration: 0.72, gain: 0.14 }),
+	feature_armed: Object.freeze({ frequency: 110, target: 220, duration: 0.42, gain: 0.1, priority: 2, recipe: 'lock_anticipation' }),
+	feature_started: Object.freeze({ frequency: 64, target: 96, duration: 0.72, gain: 0.14, priority: 3, recipe: 'blackout_lock' }),
 	feature_cycle: Object.freeze({ frequency: 150, target: 225, duration: 0.13, gain: 0.07 }),
-	exfil_reached: Object.freeze({ frequency: 420, target: 840, duration: 0.28, gain: 0.1 }),
+	exfil_reached: Object.freeze({ frequency: 420, target: 840, duration: 0.28, gain: 0.1, priority: 2, recipe: 'exfil_confirm' }),
 	tumble: Object.freeze({ frequency: 140, target: 76, duration: 0.1, gain: 0.075 }),
-	feature_ended: Object.freeze({ frequency: 180, target: 90, duration: 0.45, gain: 0.11 }),
-	cap_reached: Object.freeze({ frequency: 520, target: 1040, duration: 0.55, gain: 0.12 }),
+	feature_ended: Object.freeze({ frequency: 180, target: 90, duration: 0.45, gain: 0.11, priority: 2, recipe: 'blackout_release' }),
+	cap_reached: Object.freeze({ frequency: 520, target: 1040, duration: 0.55, gain: 0.12, priority: 3, recipe: 'vaultkeeper_max_win' }),
 	settled: Object.freeze({ frequency: 220, target: 165, duration: 0.16, gain: 0.065 }),
 	ui: Object.freeze({ frequency: 360, target: 300, duration: 0.055, gain: 0.04 }),
 });
@@ -52,6 +61,10 @@ export function createInitialAudioState(storage = null) {
 		cueCount: 0,
 		activeVoices: 0,
 		ambienceInstances: 0,
+		lastRecipe: null,
+		reelStopPulses: 0,
+		priorityCues: 0,
+		duckCount: 0,
 	});
 }
 
@@ -137,7 +150,7 @@ export class AudioDirector {
 		const gain = this.context.createGain();
 		oscillator.type = 'sine';
 		oscillator.frequency.setValueAtTime(43, this.context.currentTime);
-		gain.gain.setValueAtTime(0.018, this.context.currentTime);
+		gain.gain.setValueAtTime(AMBIENCE_GAIN, this.context.currentTime);
 		oscillator.connect(gain);
 		gain.connect(this.masterGain);
 		oscillator.start();
@@ -198,34 +211,63 @@ export class AudioDirector {
 		if (nowMs - (this.cooldowns.get(kind) ?? -Infinity) < cooldownMs) return false;
 		this.cooldowns.set(kind, nowMs);
 
-		while (this.voices.size >= 8) {
-			const oldest = this.voices.values().next().value;
-			oldest.stop();
-			this.voices.delete(oldest);
-		}
-		const oscillator = this.context.createOscillator();
-		const gain = this.context.createGain();
 		const startedAt = this.context.currentTime;
 		const duration =
 			timingProfile === 'turbo' ? Math.max(0.045, tone.duration * 0.58) : tone.duration;
-		oscillator.type = kind.includes('feature') ? 'sawtooth' : 'triangle';
-		oscillator.frequency.setValueAtTime(tone.frequency, startedAt);
-		oscillator.frequency.exponentialRampToValueAtTime(tone.target, startedAt + duration);
-		gain.gain.setValueAtTime(0.0001, startedAt);
-		gain.gain.exponentialRampToValueAtTime(tone.gain, startedAt + Math.min(0.02, duration / 3));
-		gain.gain.exponentialRampToValueAtTime(0.0001, startedAt + duration);
-		oscillator.connect(gain);
-		gain.connect(this.masterGain);
-		oscillator.onended = () => {
-			this.voices.delete(oscillator);
-			oscillator.disconnect?.();
-			gain.disconnect?.();
-			this.emit();
-		};
-		this.voices.add(oscillator);
-		oscillator.start(startedAt);
-		oscillator.stop(startedAt + duration + 0.01);
-		this.emit({ lastCue: kind, cueCount: this.state.cueCount + 1 });
+		const offsets =
+			kind === 'board_snapshot'
+				? REEL_STOP_OFFSETS[timingProfile === 'turbo' ? 'turbo' : 'normal']
+				: [0];
+		for (const [pulseIndex, offset] of offsets.entries()) {
+			while (this.voices.size >= MAX_VOICES) {
+				const oldest = this.voices.values().next().value;
+				oldest.stop();
+				this.voices.delete(oldest);
+			}
+			const oscillator = this.context.createOscillator();
+			const gain = this.context.createGain();
+			const pulseStartedAt = startedAt + offset;
+			const frequencyScale = kind === 'board_snapshot' ? 1 + pulseIndex * 0.035 : 1;
+			oscillator.type = kind.includes('feature') ? 'sawtooth' : 'triangle';
+			oscillator.frequency.setValueAtTime(tone.frequency * frequencyScale, pulseStartedAt);
+			oscillator.frequency.exponentialRampToValueAtTime(
+				tone.target * frequencyScale,
+				pulseStartedAt + duration,
+			);
+			gain.gain.setValueAtTime(0.0001, pulseStartedAt);
+			gain.gain.exponentialRampToValueAtTime(
+				tone.gain,
+				pulseStartedAt + Math.min(0.02, duration / 3),
+			);
+			gain.gain.exponentialRampToValueAtTime(0.0001, pulseStartedAt + duration);
+			oscillator.connect(gain);
+			gain.connect(this.masterGain);
+			oscillator.onended = () => {
+				this.voices.delete(oscillator);
+				oscillator.disconnect?.();
+				gain.disconnect?.();
+				this.emit();
+			};
+			this.voices.add(oscillator);
+			oscillator.start(pulseStartedAt);
+			oscillator.stop(pulseStartedAt + duration + 0.01);
+		}
+		const priority = tone.priority ?? 0;
+		if (priority >= 2 && this.ambienceGain) {
+			const ambience = this.ambienceGain.gain;
+			ambience.cancelScheduledValues?.(startedAt);
+			ambience.setValueAtTime(Math.max(0.0001, ambience.value || AMBIENCE_GAIN), startedAt);
+			ambience.exponentialRampToValueAtTime(DUCKED_AMBIENCE_GAIN, startedAt + 0.025);
+			ambience.exponentialRampToValueAtTime(AMBIENCE_GAIN, startedAt + duration + 0.12);
+		}
+		this.emit({
+			lastCue: kind,
+			lastRecipe: tone.recipe ?? kind,
+			cueCount: this.state.cueCount + 1,
+			reelStopPulses: this.state.reelStopPulses + (kind === 'board_snapshot' ? offsets.length : 0),
+			priorityCues: this.state.priorityCues + (priority >= 2 ? 1 : 0),
+			duckCount: this.state.duckCount + (priority >= 2 ? 1 : 0),
+		});
 		return true;
 	}
 
