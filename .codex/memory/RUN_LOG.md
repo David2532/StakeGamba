@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-24 — BLOCKED
+
+- Sprint day: 2
+- Base commit: `088ec87dad86a6ff6c8d144802c995dde9977320`
+- Final product-tree commit: `907816cd65c144c47a72f059bc5eaa67d554edc2` (tree-identical to base); memory closeout follows separately
+- Work item: `BSB-EVIDENCE-001` (bounded natural-Base and confirmed Deep-Access live-feature lifecycle; reverted, item remains in progress)
+- Selection reason: exact current-package evidence covered high-cost confirmation and Replay feature wins but not live natural feature entry, direct Deep Access completion and return to `live-ready` with exact wallet/payout/network identity.
+- Attempted evidence: two math-backed fixtures (`base_natural_blackout`, 85 events, 1000×; `deep_access_feature`, 87 events, 2000×) were bound to ordered feature/Vaultkeeper states, exact requests, one-write limits, final 49-cell board, `$1000.00`/`$2000.00` wins and `$1999.00`/`$2996.00` authoritative balances. Checklist item 21 retained human wording review.
+- Gates: focused compliance 5/5 PASS; contracts 19/19 PASS; frozen install, lint and `svelte-check` 0/0 PASS; experimental app tests 105/105 PASS; production build PASS; math 7/7 and 300,000 books PASS in about 400 seconds with unchanged fingerprint; exact package generation/readback PASS; `git diff --check` and secret/debug review PASS. Required Chromium was BLOCKED and GitHub reported no Actions run for the API-authored source commits.
+- Visual review: NOT_RUN. Local Playwright downloads timed out or returned 502/truncated archives; the independent cloud browser denied the loopback preview. No desktop/mobile/feature visual claim is made.
+- Changed files: final source/product tree unchanged after fast-forward revert; closeout updates only `CURRENT_STATE`, `WEEK_SPRINT`, `BACKLOG`, `METRICS` and `RUN_LOG`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One lost verifier session was repeated once. A Git Data truncation was SHA-detected and repaired; no force update or unchanged semantic retry occurred.
+- Persistence: source attempt commits `4dd5821`, `6a65241`, `d6b964c` were superseded by normal fast-forward revert `907816c`. Final product tree is exactly `cdaad614…0723`, matching previously verified `088ec87`; no unverified executable change remains.
+- Residual risk: live feature-entry/return browser evidence remains open alongside 23 manual checklist gates, 6 external approvals, rights/Creative cleanup, Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing.
+- Next candidate: retry the same bounded live-feature slice only when exact Chromium or Actions execution is available; otherwise choose the next safe automatable provider state without claiming manual/external evidence.
+
 ## BS-20260831-23 — SUCCESS
 
 - Sprint day: 2
@@ -306,20 +322,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation was tree-identical and fast-forwarded without force through the connected GitHub API; exact run `33324002432` and artifact `9735814868` succeeded.
 - Residual risk: production penguin/vault assets and rights review, mobile truncation/centering/focus polish, motion/cinematics, audio and complete release evidence remain open.
 - Next candidate: `BSB-MOBILE-001`, then the first original production penguin/vault asset integration slice.
-
-## BS-20260830-04 — SUCCESS
-
-- Sprint day: 1
-- Base commit: `f24e3ae1aa3eeaee453264dbd51926ac7f5f7eb0`
-- Verified implementation commit: `e243fe7ad3c0306af5f991366c6fd473e97871de`
-- Work item: `BSB-ID-001`
-- Selection reason: the user's explicit penguin + lock/vault identity conflicted with active master-plan, animation, agent and manifest direction that still promoted a human operative.
-- Before evidence: the retained character PNG is a human operative; the environment concept embeds a human; the manifest marked both concepts active and requested an operative Spine group. The exact running slot remained a technical greybox without production character/vault art.
-- After evidence: a machine-readable locked identity names the original mature penguin Vaultkeeper and four physical vault anchors; human concepts are superseded/runtime-ineligible; art/animation/intro plans, durable director prompts, production ledger and original-asset acceptance criteria agree. Three regression tests prevent reactivation.
-- Changed files: active asset/animation/master-plan docs, asset manifest/provenance, asset/intro skills, creative/asset director prompts, identity regression test, and sprint memory closeout files.
-- Gates: focused identity tests 3/3 PASS exit 0; lint PASS exit 0; `svelte-check` 0 errors/0 warnings PASS exit 0; app tests 72/72 PASS exit 0; production build PASS exit 0; exact remote full math 7/7 with 300,000 books PASS; exact Chromium 36/36 scenarios and 736/736 checks PASS; `git diff --check` PASS exit 0.
-- Visual review: exact current-commit screenshots at 1920x1080, 390x844 and 844x390 were inspected from run `33320205882`. Runtime is geometrically clean but visibly remains a greybox with no production penguin/vault asset; no visual-art completion is claimed. No runtime CSS/DOM/math change occurred in this slice.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0.
-- Persistence: source tree was GitHub/local tree-identical and fast-forwarded without force through the connected GitHub API; exact run `33320205882` and diagnostics artifact `9734778601` completed successfully.
-- Residual risk: original production penguin/vault assets, rights review, runtime integration, HUD, motion, audio and full release evidence remain open.
-- Next candidate: `BSB-HUD-001`, then `BSB-MOBILE-001` or the first production penguin/vault integration slice.

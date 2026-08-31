@@ -3,6 +3,7 @@
 - Branch: `codex/blacksite-aaa-studio`
 - Verified implementation commit: `b10d4460c4c2db49f36dec45ee0d175c20a965cc`
 - Verified CI run: `33385664641` — SUCCESS against the clean exact implementation commit
+- Latest run constraint: `BS-20260831-24` attempted exact live natural-Base and confirmed Deep Access feature-lifecycle evidence, but neither a local Chromium executable nor an Actions run for the API-authored commits was available. All three evidence-source changes were fast-forward reverted; branch product tree `cdaad614…0723` is byte-identical to the previously verified `088ec87` tree, so no new gameplay or visual evidence is claimed.
 - App lifecycle: responsive vault HUD, original penguin fallback, independent desktop/portrait vault environments, deterministic authoritative board/Vaultkeeper motion and a policy-safe procedural audio foundation are integrated; approved Spine rig, authored character cinematics, final audio mix and complete release evidence remain absent; not a release candidate
 - App gates: frozen install PASS, lint PASS, production-source `svelte-check` PASS (0 errors / 0 warnings), 104/104 tests PASS, production build PASS
 - Math/package gates: 300,000 books and 7/7 candidate/math/risk tests PASS; exact package generation/readback and the 51-point evidence resolver PASS in run `33385664641`; candidate fingerprint remains `d03fab…78d8`.

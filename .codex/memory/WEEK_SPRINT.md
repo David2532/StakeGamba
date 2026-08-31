@@ -25,6 +25,8 @@
 | Stake/provider checklist                 | PARTIAL — all 51 rows are exactly mapped: 20 automated PASS, 18 automated-proof/manual-open, 5 manual-only, 6 external and 2 N/A; 38 automated references resolve against current package/browser identity, while 23 manual gates and 6 external approvals remain explicitly unclaimed |
 | Release blockers                         | OPEN — known critical/high blockers remain; do not claim `RELEASE_CANDIDATE_READY`                                                                                                                 |
 
+Run `BS-20260831-24` added no DoD credit: the proposed live natural-Base/Deep-Access feature evidence passed static, contract, code, math and package gates, but its required exact browser gate was unavailable and GitHub attached no Actions run to the API-authored commits. The evidence patch was fully reverted by fast-forward commit `907816c`; current product tree remains identical to the last verified state.
+
 ## Day milestones
 
 - Day 1: baseline, memory/runbook, build/test/math status, and top release blockers captured. CI/typecheck/Chromium are clean; responsive HUD, penguin/vault environments and authoritative cascade presentation are exact-browser integrated. Proceed to rig/BLACKOUT and remaining cinematic completion.

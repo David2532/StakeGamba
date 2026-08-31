@@ -1,5 +1,47 @@
 # Rolling automation metrics
 
+## BS-20260831-24
+
+```yaml
+closed_at_utc: 2026-08-31T13:22:27Z
+sprint_day: 2
+status: BLOCKED
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_compliance_tests: 5
+focused_compliance_status: PASS
+focused_contract_tests: 19
+focused_contract_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+experimental_app_tests: 105
+experimental_app_status: PASS
+experimental_build: PASS
+experimental_full_math_tests: 7
+experimental_full_math_books: 300000
+experimental_full_math_duration_seconds_approx: 400
+experimental_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+experimental_package_generation: PASS
+experimental_package_verification: PASS
+local_chromium: BLOCKED
+local_chromium_reason: playwright CDN timed out or returned 502/truncated archives; cloud browser denied loopback preview
+github_actions: NOT_RUN
+github_actions_reason: no workflow run attached to API-authored source commits
+attempted_feature_scenarios: [live-natural-base-blackout-enters-and-returns, live-deep-access-feature-confirms-enters-and-returns]
+attempted_source_commits: [4dd5821, 6a65241, d6b964c]
+revert_commit: 907816cd65c144c47a72f059bc5eaa67d554edc2
+final_product_tree: cdaad614e775eaf7ed31b0dc2db215de56200723
+final_product_tree_matches_verified_088ec87: true
+local_diff_check: PASS
+manual_identical_retries: 1
+```
+
+Observed categories: compact memory/compliance/fixture reads, official Stake source verification, focused tests, one complete local code/math gate chain, exact package generation/readback, GitHub Git Data persistence and rollback, Actions lookup, Playwright installation diagnostics, browser-control fallback, and final tree verification. A bounded two-scenario live-feature harness passed all non-browser checks but was not left on the branch without execution. One verifier process lost its session handle and was repeated once; the original HTTPS push failed for missing credentials. A large Git Data payload was initially truncated, immediately hash-detected and repaired before the source patch was ultimately reverted. No subagent, dependency, binary product asset, estimated token count, force update or semantic retry was used.
+
 ## BS-20260831-23
 
 ```yaml
