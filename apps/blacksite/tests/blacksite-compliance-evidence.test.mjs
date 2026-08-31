@@ -106,6 +106,22 @@ test('currency evidence binds social, native fiat, fallback, and authoritative b
 	}
 });
 
+test('active-round evidence binds uncertain play and failed-settlement recovery', () => {
+	const item = map.items.find((candidate) => candidate.id === 10);
+	assert(item);
+	assert.deepEqual(item.browserScenarios, [
+		'active-restore-no-duplicate-play',
+		'uncertain-live-play-reloads-and-restores-without-retry',
+		'settlement-http-503-reloads-and-restores-exactly-once',
+	]);
+	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
+	for (const scenario of item.browserScenarios) {
+		assert.match(browserQa, new RegExp(`runScenario\\('${scenario}'`, 'u'));
+	}
+	assert.match(browserQa, /never retried automatically/u);
+	assert.match(browserQa, /exactly one new settlement attempt/u);
+});
+
 test('five-win evidence binds five exact final-presentation replays for every canonical mode', () => {
 	const item = map.items.find((candidate) => candidate.id === 33);
 	assert(item);

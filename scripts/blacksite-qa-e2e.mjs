@@ -2974,6 +2974,120 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('settlement-http-503-reloads-and-restores-exactly-once', async (record) => {
+		const group = 'settlement-http-503-reloads-and-restores-exactly-once';
+		const restoredBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
+		const restoredRound = authoritativeZeroRound({
+			active: true,
+			id: 'blacksite-qa-settlement-recovery',
+			event: encodePresentationCursor(2),
+		});
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: (_request, networkEvidence) =>
+						networkEvidence.byEndpoint.authenticate.length === 1
+							? authenticateResponse()
+							: authenticateResponse({
+									balance: restoredBalance,
+									round: restoredRound,
+								}),
+					play: () => playResponse({ active: true }),
+					event: (request) => ({ event: request.body.event }),
+					endRound: (_request, networkEvidence) =>
+						networkEvidence.byEndpoint.endRound.length === 1
+							? mockHttpResponse(503, {
+									error: {
+										code: 'SETTLEMENT_UNAVAILABLE',
+										message: 'Settlement status must be restored from the authoritative session.',
+									},
+								})
+							: endRoundResponse({ balance: restoredBalance }),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'endRound', 1);
+			await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 10_000 });
+			await waitForRuntimeState(page, 'live-error');
+
+			assertExactRequest(group, network.byEndpoint.endRound[0], {
+				method: 'POST',
+				path: '/wallet/end-round',
+				body: { sessionID: SESSION_ID },
+			});
+			check(group, 'failed settlement keeps Play disabled and exposes explicit restore',
+				await page.locator(SELECTORS.primaryAction).isDisabled() &&
+					await page.locator('[data-testid="recovery-action"]').isVisible(),
+				serialize({ state: await runtimeState(page), order: network.order }),
+			);
+			check(group, 'failed settlement preserves the exact authoritative zero result',
+				(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00',
+				await page.locator(SELECTORS.finalWin).innerText(),
+			);
+			await page.waitForTimeout(300);
+			check(group, 'failed settlement is never retried automatically',
+				network.byEndpoint.endRound.length === 1,
+				serialize(network.order),
+			);
+			record.errorScreenshot = await saveScreenshot(page, 'settlement-http-503-error');
+
+			await page.locator('[data-testid="recovery-action"]').click();
+			await waitForEndpoint(network, 'authenticate', 2);
+			await waitForEndpoint(network, 'endRound', 2);
+			await waitForRuntimeState(page, 'live-ready');
+			await page.waitForTimeout(300);
+
+			for (const request of network.byEndpoint.authenticate) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/wallet/authenticate',
+					body: { sessionID: SESSION_ID, language: 'en' },
+				});
+			}
+			for (const request of network.byEndpoint.endRound) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/wallet/end-round',
+					body: { sessionID: SESSION_ID },
+				});
+			}
+			check(group, 'explicit reload restores the active round without duplicate play or checkpoint writes',
+				network.byEndpoint.play.length === 1 && network.byEndpoint.event.length === 1,
+				serialize(network.order),
+			);
+			check(group, 'explicit reload performs exactly one new settlement attempt',
+				network.byEndpoint.endRound.length === 2,
+				serialize(network.order),
+			);
+			check(group, 'settlement recovery order is authoritative and exact',
+				serialize(network.order) === serialize(['authenticate', 'play', 'event', 'endRound', 'authenticate', 'endRound']),
+				serialize(network.order),
+			);
+			check(group, 'recovered settlement adopts the exact authoritative balance and remains stable',
+				(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$999.00' &&
+					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00' &&
+					network.byEndpoint.endRound.length === 2,
+				serialize({
+					balance: await page.locator(SELECTORS.walletBalance).innerText(),
+					win: await page.locator(SELECTORS.finalWin).innerText(),
+					order: network.order,
+				}),
+			);
+			assertCleanNetwork(group, network);
+			assertOnlyExpectedHttpDiagnostic(group, diagnostics, 503);
+			record.screenshot = await saveScreenshot(page, group);
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('active-restore-no-duplicate-play', async (record) => {
 		const group = 'active-restore-no-duplicate-play';
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
