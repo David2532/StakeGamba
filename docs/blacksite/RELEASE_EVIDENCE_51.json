@@ -84,7 +84,8 @@
 			"browserScenarios": [
 				"active-restore-no-duplicate-play",
 				"uncertain-live-play-reloads-and-restores-without-retry",
-				"settlement-http-503-reloads-and-restores-exactly-once"
+				"settlement-http-503-reloads-and-restores-exactly-once",
+				"settlement-session-expiry-reauthenticates-and-settles-once"
 			]
 		},
 		{

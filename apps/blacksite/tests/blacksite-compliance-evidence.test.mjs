@@ -132,6 +132,7 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 		'active-restore-no-duplicate-play',
 		'uncertain-live-play-reloads-and-restores-without-retry',
 		'settlement-http-503-reloads-and-restores-exactly-once',
+		'settlement-session-expiry-reauthenticates-and-settles-once',
 	]);
 	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
 	for (const scenario of item.browserScenarios) {
@@ -139,6 +140,12 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 	}
 	assert.match(browserQa, /never retried automatically/u);
 	assert.match(browserQa, /exactly one new settlement attempt/u);
+	assert.match(browserQa, /expired settlement session never retries authentication or settlement automatically/u);
+	assert.match(browserQa, /reauthenticated settlement performs exactly one new completion attempt/u);
+	assert.match(
+		browserQa,
+		/serialize\(network\.order\) === serialize\(\['authenticate', 'play', 'event', 'endRound', 'authenticate', 'endRound'\]\)/u,
+	);
 });
 
 test('insufficient-balance evidence binds known guard and authoritative ERR_IPB recovery', () => {
