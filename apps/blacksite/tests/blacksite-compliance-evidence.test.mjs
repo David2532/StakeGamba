@@ -122,6 +122,21 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 	assert.match(browserQa, /exactly one new settlement attempt/u);
 });
 
+test('insufficient-balance evidence binds known guard and authoritative ERR_IPB recovery', () => {
+	const item = map.items.find((candidate) => candidate.id === 14);
+	assert(item);
+	assert.deepEqual(item.browserScenarios, [
+		'known-insufficient-balance-blocks-play',
+		'rgs-err-ipb-after-auth-race-fails-closed',
+	]);
+	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
+	for (const scenario of item.browserScenarios) {
+		assert.match(browserQa, new RegExp(`runScenario\\('${scenario}'`, 'u'));
+	}
+	assert.match(browserQa, /ERR_IPB recovery never retries the rejected paid play automatically/u);
+	assert.match(browserQa, /explicit ERR_IPB reload restores and completes the authoritative active round/u);
+});
+
 test('five-win evidence binds five exact final-presentation replays for every canonical mode', () => {
 	const item = map.items.find((candidate) => candidate.id === 33);
 	assert(item);

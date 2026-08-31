@@ -1108,18 +1108,30 @@ async function runNetworkScenarios(browser, origin) {
 
 	await runScenario('rgs-err-ipb-after-auth-race-fails-closed', async (record) => {
 		const group = 'rgs-err-ipb-after-auth-race-fails-closed';
+		const restoredBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 		try {
 			const network = await installMockRgs(context, {
 				pageOrigin: origin,
 				handlers: {
-					authenticate: () => authenticateResponse(),
+					authenticate: (_request, networkEvidence) =>
+						networkEvidence.byEndpoint.authenticate.length === 1
+							? authenticateResponse()
+							: authenticateResponse({
+									balance: restoredBalance,
+									round: authoritativeZeroRound({
+										active: true,
+										id: 'blacksite-qa-err-ipb-restore',
+										event: encodePresentationCursor(2),
+									}),
+								}),
 					play: () => ({
 						status: {
 							statusCode: 'ERR_IPB',
 							statusMessage: 'Authoritative balance changed before play.',
 						},
 					}),
+					endRound: () => endRoundResponse({ balance: restoredBalance }),
 				},
 			});
 			const { page, diagnostics } = await openPage(context, origin, liveQuery());
@@ -1155,9 +1167,53 @@ async function runNetworkScenarios(browser, origin) {
 			check(group, 'ERR_IPB leaves the result surface byte-for-byte unchanged from pre-play', serialize({ board, finalWin }) === serialize(beforeResultSurface), serialize({ beforeResultSurface, afterResultSurface: { board, finalWin } }));
 			check(group, 'ERR_IPB race disables further play until authoritative reauthentication', await page.locator(SELECTORS.primaryAction).isDisabled(), await page.locator(SELECTORS.primaryAction).innerText());
 			check(group, 'ERR_IPB network order is authenticate then one play', serialize(network.order) === serialize(['authenticate', 'play']), serialize(network.order));
+			const recovery = page.locator('[data-testid="recovery-action"]');
+			check(group, 'ERR_IPB race exposes explicit authoritative reload/restore', await recovery.isVisible() && !(await recovery.isDisabled()), await recovery.innerText());
+			await page.waitForTimeout(300);
+			check(group, 'ERR_IPB recovery never retries the rejected paid play automatically', network.byEndpoint.play.length === 1, serialize(network.order));
+			record.errorScreenshot = await saveScreenshot(page, 'rgs-err-ipb-race-error');
+
+			await recovery.click();
+			await waitForEndpoint(network, 'authenticate', 2);
+			await waitForEndpoint(network, 'endRound', 1);
+			await waitForRuntimeState(page, 'live-ready');
+			await page.waitForTimeout(300);
+
+			for (const request of network.byEndpoint.authenticate) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/wallet/authenticate',
+					body: { sessionID: SESSION_ID, language: 'en' },
+				});
+			}
+			assertExactRequest(group, network.byEndpoint.endRound[0], {
+				method: 'POST',
+				path: '/wallet/end-round',
+				body: { sessionID: SESSION_ID },
+			});
+			check(group, 'explicit ERR_IPB reload restores and completes the authoritative active round',
+				network.byEndpoint.authenticate.length === 2 && network.byEndpoint.endRound.length === 1,
+				serialize(network.order),
+			);
+			check(group, 'ERR_IPB recovery never duplicates the rejected play or writes a checkpoint',
+				network.byEndpoint.play.length === 1 && network.byEndpoint.event.length === 0,
+				serialize(network.order),
+			);
+			check(group, 'ERR_IPB recovery request order is authoritative and exact',
+				serialize(network.order) === serialize(['authenticate', 'play', 'authenticate', 'endRound']),
+				serialize(network.order),
+			);
+			check(group, 'ERR_IPB recovery adopts the exact restored balance and result',
+				(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$999.00' &&
+					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00',
+				serialize({
+					balance: await page.locator(SELECTORS.walletBalance).innerText(),
+					win: await page.locator(SELECTORS.finalWin).innerText(),
+				}),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
-			record.screenshot = await saveScreenshot(page, 'rgs-err-ipb-race');
+			record.screenshot = await saveScreenshot(page, group);
 			record.network = network;
 			record.diagnostics = diagnostics;
 		} finally {
