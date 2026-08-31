@@ -106,6 +106,25 @@ test('currency evidence binds social, native fiat, fallback, and authoritative b
 	}
 });
 
+test('session-expiry evidence binds explicit reauthentication and a fresh deliberate play', () => {
+	const authenticateItem = map.items.find((item) => item.id === 1);
+	const playItem = map.items.find((item) => item.id === 3);
+	assert(authenticateItem);
+	assert(playItem);
+	const scenario = 'expired-session-on-play-reauthenticates-without-automatic-retry';
+	assert(authenticateItem.browserScenarios.includes(scenario));
+	assert(playItem.browserScenarios.includes(scenario));
+	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
+	assert.match(browserQa, new RegExp(`runScenario\\('${scenario}'`, 'u'));
+	assert.match(browserQa, /expired session never retries the rejected play automatically/u);
+	assert.match(browserQa, /reauthentication alone never resubmits the rejected paid action/u);
+	assert.match(browserQa, /a new deliberate action succeeds once after reauthentication/u);
+	assert.match(
+		browserQa,
+		/serialize\(network\.order\) === serialize\(\['authenticate', 'play', 'authenticate', 'play'\]\)/u,
+	);
+});
+
 test('active-round evidence binds uncertain play and failed-settlement recovery', () => {
 	const item = map.items.find((candidate) => candidate.id === 10);
 	assert(item);

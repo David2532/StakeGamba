@@ -13,7 +13,10 @@
 			"id": 1,
 			"requirement": "Authenticate with RGS on launch",
 			"status": "AUTOMATED_PASS",
-			"browserScenarios": ["live-auth-exact"]
+			"browserScenarios": [
+				"live-auth-exact",
+				"expired-session-on-play-reauthenticates-without-automatic-retry"
+			]
 		},
 		{
 			"id": 2,
@@ -29,7 +32,10 @@
 			"id": 3,
 			"requirement": "Legal play sends one authoritative RGS request",
 			"status": "AUTOMATED_PASS",
-			"browserScenarios": ["spacebar-one-base-play-and-blocked-space-zero"]
+			"browserScenarios": [
+				"spacebar-one-base-play-and-blocked-space-zero",
+				"expired-session-on-play-reauthenticates-without-automatic-retry"
+			]
 		},
 		{
 			"id": 4,

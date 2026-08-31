@@ -1328,6 +1328,133 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('expired-session-on-play-reauthenticates-without-automatic-retry', async (record) => {
+		const group = 'expired-session-on-play-reauthenticates-without-automatic-retry';
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: (_request, networkEvidence) =>
+						networkEvidence.byEndpoint.play.length === 1
+							? {
+									status: {
+										statusCode: 'ERR_SESSION',
+										statusMessage: 'The paid session expired before the play was accepted.',
+									},
+								}
+							: playResponse(),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 1);
+			await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 10_000 });
+			await waitForRuntimeState(page, 'live-error');
+
+			assertExactRequest(group, network.byEndpoint.play[0], {
+				method: 'POST',
+				path: '/wallet/play',
+				body: {
+					sessionID: SESSION_ID,
+					currency: 'USD',
+					amount: DEFAULT_BASE_AMOUNT,
+					mode: 'base',
+				},
+			});
+			const recovery = page.locator('[data-testid="recovery-action"]');
+			check(group, 'expired play session is visible, fail-closed and explicitly recoverable',
+				await recovery.isVisible() &&
+					!(await recovery.isDisabled()) &&
+					await page.locator(SELECTORS.primaryAction).isDisabled(),
+				serialize({
+					state: await runtimeState(page),
+					error: await page.locator(SELECTORS.launchError).innerText(),
+				}),
+			);
+			check(group, 'expired session exposes no invented result',
+				(await page.locator(SELECTORS.finalWin).innerText()).trim() === '—' &&
+					(await boardSymbols(page)).every((symbol) => symbol === ''),
+				serialize({
+					win: await page.locator(SELECTORS.finalWin).innerText(),
+					board: await boardSymbols(page),
+				}),
+			);
+			await page.waitForTimeout(300);
+			check(group, 'expired session never retries the rejected play automatically',
+				network.byEndpoint.play.length === 1 &&
+					network.byEndpoint.authenticate.length === 1,
+				serialize(network.order),
+			);
+			record.errorScreenshot = await saveScreenshot(page, 'expired-session-on-play-error');
+
+			await recovery.click();
+			await waitForEndpoint(network, 'authenticate', 2);
+			await waitForStableAction(page);
+			check(group, 'explicit reload performs one reauthentication and restores ready controls',
+				network.byEndpoint.authenticate.length === 2 &&
+					network.byEndpoint.play.length === 1 &&
+					await runtimeState(page) === 'live-ready' &&
+					!(await page.locator(SELECTORS.primaryAction).isDisabled()),
+				serialize({ state: await runtimeState(page), order: network.order }),
+			);
+			await page.waitForTimeout(300);
+			check(group, 'reauthentication alone never resubmits the rejected paid action',
+				network.byEndpoint.play.length === 1,
+				serialize(network.order),
+			);
+
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 2);
+			await waitForStableAction(page);
+			await page.waitForTimeout(200);
+
+			for (const request of network.byEndpoint.authenticate) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/wallet/authenticate',
+					body: { sessionID: SESSION_ID, language: 'en' },
+				});
+			}
+			assertExactRequest(group, network.byEndpoint.play[1], {
+				method: 'POST',
+				path: '/wallet/play',
+				body: {
+					sessionID: SESSION_ID,
+					currency: 'USD',
+					amount: DEFAULT_BASE_AMOUNT,
+					mode: 'base',
+				},
+			});
+			check(group, 'a new deliberate action succeeds once after reauthentication',
+				network.byEndpoint.play.length === 2 &&
+					(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$999.00' &&
+					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00',
+				serialize({
+					balance: await page.locator(SELECTORS.walletBalance).innerText(),
+					win: await page.locator(SELECTORS.finalWin).innerText(),
+					order: network.order,
+				}),
+			);
+			check(group, 'session recovery request order is exact and has no settlement/checkpoint writes',
+				serialize(network.order) === serialize(['authenticate', 'play', 'authenticate', 'play']) &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.screenshot = await saveScreenshot(page, group);
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('recoverable-replay-http-503-visible-read-only', async (record) => {
 		const group = 'recoverable-replay-http-503-visible-read-only';
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
