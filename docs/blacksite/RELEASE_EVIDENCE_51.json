@@ -269,7 +269,7 @@
 		{
 			"id": 33,
 			"requirement": "Five wins per mode match Game Rules",
-			"status": "AUTOMATED_PASS",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
 			"browserScenarios": [
 				"replay-matrix-rules-base-01",
 				"replay-matrix-rules-base-02",
@@ -286,7 +286,8 @@
 				"replay-matrix-rules-blackout-03",
 				"replay-matrix-rules-blackout-04",
 				"replay-matrix-rules-blackout-05"
-			]
+			],
+			"manualOpen": "Human visual sign-off of the five final-presentation wins for each of Base, Deep Access, and BLACKOUT."
 		},
 		{
 			"id": 34,

@@ -72,8 +72,8 @@ test('51-point candidate evidence is complete, identity-bound, and keeps open ga
 			Array.from({ length: 51 }, (_, index) => index + 1),
 		);
 		assert.deepEqual(evidence.summary.byStatus, {
-			AUTOMATED_PASS: 21,
-			AUTOMATED_PASS_MANUAL_OPEN: 17,
+			AUTOMATED_PASS: 20,
+			AUTOMATED_PASS_MANUAL_OPEN: 18,
 			MANUAL_OPEN: 5,
 			EXTERNAL_OPEN: 6,
 			NOT_APPLICABLE: 2,
@@ -115,8 +115,9 @@ test('five-win evidence binds five exact final-presentation replays for every ca
 			(_, index) => `replay-matrix-rules-${modeId}-${String(index + 1).padStart(2, '0')}`,
 		),
 	);
-	assert.equal(item.status, 'AUTOMATED_PASS');
+	assert.equal(item.status, 'AUTOMATED_PASS_MANUAL_OPEN');
 	assert.deepEqual(item.browserScenarios, expectedScenarios);
+	assert.match(item.manualOpen, /Human visual sign-off/u);
 	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
 	assert.match(browserQa, /getGeneratedFixture\(`\$\{modeId\}_win_\$\{ordinal\}`\)/u);
 	assert.match(
