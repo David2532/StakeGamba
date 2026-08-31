@@ -1,5 +1,43 @@
 # Rolling automation metrics
 
+## BS-20260831-21
+
+```yaml
+closed_at_utc: 2026-08-31T08:09:00Z
+sprint_day: 2
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_contract_tests: 19
+focused_contract_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 102
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+verified_ci_run: 33370382251
+verified_ci_status: PASS
+remote_browser_scenarios: 41
+remote_browser_checks_pass: 988
+remote_browser_checks_fail: 0
+remote_concurrent_input: { clicks: 2, space: 1, paid_play_requests: 1 }
+remote_concurrent_pending_state: live-requesting
+remote_concurrent_final_state: live-ready
+remote_unexpected_network_page_request_failures: 0
+remote_expected_negative_path_console_messages: 5
+remote_diagnostics_artifact: 9750141257
+remote_implementation_commit: aa1a4b8b919d1abc5b88db50f450dc2e43508fc7
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/compliance reads, targeted controller/browser-harness inspection, syntax plus one focused contract suite, one complete local code/math gate chain, diff/mode/secret review, one exact Actions run, structured artifact inspection and six exact screenshot reviews. The full local math gate took about 698 seconds; CI completed in about 12.5 minutes. No failed semantic call was repeated unchanged. No subagents, dependencies, binary product assets or token estimates were used.
+
 ## BS-20260831-20
 
 ```yaml

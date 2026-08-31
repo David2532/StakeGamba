@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-21 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `fd0efa69a52e4302a6cb009e4dbdb3073f83387e`
+- Verified implementation commit: `aa1a4b8b919d1abc5b88db50f450dc2e43508fc7`
+- Work item: `BSB-EVIDENCE-001` (bounded competing-input/provider-evidence slice; item remains in progress)
+- Selection reason: unit-level controller coverage existed, but the exact extracted browser candidate did not prove that rapid pointer and keyboard paths cannot create duplicate paid plays while the RGS request is in flight.
+- Before/after evidence: an exact-package scenario now delays `/wallet/play` by 500ms and issues two primary-button clicks plus Space in one burst. Exactly one POST with session, USD, `1000000` and base mode is admitted; primary action and Base Amount are disabled in `live-requesting`; the round returns once to `live-ready`. The scenario has no unexpected requests, console errors, page errors or failed requests.
+- Changed files: Chromium QA, exact-browser contract regression, and sprint memory closeout files.
+- Gates: syntax PASS; focused contracts 19/19 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 102/102 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; isolated package and 51-row evidence resolution PASS; exact Chromium 41/41 scenarios and 988/988 checks PASS; unexpected network/page/request failures 0; `git diff --check` PASS.
+- Visual review: exact 1920x1080, 1366x768, 390x844, 844x390, Replay 360x640 and populated competing-input completion screenshots from artifact `9750141257` inspected. Boards remain square and fully visible, controls remain reachable, intended penguin/vault pixels render, and no overlap, scrollbar, crop or broken-image regression is visible.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. No semantic failure or unchanged tool call was repeated; no dependencies or binary product assets were added.
+- Persistence: implementation was fast-forwarded without force through the connected GitHub API; exact run `33370382251` and artifact `9750141257` succeeded.
+- Residual risk: human rights/Creative approval and cleanup, approved Spine 4.2 rig/authored clips, BLACKOUT/foreground layers, final audio assets and manual listening/device QA, real-device pacing, contractually allowed autoplay, 23 manual checklist gates and 6 external approvals remain open.
+- Next candidate: continue `BSB-EVIDENCE-001` with the highest safe automatable gameplay/provider state not yet current-head proven; manual and external approvals remain explicitly unclaimed.
+
 ## BS-20260831-20 — SUCCESS
 
 - Sprint day: 2
@@ -310,22 +326,3 @@ Newest entries first; retain at most 20.
 - Persistence: local HTTPS push lacked credentials; connected GitHub API created tree-identical commits and fast-forwarded the target branch without force. Final SHA started exactly one workflow.
 - Residual risk: CI/Chromium result is not yet evidence until run `33315820538` completes successfully; the greybox/art/identity/motion/audio/mobile release blockers remain.
 - Next candidate: close `BSB-CI-001` from exact workflow evidence, then `BSB-ID-001` before further character production.
-
-## BS-20260830-01 — SUCCESS
-
-- Sprint day: 1
-- Base commit: `a6282cb1863392ca633c77f3a8e805b104e2b7e8`
-- Verified implementation commit: `2977b4d1ab6ec8250198ce271f0501df509b4bab`
-- Remote memory baseline commit: `8636652946dfa931cf838ebc9a30c602da6748da`
-- Work item: `BSB-RGS-001`
-- Selection reason: a real RGS round whose amount × centi-x product had a fractional micro-unit was rejected by exact cross-product equality, blocking paid live play and active-round restore.
-- Before evidence: `base_small` book 65220, amount `100001`, terminal raw `38`, valid half-up payout `38000`; old check compared `3800000` with `3800038` and threw `ROUND_PAYOUT_AMOUNT_MISMATCH`.
-- After evidence: exact non-negative BigInt half-up conversion; remainder 38/50/75 cases accepted, adjacent payouts rejected; real fixture plus new-play and restore controller paths pass.
-- Product files: `apps/blacksite/src/lib/rgs/contracts.js`, `apps/blacksite/tests/blacksite-rgs.test.mjs`.
-- Workflow files: `AGENTS.md`, `.codex/automation/HOURLY_LOOP.md`, `.codex/memory/*`, corrected `.codex/agents/*` document paths.
-- Gates: focused RGS 32/32 PASS; app lint PASS; full app 69/69 PASS; production build PASS; full math 7/7 and 300,000 books PASS; `git diff --check` PASS. Typecheck BLOCKED because no tool exists. Browser E2E BLOCKED because Chromium is unavailable and both local-install and cloud-localhost paths failed.
-- Visual review: NOT_RUN/BLOCKED for current HEAD. Read-only source audit found M2 greybox UI, missing penguin/vault runtime, no production animation/audio, Base Amount centering defect, mobile mode truncation, and weak focus treatment. No screenshot claim.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`.
-- Persistence: local HTTPS push was credential-blocked; connected GitHub API created tree-identical commits and fast-forwarded the target branch without force.
-- Residual risk: browser-level fractional network/result proof is still absent; overall slot remains far from release candidate quality.
-- Next candidate: `BSB-CI-001`, then `BSB-QA-001` and `BSB-ID-001`.
