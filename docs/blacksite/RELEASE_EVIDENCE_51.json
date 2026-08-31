@@ -171,6 +171,8 @@
 			"status": "AUTOMATED_PASS_MANUAL_OPEN",
 			"browserScenarios": [
 				"authoritative-blackout-vault-transition",
+				"live-natural-base-blackout-enters-and-returns",
+				"live-deep-access-feature-confirms-enters-and-returns",
 				"social-xsc-rules-paytable-and-terminology"
 			],
 			"manualOpen": "Human comparison of final wording with emitted feature sequences."
