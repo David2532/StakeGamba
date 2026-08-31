@@ -1106,6 +1106,48 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('conflicting-auth-step-aliases-fail-closed', async (record) => {
+		const group = 'conflicting-auth-step-aliases-fail-closed';
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse({
+						betConfig: { minStep: 200_000 },
+					}),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 10_000 });
+			await waitForRuntimeState(page, 'live-error');
+			const errorText = (await page.locator(SELECTORS.launchError).innerText()).trim();
+			check(group, 'conflicting step aliases expose the exact fail-closed contract error',
+				/STEP_BET_CONFLICT/.test(errorText) && /stepBet and minStep disagree/i.test(errorText),
+				errorText,
+			);
+			check(group, 'conflicting step aliases never expose an actionable paid-play control',
+				await page.locator(SELECTORS.primaryAction).isDisabled(),
+				serialize({ state: await runtimeState(page), action: await page.locator(SELECTORS.primaryAction).innerText() }),
+			);
+			check(group, 'conflicting step aliases authenticate once and send zero wallet or event writes',
+				network.byEndpoint.authenticate.length === 1
+					&& network.byEndpoint.play.length === 0
+					&& network.byEndpoint.endRound.length === 0
+					&& network.byEndpoint.event.length === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.screenshot = await saveScreenshot(page, 'conflicting-auth-step-aliases');
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('rgs-err-ipb-after-auth-race-fails-closed', async (record) => {
 		const group = 'rgs-err-ipb-after-auth-race-fails-closed';
 		const restoredBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;

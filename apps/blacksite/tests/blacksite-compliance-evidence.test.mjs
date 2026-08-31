@@ -106,6 +106,21 @@ test('currency evidence binds social, native fiat, fallback, and authoritative b
 	}
 });
 
+test('authenticate parameter evidence rejects ambiguous step aliases in the exact browser', () => {
+	const item = map.items.find((candidate) => candidate.id === 9);
+	assert(item);
+	assert.deepEqual(item.browserScenarios, [
+		'authenticate-drives-levels-default-and-modes',
+		'authenticate-empty-levels-exposes-full-step-range',
+		'conflicting-auth-step-aliases-fail-closed',
+		'jurisdiction-disables-space-and-feature-modes-only',
+	]);
+	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
+	assert.match(browserQa, /runScenario\('conflicting-auth-step-aliases-fail-closed'/u);
+	assert.match(browserQa, /conflicting step aliases expose the exact fail-closed contract error/u);
+	assert.match(browserQa, /conflicting step aliases authenticate once and send zero wallet or event writes/u);
+});
+
 test('session-expiry evidence binds explicit reauthentication and a fresh deliberate play', () => {
 	const authenticateItem = map.items.find((item) => item.id === 1);
 	const playItem = map.items.find((item) => item.id === 3);

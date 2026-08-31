@@ -74,6 +74,7 @@
 			"browserScenarios": [
 				"authenticate-drives-levels-default-and-modes",
 				"authenticate-empty-levels-exposes-full-step-range",
+				"conflicting-auth-step-aliases-fail-closed",
 				"jurisdiction-disables-space-and-feature-modes-only"
 			]
 		},
