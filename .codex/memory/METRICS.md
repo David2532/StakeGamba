@@ -1,5 +1,46 @@
 # Rolling automation metrics
 
+## BS-20260831-13
+
+```yaml
+closed_at_utc: 2026-08-31T01:02:00Z
+sprint_day: 2
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 92
+local_app_status: PASS
+local_build: PASS
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_package_verification: PASS
+local_package_books_read_back: 300000
+diagnostic_local_package_failure: unexpected_frontend_assets_top_level
+cancelled_superseded_ci_run: 33345675851
+verified_ci_run: 33345753819
+verified_ci_status: PASS
+remote_app_tests: 92
+remote_full_math_books: 300000
+remote_package_books_read_back: 300000
+remote_package_frontend_files: 9
+remote_package_math_files: 7
+remote_frontend_tree_sha256: fc20dd2ac114db3c1c4143e14a32d62447c7037bb443163899274fad09b5e303
+remote_math_tree_sha256: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+remote_browser_scenarios: 40
+remote_browser_checks_pass: 965
+remote_browser_checks_fail: 0
+remote_diagnostics_artifact: 9742066991
+remote_implementation_commit: 49d113415e2331a1ae0f41bff122a8c9b6870503
+manual_identical_retries: 0
+```
+
+Observed categories: compact memory/package-contract reads, targeted CI/generator/verifier/test edits, one complete local gate chain, exact local package generation and 300,000-book readback, Git-data fast-forwards, two Actions runs, artifact/package inspection and five exact-package screenshot reviews. The first local readback exposed the stale verifier allowlist before its superseded CI run could claim success; one focused correction produced a green exact run. No unchanged failure was repeated, and no subagents, dependencies or token estimates were used.
+
 ## BS-20260831-12
 
 ```yaml

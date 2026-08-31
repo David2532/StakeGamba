@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-13 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `696e0977cf6def96b326596b2b94d4b777cbdd2c`
+- Verified implementation commit: `49d113415e2331a1ae0f41bff122a8c9b6870503`
+- Work item: `BSB-EVIDENCE-001` (isolated exact-package slice; item remains in progress)
+- Selection reason: build/math/browser gates were green but CI did not create, independently read back or browser-test the actual isolated frontend/math candidate required by the repository release contract.
+- Before/after evidence: CI now binds the copied package to exact commit and frontend tree, verifies nine frontend files plus exactly seven math upload files and all 300,000 compressed book/lookup pairs, and serves Chromium from the copied package directory. A real first readback exposed the obsolete `_app`/`index.html` allowlist; it now also admits the required package-local `assets/` root while rejecting any other top-level entry.
+- Changed files: BlackSite workflow, package generator/verifier, package regression test, release QA wording and sprint memory closeout files.
+- Gates: focused package regression 1/1 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 92/92 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS; local and remote isolated-package readback 300,000/300,000 PASS; exact packaged Chromium 40/40 scenarios and 965/965 checks PASS; unexpected console/network/request failures 0; `git diff --check` PASS.
+- Package evidence: exact remote frontend tree `fc20dd2a…e303` (9 files/662,453 bytes), math tree `6bd0c4c7…01da` (7 files/48,697,667 bytes), unchanged math fingerprint `d03fab…78d8`; package lifecycle remains explicitly non-submission-ready and upload unauthorized.
+- Visual review: exact copied-package screenshots at 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 inspected. Penguin/vault assets load from package-local paths; boards and controls remain visible, square, reachable and free of new overlap, scroll or crop regression. No runtime UI changed in this slice.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. One local package failure and one superseded/cancelled CI run led to the focused allowlist correction; no unchanged failure was repeated.
+- Persistence: implementation commits were fast-forwarded without force through the connected GitHub API; exact run `33345753819` and artifact `9742066991` succeeded.
+- Residual risk: the complete 51-point automated/manual/external matrix, manual audio/device listening, authored reel/character sound, asset rights/Creative approval, penguin cleanup/Spine and character/reel polish remain open.
+- Next candidate: continue `BSB-EVIDENCE-001` with the complete gameplay/provider checklist matrix; manual approvals remain explicitly external.
+
 ## BS-20260831-12 — SUCCESS
 
 - Sprint day: 2

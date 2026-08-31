@@ -275,7 +275,7 @@ BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256=<frontend-tree-sha256> \
 node scripts/blacksite-qa-e2e.mjs
 ```
 
-The packager requires a clean worktree, a caller-pinned full commit SHA and a caller-pinned frontend tree SHA. It verifies all seven canonical math inputs against the retained M1 `CANDIDATE_MANIFEST.json`, refuses to overwrite an existing target and writes `uploadAuthorized: false`. Producing these folders is package evidence only; BLACKSITE remains non-submission-ready while production art, Spine, audio, manual device/visual review or external Stake gates are open.
+The packager requires a clean worktree, a caller-pinned full commit SHA and a caller-pinned frontend tree SHA. It verifies all seven canonical math inputs against the retained M1 `CANDIDATE_MANIFEST.json`, refuses to overwrite an existing target and writes `uploadAuthorized: false`. Producing these folders is package evidence only; BLACKSITE remains non-submission-ready while final asset rights/Creative approval, the penguin Spine rig, authored character/reel polish, the final audio mix, manual device/visual review or external Stake gates are open.
 
 ## 12. Clean regeneration gate
 
