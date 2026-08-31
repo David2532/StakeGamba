@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-27 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `bdd21d2fd06f3f3f84164d09d49e95d9ace0a014`
+- Verified implementation commit: `6abd0c1a504d4ba854d983d3ecd552190b261552`
+- Work item: `BSB-EVIDENCE-001` (failed-settlement explicit restore; item remains in progress)
+- Selection reason: after deferring transient mid-feature restore, the next distinct high-value provider gap was an accepted active play whose settlement transport fails; release evidence did not prove absence of automatic retry, duplicate play/checkpoint or duplicate completion.
+- Before/after evidence: the exact package now returns HTTP 503 on the first `/wallet/end-round`, keeps Play unavailable, waits 300ms without retry, and offers `RELOAD / RESTORE`. Explicit reload reauthenticates the active cursor and performs exactly one successful second settlement. Ordered requests are `authenticate → play → event → endRound(503) → authenticate → endRound(success)`; final state is `live-ready` with `$999.00` balance and `$0.00` win.
+- Changed files: Chromium QA, 51-point evidence map, compliance regression and five memory closeout files; runtime UI, math, assets, lockfile and dependencies unchanged.
+- Gates: frozen install PASS; syntax/JSON PASS; focused contracts/compliance 38/38 PASS; exact lint, typecheck 0/0, app tests 106/106, build, math 7/7 with 300,000 books and unchanged fingerprint, isolated package/readback and resolver PASS; Chromium 61/61 scenarios / 1472/1472 checks PASS; unexpected network/page/request failures 0; `git diff --check` and secret/debug review PASS.
+- Visual review: exact 1280x720 error/recovery captures plus 1920x1080, 390x844 and 844x390 geometry from artifact `9773640454` were inspected. The failure action is centered and visible; recovered board, exact values, controls and penguin/vault identity remain visible without overlap, scroll, crop or broken assets. Runtime UI was not changed and manual/device sign-off remains open.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Formatter churn was removed and no unchanged semantic failure was retried.
+- Persistence: exact CI `33432657970` succeeded; implementation was fast-forwarded without force through the connected Git Data path. Artifact digest `sha256:0415a53fa395f61c978f91ec58558e997273488add27be920775aeaabe43245e`.
+- Residual risk: mid-feature restore remains deferred; 23 manual gates, 6 external approvals, rights/Creative cleanup, Spine rig/clips, BLACKOUT/foreground layers, final audio/device QA and real-device pacing remain open.
+- Next candidate: choose the next distinct safe provider/gameplay evidence gap; revisit mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260831-26 — BLOCKED
 
 - Sprint day: 2
@@ -305,19 +321,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation tree was fast-forwarded without force through the connected GitHub API; exact run `33332083126` and artifact `9738046250` succeeded.
 - Residual risk: human rights/Creative review, penguin alpha cleanup and Spine 4.2 rig, BLACKOUT/foreground environment layers, motion/cinematics, audio and complete gameplay/reconnect/Stake release evidence remain open.
 - Next candidate: `BSB-MOTION-001`, while `BSB-ASSET-001` remains open for approval-dependent rig/BLACKOUT work.
-
-## BS-20260830-07 — SUCCESS
-
-- Sprint day: 1
-- Base commit: `af752b0640718ffd4a0cb60edb2e8006586f3181`
-- Verified implementation commit: `85eb4f2bd773e44261044edc3f836a429411f389`
-- Work item: `BSB-ASSET-001` (bounded first character slice; item remains in progress)
-- Selection reason: the exact slot had no runtime character despite the locked penguin/Vaultkeeper identity, making product identity the highest visible release blocker.
-- Before/after evidence: before, the desktop character well was empty. After, an original mature penguin with physical chest lock is visible at 1920x1080 and 1366x768; its 702x1080 WebP loads at natural width 702 and is intentionally hidden at 390x844, 844x390 and 360x640 Replay. The first 1366 screenshot exposed an invisible-image sizing bug; the final screenshot and pixel-bounds assertion prove the fix.
-- Changed files: original/optimized character assets, semantic asset map, slot UI, asset manifest/provenance/ledger, two asset tests, Chromium QA, and sprint memory closeout files.
-- Gates: focused asset tests 6/6 PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 81/81 PASS; production build PASS; exact remote math 7/7 with 300,000 books PASS; exact Chromium 37/37 scenarios and 819/819 checks PASS; console/network/request failures 0; `git diff --check` PASS.
-- Visual review: exact final screenshots at 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 inspected. Desktop character silhouette/lock are legible; compact surfaces preserve board/control priority; no overlap, scroll or board regression observed. Asset is a production candidate, not approved final art.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Image generation was built-in text-only with no visual reference; prompt and rejected-attempt limitations are retained in provenance.
-- Persistence: both implementation commits were tree-identical and fast-forwarded without force through the connected GitHub API; final exact run `33329648477` and artifact `9737374574` succeeded.
-- Residual risk: manual light/alpha cleanup, human rights/Creative review, Spine 4.2 rig, responsive vault environment, motion/cinematics, audio and complete gameplay/reconnect/Stake release evidence remain open.
-- Next candidate: continue `BSB-ASSET-001` with the responsive mechanical-vault environment, then `BSB-MOTION-001`.

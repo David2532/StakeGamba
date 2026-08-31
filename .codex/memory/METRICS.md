@@ -1,5 +1,43 @@
 # Rolling automation metrics
 
+## BS-20260831-27
+
+```yaml
+closed_at_utc: 2026-08-31T20:07:10Z
+sprint_day: 2
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+local_frozen_install: PASS
+focused_syntax_and_json: PASS
+focused_contract_and_compliance_tests: 38
+focused_contract_and_compliance_status: PASS
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 106
+exact_app_status: PASS
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+verified_ci_run: 33432657970
+verified_ci_status: PASS
+remote_browser: { scenarios: 61, checks_pass: 1472, checks_fail: 0, unexpected_failures: 0 }
+remote_settlement_recovery: { authenticate_requests: 2, play_requests: 1, event_requests: 1, end_round_requests: 2, automatic_settlement_retries: 0, final_balance: '$999.00', final_win: '$0.00', final_state: live-ready }
+remote_diagnostics_artifact: 9773640454
+remote_diagnostics_digest: sha256:0415a53fa395f61c978f91ec58558e997273488add27be920775aeaabe43245e
+remote_implementation_commit: 6abd0c1a504d4ba854d983d3ecd552190b261552
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/Stake-contract reads, one frozen install, focused syntax/contracts/compliance, exact Actions verification, structured artifact extraction, five screenshot inspections, diff/secret review, content-addressed fast-forward persistence and memory closeout. Broad formatter churn was fully removed before persistence; one unauthenticated HTTPS push was replaced by the connected Git Data path, and one byte-length assumption was corrected with character-length validation. No unchanged failed retry, subagent, dependency, binary product asset, token estimate or force update was used.
+
 ## BS-20260831-26
 
 ```yaml
