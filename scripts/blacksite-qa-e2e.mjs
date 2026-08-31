@@ -1926,14 +1926,15 @@ async function runNetworkScenarios(browser, origin) {
 
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 1);
-			await waitForStableAction(page);
+			await waitForRuntimeState(page, 'live-ready');
 			const completed = {
 				balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
 				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
 				totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
+				actionDisabled: await page.locator(SELECTORS.primaryAction).isDisabled(),
 			};
 			check(group, 'JPY exact result preserves the authoritative sub-yen payout', completed.finalWin === '¥0.38', serialize(completed));
-			check(group, 'JPY wallet returns to native precision while complete play stays exact', completed.balance === '¥1' && completed.totalPlay === '¥1', serialize(completed));
+			check(group, 'JPY wallet returns to native precision and blocks the now-unaffordable play', completed.balance === '¥1' && completed.totalPlay === '¥1' && completed.actionDisabled, serialize(completed));
 			assertExactRequest(group, network.byEndpoint.play[0], {
 				method: 'POST',
 				path: '/wallet/play',
@@ -1990,12 +1991,13 @@ async function runNetworkScenarios(browser, origin) {
 
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 1);
-			await waitForStableAction(page);
+			await waitForRuntimeState(page, 'live-ready');
 			const completed = {
 				balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
 				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
+				actionDisabled: await page.locator(SELECTORS.primaryAction).isDisabled(),
 			};
-			check(group, 'unknown currency fallback remains stable after authoritative play', completed.balance === '0.23 ZZZ' && completed.finalWin === '0.00 ZZZ', serialize(completed));
+			check(group, 'unknown currency fallback remains stable and blocks the now-unaffordable play', completed.balance === '0.23 ZZZ' && completed.finalWin === '0.00 ZZZ' && completed.actionDisabled, serialize(completed));
 			assertExactRequest(group, network.byEndpoint.play[0], {
 				method: 'POST',
 				path: '/wallet/play',
