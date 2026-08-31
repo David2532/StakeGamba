@@ -1,5 +1,44 @@
 # Rolling automation metrics
 
+## BS-20260831-18
+
+```yaml
+closed_at_utc: 2026-08-31T05:24:00Z
+sprint_day: 2
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_audio_tests: 5
+focused_audio_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 97
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+verified_ci_run: 33359618133
+verified_ci_status: PASS
+remote_browser_scenarios: 40
+remote_browser_checks_pass: 975
+remote_browser_checks_fail: 0
+normal_reel_audio_offsets_ms: [0, 24, 48, 72, 96, 120, 144]
+turbo_reel_audio_offsets_ms: [0, 8, 16, 24, 32, 40, 48]
+audio_reel_pulses: 7
+audio_priority_cues: 1
+audio_ducks: 1
+audio_ambience_instances: 1
+remote_diagnostics_artifact: 9746470203
+remote_implementation_commit: f333f220c9299e6f2c44765ff08fad7c93c97591
+manual_identical_retries: 0
+```
+
+Observed categories: compact memory/audio/QA-rule reads, focused audio regression, one complete local gate chain, diff/mode review, Git-data fast-forward writes, exact Actions/job/artifact reads, structured browser evidence inspection and six screenshot reviews. An explicit formatter produced broad baseline churn and was fully reversed before the semantic patch; one guessed source path was corrected once. Post-push tree comparison found and corrected an unintended executable-bit loss before final evidence. Exact screenshot review exposed a loaded-but-unpainted asset race that automated geometry checks miss. No unchanged failure, subagent, dependency, binary asset or token estimate was used.
+
 ## BS-20260831-17
 
 ```yaml

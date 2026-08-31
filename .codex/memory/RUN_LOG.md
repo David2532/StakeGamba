@@ -2,6 +2,22 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260831-18 — SUCCESS
+
+- Sprint day: 2
+- Base commit: `43d64d6e5b07adbc11c09510e6dc4abbd0f3131a`
+- Verified implementation commit: `f333f220c9299e6f2c44765ff08fad7c93c97591`
+- Work item: `BSB-AUDIO-001` (authored procedural reel/character mix slice; item remains in progress)
+- Selection reason: the safe master bus existed, but board stops had one generic cue, character/feature semantics lacked distinct recipes, and no bounded ambience duck/restore contract existed.
+- Before/after evidence: every authoritative board snapshot now schedules seven bounded reel-stop pulses at exact normal `0/24/48/72/96/120/144ms` or turbo `0/8/16/24/32/40/48ms` offsets. Win, anticipation, BLACKOUT, exfil, cap and settlement map to semantic recipes; priority cues duck then restore the existing ambience bus without duplicating the graph. Exact Chromium records seven pulses, one priority cue/duck, one ambience instance, persisted mute and locked/no-autoplay reload.
+- Changed files: audio director, sound-control telemetry, audio regression suite, Chromium QA, and sprint memory closeout files.
+- Gates: focused audio 5/5 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 97/97 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; package/evidence resolution PASS; exact Chromium 40/40 scenarios and 975/975 checks PASS; unexpected console/network/request failures 0; `git diff --check` PASS.
+- Visual review: exact-tree 1920x1080, 1366x768, 390x844, 844x390, Replay 360x640 and audio-state screenshots inspected. Geometry and controls remain square/on-screen without new overlap, scroll or crop regressions. The final 1920 geometry screenshot omitted loaded character/vault pixels while a later exact audio screenshot rendered the vault, exposing an unresolved decode/paint-readiness race. Automated graph/timing proof is not a listening, clipping or real-device approval claim.
+- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Broad formatter churn was removed, and a post-push executable-mode mismatch was corrected before binding final CI evidence.
+- Persistence: implementation plus the executable-mode correction were fast-forwarded without force through the connected GitHub API; exact run `33359618133` and artifact `9746470203` succeeded.
+- Residual risk: deterministic asset decode/paint readiness, final approved audio assets and manual clipping/listening/device QA, approved Spine 4.2 rig/authored clips, asset rights/Creative approval, real-device frame pacing, 23 manual checklist gates and 6 external approvals remain open.
+- Next candidate: `BSB-ASSET-002` deterministic asset decode/paint readiness, then `BSB-README-001` lifecycle/runbook freshness.
+
 ## BS-20260831-17 — SUCCESS
 
 - Sprint day: 2
