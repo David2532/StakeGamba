@@ -4085,6 +4085,11 @@ async function runNetworkScenarios(browser, origin) {
 				network.byEndpoint.play.length === 0 && network.byEndpoint.endRound.length === 1,
 				serialize(network.order),
 			);
+			assertExactRequest(group, network.byEndpoint.authenticate[0], {
+				method: 'POST',
+				path: '/wallet/authenticate',
+				body: { sessionID: SESSION_ID, language: 'en' },
+			});
 			check(
 				group,
 				'restore persists each remaining durable checkpoint exactly once in order',
