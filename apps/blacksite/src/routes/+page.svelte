@@ -1737,7 +1737,6 @@
 		object-position: center bottom;
 		filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
 		transform-origin: 50% 88%;
-		will-change: transform, filter;
 		opacity: 0;
 	}
 
@@ -1772,6 +1771,15 @@
 		animation: vaultkeeper-max-win 1000ms cubic-bezier(0.18, 0.76, 0.18, 1) both;
 	}
 
+	.vaultkeeper-presence[data-character-state='spin_start'] img,
+	.vaultkeeper-presence[data-character-state='win_acknowledge'] img,
+	.vaultkeeper-presence[data-character-state='feature_tease'] img,
+	.vaultkeeper-presence[data-character-state='feature_trigger'] img,
+	.vaultkeeper-presence[data-character-state='recover'] img,
+	.vaultkeeper-presence[data-character-state='max_win'] img {
+		will-change: transform, filter;
+	}
+
 	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='spin_start'] img,
 	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='win_acknowledge'] img {
 		animation-duration: 110ms;
@@ -1785,6 +1793,10 @@
 	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='recover'] img,
 	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='max_win'] img {
 		animation-duration: 360ms;
+	}
+
+	.vaultkeeper-presence[data-motion-profile='reduced'] img {
+		will-change: auto;
 	}
 
 	.vaultkeeper-safe-fallback {

@@ -2694,6 +2694,7 @@ async function runNetworkScenarios(browser, origin) {
 						state: character?.getAttribute('data-character-state'),
 						profile: character?.getAttribute('data-motion-profile'),
 						animation: image ? getComputedStyle(image).animationName : 'none',
+						willChange: image ? getComputedStyle(image).willChange : 'auto',
 						at: performance.now(),
 					});
 				};
@@ -2767,6 +2768,11 @@ async function runNetworkScenarios(browser, origin) {
 			});
 			check(group, 'static Vaultkeeper fallback follows authoritative spin, board, win and recovery states', orderedCharacterFallback, serialize(turboCharacterStates));
 			check(group, 'Vaultkeeper fallback uses bounded CSS motion only while its semantic state is active', turboCharacterStates.some(({ state, animation }) => state === 'win_acknowledge' && animation.endsWith('vaultkeeper-win-acknowledge')), serialize(turboCharacterStates));
+			check(group, 'Vaultkeeper promotes transform/filter only for active authored reactions',
+				turboCharacterStates.some(({ state, willChange }) => state === 'win_acknowledge' && willChange.includes('transform') && willChange.includes('filter')) &&
+					turboCharacterStates.some(({ state, willChange }) => state === 'idle_a' && willChange === 'auto'),
+				serialize(turboCharacterStates),
+			);
 
 			await page.locator(SELECTORS.motionMode).click();
 			await startFrameSampler(page, 'normal-cascade');
@@ -2815,11 +2821,12 @@ async function runNetworkScenarios(browser, origin) {
 				state: await runtimeState(page),
 				phase: await page.locator(SELECTORS.board).getAttribute('data-motion-phase'),
 				characterState: await page.locator(SELECTORS.vaultkeeper).getAttribute('data-character-state'),
+				characterWillChange: await page.locator(`${SELECTORS.vaultkeeper} img`).evaluate((image) => getComputedStyle(image).willChange),
 				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
 				skipElapsedMs: Date.now() - skippedAt,
 			};
 			check(group, 'Skip drains remaining cues and returns to an idle ready state without deadlock',
-				completed.state === 'live-ready' && completed.phase === 'idle' && completed.characterState === 'idle_a' && completed.skipElapsedMs < 1_000,
+				completed.state === 'live-ready' && completed.phase === 'idle' && completed.characterState === 'idle_a' && completed.characterWillChange === 'auto' && completed.skipElapsedMs < 1_000,
 				serialize(completed),
 			);
 			check(group, 'Turbo and skipped plays preserve the exact authoritative final payout',

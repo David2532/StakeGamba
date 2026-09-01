@@ -744,6 +744,22 @@ test('BLACKOUT environment pulse stays on compositor-friendly opacity', () => {
 	);
 });
 
+test('Vaultkeeper compositor hints are bounded to active reactions', () => {
+	const source = readFileSync(join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'), 'utf8');
+	const baseImageRule = source.match(/\.vaultkeeper-presence img \{[\s\S]*?\n\t\}/u)?.[0];
+
+	assert(baseImageRule, 'missing Vaultkeeper image rule');
+	assert.doesNotMatch(baseImageRule, /will-change:/u);
+	assert.match(
+		source,
+		/\.vaultkeeper-presence\[data-character-state='spin_start'\] img,[\s\S]*?\[data-character-state='max_win'\] img \{[\s\S]*?will-change: transform, filter;/u,
+	);
+	assert.match(
+		source,
+		/\.vaultkeeper-presence\[data-motion-profile='reduced'\] img \{\s*will-change: auto;/u,
+	);
+});
+
 test('exact-browser QA deduplicates competing paid-play input paths', () => {
 	const source = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
 	assert.match(source, /concurrent-click-spacebar-deduplicates-paid-play/u);
