@@ -1,5 +1,56 @@
 # Rolling automation metrics
 
+## BS-20260901-25
+
+```yaml
+closed_at_utc: 2026-09-01T22:06:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_replay_before: { pass: 14, fail: 3, status: EXPECTED_FAIL_REPRODUCED }
+focused_syntax_status: PASS
+focused_replay_compliance_after: { pass: 32, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 135
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_seconds: 368
+local_full_math_status: PASS
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 135
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 199b2d5c6f9eb878c10f3193729d165eead32092c87b18301828353d8c62b5d7
+verified_ci_run: 33563146222
+verified_ci_status: PASS
+verified_ci_seconds: 905
+remote_browser: { scenarios: 78, checks_pass: 2223, checks_fail: 0, unexpected_failures: 0 }
+replay_navigation_teardown: { attempts: 2, app_owned_aborts: 1, recovered_gets: 1, authenticate_writes: 0, play_writes: 0, event_writes: 0, settlement_writes: 0, final_state: replay-ready }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9822522754
+remote_diagnostics_digest: sha256:42386a80211fc75ced9eb8202c875da38e3918776ed31857b30c611f61a111b8
+remote_implementation_commit: 2bea9119feb11fab8f2ee2c5d4ea76b085e58d79
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/Replay lifecycle and exact QA reads; one expected-red then green focused Replay regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/debug/scope review; connected Git-data fast-forward; one exact Actions run, artifact evidence and four screenshot inspections. The Stake RGS/Replay skill kept the exact read-only endpoint, query/body absence and zero-wallet-write recovery evidence in scope. One patch context mismatch, one unavailable authenticated HTTPS push, one overly broad registry result and one malformed diagnostic regex were each corrected with a changed safe path; no semantic failure was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260901-24
 
 ```yaml

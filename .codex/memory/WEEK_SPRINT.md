@@ -1,7 +1,7 @@
 # BLACKSITE seven-day sprint
 
 - Sprint window: 2026-08-30 through 2026-09-05 (Europe/Berlin calendar days)
-- Current sprint day: 3
+- Current sprint day: 4
 - Lifecycle: `QA_BLOCKED`
 - Release candidate ready: no
 
@@ -9,13 +9,13 @@
 
 | Area                                     | Current evidence                                                                                                                                                                                   |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Production build                         | PASS — deterministic pre-clean Vite static build plus exact commit/tree/clean identity on run `33553904771`, exit 0, run BS-20260901-24 |
-| Lint                                     | PASS — app lint on exact run `33553904771`, exit 0, run BS-20260901-24 |
-| Typecheck                                | PASS — production source/config `svelte-check`, `checkJs: true`, 0 errors / 0 warnings on exact run `33553904771`, exit 0 |
-| Automated app tests                      | PASS — 133/133, exit 0, exact run `33553904771`, BS-20260901-24; includes RGS transport teardown/reuse plus prior voice/gain graph, auth-timeout, repeated-Replay, active-feature Skip/restore, package, accessibility, provider and gameplay coverage |
-| Math/package invariants                  | PASS — 7/7 math gates and 300,000 books; exact identity-bound package generation/readback PASS; fingerprint `d03fab…78d8`; exact run `33553904771` |
-| Current-head browser/E2E                 | PASS — clean exact commit `a2fcd48`; isolated-package Chromium passed 77/77 scenarios plus 2214/2214 checks; exact build tree `75f1faf9…ac94`; unexpected network/page/request failures 0 |
-| Desktop/portrait/landscape visual review | PASS for current surfaces — exact-package geometry from artifact `9819094154` passed at 1920x1080, 1366x768, 390x844, 360x740, 844x390, 768x1024 and Replay 360x640 plus the orientation round trip. Reload recovery and 1920, 390 and 844 captures were inspected; penguin/vault pixels, named square boards, centered values and >=44px controls remain visible without overlap, document scroll or crop regression; listening/screen-reader/physical-device sign-off remains open |
+| Production build                         | PASS — deterministic pre-clean Vite static build plus exact commit/tree/clean identity on run `33563146222`, exit 0, run BS-20260901-25 |
+| Lint                                     | PASS — app lint on exact run `33563146222`, exit 0, run BS-20260901-25 |
+| Typecheck                                | PASS — production source/config `svelte-check`, `checkJs: true`, 0 errors / 0 warnings on exact run `33563146222`, exit 0 |
+| Automated app tests                      | PASS — 135/135, exit 0, exact run `33563146222`, BS-20260901-25; includes Replay and live-RGS transport teardown/reuse plus prior voice/gain graph, auth-timeout, repeated-Replay, active-feature Skip/restore, package, accessibility, provider and gameplay coverage |
+| Math/package invariants                  | PASS — 7/7 math gates and 300,000 books; exact identity-bound package generation/readback PASS; fingerprint `d03fab…78d8`; exact run `33563146222` |
+| Current-head browser/E2E                 | PASS — clean exact commit `2bea911`; isolated-package Chromium passed 78/78 scenarios plus 2223/2223 checks; exact build tree `199b2d5c…b5d7`; unexpected network/page/request failures 0 |
+| Desktop/portrait/landscape visual review | PASS for current surfaces — exact-package geometry from artifact `9822522754` passed at 1920x1080, 1366x768, 390x844, 360x740, 844x390, 768x1024 and Replay 360x640 plus the orientation round trip. Replay teardown recovery and 1920, 390 and 844 captures were inspected; penguin/vault pixels, named square boards, centered values and >=44px controls remain visible without overlap, document scroll or crop regression; listening/screen-reader/physical-device sign-off remains open |
 | Live wallet/replay/restore               | PARTIAL — real auth-timeout abort/reload, dynamic/ambiguous authenticate parameters, fractional new-play/restore, uncertain paid-play reload/restore, event-driven active-feature cursor restore, active-feature Skip with all 51 checkpoints and exactly one settlement, auth-503, expired-play and expired-settlement explicit reauthentication, failed-settlement and `ERR_IPB` recovery with no automatic or duplicate write, competing-input plus held-Space/global and held-Enter/focused-action deduplication, exact currency families, natural/confirmed feature plays and Social Replay loss/win/feature/max-win surfaces are current-package browser proven; broader provider evidence remains |
 | Gameplay state matrix                    | PARTIAL — exact current-package proof covers five deterministic rule wins per canonical mode plus natural Base and confirmed Deep Access feature entry/cycles/exit/ready cleanup; the full requested production interaction matrix is not yet current-head proven |
 | Player HUD/responsiveness/accessibility  | PASS for the current automated control surface — computed centering, uncut labels, >=44px touch geometry, safe viewport placement, real double-tap/no-zoom plus touch-scroll behavior, 3px/2px keyboard focus, named route/presentation groups, atomic state/net-position statuses, a named non-live timer, exact high-cost descriptions and a ten-entry visible interaction guide pass exact-package checks; real screen-reader/device sign-off remains open |
@@ -84,6 +84,8 @@ Run `BS-20260901-22` closes the browser-level authentication-timeout recovery ev
 Run `BS-20260901-23` closes a retained Web Audio graph leak. Voice oscillators now own paired gain nodes and disconnect both on mute, eight-voice-cap eviction and natural completion; the expected-red gain assertion reproduced the defect first. Exact Chromium measures graph edges `5 → 1` on mute, gain disconnects `9 → 12`, zero voices/ambience and no orphan voice edge. Exact CI run `33545045810` passes 131 tests, full math/package gates and 76 Chromium scenarios / 2202 checks; final approved assets and manual listening/clipping/device QA remain open.
 
 Run `BS-20260901-24` closes a live-session transport-lifecycle gap. The client owns and aborts every pending request on controller/page teardown, distinguishes lifecycle cancellation from the 10-second timeout, and remains reusable. Exact Chromium reloads during a stalled authenticate, records one app-owned abort, performs one successful recovery authenticate and zero play/event/settlement writes. Exact CI run `33553904771` passes 133 tests, full math/package gates and 77 Chromium scenarios / 2214 checks; broader provider and human approval evidence remains open.
+
+Run `BS-20260901-25` closes the matching read-only Replay transport-lifecycle gap. The client owns and aborts every pending Replay GET on controller/page teardown, distinguishes lifecycle cancellation from the 10-second timeout, and remains reusable. Exact Chromium reloads during a stalled Replay read, records one app-owned abort, performs one exact queryless recovery GET and zero authenticate/play/event/settlement writes. Exact CI run `33563146222` passes 135 tests, full math/package gates and 78 Chromium scenarios / 2223 checks; broader provider and human approval evidence remains open.
 
 ## Day milestones
 
