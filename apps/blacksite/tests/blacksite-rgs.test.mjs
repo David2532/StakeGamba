@@ -137,10 +137,11 @@ function response(body, { ok = true, status = 200 } = {}) {
 	};
 }
 
-function fakeClient({ authenticate, play, saveEvent, endRound } = {}) {
+function fakeClient({ authenticate, play, saveEvent, endRound, abortPending } = {}) {
 	const calls = { authenticate: [], play: [], saveEvent: [], endRound: [] };
 	return {
 		calls,
+		...(typeof abortPending === 'function' ? { abortPending } : {}),
 		async authenticate(args) {
 			calls.authenticate.push(clone(args));
 			return typeof authenticate === 'function'
@@ -620,6 +621,40 @@ test('live RGS client classifies HTTP, API, JSON, network, funds and timeout fai
 	});
 });
 
+test('live RGS client aborts every pending transport without poisoning later requests', async () => {
+	let requestCount = 0;
+	const abortedRequests = [];
+	const client = createLiveRgsClient({
+		baseUrl: 'https://rgs.example',
+		timeoutMs: 1_000,
+		fetchImpl: async (_url, { signal }) => {
+			const requestId = ++requestCount;
+			if (requestId === 3) return response(authPayload());
+			return new Promise((_resolve, reject) => {
+				signal.addEventListener('abort', () => {
+					abortedRequests.push(requestId);
+					reject(Object.assign(new Error('aborted'), { name: 'AbortError' }));
+				}, { once: true });
+			});
+		},
+	});
+
+	assert.equal(typeof client.abortPending, 'function');
+	const authenticate = client.authenticate({ sessionID: 'session-1' });
+	const play = client.play({
+		sessionID: 'session-1',
+		currency: 'XSC',
+		amountApi: 1_000_000,
+		mode: 'base',
+	});
+	await Promise.resolve();
+	assert.equal(client.abortPending(), 2);
+	await assert.rejects(authenticate, (error) => error.code === 'RGS_ABORTED');
+	await assert.rejects(play, (error) => error.code === 'RGS_ABORTED');
+	assert.deepEqual(abortedRequests, [1, 2]);
+	assert.deepEqual(await client.authenticate({ sessionID: 'session-1' }), authPayload());
+});
+
 test('LiveSessionController deduplicates authentication and trusts only RGS balances', async () => {
 	let releaseAuthenticate;
 	const client = fakeClient({
@@ -1022,10 +1057,14 @@ test('LiveSessionController deduplicates play and fails closed on authoritative 
 
 test('LiveSessionController ignores late authentication after destroy', async () => {
 	let releaseAuthenticate;
+	let abortCount = 0;
 	const client = fakeClient({
 		authenticate: () => new Promise((resolve) => {
 			releaseAuthenticate = () => resolve(authPayload());
 		}),
+		abortPending: () => {
+			abortCount += 1;
+		},
 	});
 	const controller = new LiveSessionController({
 		client,
@@ -1036,6 +1075,7 @@ test('LiveSessionController ignores late authentication after destroy', async ()
 	await Promise.resolve();
 	assert.equal(client.calls.authenticate.length, 1);
 	controller.destroy();
+	assert.equal(abortCount, 1);
 	releaseAuthenticate();
 	const snapshot = await pending;
 	assert.equal(snapshot.status, 'destroyed');

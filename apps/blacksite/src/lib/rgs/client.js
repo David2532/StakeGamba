@@ -62,10 +62,30 @@ export function createLiveRgsClient(options = {}) {
 	}
 
 	const endpoint = (path) => `${baseUrl}${path}`;
+	const activeControllers = new Set();
+
+	const abortPending = () => {
+		const controllers = [...activeControllers];
+		activeControllers.clear();
+		for (const controller of controllers) controller.abort();
+		return controllers.length;
+	};
 
 	const post = async (path, body) => {
 		const controller = new AbortController();
-		const timer = setTimeout(() => controller.abort(), timeoutMs);
+		let timedOut = false;
+		activeControllers.add(controller);
+		const timer = setTimeout(() => {
+			timedOut = true;
+			controller.abort();
+		}, timeoutMs);
+		const release = () => {
+			clearTimeout(timer);
+			activeControllers.delete(controller);
+		};
+		const abortedError = (cause) => timedOut
+			? clientError('RGS_TIMEOUT', `RGS ${path} timed out.`, { path, timeoutMs }, cause)
+			: clientError('RGS_ABORTED', `RGS ${path} was cancelled.`, { path }, cause);
 		let response;
 		try {
 			response = await fetchImpl(endpoint(path), {
@@ -80,9 +100,9 @@ export function createLiveRgsClient(options = {}) {
 				redirect: 'error',
 			});
 		} catch (cause) {
-			clearTimeout(timer);
+			release();
 			if (controller.signal.aborted || cause?.name === 'AbortError') {
-				throw clientError('RGS_TIMEOUT', `RGS ${path} timed out.`, { path, timeoutMs }, cause);
+				throw abortedError(cause);
 			}
 			throw clientError('RGS_NETWORK_ERROR', `RGS ${path} failed before a response was received.`, { path }, cause);
 		}
@@ -91,16 +111,16 @@ export function createLiveRgsClient(options = {}) {
 		try {
 			text = await response.text();
 		} catch (cause) {
-			clearTimeout(timer);
+			release();
 			if (controller.signal.aborted || cause?.name === 'AbortError') {
-				throw clientError('RGS_TIMEOUT', `RGS ${path} timed out.`, { path, timeoutMs }, cause);
+				throw abortedError(cause);
 			}
 			throw clientError('RGS_RESPONSE_READ_ERROR', `RGS ${path} response could not be read.`, {
 				path,
 				status: response.status,
 			}, cause);
 		}
-		clearTimeout(timer);
+		release();
 		let data;
 		try {
 			data = text ? JSON.parse(text) : null;
@@ -142,6 +162,7 @@ export function createLiveRgsClient(options = {}) {
 
 	return Object.freeze({
 		baseUrl,
+		abortPending,
 		authenticate({ sessionID, language }) {
 			const body = { sessionID: requireString(sessionID, 'sessionID') };
 			if (language !== undefined && language !== null) {

@@ -435,6 +435,7 @@ export class LiveSessionController {
 		if (this.destroyed) return;
 		this.generation += 1;
 		this.destroyed = true;
+		if (typeof this.client.abortPending === 'function') this.client.abortPending();
 		this.eventPromise = null;
 		this.state = {
 			...this.state,

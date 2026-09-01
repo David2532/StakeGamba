@@ -26,7 +26,8 @@
 				"invalid-rgs-url-fails-closed-before-network",
 				"invalid-session-auth-response-fails-closed",
 				"recoverable-auth-http-503-reloads-and-recovers",
-				"recoverable-auth-timeout-reloads-and-recovers"
+				"recoverable-auth-timeout-reloads-and-recovers",
+				"navigation-teardown-aborts-auth-without-wallet-write"
 			]
 		},
 		{
