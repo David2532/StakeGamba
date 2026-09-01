@@ -32,6 +32,20 @@ test('high-cost confirmation binds factor and exact amount to its accessible des
 	assert.match(source, /<strong id="confirm-total">\{totalAmountText\}<\/strong>/u);
 });
 
+test('vault board exposes a named 7x7 row-owned grid with explicit cell positions', async () => {
+	const source = await readFile(pageUrl, 'utf8');
+
+	assert.match(
+		source,
+		/role="grid"[\s\S]*?aria-label="Vault symbol grid"[\s\S]*?aria-rowcount="7"[\s\S]*?aria-colcount="7"/u,
+	);
+	assert.match(source, /class="board-row" role="row" aria-rowindex=\{row \+ 1\}/u);
+	assert.match(
+		source,
+		/role="gridcell"[\s\S]*?aria-rowindex=\{cell\.row \+ 1\}[\s\S]*?aria-colindex=\{cell\.column \+ 1\}/u,
+	);
+});
+
 test('exact-package browser QA verifies semantic groups, status regions and confirmation description', async () => {
 	const source = await readFile(browserQaUrl, 'utf8');
 
@@ -40,4 +54,5 @@ test('exact-package browser QA verifies semantic groups, status regions and conf
 	assert.match(source, /confirmation accessible description binds the mode factor and exact complete amount/u);
 	assert.match(source, /every visible game control maps to a Game Information guide entry/u);
 	assert.match(source, /interaction guide documents touch, keyboard, Space and Escape behaviour/u);
+	assert.match(source, /board exposes one named 7x7 ARIA grid with explicit row ownership and positions/u);
 });

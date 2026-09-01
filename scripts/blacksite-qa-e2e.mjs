@@ -4243,6 +4243,7 @@ async function geometryAudit(page) {
 		const environmentImage = environment?.querySelector('img') ?? null;
 		const boardBounds = rect(board);
 		const cells = board ? [...board.querySelectorAll('[role="gridcell"]')] : [];
+		const rows = board ? [...board.querySelectorAll(':scope > [role="row"]')] : [];
 		const focusedElement = document.activeElement;
 		const focusedStyle = focusedElement ? getComputedStyle(focusedElement) : null;
 		const meterCells = [...document.querySelectorAll('.meter-row > div')];
@@ -4281,6 +4282,23 @@ async function geometryAudit(page) {
 				visible: isVisible(board),
 				bounds: boardBounds,
 				insideViewport: insideViewport(boardBounds),
+				role: board?.getAttribute('role') ?? null,
+				label: board?.getAttribute('aria-label') ?? null,
+				rowCount: board?.getAttribute('aria-rowcount') ?? null,
+				columnCount: board?.getAttribute('aria-colcount') ?? null,
+				rows: rows.map((row, rowIndex) => ({
+					role: row.getAttribute('role'),
+					rowIndex: row.getAttribute('aria-rowindex'),
+					cells: [...row.querySelectorAll(':scope > [role="gridcell"]')].map(
+						(cell, columnIndex) => ({
+							rowIndex: cell.getAttribute('aria-rowindex'),
+							columnIndex: cell.getAttribute('aria-colindex'),
+							label: cell.getAttribute('aria-label'),
+							expectedRowIndex: String(rowIndex + 1),
+							expectedColumnIndex: String(columnIndex + 1),
+						}),
+					),
+				})),
 				cellCount: cells.length,
 				visibleCellCount: cells.filter(isVisible).length,
 			},
@@ -4359,6 +4377,30 @@ function assertGeometryRecord(group, audit, viewport) {
 	check(group, '7x7 board exists and is visible', audit.board.exists && audit.board.visible, serialize(audit.board));
 	check(group, 'board is fully inside viewport', audit.board.insideViewport, serialize(audit.board.bounds));
 	check(group, 'board contains 49 visible cells', audit.board.cellCount === 49 && audit.board.visibleCellCount === 49, serialize(audit.board));
+	check(
+		group,
+		'board exposes one named 7x7 ARIA grid with explicit row ownership and positions',
+		audit.board.role === 'grid' &&
+			audit.board.label === 'Vault symbol grid' &&
+			audit.board.rowCount === '7' &&
+			audit.board.columnCount === '7' &&
+			audit.board.rows.length === 7 &&
+			audit.board.rows.every(
+				(row, rowIndex) =>
+					row.role === 'row' &&
+					row.rowIndex === String(rowIndex + 1) &&
+					row.cells.length === 7 &&
+					row.cells.every(
+						(cell) =>
+							cell.rowIndex === cell.expectedRowIndex &&
+							cell.columnIndex === cell.expectedColumnIndex &&
+							cell.label?.includes(
+								`Column ${cell.expectedColumnIndex}, row ${cell.expectedRowIndex}`,
+							),
+					),
+			),
+		serialize(audit.board.rows),
+	);
 	check(group, 'player HUD and vault connection status are visible', audit.playerHud.visible && audit.playerHud.launchStatusVisible, serialize(audit.playerHud));
 	check(group, 'player HUD exposes no internal schema or greybox diagnostics', audit.playerHud.forbiddenVisibleCopy.length === 0, serialize(audit.playerHud));
 	const expectsVaultkeeper = viewport.width > 820 && viewport.height > 560;

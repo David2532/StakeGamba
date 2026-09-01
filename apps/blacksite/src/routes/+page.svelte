@@ -41,6 +41,9 @@
 		column: index % 7,
 		row: Math.floor(index / 7),
 	}));
+	const boardRows = Array.from({ length: 7 }, (_, row) =>
+		boardCells.slice(row * 7, row * 7 + 7),
+	);
 	const symbolPresentation = Object.freeze({
 		byte: Object.freeze({ label: 'BYTE', mark: '01' }),
 		relay: Object.freeze({ label: 'RELAY', mark: '↯' }),
@@ -1027,40 +1030,48 @@
 					data-motion-phase={presentation.motion?.phase ?? 'idle'}
 					data-motion-profile={presentationTimingProfile}
 					role="grid"
+					aria-label="Vault symbol grid"
 					aria-rowcount="7"
 					aria-colcount="7"
 				>
-					{#each boardCells as cell}
-						{@const symbol = symbolAt(cell)}
-						<div
-							class="cell"
-							class:live={liveKeys.has(cellKey(cell))}
-							class:dormant={dormantKeys.has(cellKey(cell))}
-							class:sealed={sealedKeys.has(cellKey(cell))}
-							class:cluster-active={activeClusterKeys.has(cellKey(cell))}
-							class:motion-hit={presentation.motion?.phase === 'hit' &&
-								activeMotionKeys.has(cellKey(cell))}
-							class:motion-remove={presentation.motion?.phase === 'remove' &&
-								activeMotionKeys.has(cellKey(cell))}
-							class:motion-drop={presentation.motion?.phase === 'drop' &&
-								activeMotionKeys.has(cellKey(cell))}
-							class:motion-settle={presentation.motion?.phase === 'settle' &&
-								activeMotionKeys.has(cellKey(cell))}
-							data-column={cell.column}
-							data-row={cell.row}
-							style={`--reel-column: ${cell.column}; --reel-row: ${cell.row};`}
-							data-symbol={symbol ?? ''}
-							data-cluster-active={activeClusterKeys.has(cellKey(cell))}
-							role="gridcell"
-							aria-label={`Column ${cell.column + 1}, row ${cell.row + 1}, ${symbol ? symbolPresentation[symbol].label : 'concealed'}${activeClusterKeys.has(cellKey(cell)) ? ', active cluster' : ''}`}
-						>
-							{#if symbol}
-								<span class="symbol-mark" aria-hidden="true">{symbolPresentation[symbol].mark}</span
+					{#each boardRows as rowCells, row}
+						<div class="board-row" role="row" aria-rowindex={row + 1}>
+							{#each rowCells as cell}
+								{@const symbol = symbolAt(cell)}
+								<div
+									class="cell"
+									class:live={liveKeys.has(cellKey(cell))}
+									class:dormant={dormantKeys.has(cellKey(cell))}
+									class:sealed={sealedKeys.has(cellKey(cell))}
+									class:cluster-active={activeClusterKeys.has(cellKey(cell))}
+									class:motion-hit={presentation.motion?.phase === 'hit' &&
+										activeMotionKeys.has(cellKey(cell))}
+									class:motion-remove={presentation.motion?.phase === 'remove' &&
+										activeMotionKeys.has(cellKey(cell))}
+									class:motion-drop={presentation.motion?.phase === 'drop' &&
+										activeMotionKeys.has(cellKey(cell))}
+									class:motion-settle={presentation.motion?.phase === 'settle' &&
+										activeMotionKeys.has(cellKey(cell))}
+									data-column={cell.column}
+									data-row={cell.row}
+									style={`--reel-column: ${cell.column}; --reel-row: ${cell.row};`}
+									data-symbol={symbol ?? ''}
+									data-cluster-active={activeClusterKeys.has(cellKey(cell))}
+									role="gridcell"
+									aria-rowindex={cell.row + 1}
+									aria-colindex={cell.column + 1}
+									aria-label={`Column ${cell.column + 1}, row ${cell.row + 1}, ${symbol ? symbolPresentation[symbol].label : 'concealed'}${activeClusterKeys.has(cellKey(cell)) ? ', active cluster' : ''}`}
 								>
-								<strong>{symbolPresentation[symbol].label}</strong>
-							{:else}
-								<span class="concealed-cell" aria-hidden="true"></span>
-							{/if}
+									{#if symbol}
+										<span class="symbol-mark" aria-hidden="true"
+											>{symbolPresentation[symbol].mark}</span
+										>
+										<strong>{symbolPresentation[symbol].label}</strong>
+									{:else}
+										<span class="concealed-cell" aria-hidden="true"></span>
+									{/if}
+								</div>
+							{/each}
 						</div>
 					{/each}
 				</div>
@@ -1989,11 +2000,19 @@
 
 	.board {
 		display: grid;
-		grid-template-columns: repeat(7, 1fr);
+		grid-template-columns: minmax(0, 1fr);
 		grid-template-rows: repeat(7, 1fr);
 		gap: clamp(2px, 0.28vw, 5px);
 		width: 100%;
 		height: 100%;
+	}
+
+	.board-row {
+		display: grid;
+		grid-template-columns: repeat(7, minmax(0, 1fr));
+		gap: clamp(2px, 0.28vw, 5px);
+		min-width: 0;
+		min-height: 0;
 	}
 
 	.cell {
