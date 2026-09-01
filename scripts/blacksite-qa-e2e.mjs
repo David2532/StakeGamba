@@ -4237,6 +4237,110 @@ async function runGeometryScenarios(browser, origin) {
 		});
 	}
 
+	await runScenario('geometry-mobile-orientation-roundtrip', async (record) => {
+		const group = 'geometry-mobile-orientation-roundtrip';
+		const portrait = viewports.find(({ name }) => name === 'phone-390x844');
+		const landscape = viewports.find(({ name }) => name === 'landscape-844x390');
+		assert.ok(portrait && landscape, 'Orientation QA requires canonical portrait and landscape viewports.');
+		const context = await browser.newContext({
+			viewport: { width: portrait.width, height: portrait.height },
+			isMobile: true,
+			hasTouch: true,
+		});
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: { authenticate: () => authenticateResponse() },
+			});
+			const { page, diagnostics } = await openPage(
+				context,
+				origin,
+				liveQuery({ device: 'mobile' }),
+			);
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+
+			const captureOrientation = async (viewport, phase, expectedEnvironment) => {
+				await page.setViewportSize({ width: viewport.width, height: viewport.height });
+				await page.waitForFunction(
+					({ width, height, expectedEnvironment }) =>
+						innerWidth === width &&
+						innerHeight === height &&
+						document
+							.querySelector('[data-testid="vault-environment"] img')
+							?.currentSrc.endsWith(expectedEnvironment),
+					{ width: viewport.width, height: viewport.height, expectedEnvironment },
+				);
+				const audit = await geometryAudit(page);
+				audit.name = `orientation-${phase}`;
+				audit.surface = 'live-orientation-roundtrip';
+				audit.screenshot = await saveScreenshot(page, `geometry-orientation-${phase}`);
+				evidence.geometry.push(audit);
+				assertGeometryRecord(group, audit, viewport);
+				return audit;
+			};
+
+			const portraitBefore = await captureOrientation(
+				portrait,
+				'portrait-before',
+				'mechanical-vault-portrait-v1.webp',
+			);
+			const landscapeAudit = await captureOrientation(
+				landscape,
+				'landscape',
+				'mechanical-vault-desktop-v1.webp',
+			);
+			const portraitAfter = await captureOrientation(
+				portrait,
+				'portrait-after',
+				'mechanical-vault-portrait-v1.webp',
+			);
+
+			const withinHalfPixel = (left, right) => Math.abs(left - right) <= 0.5;
+			const portraitReturned =
+				portraitBefore.board.bounds &&
+				portraitAfter.board.bounds &&
+				['left', 'top', 'width', 'height'].every((key) =>
+					withinHalfPixel(portraitBefore.board.bounds[key], portraitAfter.board.bounds[key]),
+				) &&
+				portraitBefore.actions.every((beforeAction) => {
+					const afterAction = portraitAfter.actions.find(
+						({ selector }) => selector === beforeAction.selector,
+					);
+					return (
+						beforeAction.bounds &&
+						afterAction?.bounds &&
+						['left', 'top', 'width', 'height'].every((key) =>
+							withinHalfPixel(beforeAction.bounds[key], afterAction.bounds[key]),
+						)
+					);
+				});
+			check(
+				group,
+				'orientation round trip returns to the original portrait composition',
+				Boolean(portraitReturned),
+				serialize({ before: portraitBefore, after: portraitAfter }),
+			);
+			check(
+				group,
+				'orientation round trip preserves one authenticated session and zero wallet writes',
+				network.byEndpoint.authenticate.length === 1 && walletWriteCount(network) === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.orientation = {
+				portraitBefore,
+				landscape: landscapeAudit,
+				portraitAfter,
+			};
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	for (const viewport of replayViewports) {
 		await runScenario(`geometry-${viewport.name}`, async (record) => {
 			const group = `geometry-${viewport.name}`;

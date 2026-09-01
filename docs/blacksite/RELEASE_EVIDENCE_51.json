@@ -230,7 +230,12 @@
 				"geometry-phone-360x740",
 				"geometry-phone-390x844",
 				"geometry-tablet-768x1024",
-				"geometry-landscape-844x390"
+				"geometry-landscape-844x390",
+				"geometry-mobile-orientation-roundtrip"
+			],
+			"browserChecks": [
+				"orientation round trip returns to the original portrait composition",
+				"orientation round trip preserves one authenticated session and zero wallet writes"
 			],
 			"manualOpen": "Final candidate on defined real mobile device floor."
 		},

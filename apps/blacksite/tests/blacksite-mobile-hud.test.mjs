@@ -35,3 +35,15 @@ test('compact motion and info actions retain independent 44px columns', async ()
 		/@media \(max-width: 480px\) \{[\s\S]*?\.action-stack \{[\s\S]*?grid-template-columns: repeat\(3, minmax\(44px, 1fr\)\);[\s\S]*?\.motion-controls \{[\s\S]*?grid-column: 1 \/ 3;[\s\S]*?\.info-action \{[\s\S]*?grid-column: 3;/u,
 	);
 });
+
+test('browser QA proves a live portrait-landscape-portrait reflow without wallet writes', async () => {
+	const source = await readFile(browserQaUrl, 'utf8');
+	assert.match(source, /geometry-mobile-orientation-roundtrip/u);
+	assert.match(source, /mechanical-vault-portrait-v1\.webp/u);
+	assert.match(source, /mechanical-vault-desktop-v1\.webp/u);
+	assert.match(source, /orientation round trip returns to the original portrait composition/u);
+	assert.match(
+		source,
+		/orientation round trip preserves one authenticated session and zero wallet writes/u,
+	);
+});
