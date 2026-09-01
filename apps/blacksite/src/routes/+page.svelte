@@ -60,6 +60,7 @@
 		'feature_ended',
 		'cap_reached',
 	]);
+	const SESSION_TIMER_INTERVAL_MS = 1_000;
 
 	let launch = { kind: 'booting' };
 	let presentation = createInitialPresentationState();
@@ -354,7 +355,7 @@
 			const sessionStartedAtMs = Date.now();
 			sessionTimerHandle = window.setInterval(() => {
 				sessionElapsedSeconds = Math.floor((Date.now() - sessionStartedAtMs) / 1_000);
-			}, 250);
+			}, SESSION_TIMER_INTERVAL_MS);
 		}
 		if (nextState.status === 'authenticating') runtimeState = 'live-authenticating';
 		if (nextState.status === 'playing') runtimeState = 'live-requesting';

@@ -58,6 +58,9 @@ test('jurisdiction readouts announce balance changes without speaking every time
 		/data-testid="session-timer"[\s\S]*?role="timer"[\s\S]*?aria-live="off"[\s\S]*?aria-atomic="true"[\s\S]*?aria-labelledby="session-timer-label"/u,
 	);
 	assert.doesNotMatch(source, /class="jurisdiction-readouts" aria-live=/u);
+	assert.match(source, /const SESSION_TIMER_INTERVAL_MS = 1_000;/u);
+	assert.match(source, /window\.setInterval\([\s\S]*?SESSION_TIMER_INTERVAL_MS\);/u);
+	assert.doesNotMatch(source, /window\.setInterval\([\s\S]*?\}, 250\);/u);
 });
 
 test('exact-package browser QA verifies semantic groups, status regions and confirmation description', async () => {

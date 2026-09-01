@@ -3205,6 +3205,22 @@ async function runNetworkScenarios(browser, origin) {
 			hasTouch: true,
 		});
 		try {
+			await context.addInitScript(() => {
+				const nativeSetInterval = window.setInterval.bind(window);
+				window.__blacksiteIntervalAudit = [];
+				window.setInterval = (handler, delay = 0, ...args) => {
+					const record = { delay: Number(delay), calls: 0 };
+					window.__blacksiteIntervalAudit.push(record);
+					const auditedHandler =
+						typeof handler === 'function'
+							? (...callbackArgs) => {
+								record.calls += 1;
+								return handler(...callbackArgs);
+							}
+							: handler;
+					return nativeSetInterval(auditedHandler, delay, ...args);
+				};
+			});
 			const network = await installMockRgs(context, {
 				pageOrigin: origin,
 				handlers: {
@@ -3267,6 +3283,30 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			const progressedTimer = (await page.locator(SELECTORS.sessionTimer).innerText()).trim();
 			check(group, 'non-live session timer still advances visibly once per second', progressedTimer !== initialUi.sessionTimer && /^\d{2}:\d{2}$/.test(progressedTimer), serialize({ initial: initialUi.sessionTimer, progressed: progressedTimer }));
+			const cadenceBefore = await page.evaluate(() =>
+				window.__blacksiteIntervalAudit.map((record) => ({ ...record })),
+			);
+			await page.waitForTimeout(1_100);
+			const cadenceAfter = await page.evaluate(() =>
+				window.__blacksiteIntervalAudit.map((record) => ({ ...record })),
+			);
+			const timerIntervalBefore = cadenceBefore.find((record) => record.delay === 1_000);
+			const timerIntervalAfter = cadenceAfter.find((record) => record.delay === 1_000);
+			const timerCallbackDelta =
+				timerIntervalBefore && timerIntervalAfter
+					? timerIntervalAfter.calls - timerIntervalBefore.calls
+					: null;
+			check(
+				group,
+				'session timer owns one one-hertz interval with no sub-second polling',
+				cadenceAfter.filter((record) => record.delay === 1_000).length === 1 &&
+					cadenceAfter.every((record) => record.delay >= 1_000) &&
+					timerCallbackDelta !== null &&
+					timerCallbackDelta >= 1 &&
+					timerCallbackDelta <= 2,
+				serialize({ cadenceBefore, cadenceAfter, timerCallbackDelta }),
+			);
+			record.timerCadence = { cadenceBefore, cadenceAfter, timerCallbackDelta };
 
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 1);
