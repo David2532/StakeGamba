@@ -1,5 +1,57 @@
 # Rolling automation metrics
 
+## BS-20260901-11
+
+```yaml
+closed_at_utc: 2026-09-01T08:05:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_motion_tests: 28
+focused_motion_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 123
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 372651
+local_full_gate_duration_seconds: 389
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 123
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 9d699302e55edd591472b13e7dd992152db25dda74fd25a6c9e70d1914361cd9
+verified_ci_run: 33483678009
+verified_ci_status: PASS
+verified_ci_seconds: 905
+remote_browser: { scenarios: 71, checks_pass: 1854, checks_fail: 0, unexpected_failures: 0 }
+remote_blackout_before: { samples: 218, p95_ms: 50.0, max_ms: 66.7, over_50_ms: 4 }
+remote_blackout_after: { samples: 255, p95_ms: 33.4, max_ms: 66.7, over_50_ms: 1, environment_will_change: opacity }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9791347108
+remote_diagnostics_digest: sha256:c3f58c5dad7334a4efaf95bb79dca197a359cee590567702c8039bf65148b4ef
+remote_implementation_commit: cae8c0b9b506236be248dc03eee01c2c0317dbd7
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion source reads, one focused syntax/motion/mobile check, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, connected Git-data fast-forward, exact Actions/artifact reads, before/after pacing extraction and six screenshot inspections. One oversized text blob was truncated by the connector, caught by exact tree comparison and replaced with a full base64 blob before any commit/ref update. No semantic failure was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
 ## BS-20260901-10
 
 ```yaml

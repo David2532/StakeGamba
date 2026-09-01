@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-11 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `ebd5f07b78ef3bc71fc33aacf00af4e75f987557`
+- Verified implementation commit: `cae8c0b9b506236be248dc03eee01c2c0317dbd7`
+- Work item: `BSB-BLACKOUT-PERF-001` (DONE; parent `BSB-MOTION-001` remains in progress)
+- Selection reason: exact current-package evidence measured the full-stage BLACKOUT scenario at 50.0ms p95 with four frames over 50ms, while source inspection found a large responsive vault image animating repaint-heavy CSS brightness/saturation filters.
+- Before/after evidence: the environment plate now animates phase-scoped compositor opacity and exposes `will-change: opacity`; the same exact Chromium scenario improves from 218 samples / 50.0ms p95 / four >50ms frames to 255 samples / 33.4ms p95 / one >50ms frame. Maximum remains 66.7ms, so real-device pacing is not claimed complete.
+- Changed files: route motion CSS, Chromium transition audit, contract regression and five sprint-memory files; math, RGS/wallet behavior, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused contracts/mobile 28/28 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 123/123 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 71/71 scenarios and 1854/1854 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies browser proof.
+- Visual review: exact active BLACKOUT, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9791347108` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024 and the orientation round trip. Dimming/lock geometry, board, controls and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `9d699302e55edd591472b13e7dd992152db25dda74fd25a6c9e70d1914361cd9`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One connector-truncated large blob was caught by exact tree identity and replaced before any ref update; no unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33483678009`, artifact `9791347108` and digest `sha256:c3f58c5dad7334a4efaf95bb79dca197a359cee590567702c8039bf65148b4ef` succeeded.
+- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup and final audio/listening/device QA remain open.
+- Next candidate: add the next safe authored-motion or foreground-layer evidence slice when approved inputs exist; otherwise continue a distinct automatable Day-3/4 provider or accessibility gap.
+
 ## BS-20260901-10 — SUCCESS
 
 - Sprint day: 3
@@ -310,21 +327,5 @@ Newest entries first; retain at most 20.
 - Visual review: exact 1920x1080, 1366x768, 390x844, 844x390, Replay 360x640, JPY 1280x720 and ZZZ 390x844 screenshots from artifact `9753064218` inspected. Boards remain square and fully visible, values and controls remain readable/reachable, intended penguin/vault pixels render, and no overlap, scrollbar, crop or broken-image regression is visible.
 - Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Two distinct CI-only harness assumptions were corrected from computed browser evidence; no unchanged semantic retry, dependency or binary product asset was added.
 - Persistence: implementation was fast-forwarded without force through the connected GitHub API; exact run `33378233377` and artifact `9753064218` succeeded.
-- Residual risk: human rights/Creative approval and cleanup, approved Spine 4.2 rig/authored clips, BLACKOUT/foreground layers, final audio assets and manual listening/device QA, real-device pacing, contractually allowed autoplay, 23 manual checklist gates and 6 external approvals remain open.
-- Next candidate: continue `BSB-EVIDENCE-001` with the highest safe automatable gameplay/provider state not yet current-head proven; manual and external approvals remain explicitly unclaimed.
-
-## BS-20260831-21 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `fd0efa69a52e4302a6cb009e4dbdb3073f83387e`
-- Verified implementation commit: `aa1a4b8b919d1abc5b88db50f450dc2e43508fc7`
-- Work item: `BSB-EVIDENCE-001` (bounded competing-input/provider-evidence slice; item remains in progress)
-- Selection reason: unit-level controller coverage existed, but the exact extracted browser candidate did not prove that rapid pointer and keyboard paths cannot create duplicate paid plays while the RGS request is in flight.
-- Before/after evidence: an exact-package scenario now delays `/wallet/play` by 500ms and issues two primary-button clicks plus Space in one burst. Exactly one POST with session, USD, `1000000` and base mode is admitted; primary action and Base Amount are disabled in `live-requesting`; the round returns once to `live-ready`. The scenario has no unexpected requests, console errors, page errors or failed requests.
-- Changed files: Chromium QA, exact-browser contract regression, and sprint memory closeout files.
-- Gates: syntax PASS; focused contracts 19/19 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 102/102 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; isolated package and 51-row evidence resolution PASS; exact Chromium 41/41 scenarios and 988/988 checks PASS; unexpected network/page/request failures 0; `git diff --check` PASS.
-- Visual review: exact 1920x1080, 1366x768, 390x844, 844x390, Replay 360x640 and populated competing-input completion screenshots from artifact `9750141257` inspected. Boards remain square and fully visible, controls remain reachable, intended penguin/vault pixels render, and no overlap, scrollbar, crop or broken-image regression is visible.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. No semantic failure or unchanged tool call was repeated; no dependencies or binary product assets were added.
-- Persistence: implementation was fast-forwarded without force through the connected GitHub API; exact run `33370382251` and artifact `9750141257` succeeded.
 - Residual risk: human rights/Creative approval and cleanup, approved Spine 4.2 rig/authored clips, BLACKOUT/foreground layers, final audio assets and manual listening/device QA, real-device pacing, contractually allowed autoplay, 23 manual checklist gates and 6 external approvals remain open.
 - Next candidate: continue `BSB-EVIDENCE-001` with the highest safe automatable gameplay/provider state not yet current-head proven; manual and external approvals remain explicitly unclaimed.
