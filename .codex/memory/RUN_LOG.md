@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-15 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `0c25386c2c594f7fd4ab1e1ba7a7f7674276309b`
+- Verified implementation commit: `da091a8f2180602203489cf47cc1b85b52afb220`
+- Work item: `BSB-SPACE-REPEAT-001` (DONE)
+- Selection reason: the global live-play Space handler deduplicated simultaneous input only while a request was busy; it did not reject browser key-repeat events, so holding Space could start another paid round after the first returned to ready.
+- Before/after evidence: the regression was first reproduced as 22 PASS / 1 FAIL against the missing repeat guard. The handler now consumes the Space default and returns before activation when `event.repeat` is true. Exact Chromium holds Space across one complete Base round, observes keydowns `[false, true]`, returns to `live-ready`, and records exactly `authenticate → play` with no second play, checkpoint or settlement write.
+- Changed files: live Space handler, contract regression, exact-browser wallet scenario and five sprint-memory files; pixels/layout, math, RGS request schema, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused contract regression 23/23 PASS after the expected-red reproduction; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 125/125 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 71/71 scenarios and 1860/1860 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run because no browser executable is installed; exact isolated CI supplies browser proof.
+- Visual review: exact held-Space, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9797392950` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024 and the orientation round trip. Board, controls, values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `491c9771daa553e521dc227809aaddfccbed8b20d5d8874fc59f7f3e072fa7d0`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Official URL fetches returned 404, the unauthenticated CLI push used connected Git data, and exact tree identity caught/corrected one executable-mode omission before CI. No unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33499016878`, artifact `9797392950` and digest `sha256:62e347affa51ec8a157d361c7f868be51207306b7e8105408b534cf76fe75988` succeeded.
+- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; revisit mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260901-14 — SUCCESS
 
 - Sprint day: 3
@@ -316,19 +333,3 @@ Newest entries first; retain at most 20.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. No unchanged failed retry or third browser attempt.
 - Residual risk: mid-feature restore remains unproven alongside 23 manual gates, 6 external approvals, rights/Creative cleanup, Spine rig/clips, BLACKOUT/foreground layers, final audio/device QA and real-device pacing.
 - Next candidate: choose a different safe provider/gameplay evidence gap; revisit mid-feature restore only with event-triggered instrumentation rather than a transient runtime-state wait.
-
-## BS-20260831-25 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `72d643f16941f8bfd662fabebe6f8fd60907d040`
-- Verified implementation commit: `b94c0595d237e49c5e680a66362d5df520f29a36`
-- Work item: `BSB-EVIDENCE-001` (live natural-Base and confirmed Deep-Access feature lifecycle; remains in progress)
-- Selection reason: the prior run specified the highest-value missing live-feature path but reverted it when Actions appeared absent; delayed workflow discovery made exact Chromium execution available.
-- Before/after evidence: natural Base and confirmed Deep Access now traverse ordered feature/BLACKOUT/Vaultkeeper entry, cycles, exit and recovery. Base ends `$1000.00` / `$1999.00`; Deep Access stays request-free until its `$4.00` / `4×` confirmation and ends `$2000.00` / `$2996.00`. Each has one exact play, zero settlement/event writes, 49 cells and final `live-ready`/idle.
-- Changed files: browser QA, fail-closed evidence map, compliance regression and five memory files; runtime UI/math/assets unchanged.
-- Gates: focused syntax/contracts 24/24 PASS; frozen install, lint, typecheck 0/0, app tests 105/105, build, math 7/7 with 300,000 books, isolated package/resolver PASS; Chromium 60/60 scenarios and 1440/1440 checks PASS; unexpected failures 0; diff/secret review PASS.
-- Visual review: both feature entry/completion captures and 1920x1080, 390x844, 844x390 inspected without overlap, scroll, crop or broken assets; human wording/device approval remains open.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0.
-- Persistence: recovery run `33395722878` attempt 2 and current-head run `33399981559` attempt 2 succeeded; fast-forward without force; artifact `9761861140`. Attempt 1 isolated transient existing BLACKOUT p95 50.1ms; no threshold was weakened.
-- Residual risk: 23 manual gates, 6 external approvals, rights/Creative cleanup, Spine rig/clips, BLACKOUT/foreground layers, final audio/device QA and real-device pacing.
-- Next candidate: next safe provider/gameplay state within `BSB-EVIDENCE-001`; manual/external evidence remains unclaimed.

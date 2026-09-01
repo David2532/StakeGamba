@@ -1,5 +1,58 @@
 # Rolling automation metrics
 
+## BS-20260901-15
+
+```yaml
+closed_at_utc: 2026-09-01T11:05:38Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_contract_tests_before: { pass: 22, fail: 1, status: EXPECTED_FAIL_REPRODUCED }
+focused_syntax_status: PASS
+focused_contract_tests_after: 23
+focused_contract_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 125
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 363200
+local_full_gate_duration_seconds: null
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 125
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 491c9771daa553e521dc227809aaddfccbed8b20d5d8874fc59f7f3e072fa7d0
+verified_ci_run: 33499016878
+verified_ci_status: PASS
+verified_ci_seconds: 914
+remote_browser: { scenarios: 71, checks_pass: 1860, checks_fail: 0, unexpected_failures: 0 }
+held_space_before: { repeat_guard: false, potential_second_ready_play: true }
+held_space_after: { keydowns: [false, true], play_requests: 1, final_state: live-ready, event_writes: 0, settlement_writes: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9797392950
+remote_diagnostics_digest: sha256:62e347affa51ec8a157d361c7f868be51207306b7e8105408b534cf76fe75988
+remote_implementation_commit: da091a8f2180602203489cf47cc1b85b52afb220
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/provider/input source reads, one expected-red then green focused contract reproduction, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, connected Git-data fast-forwards, exact Actions/artifact reads and five screenshot inspections. The current official Stake URLs returned 404 through the fetcher, so repository-indexed current contracts remained authoritative. One unauthenticated CLI push used the connected Git-data path; an executable-mode omission was caught by exact tree identity and corrected by a normal fast-forward before CI. No unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry and complete local-gate duration were not exposed.
+
 ## BS-20260901-14
 
 ```yaml
