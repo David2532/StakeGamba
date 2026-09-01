@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-14 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `da2a95f30643b8476a8572c3e0f511a84ac8834e`
+- Verified implementation commit: `16f0f438306947e031bc2a670f30d8217eac92b2`
+- Work item: `BSB-AUDIO-MUTE-LIFECYCLE-001` (DONE; parent `BSB-AUDIO-001` remains in progress)
+- Selection reason: zero master gain silenced output but left the ambience oscillator and active Web Audio voices alive, contradicting the no-leak mute lifecycle required for release.
+- Before/after evidence: mute now stops/disconnects all owned voices, ambience oscillator and ambience gain, clears cooldowns and reports 0 voices/0 ambience. Exact Chromium proves LOW unmute recreates exactly one ambience, a second FULL → MUTE cycle returns to 0/0 without stacking, and muted reload remains locked at 0 ambience.
+- Changed files: AudioDirector lifecycle, audio unit regression, exact-browser audio scenario and five sprint-memory files; layout/pixels, math, RGS/wallet authority, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused audio/contract/mobile 39/39 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 124/124 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 71/71 scenarios and 1858/1858 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies browser proof.
+- Visual review: exact muted-audio, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9795406701` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024 and the orientation round trip. Board, controls, values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device/listening sign-off remains open.
+- Package evidence: exact remote frontend tree `17d4348396c592ddaef1dc15fc0e928cf06745cf02a41ae0c83515f0aaa154e3`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One invalid fake-oscillator metric was replaced with lifecycle ownership/node assertions, and local ref sync used a safe fetch-first correction. No unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33493907726`, artifact `9795406701` and digest `sha256:27ecbf55db79e64946da1053968c30568a21cbfe5228c99b9d58681517bdf280` succeeded.
+- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; revisit mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260901-13 — SUCCESS
 
 - Sprint day: 3
@@ -315,19 +332,3 @@ Newest entries first; retain at most 20.
 - Persistence: recovery run `33395722878` attempt 2 and current-head run `33399981559` attempt 2 succeeded; fast-forward without force; artifact `9761861140`. Attempt 1 isolated transient existing BLACKOUT p95 50.1ms; no threshold was weakened.
 - Residual risk: 23 manual gates, 6 external approvals, rights/Creative cleanup, Spine rig/clips, BLACKOUT/foreground layers, final audio/device QA and real-device pacing.
 - Next candidate: next safe provider/gameplay state within `BSB-EVIDENCE-001`; manual/external evidence remains unclaimed.
-
-## BS-20260831-24 — BLOCKED
-
-- Sprint day: 2
-- Base commit: `088ec87dad86a6ff6c8d144802c995dde9977320`
-- Final product-tree commit: `907816cd65c144c47a72f059bc5eaa67d554edc2` (tree-identical to base); memory closeout follows separately
-- Work item: `BSB-EVIDENCE-001` (bounded natural-Base and confirmed Deep-Access live-feature lifecycle; reverted, item remains in progress)
-- Selection reason: exact current-package evidence covered high-cost confirmation and Replay feature wins but not live natural feature entry, direct Deep Access completion and return to `live-ready` with exact wallet/payout/network identity.
-- Attempted evidence: two math-backed fixtures (`base_natural_blackout`, 85 events, 1000×; `deep_access_feature`, 87 events, 2000×) were bound to ordered feature/Vaultkeeper states, exact requests, one-write limits, final 49-cell board, `$1000.00`/`$2000.00` wins and `$1999.00`/`$2996.00` authoritative balances. Checklist item 21 retained human wording review.
-- Gates: focused compliance 5/5 PASS; contracts 19/19 PASS; frozen install, lint and `svelte-check` 0/0 PASS; experimental app tests 105/105 PASS; production build PASS; math 7/7 and 300,000 books PASS in about 400 seconds with unchanged fingerprint; exact package generation/readback PASS; `git diff --check` and secret/debug review PASS. Required Chromium was BLOCKED and GitHub reported no Actions run for the API-authored source commits.
-- Visual review: NOT_RUN. Local Playwright downloads timed out or returned 502/truncated archives; the independent cloud browser denied the loopback preview. No desktop/mobile/feature visual claim is made.
-- Changed files: final source/product tree unchanged after fast-forward revert; closeout updates only `CURRENT_STATE`, `WEEK_SPRINT`, `BACKLOG`, `METRICS` and `RUN_LOG`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One lost verifier session was repeated once. A Git Data truncation was SHA-detected and repaired; no force update or unchanged semantic retry occurred.
-- Persistence: source attempt commits `4dd5821`, `6a65241`, `d6b964c` were superseded by normal fast-forward revert `907816c`. Final product tree is exactly `cdaad614…0723`, matching previously verified `088ec87`; no unverified executable change remains.
-- Residual risk: live feature-entry/return browser evidence remains open alongside 23 manual checklist gates, 6 external approvals, rights/Creative cleanup, Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing.
-- Next candidate: retry the same bounded live-feature slice only when exact Chromium or Actions execution is available; otherwise choose the next safe automatable provider state without claiming manual/external evidence.

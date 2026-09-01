@@ -1,5 +1,57 @@
 # Rolling automation metrics
 
+## BS-20260901-14
+
+```yaml
+closed_at_utc: 2026-09-01T10:01:01Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_audio_contract_mobile_tests: 39
+focused_audio_contract_mobile_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 124
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 367222
+local_full_gate_duration_seconds: null
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 124
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 17d4348396c592ddaef1dc15fc0e928cf06745cf02a41ae0c83515f0aaa154e3
+verified_ci_run: 33493907726
+verified_ci_status: PASS
+verified_ci_seconds: 916
+remote_browser: { scenarios: 71, checks_pass: 1858, checks_fail: 0, unexpected_failures: 0 }
+audio_mute_before: { master_gain: 0, retained_ambience_sources: 1, retained_active_sources: true }
+audio_mute_after: { muted_voices: 0, muted_ambience: 0, unmuted_ambience: 1, remuted_voices: 0, remuted_ambience: 0, restored_muted_ambience: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9795406701
+remote_diagnostics_digest: sha256:27ecbf55db79e64946da1053968c30568a21cbfe5228c99b9d58681517bdf280
+remote_implementation_commit: 16f0f438306947e031bc2a670f30d8217eac92b2
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/audio source reads, one focused syntax/audio/contract/mobile check, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, connected Git-data fast-forward, exact Actions/artifact reads, source-count extraction and five screenshot inspections. One fake-oscillator metric that treated a future stop as immediately inactive was replaced with director ownership plus exact node-state assertions; one local ref update attempted before the remote object was fetched and then used the safe fetch-first path. No unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry and complete local-gate duration were not exposed.
+
 ## BS-20260901-13
 
 ```yaml
