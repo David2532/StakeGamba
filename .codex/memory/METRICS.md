@@ -1,5 +1,58 @@
 # Rolling automation metrics
 
+## BS-20260901-12
+
+```yaml
+closed_at_utc: 2026-09-01T08:35:38Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_character_tests: 29
+focused_character_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 124
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 357447
+local_full_gate_duration_seconds: 373
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 124
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 5760052f8dbbf842bf1eaadea42faffa720ddcc20077893fe33082d219d9c2ff
+verified_ci_run: 33486188541
+verified_ci_status: PASS
+verified_ci_seconds: 881
+remote_browser: { scenarios: 71, checks_pass: 1855, checks_fail: 0, unexpected_failures: 0 }
+remote_vaultkeeper_compositor: { idle_before: 'transform, filter', idle_after: auto, active: 'transform, filter', skip_after: auto }
+remote_turbo_frame_pacing: { samples: 76, p95_ms: 16.7, max_ms: 16.8, over_50_ms: 0 }
+remote_normal_frame_pacing: { samples: 181, p95_ms: 16.8, max_ms: 16.8, over_50_ms: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9792318087
+remote_diagnostics_digest: sha256:64bc591ef7bc85ca53db477c6c614fa65e363bb2353fd2253ffd30be2251323b
+remote_implementation_commit: 1ddeb5d3932d64443c5838c4766f541872b5a6ff
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/animation source reads, one focused syntax/contract/mobile check, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, connected Git-data fast-forward, exact Actions/artifact reads, compositor-state extraction and five screenshot inspections. The unavailable local Playwright browser was not retried; exact isolated CI supplied current-package proof. No semantic failure was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
 ## BS-20260901-11
 
 ```yaml

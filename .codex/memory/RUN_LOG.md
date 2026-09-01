@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-12 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `80884debe87dbc53eb844a9863b4efada7683a26`
+- Verified implementation commit: `1ddeb5d3932d64443c5838c4766f541872b5a6ff`
+- Work item: `BSB-CHARACTER-LAYER-001` (DONE; parent `BSB-MOTION-001` remains in progress)
+- Selection reason: the Vaultkeeper image permanently reserved `transform, filter` compositing in Idle, Monitoring, Bonus Idle and Reduced Motion even though no authored reaction was active.
+- Before/after evidence: the persistent idle hint changes from `transform, filter` to `auto`; active `spin_start`, `win_acknowledge` and `recover` retain `transform, filter`, while monitoring, idle and skip completion return to `auto`. This closes a bounded compositor-lifecycle defect without claiming measured device memory savings.
+- Changed files: route motion CSS, Chromium character-state audit, contract regression and five sprint-memory files; pixels/layout, math, RGS/wallet behavior, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused contracts/mobile 29/29 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 124/124 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 71/71 scenarios and 1855/1855 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies browser proof.
+- Visual review: exact active cascade, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9792318087` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024 and the orientation round trip. Board, controls and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `5760052f8dbbf842bf1eaadea42faffa720ddcc20077893fe33082d219d9c2ff`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Local browser absence was not retried, and no unchanged semantic failure occurred.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33486188541`, artifact `9792318087` and digest `sha256:64bc591ef7bc85ca53db477c6c614fa65e363bb2353fd2253ffd30be2251323b` succeeded.
+- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup and final audio/listening/device QA remain open.
+- Next candidate: add the next safe authored-motion or foreground-layer evidence slice when approved inputs exist; otherwise continue a distinct automatable Day-3/4 provider or accessibility gap.
+
 ## BS-20260901-11 — SUCCESS
 
 - Sprint day: 3
@@ -312,20 +329,4 @@ Newest entries first; retain at most 20.
 - Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Formatter churn was removed and fail-closed evidence caught an over-broad item edit before persistence; no unchanged semantic retry, dependency or binary product asset was added.
 - Persistence: implementation was fast-forwarded without force through the connected GitHub API; exact run `33385664641` and artifact `9755786881` succeeded. Earlier run `33385307848` was deliberately cancelled after the human-gate correction superseded it.
 - Residual risk: human rights/Creative approval and cleanup, approved Spine 4.2 rig/authored clips, BLACKOUT/foreground layers, final audio assets and manual listening/device QA, real-device pacing, 23 manual checklist gates and 6 external approvals remain open. Autoplay is intentionally N/A for this versioned candidate.
-- Next candidate: continue `BSB-EVIDENCE-001` with the highest safe automatable gameplay/provider state not yet current-head proven; manual and external approvals remain explicitly unclaimed.
-
-## BS-20260831-22 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `e657dd9b9f43a65d92f9966c3ad953a101881a6e`
-- Verified implementation commit: `9f2d8888da7956cf7d847f52ff1a2d1216b9496a`
-- Work item: `BSB-EVIDENCE-001` (bounded currency-family/provider-evidence slice; item remains in progress)
-- Selection reason: checklist item 11 referenced only Social XSC and authoritative USD; the exact extracted candidate lacked native zero-decimal and unknown-code fallback proof, leaving currency display/request behavior under-evidenced.
-- Before/after evidence: exact Chromium now authenticates and plays in JPY and ZZZ. JPY shows `¥2` ready balance, `¥1` play, exact `¥0.38` win and final `¥1`; ZZZ shows `1.23 ZZZ`, `1.00 ZZZ`, final `0.23 ZZZ` and `0.00 ZZZ`. Each request carries its exact currency and emits one `/wallet/play`, no settlement write; both return to `live-ready` with the now-unaffordable action disabled. The fail-closed 51-point map binds Social, USD, JPY and fallback scenarios.
-- Changed files: Chromium QA, 51-point evidence map, compliance regression and sprint memory closeout files.
-- Gates: syntax PASS; focused currency/evidence tests 11/11 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 103/103 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; isolated package and 51-row evidence resolution PASS; exact Chromium 43/43 scenarios and 1015/1015 checks PASS; unexpected network/page/request failures 0; `git diff --check` PASS.
-- Visual review: exact 1920x1080, 1366x768, 390x844, 844x390, Replay 360x640, JPY 1280x720 and ZZZ 390x844 screenshots from artifact `9753064218` inspected. Boards remain square and fully visible, values and controls remain readable/reachable, intended penguin/vault pixels render, and no overlap, scrollbar, crop or broken-image regression is visible.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Two distinct CI-only harness assumptions were corrected from computed browser evidence; no unchanged semantic retry, dependency or binary product asset was added.
-- Persistence: implementation was fast-forwarded without force through the connected GitHub API; exact run `33378233377` and artifact `9753064218` succeeded.
-- Residual risk: human rights/Creative approval and cleanup, approved Spine 4.2 rig/authored clips, BLACKOUT/foreground layers, final audio assets and manual listening/device QA, real-device pacing, contractually allowed autoplay, 23 manual checklist gates and 6 external approvals remain open.
 - Next candidate: continue `BSB-EVIDENCE-001` with the highest safe automatable gameplay/provider state not yet current-head proven; manual and external approvals remain explicitly unclaimed.
