@@ -169,6 +169,7 @@ export class ReplayController {
 		this.destroyed = true;
 		this.generation += 1;
 		this.operation = null;
+		if (typeof this.client.abortPending === 'function') this.client.abortPending();
 		if (typeof this.director.destroy === 'function') this.director.destroy();
 		else this.director.reset();
 		this.onState = () => {};

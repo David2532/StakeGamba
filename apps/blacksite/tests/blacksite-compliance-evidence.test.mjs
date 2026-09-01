@@ -165,6 +165,20 @@ test('navigation teardown evidence binds transport cancellation without wallet w
 	assert.match(pageSource, /window\.removeEventListener\('pagehide', destroyLiveSession\)/u);
 });
 
+test('Replay navigation teardown evidence binds read cancellation without wallet writes', () => {
+	const item = map.items.find((candidate) => candidate.id === 40);
+	assert(item);
+	const scenario = 'replay-navigation-teardown-aborts-read-only-load';
+	assert(item.browserScenarios.includes(scenario));
+	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
+	const pageSource = readFileSync(join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'), 'utf8');
+	assert.match(browserQa, new RegExp(`runScenario\\('${scenario}'`, 'u'));
+	assert.match(browserQa, /navigation teardown aborts the pending app-owned Replay transport/u);
+	assert.match(browserQa, /Replay teardown recovery performs one exact GET and zero wallet writes/u);
+	assert.match(pageSource, /window\.addEventListener\('pagehide', destroyReplaySession\)/u);
+	assert.match(pageSource, /window\.removeEventListener\('pagehide', destroyReplaySession\)/u);
+});
+
 test('mute evidence proves active voice and ambience gain nodes leave no orphan graph edges', () => {
 	const item = map.items.find((candidate) => candidate.id === 30);
 	assert(item);

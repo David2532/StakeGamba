@@ -737,6 +737,9 @@
 		const destroyLiveSession = () => {
 			liveSession?.destroy();
 		};
+		const destroyReplaySession = () => {
+			replayController?.destroy();
+		};
 		motionMode = readMotionMode(window.localStorage);
 		const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 		const syncReducedMotion = () => {
@@ -765,6 +768,7 @@
 		launch = resolveLaunchMode(window.location.search, { dev: __BLACKSITE_DEV_FIXTURES__ });
 		window.addEventListener('keydown', keydown);
 		window.addEventListener('pagehide', destroyLiveSession);
+		window.addEventListener('pagehide', destroyReplaySession);
 		if (characterAssetElement?.complete) {
 			void confirmAssetPaint('character', characterAssetElement);
 		}
@@ -824,15 +828,16 @@
 			reducedMotionQuery.removeEventListener('change', syncReducedMotion);
 			window.removeEventListener('keydown', keydown);
 			window.removeEventListener('pagehide', destroyLiveSession);
+			window.removeEventListener('pagehide', destroyReplaySession);
 			destroyLiveSession();
+			destroyReplaySession();
 			if (sessionTimerHandle !== null) window.clearInterval(sessionTimerHandle);
 			if (minimumRoundWait) {
 				window.clearTimeout(minimumRoundWait.timer);
 				minimumRoundWait.resolve();
 				minimumRoundWait = null;
 			}
-			if (replayController) replayController.destroy();
-			else director?.destroy();
+			if (!replayController) director?.destroy();
 			audioDirector?.destroy();
 			delete document.body.dataset.runtimeState;
 			delete document.body.dataset.motionPhase;

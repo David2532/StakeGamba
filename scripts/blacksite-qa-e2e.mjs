@@ -1585,6 +1585,124 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('replay-navigation-teardown-aborts-read-only-load', async (record) => {
+		const group = 'replay-navigation-teardown-aborts-read-only-load';
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			await context.addInitScript(
+				({ rgsOrigin, replayPath }) => {
+					const auditKey = 'blacksite-qa-replay-teardown-audit';
+					const nativeFetch = window.fetch.bind(window);
+					const readAudit = () => {
+						try {
+							return JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
+								attempts: 0,
+								aborts: 0,
+								consumed: false,
+							};
+						} catch {
+							return { attempts: 0, aborts: 0, consumed: false };
+						}
+					};
+					const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
+					window.fetch = (input, init = {}) => {
+						const url = new URL(
+							typeof input === 'string' || input instanceof URL ? input : input.url,
+							window.location.href,
+						);
+						if (url.origin !== rgsOrigin || url.pathname !== replayPath) {
+							return nativeFetch(input, init);
+						}
+						const audit = readAudit();
+						audit.attempts += 1;
+						if (audit.consumed) {
+							writeAudit(audit);
+							return nativeFetch(input, init);
+						}
+						audit.consumed = true;
+						writeAudit(audit);
+						return new Promise((_resolve, reject) => {
+							const signal = init.signal;
+							const abort = () => {
+								const nextAudit = readAudit();
+								nextAudit.aborts += 1;
+								writeAudit(nextAudit);
+								reject(new DOMException('BlackSite QA Replay teardown aborted transport.', 'AbortError'));
+							};
+							if (signal?.aborted) abort();
+							else signal?.addEventListener('abort', abort, { once: true });
+						});
+					};
+				},
+				{
+					rgsOrigin: BLACKSITE_QA_RGS_ORIGIN,
+					replayPath: `/bet/replay/blacksite_breach/${REPLAY_VERSION}/base/teardown-recovery`,
+				},
+			);
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				replayOnly: true,
+				handlers: { replay: () => replayResponse() },
+			});
+			const { page, diagnostics } = await openPage(
+				context,
+				origin,
+				replayQuery({ event: 'teardown-recovery' }),
+			);
+			await page.waitForFunction(() => {
+				const audit = JSON.parse(
+					sessionStorage.getItem('blacksite-qa-replay-teardown-audit') ?? 'null',
+				);
+				return audit?.attempts === 1;
+			});
+			await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
+			await waitForEndpoint(network, 'replay', 1);
+			await waitForStableAction(page);
+			const teardownAudit = await page.evaluate(() =>
+				JSON.parse(sessionStorage.getItem('blacksite-qa-replay-teardown-audit') ?? 'null'),
+			);
+			const replayRequest = network.byEndpoint.replay[0];
+			check(
+				group,
+				'navigation teardown aborts the pending app-owned Replay transport',
+				teardownAudit?.attempts === 2 && teardownAudit?.aborts === 1,
+				serialize(teardownAudit),
+			);
+			check(
+				group,
+				'Replay teardown recovery performs one exact GET and zero wallet writes',
+				replayRequest.method === 'GET' &&
+					replayRequest.path ===
+						`/bet/replay/blacksite_breach/${REPLAY_VERSION}/base/teardown-recovery` &&
+					Object.keys(replayRequest.search).length === 0 &&
+					replayRequest.body === null &&
+					network.byEndpoint.replay.length === 1 &&
+					walletWriteCount(network) === 0,
+				serialize({ audit: teardownAudit, order: network.order, request: replayRequest }),
+			);
+			check(
+				group,
+				'reload after Replay teardown returns to a playable read-only state',
+				(await runtimeState(page)) === 'replay-ready' &&
+					!(await page.locator(SELECTORS.primaryAction).isDisabled()),
+				serialize({ state: await runtimeState(page), audit: teardownAudit }),
+			);
+			check(
+				group,
+				'Replay teardown request order contains only the recovered read',
+				serialize(network.order) === serialize(['replay']),
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.screenshot = await saveScreenshot(page, group);
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('uncertain-live-play-reloads-and-restores-without-retry', async (record) => {
 		const group = 'uncertain-live-play-reloads-and-restores-without-retry';
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });

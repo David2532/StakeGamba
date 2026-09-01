@@ -109,7 +109,7 @@ test('Replay client exposes one read-only method and emits the exact encoded GET
 			return httpResponse(replayPayload());
 		},
 	});
-	assert.deepEqual(Object.keys(client), ['fetchRound']);
+	assert.deepEqual(Object.keys(client), ['fetchRound', 'abortPending']);
 	for (const forbidden of ['authenticate', 'play', 'endRound', 'saveEvent']) {
 		assert.equal(client[forbidden], undefined);
 	}
@@ -199,6 +199,38 @@ test('Replay client classifies HTTP, RGS, JSON, network and timeout failures', a
 			(error) => error instanceof ReplayClientError && error.code === 'REPLAY_TIMEOUT',
 		);
 	});
+});
+
+test('Replay client aborts every pending read and remains reusable', async () => {
+	let successfulFetches = 0;
+	const client = createReplayClient({
+		fetchImpl: async (_url, { signal }) => {
+			if (successfulFetches > 0) return httpResponse(replayPayload());
+			return new Promise((_resolve, reject) => {
+				signal.addEventListener(
+					'abort',
+					() => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })),
+					{ once: true },
+				);
+			});
+		},
+	});
+	const first = client.fetchRound(launch({ event: 'first' }));
+	const second = client.fetchRound(launch({ event: 'second' }));
+	await Promise.resolve();
+	assert.equal(client.abortPending(), 2);
+	await assert.rejects(
+		first,
+		(error) => error instanceof ReplayClientError && error.code === 'REPLAY_ABORTED',
+	);
+	await assert.rejects(
+		second,
+		(error) => error instanceof ReplayClientError && error.code === 'REPLAY_ABORTED',
+	);
+	assert.equal(client.abortPending(), 0);
+
+	successfulFetches += 1;
+	assert.deepEqual(await client.fetchRound(launch({ event: 'recovered' })), replayPayload());
 });
 
 test('Replay normalizer accepts only the direct official response and canonical costs', () => {
@@ -434,18 +466,25 @@ test('ReplayController guards concurrent playback, errors safely and ignores des
 	assert.equal(await failing.play(), false);
 
 	let releaseLoad;
+	let abortPendingCount = 0;
 	const delayed = new ReplayController({
 		client: {
 			fetchRound: async () =>
 				new Promise((resolve) => {
 					releaseLoad = () => resolve(replayPayload());
 				}),
+			abortPending: () => {
+				abortPendingCount += 1;
+				return 1;
+			},
 		},
 		normalizer: normalizer(),
 		director: new FakeDirector(),
 	});
 	const delayedLoad = delayed.load(launch());
 	delayed.destroy();
+	delayed.destroy();
+	assert.equal(abortPendingCount, 1);
 	releaseLoad();
 	assert.equal(await delayedLoad, false);
 	assert.equal(delayed.state.status, 'loading');

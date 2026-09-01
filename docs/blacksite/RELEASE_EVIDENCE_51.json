@@ -384,7 +384,11 @@
 			"id": 40,
 			"requirement": "Replay URL loads and plays requested event read-only",
 			"status": "AUTOMATED_PASS",
-			"browserScenarios": ["replay-read-only-play-again", "replay-matrix-base-win"]
+			"browserScenarios": [
+				"replay-read-only-play-again",
+				"replay-matrix-base-win",
+				"replay-navigation-teardown-aborts-read-only-load"
+			]
 		},
 		{
 			"id": 41,

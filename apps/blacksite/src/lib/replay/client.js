@@ -80,13 +80,15 @@ export function createReplayClient({
 	if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) {
 		throw new TypeError('Replay timeoutMs must be a positive integer.');
 	}
+	const activeRequests = new Set();
 
 	const fetchRound = async (launch) => {
 		const url = replayUrl(launch);
 		const controller = new AbortController();
-		let timedOut = false;
+		const request = { controller, timedOut: false, lifecycleAborted: false };
+		activeRequests.add(request);
 		const timeout = setTimeout(() => {
-			timedOut = true;
+			request.timedOut = true;
 			controller.abort();
 		}, timeoutMs);
 
@@ -101,8 +103,11 @@ export function createReplayClient({
 					redirect: 'error',
 				});
 			} catch (cause) {
-				if (timedOut || cause?.name === 'AbortError') {
+				if (request.timedOut) {
 					throw clientError('REPLAY_TIMEOUT', 'Replay request timed out.', { cause });
+				}
+				if (request.lifecycleAborted && cause?.name === 'AbortError') {
+					throw clientError('REPLAY_ABORTED', 'Replay request was cancelled.', { cause });
 				}
 				throw clientError('REPLAY_NETWORK_ERROR', 'Replay request failed.', { cause });
 			}
@@ -111,8 +116,11 @@ export function createReplayClient({
 			try {
 				text = await response.text();
 			} catch (cause) {
-				if (timedOut || cause?.name === 'AbortError') {
+				if (request.timedOut) {
 					throw clientError('REPLAY_TIMEOUT', 'Replay request timed out.', { cause });
+				}
+				if (request.lifecycleAborted && cause?.name === 'AbortError') {
+					throw clientError('REPLAY_ABORTED', 'Replay request was cancelled.', { cause });
 				}
 				throw clientError('REPLAY_NETWORK_ERROR', 'Replay response could not be read.', {
 					cause,
@@ -141,8 +149,20 @@ export function createReplayClient({
 			return data;
 		} finally {
 			clearTimeout(timeout);
+			activeRequests.delete(request);
 		}
 	};
 
-	return Object.freeze({ fetchRound });
+	const abortPending = () => {
+		let aborted = 0;
+		for (const request of activeRequests) {
+			if (request.controller.signal.aborted) continue;
+			request.lifecycleAborted = true;
+			request.controller.abort();
+			aborted += 1;
+		}
+		return aborted;
+	};
+
+	return Object.freeze({ fetchRound, abortPending });
 }
