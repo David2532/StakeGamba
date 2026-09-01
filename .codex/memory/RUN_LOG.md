@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-07 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `d8d118028f7ed11098bc225cedb55e59401dd6c5`
+- Verified implementation commit: `1f1c1dc0a6b6dd0f6975945774546fc5510d9622`
+- Work item: `BSB-MOTION-PREF-001` (DONE)
+- Selection reason: Normal/Turbo was a user-facing Game Information contract, but the selected speed reset on every reload and exact evidence did not prove how it interacts with the system reduced-motion override.
+- Before/after evidence: one versioned storage contract now persists only Normal/Turbo, defaults safely on invalid or blocked storage, and never stores REDUCED. Exact mobile Chromium selects Turbo, restores it, applies and reloads REDUCED without erasing Turbo, then resumes Turbo after removing the override. Four authentications occur with zero play, settlement or event writes.
+- Changed files: motion-preference runtime helper, page integration, unit/mobile regressions, Chromium QA, checklist evidence and five sprint-memory files; math, RGS/wallet behavior, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused motion/mobile/compliance 19/19 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 119/119 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 70/70 scenarios and 1832/1832 checks PASS; unexpected network/page/request failures 0; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; the exact isolated CI package supplies browser proof.
+- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640, REDUCED override and restored-Turbo captures from artifact `9785970450` were inspected. Boards, values, controls and penguin/vault identity remain complete without overlap, scroll, crop or broken images; both motion labels remain centered in >=44px controls. Real screen-reader and physical-device sign-off remain open.
+- Package evidence: exact remote frontend tree `bd76ca0c9fa880b9367828ce2f46a9f3dd4f5368ead904163d1e168b250e137b`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Initial exact CI `33467496604` failed only because a harness helper classified authenticate as a wallet write after all five new state assertions passed; endpoint-specific checks and a regression produced green run `33468510345`. No failed call was repeated unchanged.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33468510345`, artifact `9785970450` and digest `sha256:359817d2905aa9aef791e911a50363ff31bf635356ad338ea6bea503ec59777d` succeeded.
+- Residual risk: checklist row 29 human reconciliation, deferred mid-feature restore evidence, 23 total manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
+- Next candidate: choose a distinct Day-3 HUD/accessibility or provider evidence gap; revisit mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260901-06 — SUCCESS
 
 - Sprint day: 3
@@ -308,19 +325,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation plus the executable-mode correction were fast-forwarded without force through the connected GitHub API; exact run `33359618133` and artifact `9746470203` succeeded.
 - Residual risk: deterministic asset decode/paint readiness, final approved audio assets and manual clipping/listening/device QA, approved Spine 4.2 rig/authored clips, asset rights/Creative approval, real-device frame pacing, 23 manual checklist gates and 6 external approvals remain open.
 - Next candidate: `BSB-ASSET-002` deterministic asset decode/paint readiness, then `BSB-README-001` lifecycle/runbook freshness.
-
-## BS-20260831-17 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `cb8d34915dfe8ce08aa685e72103f340250e4ab6`
-- Verified implementation commit: `1da3b6f763d3c263647a152d3d028f8169fc829b`
-- Work item: `BSB-MOTION-001` (normal/feature frame-pacing evidence slice; item remains in progress)
-- Selection reason: exact turbo cadence was measured, but normal three-cascade presentation and the complete BLACKOUT transition still lacked current-package frame-pacing evidence.
-- Before/after evidence: reusable exact-browser sampling now covers the complete normal three-cascade path and full BLACKOUT enter/reveal/exit lifecycle. Normal records 181 samples at 16.7ms p95, 16.8ms maximum and zero >50ms stalls with exact first-row offsets `0/24/48/72/96/120/144ms`; BLACKOUT records 241 samples at 33.4ms p95, 66.7ms maximum and one >50ms stall. Exact `$2.07`/`$0.00`, expected request counts and ready/idle cleanup remain intact.
-- Changed files: Chromium QA, motion-contract regression, and sprint memory closeout files.
-- Gates: focused syntax/regression PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 96/96 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; package/evidence resolution PASS; exact Chromium 40/40 scenarios and 973/973 checks PASS; unexpected console/network/request failures 0; `git diff --check` PASS.
-- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640, normal reel-stop and BLACKOUT-transition screenshots inspected. Boards and controls remain visible and square without new overlap, scroll or crop regression; populated cadence and BLACKOUT foreground layers remain coherent at the captured authoritative frames.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. The repository animation/visual-QA rules required authoritative bounded motion, reproducible frames and screenshot review. One oversized image batch was replaced with smaller inspections; no unchanged failure was repeated.
-- Persistence: the tree-identical implementation was fast-forwarded without force through the connected GitHub API; exact run `33356700576` and artifact `9745529819` succeeded.
-- Residual risk: approved Spine 4.2 rig/authored clips, real-device frame-pacing, rights/Creative approval, manual audio/device QA, 23 manual checklist gates and 6 external approvals remain open.
-- Next candidate: move to `BSB-AUDIO-001` authored reel/character detail and listening evidence unless the approved rig becomes available.

@@ -1,5 +1,55 @@
 # Rolling automation metrics
 
+## BS-20260901-07
+
+```yaml
+closed_at_utc: 2026-09-01T04:19:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_motion_mobile_compliance_tests: 19
+focused_motion_mobile_compliance_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 119
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 360501
+local_package_generation: PASS
+local_package_verification: PASS
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 119
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: bd76ca0c9fa880b9367828ce2f46a9f3dd4f5368ead904163d1e168b250e137b
+verified_ci_run: 33468510345
+verified_ci_status: PASS
+remote_browser: { scenarios: 70, checks_pass: 1832, checks_fail: 0, unexpected_failures: 0 }
+remote_motion_preference: { states: 5, authenticate: 4, play_settlement_event_writes: 0 }
+remote_diagnostics_artifact: 9785970450
+remote_diagnostics_digest: sha256:359817d2905aa9aef791e911a50363ff31bf635356ad338ea6bea503ec59777d
+remote_implementation_commit: 1f1c1dc0a6b6dd0f6975945774546fc5510d9622
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/checklist/motion-source reads, focused syntax/motion/mobile/compliance regression, one full local frozen-install/lint/typecheck/test/build/math/package cycle, two exact Actions runs, artifact extraction, six screenshot inspections, diff/secret/scope review and content-addressed fast-forward persistence. The first exact browser run proved all five preference states but exposed a harness-only predicate that counted four allowed authentications as wallet writes; endpoint-specific zero-write assertions plus a regression corrected it, and the single follow-up CI passed. One unsupported browser wait API, one unavailable `gh` command, one orchestration runtime without `TextEncoder`, and two SHA-detected Git-blob assembly mismatches each used a changed corrective path; no failed call was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
 ## BS-20260901-06
 
 ```yaml
