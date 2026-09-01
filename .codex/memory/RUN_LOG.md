@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-18 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `f2af20e3bb81012b2863f070075362e17989f7ff`
+- Verified implementation commit: `e602a1deb23ca9932ea76a734396db048703b4cb`
+- Work item: `BSB-AUDIO-VISIBILITY-RACE-001` (DONE; parent `BSB-AUDIO-001` remains in progress)
+- Selection reason: visibility events launched `suspend()` and `resume()` concurrently, allowing a delayed hidden suspend to complete after an immediate visible resume and strand an active visible session in `suspended`.
+- Before/after evidence: the expected-red delayed-suspend unit case ended `suspended`. Visibility operations are now serialized in event order, destruction blocks queued work, and exact Chromium delays suspend by 80ms then dispatches visible immediately; one suspend completes, one following resume occurs above the measured browser baseline, and final state is `running`/`MUTED` with 0 voices and 0 ambience.
+- Changed files: AudioDirector lifecycle queue/guards, audio regression, exact-browser race instrumentation and five sprint-memory files; pixels/layout, math, RGS/wallet schema, assets, lockfile and dependencies unchanged.
+- Gates: expected-red audio test 6 PASS / 1 FAIL; syntax PASS; focused audio/contract/mobile 38/38 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 128/128 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 72/72 scenarios and 1873/1873 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run because no browser executable is installed; exact isolated CI supplies browser proof.
+- Visual review: exact serialized muted-audio, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9802165851` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024 and the orientation round trip. Board, controls, values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device/listening sign-off remains open.
+- Package evidence: exact remote frontend tree `0a0ef0d42a4bf70c31fc450e97e470921824e8617fe29f9796c47781c21a8033`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Native Chromium's variable initial AudioContext state required measuring resume calls relative to the browser baseline; the first CI was superseded and the corrected exact-head run passed. No unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33511226684`, artifact `9802165851` and digest `sha256:b6aef0e7c024477520ba2440208518b44a8bae3e19b2e7dae5ccbde3eacff89a` succeeded.
+- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; revisit mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260901-17 — SUCCESS
 
 - Sprint day: 3
@@ -318,21 +335,5 @@ Newest entries first; retain at most 20.
 - Visual review: exact 1280x720 expired-session failure/recovery captures plus 1920x1080, 390x844, 844x390 and Replay 360x640 geometry from artifact `9776234530` were inspected. Error/reload treatment, recovered board, exact values, controls and penguin/vault identity remain visible and centered without overlap, scroll, crop or broken-image regression. Prior 1366x768 coverage remains source-identical; manual/device approval is not claimed.
 - Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. A truncated large-file blob was caught by exact tree comparison and replaced by bounded exact chunks; one log-filter regex was corrected once. No unchanged semantic failure was repeated.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33439810616` and artifact `9776234530` succeeded.
-- Residual risk: deferred mid-feature restore evidence, 23 manual checklist gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
-- Next candidate: choose the next distinct safe provider/gameplay evidence gap; retry mid-feature restore only with event-triggered instrumentation.
-
-## BS-20260831-28 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `d937e7247591fce7a4fbebf695768f9957db0be4`
-- Verified implementation commit: `54c3afc29fcdfded09d36082808c6a8df2b347ad`
-- Work item: `BSB-EVIDENCE-001` (bounded `ERR_IPB` explicit-recovery slice; item remains in progress)
-- Selection reason: exact browser proof stopped at the fail-closed balance-race error and did not prove what an explicit player reload must do when authority exposes an active round after the rejected play.
-- Before/after evidence: one legal play receives API `ERR_IPB`, enters `live-insufficient`, clears board/win and disables Play. A 300ms guard proves no automatic retry. Explicit `RELOAD / RESTORE` makes exactly one second authentication, receives the authoritative active zero-win round, sends exactly one `/wallet/end-round`, and returns `live-ready` with `$999.00` / `$0.00`. Exact order is `authenticate → play → authenticate → endRound`; there is no duplicate play, event or checkpoint write.
-- Changed files: Chromium QA, compliance evidence regression, and sprint memory closeout files.
-- Gates: focused syntax/contracts/compliance 39/39 PASS; frozen install PASS; exact lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 107/107 PASS; production build PASS; full math 7/7 with 300,000 books PASS and unchanged fingerprint; isolated package and 51-row evidence resolution PASS; exact Chromium 61/61 scenarios and 1490/1490 checks PASS; unexpected network/page/request failures 0; `git diff --check` PASS.
-- Visual review: exact 1280x720 `ERR_IPB` failure/recovery captures plus 1920x1080, 390x844 and 844x390 geometry from artifact `9775142447` were inspected. Error/reload treatment, restored board, balances, controls and penguin/vault identity remain visible and centered without overlap, scroll, crop or broken-image regression. Prior 1366x768 and Replay 360x640 coverage remains source-identical; manual/device approval is not claimed.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. No failed or unchanged semantic tool call was repeated, and no dependency or binary product asset changed.
-- Persistence: implementation was fast-forwarded without force through connected GitHub data; exact run `33436799735` and artifact `9775142447` succeeded.
 - Residual risk: deferred mid-feature restore evidence, 23 manual checklist gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
 - Next candidate: choose the next distinct safe provider/gameplay evidence gap; retry mid-feature restore only with event-triggered instrumentation.
