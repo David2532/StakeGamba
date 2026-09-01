@@ -3560,6 +3560,12 @@ async function runNetworkScenarios(browser, origin) {
 				const exit = timeline.slice(heroIndex + 1).find(({ state }) => state !== 'max_win');
 				return { hero, exit, elapsedMs: hero && exit ? exit.at - hero.at : -1 };
 			};
+			const recoverWindow = (timeline) => {
+				const recoverIndex = timeline.findIndex(({ state }) => state === 'recover');
+				const recover = timeline[recoverIndex];
+				const exit = timeline.slice(recoverIndex + 1).find(({ state }) => state !== 'recover');
+				return { recover, exit, elapsedMs: recover && exit ? exit.at - recover.at : -1 };
+			};
 
 			await installCharacterTimeline();
 			await page.locator(SELECTORS.primaryAction).click();
@@ -3570,15 +3576,29 @@ async function runNetworkScenarios(browser, origin) {
 				{ timeout: 15_000 },
 			);
 			const normalScreenshot = await saveScreenshot(page, `${group}-normal`);
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'recover',
+				SELECTORS.vaultkeeper,
+				{ timeout: 15_000 },
+			);
+			const normalRecoverScreenshot = await saveScreenshot(page, `${group}-normal-recover`);
 			await waitForStableAction(page);
 			const normalTimeline = await readCharacterTimeline();
 			const normalWindow = heroWindow(normalTimeline);
+			const normalRecoverWindow = recoverWindow(normalTimeline);
 			check(group, 'normal max-win hero clip remains visible for its complete authored window',
 				normalWindow.hero?.profile === 'normal' &&
 					normalWindow.hero.animation.endsWith('vaultkeeper-max-win') &&
 					normalWindow.hero.animationDurationMs === 1_000 &&
 					normalWindow.elapsedMs >= 900 && normalWindow.elapsedMs <= 1_400,
 				serialize({ normalWindow, normalTimeline }),
+			);
+			check(group, 'normal recovery clip remains visible for its complete authored window',
+				normalRecoverWindow.recover?.profile === 'normal' &&
+					normalRecoverWindow.recover.animation.endsWith('vaultkeeper-feature-shift') &&
+					normalRecoverWindow.recover.animationDurationMs === 1_000 &&
+					normalRecoverWindow.elapsedMs >= 900 && normalRecoverWindow.elapsedMs <= 1_400,
+				serialize({ normalRecoverWindow, normalTimeline }),
 			);
 
 			await page.locator(SELECTORS.motionMode).click();
@@ -3591,15 +3611,29 @@ async function runNetworkScenarios(browser, origin) {
 				{ timeout: 15_000 },
 			);
 			const turboScreenshot = await saveScreenshot(page, `${group}-turbo`);
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'recover',
+				SELECTORS.vaultkeeper,
+				{ timeout: 15_000 },
+			);
+			const turboRecoverScreenshot = await saveScreenshot(page, `${group}-turbo-recover`);
 			await waitForStableAction(page);
 			const turboTimeline = await readCharacterTimeline();
 			const turboWindow = heroWindow(turboTimeline);
+			const turboRecoverWindow = recoverWindow(turboTimeline);
 			check(group, 'turbo max-win hero clip remains visible for its complete authored window',
 				turboWindow.hero?.profile === 'turbo' &&
 					turboWindow.hero.animation.endsWith('vaultkeeper-max-win') &&
 					turboWindow.hero.animationDurationMs === 360 &&
 					turboWindow.elapsedMs >= 320 && turboWindow.elapsedMs <= 650,
 				serialize({ turboWindow, turboTimeline }),
+			);
+			check(group, 'turbo recovery clip remains visible for its complete authored window',
+				turboRecoverWindow.recover?.profile === 'turbo' &&
+					turboRecoverWindow.recover.animation.endsWith('vaultkeeper-feature-shift') &&
+					turboRecoverWindow.recover.animationDurationMs === 360 &&
+					turboRecoverWindow.elapsedMs >= 320 && turboRecoverWindow.elapsedMs <= 650,
+				serialize({ turboRecoverWindow, turboTimeline }),
 			);
 			check(group, 'both max-win paths preserve exact payout authority and clean readiness',
 				(await page.locator(SELECTORS.finalWin).innerText()).trim() === formatExactApi(expectedPayout, 'USD') &&
@@ -3612,8 +3646,20 @@ async function runNetworkScenarios(browser, origin) {
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.fixture = fixture.id;
-			record.normal = { timeline: normalTimeline, window: normalWindow, screenshot: normalScreenshot };
-			record.turbo = { timeline: turboTimeline, window: turboWindow, screenshot: turboScreenshot };
+			record.normal = {
+				timeline: normalTimeline,
+				window: normalWindow,
+				recoverWindow: normalRecoverWindow,
+				screenshot: normalScreenshot,
+				recoverScreenshot: normalRecoverScreenshot,
+			};
+			record.turbo = {
+				timeline: turboTimeline,
+				window: turboWindow,
+				recoverWindow: turboRecoverWindow,
+				screenshot: turboScreenshot,
+				recoverScreenshot: turboRecoverScreenshot,
+			};
 			record.network = network;
 			record.diagnostics = diagnostics;
 			await page.evaluate(() => window.__blacksiteMaxWinObserver?.disconnect());

@@ -630,7 +630,7 @@ test('PresentationDirector consumes authority, cancels pending timing and cleans
 	assert.equal(director.state.board, BASE_ZERO_FIXTURE.book.events[1].board);
 	assert.equal(director.state.finalWinRaw, 0);
 
-	const pending = director.play(cues, { stepDelayMs: 50 });
+	const pending = director.play(cues, { stepDelayMs: 50, timingProfile: 'normal' });
 	director.reset();
 	assert.equal(await pending, false);
 	assert.deepEqual(director.state, createInitialPresentationState());
@@ -709,6 +709,7 @@ test('PresentationDirector exposes bounded normal, turbo and reduced timing gram
 		'remove',
 		'drop',
 		'settle',
+		'recover',
 		'maxWin',
 	]) {
 		assert(PRESENTATION_TIMINGS.normal[phase] > PRESENTATION_TIMINGS.turbo[phase]);
@@ -724,7 +725,27 @@ test('PresentationDirector exposes bounded normal, turbo and reduced timing gram
 	assert(PRESENTATION_TIMINGS.normal.feature <= 2_200);
 	assert.equal(PRESENTATION_TIMINGS.normal.maxWin, 1_000);
 	assert.equal(PRESENTATION_TIMINGS.turbo.maxWin, 360);
+	assert.equal(PRESENTATION_TIMINGS.normal.recover, 1_000);
+	assert.equal(PRESENTATION_TIMINGS.turbo.recover, 360);
 	assert(Object.isFrozen(PRESENTATION_TIMINGS));
+});
+
+test('PresentationDirector preserves the authored recovery before returning to idle', async () => {
+	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'base_max_win');
+	assert(fixture);
+	const settledCue = new GameEventAdapter()
+		.adaptBook(fixture.book, { expectedMode: 'base' })
+		.find(({ kind }) => kind === 'settled');
+	assert(settledCue);
+	const states = [];
+	const director = new PresentationDirector((state) => states.push(state.character.state));
+	const startedAt = performance.now();
+	assert.equal(await director.play([settledCue], { timingProfile: 'normal' }), true);
+	const elapsedMs = performance.now() - startedAt;
+	assert(elapsedMs >= 900, `recovery was cut after ${elapsedMs.toFixed(1)}ms`);
+	assert(elapsedMs <= 1_400, `recovery exceeded its bounded window at ${elapsedMs.toFixed(1)}ms`);
+	assert.deepEqual(states, ['recover', 'idle_a']);
+	assert.equal(director.timers.size, 0);
 });
 
 test('PresentationDirector keeps the authoritative max-win hero state visible until its bounded exit', async () => {
@@ -758,6 +779,8 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /max-win-hero-timing-normal-and-turbo/u);
 	assert.match(source, /normal max-win hero clip remains visible for its complete authored window/u);
 	assert.match(source, /turbo max-win hero clip remains visible for its complete authored window/u);
+	assert.match(source, /normal recovery clip remains visible for its complete authored window/u);
+	assert.match(source, /turbo recovery clip remains visible for its complete authored window/u);
 });
 
 test('BLACKOUT environment pulse stays on compositor-friendly opacity', () => {
