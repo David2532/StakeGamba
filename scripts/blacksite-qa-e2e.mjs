@@ -2436,6 +2436,28 @@ async function runNetworkScenarios(browser, origin) {
 		try {
 			await context.addInitScript(() => {
 				let hidden = false;
+				const lifecycle = {
+					suspendStarted: 0,
+					suspendCompleted: 0,
+					resumeCalls: 0,
+				};
+				window.__blacksiteAudioLifecycle = lifecycle;
+				const audioContextPrototype = window.AudioContext?.prototype;
+				if (audioContextPrototype) {
+					const nativeSuspend = audioContextPrototype.suspend;
+					const nativeResume = audioContextPrototype.resume;
+					audioContextPrototype.suspend = async function () {
+						lifecycle.suspendStarted += 1;
+						await new Promise((resolve) => setTimeout(resolve, 80));
+						const result = await nativeSuspend.call(this);
+						lifecycle.suspendCompleted += 1;
+						return result;
+					};
+					audioContextPrototype.resume = async function () {
+						lifecycle.resumeCalls += 1;
+						return nativeResume.call(this);
+					};
+				}
 				Object.defineProperty(document, 'hidden', {
 					configurable: true,
 					get: () => hidden,
@@ -2522,14 +2544,15 @@ async function runNetworkScenarios(browser, origin) {
 				serialize(muted),
 			);
 
-			await page.evaluate(() => window.__setBlacksiteDocumentHidden(true));
+			await page.evaluate(() => {
+				window.__setBlacksiteDocumentHidden(true);
+				window.__setBlacksiteDocumentHidden(false);
+			});
 			await page.waitForFunction(
-				(selector) => document.querySelector(selector)?.getAttribute('data-audio-status') === 'suspended',
-				SELECTORS.soundAction,
-			);
-			await page.evaluate(() => window.__setBlacksiteDocumentHidden(false));
-			await page.waitForFunction(
-				(selector) => document.querySelector(selector)?.getAttribute('data-audio-status') === 'muted',
+				(selector) =>
+					window.__blacksiteAudioLifecycle?.suspendCompleted === 1 &&
+					window.__blacksiteAudioLifecycle?.resumeCalls === 2 &&
+					document.querySelector(selector)?.getAttribute('data-audio-status') === 'muted',
 				SELECTORS.soundAction,
 			);
 			const resumedMuted = await sound.evaluate((element) => ({
@@ -2538,7 +2561,14 @@ async function runNetworkScenarios(browser, origin) {
 				voices: Number(element.getAttribute('data-audio-voices')),
 				ambience: Number(element.getAttribute('data-ambience-instances')),
 				stored: localStorage.getItem('blacksite.audio.volume.v1'),
+				lifecycle: window.__blacksiteAudioLifecycle,
 			}));
+			check(group, 'rapid hidden-visible audio transitions serialize to the final visible state',
+				resumedMuted.lifecycle.suspendStarted === 1 &&
+					resumedMuted.lifecycle.suspendCompleted === 1 &&
+					resumedMuted.lifecycle.resumeCalls === 2,
+				serialize(resumedMuted),
+			);
 			check(group, 'visibility resume keeps persisted mute source-free until explicit unmute',
 				resumedMuted.status === 'muted' && resumedMuted.level === 'MUTED' && resumedMuted.voices === 0 && resumedMuted.ambience === 0 && resumedMuted.stored === '0',
 				serialize(resumedMuted),

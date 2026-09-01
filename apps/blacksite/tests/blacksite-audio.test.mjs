@@ -78,6 +78,7 @@ class FakeAudioContext {
 		this.resumeCalls = 0;
 		this.suspendCalls = 0;
 		this.closeCalls = 0;
+		this.suspendGate = null;
 	}
 	createGain() {
 		const gain = new FakeGain();
@@ -95,6 +96,7 @@ class FakeAudioContext {
 	}
 	async suspend() {
 		this.suspendCalls += 1;
+		if (this.suspendGate) await this.suspendGate;
 		this.state = 'suspended';
 	}
 	async close() {
@@ -201,6 +203,35 @@ test('visibility lifecycle suspends and resumes the same graph without stacked m
 	assert.equal(context.state, 'running');
 	assert.equal(director.state.ambienceInstances, 1);
 	assert.equal(context.oscillators.length, 1);
+	director.destroy();
+});
+
+test('rapid hidden-visible transitions finish resumed instead of racing into suspended audio', async () => {
+	const documentRef = createDocument();
+	const context = new FakeAudioContext();
+	let releaseSuspend;
+	context.suspendGate = new Promise((resolve) => {
+		releaseSuspend = resolve;
+	});
+	const director = new AudioDirector({
+		audioContextFactory: () => context,
+		storage: createStorage(),
+		documentRef,
+	});
+	await director.unlock();
+	documentRef.hidden = true;
+	const hiddenTransition = documentRef.dispatch('visibilitychange');
+	await Promise.resolve();
+	await Promise.resolve();
+	assert.equal(context.suspendCalls, 1);
+	documentRef.hidden = false;
+	const visibleTransition = documentRef.dispatch('visibilitychange');
+	releaseSuspend();
+	await Promise.all([hiddenTransition, visibleTransition]);
+	assert.equal(context.state, 'running');
+	assert.equal(director.state.status, 'running');
+	assert.equal(context.resumeCalls, 2);
+	assert.equal(director.state.ambienceInstances, 1);
 	director.destroy();
 });
 

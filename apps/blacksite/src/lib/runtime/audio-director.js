@@ -93,11 +93,30 @@ export class AudioDirector {
 		this.voices = new Set();
 		this.cooldowns = new Map();
 		this.destroyed = false;
+		this.visibilityTransition = Promise.resolve(false);
 		/** @type {any} */
 		this.state = createInitialAudioState(storage);
 		this.handleVisibilityChange = () => {
-			if (this.documentRef?.hidden) void this.suspend();
-			else void this.resume();
+			const hidden = Boolean(this.documentRef?.hidden);
+			return (this.visibilityTransition = this.visibilityTransition
+				.catch(() => false)
+				.then(() => {
+					if (this.destroyed) return false;
+					return hidden ? this.suspend() : this.resume();
+				})
+				.catch(() => {
+					if (!this.destroyed) {
+						this.emit({
+							status:
+								this.context?.state === 'running'
+									? this.state.volume === 0
+										? 'muted'
+										: 'running'
+									: 'suspended',
+						});
+					}
+					return false;
+				}));
 		};
 		this.documentRef?.addEventListener?.('visibilitychange', this.handleVisibilityChange);
 	}
@@ -289,7 +308,7 @@ export class AudioDirector {
 	}
 
 	async suspend() {
-		if (!this.context || this.context.state !== 'running') return false;
+		if (this.destroyed || !this.context || this.context.state !== 'running') return false;
 		await this.context.suspend();
 		this.emit({ status: 'suspended' });
 		return true;
@@ -297,6 +316,7 @@ export class AudioDirector {
 
 	async resume() {
 		if (
+			this.destroyed ||
 			!this.state.unlocked ||
 			this.documentRef?.hidden ||
 			!this.context ||
@@ -312,10 +332,10 @@ export class AudioDirector {
 
 	destroy() {
 		if (this.destroyed) return;
+		this.destroyed = true;
 		this.documentRef?.removeEventListener?.('visibilitychange', this.handleVisibilityChange);
 		this.stopAudioSources();
 		void this.context?.close?.();
-		this.destroyed = true;
 		this.onState = () => {};
 	}
 }
