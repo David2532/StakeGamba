@@ -2922,18 +2922,21 @@ async function runNetworkScenarios(browser, origin) {
 			const activeTransition = await page.evaluate(() => {
 				const frame = document.querySelector('.board-frame');
 				const environment = document.querySelector('.vault-environment');
+				const environmentStyle = getComputedStyle(environment);
 				return {
 					phase: frame?.getAttribute('data-motion-phase'),
 					lockAnimation: getComputedStyle(frame, '::before').animationName,
 					shutterAnimation: getComputedStyle(frame, '::after').animationName,
-					environmentAnimation: getComputedStyle(environment).animationName,
+					environmentAnimation: environmentStyle.animationName,
+					environmentWillChange: environmentStyle.willChange,
 				};
 			});
 			check(group, 'authoritative feature_started visibly engages the mechanical vault transition',
 				activeTransition.phase === 'blackout-enter' &&
 				activeTransition.lockAnimation.endsWith('lock-engage') &&
 				activeTransition.shutterAnimation.endsWith('blackout-shutter') &&
-				activeTransition.environmentAnimation.endsWith('environment-lock-pulse'),
+				activeTransition.environmentAnimation.endsWith('environment-lock-pulse') &&
+				activeTransition.environmentWillChange.split(',').map((value) => value.trim()).includes('opacity'),
 				serialize(activeTransition),
 			);
 			record.transitionScreenshot = await saveScreenshot(page, group);

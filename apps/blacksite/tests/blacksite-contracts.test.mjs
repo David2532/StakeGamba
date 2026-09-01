@@ -731,6 +731,19 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /normalReelStopCadence/u);
 });
 
+test('BLACKOUT environment pulse stays on compositor-friendly opacity', () => {
+	const source = readFileSync(join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'), 'utf8');
+	const animation = source.match(/@keyframes environment-lock-pulse \{[\s\S]*?\n\t\}/u)?.[0];
+
+	assert(animation, 'missing environment-lock-pulse keyframes');
+	assert.match(animation, /opacity: 0\.44/u);
+	assert.doesNotMatch(animation, /filter:/u);
+	assert.match(
+		source,
+		/\.board-stage\[data-motion-phase='blackout-enter'\] \.vault-environment,[\s\S]*?will-change: opacity;/u,
+	);
+});
+
 test('exact-browser QA deduplicates competing paid-play input paths', () => {
 	const source = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
 	assert.match(source, /concurrent-click-spacebar-deduplicates-paid-play/u);

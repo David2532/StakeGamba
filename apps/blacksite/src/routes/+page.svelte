@@ -1989,23 +1989,28 @@
 
 	.board-frame[data-motion-phase='blackout-enter']::before {
 		animation: lock-engage 1000ms cubic-bezier(0.16, 0.72, 0.18, 1) both;
+		will-change: opacity, transform;
 	}
 
 	.board-frame[data-motion-phase='blackout-enter']::after {
 		animation: blackout-shutter 1000ms ease-in-out both;
+		will-change: opacity;
 	}
 
 	.board-frame[data-motion-phase='blackout-exit']::before {
 		animation: lock-release 1000ms ease-in-out both;
+		will-change: opacity, transform;
 	}
 
 	.board-frame[data-motion-phase='blackout-exit']::after {
 		animation: blackout-release 1000ms ease-in-out both;
+		will-change: opacity;
 	}
 
 	.board-stage[data-motion-phase='blackout-enter'] .vault-environment,
 	.board-stage[data-motion-phase='blackout-exit'] .vault-environment {
 		animation: environment-lock-pulse 1000ms ease-in-out both;
+		will-change: opacity;
 	}
 
 	.board {
@@ -2150,8 +2155,8 @@
 	}
 
 	@keyframes environment-lock-pulse {
-		0%, 100% { filter: brightness(1) saturate(1); }
-		48% { filter: brightness(0.42) saturate(0.72); }
+		0%, 100% { opacity: 1; }
+		48% { opacity: 0.44; }
 	}
 
 	@keyframes vaultkeeper-spin-start {
