@@ -51,3 +51,19 @@ test('browser QA proves a live portrait-landscape-portrait reflow without wallet
 		/network\.byEndpoint\.authenticate\.length === 1 &&\s+network\.byEndpoint\.play\.length === 0 &&\s+network\.byEndpoint\.endRound\.length === 0 &&\s+network\.byEndpoint\.event\.length === 0/u,
 	);
 });
+
+test('presentation speed persists while system reduced motion remains authoritative', async () => {
+	const pageSource = await readFile(pageUrl, 'utf8');
+	const browserSource = await readFile(browserQaUrl, 'utf8');
+	assert.match(pageSource, /motionMode = readMotionMode\(window\.localStorage\)/u);
+	assert.match(pageSource, /motionMode = writeMotionMode\(/u);
+	assert.match(browserSource, /presentation-speed-persists-with-reduced-motion-override/u);
+	assert.match(
+		browserSource,
+		/system reduced-motion overrides and disables Turbo without erasing the preference/u,
+	);
+	assert.match(
+		browserSource,
+		/presentation preference reloads never write to wallet or event endpoints/u,
+	);
+});

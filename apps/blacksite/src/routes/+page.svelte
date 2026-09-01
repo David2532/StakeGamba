@@ -30,6 +30,7 @@
 		formatSignedExactApi,
 	} from '../lib/runtime/display-money.js';
 	import { resolveLaunchMode } from '../lib/runtime/launch-mode.js';
+	import { readMotionMode, writeMotionMode } from '../lib/runtime/motion-preference.js';
 	import {
 		PresentationDirector,
 		createInitialPresentationState,
@@ -515,7 +516,10 @@
 	function toggleMotionMode() {
 		if (reducedMotion) return;
 		audioDirector?.playUi();
-		motionMode = motionMode === 'normal' ? 'turbo' : 'normal';
+		motionMode = writeMotionMode(
+			window.localStorage,
+			motionMode === 'normal' ? 'turbo' : 'normal',
+		);
 	}
 
 	function skipPresentation() {
@@ -719,6 +723,7 @@
 
 	onMount(() => {
 		let disposed = false;
+		motionMode = readMotionMode(window.localStorage);
 		const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 		const syncReducedMotion = () => {
 			reducedMotion = reducedMotionQuery.matches;

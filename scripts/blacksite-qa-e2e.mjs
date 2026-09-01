@@ -2432,6 +2432,151 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('presentation-speed-persists-with-reduced-motion-override', async (record) => {
+		const group = 'presentation-speed-persists-with-reduced-motion-override';
+		const context = await browser.newContext({
+			viewport: { width: 390, height: 844 },
+			isMobile: true,
+			hasTouch: true,
+			reducedMotion: 'no-preference',
+		});
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: { authenticate: () => authenticateResponse() },
+			});
+			const { page, diagnostics } = await openPage(
+				context,
+				origin,
+				liveQuery({ device: 'mobile' }),
+			);
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			const motion = page.locator(SELECTORS.motionMode);
+			await motion.click();
+			const selected = await motion.evaluate((element) => ({
+				label: element.textContent?.trim(),
+				pressed: element.getAttribute('aria-pressed'),
+				disabled: element.matches(':disabled'),
+				profile: document.body.dataset.motionProfile,
+				stored: localStorage.getItem('blacksite.presentation.speed.v1'),
+			}));
+			check(
+				group,
+				'Turbo selection updates semantics, presentation profile and versioned storage',
+				selected.label === 'TURBO' &&
+					selected.pressed === 'true' &&
+					!selected.disabled &&
+					selected.profile === 'turbo' &&
+					selected.stored === 'turbo',
+				serialize(selected),
+			);
+
+			await page.reload({ waitUntil: 'domcontentloaded' });
+			await waitForEndpoint(network, 'authenticate', 2);
+			await waitForStableAction(page);
+			const restored = await motion.evaluate((element) => ({
+				label: element.textContent?.trim(),
+				pressed: element.getAttribute('aria-pressed'),
+				profile: document.body.dataset.motionProfile,
+				stored: localStorage.getItem('blacksite.presentation.speed.v1'),
+			}));
+			check(
+				group,
+				'reload restores the chosen Turbo presentation profile',
+				restored.label === 'TURBO' &&
+					restored.pressed === 'true' &&
+					restored.profile === 'turbo' &&
+					restored.stored === 'turbo',
+				serialize(restored),
+			);
+
+			await page.emulateMedia({ reducedMotion: 'reduce' });
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.textContent?.trim() === 'REDUCED',
+				SELECTORS.motionMode,
+			);
+			const reduced = await motion.evaluate((element) => ({
+				label: element.textContent?.trim(),
+				pressed: element.getAttribute('aria-pressed'),
+				disabled: element.matches(':disabled'),
+				profile: document.body.dataset.motionProfile,
+				stored: localStorage.getItem('blacksite.presentation.speed.v1'),
+			}));
+			check(
+				group,
+				'system reduced-motion overrides and disables Turbo without erasing the preference',
+				reduced.label === 'REDUCED' &&
+					reduced.pressed === 'false' &&
+					reduced.disabled &&
+					reduced.profile === 'reduced' &&
+					reduced.stored === 'turbo',
+				serialize(reduced),
+			);
+			const reducedScreenshot = await saveScreenshot(page, 'presentation-speed-reduced-override');
+
+			await page.reload({ waitUntil: 'domcontentloaded' });
+			await waitForEndpoint(network, 'authenticate', 3);
+			await waitForStableAction(page);
+			check(
+				group,
+				'reduced-motion override remains active across reload',
+				(await motion.innerText()).trim() === 'REDUCED' &&
+					(await motion.isDisabled()) &&
+					(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) === 'reduced',
+				serialize({
+					label: await motion.innerText(),
+					disabled: await motion.isDisabled(),
+					profile: await page.locator(SELECTORS.board).getAttribute('data-motion-profile'),
+				}),
+			);
+
+			await page.emulateMedia({ reducedMotion: 'no-preference' });
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.textContent?.trim() === 'TURBO',
+				SELECTORS.motionMode,
+			);
+			await page.reload({ waitUntil: 'domcontentloaded' });
+			await waitForEndpoint(network, 'authenticate', 4);
+			await waitForStableAction(page);
+			const resumed = await motion.evaluate((element) => ({
+				label: element.textContent?.trim(),
+				pressed: element.getAttribute('aria-pressed'),
+				disabled: element.matches(':disabled'),
+				profile: document.body.dataset.motionProfile,
+				stored: localStorage.getItem('blacksite.presentation.speed.v1'),
+			}));
+			check(
+				group,
+				'removing the system override resumes the persisted Turbo preference',
+				resumed.label === 'TURBO' &&
+					resumed.pressed === 'true' &&
+					!resumed.disabled &&
+					resumed.profile === 'turbo' &&
+					resumed.stored === 'turbo',
+				serialize(resumed),
+			);
+			check(
+				group,
+				'presentation preference reloads never write to wallet or event endpoints',
+				network.byEndpoint.authenticate.length === 4 && walletWriteCount(network) === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.motionPreference = { selected, restored, reduced, resumed };
+			record.screenshots = [
+				reducedScreenshot,
+				await saveScreenshot(page, 'presentation-speed-turbo-restored'),
+			];
+			record.screenshot = record.screenshots.at(-1);
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('minimum-round-duration-hides-result-until-ready', async (record) => {
 		const group = 'minimum-round-duration-hides-result-until-ready';
 		const minimumRoundDurationMs = 400;
