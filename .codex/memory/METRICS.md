@@ -1,5 +1,53 @@
 # Rolling automation metrics
 
+## BS-20260901-06
+
+```yaml
+closed_at_utc: 2026-09-01T03:00:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_compliance_tests: 10
+focused_compliance_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 115
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 364242
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 115
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: ac80d9dc69847ef9d54d84e46de2ea175c981e49898813c2455a1a993fb4c0a3
+verified_ci_run: 33463575542
+verified_ci_status: PASS
+remote_browser: { scenarios: 69, checks_pass: 1821, checks_fail: 0, unexpected_failures: 0 }
+remote_social_replay_outcomes: { classes: 4, checks_pass: 82, restricted_hits: 0, replay_gets: 4, wallet_event_writes: 0 }
+remote_diagnostics_artifact: 9784332622
+remote_diagnostics_digest: sha256:ba2d0603d372ff1fc749755f41ca78445b2e0ffd2b124ad3a050704ab6a3a901
+remote_implementation_commit: d7ced76e4aa363d4933349f825c71e1c65479874
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/checklist/compliance reads, current first-party Replay/Jurisdiction page checks, focused syntax/compliance regression, one full local frozen-install/lint/typecheck/test/build/math cycle, exact Actions package/browser/evidence verification, artifact extraction, eight screenshot inspections, diff/secret/scope review and content-addressed fast-forward persistence. One malformed orchestration string, one over-broad formatter pass and one unauthenticated CLI push each used a changed corrective path; formatter churn was removed before verification and no failed call was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
 ## BS-20260901-05
 
 ```yaml

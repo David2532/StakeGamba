@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-06 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `09d9f1929f70a7628031dc9fffc787b0aea97049`
+- Verified implementation commit: `d7ced76e4aa363d4933349f825c71e1c65479874`
+- Work item: `BSB-SOCIAL-REPLAY-001` (DONE)
+- Selection reason: checklist row 38 referenced one generic Social Replay scan while its explicit human gate named loss, win, feature and max-win surfaces; the exact package did not automate those four representative outcomes independently.
+- Before/after evidence: four math-backed XSC Replay scenarios now scan ready and completed DOM/ARIA surfaces. Loss displays `0 SC units`, Base win `0.018848 SC units`, complete Deep Access feature `0.052576 SC units` and exact 10,000x max win `496 SC units`; all retain exact cost, 49 cells, one queryless/bodyless Replay GET, zero wallet/event writes, zero official restricted hits and zero `$` display.
+- Changed files: Chromium QA, checklist evidence, compliance regression and five sprint-memory files; runtime UI, math, wallet, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused compliance 10/10 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 115/115 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 69/69 scenarios and 1821/1821 checks PASS; the four new outcomes contribute 82/82 checks; unexpected network/page/request failures 0; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; the exact isolated CI package supplies the required browser proof.
+- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640 and all four 390x844 Social Replay completions from artifact `9784332622` were inspected. Boards, values, controls and penguin/vault identity remain complete without overlap, scroll, crop, broken image or overflow; human all-surface and physical-device sign-off remain unclaimed.
+- Package evidence: exact remote frontend tree `ac80d9dc69847ef9d54d84e46de2ea175c981e49898813c2455a1a993fb4c0a3`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One malformed orchestration string, one formatter-churn attempt and one unauthenticated CLI push each used a changed corrective path; no failed call was repeated unchanged.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33463575542`, artifact `9784332622` and digest `sha256:ba2d0603d372ff1fc749755f41ca78445b2e0ffd2b124ad3a050704ab6a3a901` succeeded.
+- Residual risk: row 38 human final-surface sign-off, deferred mid-feature restore evidence, 23 total manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
+- Next candidate: choose the next distinct safe day-3 HUD/accessibility or provider-evidence gap; retry mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260901-05 — SUCCESS
 
 - Sprint day: 3
@@ -307,19 +324,3 @@ Newest entries first; retain at most 20.
 - Persistence: the tree-identical implementation was fast-forwarded without force through the connected GitHub API; exact run `33356700576` and artifact `9745529819` succeeded.
 - Residual risk: approved Spine 4.2 rig/authored clips, real-device frame-pacing, rights/Creative approval, manual audio/device QA, 23 manual checklist gates and 6 external approvals remain open.
 - Next candidate: move to `BSB-AUDIO-001` authored reel/character detail and listening evidence unless the approved rig becomes available.
-
-## BS-20260831-16 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `efb41da1eb5ffb7462c41f68ceedf58816b22c28`
-- Verified implementation commit: `2926692756d8f98222ef40b923b083e216f28f07`
-- Work item: `BSB-MOTION-001` (reel-stop/frame-pacing slice; item remains in progress)
-- Selection reason: authoritative cascade and Vaultkeeper semantics were exact, but all seven columns revealed simultaneously and no measured frame-pacing evidence existed.
-- Before/after evidence: the board reveal now uses bounded per-column/per-row custom properties. Exact Chromium records turbo first-row offsets `0/8/16/24/32/40/48ms`, each at 70ms, and 79 rAF deltas at 16.7ms p95, 16.8ms maximum and zero >50ms stalls. The canonical three-cascade round still settles at exact `$2.07` with ready/idle cleanup.
-- Changed files: presentation director, slot UI/CSS, contract regression, Chromium QA, and sprint memory closeout files.
-- Gates: frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 95/95 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; package/evidence resolution PASS; exact Chromium 40/40 scenarios and 970/970 checks PASS; unexpected console/network/request failures 0; `git diff --check` PASS.
-- Visual review: exact 1920x1080, 1366x768, 390x844, 844x390, Replay 360x640 and active reel-stop screenshots inspected. The stagger reads across the populated vault grid; boards/controls remain visible, square and free of new overlap, scroll or crop regressions.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. One quoting error, one unauthenticated CLI push and one policy-rejected temporary cleanup each used a safer changed alternative; nothing failed twice unchanged.
-- Persistence: the tree-identical implementation was fast-forwarded without force through the connected GitHub API; exact run `33355037527` and artifact `9745037349` succeeded.
-- Residual risk: approved Spine 4.2 rig/authored clips, broader normal/feature/device frame-pacing evidence, rights/Creative approval, manual audio/device QA, 23 manual checklist gates and 6 external approvals remain open.
-- Next candidate: continue `BSB-MOTION-001` with normal/feature pacing and authored-clip integration if the approved rig becomes available; otherwise complete `BSB-AUDIO-001` authored reel/character detail and listening evidence.
