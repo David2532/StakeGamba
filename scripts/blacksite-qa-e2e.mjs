@@ -2544,16 +2544,20 @@ async function runNetworkScenarios(browser, origin) {
 				serialize(muted),
 			);
 
+			const resumeCallsBeforeVisibility = await page.evaluate(
+				() => window.__blacksiteAudioLifecycle?.resumeCalls ?? 0,
+			);
 			await page.evaluate(() => {
 				window.__setBlacksiteDocumentHidden(true);
 				window.__setBlacksiteDocumentHidden(false);
 			});
 			await page.waitForFunction(
-				(selector) =>
+				({ selector, resumeCallsBeforeVisibility }) =>
 					window.__blacksiteAudioLifecycle?.suspendCompleted === 1 &&
-					window.__blacksiteAudioLifecycle?.resumeCalls === 2 &&
+					window.__blacksiteAudioLifecycle?.resumeCalls ===
+						resumeCallsBeforeVisibility + 1 &&
 					document.querySelector(selector)?.getAttribute('data-audio-status') === 'muted',
-				SELECTORS.soundAction,
+				{ selector: SELECTORS.soundAction, resumeCallsBeforeVisibility },
 			);
 			const resumedMuted = await sound.evaluate((element) => ({
 				status: element.getAttribute('data-audio-status'),
@@ -2566,7 +2570,7 @@ async function runNetworkScenarios(browser, origin) {
 			check(group, 'rapid hidden-visible audio transitions serialize to the final visible state',
 				resumedMuted.lifecycle.suspendStarted === 1 &&
 					resumedMuted.lifecycle.suspendCompleted === 1 &&
-					resumedMuted.lifecycle.resumeCalls === 2,
+					resumedMuted.lifecycle.resumeCalls === resumeCallsBeforeVisibility + 1,
 				serialize(resumedMuted),
 			);
 			check(group, 'visibility resume keeps persisted mute source-free until explicit unmute',
