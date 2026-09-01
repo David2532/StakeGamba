@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-23 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `30a4e25824be2444645e2110384f991ad39d50e5`
+- Verified implementation commit: `5fa23e2d96d1ad3c0d0b8b96d506b5e5c1d5c614`
+- Work item: `BSB-AUDIO-VOICE-GAIN-LIFECYCLE-001` (DONE; parent `BSB-AUDIO-001` remains in progress)
+- Selection reason: source teardown stopped and disconnected oscillators but removed `onended` ownership without disconnecting each voice's private GainNode, leaving silent nodes attached to the master graph after mute and voice-cap eviction.
+- Before/after evidence: focused audio began 6 PASS / 1 expected FAIL with one retained outgoing gain connection after mute. AudioDirector now pairs and tears down oscillator/gain ownership on mute, eight-voice-cap eviction and natural completion. Exact Chromium starts an active UI voice plus ambience, reduces active graph edges `5 → 1`, increases gain disconnects `9 → 12`, and ends MUTED with zero voices/ambience; the retained edge is master-to-destination.
+- Changed files: AudioDirector lifecycle, audio regression, exact-browser graph instrumentation, compliance evidence and five sprint-memory files; pixels/layout, math, RGS/wallet schema, assets, lockfile and dependencies unchanged.
+- Gates: expected-red audio 6 PASS / 1 FAIL; syntax PASS; focused audio/compliance 20/20 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 131/131 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound package generation/readback and 51-row resolver PASS; exact Chromium 76/76 scenarios and 2202/2202 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was blocked by the absent executable; exact isolated CI supplies browser proof.
+- Visual review: exact muted-audio 1280x720, 1920x1080, 390x844 and 844x390 captures from artifact `9815667348` were inspected. SOUND OFF, board, controls, values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device/listening sign-off remains open.
+- Package evidence: exact remote frontend tree `73db3695448c1ea3bf62c0afae9d97fdf9dc3a74fd33b4a228f52a30d658c17d`, package verification PASS; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The mobile-performance skill kept lifecycle ownership and bounded graph work explicit. One malformed test regex and one pre-fetch local ref attempt each used a changed safe path; no semantic failure was repeated unchanged.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33545045810`, artifact `9815667348` and digest `sha256:9e28b8a67446387b460cc462964084045954e40ae9585f78b3d605833197a1c5` succeeded.
+- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct provider, accessibility or authored-motion evidence gap that does not depend on unavailable human assets or physical-device approval.
+
 ## BS-20260901-22 — SUCCESS
 
 - Sprint day: 3
@@ -324,20 +341,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33456368436`, artifact `9781885504` and digest `sha256:07afc832223a1a8f5ca2abfbb92273fcfc27b7c3d8f9472108054bc736dd8002` succeeded.
 - Residual risk: deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
 - Next candidate: choose the next distinct safe day-3 HUD/accessibility or provider-evidence gap; retry mid-feature restore only with event-triggered instrumentation.
-
-## BS-20260901-03 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `ccf6fbe50abdd704ab6516e78d9a5cd093342908`
-- Verified implementation commit: `4bbd22d8cc2ab466a9181ea91f80f036aea660a8`
-- Work item: `BSB-PACKAGE-CLEAN-001` (DONE)
-- Selection reason: an existing generated frontend was not cryptographically bound to the current checkout, so a clean caller could package stale output under a newer commit even though clean CI itself produced the right tree.
-- Before/after evidence: an injected ignored stale bundle is removed by the build wrapper; two repeated builds each contain 10 files and exactly one JS bundle. The emitted identity binds schema, exact commit, exact tree and pre-build cleanliness, and the packager rejects a pre-commit/stale identity before tree hashing or copy.
-- Changed files: BlackSite package scripts, new production-build wrapper, package regression and five sprint-memory files; runtime UI/CSS, math, wallet, assets, lockfile and dependencies unchanged.
-- Gates: focused release-package regression 1/1 PASS; stale-injection and two-build shape checks PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 112/112 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 64/64 scenarios and 1576/1576 checks PASS; unexpected network/page/request failures 0; `git diff --check` and secret/debug review PASS. Local Chromium was BLOCKED by the absent Playwright executable and is superseded by the exact isolated CI package run.
-- Visual review: exact 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9780778232` were inspected. Boards, values, controls and penguin/vault pixels remain complete without overlap, scroll, crop or broken-image regression. Runtime UI/CSS/assets did not change; real device approval remains unclaimed.
-- Package evidence: exact remote frontend tree `337c09fb3199dba23ac3ec0d6248b1459a556f168bf529cc14aea8a274c330bb`, 10 files and one JS bundle; build identity matches implementation `4bbd22d` and tree `71a2d36`; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One invalid byte-equality premise was replaced with exact identity plus deterministic shape after Vite's internal version hash changed; no unchanged failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33453194613`, artifact `9780778232` and digest `sha256:8ef5e675ade91acbdfb89448855952e7b4b3a397942a8597f85ba18e9b63d6bb` succeeded.
-- Residual risk: deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
-- Next candidate: choose a distinct safe day-3 HUD/accessibility or provider-evidence gap; retry mid-feature restore only with event-triggered instrumentation.
