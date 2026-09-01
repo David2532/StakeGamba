@@ -202,7 +202,7 @@ test('five-win evidence binds five exact final-presentation replays for every ca
 	);
 });
 
-test('feature evidence binds natural and purchased live lifecycles while human review remains open', () => {
+test('feature evidence binds natural, purchased, and active-skip live lifecycles while human review remains open', () => {
 	const item = map.items.find((candidate) => candidate.id === 21);
 	assert(item);
 	assert.equal(item.status, 'AUTOMATED_PASS_MANUAL_OPEN');
@@ -210,12 +210,15 @@ test('feature evidence binds natural and purchased live lifecycles while human r
 		'authoritative-blackout-vault-transition',
 		'live-natural-base-blackout-enters-and-returns',
 		'live-deep-access-feature-confirms-enters-and-returns',
+		'active-feature-skip-persists-and-settles-once',
 		'social-xsc-rules-paytable-and-terminology',
 	]);
 	assert.match(item.manualOpen, /Human comparison/u);
 	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
 	assert.match(browserQa, /fixtureId: 'base_natural_blackout'/u);
 	assert.match(browserQa, /fixtureId: 'deep_access_feature'/u);
+	assert.match(browserQa, /Skip drains an active feature through every durable checkpoint and exactly one settlement/u);
+	assert.match(browserQa, /active feature Skip never duplicates play, checkpoint, or settlement writes/u);
 	for (const scenario of item.browserScenarios) {
 		assert.match(
 			browserQa,

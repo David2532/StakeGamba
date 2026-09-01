@@ -183,6 +183,7 @@
 				"authoritative-blackout-vault-transition",
 				"live-natural-base-blackout-enters-and-returns",
 				"live-deep-access-feature-confirms-enters-and-returns",
+				"active-feature-skip-persists-and-settles-once",
 				"social-xsc-rules-paytable-and-terminology"
 			],
 			"manualOpen": "Human comparison of final wording with emitted feature sequences."

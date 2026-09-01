@@ -3622,6 +3622,166 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('active-feature-skip-persists-and-settles-once', async (record) => {
+		const group = 'active-feature-skip-persists-and-settles-once';
+		const fixture = getGeneratedFixture('base_natural_blackout');
+		const round = authoritativeFixtureRound({
+			fixture,
+			active: true,
+			id: 'blacksite-qa-active-feature-skip',
+		});
+		const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT * MODE_COSTS.base;
+		const settledBalance = debitedBalance + round.payout;
+		const checkpointEventTypes = new Set([
+			'board_set',
+			'breach_state',
+			'feature_start',
+			'feature_cycle',
+			'feature_end',
+			'cap_reached',
+		]);
+		const expectedCheckpointCursors = fixture.book.events
+			.filter(({ type }) => checkpointEventTypes.has(type))
+			.map(({ index }) => encodePresentationCursor(index + 1));
+		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: () => ({
+						status: successStatus(),
+						balance: { amount: debitedBalance, currency: 'USD' },
+						round,
+					}),
+					event: (request) => ({ event: request.body.event }),
+					endRound: () => endRoundResponse({ balance: settledBalance }),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			await page.locator(SELECTORS.motionMode).click();
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 1);
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'hit',
+				SELECTORS.board,
+				{ timeout: 30_000 },
+			);
+			check(
+				group,
+				'Skip becomes available while the active authoritative feature is presenting',
+				!(await page.locator(SELECTORS.skipPresentation).isDisabled()),
+				String(await page.locator(SELECTORS.skipPresentation).isDisabled()),
+			);
+			const skippedAt = Date.now();
+			await page.locator(SELECTORS.skipPresentation).click();
+			await waitForEndpoint(network, 'endRound', 1, 30_000);
+			await waitForRuntimeState(page, 'live-ready', 30_000);
+			const actualCheckpointCursors = network.byEndpoint.event.map(({ body }) => body.event);
+			const completed = {
+				state: await runtimeState(page),
+				phase: await page.locator(SELECTORS.board).getAttribute('data-motion-phase'),
+				character: await page.locator(SELECTORS.vaultkeeper).getAttribute('data-character-state'),
+				boardCells: (await boardSymbols(page)).length,
+				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
+				balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
+				baseAmount: await page.locator(SELECTORS.baseAmount).inputValue(),
+				totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
+				skipElapsedMs: Date.now() - skippedAt,
+			};
+			assertExactRequest(group, network.byEndpoint.play[0], {
+				method: 'POST',
+				path: '/wallet/play',
+				body: {
+					sessionID: SESSION_ID,
+					currency: 'USD',
+					amount: DEFAULT_BASE_AMOUNT,
+					mode: 'base',
+				},
+			});
+			check(
+				group,
+				'Skip drains an active feature through every durable checkpoint and exactly one settlement',
+				serialize(actualCheckpointCursors) === serialize(expectedCheckpointCursors) &&
+					new Set(actualCheckpointCursors).size === actualCheckpointCursors.length &&
+					network.byEndpoint.endRound.length === 1,
+				serialize({ expectedCheckpointCursors, actualCheckpointCursors, order: network.order }),
+			);
+			for (const request of network.byEndpoint.event) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/bet/event',
+					body: { sessionID: SESSION_ID, event: request.body.event },
+				});
+			}
+			assertExactRequest(group, network.byEndpoint.endRound[0], {
+				method: 'POST',
+				path: '/wallet/end-round',
+				body: { sessionID: SESSION_ID },
+			});
+			check(
+				group,
+				'active feature Skip returns the exact authoritative payout, balance, board and ready shell',
+				completed.state === 'live-ready' &&
+					completed.phase === 'idle' &&
+					completed.character === 'idle_a' &&
+					completed.boardCells === 49 &&
+					completed.finalWin === formatExactApi(round.payout, 'USD') &&
+					completed.balance === formatExactApi(settledBalance, 'USD') &&
+					completed.baseAmount === String(DEFAULT_BASE_AMOUNT) &&
+					completed.totalPlay === '$1.00' &&
+					completed.skipElapsedMs < 2_000,
+				serialize({ completed, payoutApi: round.payout, settledBalance }),
+			);
+			check(
+				group,
+				'active feature Skip never duplicates play, checkpoint, or settlement writes',
+				network.byEndpoint.play.length === 1 &&
+					network.byEndpoint.event.length === expectedCheckpointCursors.length &&
+					network.byEndpoint.endRound.length === 1 &&
+					serialize(network.order) ===
+						serialize([
+							'authenticate',
+							'play',
+							...expectedCheckpointCursors.map(() => 'event'),
+							'endRound',
+						]),
+				serialize(network.order),
+			);
+			const settledCounts = {
+				play: network.byEndpoint.play.length,
+				event: network.byEndpoint.event.length,
+				endRound: network.byEndpoint.endRound.length,
+			};
+			await page.waitForTimeout(250);
+			check(
+				group,
+				'settled active feature remains write-stable after Skip completion',
+				serialize(settledCounts) === serialize({
+					play: network.byEndpoint.play.length,
+					event: network.byEndpoint.event.length,
+					endRound: network.byEndpoint.endRound.length,
+				}),
+				serialize({ settledCounts, order: network.order }),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.activeSkip = {
+				fixture: fixture.id,
+				expectedCheckpointCursors,
+				actualCheckpointCursors,
+				completed,
+			};
+			record.screenshot = await saveScreenshot(page, group);
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('checkpoint-failure-settles-paid-win-exactly', async (record) => {
 		const group = 'checkpoint-failure-settles-paid-win-exactly';
 		const fixture = getGeneratedFixture('base_big');
