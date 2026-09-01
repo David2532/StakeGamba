@@ -734,6 +734,9 @@
 
 	onMount(() => {
 		let disposed = false;
+		const destroyLiveSession = () => {
+			liveSession?.destroy();
+		};
 		motionMode = readMotionMode(window.localStorage);
 		const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 		const syncReducedMotion = () => {
@@ -761,6 +764,7 @@
 		);
 		launch = resolveLaunchMode(window.location.search, { dev: __BLACKSITE_DEV_FIXTURES__ });
 		window.addEventListener('keydown', keydown);
+		window.addEventListener('pagehide', destroyLiveSession);
 		if (characterAssetElement?.complete) {
 			void confirmAssetPaint('character', characterAssetElement);
 		}
@@ -819,7 +823,8 @@
 			disposed = true;
 			reducedMotionQuery.removeEventListener('change', syncReducedMotion);
 			window.removeEventListener('keydown', keydown);
-			liveSession?.destroy();
+			window.removeEventListener('pagehide', destroyLiveSession);
+			destroyLiveSession();
 			if (sessionTimerHandle !== null) window.clearInterval(sessionTimerHandle);
 			if (minimumRoundWait) {
 				window.clearTimeout(minimumRoundWait.timer);

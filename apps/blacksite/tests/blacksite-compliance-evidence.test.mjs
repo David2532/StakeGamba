@@ -157,9 +157,12 @@ test('navigation teardown evidence binds transport cancellation without wallet w
 	const scenario = 'navigation-teardown-aborts-auth-without-wallet-write';
 	assert(item.browserScenarios.includes(scenario));
 	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
+	const pageSource = readFileSync(join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'), 'utf8');
 	assert.match(browserQa, new RegExp(`runScenario\\('${scenario}'`, 'u'));
 	assert.match(browserQa, /navigation teardown aborts the pending app-owned RGS transport/u);
 	assert.match(browserQa, /teardown recovery performs one successful authenticate and zero wallet writes/u);
+	assert.match(pageSource, /window\.addEventListener\('pagehide', destroyLiveSession\)/u);
+	assert.match(pageSource, /window\.removeEventListener\('pagehide', destroyLiveSession\)/u);
 });
 
 test('mute evidence proves active voice and ambience gain nodes leave no orphan graph edges', () => {
