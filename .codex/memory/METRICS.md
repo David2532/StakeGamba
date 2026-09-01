@@ -1,5 +1,53 @@
 # Rolling automation metrics
 
+## BS-20260901-22
+
+```yaml
+closed_at_utc: 2026-09-01T17:31:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_compliance_before: { pass: 11, fail: 1, status: EXPECTED_FAIL_REPRODUCED }
+focused_syntax_status: PASS
+focused_tests_after: { pass: 44, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 130
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: RESULT_NOT_CAPTURED_EXACT_CI_USED
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 130
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 0eaa6159ea7c69c287df1301413b427ee7c940a49ccf6b0f64314492209ab07e
+verified_ci_run: 33536390205
+verified_ci_status: PASS
+verified_ci_seconds: 905
+remote_browser: { scenarios: 76, checks_pass: 2201, checks_fail: 0, unexpected_failures: 0 }
+auth_timeout_recovery: { attempts: 2, aborts: 1, successful_authenticates: 1, play_writes: 0, event_writes: 0, settlement_writes: 0, error_code: RGS_TIMEOUT, final_state: live-ready }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9812356729
+remote_diagnostics_digest: sha256:02d2ae43891d51ec000b5459abb532bee3f4d87f4a60b20658e21e9fef9ae840
+remote_implementation_commit: a0a76479eaf5755b880e21ddfc96f9d6cb83f175
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/provider-contract and QA reads; one expected-red then green focused regression; one local frozen-install/lint/typecheck/test/build gate; one unrecorded local math subprocess superseded by exact CI; diff/secret/scope review; connected Git-data fast-forward; exact Actions evidence; artifact extraction, structured evidence reads and four screenshot inspections. A wrong initial QA path, a dirty-tree harness precondition, absent local Chromium, existing Prettier deviations, an unauthenticated CLI push and rejected destructive temporary cleanup each used a changed safe path. No subagents, dependencies, runtime files or binary product assets changed; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260901-21
 
 ```yaml

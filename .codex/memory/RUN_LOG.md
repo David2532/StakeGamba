@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-22 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `b361d9132f1e1552968cb4c4924200d7608a0611`
+- Verified implementation commit: `a0a76479eaf5755b880e21ddfc96f9d6cb83f175`
+- Work item: `BSB-AUTH-TIMEOUT-RECOVERY-001` (DONE; parent `BSB-EVIDENCE-001` remains in progress)
+- Selection reason: RGS and Replay clients classified timeout failures in unit tests, while current-package browser evidence proved only HTTP 503 recovery; deterministic requirement 20 still lacked an actual app-owned timeout abort and reload path.
+- Before/after evidence: focused compliance began 11 PASS / 1 expected FAIL because the candidate matrix did not bind a timeout scenario. Exact Chromium stalls the first authentication until the production 10-second AbortController fires, observes attempts/aborts `1/1`, shows bounded `RGS_TIMEOUT` in `live-error`, leaves paid play unavailable, then explicit reload reaches `live-ready` after one successful authenticate. Total audit is two attempts/one abort; play, event and settlement writes remain zero.
+- Changed files: Chromium QA, 51-point evidence map, compliance regression and five sprint-memory files; runtime UI, math, assets, lockfile and dependencies unchanged.
+- Gates: expected-red compliance 11 PASS / 1 FAIL; syntax PASS; focused compliance/RGS 44/44 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 130/130 PASS; production build PASS. The local math subprocess completed but its exit result was not retained by the tool session, so no local PASS is claimed; exact CI supplied 7/7 and 300,000 books with unchanged fingerprint. Exact package generation/readback and 51-row resolver PASS; exact Chromium 76/76 scenarios and 2201/2201 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was blocked by the absent executable; exact isolated CI supplies browser proof.
+- Visual review: exact 1280x720 timeout error plus 1920x1080, 390x844 and 844x390 captures from artifact `9812356729` were inspected. Error/reload UI, board, controls, values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `0eaa6159ea7c69c287df1301413b427ee7c940a49ccf6b0f64314492209ab07e`, package verification PASS; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One wrong QA path, one dirty-tree harness stop, absent local Chromium, existing Prettier deviations, one unauthenticated push and one rejected destructive temporary cleanup each used a changed safe path; no semantic failure was repeated unchanged.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33536390205`, artifact `9812356729` and digest `sha256:02d2ae43891d51ec000b5459abb532bee3f4d87f4a60b20658e21e9fef9ae840` succeeded.
+- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct provider, accessibility or authored-motion evidence gap that does not depend on unavailable human assets or physical-device approval.
+
 ## BS-20260901-21 — SUCCESS
 
 - Sprint day: 3
@@ -324,19 +341,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33453194613`, artifact `9780778232` and digest `sha256:8ef5e675ade91acbdfb89448855952e7b4b3a397942a8597f85ba18e9b63d6bb` succeeded.
 - Residual risk: deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
 - Next candidate: choose a distinct safe day-3 HUD/accessibility or provider-evidence gap; retry mid-feature restore only with event-triggered instrumentation.
-
-## BS-20260901-02 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `16c67bb76f236d12bc4a14c55efc3a3879fb9b3a`
-- Verified implementation commit: `9099585503f8a33be06a456ade501bff689f7d21`
-- Work item: `BSB-MOBILE-001` (bounded HUD accessibility-semantics continuation; remains DONE)
-- Selection reason: geometry, focus and touch targets were exact, but the access-level/motion control collections lacked exposed group semantics, asynchronous launch/board messages were not atomic status regions, and high-cost confirmation did not bind its factor/total explanation to the dialog.
-- Before/after evidence: route and presentation controls are named groups; launch/board updates are atomic polite statuses; Deep Access and BLACKOUT dialogs expose descriptions containing exact 4×/$4.00 and 80×/$80.00 values. Exact geometry proves the semantics across invalid-language, desktop, portrait, landscape and Replay surfaces.
-- Changed files: `+page.svelte`, Chromium QA, one new three-case accessibility regression and five sprint-memory files; CSS/layout, math, wallet, assets, lockfile and dependencies unchanged.
-- Gates: syntax PASS; focused accessibility/HUD tests 10/10 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 112/112 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; isolated package/readback and 51-row resolver PASS; exact Chromium 64/64 scenarios and 1576/1576 checks PASS; unexpected network/page/request failures 0; `git diff --check` and secret/debug review PASS. Local Chromium was BLOCKED by the absent Playwright executable and is superseded by the exact isolated CI package run.
-- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640 and completed Deep Access/BLACKOUT captures from artifact `9779949482` were inspected. Boards, values, controls and penguin/vault pixels remain complete without overlap, scroll, crop or broken-image regression; confirmed totals are $4.00/$80.00. The semantics do not intentionally change pixels; real screen-reader/device approval remains unclaimed.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. A changed loopback server command recovered from a container interface error; no unchanged semantic failure was repeated. Clean CI's 9-file frontend tree exposed local stale-bundle accumulation as follow-up `BSB-PACKAGE-CLEAN-001`.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33450641637`, artifact `9779949482` and digest `sha256:03395f9741d5cbcd488247f3943cebf1fa4cbfc334ce658db22e9b16a8096c27` succeeded.
-- Residual risk: real screen-reader/device approval, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
-- Next candidate: harden repeated local package/build cleanup so stale hashed bundles cannot enter a candidate; then choose the next distinct safe provider gap.
