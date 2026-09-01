@@ -15,6 +15,11 @@ import { fileURLToPath } from 'node:url';
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDirectory, '..');
 const frontendSource = join(repoRoot, 'apps', 'blacksite', 'build');
+const frontendBuildIdentitySource = join(
+	frontendSource,
+	'_app',
+	'blacksite-build-identity.json',
+);
 const mathLibrary = join(repoRoot, 'math', 'games', 'blacksite_breach', 'library');
 const mathIndexSource = join(mathLibrary, 'publish_files', 'index.json');
 const mathConfigSource = join(mathLibrary, 'configs', 'game_config.json');
@@ -151,6 +156,33 @@ function gitText(args) {
 	}).trim();
 }
 
+function validateFrontendBuildIdentity(expectedGitSha, expectedGitTreeSha, expectedClean) {
+	if (!existsSync(frontendBuildIdentitySource)) {
+		fail('Missing BLACKSITE frontend build identity; run pnpm --filter blacksite build first');
+	}
+	const identity = readJson(frontendBuildIdentitySource);
+	if (
+		JSON.stringify(Object.keys(identity)) !==
+		JSON.stringify(['schema', 'gitSha', 'gitTreeSha', 'clean']) ||
+		identity.schema !== 'blacksite-frontend-build-identity-v1' ||
+		!/^[0-9a-f]{40}$/u.test(identity.gitSha) ||
+		!/^[0-9a-f]{40}$/u.test(identity.gitTreeSha) ||
+		typeof identity.clean !== 'boolean'
+	) {
+		fail('Invalid BLACKSITE frontend build identity');
+	}
+	if (
+		identity.gitSha !== expectedGitSha ||
+		identity.gitTreeSha !== expectedGitTreeSha ||
+		identity.clean !== expectedClean
+	) {
+		fail(
+			`Frontend build identity does not match the current checkout: ${JSON.stringify(identity)}`,
+		);
+	}
+	return identity;
+}
+
 function validateIndex(index) {
 	if (
 		!index ||
@@ -251,6 +283,10 @@ function main() {
 	if (!existsSync(join(frontendSource, 'index.html'))) {
 		fail('Missing BLACKSITE frontend build; run pnpm --filter blacksite build first');
 	}
+	const gitSha = gitText(['rev-parse', 'HEAD']);
+	const gitTreeSha = gitText(['rev-parse', 'HEAD^{tree}']);
+	const gitStatusBefore = gitText(['status', '--porcelain=v1', '--untracked-files=all']);
+	validateFrontendBuildIdentity(gitSha, gitTreeSha, gitStatusBefore === '');
 	if (arguments_.printFrontendTreeSha256) {
 		process.stdout.write(`${createFileManifest(frontendSource).treeSha256}\n`);
 		return;
@@ -266,9 +302,7 @@ function main() {
 		if (!existsSync(path)) fail(`Missing BLACKSITE math candidate input: ${path}`);
 	}
 
-	const gitSha = gitText(['rev-parse', 'HEAD']);
 	const gitBranch = gitText(['branch', '--show-current']);
-	const gitStatusBefore = gitText(['status', '--porcelain=v1', '--untracked-files=all']);
 	if (!/^[0-9a-f]{40}$/iu.test(gitSha)) fail(`Invalid git SHA: ${gitSha}`);
 	if (gitSha !== expectedCommit)
 		fail(`Current Git SHA ${gitSha} does not match --expected-commit ${expectedCommit}`);

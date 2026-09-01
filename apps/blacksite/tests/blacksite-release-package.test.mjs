@@ -8,16 +8,27 @@ const packageScriptUrl = new URL(
 );
 const verifyScriptUrl = new URL('../../../scripts/blacksite-package-verify.mjs', import.meta.url);
 const workflowUrl = new URL('../../../.github/workflows/blacksite-ci.yml', import.meta.url);
+const buildScriptUrl = new URL('../scripts/build-production.mjs', import.meta.url);
+const packageJsonUrl = new URL('../package.json', import.meta.url);
 
 test('CI packages, verifies and browser-tests the exact extracted BlackSite frontend', async () => {
-	const [packageScript, verifyScript, workflow] = await Promise.all([
+	const [packageScript, verifyScript, workflow, buildScript, packageJson] = await Promise.all([
 		readFile(packageScriptUrl, 'utf8'),
 		readFile(verifyScriptUrl, 'utf8'),
 		readFile(workflowUrl, 'utf8'),
+		readFile(buildScriptUrl, 'utf8'),
+		readFile(packageJsonUrl, 'utf8').then(JSON.parse),
 	]);
 
 	assert.match(packageScript, /--print-frontend-tree-sha256/u);
 	assert.match(packageScript, /createFileManifest\(frontendSource\)\.treeSha256/u);
+	assert.match(packageScript, /validateFrontendBuildIdentity\(gitSha, gitTreeSha, gitStatusBefore === ''\)/u);
+	assert.match(packageScript, /blacksite-frontend-build-identity-v1/u);
+	assert.match(buildScript, /rmSync\(buildRoot, \{ recursive: true, force: true \}\)/u);
+	assert.match(buildScript, /blacksite-build-identity\.json/u);
+	assert.match(buildScript, /gitText\(\['rev-parse', 'HEAD\^\{tree\}'\]\)/u);
+	assert.equal(packageJson.scripts.build, 'node scripts/build-production.mjs');
+	assert.match(packageJson.scripts['qa:e2e'], /pnpm run build/u);
 	assert.doesNotMatch(
 		packageScript,
 		/final production assets, animation and audio are not present/u,
