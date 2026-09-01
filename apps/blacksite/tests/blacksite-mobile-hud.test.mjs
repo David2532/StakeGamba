@@ -66,4 +66,8 @@ test('presentation speed persists while system reduced motion remains authoritat
 		browserSource,
 		/presentation preference reloads never write to wallet or event endpoints/u,
 	);
+	assert.match(
+		browserSource,
+		/network\.byEndpoint\.authenticate\.length === 4 &&\s+network\.byEndpoint\.play\.length === 0 &&\s+network\.byEndpoint\.endRound\.length === 0 &&\s+network\.byEndpoint\.event\.length === 0/u,
+	);
 });

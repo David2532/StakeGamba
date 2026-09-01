@@ -2560,7 +2560,10 @@ async function runNetworkScenarios(browser, origin) {
 			check(
 				group,
 				'presentation preference reloads never write to wallet or event endpoints',
-				network.byEndpoint.authenticate.length === 4 && walletWriteCount(network) === 0,
+				network.byEndpoint.authenticate.length === 4 &&
+					network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
 				serialize(network.order),
 			);
 			assertCleanNetwork(group, network);
