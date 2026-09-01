@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-13 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `c36117d0185187e0b88ceacb93295c211946929b`
+- Verified implementation commit: `9749cfebbcc6ebbea941ced19f0d1b1124d87a55`
+- Work item: `BSB-TIMER-CADENCE-001` (DONE)
+- Selection reason: the optional Session Time display changed only once per second but used a permanent 250ms interval, producing four configured UI wakeups per second while idle.
+- Before/after evidence: the interval is now 1,000ms and elapsed time remains drift-resistant through `Date.now()`. Nominal callbacks fall from 240 to 60 per minute (75%); exact Chromium records one timer callback over 1,100ms while visible time advances `00:00 → 00:01`, Session Position changes `$0.00 → +$7.00`, balance settles at `$993.00`, and network order remains one authenticate plus one play with no settlement/event write. Battery or real-device savings are not claimed.
+- Changed files: route timer cadence, Chromium timer instrumentation, accessibility regression and five sprint-memory files; pixels/layout, math, RGS/wallet contract, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused accessibility/mobile 12/12 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 124/124 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 71/71 scenarios and 1856/1856 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies browser proof.
+- Visual review: exact timer state, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9793569525` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024 and the orientation round trip. Board, timer, controls and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `dddf8429c9d796074481c616f0fdf948b926faa65c0ef845781ef4ce4323f9b5`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One regex correction and one harness-placement correction preceded the verified patch; exact tree identity caught and a normal fast-forward restored the QA script executable mode. No unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33489360248`, artifact `9793569525` and digest `sha256:3d39b93011160658e39d60f2fa197778f9e50a7a298bbbfcf4d4cf6d7f09d28c` succeeded.
+- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup and final audio/listening/device QA remain open.
+- Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; revisit mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260901-12 — SUCCESS
 
 - Sprint day: 3
@@ -314,19 +331,3 @@ Newest entries first; retain at most 20.
 - Persistence: source attempt commits `4dd5821`, `6a65241`, `d6b964c` were superseded by normal fast-forward revert `907816c`. Final product tree is exactly `cdaad614…0723`, matching previously verified `088ec87`; no unverified executable change remains.
 - Residual risk: live feature-entry/return browser evidence remains open alongside 23 manual checklist gates, 6 external approvals, rights/Creative cleanup, Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing.
 - Next candidate: retry the same bounded live-feature slice only when exact Chromium or Actions execution is available; otherwise choose the next safe automatable provider state without claiming manual/external evidence.
-
-## BS-20260831-23 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `60bd7054d830d226c518e002652166c81922e2f6`
-- Verified implementation commit: `b10d4460c4c2db49f36dec45ee0d175c20a965cc`
-- Work item: `BSB-EVIDENCE-001` (bounded five-wins-per-mode rules-evidence slice; item remains in progress)
-- Selection reason: deterministic fixtures existed, but the exact current package did not prove the documented cluster bands, symbol payouts, positions, multipliers and per-step sums across five wins in each canonical mode.
-- Before/after evidence: exact Chromium now covers 15 read-only Replay cases (`base`, `deep_access`, `blackout`), comprising 121 authoritative win events and 122 clusters. Every case matches Game Rules, uses one exact GET and no wallet/event write, finishes with a 49-cell authoritative board and preserves the exact total/final payout. Checklist item 33 remains automated-proof/manual-open because human visual sign-off cannot be replaced by automation.
-- Changed files: Chromium QA, 51-point evidence map, compliance regression and sprint memory closeout files.
-- Gates: syntax/focused contract tests 23/23 PASS; final fail-closed compliance tests 4/4 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 104/104 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; isolated package and 51-row evidence resolution PASS; exact Chromium 58/58 scenarios and 1405/1405 checks PASS; unexpected network/page/request failures 0; `git diff --check` PASS.
-- Visual review: all 15 rule-win completion captures plus exact 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 screenshots from artifact `9755786881` were inspected. Boards remain fully rendered and square, exact large Replay values stay contained, controls remain visible, intended penguin/vault pixels render, and no overlap, scrollbar, crop or broken-image regression is visible. Human rule-win approval and frame-by-frame/real-device sharpness remain unclaimed.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Formatter churn was removed and fail-closed evidence caught an over-broad item edit before persistence; no unchanged semantic retry, dependency or binary product asset was added.
-- Persistence: implementation was fast-forwarded without force through the connected GitHub API; exact run `33385664641` and artifact `9755786881` succeeded. Earlier run `33385307848` was deliberately cancelled after the human-gate correction superseded it.
-- Residual risk: human rights/Creative approval and cleanup, approved Spine 4.2 rig/authored clips, BLACKOUT/foreground layers, final audio assets and manual listening/device QA, real-device pacing, 23 manual checklist gates and 6 external approvals remain open. Autoplay is intentionally N/A for this versioned candidate.
-- Next candidate: continue `BSB-EVIDENCE-001` with the highest safe automatable gameplay/provider state not yet current-head proven; manual and external approvals remain explicitly unclaimed.

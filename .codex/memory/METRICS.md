@@ -1,5 +1,57 @@
 # Rolling automation metrics
 
+## BS-20260901-13
+
+```yaml
+closed_at_utc: 2026-09-01T09:12:23Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_accessibility_mobile_tests: 12
+focused_accessibility_mobile_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 124
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 357154
+local_full_gate_duration_seconds: 374
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 124
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: dddf8429c9d796074481c616f0fdf948b926faa65c0ef845781ef4ce4323f9b5
+verified_ci_run: 33489360248
+verified_ci_status: PASS
+verified_ci_seconds: 864
+remote_browser: { scenarios: 71, checks_pass: 1856, checks_fail: 0, unexpected_failures: 0 }
+session_timer_before: { interval_ms: 250, nominal_callbacks_per_second: 4, nominal_callbacks_per_minute: 240 }
+session_timer_after: { interval_ms: 1000, measured_callback_delta: 1, measurement_window_ms: 1100, nominal_callbacks_per_second: 1, nominal_callbacks_per_minute: 60 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9793569525
+remote_diagnostics_digest: sha256:3d39b93011160658e39d60f2fa197778f9e50a7a298bbbfcf4d4cf6d7f09d28c
+remote_implementation_commit: 9749cfebbcc6ebbea941ced19f0d1b1124d87a55
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/performance source reads, one focused syntax/accessibility/mobile check, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, connected Git-data fast-forwards, exact Actions/artifact reads, timer-cadence extraction and five screenshot inspections. One invalid focused-test regex was corrected once; one overly broad harness insertion was moved to the intended scenario before commit. Exact tree identity caught an executable-mode mismatch, which a normal fast-forward correction restored before CI. The cancelled superseded implementation run is not counted as a gate failure; exact current-head CI passed. No unchanged semantic failure was repeated, and no subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
 ## BS-20260901-12
 
 ```yaml
