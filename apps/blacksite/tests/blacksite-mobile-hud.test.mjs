@@ -46,4 +46,8 @@ test('browser QA proves a live portrait-landscape-portrait reflow without wallet
 		source,
 		/orientation round trip preserves one authenticated session and zero wallet writes/u,
 	);
+	assert.match(
+		source,
+		/network\.byEndpoint\.authenticate\.length === 1 &&\s+network\.byEndpoint\.play\.length === 0 &&\s+network\.byEndpoint\.endRound\.length === 0 &&\s+network\.byEndpoint\.event\.length === 0/u,
+	);
 });

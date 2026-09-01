@@ -4324,7 +4324,10 @@ async function runGeometryScenarios(browser, origin) {
 			check(
 				group,
 				'orientation round trip preserves one authenticated session and zero wallet writes',
-				network.byEndpoint.authenticate.length === 1 && walletWriteCount(network) === 0,
+				network.byEndpoint.authenticate.length === 1 &&
+					network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
 				serialize(network.order),
 			);
 			assertCleanNetwork(group, network);
