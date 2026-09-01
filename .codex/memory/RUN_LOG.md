@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-03 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `ccf6fbe50abdd704ab6516e78d9a5cd093342908`
+- Verified implementation commit: `4bbd22d8cc2ab466a9181ea91f80f036aea660a8`
+- Work item: `BSB-PACKAGE-CLEAN-001` (DONE)
+- Selection reason: an existing generated frontend was not cryptographically bound to the current checkout, so a clean caller could package stale output under a newer commit even though clean CI itself produced the right tree.
+- Before/after evidence: an injected ignored stale bundle is removed by the build wrapper; two repeated builds each contain 10 files and exactly one JS bundle. The emitted identity binds schema, exact commit, exact tree and pre-build cleanliness, and the packager rejects a pre-commit/stale identity before tree hashing or copy.
+- Changed files: BlackSite package scripts, new production-build wrapper, package regression and five sprint-memory files; runtime UI/CSS, math, wallet, assets, lockfile and dependencies unchanged.
+- Gates: focused release-package regression 1/1 PASS; stale-injection and two-build shape checks PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 112/112 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 64/64 scenarios and 1576/1576 checks PASS; unexpected network/page/request failures 0; `git diff --check` and secret/debug review PASS. Local Chromium was BLOCKED by the absent Playwright executable and is superseded by the exact isolated CI package run.
+- Visual review: exact 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9780778232` were inspected. Boards, values, controls and penguin/vault pixels remain complete without overlap, scroll, crop or broken-image regression. Runtime UI/CSS/assets did not change; real device approval remains unclaimed.
+- Package evidence: exact remote frontend tree `337c09fb3199dba23ac3ec0d6248b1459a556f168bf529cc14aea8a274c330bb`, 10 files and one JS bundle; build identity matches implementation `4bbd22d` and tree `71a2d36`; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One invalid byte-equality premise was replaced with exact identity plus deterministic shape after Vite's internal version hash changed; no unchanged failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33453194613`, artifact `9780778232` and digest `sha256:8ef5e675ade91acbdfb89448855952e7b4b3a397942a8597f85ba18e9b63d6bb` succeeded.
+- Residual risk: deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
+- Next candidate: choose a distinct safe day-3 HUD/accessibility or provider-evidence gap; retry mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260901-02 — SUCCESS
 
 - Sprint day: 3
@@ -304,20 +321,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation/fix trees were fast-forwarded without force through the connected GitHub API; exact run `33348321475` and artifact `9742920099` succeeded.
 - Residual risk: 23 manual checklist gates, 6 external approvals, manual audio/device QA, final reel/character sound and motion, rights/Creative approval, penguin cleanup and Spine rig remain open.
 - Next candidate: return to `BSB-MOTION-001` for character/rig fallback, reel-stop polish and frame-pacing evidence while manual/external approvals proceed outside automation.
-
-## BS-20260831-13 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `696e0977cf6def96b326596b2b94d4b777cbdd2c`
-- Verified implementation commit: `49d113415e2331a1ae0f41bff122a8c9b6870503`
-- Work item: `BSB-EVIDENCE-001` (isolated exact-package slice; item remains in progress)
-- Selection reason: build/math/browser gates were green but CI did not create, independently read back or browser-test the actual isolated frontend/math candidate required by the repository release contract.
-- Before/after evidence: CI now binds the copied package to exact commit and frontend tree, verifies nine frontend files plus exactly seven math upload files and all 300,000 compressed book/lookup pairs, and serves Chromium from the copied package directory. A real first readback exposed the obsolete `_app`/`index.html` allowlist; it now also admits the required package-local `assets/` root while rejecting any other top-level entry.
-- Changed files: BlackSite workflow, package generator/verifier, package regression test, release QA wording and sprint memory closeout files.
-- Gates: focused package regression 1/1 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 92/92 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS; local and remote isolated-package readback 300,000/300,000 PASS; exact packaged Chromium 40/40 scenarios and 965/965 checks PASS; unexpected console/network/request failures 0; `git diff --check` PASS.
-- Package evidence: exact remote frontend tree `fc20dd2a…e303` (9 files/662,453 bytes), math tree `6bd0c4c7…01da` (7 files/48,697,667 bytes), unchanged math fingerprint `d03fab…78d8`; package lifecycle remains explicitly non-submission-ready and upload unauthorized.
-- Visual review: exact copied-package screenshots at 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 inspected. Penguin/vault assets load from package-local paths; boards and controls remain visible, square, reachable and free of new overlap, scroll or crop regression. No runtime UI changed in this slice.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. One local package failure and one superseded/cancelled CI run led to the focused allowlist correction; no unchanged failure was repeated.
-- Persistence: implementation commits were fast-forwarded without force through the connected GitHub API; exact run `33345753819` and artifact `9742066991` succeeded.
-- Residual risk: the complete 51-point automated/manual/external matrix, manual audio/device listening, authored reel/character sound, asset rights/Creative approval, penguin cleanup/Spine and character/reel polish remain open.
-- Next candidate: continue `BSB-EVIDENCE-001` with the complete gameplay/provider checklist matrix; manual approvals remain explicitly external.
