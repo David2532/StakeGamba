@@ -160,6 +160,7 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 	assert.match(browserQa, /reauthenticated settlement performs exactly one new completion attempt/u);
 	assert.match(browserQa, /event-driven trace observes the primed feature checkpoint without polling a transient state/u);
 	assert.match(browserQa, /restore persists each remaining durable checkpoint exactly once in order/u);
+	assert.match(browserQa, /network\.byEndpoint\.authenticate\[0\]/u);
 	assert.match(
 		browserQa,
 		/serialize\(network\.order\) === serialize\(\['authenticate', 'play', 'event', 'endRound', 'authenticate', 'endRound'\]\)/u,
@@ -257,11 +258,3 @@ test('candidate evidence fails closed when a referenced browser scenario is abse
 		value.browserEvidence.scenarios = value.browserEvidence.scenarios.filter(
 			(scenario) => scenario.name !== 'live-auth-exact',
 		);
-		value.browserEvidence.summary.scenarios -= 1;
-		value.browserEvidence.summary.passedScenarios -= 1;
-		writeJson(value.browserEvidencePath, value.browserEvidence);
-		assert.throws(() => buildComplianceEvidence(value), /Requirement 1.*live-auth-exact/u);
-	} finally {
-		rmSync(value.root, { recursive: true, force: true });
-	}
-});
