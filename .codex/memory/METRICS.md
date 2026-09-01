@@ -1,5 +1,58 @@
 # Rolling automation metrics
 
+## BS-20260901-19
+
+```yaml
+closed_at_utc: 2026-09-01T14:27:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_compliance_before: { pass: 9, fail: 1, status: EXPECTED_FAIL_REPRODUCED }
+focused_syntax_status: PASS
+focused_compliance_after: { pass: 10, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 128
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 363600
+local_full_gate_duration_seconds: null
+local_browser: BLOCKED_TRANSIENT_CDN_502_TIMEOUT_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 128
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 4cd782fc6517d0fe085fc6edeb3d2a48767a72a8f8a627f90c6ff4979215a715
+verified_ci_run: 33517845045
+verified_ci_status: PASS
+verified_ci_seconds: 890
+remote_browser: { scenarios: 73, checks_pass: 1952, checks_fail: 0, unexpected_failures: 0 }
+active_feature_restore: { resume_cursor: 69, trace_samples: 21, remaining_checkpoints: 15, duplicate_plays: 0, settlements: 1, final_win_micro: 1000000000, final_balance_micro: 1999000000 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9804972383
+remote_diagnostics_digest: sha256:6eb8b67836593319715feb8e1748800912d18b323a7ec9b7166b9e2b6a93970e
+remote_implementation_commit: 21c0898c24fcfc96697a0bb698843e19a4860ee7
+superseded_ci_runs: [33515867589, 33516075878]
+superseded_reasons: [connected_contents_payload_truncated_final_test_lines, init_script_observer_started_before_dom_root]
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/provider and QA reads; one expected-red then green focused compliance reproduction; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/scope review; connected Git-data fast-forwards; exact Actions evidence; artifact extraction, structured evidence reads and five screenshot inspections. A connected Contents transfer accidentally omitted the final eight test lines and was restored from the exact local blob; the next CI supplied new evidence that the init script could precede the DOM root, so observer startup was bound to `DOMContentLoaded`. The final exact-head run passed. Local Playwright installation was blocked by a transient CDN 502/timeout; isolated CI supplied the browser authority. No unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260901-18
 
 ```yaml
