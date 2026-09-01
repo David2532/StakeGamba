@@ -145,6 +145,7 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 	assert(item);
 	assert.deepEqual(item.browserScenarios, [
 		'active-restore-no-duplicate-play',
+		'active-feature-restore-resumes-at-checkpoint-once',
 		'uncertain-live-play-reloads-and-restores-without-retry',
 		'settlement-http-503-reloads-and-restores-exactly-once',
 		'settlement-session-expiry-reauthenticates-and-settles-once',
@@ -157,6 +158,8 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 	assert.match(browserQa, /exactly one new settlement attempt/u);
 	assert.match(browserQa, /expired settlement session never retries authentication or settlement automatically/u);
 	assert.match(browserQa, /reauthenticated settlement performs exactly one new completion attempt/u);
+	assert.match(browserQa, /event-driven trace observes the primed feature checkpoint without polling a transient state/u);
+	assert.match(browserQa, /restore persists each remaining durable checkpoint exactly once in order/u);
 	assert.match(
 		browserQa,
 		/serialize\(network\.order\) === serialize\(\['authenticate', 'play', 'event', 'endRound', 'authenticate', 'endRound'\]\)/u,
