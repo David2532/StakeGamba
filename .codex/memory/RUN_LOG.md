@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-21 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `c47c83be9dbc051c5d64d2c5cf2ed407ac3a07f0`
+- Verified implementation commit: `35f3d3d933889aa23907efbdd2f21b22b3d783f6`
+- Work item: `BSB-REPLAY-TIMER-LIFECYCLE-001` (DONE; parent `BSB-EVIDENCE-001` remains in progress)
+- Selection reason: existing Play Again evidence proved one cached replay, while the repository motion QA contract also requires repeated replay not to accumulate listeners, tracks, particles or timers; repeated timer ownership had no exact-browser evidence.
+- Before/after evidence: focused compliance began with one expected FAIL because checklist row 42 did not bind a repeated lifecycle. Exact Chromium now performs six Play Again cycles after one Replay GET; all six return to one identical completed 49-cell presentation. Active timers drain to 0 after each cycle, created totals progress `5, 9, 13, 17, 21, 25`, peak concurrent timers remain 2, and authenticate/play/event/settlement writes remain 0.
+- Changed files: Chromium QA, checklist row-42 evidence binding, compliance regression and five sprint-memory files; runtime UI, math, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused regression 2/2 PASS after expected-red reproduction; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 129/129 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 75/75 scenarios and 2182/2182 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not installed; exact isolated CI supplies current-package browser proof.
+- Visual review: exact 1366x768 six-cycle Replay completion plus 1920x1080, 390x844 and 844x390 captures from artifact `9811160327` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Board, controls, exact values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `6c48d38d76525087618a73eb9164712b83d0c81f5925de816136ec9bc7b6f97b`, package verification PASS; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The exact artifact supplied the six timer snapshots and four inspected viewports; no unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33533314785`, artifact `9811160327` and digest `sha256:e550806dc3ba25a00104c76608c7d244d49d725e6c9876540f80a56a8f4a0519` succeeded.
+- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct safe provider, accessibility or authored-motion gap that can close without unavailable human assets or physical-device approval.
+
 ## BS-20260901-20 — SUCCESS
 
 - Sprint day: 3
@@ -323,19 +340,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33450641637`, artifact `9779949482` and digest `sha256:03395f9741d5cbcd488247f3943cebf1fa4cbfc334ce658db22e9b16a8096c27` succeeded.
 - Residual risk: real screen-reader/device approval, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
 - Next candidate: harden repeated local package/build cleanup so stale hashed bundles cannot enter a candidate; then choose the next distinct safe provider gap.
-
-## BS-20260901-01 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `b0a66ddcb6bdb22b246131f864513479f131e1a1`
-- Verified implementation commit: `24eb2fe37d227053373a3defb5b793d2424e5f3c`
-- Work item: `BSB-EVIDENCE-001` (bounded ambiguous authenticate-step slice; item remains in progress)
-- Selection reason: unit contracts rejected conflicting `stepBet` and `minStep`, but the exact extracted package did not prove that this ambiguous provider configuration remains visibly fail-closed without exposing a paid action or sending a wallet write.
-- Before/after evidence: exact Chromium receives one successful authenticate response with `stepBet=100000` and `minStep=200000`, displays `STEP_BET_CONFLICT`, leaves the primary action `UNAVAILABLE`, starts no local fallback and sends exactly one authenticate plus zero play, event or settlement writes.
-- Changed files: Chromium QA, 51-point evidence map, compliance regression and five sprint-memory files; runtime UI, math, assets, lockfile and dependencies unchanged.
-- Gates: focused contracts/compliance 41/41 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 109/109 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; isolated package/readback and 51-row resolver PASS; exact Chromium 64/64 scenarios and 1558/1558 checks PASS; unexpected network/page/request failures 0; `git diff --check` PASS. Local Chromium was BLOCKED only by the missing Playwright executable and is superseded by the exact isolated CI package run.
-- Visual review: exact 1280x720 ambiguous-auth failure plus 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9779098528` inspected. The error/reload card and disabled action are centered and visible; boards, values, controls and penguin/vault pixels remain complete without overlap, scroll, crop or broken-image regression. Prior 1366x768 evidence remains source-identical; manual/device approval is unclaimed.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One wrong Git base-tree identifier and one unauthenticated CLI push were replaced with exact content-addressed alternatives; no unchanged semantic failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33448128514` and artifact `9779098528` succeeded.
-- Residual risk: deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
-- Next candidate: complete the highest-impact day-3 HUD/responsive/accessibility gap still evidenced by current-package geometry; otherwise choose another distinct provider gap and defer mid-feature restore until event-triggered observation exists.
