@@ -3498,6 +3498,130 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('max-win-hero-timing-normal-and-turbo', async (record) => {
+		const group = 'max-win-hero-timing-normal-and-turbo';
+		const fixture = getGeneratedFixture('base_max_win');
+		const expectedPayout = DEFAULT_BASE_AMOUNT * fixture.book.payoutMultiplier / 100;
+		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: (request, audit) => ({
+						status: successStatus(),
+						balance: {
+							amount: DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT + expectedPayout,
+							currency: 'USD',
+						},
+						round: authoritativeFixtureRound({
+							fixture,
+							active: false,
+							amount: request.body.amount,
+							currency: request.body.currency,
+							id: `blacksite-qa-max-win-${audit.byEndpoint.play.length}`,
+						}),
+					}),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+
+			const installCharacterTimeline = async () => {
+				await page.evaluate((selector) => {
+					window.__blacksiteMaxWinCharacters = [];
+					window.__blacksiteMaxWinObserver?.disconnect();
+					const character = document.querySelector(selector);
+					const capture = () => {
+						const image = character?.querySelector('img');
+						const style = image ? getComputedStyle(image) : null;
+						window.__blacksiteMaxWinCharacters.push({
+							state: character?.getAttribute('data-character-state'),
+							profile: character?.getAttribute('data-motion-profile'),
+							animation: style?.animationName ?? 'none',
+							animationDurationMs: style ? Number.parseFloat(style.animationDuration) * 1_000 : 0,
+							willChange: style?.willChange ?? 'auto',
+							at: performance.now(),
+						});
+					};
+					capture();
+					window.__blacksiteMaxWinObserver = new MutationObserver(capture);
+					window.__blacksiteMaxWinObserver.observe(character, {
+						attributes: true,
+						attributeFilter: ['data-character-state', 'data-motion-profile'],
+					});
+				}, SELECTORS.vaultkeeper);
+			};
+			const readCharacterTimeline = () => page.evaluate(() => window.__blacksiteMaxWinCharacters);
+			const heroWindow = (timeline) => {
+				const heroIndex = timeline.findIndex(({ state }) => state === 'max_win');
+				const hero = timeline[heroIndex];
+				const exit = timeline.slice(heroIndex + 1).find(({ state }) => state !== 'max_win');
+				return { hero, exit, elapsedMs: hero && exit ? exit.at - hero.at : -1 };
+			};
+
+			await installCharacterTimeline();
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 1);
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'max_win',
+				SELECTORS.vaultkeeper,
+				{ timeout: 15_000 },
+			);
+			const normalScreenshot = await saveScreenshot(page, `${group}-normal`);
+			await waitForStableAction(page);
+			const normalTimeline = await readCharacterTimeline();
+			const normalWindow = heroWindow(normalTimeline);
+			check(group, 'normal max-win hero clip remains visible for its complete authored window',
+				normalWindow.hero?.profile === 'normal' &&
+					normalWindow.hero.animation.endsWith('vaultkeeper-max-win') &&
+					normalWindow.hero.animationDurationMs === 1_000 &&
+					normalWindow.elapsedMs >= 900 && normalWindow.elapsedMs <= 1_400,
+				serialize({ normalWindow, normalTimeline }),
+			);
+
+			await page.locator(SELECTORS.motionMode).click();
+			await installCharacterTimeline();
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 2);
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'max_win',
+				SELECTORS.vaultkeeper,
+				{ timeout: 15_000 },
+			);
+			const turboScreenshot = await saveScreenshot(page, `${group}-turbo`);
+			await waitForStableAction(page);
+			const turboTimeline = await readCharacterTimeline();
+			const turboWindow = heroWindow(turboTimeline);
+			check(group, 'turbo max-win hero clip remains visible for its complete authored window',
+				turboWindow.hero?.profile === 'turbo' &&
+					turboWindow.hero.animation.endsWith('vaultkeeper-max-win') &&
+					turboWindow.hero.animationDurationMs === 360 &&
+					turboWindow.elapsedMs >= 320 && turboWindow.elapsedMs <= 650,
+				serialize({ turboWindow, turboTimeline }),
+			);
+			check(group, 'both max-win paths preserve exact payout authority and clean readiness',
+				(await page.locator(SELECTORS.finalWin).innerText()).trim() === formatExactApi(expectedPayout, 'USD') &&
+					(await runtimeState(page)) === 'live-ready' &&
+					network.byEndpoint.play.length === 2 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
+				serialize({ finalWin: await page.locator(SELECTORS.finalWin).innerText(), order: network.order }),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.fixture = fixture.id;
+			record.normal = { timeline: normalTimeline, window: normalWindow, screenshot: normalScreenshot };
+			record.turbo = { timeline: turboTimeline, window: turboWindow, screenshot: turboScreenshot };
+			record.network = network;
+			record.diagnostics = diagnostics;
+			await page.evaluate(() => window.__blacksiteMaxWinObserver?.disconnect());
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('authoritative-blackout-vault-transition', async (record) => {
 		const group = 'authoritative-blackout-vault-transition';
 		const fixture = getGeneratedFixture('blackout_zero');

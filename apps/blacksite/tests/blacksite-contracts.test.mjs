@@ -709,6 +709,7 @@ test('PresentationDirector exposes bounded normal, turbo and reduced timing gram
 		'remove',
 		'drop',
 		'settle',
+		'maxWin',
 	]) {
 		assert(PRESENTATION_TIMINGS.normal[phase] > PRESENTATION_TIMINGS.turbo[phase]);
 		assert(PRESENTATION_TIMINGS.turbo[phase] > 0);
@@ -721,7 +722,32 @@ test('PresentationDirector exposes bounded normal, turbo and reduced timing gram
 	assert(PRESENTATION_TIMINGS.normal.anticipation >= 450);
 	assert(PRESENTATION_TIMINGS.normal.feature >= 900);
 	assert(PRESENTATION_TIMINGS.normal.feature <= 2_200);
+	assert.equal(PRESENTATION_TIMINGS.normal.maxWin, 1_000);
+	assert.equal(PRESENTATION_TIMINGS.turbo.maxWin, 360);
 	assert(Object.isFrozen(PRESENTATION_TIMINGS));
+});
+
+test('PresentationDirector keeps the authoritative max-win hero state visible until its bounded exit', async () => {
+	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'base_max_win');
+	assert(fixture);
+	const cues = new GameEventAdapter().adaptBook(fixture.book, { expectedMode: 'base' });
+	const capCue = cues.find(({ kind }) => kind === 'cap_reached');
+	const settledCue = cues.find(({ kind }) => kind === 'settled');
+	assert(capCue && settledCue);
+	const director = new PresentationDirector();
+	const pending = director.play([capCue, settledCue], {
+		timingProfile: 'normal',
+		stepDelayMs: 0,
+		winDelayMs: 0,
+	});
+	await new Promise((resolve) => setImmediate(resolve));
+	assert.equal(director.state.character.state, 'max_win');
+	assert.equal(director.timers.size, 1);
+	assert.equal(director.skip(), true);
+	assert.equal(await pending, true);
+	assert.equal(director.state.status, 'complete');
+	assert.equal(director.state.character.state, 'idle_a');
+	assert.equal(director.timers.size, 0);
 });
 
 test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () => {
@@ -729,6 +755,9 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /normal cascade has no sustained frame-pacing stalls/u);
 	assert.match(source, /normal BLACKOUT transition has no sustained frame-pacing stalls/u);
 	assert.match(source, /normalReelStopCadence/u);
+	assert.match(source, /max-win-hero-timing-normal-and-turbo/u);
+	assert.match(source, /normal max-win hero clip remains visible for its complete authored window/u);
+	assert.match(source, /turbo max-win hero clip remains visible for its complete authored window/u);
 });
 
 test('BLACKOUT environment pulse stays on compositor-friendly opacity', () => {
@@ -757,6 +786,14 @@ test('Vaultkeeper compositor hints are bounded to active reactions', () => {
 	assert.match(
 		source,
 		/\.vaultkeeper-presence\[data-motion-profile='reduced'\] img \{\s*will-change: auto;/u,
+	);
+});
+
+test('Turbo Vaultkeeper hero and BLACKOUT reactions finish within the semantic cue window', () => {
+	const source = readFileSync(join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'), 'utf8');
+	assert.match(
+		source,
+		/\.vaultkeeper-presence\[data-motion-profile='turbo'\]\[data-character-state='feature_trigger'\] img,\s*\.vaultkeeper-presence\[data-motion-profile='turbo'\]\[data-character-state='recover'\] img,\s*\.vaultkeeper-presence\[data-motion-profile='turbo'\]\[data-character-state='max_win'\] img \{\s*animation-duration: 360ms;/u,
 	);
 });
 

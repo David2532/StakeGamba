@@ -11,6 +11,7 @@ export const PRESENTATION_TIMINGS = Object.freeze({
 		remove: 150,
 		drop: 250,
 		settle: 90,
+		maxWin: 1_000,
 	}),
 	turbo: Object.freeze({
 		step: 12,
@@ -22,6 +23,7 @@ export const PRESENTATION_TIMINGS = Object.freeze({
 		remove: 55,
 		drop: 105,
 		settle: 35,
+		maxWin: 360,
 	}),
 	reduced: Object.freeze({
 		step: 0,
@@ -33,6 +35,7 @@ export const PRESENTATION_TIMINGS = Object.freeze({
 		remove: 0,
 		drop: 0,
 		settle: 0,
+		maxWin: 0,
 	}),
 });
 
@@ -327,6 +330,7 @@ export class PresentationDirector {
 			if (cue.kind === 'feature_started' || cue.kind === 'feature_ended') {
 				delayMs = timings.feature;
 			}
+			if (cue.kind === 'cap_reached') delayMs = timings.maxWin;
 			if (cue.kind === 'tumble') delayMs = timings.remove;
 			if (cue.kind === 'board_snapshot') {
 				delayMs = this.state.motion.phase === 'drop' ? timings.drop : timings.reveal;
