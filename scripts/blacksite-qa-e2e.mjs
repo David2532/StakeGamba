@@ -3221,10 +3221,42 @@ async function runNetworkScenarios(browser, origin) {
 				netPosition: (await page.locator(SELECTORS.sessionNetPosition).innerText()).trim(),
 				sessionTimer: (await page.locator(SELECTORS.sessionTimer).innerText()).trim(),
 				walletBalance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
+				netPositionSemantics: await page.locator(SELECTORS.sessionNetPosition).evaluate((element) => ({
+					role: element.getAttribute('role'),
+					live: element.getAttribute('aria-live'),
+					atomic: element.getAttribute('aria-atomic'),
+					labelledBy: element.getAttribute('aria-labelledby'),
+				})),
+				timerSemantics: await page.locator(SELECTORS.sessionTimer).evaluate((element) => ({
+					role: element.getAttribute('role'),
+					live: element.getAttribute('aria-live'),
+					atomic: element.getAttribute('aria-atomic'),
+					labelledBy: element.getAttribute('aria-labelledby'),
+				})),
 			};
 			check(group, 'enabled session position and timer are both visible at 390×844 mobile', await page.locator(SELECTORS.sessionNetPosition).isVisible() && await page.locator(SELECTORS.sessionTimer).isVisible(), serialize(initialUi));
 			check(group, 'session position opens at exact zero from authenticated balance', initialUi.netPosition === '$0.00', serialize(initialUi));
 			check(group, 'session timer uses a bounded minutes-and-seconds display', /^\d{2}:\d{2}$/.test(initialUi.sessionTimer), serialize(initialUi));
+			check(
+				group,
+				'session position is polite while the ticking timer remains non-live',
+				initialUi.netPositionSemantics.role === 'status' &&
+					initialUi.netPositionSemantics.live === 'polite' &&
+					initialUi.netPositionSemantics.atomic === 'true' &&
+					initialUi.netPositionSemantics.labelledBy === 'session-position-label' &&
+					initialUi.timerSemantics.role === 'timer' &&
+					initialUi.timerSemantics.live === 'off' &&
+					initialUi.timerSemantics.atomic === 'true' &&
+					initialUi.timerSemantics.labelledBy === 'session-timer-label',
+				serialize(initialUi),
+			);
+			await page.waitForFunction(
+				({ selector, initial }) => document.querySelector(selector)?.textContent?.trim() !== initial,
+				{ selector: SELECTORS.sessionTimer, initial: initialUi.sessionTimer },
+				{ timeout: 2500 },
+			);
+			const progressedTimer = (await page.locator(SELECTORS.sessionTimer).innerText()).trim();
+			check(group, 'non-live session timer still advances visibly once per second', progressedTimer !== initialUi.sessionTimer && /^\d{2}:\d{2}$/.test(progressedTimer), serialize({ initial: initialUi.sessionTimer, progressed: progressedTimer }));
 
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 1);
@@ -3249,7 +3281,7 @@ async function runNetworkScenarios(browser, origin) {
 			check(group, 'session UI scenario sends exactly one play and no end-round write', network.byEndpoint.play.length === 1 && network.byEndpoint.endRound.length === 0, serialize(network.order));
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
-			record.sessionUi = { authoritativePostPlayBalance, initialUi, updatedUi };
+			record.sessionUi = { authoritativePostPlayBalance, initialUi, progressedTimer, updatedUi };
 			record.screenshot = await saveScreenshot(page, group);
 			record.network = network;
 			record.diagnostics = diagnostics;

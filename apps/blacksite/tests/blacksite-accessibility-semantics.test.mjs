@@ -46,6 +46,20 @@ test('vault board exposes a named 7x7 row-owned grid with explicit cell position
 	);
 });
 
+test('jurisdiction readouts announce balance changes without speaking every timer tick', async () => {
+	const source = await readFile(pageUrl, 'utf8');
+
+	assert.match(
+		source,
+		/data-testid="session-net-position"[\s\S]*?role="status"[\s\S]*?aria-live="polite"[\s\S]*?aria-atomic="true"[\s\S]*?aria-labelledby="session-position-label"/u,
+	);
+	assert.match(
+		source,
+		/data-testid="session-timer"[\s\S]*?role="timer"[\s\S]*?aria-live="off"[\s\S]*?aria-atomic="true"[\s\S]*?aria-labelledby="session-timer-label"/u,
+	);
+	assert.doesNotMatch(source, /class="jurisdiction-readouts" aria-live=/u);
+});
+
 test('exact-package browser QA verifies semantic groups, status regions and confirmation description', async () => {
 	const source = await readFile(browserQaUrl, 'utf8');
 
@@ -55,4 +69,5 @@ test('exact-package browser QA verifies semantic groups, status regions and conf
 	assert.match(source, /every visible game control maps to a Game Information guide entry/u);
 	assert.match(source, /interaction guide documents touch, keyboard, Space and Escape behaviour/u);
 	assert.match(source, /board exposes one named 7x7 ARIA grid with explicit row ownership and positions/u);
+	assert.match(source, /session position is polite while the ticking timer remains non-live/u);
 });

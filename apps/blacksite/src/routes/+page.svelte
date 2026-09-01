@@ -1174,17 +1174,27 @@
 			{/if}
 
 			{#if launch.kind === 'live' && (displayNetPosition || displaySessionTimer)}
-				<div class="jurisdiction-readouts" aria-live="polite">
+				<div class="jurisdiction-readouts">
 					{#if displayNetPosition}
 						<span
-							><em>SESSION POSITION</em><strong data-testid="session-net-position"
+							><em id="session-position-label">SESSION POSITION</em><strong
+								data-testid="session-net-position"
+								role="status"
+								aria-live="polite"
+								aria-atomic="true"
+								aria-labelledby="session-position-label"
 								>{netPositionText}</strong
 							></span
 						>
 					{/if}
 					{#if displaySessionTimer}
 						<span
-							><em>SESSION TIME</em><strong data-testid="session-timer">{sessionTimerText}</strong
+							><em id="session-timer-label">SESSION TIME</em><strong
+								data-testid="session-timer"
+								role="timer"
+								aria-live="off"
+								aria-atomic="true"
+								aria-labelledby="session-timer-label">{sessionTimerText}</strong
 							></span
 						>
 					{/if}
