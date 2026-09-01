@@ -3800,6 +3800,83 @@ async function runNetworkScenarios(browser, origin) {
 		});
 	}
 
+	const socialReplayOutcomeCases = [
+		{ caseId: 'loss', fixture: BASE_ZERO_FIXTURE, expectedClass: 'loss' },
+		{ caseId: 'win', fixture: getGeneratedFixture('base_small'), expectedClass: 'win' },
+		{ caseId: 'feature', fixture: getGeneratedFixture('deep_access_small'), expectedClass: 'feature' },
+		{ caseId: 'max-win', fixture: getGeneratedFixture('base_max_win'), expectedClass: 'max-win' },
+	];
+
+	for (const outcomeCase of socialReplayOutcomeCases) {
+		await runScenario(`social-replay-outcome-${outcomeCase.caseId}`, async (record) => {
+			const group = `social-replay-outcome-${outcomeCase.caseId}`;
+			const { fixture, expectedClass } = outcomeCase;
+			const amountUnitsRaw = '0.0496';
+			const currency = 'XSC';
+			const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+			try {
+				const payload = replayResponseFromFixture(fixture);
+				const event = String(fixture.bookId);
+				const network = await installMockRgs(context, {
+					pageOrigin: origin,
+					replayOnly: true,
+					handlers: { replay: () => payload },
+				});
+				const { page, diagnostics } = await openPage(
+					context,
+					origin,
+					replayQuery({ mode: fixture.mode, event, amount: amountUnitsRaw, currency, lang: 'de', social: 'true', device: 'mobile' }),
+				);
+				await waitForEndpoint(network, 'replay', 1);
+				await waitForStableAction(page);
+				const request = network.byEndpoint.replay[0];
+				const expectedPath = `/bet/replay/blacksite_breach/${REPLAY_VERSION}/${fixture.mode}/${event}`;
+				const expectedTotalPlay = expectedReplayTotalPlay(amountUnitsRaw, MODE_COSTS[fixture.mode], currency);
+				const expectedFinalWin = expectedReplayFinalWin(amountUnitsRaw, fixture.book.payoutMultiplier, currency);
+				const readyPresentation = await replayPresentationSnapshot(page);
+				const readySurface = await collectPlayerVisibleSurface(page);
+				check(group, 'Social Replay outcome fixture is math-backed', fixture.mathBacked === true, serialize({ fixtureId: fixture.id, mathBacked: fixture.mathBacked }));
+				check(group, 'Social Replay outcome GET path is exact', request.method === 'GET' && request.path === expectedPath, serialize(request));
+				check(group, 'Social Replay outcome GET remains queryless and bodyless', Object.keys(request.search).length === 0 && request.body === null, serialize(request));
+				check(group, 'Social Replay outcome ready state hides FINAL WIN', readyPresentation.runtimeState === 'replay-ready' && readyPresentation.finalWin === '—', serialize(readyPresentation));
+				check(group, 'Social Replay outcome ready state shows exact SC cost', readyPresentation.totalPlay === expectedTotalPlay && readyPresentation.totalPlay.endsWith(' SC units'), serialize({ actual: readyPresentation.totalPlay, expected: expectedTotalPlay }));
+				check(group, 'Social Replay outcome ready surface has zero restricted hits', playerVisibleRestrictedHits(readySurface.combined).length === 0, serialize(readySurface));
+				check(group, 'Social Replay outcome ready surface has no dollar-prefixed display', !readySurface.combined.includes('$'), readySurface.combined);
+
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForReplayComplete(page);
+				const completedPresentation = await replayPresentationSnapshot(page);
+				const completedSurface = await collectPlayerVisibleSurface(page);
+				check(group, 'Social Replay outcome completes with exact authoritative result', completedPresentation.runtimeState === 'replay-completed' && completedPresentation.finalWin === expectedFinalWin, serialize({ actual: completedPresentation, expectedFinalWin }));
+				check(group, 'Social Replay outcome retains exact SC cost', completedPresentation.totalPlay === expectedTotalPlay, serialize({ actual: completedPresentation.totalPlay, expected: expectedTotalPlay }));
+				check(group, 'Social Replay outcome presents all 49 authoritative board cells', completedPresentation.board.length === 49, String(completedPresentation.board.length));
+				check(group, 'Social Replay outcome class matches its authoritative fixture', expectedClass === 'loss' ? fixture.book.payoutMultiplier === 0 : fixture.book.payoutMultiplier > 0, serialize({ expectedClass, payoutCentiX: fixture.book.payoutMultiplier }));
+				if (expectedClass === 'feature') {
+					const eventTypes = fixture.book.events.map((eventValue) => eventValue.type);
+					check(group, 'Social Replay feature case uses a complete canonical feature lifecycle', fixture.mode === 'deep_access' && MODE_COSTS[fixture.mode] === 4 && eventTypes.includes('feature_start') && eventTypes.includes('feature_end'), serialize({ mode: fixture.mode, cost: MODE_COSTS[fixture.mode], eventTypes }));
+				}
+				if (expectedClass === 'max-win') {
+					check(group, 'Social Replay max-win case preserves the exact 10,000x package cap', fixture.book.payoutMultiplier === 1_000_000, String(fixture.book.payoutMultiplier));
+				}
+				check(group, 'Social Replay outcome completed surface has zero restricted hits', playerVisibleRestrictedHits(completedSurface.combined).length === 0, serialize(completedSurface));
+				check(group, 'Social Replay outcome completed surface has no dollar-prefixed display', !completedSurface.combined.includes('$'), completedSurface.combined);
+				check(group, 'Social Replay outcome sends zero wallet/event writes', walletWriteCount(network) === 0, serialize(network.order));
+				check(group, 'Social Replay outcome fetches exactly once', network.byEndpoint.replay.length === 1, serialize(network.order));
+				assertCleanNetwork(group, network);
+				assertCleanDiagnostics(group, diagnostics);
+				record.fixture = { id: fixture.id, mode: fixture.mode, bookId: fixture.bookId, bookPayoutCentiX: fixture.book.payoutMultiplier, expectedClass, expectedTotalPlay, expectedFinalWin };
+				record.readySurface = readySurface;
+				record.completedSurface = completedSurface;
+				record.completedPresentation = completedPresentation;
+				record.screenshot = await saveScreenshot(page, group);
+				record.network = network;
+				record.diagnostics = diagnostics;
+			} finally {
+				await context.close();
+			}
+		});
+	}
+
 	await runScenario('social-replay-dom-aria-restricted-scan', async (record) => {
 		const group = 'social-replay-dom-aria-restricted-scan';
 		const fixture = getGeneratedFixture('blackout_small');

@@ -220,6 +220,34 @@ test('feature evidence binds natural and purchased live lifecycles while human r
 	}
 });
 
+test('Social Replay evidence covers loss, win, feature, and max-win surfaces', () => {
+	const item = map.items.find((candidate) => candidate.id === 38);
+	assert(item);
+	assert.equal(item.status, 'AUTOMATED_PASS_MANUAL_OPEN');
+	assert.deepEqual(item.browserScenarios, [
+		'social-replay-dom-aria-restricted-scan',
+		'social-replay-outcome-loss',
+		'social-replay-outcome-win',
+		'social-replay-outcome-feature',
+		'social-replay-outcome-max-win',
+	]);
+	assert.match(item.manualOpen, /Final loss, win, feature, and max-win Replay surface sign-off/u);
+	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
+	for (const source of [
+		"{ caseId: 'loss', fixture: BASE_ZERO_FIXTURE, expectedClass: 'loss' }",
+		"{ caseId: 'win', fixture: getGeneratedFixture('base_small'), expectedClass: 'win' }",
+		"{ caseId: 'feature', fixture: getGeneratedFixture('deep_access_small'), expectedClass: 'feature' }",
+		"{ caseId: 'max-win', fixture: getGeneratedFixture('base_max_win'), expectedClass: 'max-win' }",
+	]) {
+		assert(browserQa.includes(source));
+	}
+	assert.match(browserQa, /Social Replay outcome ready surface has zero restricted hits/u);
+	assert.match(browserQa, /Social Replay outcome completed surface has zero restricted hits/u);
+	assert.match(browserQa, /Social Replay feature case uses a complete canonical feature lifecycle/u);
+	assert.match(browserQa, /Social Replay outcome sends zero wallet\/event writes/u);
+	assert.match(browserQa, /Social Replay outcome fetches exactly once/u);
+});
+
 test('candidate evidence fails closed when a referenced browser scenario is absent', () => {
 	const value = fixture();
 	try {
