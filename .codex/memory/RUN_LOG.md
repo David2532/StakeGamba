@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-04 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `2320f067a70969fa26b7d6a9a87ef0098ff86118`
+- Verified implementation commit: `521c4c4bb96c5f8343412b1f85dab62d6b900a7e`
+- Work item: `BSB-GUIDE-001` (DONE)
+- Selection reason: checklist row 29 claimed an automated Game Information interaction guide, but the versioned contract omitted Sound, Normal/Turbo/Reduced, Skip, close and explicit pointer/touch/keyboard paths, so the browser could not prove every visible control was documented.
+- Before/after evidence: one immutable ten-entry guide now drives Game Information. Exact Chromium maps all visible controls to guide entries, finds all required keys and proves pointer/touch, keyboard, Space and Escape wording; missing controls and missing required keys are both zero. Manual final reconciliation remains open.
+- Changed files: rules contract, Game Information rendering, Chromium QA, contract/accessibility regressions, checklist evidence and five sprint-memory files; math, wallet, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused contracts/accessibility 23/23 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 113/113 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 64/64 scenarios and 1579/1579 checks PASS; unexpected network/page/request failures 0; `git diff --check` and secret/debug/scope review PASS. Local Chromium was BLOCKED by the absent Playwright executable and is superseded by the exact isolated CI package run.
+- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640 and rules-modal 360x740 captures from artifact `9781885504` were inspected. Boards, values, controls and penguin/vault pixels remain complete without overlap, scroll, crop or broken-image regression; the modal top/tables/close are contained, and the full guide is exact-DOM/scroll-geometry proven. Real screen-reader/device approval remains unclaimed.
+- Package evidence: exact remote frontend tree `113c7e7d25805d70f9951e5819947713c224d92964d1ea6354b0fdf3b33addff`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Unrelated formatter churn was fully removed; one unauthenticated CLI push used the connected Git-data path instead. No unchanged failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33456368436`, artifact `9781885504` and digest `sha256:07afc832223a1a8f5ca2abfbb92273fcfc27b7c3d8f9472108054bc736dd8002` succeeded.
+- Residual risk: deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
+- Next candidate: choose the next distinct safe day-3 HUD/accessibility or provider-evidence gap; retry mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260901-03 — SUCCESS
 
 - Sprint day: 3
@@ -305,19 +322,3 @@ Newest entries first; retain at most 20.
 - Persistence: the tree-identical implementation was fast-forwarded without force through the connected GitHub API; exact run `33352237842` and artifact `9744182047` succeeded.
 - Residual risk: approved Spine 4.2 rig/authored clips, reel-stop and broad frame-pacing polish, asset rights/Creative approval, manual audio/device QA, 23 manual checklist gates and 6 external approvals remain open.
 - Next candidate: continue `BSB-MOTION-001` with reel-stop polish and measurable frame-pacing evidence; then return to authored audio detail/manual QA.
-
-## BS-20260831-14 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `30c551d985a784bb75b96613fb13ac7256a807d8`
-- Verified implementation commit: `bd11699e9b9937c4fba5b1766968467e8c5921dc`
-- Work item: `BSB-EVIDENCE-001` (exact 51-point candidate matrix; item remains in progress for real manual/external evidence)
-- Selection reason: package/browser gates were exact, but the repository's numbered Stake checklist remained scattered and had no machine-enforced completeness, identity binding or honest separation of automated, manual and external claims.
-- Before/after evidence: all IDs 1–51 are now ordered and statused; the resolver verifies package SHA/tree identity plus every referenced current-browser scenario/check, fails closed on omissions, and emits 20 automated PASS, 18 automated-proof/manual-open, 5 manual-only, 6 external-open and 2 N/A rows. Thus 38 automated references are complete, while 23 manual gates and 6 external approvals remain explicitly `NOT_CLAIMED`.
-- Changed files: BlackSite workflow, machine-readable evidence map, compliance resolver, two regression suites, release documentation, and sprint memory closeout files.
-- Gates: focused compliance/package regressions 3/3 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 94/94 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS; exact package verification PASS; exact packaged Chromium 40/40 scenarios and 965/965 checks PASS; unexpected console/network/request failures 0; compliance matrix/reference resolution PASS; `git diff --check` PASS.
-- Visual review: product-identical exact-package screenshots at 1920x1080, 390x844, 844x390 and Replay 360x640 were inspected. Boards remain square/on-screen, controls readable and reachable, and no overlap, scroll or crop regression is visible. This slice did not change runtime UI.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Diagnostic run `33347537804` isolated stale tracked evidence selection; current-SHA filtering produced green run `33348321475` without an unchanged retry.
-- Persistence: implementation/fix trees were fast-forwarded without force through the connected GitHub API; exact run `33348321475` and artifact `9742920099` succeeded.
-- Residual risk: 23 manual checklist gates, 6 external approvals, manual audio/device QA, final reel/character sound and motion, rights/Creative approval, penguin cleanup and Spine rig remain open.
-- Next candidate: return to `BSB-MOTION-001` for character/rig fallback, reel-stop polish and frame-pacing evidence while manual/external approvals proceed outside automation.
