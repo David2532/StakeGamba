@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-05 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `2f75cdb9ed7c836d8db2a3d132dd2c380be2ca51`
+- Verified implementation commit: `1fe84e55864c316d594b5c871f3d5982a7ec78a8`
+- Work item: `BSB-ORIENTATION-001` (DONE)
+- Selection reason: portrait and landscape were independently proven, but no current-package evidence exercised a real orientation transition in one authenticated live session as required by mobile release QA.
+- Before/after evidence: one context performs 390x844 → 844x390 → 390x844, swaps portrait/desktop/portrait vault plates, retains one square 49-cell board, centered labels/meters, focus and >=44px controls, sends one authenticate and zero play/checkpoint/settlement writes, then restores board/action geometry within 0.5 CSS px.
+- Changed files: Chromium QA, mobile-HUD regression, checklist evidence and five sprint-memory files; runtime UI/CSS, math, wallet, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused mobile 5/5 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 114/114 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 65/65 scenarios and 1739/1739 checks PASS; unexpected network/page/request failures 0; `git diff --check` and secret/debug/scope review PASS. Local Chromium was BLOCKED by the absent Playwright executable and is superseded by the exact isolated CI package run.
+- Visual review: exact 1920x1080, Replay 360x640 and the portrait-before/landscape/portrait-after captures were inspected. Board, values, controls and penguin/vault identity remain complete without overlap, scroll, crop or broken-image regression; physical-device approval remains unclaimed.
+- Package evidence: exact remote frontend tree `83d4f7877faf6186721c4573d4c3cc862bd193d2c0220ea2e0c8313233a2561b`; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The first exact run `33460055037` exposed a test-only authenticate/write predicate error; explicit endpoint assertions corrected it and exact run `33461309637` passed. No unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33461309637`, artifact `9783536314` and digest `sha256:8874194d92a8c910d11c3c84215cadd4ae2afd512835642013da512b4b7fcbd8` succeeded.
+- Residual risk: deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
+- Next candidate: choose the next distinct safe day-3 HUD/accessibility or provider-evidence gap; retry mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260901-04 — SUCCESS
 
 - Sprint day: 3
@@ -306,19 +323,3 @@ Newest entries first; retain at most 20.
 - Persistence: the tree-identical implementation was fast-forwarded without force through the connected GitHub API; exact run `33355037527` and artifact `9745037349` succeeded.
 - Residual risk: approved Spine 4.2 rig/authored clips, broader normal/feature/device frame-pacing evidence, rights/Creative approval, manual audio/device QA, 23 manual checklist gates and 6 external approvals remain open.
 - Next candidate: continue `BSB-MOTION-001` with normal/feature pacing and authored-clip integration if the approved rig becomes available; otherwise complete `BSB-AUDIO-001` authored reel/character detail and listening evidence.
-
-## BS-20260831-15 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `c4c861217129e8922e25b3d622d0bf5eb6d1a581`
-- Verified implementation commit: `176422ee721eb90a4f8507073758bbb2253946f4`
-- Work item: `BSB-MOTION-001` (semantic Vaultkeeper fallback slice; item remains in progress)
-- Selection reason: board/cascade/vault motion was exact, but the static production-candidate penguin never reacted to authoritative gameplay and a missing image left a broken character well while the external Spine rig remained unavailable.
-- Before/after evidence: round, board, win, feature, cap and settlement cues now drive immutable semantic character states with bounded normal/turbo/reduced CSS motion. Exact Chromium records `spin_start → monitoring → win_acknowledge → recover → idle_a`; SKIP reaches ready/idle in 103ms with exact `$2.07`, and an injected image error swaps to a deterministic mechanical penguin silhouette without blocking play.
-- Changed files: presentation director, slot UI/CSS, contract/runtime-asset regressions, Chromium QA, and sprint memory closeout files.
-- Gates: frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 95/95 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; isolated package/evidence resolution PASS; exact Chromium 40/40 scenarios and 968/968 checks PASS; unexpected console/network/request failures 0; `git diff --check` PASS.
-- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640, populated character-motion and forced fallback screenshots inspected. Desktop character and mechanical silhouette stay within the dedicated well; compact modes preserve board/control priority; no new overlap, scroll, crop or broken-image UI is visible.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Formatter churn was fully removed, one stale markup-order assertion was fixed, and authenticated artifact retrieval replaced one 401 without repeating it unchanged.
-- Persistence: the tree-identical implementation was fast-forwarded without force through the connected GitHub API; exact run `33352237842` and artifact `9744182047` succeeded.
-- Residual risk: approved Spine 4.2 rig/authored clips, reel-stop and broad frame-pacing polish, asset rights/Creative approval, manual audio/device QA, 23 manual checklist gates and 6 external approvals remain open.
-- Next candidate: continue `BSB-MOTION-001` with reel-stop polish and measurable frame-pacing evidence; then return to authored audio detail/manual QA.

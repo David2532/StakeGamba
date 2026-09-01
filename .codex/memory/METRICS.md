@@ -1,5 +1,55 @@
 # Rolling automation metrics
 
+## BS-20260901-05
+
+```yaml
+closed_at_utc: 2026-09-01T02:21:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_mobile_tests: 5
+focused_mobile_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 114
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 356000
+local_package_generation: PASS
+local_package_verification: PASS
+local_browser: BLOCKED_PLAYWRIGHT_BROWSER_MISSING
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 114
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 83d4f7877faf6186721c4573d4c3cc862bd193d2c0220ea2e0c8313233a2561b
+verified_ci_run: 33461309637
+verified_ci_status: PASS
+remote_browser: { scenarios: 65, checks_pass: 1739, checks_fail: 0, unexpected_failures: 0 }
+remote_orientation: { phases: 3, authenticate: 1, wallet_writes: 0, portrait_tolerance_css_px: 0.5 }
+remote_diagnostics_artifact: 9783536314
+remote_diagnostics_digest: sha256:8874194d92a8c910d11c3c84215cadd4ae2afd512835642013da512b4b7fcbd8
+remote_implementation_commit: 1fe84e55864c316d594b5c871f3d5982a7ec78a8
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/checklist/mobile-QA reads, focused syntax/mobile regressions, one full local frozen-install/lint/typecheck/test/build/math/package cycle, two exact Actions runs, artifact extraction, eight screenshot inspections, diff/secret/scope review and content-addressed fast-forward persistence. The first exact browser run exposed a test-only predicate that included the sole authenticate request in `walletWriteCount`; endpoint-specific zero-write assertions plus a regression corrected it, and the next exact run passed. One policy-rejected temporary-directory cleanup and one output-truncated blob attempt used safer changed alternatives; neither was repeated unchanged. No subagents, dependencies or binary assets were used; exact token telemetry was unavailable.
+
 ## BS-20260901-04
 
 ```yaml
