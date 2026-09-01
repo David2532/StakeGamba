@@ -1,5 +1,56 @@
 # Rolling automation metrics
 
+## BS-20260901-10
+
+```yaml
+closed_at_utc: 2026-09-01T07:01:20Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_mobile_compliance_tests: 17
+focused_mobile_compliance_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 122
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 370210
+local_full_gate_duration_seconds: 383
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 122
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: c051cc1a65100b1c9a42ee0c12e359650691934c6265e450d5c635b333c0f2e0
+verified_ci_run: 33478922886
+verified_ci_status: PASS
+verified_ci_seconds: 868
+remote_browser: { scenarios: 71, checks_pass: 1854, checks_fail: 0, unexpected_failures: 0 }
+remote_touch: { double_tap_scale_before: 1, double_tap_scale_after: 1, rules_scroll_before: 0, rules_scroll_after: 1022, writes: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9789541385
+remote_diagnostics_digest: sha256:bf8aecff16ecea50d34a8d9f3fdce16c9bfc6ce4570a5fcf1be6d00a3f03e8e1
+remote_implementation_commit: 099c9feda5e159bafeae1ba3bae280020c926d43
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/mobile/checklist source reads, one focused syntax/mobile/compliance check, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, connected Git-data fast-forward, exact public Actions/artifact reads, one real-touch browser scenario and five screenshot inspections. A broad Prettier diagnostic reported existing non-canonical repository files and no rewrite was applied; the unauthenticated HTTPS push switched to the connected path. One long browser status wait hit the control timeout, then the same live tab was read after completion; no semantic failure was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
 ## BS-20260901-09
 
 ```yaml

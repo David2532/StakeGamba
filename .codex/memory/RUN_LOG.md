@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-10 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `e9ce382e437951becc6ac690432f2660eef4c8e7`
+- Verified implementation commit: `099c9feda5e159bafeae1ba3bae280020c926d43`
+- Work item: `BSB-TOUCH-001` (DONE)
+- Selection reason: checklist row 28 cited only viewport-meta and computed `touch-action` proxies although its repository proof contract requires actual browser interaction without disabling legitimate accessible scrolling.
+- Before/after evidence: exact 390x844 Chromium double-taps the board with visual viewport scale `1 → 1` and zero page displacement, opens Game Information by touch, then a real touch drag moves its internal scrollTop `0 → 1022` across a 1767px surface while document scroll and zoom remain fixed. One authenticate and zero play/settlement/event writes occur.
+- Changed files: Chromium QA, mobile regression, checklist evidence and five sprint-memory files; runtime UI/CSS, math, RGS/wallet behavior, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused mobile/compliance 17/17 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 122/122 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 71/71 scenarios and 1854/1854 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies browser proof.
+- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640 and touch-scrolled Game Information 390x844 captures from artifact `9789541385` were inspected; 1366x768, 360x740, 768x1024 and orientation geometry also passed. Board, rules content, controls and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Real iOS/Android and physical-device sign-off remain open.
+- Package evidence: exact remote frontend tree `c051cc1a65100b1c9a42ee0c12e359650691934c6265e450d5c635b333c0f2e0`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The unauthenticated HTTPS push used the connected Git-data path; one timed browser wait completed through the same live tab. No unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33478922886`, artifact `9789541385` and digest `sha256:bf8aecff16ecea50d34a8d9f3fdce16c9bfc6ce4570a5fcf1be6d00a3f03e8e1` succeeded.
+- Residual risk: real iOS/Android/device approval, deferred mid-feature restore evidence, 23 total manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
+- Next candidate: choose the next distinct safe Day-3 HUD/accessibility or provider-evidence gap; revisit mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260901-09 — SUCCESS
 
 - Sprint day: 3
@@ -311,19 +328,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation was fast-forwarded without force through the connected GitHub API; exact run `33370382251` and artifact `9750141257` succeeded.
 - Residual risk: human rights/Creative approval and cleanup, approved Spine 4.2 rig/authored clips, BLACKOUT/foreground layers, final audio assets and manual listening/device QA, real-device pacing, contractually allowed autoplay, 23 manual checklist gates and 6 external approvals remain open.
 - Next candidate: continue `BSB-EVIDENCE-001` with the highest safe automatable gameplay/provider state not yet current-head proven; manual and external approvals remain explicitly unclaimed.
-
-## BS-20260831-20 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `e1e3ad5c6f8077d12df12f0e63daaae5bbb41729`
-- Verified implementation commit: `77faaa5b3204dd34f431913bfdc26093e963d476`
-- Work item: `BSB-README-001` (complete)
-- Selection reason: the app README still described an M2 greybox with no paid play and no Replay, contradicting the exact M3 runtime, scripts and fail-closed release process.
-- Before/after evidence: README now documents live RGS launch, sessionless read-only Replay, fixtures, actual package commands, exact-package candidate verification and the explicit `QA_BLOCKED`/not-release-ready boundary. Three regressions reject stale claims and script drift. The first exact CI run then exposed a transient character `failed` state being asserted before the accepted mechanical fallback; the harness now waits only for terminal `painted` or `fallback`.
-- Changed files: app README, README regression, Chromium QA asset wait, runtime-asset regression, and sprint memory closeout files.
-- Gates: focused README 3/3 and asset 6/6 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 101/101 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; isolated package and 51-row evidence resolution PASS; exact Chromium 40/40 scenarios and 975/975 checks PASS; unexpected network/page/request failures 0; `git diff --check` PASS. Local Chromium was BLOCKED only because its Playwright executable is absent; exact CI supplies the required clean-package browser proof.
-- Visual review: exact 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 screenshots from artifact `9748384857` inspected. Boards are square and fully visible, controls remain reachable, and no overlap, scrollbar, crop or broken-image regression is visible. Replay copy wraps within its narrow panel without escaping it.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. One transient exec transport disconnect was retried once; no unchanged semantic failure was repeated.
-- Persistence: README implementation `68ddaca` and verification fix `77faaa5` were tree-identical fast-forwards without force through the connected GitHub API; exact run `33365621986` and artifact `9748384857` succeeded.
-- Residual risk: human rights/Creative approval and cleanup, approved Spine 4.2 rig/authored clips, BLACKOUT/foreground layers, final audio assets and manual listening/device QA, real-device pacing, 23 manual checklist gates and 6 external approvals remain open.
-- Next candidate: continue `BSB-EVIDENCE-001` with the highest safe automatable gameplay/provider evidence slice while external/manual approvals remain explicitly unclaimed.
