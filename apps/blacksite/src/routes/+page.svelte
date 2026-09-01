@@ -703,6 +703,12 @@
 		return true;
 	}
 
+	function suppressPrimaryKeyRepeat(event) {
+		if (!event.repeat) return;
+		if (event.key !== 'Enter' && event.code !== 'Space') return;
+		event.preventDefault();
+	}
+
 	function keydown(event) {
 		const openDialog = confirmationOpen ? confirmationDialog : rulesOpen ? rulesDialog : null;
 		if (openDialog && trapDialogFocus(event, openDialog)) return;
@@ -1238,6 +1244,7 @@
 					data-testid="primary-action"
 					type="button"
 					disabled={actionDisabled}
+					on:keydown={suppressPrimaryKeyRepeat}
 					on:click={() => void activatePrimary()}
 				>
 					{actionLabel}

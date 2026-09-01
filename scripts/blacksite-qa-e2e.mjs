@@ -1882,6 +1882,77 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('held-enter-primary-button-does-not-repeat-paid-play', async (record) => {
+		const group = 'held-enter-primary-button-does-not-repeat-paid-play';
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: () => playResponse(),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			const primaryAction = page.locator(SELECTORS.primaryAction);
+			await primaryAction.focus();
+			await page.evaluate(() => {
+				window.__blacksiteEnterKeydowns = [];
+				window.addEventListener('keydown', (event) => {
+					if (event.key === 'Enter') {
+						window.__blacksiteEnterKeydowns.push({
+							repeat: event.repeat,
+							defaultPrevented: event.defaultPrevented,
+						});
+					}
+				});
+			});
+			await page.keyboard.down('Enter');
+			await waitForEndpoint(network, 'play', 1);
+			await waitForStableAction(page);
+			await primaryAction.focus();
+			await page.keyboard.down('Enter');
+			await page.waitForTimeout(200);
+			await page.keyboard.up('Enter');
+			const enterKeydowns = await page.evaluate(() => window.__blacksiteEnterKeydowns);
+			assertExactRequest(group, network.byEndpoint.play[0], {
+				method: 'POST',
+				path: '/wallet/play',
+				body: {
+					sessionID: SESSION_ID,
+					currency: 'USD',
+					amount: DEFAULT_BASE_AMOUNT,
+					mode: 'base',
+				},
+			});
+			check(
+				group,
+				'held Enter emits one initial and one prevented repeat keydown',
+				enterKeydowns.length === 2 &&
+					enterKeydowns[0].repeat === false &&
+					enterKeydowns[0].defaultPrevented === false &&
+					enterKeydowns[1].repeat === true &&
+					enterKeydowns[1].defaultPrevented === true,
+				serialize(enterKeydowns),
+			);
+			check(
+				group,
+				'held Enter cannot spend a second base bet after returning to ready',
+				network.byEndpoint.play.length === 1 && (await runtimeState(page)) === 'live-ready',
+				serialize({ state: await runtimeState(page), order: network.order }),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.screenshot = await saveScreenshot(page, 'held-enter-base-play');
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('concurrent-click-spacebar-deduplicates-paid-play', async (record) => {
 		const group = 'concurrent-click-spacebar-deduplicates-paid-play';
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });

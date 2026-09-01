@@ -782,6 +782,22 @@ test('held Space cannot initiate another paid round after the first round comple
 	assert.match(browserSource, /held Space cannot spend a second base bet after returning to ready/u);
 });
 
+test('held Enter on the focused primary action cannot repeat a paid round', () => {
+	const pageSource = readFileSync(
+		join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'),
+		'utf8',
+	);
+	const browserSource = readFileSync(
+		join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'),
+		'utf8',
+	);
+
+	assert.match(pageSource, /function suppressPrimaryKeyRepeat\(event\)/u);
+	assert.match(pageSource, /on:keydown=\{suppressPrimaryKeyRepeat\}/u);
+	assert.match(browserSource, /held Enter emits one initial and one prevented repeat keydown/u);
+	assert.match(browserSource, /held Enter cannot spend a second base bet after returning to ready/u);
+});
+
 test('PresentationDirector binds BLACKOUT transitions to authoritative feature cues', async () => {
 	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'blackout_zero');
 	assert(fixture);
