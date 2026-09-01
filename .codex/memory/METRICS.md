@@ -1,5 +1,56 @@
 # Rolling automation metrics
 
+## BS-20260901-09
+
+```yaml
+closed_at_utc: 2026-09-01T05:59:17Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_accessibility_mobile_tests: 11
+focused_accessibility_mobile_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 121
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 356191
+local_full_gate_duration_seconds: 373
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 121
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 7e05b9f89ed9f587bbc726a892c18df77305a3349f178c933774593e2a2a0a8c
+verified_ci_run: 33474573594
+verified_ci_status: PASS
+verified_ci_seconds: 878
+remote_browser: { scenarios: 70, checks_pass: 1845, checks_fail: 0, unexpected_failures: 0 }
+remote_timer_semantics: { position_role: status, position_live: polite, timer_role: timer, timer_live: off, initial: '00:00', progressed: '00:01' }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9788005592
+remote_diagnostics_digest: sha256:7622da346f1d4a0dabc1117f711793ccb649315e68854d1032f04284ece2a6ce
+remote_implementation_commit: de327825da4c36c7c351e59497683058c550dc3b
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/accessibility/jurisdiction source reads, one focused syntax/accessibility/mobile check, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, content-addressed Git-data fast-forward, exact Actions/job/artifact reads, and five screenshot inspections. The unavailable `gh` command switched to the public exact-run API; one direct HTTPS push lacked credentials and switched to the connected path. One destructive temporary-artifact cleanup was policy-rejected and replaced by a unique non-destructive directory. No failed semantic call was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
 ## BS-20260901-08
 
 ```yaml

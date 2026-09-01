@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-09 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `8497671b1a32d1c76a69356ea9488dfe063d3b44`
+- Verified implementation commit: `de327825da4c36c7c351e59497683058c550dc3b`
+- Work item: `BSB-TIMER-A11Y-001` (DONE)
+- Selection reason: the provider-controlled Session Timer updated every second inside one polite live region, which could force continuous assistive-technology announcements even when the player made no action.
+- Before/after evidence: Session Position now owns an atomic polite status; Session Time owns a labelled `timer` with `aria-live=off`. Exact mobile Chromium observes `00:00 → 00:01`, then one authoritative Base play updates position `$0.00 → +$7.00` and balance `$1000.00 → $993.00` without settlement/event writes.
+- Changed files: jurisdiction readout semantics, accessibility regression, exact-browser timer audit and five sprint-memory files; pixels/layout, math, RGS/wallet authority, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused accessibility/mobile 11/11 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 121/121 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 70/70 scenarios and 1845/1845 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies browser proof.
+- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640 and jurisdiction-timer 390x844 captures from artifact `9788005592` were inspected; 1366x768, 360x740, 768x1024 and orientation geometry also passed. Board, timer, values, controls and penguin/vault identity remain complete without overlap, scroll, crop or broken images. Real screen-reader and physical-device sign-off remain open.
+- Package evidence: exact remote frontend tree `7e05b9f89ed9f587bbc726a892c18df77305a3349f178c933774593e2a2a0a8c`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Unavailable `gh`, unauthenticated CLI push and rejected destructive temp cleanup each used a changed safe alternative; no semantic failure was repeated unchanged.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33474573594`, artifact `9788005592` and digest `sha256:7622da346f1d4a0dabc1117f711793ccb649315e68854d1032f04284ece2a6ce` succeeded.
+- Residual risk: real screen-reader/device approval, deferred mid-feature restore evidence, 23 total manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
+- Next candidate: choose the next distinct safe Day-3 HUD/accessibility or provider-evidence gap; revisit mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260901-08 — SUCCESS
 
 - Sprint day: 3
@@ -310,19 +327,3 @@ Newest entries first; retain at most 20.
 - Persistence: README implementation `68ddaca` and verification fix `77faaa5` were tree-identical fast-forwards without force through the connected GitHub API; exact run `33365621986` and artifact `9748384857` succeeded.
 - Residual risk: human rights/Creative approval and cleanup, approved Spine 4.2 rig/authored clips, BLACKOUT/foreground layers, final audio assets and manual listening/device QA, real-device pacing, 23 manual checklist gates and 6 external approvals remain open.
 - Next candidate: continue `BSB-EVIDENCE-001` with the highest safe automatable gameplay/provider evidence slice while external/manual approvals remain explicitly unclaimed.
-
-## BS-20260831-19 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `3be001a84adb28400970c422c8e4de08c2c5dc18`
-- Verified implementation commit: `fbfe4ed0cabe40d2df7a6c1f7962e3cc3c2f0da5`
-- Work item: `BSB-ASSET-002` (complete)
-- Selection reason: the previous exact 1920 geometry screenshot omitted character and vault pixels despite loaded/visible/natural-width DOM checks, proving those checks could race browser decode/compositing.
-- Before/after evidence: images now follow decode → Svelte reveal → two animation-frame compositor barrier with explicit loading/decoded/painted/failure states. The exact harness blocks every screenshot and geometry audit until the barrier is terminal and fails closed on environment failure. Run `33362124623` records `painted` for both assets on every geometry surface; exact 1920 and 1366 screenshots contain penguin/vault pixels, while portrait, landscape and Replay contain the intended responsive vault plate.
-- Changed files: image paint utility, slot asset lifecycle/CSS, runtime-asset regression, Chromium QA, and sprint memory closeout files.
-- Gates: focused asset 6/6 PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 98/98 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; isolated package/evidence resolution PASS; exact Chromium 40/40 scenarios and 975/975 checks PASS; unexpected console/page/request failures 0; `git diff --check` PASS.
-- Visual review: exact 1920x1080, 1366x768, 390x844, 844x390 and Replay 360x640 screenshots inspected. Desktop penguin and vault plate are visibly rastered; compact surfaces select the intended plate and keep the character hidden by design. Boards remain square, controls visible, and no overlap, scroll or crop regression is present.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Broad formatter churn was removed before commit; content-addressed Git-data persistence retained the executable QA mode and exact local/remote tree identity.
-- Persistence: the implementation tree was fast-forwarded without force through the connected GitHub API; exact run `33362124623` and artifact `9747264261` succeeded.
-- Residual risk: human rights/Creative approval and cleanup, approved Spine 4.2 rig/authored clips, BLACKOUT/foreground layers, final audio assets and manual listening/device QA, real-device pacing, 23 manual checklist gates and 6 external approvals remain open.
-- Next candidate: `BSB-README-001` lifecycle/runbook freshness, then the highest safe non-external asset/audio evidence slice.
