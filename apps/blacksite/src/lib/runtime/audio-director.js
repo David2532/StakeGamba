@@ -91,6 +91,7 @@ export class AudioDirector {
 		this.ambienceGain = null;
 		this.ambienceOscillator = null;
 		this.voices = new Set();
+		this.voiceGains = new Map();
 		this.cooldowns = new Map();
 		this.destroyed = false;
 		this.visibilityTransition = Promise.resolve(false);
@@ -177,13 +178,18 @@ export class AudioDirector {
 		this.ambienceGain = gain;
 	}
 
+	stopVoice(voice) {
+		const gain = this.voiceGains.get(voice);
+		voice.onended = null;
+		voice.stop();
+		voice.disconnect?.();
+		gain?.disconnect?.();
+		this.voices.delete(voice);
+		this.voiceGains.delete(voice);
+	}
+
 	stopAudioSources() {
-		for (const voice of this.voices) {
-			voice.onended = null;
-			voice.stop();
-			voice.disconnect?.();
-		}
-		this.voices.clear();
+		for (const voice of [...this.voices]) this.stopVoice(voice);
 		this.ambienceOscillator?.stop();
 		this.ambienceOscillator?.disconnect?.();
 		this.ambienceGain?.disconnect?.();
@@ -257,8 +263,7 @@ export class AudioDirector {
 		for (const [pulseIndex, offset] of offsets.entries()) {
 			while (this.voices.size >= MAX_VOICES) {
 				const oldest = this.voices.values().next().value;
-				oldest.stop();
-				this.voices.delete(oldest);
+				this.stopVoice(oldest);
 			}
 			const oscillator = this.context.createOscillator();
 			const gain = this.context.createGain();
@@ -280,11 +285,13 @@ export class AudioDirector {
 			gain.connect(this.masterGain);
 			oscillator.onended = () => {
 				this.voices.delete(oscillator);
+				this.voiceGains.delete(oscillator);
 				oscillator.disconnect?.();
 				gain.disconnect?.();
 				this.emit();
 			};
 			this.voices.add(oscillator);
+			this.voiceGains.set(oscillator, gain);
 			oscillator.start(pulseStartedAt);
 			oscillator.stop(pulseStartedAt + duration + 0.01);
 		}

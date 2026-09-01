@@ -151,6 +151,19 @@ test('launch timeout evidence binds an abort-driven browser recovery without wal
 	assert.match(browserQa, /timeout recovery performs one successful authenticate and zero wallet writes/u);
 });
 
+test('mute evidence proves active voice and ambience gain nodes leave no orphan graph edges', () => {
+	const item = map.items.find((candidate) => candidate.id === 30);
+	assert(item);
+	const scenario = 'audio-policy-cues-mute-and-persistence';
+	assert(item.browserScenarios.includes(scenario));
+	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
+	assert.match(browserQa, new RegExp(`runScenario\\('${scenario}'`, 'u'));
+	assert.match(
+		browserQa,
+		/mute disconnects the active voice gain and ambience gain without orphan graph edges/u,
+	);
+});
+
 test('active-round evidence binds uncertain play and failed-settlement recovery', () => {
 	const item = map.items.find((candidate) => candidate.id === 10);
 	assert(item);

@@ -2588,6 +2588,44 @@ async function runNetworkScenarios(browser, origin) {
 		try {
 			await context.addInitScript(() => {
 				let hidden = false;
+				const outgoingConnections = new WeakMap();
+				const graph = {
+					connectCalls: 0,
+					disconnectCalls: 0,
+					activeConnections: 0,
+					maxActiveConnections: 0,
+					gainDisconnects: 0,
+				};
+				window.__blacksiteAudioGraph = graph;
+				const audioNodePrototype = window.AudioNode?.prototype;
+				if (audioNodePrototype) {
+					const nativeConnect = audioNodePrototype.connect;
+					const nativeDisconnect = audioNodePrototype.disconnect;
+					audioNodePrototype.connect = function (...args) {
+						const result = nativeConnect.apply(this, args);
+						outgoingConnections.set(this, (outgoingConnections.get(this) ?? 0) + 1);
+						graph.connectCalls += 1;
+						graph.activeConnections += 1;
+						graph.maxActiveConnections = Math.max(
+							graph.maxActiveConnections,
+							graph.activeConnections,
+						);
+						return result;
+					};
+					audioNodePrototype.disconnect = function (...args) {
+						const outgoing = outgoingConnections.get(this) ?? 0;
+						const result = nativeDisconnect.apply(this, args);
+						if (outgoing > 0) {
+							graph.disconnectCalls += 1;
+							graph.activeConnections -= outgoing;
+							if (window.GainNode && this instanceof window.GainNode) {
+								graph.gainDisconnects += 1;
+							}
+							outgoingConnections.set(this, 0);
+						}
+						return result;
+					};
+				}
 				const lifecycle = {
 					suspendStarted: 0,
 					suspendCompleted: 0,
@@ -2682,7 +2720,14 @@ async function runNetworkScenarios(browser, origin) {
 				serialize(completed),
 			);
 
-			await sound.click();
+			const beforeMuteGraph = await page.evaluate(() => ({ ...window.__blacksiteAudioGraph }));
+			await page.evaluate(
+				({ motionSelector, soundSelector }) => {
+					document.querySelector(motionSelector)?.click();
+					document.querySelector(soundSelector)?.click();
+				},
+				{ motionSelector: SELECTORS.motionMode, soundSelector: SELECTORS.soundAction },
+			);
 			const muted = await sound.evaluate((element) => ({
 				status: element.getAttribute('data-audio-status'),
 				level: element.getAttribute('data-audio-level'),
@@ -2690,10 +2735,16 @@ async function runNetworkScenarios(browser, origin) {
 				voices: Number(element.getAttribute('data-audio-voices')),
 				ambience: Number(element.getAttribute('data-ambience-instances')),
 				stored: localStorage.getItem('blacksite.audio.volume.v1'),
+				graph: { ...window.__blacksiteAudioGraph },
 			}));
 			check(group, 'mute tears down every active game-owned source and persists exact zero volume',
 				muted.status === 'muted' && muted.level === 'MUTED' && muted.pressed === 'true' && muted.voices === 0 && muted.ambience === 0 && muted.stored === '0',
 				serialize(muted),
+			);
+			check(group, 'mute disconnects the active voice gain and ambience gain without orphan graph edges',
+				muted.graph.gainDisconnects - beforeMuteGraph.gainDisconnects >= 2 &&
+					muted.graph.activeConnections === 1,
+				serialize({ beforeMuteGraph, afterMuteGraph: muted.graph }),
 			);
 
 			const resumeCallsBeforeVisibility = await page.evaluate(
@@ -2773,7 +2824,7 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
-			record.audio = { locked, enabled, completed, muted, resumedMuted, unmuted, remuted, restored };
+			record.audio = { locked, enabled, completed, beforeMuteGraph, muted, resumedMuted, unmuted, remuted, restored };
 			record.screenshot = await saveScreenshot(page, group);
 			record.network = network;
 			record.diagnostics = diagnostics;

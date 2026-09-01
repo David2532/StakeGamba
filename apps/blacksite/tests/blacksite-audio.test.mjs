@@ -166,12 +166,15 @@ test('mute tears down active sources and unmute restores exactly one ambience gr
 	assert.equal(director.consume({ kind: 'win' }), true);
 	const initialAmbience = context.oscillators[0];
 	const activeVoice = context.oscillators[1];
+	const activeVoiceGain = context.gains[2];
 	assert.equal(director.state.activeVoices, 1);
+	assert.equal(activeVoiceGain.connections.length, 1);
 	director.setVolume(0);
 	assert.equal(storage.value(AUDIO_STORAGE_KEY), '0');
 	assert.equal(director.consume({ kind: 'win' }), false);
 	assert.equal(initialAmbience.stopped, true);
 	assert.equal(activeVoice.stopped, true);
+	assert.equal(activeVoiceGain.connections.length, 0);
 	assert.equal(director.state.activeVoices, 0);
 	assert.equal(director.state.ambienceInstances, 0);
 	director.cycleVolume();
@@ -313,6 +316,8 @@ test('reel stops schedule seven mechanical pulses and priority cues duck ambienc
 	assert.equal(audio.state.lastRecipe, 'reel_stop_cadence');
 	assert.equal(audio.state.reelStopPulses, 7);
 	assert.equal(audio.state.activeVoices, 7);
+	const oldestVoiceGain = context.gains[2];
+	assert.equal(oldestVoiceGain.connections.length, 1);
 
 	assert.equal(audio.consume({ kind: 'feature_started' }), true);
 	assert.equal(audio.state.lastRecipe, 'blackout_lock');
@@ -320,5 +325,8 @@ test('reel stops schedule seven mechanical pulses and priority cues duck ambienc
 	assert.equal(audio.state.duckCount, 1);
 	assert.ok(context.gains[1].gain.automation.some(([kind, value]) => kind === 'ramp' && value === 0.0045));
 	assert.ok(audio.state.activeVoices <= 8);
+	assert.equal(audio.consume({ kind: 'win' }), true);
+	assert.equal(audio.state.activeVoices, 8);
+	assert.equal(oldestVoiceGain.connections.length, 0);
 	audio.destroy();
 });
