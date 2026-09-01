@@ -202,6 +202,18 @@ test('five-win evidence binds five exact final-presentation replays for every ca
 	);
 });
 
+test('Play Again evidence proves repeated cached playback drains browser timers', () => {
+	const item = map.items.find((candidate) => candidate.id === 42);
+	assert(item);
+	assert.equal(item.status, 'AUTOMATED_PASS');
+	assert(item.browserScenarios.includes('replay-repeated-play-again-drains-timers'));
+	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
+	assert.match(browserQa, /const REPLAY_LIFECYCLE_CYCLES = 6;/u);
+	assert.match(browserQa, /every repeated Replay returns to the exact authoritative presentation/u);
+	assert.match(browserQa, /repeated Replay playback drains every presentation timeout/u);
+	assert.match(browserQa, /six cached Replay cycles perform one read and zero wallet writes/u);
+});
+
 test('feature evidence binds natural, purchased, and active-skip live lifecycles while human review remains open', () => {
 	const item = map.items.find((candidate) => candidate.id === 21);
 	assert(item);

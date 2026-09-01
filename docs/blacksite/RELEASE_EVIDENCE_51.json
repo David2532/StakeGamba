@@ -400,6 +400,7 @@
 			"status": "AUTOMATED_PASS",
 			"browserScenarios": [
 				"replay-read-only-play-again",
+				"replay-repeated-play-again-drains-timers",
 				"replay-matrix-base-zero",
 				"replay-matrix-base-win",
 				"replay-matrix-feature-mode-win",

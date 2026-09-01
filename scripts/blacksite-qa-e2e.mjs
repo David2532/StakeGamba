@@ -56,6 +56,7 @@ const API_UNIT = 1_000_000;
 const DEFAULT_BASE_AMOUNT = API_UNIT;
 const DEFAULT_BALANCE = 1_000 * API_UNIT;
 const REPLAY_VERSION = '0.1.0-m2';
+const REPLAY_LIFECYCLE_CYCLES = 6;
 const MODE_COSTS = Object.freeze({ base: 1, deep_access: 4, blackout: 80 });
 
 const SELECTORS = Object.freeze({
@@ -4762,6 +4763,95 @@ async function runNetworkScenarios(browser, origin) {
 			check('replay-read-only-play-again', 'Replay request order contains only replay', serialize(network.order) === serialize(['replay']), serialize(network.order));
 			assertCleanNetwork('replay-read-only-play-again', network);
 			record.screenshot = await saveScreenshot(page, 'replay-play-again');
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('replay-repeated-play-again-drains-timers', async (record) => {
+		const group = 'replay-repeated-play-again-drains-timers';
+		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+		try {
+			await context.addInitScript(() => {
+				const nativeSetTimeout = window.setTimeout.bind(window);
+				const nativeClearTimeout = window.clearTimeout.bind(window);
+				const active = new Set();
+				let created = 0;
+				let peakActive = 0;
+				window.setTimeout = (handler, delay = 0, ...args) => {
+					let timer = 0;
+					const callback = () => {
+						active.delete(timer);
+						if (typeof handler === 'function') handler(...args);
+					};
+					timer = nativeSetTimeout(callback, delay);
+					active.add(timer);
+					created += 1;
+					peakActive = Math.max(peakActive, active.size);
+					return timer;
+				};
+				window.clearTimeout = (timer) => {
+					active.delete(timer);
+					return nativeClearTimeout(timer);
+				};
+				window.__blacksiteReplayTimerAudit = {
+					snapshot: () => ({ active: active.size, created, peakActive }),
+				};
+			});
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				replayOnly: true,
+				handlers: { replay: () => replayResponse() },
+			});
+			const { page, diagnostics } = await openPage(context, origin, replayQuery());
+			await waitForEndpoint(network, 'replay', 1);
+			await waitForStableAction(page);
+			const timerBefore = await page.evaluate(() => window.__blacksiteReplayTimerAudit.snapshot());
+			const completions = [];
+			for (let cycle = 1; cycle <= REPLAY_LIFECYCLE_CYCLES; cycle += 1) {
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForReplayComplete(page);
+				await page.waitForFunction(
+					() => window.__blacksiteReplayTimerAudit.snapshot().active === 0,
+					undefined,
+					{ timeout: 2_000 },
+				);
+				completions.push({
+					cycle,
+					presentation: await replayPresentationSnapshot(page),
+					timers: await page.evaluate(() => window.__blacksiteReplayTimerAudit.snapshot()),
+				});
+			}
+			const expectedPresentation = serialize(completions[0].presentation);
+			const walletWrites = walletWriteCount(network);
+			check(
+				group,
+				'every repeated Replay returns to the exact authoritative presentation',
+				completions.length === REPLAY_LIFECYCLE_CYCLES &&
+					completions.every(({ presentation }) =>
+						serialize(presentation) === expectedPresentation),
+				serialize(completions.map(({ cycle, presentation }) => ({ cycle, presentation }))),
+			);
+			check(
+				group,
+				'repeated Replay playback drains every presentation timeout',
+				completions.every(({ timers }) => timers.active === 0) &&
+					completions.at(-1).timers.created > timerBefore.created,
+				serialize({ timerBefore, timers: completions.map(({ cycle, timers }) => ({ cycle, ...timers })) }),
+			);
+			check(
+				group,
+				'six cached Replay cycles perform one read and zero wallet writes',
+				network.byEndpoint.replay.length === 1 && walletWrites === 0 &&
+					serialize(network.order) === serialize(['replay']),
+				serialize({ cycles: REPLAY_LIFECYCLE_CYCLES, order: network.order, walletWrites }),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.lifecycle = { cycles: REPLAY_LIFECYCLE_CYCLES, timerBefore, completions };
+			record.screenshot = await saveScreenshot(page, group);
 			record.network = network;
 			record.diagnostics = diagnostics;
 		} finally {
