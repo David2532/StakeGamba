@@ -25,6 +25,7 @@ import {
 import { BASE_ZERO_FIXTURE } from '../apps/blacksite/src/lib/fixtures/base-zero.js';
 import { encodePresentationCursor } from '../apps/blacksite/src/lib/rgs/contracts.js';
 import { formatExactApi } from '../apps/blacksite/src/lib/runtime/display-money.js';
+import { MOTION_STORAGE_KEY } from '../apps/blacksite/src/lib/runtime/motion-preference.js';
 import {
 	FIXTURE_IDS as GENERATED_FIXTURE_IDS,
 	getFixture as getGeneratedFixture,
@@ -2454,13 +2455,13 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForStableAction(page);
 			const motion = page.locator(SELECTORS.motionMode);
 			await motion.click();
-			const selected = await motion.evaluate((element) => ({
+			const selected = await motion.evaluate((element, storageKey) => ({
 				label: element.textContent?.trim(),
 				pressed: element.getAttribute('aria-pressed'),
 				disabled: element.matches(':disabled'),
 				profile: document.body.dataset.motionProfile,
-				stored: localStorage.getItem('blacksite.presentation.speed.v1'),
-			}));
+				stored: localStorage.getItem(storageKey),
+			}), MOTION_STORAGE_KEY);
 			check(
 				group,
 				'Turbo selection updates semantics, presentation profile and versioned storage',
@@ -2475,12 +2476,12 @@ async function runNetworkScenarios(browser, origin) {
 			await page.reload({ waitUntil: 'domcontentloaded' });
 			await waitForEndpoint(network, 'authenticate', 2);
 			await waitForStableAction(page);
-			const restored = await motion.evaluate((element) => ({
+			const restored = await motion.evaluate((element, storageKey) => ({
 				label: element.textContent?.trim(),
 				pressed: element.getAttribute('aria-pressed'),
 				profile: document.body.dataset.motionProfile,
-				stored: localStorage.getItem('blacksite.presentation.speed.v1'),
-			}));
+				stored: localStorage.getItem(storageKey),
+			}), MOTION_STORAGE_KEY);
 			check(
 				group,
 				'reload restores the chosen Turbo presentation profile',
@@ -2496,13 +2497,13 @@ async function runNetworkScenarios(browser, origin) {
 				(selector) => document.querySelector(selector)?.textContent?.trim() === 'REDUCED',
 				SELECTORS.motionMode,
 			);
-			const reduced = await motion.evaluate((element) => ({
+			const reduced = await motion.evaluate((element, storageKey) => ({
 				label: element.textContent?.trim(),
 				pressed: element.getAttribute('aria-pressed'),
 				disabled: element.matches(':disabled'),
 				profile: document.body.dataset.motionProfile,
-				stored: localStorage.getItem('blacksite.presentation.speed.v1'),
-			}));
+				stored: localStorage.getItem(storageKey),
+			}), MOTION_STORAGE_KEY);
 			check(
 				group,
 				'system reduced-motion overrides and disables Turbo without erasing the preference',
@@ -2539,13 +2540,13 @@ async function runNetworkScenarios(browser, origin) {
 			await page.reload({ waitUntil: 'domcontentloaded' });
 			await waitForEndpoint(network, 'authenticate', 4);
 			await waitForStableAction(page);
-			const resumed = await motion.evaluate((element) => ({
+			const resumed = await motion.evaluate((element, storageKey) => ({
 				label: element.textContent?.trim(),
 				pressed: element.getAttribute('aria-pressed'),
 				disabled: element.matches(':disabled'),
 				profile: document.body.dataset.motionProfile,
-				stored: localStorage.getItem('blacksite.presentation.speed.v1'),
-			}));
+				stored: localStorage.getItem(storageKey),
+			}), MOTION_STORAGE_KEY);
 			check(
 				group,
 				'removing the system override resumes the persisted Turbo preference',
