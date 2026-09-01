@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-17 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `0db8c3331749fc5faf5c6bdca1f66bff84d758c9`
+- Verified implementation commit: `4a811db6c654230a861118525a71af50f5f87e04`
+- Work item: `BSB-AUDIO-VISIBILITY-MUTE-001` (DONE; parent `BSB-AUDIO-001` remains in progress)
+- Selection reason: mute teardown was proven, but `unlock()` and visibility `resume()` still unconditionally called `ensureAmbience()`, recreating a silent oscillator when persisted/current volume was zero.
+- Before/after evidence: the expected-red audio test reproduced one ambience graph after muted visibility resume. Unlock and resume now start ambience only above zero volume. Exact Chromium drives hidden → suspended → visible → resumed while retaining `MUTED`, stored `0`, 0 voices and 0 ambience; explicit LOW unmute creates exactly one graph.
+- Changed files: AudioDirector guards, audio unit regression, deterministic exact-browser visibility lifecycle and five sprint-memory files; pixels/layout, math, RGS/wallet schema, assets, lockfile and dependencies unchanged.
+- Gates: expected-red audio test 5 PASS / 1 FAIL; syntax PASS; focused audio/contract/mobile 37/37 PASS after correction; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 127/127 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 72/72 scenarios and 1872/1872 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run because no browser executable is installed; exact isolated CI supplies browser proof.
+- Visual review: exact muted visibility-resume, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9800291335` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024 and the orientation round trip. Board, controls, values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device/listening sign-off remains open.
+- Package evidence: exact remote frontend tree `681990be8d236e27009cc154ddb95862fb7348c78f0d68b0e5d7953986557808`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Exact tree identity caught a tool-output-truncated QA blob before CI, and bounded chunk transfer restored the intended tree via normal fast-forward; no unchanged failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33506751334`, artifact `9800291335` and digest `sha256:1b77f02686fe713a7fed8a9b5d7b51010ef3d625770016f894081786bb5eae01` succeeded.
+- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; revisit mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260901-16 — SUCCESS
 
 - Sprint day: 3
@@ -319,19 +336,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation was fast-forwarded without force through connected GitHub data; exact run `33436799735` and artifact `9775142447` succeeded.
 - Residual risk: deferred mid-feature restore evidence, 23 manual checklist gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
 - Next candidate: choose the next distinct safe provider/gameplay evidence gap; retry mid-feature restore only with event-triggered instrumentation.
-
-## BS-20260831-27 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `bdd21d2fd06f3f3f84164d09d49e95d9ace0a014`
-- Verified implementation commit: `6abd0c1a504d4ba854d983d3ecd552190b261552`
-- Work item: `BSB-EVIDENCE-001` (failed-settlement explicit restore; item remains in progress)
-- Selection reason: after deferring transient mid-feature restore, the next distinct high-value provider gap was an accepted active play whose settlement transport fails; release evidence did not prove absence of automatic retry, duplicate play/checkpoint or duplicate completion.
-- Before/after evidence: the exact package now returns HTTP 503 on the first `/wallet/end-round`, keeps Play unavailable, waits 300ms without retry, and offers `RELOAD / RESTORE`. Explicit reload reauthenticates the active cursor and performs exactly one successful second settlement. Ordered requests are `authenticate → play → event → endRound(503) → authenticate → endRound(success)`; final state is `live-ready` with `$999.00` balance and `$0.00` win.
-- Changed files: Chromium QA, 51-point evidence map, compliance regression and five memory closeout files; runtime UI, math, assets, lockfile and dependencies unchanged.
-- Gates: frozen install PASS; syntax/JSON PASS; focused contracts/compliance 38/38 PASS; exact lint, typecheck 0/0, app tests 106/106, build, math 7/7 with 300,000 books and unchanged fingerprint, isolated package/readback and resolver PASS; Chromium 61/61 scenarios / 1472/1472 checks PASS; unexpected network/page/request failures 0; `git diff --check` and secret/debug review PASS.
-- Visual review: exact 1280x720 error/recovery captures plus 1920x1080, 390x844 and 844x390 geometry from artifact `9773640454` were inspected. The failure action is centered and visible; recovered board, exact values, controls and penguin/vault identity remain visible without overlap, scroll, crop or broken assets. Runtime UI was not changed and manual/device sign-off remains open.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Formatter churn was removed and no unchanged semantic failure was retried.
-- Persistence: exact CI `33432657970` succeeded; implementation was fast-forwarded without force through the connected Git Data path. Artifact digest `sha256:0415a53fa395f61c978f91ec58558e997273488add27be920775aeaabe43245e`.
-- Residual risk: mid-feature restore remains deferred; 23 manual gates, 6 external approvals, rights/Creative cleanup, Spine rig/clips, BLACKOUT/foreground layers, final audio/device QA and real-device pacing remain open.
-- Next candidate: choose the next distinct safe provider/gameplay evidence gap; revisit mid-feature restore only with event-triggered instrumentation.
