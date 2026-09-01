@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-08 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `dfdc5f26d5713fc3a46e2ff765fee75c7fb40eca`
+- Verified implementation commit: `5624b8cbc0f942ce12ea8fee4386407ba8205c46`
+- Work item: `BSB-GRID-A11Y-001` (DONE)
+- Selection reason: the visible board declared 49 `gridcell` nodes but the grid itself had no accessible name, explicit row ownership or programmatic row/column positions, leaving screen-reader topology under-specified despite strong visual geometry evidence.
+- Before/after evidence: the board now exposes one named 7x7 grid, seven owned and indexed rows, and 49 cells whose one-based indices agree with their visible coordinate labels. Exact browser geometry verifies this topology on eight surfaces while preserving a square 49-cell board.
+- Changed files: page board markup/CSS, accessibility regression, Chromium geometry audit and five sprint-memory files; math, RGS/wallet behavior, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused accessibility/mobile 10/10 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 120/120 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 70/70 scenarios and 1843/1843 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies browser proof.
+- Visual review: exact 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9786812481` were inspected; 1366x768, 360x740, 768x1024 and orientation geometry also passed. Boards, values, controls and penguin/vault identity remain complete without overlap, scroll, crop or broken images. Real screen-reader and physical-device sign-off remain open.
+- Package evidence: exact remote frontend tree `991fe37fe7d6e62c8f18c8d7126b5af546f36cc10b5e6dc7c37f7937b03220bc`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One broad formatting check, one unauthenticated CLI push, one patch context mismatch and one rejected destructive temporary cleanup each used a changed safe path; no semantic failure was repeated unchanged.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33471069057`, artifact `9786812481` and digest `sha256:c711f87cec181dbbb70a45b4caf872fccb1ea81c7cf9ff4f3b0d63ce5e34563b` succeeded.
+- Residual risk: real screen-reader/device approval, deferred mid-feature restore evidence, 23 total manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
+- Next candidate: choose the next distinct safe Day-3 HUD/accessibility or provider-evidence gap; revisit mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260901-07 — SUCCESS
 
 - Sprint day: 3
@@ -309,19 +326,3 @@ Newest entries first; retain at most 20.
 - Persistence: the implementation tree was fast-forwarded without force through the connected GitHub API; exact run `33362124623` and artifact `9747264261` succeeded.
 - Residual risk: human rights/Creative approval and cleanup, approved Spine 4.2 rig/authored clips, BLACKOUT/foreground layers, final audio assets and manual listening/device QA, real-device pacing, 23 manual checklist gates and 6 external approvals remain open.
 - Next candidate: `BSB-README-001` lifecycle/runbook freshness, then the highest safe non-external asset/audio evidence slice.
-
-## BS-20260831-18 — SUCCESS
-
-- Sprint day: 2
-- Base commit: `43d64d6e5b07adbc11c09510e6dc4abbd0f3131a`
-- Verified implementation commit: `f333f220c9299e6f2c44765ff08fad7c93c97591`
-- Work item: `BSB-AUDIO-001` (authored procedural reel/character mix slice; item remains in progress)
-- Selection reason: the safe master bus existed, but board stops had one generic cue, character/feature semantics lacked distinct recipes, and no bounded ambience duck/restore contract existed.
-- Before/after evidence: every authoritative board snapshot now schedules seven bounded reel-stop pulses at exact normal `0/24/48/72/96/120/144ms` or turbo `0/8/16/24/32/40/48ms` offsets. Win, anticipation, BLACKOUT, exfil, cap and settlement map to semantic recipes; priority cues duck then restore the existing ambience bus without duplicating the graph. Exact Chromium records seven pulses, one priority cue/duck, one ambience instance, persisted mute and locked/no-autoplay reload.
-- Changed files: audio director, sound-control telemetry, audio regression suite, Chromium QA, and sprint memory closeout files.
-- Gates: focused audio 5/5 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 97/97 PASS; production build PASS; local and exact remote math 7/7 with 300,000 books PASS and unchanged fingerprint; package/evidence resolution PASS; exact Chromium 40/40 scenarios and 975/975 checks PASS; unexpected console/network/request failures 0; `git diff --check` PASS.
-- Visual review: exact-tree 1920x1080, 1366x768, 390x844, 844x390, Replay 360x640 and audio-state screenshots inspected. Geometry and controls remain square/on-screen without new overlap, scroll or crop regressions. The final 1920 geometry screenshot omitted loaded character/vault pixels while a later exact audio screenshot rendered the vault, exposing an unresolved decode/paint-readiness race. Automated graph/timing proof is not a listening, clipping or real-device approval claim.
-- Tool/token metrics: see `METRICS.md`; tokens are `null` / `not_exposed`; direct subagents 0. Broad formatter churn was removed, and a post-push executable-mode mismatch was corrected before binding final CI evidence.
-- Persistence: implementation plus the executable-mode correction were fast-forwarded without force through the connected GitHub API; exact run `33359618133` and artifact `9746470203` succeeded.
-- Residual risk: deterministic asset decode/paint readiness, final approved audio assets and manual clipping/listening/device QA, approved Spine 4.2 rig/authored clips, asset rights/Creative approval, real-device frame pacing, 23 manual checklist gates and 6 external approvals remain open.
-- Next candidate: `BSB-ASSET-002` deterministic asset decode/paint readiness, then `BSB-README-001` lifecycle/runbook freshness.

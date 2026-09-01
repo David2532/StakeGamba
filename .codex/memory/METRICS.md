@@ -1,5 +1,56 @@
 # Rolling automation metrics
 
+## BS-20260901-08
+
+```yaml
+closed_at_utc: 2026-09-01T05:03:15Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_accessibility_mobile_tests: 10
+focused_accessibility_mobile_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 120
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 356732
+local_full_gate_duration_seconds: 373
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 120
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 991fe37fe7d6e62c8f18c8d7126b5af546f36cc10b5e6dc7c37f7937b03220bc
+verified_ci_run: 33471069057
+verified_ci_status: PASS
+verified_ci_seconds: 861
+remote_browser: { scenarios: 70, checks_pass: 1843, checks_fail: 0, unexpected_failures: 0 }
+remote_grid_topology: { named_grids: 1, rows: 7, cells: 49, indexed_cells: 49, geometry_surfaces: 8 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9786812481
+remote_diagnostics_digest: sha256:c711f87cec181dbbb70a45b4caf872fccb1ea81c7cf9ff4f3b0d63ce5e34563b
+remote_implementation_commit: 5624b8cbc0f942ce12ea8fee4386407ba8205c46
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/accessibility source reads, one focused syntax/accessibility/mobile check, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, content-addressed Git-data fast-forward, exact Actions/job/artifact reads, and four screenshot inspections. One broad Prettier check reported the three already non-canonical repository files and no rewrite was applied; one direct HTTPS push lacked credentials and switched to the connected path. An initial patch context mismatch and one policy-rejected temporary cleanup used narrower, non-destructive alternatives. No failed semantic call was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
 ## BS-20260901-07
 
 ```yaml
