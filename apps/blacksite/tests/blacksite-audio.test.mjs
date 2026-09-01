@@ -204,6 +204,33 @@ test('visibility lifecycle suspends and resumes the same graph without stacked m
 	director.destroy();
 });
 
+test('muted visibility resume remains source-free until the player unmutes', async () => {
+	const documentRef = createDocument();
+	const context = new FakeAudioContext();
+	const director = new AudioDirector({
+		audioContextFactory: () => context,
+		storage: createStorage({ [AUDIO_STORAGE_KEY]: '0' }),
+		documentRef,
+	});
+	await director.unlock();
+	assert.equal(director.state.level, 'MUTED');
+	assert.equal(director.state.ambienceInstances, 0);
+	assert.equal(context.oscillators.length, 0);
+	documentRef.hidden = true;
+	await documentRef.dispatch('visibilitychange');
+	assert.equal(context.state, 'suspended');
+	documentRef.hidden = false;
+	await documentRef.dispatch('visibilitychange');
+	assert.equal(context.state, 'running');
+	assert.equal(director.state.level, 'MUTED');
+	assert.equal(director.state.ambienceInstances, 0);
+	assert.equal(context.oscillators.length, 0);
+	director.cycleVolume();
+	assert.equal(director.state.ambienceInstances, 1);
+	assert.equal(context.oscillators.length, 1);
+	director.destroy();
+});
+
 test('authoritative cues are bounded in turbo and presentation forwards exact cue order', async () => {
 	let nowMs = 1_000;
 	const context = new FakeAudioContext();

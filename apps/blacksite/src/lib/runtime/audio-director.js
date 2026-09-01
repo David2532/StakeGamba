@@ -135,7 +135,7 @@ export class AudioDirector {
 		}
 		try {
 			if (this.context.state === 'suspended') await this.context.resume();
-			this.ensureAmbience();
+			if (this.state.volume > 0) this.ensureAmbience();
 			this.emit({ status: this.state.volume === 0 ? 'muted' : 'running', unlocked: true });
 			return true;
 		} catch {
@@ -305,7 +305,7 @@ export class AudioDirector {
 			return false;
 		}
 		await this.context.resume();
-		this.ensureAmbience();
+		if (this.state.volume > 0) this.ensureAmbience();
 		this.emit({ status: this.state.volume === 0 ? 'muted' : 'running' });
 		return true;
 	}
