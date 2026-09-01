@@ -151,7 +151,7 @@ test('audio stays policy-locked until a user gesture and starts one ambience gra
 	assert.equal(context.closeCalls, 1);
 });
 
-test('mute levels persist, silence cues and restore without duplicating ambience', async () => {
+test('mute tears down active sources and unmute restores exactly one ambience graph', async () => {
 	const storage = createStorage({ [AUDIO_STORAGE_KEY]: '0.28' });
 	const context = new FakeAudioContext();
 	const director = new AudioDirector({
@@ -161,15 +161,25 @@ test('mute levels persist, silence cues and restore without duplicating ambience
 	});
 	assert.equal(director.state.level, 'LOW');
 	await director.unlock();
+	assert.equal(director.consume({ kind: 'win' }), true);
+	const initialAmbience = context.oscillators[0];
+	const activeVoice = context.oscillators[1];
+	assert.equal(director.state.activeVoices, 1);
 	director.setVolume(0);
 	assert.equal(storage.value(AUDIO_STORAGE_KEY), '0');
 	assert.equal(director.consume({ kind: 'win' }), false);
-	assert.equal(context.oscillators.length, 1);
+	assert.equal(initialAmbience.stopped, true);
+	assert.equal(activeVoice.stopped, true);
+	assert.equal(director.state.activeVoices, 0);
+	assert.equal(director.state.ambienceInstances, 0);
 	director.cycleVolume();
 	assert.equal(director.state.level, 'LOW');
 	assert.equal(director.consume({ kind: 'win' }), true);
-	assert.equal(director.state.cueCount, 1);
+	assert.equal(director.state.cueCount, 2);
 	assert.equal(director.state.ambienceInstances, 1);
+	assert.equal(director.state.activeVoices, 1);
+	assert.equal(context.oscillators.length, 4);
+	assert.equal(context.oscillators[2].stopped, false);
 	director.destroy();
 });
 

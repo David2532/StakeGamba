@@ -158,6 +158,21 @@ export class AudioDirector {
 		this.ambienceGain = gain;
 	}
 
+	stopAudioSources() {
+		for (const voice of this.voices) {
+			voice.onended = null;
+			voice.stop();
+			voice.disconnect?.();
+		}
+		this.voices.clear();
+		this.ambienceOscillator?.stop();
+		this.ambienceOscillator?.disconnect?.();
+		this.ambienceGain?.disconnect?.();
+		this.ambienceOscillator = null;
+		this.ambienceGain = null;
+		this.cooldowns.clear();
+	}
+
 	setVolume(value) {
 		if (this.destroyed) return this.state;
 		const volume = clampVolume(value);
@@ -169,6 +184,8 @@ export class AudioDirector {
 		if (this.masterGain && this.context) {
 			this.masterGain.gain.setValueAtTime(volume, this.context.currentTime);
 		}
+		if (volume === 0) this.stopAudioSources();
+		else if (this.state.unlocked && this.context?.state === 'running') this.ensureAmbience();
 		this.emit({
 			volume,
 			level: levelLabel(volume),
@@ -296,11 +313,7 @@ export class AudioDirector {
 	destroy() {
 		if (this.destroyed) return;
 		this.documentRef?.removeEventListener?.('visibilitychange', this.handleVisibilityChange);
-		for (const voice of this.voices) voice.stop();
-		this.voices.clear();
-		this.ambienceOscillator?.stop();
-		this.ambienceOscillator = null;
-		this.ambienceGain = null;
+		this.stopAudioSources();
 		void this.context?.close?.();
 		this.destroyed = true;
 		this.onState = () => {};

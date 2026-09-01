@@ -2402,11 +2402,41 @@ async function runNetworkScenarios(browser, origin) {
 				status: element.getAttribute('data-audio-status'),
 				level: element.getAttribute('data-audio-level'),
 				pressed: element.getAttribute('aria-pressed'),
+				voices: Number(element.getAttribute('data-audio-voices')),
+				ambience: Number(element.getAttribute('data-ambience-instances')),
 				stored: localStorage.getItem('blacksite.audio.volume.v1'),
 			}));
-			check(group, 'mute disables the game-owned master bus and persists exact zero volume',
-				muted.status === 'muted' && muted.level === 'MUTED' && muted.pressed === 'true' && muted.stored === '0',
+			check(group, 'mute tears down every active game-owned source and persists exact zero volume',
+				muted.status === 'muted' && muted.level === 'MUTED' && muted.pressed === 'true' && muted.voices === 0 && muted.ambience === 0 && muted.stored === '0',
 				serialize(muted),
+			);
+
+			await sound.click();
+			const unmuted = await sound.evaluate((element) => ({
+				status: element.getAttribute('data-audio-status'),
+				level: element.getAttribute('data-audio-level'),
+				pressed: element.getAttribute('aria-pressed'),
+				ambience: Number(element.getAttribute('data-ambience-instances')),
+				stored: localStorage.getItem('blacksite.audio.volume.v1'),
+			}));
+			check(group, 'unmute restores exactly one ambience graph at the persisted low level',
+				unmuted.status === 'running' && unmuted.level === 'LOW' && unmuted.pressed === 'false' && unmuted.ambience === 1 && unmuted.stored === '0.28',
+				serialize(unmuted),
+			);
+			await page.waitForTimeout(30);
+			await sound.click();
+			await page.waitForTimeout(30);
+			await sound.click();
+			const remuted = await sound.evaluate((element) => ({
+				status: element.getAttribute('data-audio-status'),
+				level: element.getAttribute('data-audio-level'),
+				voices: Number(element.getAttribute('data-audio-voices')),
+				ambience: Number(element.getAttribute('data-ambience-instances')),
+				stored: localStorage.getItem('blacksite.audio.volume.v1'),
+			}));
+			check(group, 'a second mute cycle remains source-free without stacking ambience',
+				remuted.status === 'muted' && remuted.level === 'MUTED' && remuted.voices === 0 && remuted.ambience === 0 && remuted.stored === '0',
+				serialize(remuted),
 			);
 
 			await page.reload({ waitUntil: 'domcontentloaded' });
@@ -2424,7 +2454,7 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
-			record.audio = { locked, enabled, completed, muted, restored };
+			record.audio = { locked, enabled, completed, muted, unmuted, remuted, restored };
 			record.screenshot = await saveScreenshot(page, group);
 			record.network = network;
 			record.diagnostics = diagnostics;
