@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-24 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `c0d10c3350c570f76f199c23abd1e772eac377c8`
+- Verified implementation commit: `a2fcd484e398a6249328df171cc3add77ba1c260`
+- Work item: `BSB-RGS-TEARDOWN-ABORT-001` (DONE; parent `BSB-EVIDENCE-001` remains in progress)
+- Selection reason: live-session destruction ignored late authentication state but left its underlying fetch alive until the 10-second timeout, wasting transport work and weakening deterministic navigation cleanup.
+- Before/after evidence: two expected-red RGS regressions first failed because neither client cancellation nor controller delegation existed. The client now owns every in-flight AbortController, distinguishes lifecycle cancellation from timeout, aborts all pending requests and remains reusable; controller destroy and `pagehide` call the same idempotent teardown. Exact Chromium reloads during a stalled authenticate, records two attempts and one app-owned abort, recovers to `live-ready` with one successful authenticate and sends zero play/event/settlement writes.
+- Changed files: live RGS client, live-session controller, page lifecycle, RGS/compliance regressions, exact Chromium QA, checklist row-2 evidence binding and five sprint-memory files; math, assets, lockfile and dependencies unchanged.
+- Gates: expected-red RGS 0/2 PASS; syntax and focused RGS/compliance 47/47 PASS; frozen install PASS after one offline cache miss; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 133/133 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 77/77 scenarios and 2214/2214 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not installed; exact isolated CI supplies current-package browser proof.
+- Visual review: exact 1280x720 reload-recovery completion plus 1920x1080, 390x844 and 844x390 captures from artifact `9819094154` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Board, controls, exact values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `75f1faf9fd75a918d6db0c7bc46e507c9d4a36fb5b951f215e35e3000fb6ac94`, package verification PASS; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The first exact run exposed missing full-page teardown and directly informed the `pagehide` correction; exact tree identity also caught and corrected one connector-truncated QA blob. No unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33553904771`, artifact `9819094154` and digest `sha256:6bd130b852b1924f72e41ef707c6dde8ece896547186bb4e7d02224c8671d5b1` succeeded.
+- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct safe provider, accessibility or authored-motion gap that can close without unavailable human assets or physical-device approval.
+
 ## BS-20260901-23 — SUCCESS
 
 - Sprint day: 3
@@ -322,22 +339,5 @@ Newest entries first; retain at most 20.
 - Package evidence: exact remote frontend tree `83d4f7877faf6186721c4573d4c3cc862bd193d2c0220ea2e0c8313233a2561b`; math fingerprint remains `d03fab…78d8`.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The first exact run `33460055037` exposed a test-only authenticate/write predicate error; explicit endpoint assertions corrected it and exact run `33461309637` passed. No unchanged semantic failure was repeated.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33461309637`, artifact `9783536314` and digest `sha256:8874194d92a8c910d11c3c84215cadd4ae2afd512835642013da512b4b7fcbd8` succeeded.
-- Residual risk: deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
-- Next candidate: choose the next distinct safe day-3 HUD/accessibility or provider-evidence gap; retry mid-feature restore only with event-triggered instrumentation.
-
-## BS-20260901-04 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `2320f067a70969fa26b7d6a9a87ef0098ff86118`
-- Verified implementation commit: `521c4c4bb96c5f8343412b1f85dab62d6b900a7e`
-- Work item: `BSB-GUIDE-001` (DONE)
-- Selection reason: checklist row 29 claimed an automated Game Information interaction guide, but the versioned contract omitted Sound, Normal/Turbo/Reduced, Skip, close and explicit pointer/touch/keyboard paths, so the browser could not prove every visible control was documented.
-- Before/after evidence: one immutable ten-entry guide now drives Game Information. Exact Chromium maps all visible controls to guide entries, finds all required keys and proves pointer/touch, keyboard, Space and Escape wording; missing controls and missing required keys are both zero. Manual final reconciliation remains open.
-- Changed files: rules contract, Game Information rendering, Chromium QA, contract/accessibility regressions, checklist evidence and five sprint-memory files; math, wallet, assets, lockfile and dependencies unchanged.
-- Gates: syntax PASS; focused contracts/accessibility 23/23 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 113/113 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 64/64 scenarios and 1579/1579 checks PASS; unexpected network/page/request failures 0; `git diff --check` and secret/debug/scope review PASS. Local Chromium was BLOCKED by the absent Playwright executable and is superseded by the exact isolated CI package run.
-- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640 and rules-modal 360x740 captures from artifact `9781885504` were inspected. Boards, values, controls and penguin/vault pixels remain complete without overlap, scroll, crop or broken-image regression; the modal top/tables/close are contained, and the full guide is exact-DOM/scroll-geometry proven. Real screen-reader/device approval remains unclaimed.
-- Package evidence: exact remote frontend tree `113c7e7d25805d70f9951e5819947713c224d92964d1ea6354b0fdf3b33addff`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Unrelated formatter churn was fully removed; one unauthenticated CLI push used the connected Git-data path instead. No unchanged failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33456368436`, artifact `9781885504` and digest `sha256:07afc832223a1a8f5ca2abfbb92273fcfc27b7c3d8f9472108054bc736dd8002` succeeded.
 - Residual risk: deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
 - Next candidate: choose the next distinct safe day-3 HUD/accessibility or provider-evidence gap; retry mid-feature restore only with event-triggered instrumentation.

@@ -1,5 +1,55 @@
 # Rolling automation metrics
 
+## BS-20260901-24
+
+```yaml
+closed_at_utc: 2026-09-01T20:28:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_rgs_before: { pass: 0, fail: 2, status: EXPECTED_FAIL_REPRODUCED }
+focused_syntax_status: PASS
+focused_rgs_compliance_after: { pass: 47, fail: 0, status: PASS }
+local_frozen_install: PASS_AFTER_OFFLINE_CACHE_MISS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 133
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_status: PASS
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 133
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 75f1faf9fd75a918d6db0c7bc46e507c9d4a36fb5b951f215e35e3000fb6ac94
+verified_ci_run: 33553904771
+verified_ci_status: PASS
+verified_ci_seconds: 926
+remote_browser: { scenarios: 77, checks_pass: 2214, checks_fail: 0, unexpected_failures: 0 }
+navigation_teardown: { attempts: 2, app_owned_aborts: 1, successful_authenticates: 1, play_writes: 0, event_writes: 0, settlement_writes: 0, final_state: live-ready }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9819094154
+remote_diagnostics_digest: sha256:6bd130b852b1924f72e41ef707c6dde8ece896547186bb4e7d02224c8671d5b1
+remote_implementation_commit: a2fcd484e398a6249328df171cc3add77ba1c260
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/RGS lifecycle and exact QA reads; one expected-red then green focused provider regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/debug/scope review; connected Git-data fast-forwards; two exact Actions runs with the first exposing the full-page lifecycle gap and the final proving the correction; artifact evidence and four screenshot inspections. The Stake RGS/Replay skill kept exact endpoints, authority and zero-wallet-write recovery evidence in scope. One offline dependency-cache miss used the normal frozen install, one ineffective package filter was rejected as evidence and rerun with the correct package, and one connector-truncated QA blob was caught by exact tree comparison and restored before final verification. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260901-23
 
 ```yaml
