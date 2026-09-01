@@ -1328,6 +1328,157 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('recoverable-auth-timeout-reloads-and-recovers', async (record) => {
+		const group = 'recoverable-auth-timeout-reloads-and-recovers';
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			await context.addInitScript(
+				({ rgsOrigin }) => {
+					const auditKey = 'blacksite-qa-auth-timeout-audit';
+					const nativeFetch = window.fetch.bind(window);
+					const readAudit = () => {
+						try {
+							return JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
+								attempts: 0,
+								aborts: 0,
+								consumed: false,
+							};
+						} catch {
+							return { attempts: 0, aborts: 0, consumed: false };
+						}
+					};
+					const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
+					window.fetch = (input, init = {}) => {
+						const url = new URL(
+							typeof input === 'string' || input instanceof URL ? input : input.url,
+							window.location.href,
+						);
+						if (url.origin !== rgsOrigin || url.pathname !== '/wallet/authenticate') {
+							return nativeFetch(input, init);
+						}
+						const audit = readAudit();
+						audit.attempts += 1;
+						if (audit.consumed) {
+							writeAudit(audit);
+							return nativeFetch(input, init);
+						}
+						audit.consumed = true;
+						writeAudit(audit);
+						return new Promise((_resolve, reject) => {
+							const signal = init.signal;
+							const abort = () => {
+								const nextAudit = readAudit();
+								nextAudit.aborts += 1;
+								writeAudit(nextAudit);
+								reject(new DOMException('BlackSite QA stalled transport aborted.', 'AbortError'));
+							};
+							if (signal?.aborted) abort();
+							else signal?.addEventListener('abort', abort, { once: true });
+						});
+					};
+				},
+				{ rgsOrigin: BLACKSITE_QA_RGS_ORIGIN },
+			);
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: { authenticate: () => authenticateResponse() },
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 15_000 });
+			const errorState = await runtimeState(page);
+			const errorText = await page.locator(SELECTORS.launchError).innerText();
+			const timeoutAudit = await page.evaluate(() =>
+				JSON.parse(sessionStorage.getItem('blacksite-qa-auth-timeout-audit') ?? 'null'),
+			);
+			check(
+				group,
+				'browser transport observes the app-owned timeout abort',
+				timeoutAudit?.attempts === 1 && timeoutAudit?.aborts === 1,
+				serialize(timeoutAudit),
+			);
+			check(group, 'authenticate timeout is visible and bounded', /timed out/i.test(errorText), errorText);
+			check(
+				group,
+				'authenticate timeout exits boot/auth/loading states',
+				/error/i.test(errorState ?? '') && !/boot|authenticating|loading/i.test(errorState ?? ''),
+				serialize(errorState),
+			);
+			check(
+				group,
+				'timed-out authentication sends no wallet writes',
+				network.byEndpoint.authenticate.length === 0 &&
+					network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'authenticate timeout leaves primary action fail-closed',
+				await page.locator(SELECTORS.primaryAction).isDisabled(),
+				await page.locator(SELECTORS.primaryAction).innerText(),
+			);
+			const recovery = page.locator('[data-testid="recovery-action"]');
+			check(
+				group,
+				'authenticate timeout exposes an enabled reload control',
+				await recovery.isVisible() && !(await recovery.isDisabled()),
+				errorText,
+			);
+			record.screenshot = await saveScreenshot(page, `${group}-error`);
+			await recovery.click();
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			const recoveredAudit = await page.evaluate(() =>
+				JSON.parse(sessionStorage.getItem('blacksite-qa-auth-timeout-audit') ?? 'null'),
+			);
+			assertExactRequest(group, network.byEndpoint.authenticate[0], {
+				method: 'POST',
+				path: '/wallet/authenticate',
+				body: { sessionID: SESSION_ID, language: 'en' },
+			});
+			check(
+				group,
+				'reload after timeout recovers to authoritative ready',
+				(await runtimeState(page)) === 'live-ready' &&
+					!(await page.locator(SELECTORS.primaryAction).isDisabled()),
+				serialize({
+					state: await runtimeState(page),
+					launchKind: await page.locator(SELECTORS.playerHud).getAttribute('data-launch-kind'),
+				}),
+			);
+			check(
+				group,
+				'timeout recovery exposes the authenticated wallet balance',
+				(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1000.00',
+				await page.locator(SELECTORS.walletBalance).innerText(),
+			);
+			check(
+				group,
+				'timeout recovery performs one successful authenticate and zero wallet writes',
+				recoveredAudit?.attempts === 2 &&
+					recoveredAudit?.aborts === 1 &&
+					network.byEndpoint.authenticate.length === 1 &&
+					network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
+				serialize({ audit: recoveredAudit, order: network.order }),
+			);
+			check(
+				group,
+				'timeout recovery network order contains only the successful authenticate',
+				serialize(network.order) === serialize(['authenticate']),
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('uncertain-live-play-reloads-and-restores-without-retry', async (record) => {
 		const group = 'uncertain-live-play-reloads-and-restores-without-retry';
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });

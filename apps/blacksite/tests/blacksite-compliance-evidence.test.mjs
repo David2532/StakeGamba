@@ -140,6 +140,17 @@ test('session-expiry evidence binds explicit reauthentication and a fresh delibe
 	);
 });
 
+test('launch timeout evidence binds an abort-driven browser recovery without wallet writes', () => {
+	const item = map.items.find((candidate) => candidate.id === 2);
+	assert(item);
+	const scenario = 'recoverable-auth-timeout-reloads-and-recovers';
+	assert(item.browserScenarios.includes(scenario));
+	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
+	assert.match(browserQa, new RegExp(`runScenario\\('${scenario}'`, 'u'));
+	assert.match(browserQa, /browser transport observes the app-owned timeout abort/u);
+	assert.match(browserQa, /timeout recovery performs one successful authenticate and zero wallet writes/u);
+});
+
 test('active-round evidence binds uncertain play and failed-settlement recovery', () => {
 	const item = map.items.find((candidate) => candidate.id === 10);
 	assert(item);

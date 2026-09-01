@@ -25,7 +25,8 @@
 			"browserScenarios": [
 				"invalid-rgs-url-fails-closed-before-network",
 				"invalid-session-auth-response-fails-closed",
-				"recoverable-auth-http-503-reloads-and-recovers"
+				"recoverable-auth-http-503-reloads-and-recovers",
+				"recoverable-auth-timeout-reloads-and-recovers"
 			]
 		},
 		{
