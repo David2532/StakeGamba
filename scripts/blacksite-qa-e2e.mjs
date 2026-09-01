@@ -17,6 +17,7 @@ import { dirname, extname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
 	CLUSTER_BANDS,
+	CONTROL_GUIDE,
 	RULES_CONTRACT,
 	SYMBOL_PAYOUTS,
 	getRulesDisclaimer,
@@ -2087,6 +2088,44 @@ async function runNetworkScenarios(browser, origin) {
 			check(group, 'Social Rules use social mode labels in the table', /STANDARD RUN/i.test(rulesText) && /BLACKOUT ENTRY/i.test(rulesText), rulesText);
 			check(group, 'Rules include the complete Social disclaimer', rulesText.includes(getRulesDisclaimer(true)), rulesText);
 
+			const interactionGuide = await page.evaluate(
+				({ controlMap, requiredGuideKeys }) => {
+					const visible = (element) => {
+						const style = getComputedStyle(element);
+						const bounds = element.getBoundingClientRect();
+						return style.display !== 'none' && style.visibility !== 'hidden' && bounds.width > 0 && bounds.height > 0;
+					};
+					const guideKeys = [...document.querySelectorAll('[data-control-key]')]
+						.map((element) => element.getAttribute('data-control-key'))
+						.filter(Boolean);
+					const visibleControls = Object.entries(controlMap)
+						.filter(([selector]) => [...document.querySelectorAll(selector)].some(visible))
+						.map(([selector, key]) => ({ selector, key }));
+					return {
+						guideKeys,
+						visibleControls,
+						missingVisibleControls: visibleControls.filter(({ key }) => !guideKeys.includes(key)),
+						missingRequiredKeys: requiredGuideKeys.filter((key) => !guideKeys.includes(key)),
+					};
+				},
+				{
+					controlMap: {
+						'[data-testid="sound-action"]': 'sound',
+						'[data-testid^="mode-"]': 'mode-select',
+						'[data-testid="base-amount"]': 'play-amount',
+						'[data-testid="motion-mode"]': 'presentation-speed',
+						'[data-testid="skip-presentation"]': 'skip',
+						'[data-testid="primary-action"]': 'primary-action',
+						'[data-testid="info-action"]': 'info-rules',
+						'button[aria-label="Close game information"]': 'close-rules',
+					},
+					requiredGuideKeys: CONTROL_GUIDE.map(({ key }) => key),
+				},
+			);
+			check(group, 'every visible game control maps to a Game Information guide entry', interactionGuide.missingVisibleControls.length === 0, serialize(interactionGuide));
+			check(group, 'interaction guide contains every versioned control contract entry', interactionGuide.missingRequiredKeys.length === 0 && interactionGuide.guideKeys.length === CONTROL_GUIDE.length, serialize(interactionGuide));
+			check(group, 'interaction guide documents touch, keyboard, Space and Escape behaviour', /pointer or touch/i.test(rulesText) && /keyboard focus/i.test(rulesText) && /\bSpace\b/i.test(rulesText) && /\bEscape\b/i.test(rulesText), rulesText);
+
 			const rulesGeometry = await page.evaluate(() => {
 				const dialogElement = document.querySelector('[role="dialog"]');
 				const close = dialogElement?.querySelector('button[aria-label]');
@@ -2116,6 +2155,7 @@ async function runNetworkScenarios(browser, origin) {
 			record.surface = surface;
 			record.rulesGeometry = rulesGeometry;
 			record.modalAccessibility = modalAccessibility;
+			record.interactionGuide = interactionGuide;
 			record.screenshot = await saveScreenshot(page, 'social-xsc-rules');
 			record.network = network;
 			record.diagnostics = diagnostics;

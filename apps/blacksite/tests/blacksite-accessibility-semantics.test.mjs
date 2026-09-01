@@ -38,4 +38,6 @@ test('exact-package browser QA verifies semantic groups, status regions and conf
 	assert.match(source, /route and presentation controls expose named accessibility groups/u);
 	assert.match(source, /connection and board states expose atomic polite status announcements/u);
 	assert.match(source, /confirmation accessible description binds the mode factor and exact complete amount/u);
+	assert.match(source, /every visible game control maps to a Game Information guide entry/u);
+	assert.match(source, /interaction guide documents touch, keyboard, Space and Escape behaviour/u);
 });

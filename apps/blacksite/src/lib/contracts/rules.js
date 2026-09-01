@@ -26,6 +26,67 @@ export const SYMBOL_PAYOUTS = Object.freeze(
 	),
 );
 
+export const CONTROL_GUIDE = Object.freeze([
+	Object.freeze({
+		key: 'input-methods',
+		label: 'Input',
+		description:
+			'Every button and Play Amount control supports pointer or touch input plus standard keyboard focus and activation.',
+	}),
+	Object.freeze({
+		key: 'sound',
+		label: 'Sound',
+		description:
+			'The SOUND button enables audio on first use, then cycles FULL, LOW and MUTED; the visible label reports the active level.',
+	}),
+	Object.freeze({
+		key: 'mode-select',
+		label: 'Mode profiles',
+		description: 'Mode buttons select one canonical access profile and show its complete play factor.',
+	}),
+	Object.freeze({
+		key: 'play-amount',
+		label: 'Play Amount',
+		description:
+			'Play Amount lists or selects every level supplied by the authenticated game service before the complete play amount is calculated.',
+	}),
+	Object.freeze({
+		key: 'presentation-speed',
+		label: 'Normal / Turbo',
+		description:
+			'NORMAL and TURBO change presentation speed only. REDUCED is fixed when the device requests reduced motion.',
+	}),
+	Object.freeze({
+		key: 'skip',
+		label: 'Skip',
+		description:
+			'SKIP completes only the presentation currently in progress; it does not create another play or change the authoritative result.',
+	}),
+	Object.freeze({
+		key: 'primary-action',
+		label: 'Primary action',
+		description:
+			'The labelled primary action starts one permitted live round, begins or repeats a read-only Replay, or continues an interrupted presentation. In live play, Space activates it when focus is outside another control.',
+	}),
+	Object.freeze({
+		key: 'confirmation',
+		label: 'Confirmation',
+		description:
+			'DEEP ACCESS and the 80× BLACKOUT mode show the complete play amount first. CONFIRM proceeds; CANCEL, Escape or the backdrop returns without a play.',
+	}),
+	Object.freeze({
+		key: 'info-rules',
+		label: 'Info / Rules',
+		description: 'INFO / RULES opens this rules, paytable and interface guide without starting a play.',
+	}),
+	Object.freeze({
+		key: 'close-rules',
+		label: 'Close information',
+		description:
+			'CLOSE, Escape or the backdrop closes Game Information and returns keyboard focus to INFO / RULES.',
+	}),
+]);
+
 export const RULES_CONTRACT = Object.freeze({
 	board: Object.freeze({ columns: 7, rows: 7, adjacency: 'orthogonal', minimumCluster: 5 }),
 	payoutUnit: PAYOUT_UNIT,
@@ -50,13 +111,8 @@ export const RULES_CONTRACT = Object.freeze({
 		'Linked feature groups use 5×, 7×, 10× or 15× according to the number of ports already reached.',
 		'There are no Wild, Scatter or Mystery symbols and no symbol-based retrigger.',
 	]),
-	controls: Object.freeze([
-		'Mode buttons select one canonical access profile.',
-		'Play Amount lists every level supplied by the authenticated game service.',
-		'Initiate Breach starts one round; Space activates the same control when permitted.',
-		'DEEP ACCESS and BLACKOUT ENTRY require a second explicit confirmation showing the complete play amount.',
-		'Info opens this rules and interface guide.',
-	]),
+	controlGuide: CONTROL_GUIDE,
+	controls: Object.freeze(CONTROL_GUIDE.map(({ description }) => description)),
 	disclaimer:
 		'Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. The expected return is calculated over many plays. The game display is not representative of any physical device and is for illustrative purposes only. Winnings are settled according to the amount received from the Remote Game Server and not from events within the web browser. TM and © 2026 Stake Engine.',
 });

@@ -249,6 +249,11 @@
 			"requirement": "Game Information includes an interaction guide",
 			"status": "AUTOMATED_PASS_MANUAL_OPEN",
 			"browserScenarios": ["social-xsc-rules-paytable-and-terminology"],
+			"browserChecks": [
+				"every visible game control maps to a Game Information guide entry",
+				"interaction guide contains every versioned control contract entry",
+				"interaction guide documents touch, keyboard, Space and Escape behaviour"
+			],
 			"manualOpen": "Reconcile the guide with every final control."
 		},
 		{

@@ -5,6 +5,7 @@
 	import { MODES, getMode, getModeLabel } from '../lib/contracts/modes.js';
 	import {
 		CLUSTER_BANDS,
+		CONTROL_GUIDE,
 		RULES_CONTRACT,
 		SYMBOL_PAYOUTS,
 		getRulesDisclaimer,
@@ -1339,7 +1340,9 @@
 						</section>
 						<section>
 							<h3>Controls</h3>
-							{#each RULES_CONTRACT.controls as line}<p>{line}</p>{/each}
+							{#each CONTROL_GUIDE as entry}
+								<p data-control-key={entry.key}><strong>{entry.label}:</strong> {entry.description}</p>
+							{/each}
 						</section>
 					</div>
 
@@ -2772,6 +2775,10 @@
 		color: #9eb3b7;
 		font-size: 10px;
 		line-height: 1.5;
+	}
+
+	.rules-copy-grid p strong {
+		color: #d5e1e3;
 	}
 
 	@media (max-width: 820px) {

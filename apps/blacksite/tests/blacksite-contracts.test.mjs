@@ -12,6 +12,7 @@ import {
 } from '../src/lib/contracts/modes.js';
 import {
 	CLUSTER_BANDS,
+	CONTROL_GUIDE,
 	RULES_CONTRACT,
 	SYMBOL_PAYOUTS,
 	getRulesDisclaimer,
@@ -172,6 +173,33 @@ test('player rules are mechanically identical to the frozen math registry', () =
 		...RULES_CONTRACT.modes.map((mode) => mode.socialLabel),
 	].join(' ');
 	assert.deepEqual(playerVisibleRestrictedHits(playerVisibleSocialCopy), []);
+});
+
+test('Game Information maps every versioned control and input method', () => {
+	assert.deepEqual(
+		CONTROL_GUIDE.map(({ key }) => key),
+		[
+			'input-methods',
+			'sound',
+			'mode-select',
+			'play-amount',
+			'presentation-speed',
+			'skip',
+			'primary-action',
+			'confirmation',
+			'info-rules',
+			'close-rules',
+		],
+	);
+	assert.equal(new Set(CONTROL_GUIDE.map(({ key }) => key)).size, CONTROL_GUIDE.length);
+	assert.deepEqual(RULES_CONTRACT.controls, CONTROL_GUIDE.map(({ description }) => description));
+	const guideText = CONTROL_GUIDE.map(({ label, description }) => `${label}: ${description}`).join(' ');
+	for (const requiredTerm of [
+		'pointer', 'touch', 'keyboard', 'Space', 'Escape', 'SOUND', 'TURBO', 'SKIP',
+		'CONFIRM', 'CANCEL', 'INFO / RULES',
+	]) {
+		assert.match(guideText, new RegExp(requiredTerm, 'iu'));
+	}
 });
 
 test('launch parser fails paid live play closed and never promotes fixtures in production', () => {
