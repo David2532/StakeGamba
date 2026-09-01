@@ -4023,15 +4023,21 @@ async function runNetworkScenarios(browser, origin) {
 					trace.push({ ...snapshot, signature });
 					if (trace.length > 500) trace.shift();
 				};
-				const observer = new MutationObserver(capture);
-				observer.observe(document.documentElement, {
-					subtree: true,
-					childList: true,
-					characterData: true,
-					attributes: true,
-					attributeFilter: ['data-runtime-state', 'data-symbol', 'data-motion-phase'],
-				});
-				capture();
+				const start = () => {
+					const root = document.documentElement;
+					if (!root) return;
+					const observer = new MutationObserver(capture);
+					observer.observe(root, {
+						subtree: true,
+						childList: true,
+						characterData: true,
+						attributes: true,
+						attributeFilter: ['data-runtime-state', 'data-symbol', 'data-motion-phase'],
+					});
+					capture();
+				};
+				if (document.documentElement) start();
+				else document.addEventListener('DOMContentLoaded', start, { once: true });
 			});
 			const network = await installMockRgs(context, {
 				pageOrigin: origin,
