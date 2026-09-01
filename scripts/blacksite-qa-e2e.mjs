@@ -4501,6 +4501,142 @@ function assertGeometryRecord(group, audit, viewport) {
 }
 
 async function runGeometryScenarios(browser, origin) {
+	await runScenario('mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll', async (record) => {
+		const group = 'mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll';
+		const context = await browser.newContext({
+			viewport: { width: 390, height: 844 },
+			isMobile: true,
+			hasTouch: true,
+		});
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: { authenticate: () => authenticateResponse() },
+			});
+			const { page, diagnostics } = await openPage(
+				context,
+				origin,
+				liveQuery({ device: 'mobile' }),
+			);
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+
+			const visualViewportSnapshot = () =>
+				page.evaluate(() => ({
+					scale: visualViewport?.scale ?? 1,
+					offsetLeft: visualViewport?.offsetLeft ?? 0,
+					offsetTop: visualViewport?.offsetTop ?? 0,
+					pageLeft: visualViewport?.pageLeft ?? scrollX,
+					pageTop: visualViewport?.pageTop ?? scrollY,
+					scrollX,
+					scrollY,
+				}));
+			const beforeDoubleTap = await visualViewportSnapshot();
+			const boardBounds = await page.locator(SELECTORS.board).boundingBox();
+			assert.ok(boardBounds, 'Double-tap QA requires a visible board target.');
+			const tapX = boardBounds.x + boardBounds.width / 2;
+			const tapY = boardBounds.y + boardBounds.height / 2;
+			await page.touchscreen.tap(tapX, tapY);
+			await page.waitForTimeout(80);
+			await page.touchscreen.tap(tapX, tapY);
+			await page.waitForTimeout(350);
+			const afterDoubleTap = await visualViewportSnapshot();
+			check(
+				group,
+				'mobile double-tap keeps visual viewport at 1x without page displacement',
+				Math.abs(beforeDoubleTap.scale - 1) <= 0.001 &&
+					Math.abs(afterDoubleTap.scale - 1) <= 0.001 &&
+					Math.abs(afterDoubleTap.offsetLeft - beforeDoubleTap.offsetLeft) <= 0.5 &&
+					Math.abs(afterDoubleTap.offsetTop - beforeDoubleTap.offsetTop) <= 0.5 &&
+					Math.abs(afterDoubleTap.pageLeft - beforeDoubleTap.pageLeft) <= 0.5 &&
+					Math.abs(afterDoubleTap.pageTop - beforeDoubleTap.pageTop) <= 0.5,
+				serialize({ beforeDoubleTap, afterDoubleTap }),
+			);
+
+			const infoAction = page.locator('[data-testid="info-action"]');
+			const infoBounds = await infoAction.boundingBox();
+			assert.ok(infoBounds, 'Touch-scroll QA requires a visible Game Information action.');
+			await page.touchscreen.tap(
+				infoBounds.x + infoBounds.width / 2,
+				infoBounds.y + infoBounds.height / 2,
+			);
+			const dialog = page.getByRole('dialog', { name: /BLACKSITE/i });
+			await dialog.waitFor({ state: 'visible' });
+			const rulesScroll = dialog.locator('.rules-scroll');
+			const beforeScroll = await rulesScroll.evaluate((element) => ({
+				scrollTop: element.scrollTop,
+				scrollHeight: element.scrollHeight,
+				clientHeight: element.clientHeight,
+				bounds: element.getBoundingClientRect().toJSON(),
+			}));
+			check(
+				group,
+				'mobile Game Information has legitimate vertical overflow to scroll',
+				beforeScroll.scrollHeight > beforeScroll.clientHeight + 1,
+				serialize(beforeScroll),
+			);
+
+			const client = await context.newCDPSession(page);
+			const dragX = beforeScroll.bounds.left + beforeScroll.bounds.width / 2;
+			const dragStartY = beforeScroll.bounds.bottom - 36;
+			const dragEndY = beforeScroll.bounds.top + 72;
+			await client.send('Input.dispatchTouchEvent', {
+				type: 'touchStart',
+				touchPoints: [{ x: dragX, y: dragStartY }],
+			});
+			for (let step = 1; step <= 6; step += 1) {
+				const y = dragStartY + ((dragEndY - dragStartY) * step) / 6;
+				await client.send('Input.dispatchTouchEvent', {
+					type: 'touchMove',
+					touchPoints: [{ x: dragX, y }],
+				});
+				await page.waitForTimeout(16);
+			}
+			await client.send('Input.dispatchTouchEvent', {
+				type: 'touchEnd',
+				touchPoints: [],
+			});
+			await page.waitForTimeout(250);
+			const afterScroll = await rulesScroll.evaluate((element) => ({
+				scrollTop: element.scrollTop,
+				scrollHeight: element.scrollHeight,
+				clientHeight: element.clientHeight,
+				documentScrollX: scrollX,
+				documentScrollY: scrollY,
+				visualScale: visualViewport?.scale ?? 1,
+			}));
+			check(
+				group,
+				'mobile Rules content moves after a real touch drag while the page and zoom stay fixed',
+				afterScroll.scrollTop > beforeScroll.scrollTop + 1 &&
+					afterScroll.documentScrollX === 0 &&
+					afterScroll.documentScrollY === 0 &&
+					Math.abs(afterScroll.visualScale - 1) <= 0.001,
+				serialize({ beforeScroll, afterScroll }),
+			);
+			check(
+				group,
+				'double-tap and Rules touch-scroll authenticate once and send zero wallet or event writes',
+				network.byEndpoint.authenticate.length === 1 &&
+					network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.beforeDoubleTap = beforeDoubleTap;
+			record.afterDoubleTap = afterDoubleTap;
+			record.beforeScroll = beforeScroll;
+			record.afterScroll = afterScroll;
+			record.screenshot = await saveScreenshot(page, 'mobile-double-tap-rules-touch-scroll');
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	for (const viewport of viewports) {
 		await runScenario(`geometry-${viewport.name}`, async (record) => {
 			const context = await browser.newContext({

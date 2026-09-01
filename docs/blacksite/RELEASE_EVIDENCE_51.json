@@ -243,7 +243,12 @@
 			"id": 28,
 			"requirement": "Double-tap zoom is disabled without blocking accessibility",
 			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": [
+				"mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll"
+			],
 			"browserChecks": [
+				"mobile double-tap keeps visual viewport at 1x without page displacement",
+				"mobile Rules content moves after a real touch drag while the page and zoom stay fixed",
 				"browser computed body touch-action is manipulation",
 				"browser viewport meta preserves user zoom"
 			],

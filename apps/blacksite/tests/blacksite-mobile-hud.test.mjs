@@ -52,6 +52,28 @@ test('browser QA proves a live portrait-landscape-portrait reflow without wallet
 	);
 });
 
+test('browser QA exercises double-tap suppression without blocking touch scrolling', async () => {
+	const source = await readFile(browserQaUrl, 'utf8');
+	assert.match(
+		source,
+		/mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll/u,
+	);
+	assert.match(source, /await page\.touchscreen\.tap\(tapX, tapY\)/u);
+	assert.match(source, /Input\.dispatchTouchEvent/u);
+	assert.match(
+		source,
+		/mobile double-tap keeps visual viewport at 1x without page displacement/u,
+	);
+	assert.match(
+		source,
+		/mobile Rules content moves after a real touch drag while the page and zoom stay fixed/u,
+	);
+	assert.match(
+		source,
+		/double-tap and Rules touch-scroll authenticate once and send zero wallet or event writes/u,
+	);
+});
+
 test('presentation speed persists while system reduced motion remains authoritative', async () => {
 	const pageSource = await readFile(pageUrl, 'utf8');
 	const browserSource = await readFile(browserQaUrl, 'utf8');
