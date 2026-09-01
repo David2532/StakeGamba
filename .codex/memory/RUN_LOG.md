@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260901-16 — SUCCESS
+
+- Sprint day: 3
+- Base commit: `4f87a3d8644aaa2380ab52be11b02948e92bcbb9`
+- Verified implementation commit: `ecbbfc50a6367efa80d6584223cf45038c105515`
+- Work item: `BSB-ENTER-REPEAT-001` (DONE)
+- Selection reason: request-layer in-flight deduplication covered only concurrent writes, and the global Space guard covered its shortcut, but the focused primary button had no explicit native Enter/Space repeat guard after a round returned to ready.
+- Before/after evidence: the regression was first reproduced as 23 PASS / 1 FAIL against the absent button guard. The primary action now preserves the initial native Enter/Space activation and prevents the default only for repeated Enter/Space keydowns. Exact Chromium holds Enter across one complete Base round, refocuses while still held, records initial Enter unprevented and repeat Enter prevented, returns to `live-ready`, and records exactly `authenticate → play` with no second play, checkpoint or settlement write.
+- Changed files: focused primary key handler, contract regression, exact-browser wallet scenario and five sprint-memory files; pixels/layout, math, RGS request schema, assets, lockfile and dependencies unchanged.
+- Gates: syntax PASS; focused contract regression 24/24 PASS after the expected-red reproduction; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 126/126 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 72/72 scenarios and 1871/1871 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run because no browser executable is installed; exact isolated CI supplies browser proof.
+- Visual review: exact held-Enter, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9799216714` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024 and the orientation round trip. Board, controls, values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `284d7939a6929342d9167eddf4d7dbaf2736730608257984b3cbd2c400018331`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Targeted reads, one expected-red reproduction, one full local gate and one exact remote gate were used; no unchanged failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33503792855`, artifact `9799216714` and digest `sha256:4a2899ec4ea06af597fa32138acbd70e74583dba64b8bb2bc6f46b9ccf7eb1bb` succeeded.
+- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; revisit mid-feature restore only with event-triggered instrumentation.
+
 ## BS-20260901-15 — SUCCESS
 
 - Sprint day: 3
@@ -318,18 +335,3 @@ Newest entries first; retain at most 20.
 - Persistence: exact CI `33432657970` succeeded; implementation was fast-forwarded without force through the connected Git Data path. Artifact digest `sha256:0415a53fa395f61c978f91ec58558e997273488add27be920775aeaabe43245e`.
 - Residual risk: mid-feature restore remains deferred; 23 manual gates, 6 external approvals, rights/Creative cleanup, Spine rig/clips, BLACKOUT/foreground layers, final audio/device QA and real-device pacing remain open.
 - Next candidate: choose the next distinct safe provider/gameplay evidence gap; revisit mid-feature restore only with event-triggered instrumentation.
-
-## BS-20260831-26 — BLOCKED
-
-- Sprint day: 2
-- Base commit: `30cf1945fe6f77ed6fe726c2585908e2ec84e39a`
-- Final product tree: exactly matches base; attempted source commits `a078df1` and `1a6f985` were reverted by normal fast-forward commits before closeout.
-- Work item: `BSB-EVIDENCE-001` (mid-feature interrupted restore; deferred after two failed browser-harness attempts)
-- Selection reason: current exact evidence proves whole feature lifecycles but not resumption from a nonzero authoritative feature cursor without duplicate checkpoint, play or settlement writes.
-- Attempted evidence: `base_natural_blackout` was restored at cursor 69 with expected ordered later checkpoints, zero play writes, one settlement and exact `$1000.00` / `$1999.00` completion. Focused contracts passed, but exact Chromium never reached the assertions because two distinct observations of transient `live-restoring` timed out.
-- Gates: local frozen install, syntax, contracts 25/25, compliance 6/6 and diff check PASS. Both exact CI runs passed frozen install, lint, typecheck, 106/106 tests, build, math 7/7 with 300,000 books and package generation, then failed only the experimental Chromium scenario. Evidence resolution was not reached; no current-head release claim is made.
-- Visual review: NOT_RUN for the attempted restore state; no runtime/UI change remains. The final product tree is byte-identical to the prior exact visual evidence.
-- Changed files: final executable/product files unchanged; only five memory closeout files remain.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. No unchanged failed retry or third browser attempt.
-- Residual risk: mid-feature restore remains unproven alongside 23 manual gates, 6 external approvals, rights/Creative cleanup, Spine rig/clips, BLACKOUT/foreground layers, final audio/device QA and real-device pacing.
-- Next candidate: choose a different safe provider/gameplay evidence gap; revisit mid-feature restore only with event-triggered instrumentation rather than a transient runtime-state wait.
