@@ -258,3 +258,11 @@ test('candidate evidence fails closed when a referenced browser scenario is abse
 		value.browserEvidence.scenarios = value.browserEvidence.scenarios.filter(
 			(scenario) => scenario.name !== 'live-auth-exact',
 		);
+		value.browserEvidence.summary.scenarios -= 1;
+		value.browserEvidence.summary.passedScenarios -= 1;
+		writeJson(value.browserEvidencePath, value.browserEvidence);
+		assert.throws(() => buildComplianceEvidence(value), /Requirement 1.*live-auth-exact/u);
+	} finally {
+		rmSync(value.root, { recursive: true, force: true });
+	}
+});
