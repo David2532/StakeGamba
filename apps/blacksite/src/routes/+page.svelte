@@ -721,6 +721,7 @@
 			!['BUTTON', 'SELECT', 'INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)
 		) {
 			event.preventDefault();
+			if (event.repeat) return;
 			void activatePrimary();
 		}
 	}

@@ -1828,10 +1828,25 @@ async function runNetworkScenarios(browser, origin) {
 			await page.getByRole('button', { name: /CLOSE/i }).click();
 			await page.evaluate(() => document.activeElement?.blur());
 			await waitForStableAction(page);
-			await page.keyboard.press('Space');
+			await page.evaluate(() => {
+				window.__blacksiteSpaceKeydowns = [];
+				window.addEventListener(
+					'keydown',
+					(event) => {
+						if (event.code === 'Space') {
+							window.__blacksiteSpaceKeydowns.push({ repeat: event.repeat });
+						}
+					},
+					{ capture: true },
+				);
+			});
+			await page.keyboard.down('Space');
 			await waitForEndpoint(network, 'play', 1);
 			await waitForStableAction(page);
+			await page.keyboard.down('Space');
 			await page.waitForTimeout(200);
+			await page.keyboard.up('Space');
+			const spaceKeydowns = await page.evaluate(() => window.__blacksiteSpaceKeydowns);
 			assertExactRequest(group, network.byEndpoint.play[0], {
 				method: 'POST',
 				path: '/wallet/play',
@@ -1842,6 +1857,20 @@ async function runNetworkScenarios(browser, origin) {
 					mode: 'base',
 				},
 			});
+			check(
+				group,
+				'held Space emits one initial and one repeat keydown',
+				spaceKeydowns.length === 2 &&
+					spaceKeydowns[0].repeat === false &&
+					spaceKeydowns[1].repeat === true,
+				serialize(spaceKeydowns),
+			);
+			check(
+				group,
+				'held Space cannot spend a second base bet after returning to ready',
+				network.byEndpoint.play.length === 1 && (await runtimeState(page)) === 'live-ready',
+				serialize({ state: await runtimeState(page), order: network.order }),
+			);
 			check(group, 'one legal Space press produces exactly one Base play', network.byEndpoint.play.length === 1, serialize(network.order));
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);

@@ -767,6 +767,21 @@ test('exact-browser QA deduplicates competing paid-play input paths', () => {
 	assert.match(source, /base amount is locked while the authoritative play request is pending/u);
 });
 
+test('held Space cannot initiate another paid round after the first round completes', () => {
+	const pageSource = readFileSync(
+		join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'),
+		'utf8',
+	);
+	const browserSource = readFileSync(
+		join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'),
+		'utf8',
+	);
+
+	assert.match(pageSource, /event\.preventDefault\(\);\s*if \(event\.repeat\) return;\s*void activatePrimary\(\);/u);
+	assert.match(browserSource, /held Space emits one initial and one repeat keydown/u);
+	assert.match(browserSource, /held Space cannot spend a second base bet after returning to ready/u);
+});
+
 test('PresentationDirector binds BLACKOUT transitions to authoritative feature cues', async () => {
 	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'blackout_zero');
 	assert(fixture);
