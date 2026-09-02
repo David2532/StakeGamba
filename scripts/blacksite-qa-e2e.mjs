@@ -3788,6 +3788,150 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('feature-tease-timing-normal-and-turbo', async (record) => {
+		const group = 'feature-tease-timing-normal-and-turbo';
+		const fixture = getGeneratedFixture('base_natural_blackout');
+		const expectedPayout = DEFAULT_BASE_AMOUNT * fixture.book.payoutMultiplier / 100;
+		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: (request, audit) => ({
+						status: successStatus(),
+						balance: {
+							amount: DEFAULT_BALANCE + audit.byEndpoint.play.length * (expectedPayout - DEFAULT_BASE_AMOUNT),
+							currency: 'USD',
+						},
+						round: authoritativeFixtureRound({
+							fixture,
+							active: false,
+							amount: request.body.amount,
+							currency: request.body.currency,
+							id: `blacksite-qa-feature-tease-${audit.byEndpoint.play.length}`,
+						}),
+					}),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+
+			const installTimeline = async () => {
+				await page.evaluate(({ boardSelector, characterSelector }) => {
+					window.__blacksiteFeatureTeaseTimeline = [];
+					window.__blacksiteFeatureTeaseObserver?.disconnect();
+					const board = document.querySelector(boardSelector);
+					const character = document.querySelector(characterSelector);
+					const capture = () => {
+						const image = character?.querySelector('img');
+						const characterStyle = image ? getComputedStyle(image) : null;
+						const lockStyle = board ? getComputedStyle(board, '::before') : null;
+						window.__blacksiteFeatureTeaseTimeline.push({
+							state: character?.getAttribute('data-character-state'),
+							profile: character?.getAttribute('data-motion-profile'),
+							animation: characterStyle?.animationName ?? 'none',
+							animationDurationMs: characterStyle ? Number.parseFloat(characterStyle.animationDuration) * 1_000 : 0,
+							boardPhase: board?.getAttribute('data-motion-phase'),
+							lockAnimation: lockStyle?.animationName ?? 'none',
+							lockAnimationDurationMs: lockStyle ? Number.parseFloat(lockStyle.animationDuration) * 1_000 : 0,
+							at: performance.now(),
+						});
+					};
+					capture();
+					window.__blacksiteFeatureTeaseObserver = new MutationObserver(capture);
+					window.__blacksiteFeatureTeaseObserver.observe(character, {
+						attributes: true,
+						attributeFilter: ['data-character-state', 'data-motion-profile'],
+					});
+				}, { boardSelector: SELECTORS.board, characterSelector: SELECTORS.vaultkeeper });
+			};
+			const readTimeline = () => page.evaluate(() => window.__blacksiteFeatureTeaseTimeline);
+			const teaseWindow = (timeline) => {
+				const teaseIndex = timeline.findIndex(({ state }) => state === 'feature_tease');
+				const tease = timeline[teaseIndex];
+				const exit = timeline.slice(teaseIndex + 1).find(({ state }) => state !== 'feature_tease');
+				return { tease, exit, elapsedMs: tease && exit ? exit.at - tease.at : -1 };
+			};
+			const playFeatureTease = async (profile) => {
+				await installTimeline();
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForEndpoint(network, 'play', profile === 'normal' ? 1 : 2);
+				await page.waitForFunction(
+					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'feature_tease',
+					SELECTORS.vaultkeeper,
+					{ timeout: 15_000 },
+				);
+				const screenshot = await saveScreenshot(page, `${group}-${profile}`);
+				await page.waitForFunction(
+					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'feature_trigger',
+					SELECTORS.vaultkeeper,
+					{ timeout: 15_000 },
+				);
+				const timeline = await readTimeline();
+				await page.locator(SELECTORS.skipPresentation).click();
+				await waitForStableAction(page);
+				return { timeline, window: teaseWindow(timeline), screenshot };
+			};
+
+			const normal = await playFeatureTease('normal');
+			check(group, 'normal feature tease remains visible for its complete authored window',
+				normal.window.tease?.profile === 'normal' &&
+					normal.window.tease.animation.endsWith('vaultkeeper-feature-tease') &&
+					normal.window.tease.animationDurationMs === 600 &&
+					normal.window.tease.boardPhase === 'anticipation' &&
+					normal.window.tease.lockAnimation.endsWith('lock-anticipation') &&
+					normal.window.tease.lockAnimationDurationMs === 600 &&
+					normal.window.elapsedMs >= 540 && normal.window.elapsedMs <= 900,
+				serialize(normal),
+			);
+
+			await page.locator(SELECTORS.motionMode).click();
+			const turbo = await playFeatureTease('turbo');
+			check(group, 'turbo feature tease remains visible for its complete authored window',
+				turbo.window.tease?.profile === 'turbo' &&
+					turbo.window.tease.animation.endsWith('vaultkeeper-feature-tease') &&
+					turbo.window.tease.animationDurationMs === 180 &&
+					turbo.window.tease.boardPhase === 'anticipation' &&
+					turbo.window.tease.lockAnimation.endsWith('lock-anticipation') &&
+					turbo.window.tease.lockAnimationDurationMs === 180 &&
+					turbo.window.elapsedMs >= 155 && turbo.window.elapsedMs <= 400,
+				serialize(turbo),
+			);
+			for (const request of network.byEndpoint.play) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/wallet/play',
+					body: {
+						sessionID: SESSION_ID,
+						currency: 'USD',
+						amount: DEFAULT_BASE_AMOUNT,
+						mode: 'base',
+					},
+				});
+			}
+			check(group, 'both feature-tease paths preserve payout authority and clean readiness',
+				(await page.locator(SELECTORS.finalWin).innerText()).trim() === formatExactApi(expectedPayout, 'USD') &&
+					(await runtimeState(page)) === 'live-ready' &&
+					network.byEndpoint.play.length === 2 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
+				serialize({ finalWin: await page.locator(SELECTORS.finalWin).innerText(), order: network.order }),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.fixture = fixture.id;
+			record.normal = normal;
+			record.turbo = turbo;
+			record.network = network;
+			record.diagnostics = diagnostics;
+			await page.evaluate(() => window.__blacksiteFeatureTeaseObserver?.disconnect());
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('blackout-hero-timing-normal-and-turbo', async (record) => {
 		const group = 'blackout-hero-timing-normal-and-turbo';
 		const fixture = getGeneratedFixture('blackout_zero');

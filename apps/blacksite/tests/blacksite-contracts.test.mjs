@@ -806,6 +806,9 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /turbo recovery clip remains visible for its complete authored window/u);
 	assert.match(source, /normal spin-start reaction remains visible for its complete authored window/u);
 	assert.match(source, /turbo spin-start reaction remains visible for its complete authored window/u);
+	assert.match(source, /feature-tease-timing-normal-and-turbo/u);
+	assert.match(source, /normal feature tease remains visible for its complete authored window/u);
+	assert.match(source, /turbo feature tease remains visible for its complete authored window/u);
 	assert.match(source, /replay-hit-timing-normal-and-turbo/u);
 	assert.match(source, /normal Replay hit remains visible for its authored timing profile/u);
 	assert.match(source, /turbo Replay hit remains visible for its authored timing profile/u);
