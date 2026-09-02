@@ -1,5 +1,22 @@
 # Material run log
 
+## BS-20260902-40 — SUCCESS
+
+- Sprint day: 4
+- Base remote commit: `e68191bb3ddb3d9ef9613776099c4f0c4c5f9353`
+- Verified implementation commit: `826e49ea6c03d5c17345ed2e50f80738141a95af`
+- Work item: `BSB-BASE-WIN-TIER-REACTIONS-001` (DONE; parent `BSB-MOTION-001` remains in progress)
+- Selection reason: runs 38–39 left the tier implementation blocked only on exact current-head Chromium. The delayed exact workflow became available and supplied direct failure evidence instead of requiring another speculative motion slice.
+- Before/after evidence: exact run `33627655297` proved the live Small/Medium/Big states but failed 1/2309 checks because Replay still capped Normal hit ownership at the pre-tier 420ms while the authored 420ms Small response produced 451.9ms. QA now explicitly binds Replay Base Small to 400–600ms Normal / 120–260ms Turbo, and a source contract locks both ranges. Exact run `33637682367` observes 452.2ms / 153.6ms; live Turbo observes Small 211.5ms and Big 491.7ms with exact `$0.38` / `$2.07`.
+- Changed files: exact Chromium QA, QA source contract and five sprint-memory files; runtime, math, wallet/provider schema, assets, lockfile and dependencies unchanged.
+- Gates: expected-red exact CI 84 scenarios with 2308 PASS / 1 FAIL; syntax PASS; focused contract 1/1 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 141/141 PASS; production build PASS; local and exact math 7/7 over 300,000 books with unchanged fingerprint; isolated package generation/readback PASS; exact 51-point resolver PASS; exact Chromium 84/84 scenarios / 2317/2317 checks PASS; unexpected network/page/request failures 0; `git diff --check` and secret/debug/scope/full-own-diff review PASS.
+- Visual review: exact active Small, Medium and Big 1366x768 frames plus 1920x1080, 390x844 and 844x390 captures from artifact `9850039612` were inspected. Board, values, controls, desktop penguin and responsive vault environment remain complete and sharp without overlap, document scroll, crop or broken images; physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `9fa4981e7eab6bebf53b44c63e153a89ff80548ef4f2867112f8fd0a0a62c0a3`, 10 files / 712,368 bytes; exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; package verification PASS.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Delayed CI and its artifact replaced the earlier browser-download block. One stale build-identity package rejection was corrected by a targeted rebuild; no unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data. Exact run `33637682367`, artifact `9850039612` and digest `sha256:157e8a126866b699edee23fbc6f62de520f757d290995131ab69e3a8d642bce7` succeeded.
+- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
+
 ## BS-20260902-39 — BLOCKED
 
 - Sprint day: 4
@@ -320,22 +337,5 @@ Newest entries first; retain at most 20.
 - Package evidence: exact remote frontend tree `6c48d38d76525087618a73eb9164712b83d0c81f5925de816136ec9bc7b6f97b`, package verification PASS; math fingerprint remains `d03fab…78d8`.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The exact artifact supplied the six timer snapshots and four inspected viewports; no unchanged semantic failure was repeated.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33533314785`, artifact `9811160327` and digest `sha256:e550806dc3ba25a00104c76608c7d244d49d725e6c9876540f80a56a8f4a0519` succeeded.
-- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct safe provider, accessibility or authored-motion gap that can close without unavailable human assets or physical-device approval.
-
-## BS-20260901-20 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `566345235867bafdbbce6232006e2e32760e90ce`
-- Verified implementation commit: `0d2dc258c353e027c9adeba192664288f1d65b96`
-- Work item: `BSB-ACTIVE-FEATURE-SKIP-001` (DONE; parent `BSB-EVIDENCE-001` remains in progress)
-- Selection reason: existing Skip evidence used inactive server-closed rounds, while the release contract also requires Skip to complete an active manually settled feature without duplicate checkpoint, play or payout writes.
-- Before/after evidence: focused compliance began with one expected FAIL because no active-Skip scenario existed. Exact Chromium now starts the math-backed natural-Base feature, invokes Skip during `hit`, writes all 51 expected durable cursors from 2 through 84 exactly once in order, sends one play and one end-round, remains write-stable for 250ms, and reaches `$1000.00` win / `$1999.00` balance in 969ms.
-- Changed files: Chromium QA, checklist row-21 evidence binding, compliance regression and five sprint-memory files; runtime UI, math, assets, lockfile and dependencies unchanged.
-- Gates: syntax PASS; focused compliance 1/1 PASS after expected-red reproduction; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 128/128 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 74/74 scenarios and 2174/2174 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies current-package browser proof.
-- Visual review: exact 1366x768 active-feature Skip completion plus 1920x1080, 390x844 and 844x390 captures from artifact `9808902863` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Board, controls, exact values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device sign-off remains open.
-- Package evidence: exact remote frontend tree `f32d45318298350561b8ddc93db96a89eaee3dd53a6c7fc0ce041caccf4c4b95`, package verification PASS; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One connector result-shape mismatch, one pre-ref executable-mode correction and one rejected destructive temp cleanup each used a changed safe path; the exact final-head run passed and no semantic failure was repeated unchanged.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33527487460`, artifact `9808902863` and digest `sha256:f754f0d68d07d07a69c1a93602fc9e13cddaa458a8ada8d5fa8ca81aee678399` succeeded.
 - Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct safe provider, accessibility or authored-motion gap that can close without unavailable human assets or physical-device approval.

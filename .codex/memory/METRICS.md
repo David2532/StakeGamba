@@ -1,5 +1,73 @@
 # Rolling automation metrics
 
+## BS-20260902-40
+
+```yaml
+closed_at_utc: 2026-09-02T14:02:00Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-BASE-WIN-TIER-REACTIONS-001
+expected_red_ci_run: 33627655297
+expected_red_browser: { scenarios: 84, passed: 83, failed: 1, checks_pass: 2308, checks_fail: 1 }
+expected_red_replay_normal_ms: 451.9
+expected_red_cause: stale_pre_tier_replay_upper_bound
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 1, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 141
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_package_generation: PASS
+local_package_verification: PASS
+local_frontend_tree: 762cd946bc80ea423c277e59fc98d3aaa539d8c7c8569764e050ce722dc7f3e5
+local_frontend_files: 10
+local_frontend_bytes: 712368
+exact_ci_run: 33637682367
+exact_ci_status: SUCCESS
+exact_ci_commit: 826e49ea6c03d5c17345ed2e50f80738141a95af
+exact_app_tests: 141
+exact_full_math_status: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 9fa4981e7eab6bebf53b44c63e153a89ff80548ef4f2867112f8fd0a0a62c0a3
+exact_frontend_files: 10
+exact_frontend_bytes: 712368
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+exact_browser: { scenarios: 84, passed: 84, failed: 0, checks_pass: 2317, checks_fail: 0 }
+exact_replay_small_ms: { normal: 452.2, turbo: 153.6 }
+exact_live_turbo_ms: { small: 211.5, big: 491.7 }
+exact_live_wins: { small: "$0.38", big: "$2.07" }
+exact_live_network: { authenticate: 1, play: 2, event: 0, settlement: 0, unexpected: 0 }
+exact_compliance_resolver: PASS
+exact_compliance: { automated_proof_complete: 38, manual_gates_open: 23, external_gates_open: 6 }
+visual_viewports: [1366x768, 1920x1080, 390x844, 844x390]
+visual_tier_frames: [win_small, win_medium, win_big]
+visual_review: PASS_AUTOMATED_CURRENT_HEAD
+artifact_id: 9850039612
+artifact_digest: sha256:157e8a126866b699edee23fbc6f62de520f757d290995131ab69e3a8d642bce7
+remote_implementation_commit: 826e49ea6c03d5c17345ed2e50f80738141a95af
+source_tree_before_memory: e1945f34f55b3b15c5e5c2516abd4c9cb384c223
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/AAA-motion reads; delayed workflow discovery plus exact job/log/artifact inspection; one focused stale Replay timing correction and one focused contract; one complete local frozen-install/lint/typecheck/test/build/math cycle; one identity-only targeted rebuild after the first package attempt safely rejected stale build identity; isolated package generation/readback; Git-data fast-forward; one exact CI/browser/51-point run; six inspected current-head screenshots. The AAA-animation skill kept timing semantics, cleanup, wallet isolation and current screenshots in the same exit gate. No subagents, dependencies, runtime code or product assets were added; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260902-39
 
 ```yaml
