@@ -1,5 +1,10 @@
 const EMPTY_CELLS = Object.freeze([]);
 
+export const BASE_WIN_TIER_THRESHOLDS = Object.freeze({
+	medium: 100,
+	big: 200,
+});
+
 export const PRESENTATION_TIMINGS = Object.freeze({
 	normal: Object.freeze({
 		step: 32,
@@ -8,6 +13,9 @@ export const PRESENTATION_TIMINGS = Object.freeze({
 		anticipation: 600,
 		feature: 1_000,
 		hit: 280,
+		winSmall: 420,
+		winMedium: 800,
+		winBig: 1_400,
 		remove: 150,
 		drop: 250,
 		settle: 90,
@@ -22,6 +30,9 @@ export const PRESENTATION_TIMINGS = Object.freeze({
 		anticipation: 180,
 		feature: 360,
 		hit: 110,
+		winSmall: 140,
+		winMedium: 260,
+		winBig: 420,
 		remove: 55,
 		drop: 105,
 		settle: 35,
@@ -36,6 +47,9 @@ export const PRESENTATION_TIMINGS = Object.freeze({
 		anticipation: 0,
 		feature: 0,
 		hit: 0,
+		winSmall: 0,
+		winMedium: 0,
+		winBig: 0,
 		remove: 0,
 		drop: 0,
 		settle: 0,
@@ -55,6 +69,15 @@ function motionState(phase = 'idle', cells = EMPTY_CELLS, tumbleIndex = null) {
 
 function characterState(state = 'idle_a', sourceEventIndex = -1) {
 	return Object.freeze({ state, sourceEventIndex });
+}
+
+export function selectBaseWinReaction(stepPayoutRaw) {
+	if (!Number.isSafeInteger(stepPayoutRaw) || stepPayoutRaw < 0) {
+		throw new TypeError('stepPayoutRaw must be a non-negative safe integer.');
+	}
+	if (stepPayoutRaw >= BASE_WIN_TIER_THRESHOLDS.big) return 'win_big';
+	if (stepPayoutRaw >= BASE_WIN_TIER_THRESHOLDS.medium) return 'win_medium';
+	return 'win_small';
 }
 
 export function createInitialPresentationState() {
@@ -171,7 +194,9 @@ export class PresentationDirector {
 					cumulativeWinRaw: event.cumulative_after_raw,
 					motion: motionState('hit', winningCells),
 					character: characterState(
-						event.phase === 'feature' ? 'bonus_win' : 'win_acknowledge',
+						event.phase === 'feature'
+							? 'bonus_win'
+							: selectBaseWinReaction(event.step_payout_raw),
 						cue.eventIndex,
 					),
 					notice: `${event.clusters.length} authoritative cluster cue(s)`,
@@ -320,6 +345,7 @@ export class PresentationDirector {
 			throw new TypeError('timingProfile must be normal, turbo, or reduced.');
 		}
 		const timings = PRESENTATION_TIMINGS[timingProfile];
+		const hasWinDelayOverride = winDelayMs !== null;
 		stepDelayMs ??= timings.step;
 		winDelayMs ??= timings.hit;
 		if (!Number.isSafeInteger(stepDelayMs) || stepDelayMs < 0) {
@@ -340,6 +366,13 @@ export class PresentationDirector {
 			if (onCue) await onCue(cue, this.state);
 			if (this.destroyed || generation !== this.playbackGeneration) return false;
 			let delayMs = cue.kind === 'win' ? winDelayMs : stepDelayMs;
+			if (cue.kind === 'win' && !hasWinDelayOverride) {
+				delayMs = {
+					win_small: timings.winSmall,
+					win_medium: timings.winMedium,
+					win_big: timings.winBig,
+				}[this.state.character.state] ?? timings.hit;
+			}
 			if (cue.kind === 'round_started') delayMs = timings.spin;
 			if (cue.kind === 'feature_armed') delayMs = timings.anticipation;
 			if (cue.kind === 'feature_started' || cue.kind === 'feature_ended') {

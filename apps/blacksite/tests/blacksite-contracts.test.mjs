@@ -28,10 +28,12 @@ import {
 } from '../src/lib/runtime/game-event-adapter.js';
 import { resolveLaunchMode } from '../src/lib/runtime/launch-mode.js';
 import {
+	BASE_WIN_TIER_THRESHOLDS,
 	PRESENTATION_TIMINGS,
 	PresentationDirector,
 	createInitialPresentationState,
 	planPresentationRestore,
+	selectBaseWinReaction,
 } from '../src/lib/runtime/presentation-director.js';
 import { playerVisibleRestrictedHits } from 'utils-shared/stake-social.js';
 
@@ -706,6 +708,9 @@ test('PresentationDirector exposes bounded normal, turbo and reduced timing gram
 		'anticipation',
 		'feature',
 		'hit',
+		'winSmall',
+		'winMedium',
+		'winBig',
 		'remove',
 		'drop',
 		'settle',
@@ -718,6 +723,12 @@ test('PresentationDirector exposes bounded normal, turbo and reduced timing gram
 		assert.equal(PRESENTATION_TIMINGS.reduced[phase], 0);
 	}
 	assert(PRESENTATION_TIMINGS.normal.hit >= 180);
+	assert.equal(PRESENTATION_TIMINGS.normal.winSmall, 420);
+	assert.equal(PRESENTATION_TIMINGS.normal.winMedium, 800);
+	assert.equal(PRESENTATION_TIMINGS.normal.winBig, 1_400);
+	assert.equal(PRESENTATION_TIMINGS.turbo.winSmall, 140);
+	assert.equal(PRESENTATION_TIMINGS.turbo.winMedium, 260);
+	assert.equal(PRESENTATION_TIMINGS.turbo.winBig, 420);
 	assert.equal(PRESENTATION_TIMINGS.normal.spin, 160);
 	assert.equal(PRESENTATION_TIMINGS.turbo.spin, 110);
 	assert.equal(PRESENTATION_TIMINGS.normal.reveal, 360);
@@ -771,6 +782,40 @@ test('PresentationDirector preserves the authored turbo spin-start reaction', as
 	assert.equal(director.timers.size, 0);
 });
 
+test('PresentationDirector maps authoritative base wins to bounded Small, Medium and Big reactions', async () => {
+	const cases = [
+		{ fixtureId: 'base_small', stepPayoutRaw: 25, state: 'win_small', minimumMs: 115, maximumMs: 320 },
+		{ fixtureId: 'base_cascade_3', stepPayoutRaw: 100, state: 'win_medium', minimumMs: 230, maximumMs: 480 },
+		{ fixtureId: 'base_win_02', stepPayoutRaw: 207, state: 'win_big', minimumMs: 380, maximumMs: 700 },
+	];
+	for (const { fixtureId, stepPayoutRaw, state, minimumMs, maximumMs } of cases) {
+		const fixture = GENERATED_FIXTURES.find(({ id }) => id === fixtureId);
+		assert(fixture, `missing ${fixtureId} fixture`);
+		const cue = new GameEventAdapter()
+			.adaptBook(fixture.book, { expectedMode: 'base' })
+			.find((candidate) =>
+				candidate.kind === 'win' && candidate.event.step_payout_raw === stepPayoutRaw,
+			);
+		assert(cue, `missing ${stepPayoutRaw} centi-x win in ${fixtureId}`);
+		const director = new PresentationDirector();
+		director.consume(cue);
+		assert.equal(director.state.character.state, state);
+		const startedAt = performance.now();
+		assert.equal(await director.play([cue], { timingProfile: 'turbo' }), true);
+		const elapsedMs = performance.now() - startedAt;
+		assert(elapsedMs >= minimumMs, `${state} was cut after ${elapsedMs.toFixed(1)}ms`);
+		assert(elapsedMs <= maximumMs, `${state} exceeded its bound at ${elapsedMs.toFixed(1)}ms`);
+		assert.equal(director.state.character.state, 'idle_a');
+		assert.equal(director.timers.size, 0);
+	}
+	assert.deepEqual(BASE_WIN_TIER_THRESHOLDS, { medium: 100, big: 200 });
+	assert.equal(selectBaseWinReaction(99), 'win_small');
+	assert.equal(selectBaseWinReaction(100), 'win_medium');
+	assert.equal(selectBaseWinReaction(199), 'win_medium');
+	assert.equal(selectBaseWinReaction(200), 'win_big');
+	assert.throws(() => selectBaseWinReaction(-1), /non-negative safe integer/u);
+});
+
 test('PresentationDirector uses a bounded loss acknowledgement only for authoritative zero outcomes', async () => {
 	const cues = new GameEventAdapter().adaptBook(BASE_ZERO_FIXTURE.book, { expectedMode: 'base' });
 	const states = [];
@@ -816,8 +861,10 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /normal cascade hit, remove, drop and settle clips complete their authored windows/u);
 	assert.match(source, /turbo cascade hit, remove, drop and settle clips complete their authored windows/u);
 	assert.match(source, /cascadePhaseWindows/u);
-	assert.match(source, /normal Vaultkeeper win acknowledgement remains visible for its complete authored window/u);
-	assert.match(source, /turbo Vaultkeeper win acknowledgement remains visible for its complete authored window/u);
+	assert.match(source, /normal Vaultkeeper Medium Win reaction remains visible for its complete authored window/u);
+	assert.match(source, /turbo Vaultkeeper Medium Win reaction remains visible for its complete authored window/u);
+	assert.match(source, /base-win-tier-reactions-turbo/u);
+	assert.match(source, /Small and Big Win reactions retain their authored turbo windows/u);
 	assert.match(source, /characterStateWindows/u);
 	assert.match(source, /normal zero-win Vaultkeeper loss acknowledgement completes its authored window/u);
 	assert.match(source, /turbo zero-win Vaultkeeper loss acknowledgement completes its authored window/u);
@@ -866,7 +913,7 @@ test('Vaultkeeper compositor hints are bounded to active reactions', () => {
 	assert.doesNotMatch(baseImageRule, /will-change:/u);
 	assert.match(
 		source,
-		/\.vaultkeeper-presence\[data-character-state='spin_start'\] img,[\s\S]*?\[data-character-state='max_win'\] img \{[\s\S]*?will-change: transform, filter;/u,
+		/\.vaultkeeper-presence\[data-character-state='spin_start'\] img,[\s\S]*?\[data-character-state='win_small'\] img,[\s\S]*?\[data-character-state='win_medium'\] img,[\s\S]*?\[data-character-state='win_big'\] img,[\s\S]*?\[data-character-state='max_win'\] img \{[\s\S]*?will-change: transform, filter;/u,
 	);
 	assert.match(
 		source,
@@ -880,6 +927,9 @@ test('Vaultkeeper compositor hints are bounded to active reactions', () => {
 		source,
 		/\.vaultkeeper-presence\[data-character-state='bonus_win'\] img \{\s*animation: vaultkeeper-bonus-win 280ms/u,
 	);
+	assert.match(source, /\[data-character-state='win_small'\] img \{\s*animation: vaultkeeper-win-small 420ms/u);
+	assert.match(source, /\[data-character-state='win_medium'\] img \{\s*animation: vaultkeeper-win-medium 800ms/u);
+	assert.match(source, /\[data-character-state='win_big'\] img \{\s*animation: vaultkeeper-win-big 1400ms/u);
 	assert.match(
 		source,
 		/\[data-motion-profile='turbo'\]\[data-character-state='loss_acknowledge'\] img[\s\S]*?animation-duration: 130ms;/u,
@@ -888,6 +938,9 @@ test('Vaultkeeper compositor hints are bounded to active reactions', () => {
 		source,
 		/\[data-motion-profile='turbo'\]\[data-character-state='bonus_win'\] img[\s\S]*?animation-duration: 110ms;/u,
 	);
+	assert.match(source, /\[data-motion-profile='turbo'\]\[data-character-state='win_small'\] img \{\s*animation-duration: 140ms;/u);
+	assert.match(source, /\[data-motion-profile='turbo'\]\[data-character-state='win_medium'\] img \{\s*animation-duration: 260ms;/u);
+	assert.match(source, /\[data-motion-profile='turbo'\]\[data-character-state='win_big'\] img \{\s*animation-duration: 420ms;/u);
 });
 
 test('Turbo Vaultkeeper hero and BLACKOUT reactions finish within the semantic cue window', () => {
@@ -971,7 +1024,7 @@ test('PresentationDirector drives the static Vaultkeeper fallback from authorita
 	for (const cue of cues) {
 		director.consume(cue);
 		const expected = cue.kind === 'win'
-			? cue.event.phase === 'feature' ? 'bonus_win' : 'win_acknowledge'
+			? cue.event.phase === 'feature' ? 'bonus_win' : selectBaseWinReaction(cue.event.step_payout_raw)
 			: expectedStates.get(cue.kind);
 		if (!expected) continue;
 		seen.add(cue.kind === 'win' ? `${cue.kind}:${cue.event.phase}` : cue.kind);

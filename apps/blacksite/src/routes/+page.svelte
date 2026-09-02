@@ -1766,8 +1766,16 @@
 		animation: vaultkeeper-spin-start 160ms ease-out both;
 	}
 
-	.vaultkeeper-presence[data-character-state='win_acknowledge'] img {
-		animation: vaultkeeper-win-acknowledge 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	.vaultkeeper-presence[data-character-state='win_small'] img {
+		animation: vaultkeeper-win-small 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	}
+
+	.vaultkeeper-presence[data-character-state='win_medium'] img {
+		animation: vaultkeeper-win-medium 800ms cubic-bezier(0.18, 0.78, 0.18, 1) both;
+	}
+
+	.vaultkeeper-presence[data-character-state='win_big'] img {
+		animation: vaultkeeper-win-big 1400ms cubic-bezier(0.16, 0.74, 0.16, 1) both;
 	}
 
 	.vaultkeeper-presence[data-character-state='bonus_win'] img {
@@ -1797,7 +1805,9 @@
 	}
 
 	.vaultkeeper-presence[data-character-state='spin_start'] img,
-	.vaultkeeper-presence[data-character-state='win_acknowledge'] img,
+	.vaultkeeper-presence[data-character-state='win_small'] img,
+	.vaultkeeper-presence[data-character-state='win_medium'] img,
+	.vaultkeeper-presence[data-character-state='win_big'] img,
 	.vaultkeeper-presence[data-character-state='bonus_win'] img,
 	.vaultkeeper-presence[data-character-state='loss_acknowledge'] img,
 	.vaultkeeper-presence[data-character-state='feature_tease'] img,
@@ -1808,9 +1818,20 @@
 	}
 
 	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='spin_start'] img,
-	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='win_acknowledge'] img,
 	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='bonus_win'] img {
 		animation-duration: 110ms;
+	}
+
+	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='win_small'] img {
+		animation-duration: 140ms;
+	}
+
+	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='win_medium'] img {
+		animation-duration: 260ms;
+	}
+
+	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='win_big'] img {
+		animation-duration: 420ms;
 	}
 
 	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='loss_acknowledge'] img {
@@ -2211,10 +2232,23 @@
 		100% { filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) rotate(0); }
 	}
 
-	@keyframes vaultkeeper-win-acknowledge {
+	@keyframes vaultkeeper-win-small {
 		0% { filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) scale(1); }
-		52% { filter: brightness(1.18) saturate(1.12) drop-shadow(0 14px 20px rgba(216, 184, 111, 0.3)); transform: translateY(-2.2%) scale(1.016); }
+		52% { filter: brightness(1.12) saturate(1.08) drop-shadow(0 14px 18px rgba(216, 184, 111, 0.24)); transform: translateY(-1.2%) scale(1.01); }
 		100% { filter: brightness(1.04) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(-0.4%) scale(1.004); }
+	}
+
+	@keyframes vaultkeeper-win-medium {
+		0%, 100% { filter: brightness(1) saturate(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) scale(1) rotate(0); }
+		42% { filter: brightness(1.2) saturate(1.14) drop-shadow(0 10px 22px rgba(216, 184, 111, 0.34)); transform: translateY(-2.2%) scale(1.018) rotate(-0.35deg); }
+		72% { filter: brightness(1.08) saturate(1.06) drop-shadow(0 12px 19px rgba(216, 184, 111, 0.22)); transform: translateY(-0.8%) scale(1.008) rotate(0.2deg); }
+	}
+
+	@keyframes vaultkeeper-win-big {
+		0%, 100% { filter: brightness(1) saturate(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) scale(1) rotate(0); }
+		28% { filter: brightness(1.26) saturate(1.18) drop-shadow(0 8px 26px rgba(216, 184, 111, 0.42)); transform: translateY(-3%) scale(1.026) rotate(-0.55deg); }
+		58% { filter: brightness(1.1) saturate(1.08) drop-shadow(0 12px 20px rgba(216, 184, 111, 0.26)); transform: translateY(-1%) scale(1.012) rotate(0.28deg); }
+		78% { filter: brightness(1.22) saturate(1.14) drop-shadow(0 9px 24px rgba(216, 184, 111, 0.36)); transform: translateY(-2%) scale(1.02) rotate(-0.22deg); }
 	}
 
 	@keyframes vaultkeeper-bonus-win {

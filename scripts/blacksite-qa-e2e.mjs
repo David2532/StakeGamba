@@ -3398,9 +3398,9 @@ async function runNetworkScenarios(browser, origin) {
 				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'hit',
 				SELECTORS.board,
 			);
-			const turboWinAcknowledgeScreenshot = await saveScreenshot(
+			const turboWinMediumScreenshot = await saveScreenshot(
 				page,
-				`${group}-turbo-win-acknowledge`,
+				`${group}-turbo-win-medium`,
 			);
 			await waitForStableAction(page);
 			const framePacing = await stopFrameSampler(page, 'turbo-cascade');
@@ -3429,9 +3429,9 @@ async function runNetworkScenarios(browser, origin) {
 				return { start, end, elapsedMs: start && end ? end.at - start.at : -1 };
 			};
 			const turboPhaseWindows = cascadePhaseWindows(turboPhases);
-			const turboWinAcknowledgeWindow = characterStateWindows(
+			const turboWinMediumWindow = characterStateWindows(
 				turboCharacterStates,
-				'win_acknowledge',
+				'win_medium',
 			);
 			const turboNames = turboPhases.map(({ phase }) => phase);
 			let previousIndex = -1;
@@ -3469,23 +3469,23 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			const characterNames = turboCharacterStates.map(({ state }) => state);
 			let previousCharacterIndex = -1;
-			const orderedCharacterFallback = ['spin_start', 'monitoring', 'win_acknowledge', 'idle_a'].every((state) => {
+			const orderedCharacterFallback = ['spin_start', 'monitoring', 'win_medium', 'idle_a'].every((state) => {
 				const index = characterNames.indexOf(state, previousCharacterIndex + 1);
 				previousCharacterIndex = index;
 				return index >= 0;
 			});
 			check(group, 'static Vaultkeeper fallback follows authoritative spin, board, win and recovery states', orderedCharacterFallback, serialize(turboCharacterStates));
-			check(group, 'Vaultkeeper fallback uses bounded CSS motion only while its semantic state is active', turboCharacterStates.some(({ state, animation }) => state === 'win_acknowledge' && animation.endsWith('vaultkeeper-win-acknowledge')), serialize(turboCharacterStates));
-			check(group, 'turbo Vaultkeeper win acknowledgement remains visible for its complete authored window',
-				turboWinAcknowledgeWindow.start?.profile === 'turbo' &&
-					turboWinAcknowledgeWindow.start.animation.endsWith('vaultkeeper-win-acknowledge') &&
-					turboWinAcknowledgeWindow.start.animationDurationMs === 110 &&
-					turboWinAcknowledgeWindow.elapsedMs >= 95 &&
-					turboWinAcknowledgeWindow.elapsedMs <= 300,
-				serialize({ turboWinAcknowledgeWindow, turboCharacterStates }),
+			check(group, 'Vaultkeeper fallback uses bounded CSS motion only while its semantic state is active', turboCharacterStates.some(({ state, animation }) => state === 'win_medium' && animation.endsWith('vaultkeeper-win-medium')), serialize(turboCharacterStates));
+			check(group, 'turbo Vaultkeeper Medium Win reaction remains visible for its complete authored window',
+				turboWinMediumWindow.start?.profile === 'turbo' &&
+					turboWinMediumWindow.start.animation.endsWith('vaultkeeper-win-medium') &&
+					turboWinMediumWindow.start.animationDurationMs === 260 &&
+					turboWinMediumWindow.elapsedMs >= 230 &&
+					turboWinMediumWindow.elapsedMs <= 450,
+				serialize({ turboWinMediumWindow, turboCharacterStates }),
 			);
 			check(group, 'Vaultkeeper promotes transform/filter only for active authored reactions',
-				turboCharacterStates.some(({ state, willChange }) => state === 'win_acknowledge' && willChange.includes('transform') && willChange.includes('filter')) &&
+				turboCharacterStates.some(({ state, willChange }) => state === 'win_medium' && willChange.includes('transform') && willChange.includes('filter')) &&
 					turboCharacterStates.some(({ state, willChange }) => state === 'idle_a' && willChange === 'auto'),
 				serialize(turboCharacterStates),
 			);
@@ -3516,18 +3516,18 @@ async function runNetworkScenarios(browser, origin) {
 				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'hit',
 				SELECTORS.board,
 			);
-			const normalWinAcknowledgeScreenshot = await saveScreenshot(
+			const normalWinMediumScreenshot = await saveScreenshot(
 				page,
-				`${group}-normal-win-acknowledge`,
+				`${group}-normal-win-medium`,
 			);
 			await waitForStableAction(page);
 			const normalFramePacing = await stopFrameSampler(page, 'normal-cascade');
 			const normalPhases = await page.evaluate(() => window.__blacksiteMotionPhases);
 			const normalCharacterStates = await page.evaluate(() => window.__blacksiteCharacterStates);
 			const normalPhaseWindows = cascadePhaseWindows(normalPhases);
-			const normalWinAcknowledgeWindow = characterStateWindows(
+			const normalWinMediumWindow = characterStateWindows(
 				normalCharacterStates,
-				'win_acknowledge',
+				'win_medium',
 			);
 			check(group, 'seven reel columns stop in the authored normal cadence',
 				normalReelStopCadence.length === 7 && normalReelStopCadence.every(({ column, delayMs, durationMs, animation }, index) =>
@@ -3542,7 +3542,7 @@ async function runNetworkScenarios(browser, origin) {
 				normalPhaseWindows.hit.start?.profile === 'normal' &&
 					normalPhaseWindows.hit.start.animation.endsWith('cluster-hit') &&
 					normalPhaseWindows.hit.start.animationDurationMs === 280 &&
-					normalPhaseWindows.hit.elapsedMs >= 250 && normalPhaseWindows.hit.elapsedMs <= 500 &&
+					normalPhaseWindows.hit.elapsedMs >= 740 && normalPhaseWindows.hit.elapsedMs <= 1_050 &&
 					normalPhaseWindows.remove.start?.animation.endsWith('cluster-remove') &&
 					normalPhaseWindows.remove.start.animationDurationMs === 150 &&
 					normalPhaseWindows.remove.elapsedMs >= 130 && normalPhaseWindows.remove.elapsedMs <= 350 &&
@@ -3554,13 +3554,13 @@ async function runNetworkScenarios(browser, origin) {
 					normalPhaseWindows.settle.elapsedMs >= 70 && normalPhaseWindows.settle.elapsedMs <= 260,
 				serialize({ normalPhaseWindows, normalPhases }),
 			);
-			check(group, 'normal Vaultkeeper win acknowledgement remains visible for its complete authored window',
-				normalWinAcknowledgeWindow.start?.profile === 'normal' &&
-					normalWinAcknowledgeWindow.start.animation.endsWith('vaultkeeper-win-acknowledge') &&
-					normalWinAcknowledgeWindow.start.animationDurationMs === 280 &&
-					normalWinAcknowledgeWindow.elapsedMs >= 250 &&
-					normalWinAcknowledgeWindow.elapsedMs <= 500,
-				serialize({ normalWinAcknowledgeWindow, normalCharacterStates }),
+			check(group, 'normal Vaultkeeper Medium Win reaction remains visible for its complete authored window',
+				normalWinMediumWindow.start?.profile === 'normal' &&
+					normalWinMediumWindow.start.animation.endsWith('vaultkeeper-win-medium') &&
+					normalWinMediumWindow.start.animationDurationMs === 800 &&
+					normalWinMediumWindow.elapsedMs >= 740 &&
+					normalWinMediumWindow.elapsedMs <= 1_050,
+				serialize({ normalWinMediumWindow, normalCharacterStates }),
 			);
 
 			await page.locator(SELECTORS.primaryAction).click();
@@ -3628,18 +3628,18 @@ async function runNetworkScenarios(browser, origin) {
 				turboPhaseWindows,
 				normalPhases,
 				normalPhaseWindows,
-				turboWinAcknowledgeWindow,
+				turboWinMediumWindow,
 				normalCharacterStates,
-				normalWinAcknowledgeWindow,
+				normalWinMediumWindow,
 				turboCharacterStates,
 				completed,
 				assetFallback,
 			};
 			record.screenshot = normalScreenshot;
 			record.reelStopScreenshot = reelStopScreenshot;
-			record.turboWinAcknowledgeScreenshot = turboWinAcknowledgeScreenshot;
+			record.turboWinMediumScreenshot = turboWinMediumScreenshot;
 			record.normalReelStopScreenshot = normalReelStopScreenshot;
-			record.normalWinAcknowledgeScreenshot = normalWinAcknowledgeScreenshot;
+			record.normalWinMediumScreenshot = normalWinMediumScreenshot;
 			record.hitScreenshot = hitScreenshot;
 			record.assetFallbackScreenshot = await saveScreenshot(page, `${group}-asset-fallback`);
 			record.network = network;
@@ -3648,6 +3648,121 @@ async function runNetworkScenarios(browser, origin) {
 				window.__blacksiteMotionObserver?.disconnect();
 				window.__blacksiteCharacterObserver?.disconnect();
 			});
+		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('base-win-tier-reactions-turbo', async (record) => {
+		const group = 'base-win-tier-reactions-turbo';
+		const reactions = [
+			{
+				fixture: getGeneratedFixture('base_small'), state: 'win_small',
+				animation: 'vaultkeeper-win-small', durationMs: 140, minimumMs: 120, maximumMs: 300,
+			},
+			{
+				fixture: getGeneratedFixture('base_win_02'), state: 'win_big',
+				animation: 'vaultkeeper-win-big', durationMs: 420, minimumMs: 380, maximumMs: 650,
+			},
+		];
+		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: (request, audit) => {
+						const reaction = reactions[audit.byEndpoint.play.length - 1] ?? reactions.at(-1);
+						const expectedPayout = request.body.amount * reaction.fixture.book.payoutMultiplier / 100;
+						return {
+							status: successStatus(),
+							balance: { amount: DEFAULT_BALANCE - request.body.amount + expectedPayout, currency: request.body.currency },
+							round: authoritativeFixtureRound({
+								fixture: reaction.fixture, active: false, amount: request.body.amount,
+								currency: request.body.currency, id: `blacksite-qa-win-tier-${audit.byEndpoint.play.length}`,
+							}),
+						};
+					},
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			await page.locator(SELECTORS.motionMode).click();
+			check(group, 'tier evidence runs in the bounded Turbo profile',
+				(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) === 'turbo',
+				String(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')),
+			);
+
+			const evidence = [];
+			for (const [index, reaction] of reactions.entries()) {
+				await page.evaluate((selector) => {
+					window.__blacksiteWinTierCharacters = [];
+					window.__blacksiteWinTierObserver?.disconnect();
+					const character = document.querySelector(selector);
+					const capture = () => {
+						const image = character?.querySelector('img');
+						const style = image ? getComputedStyle(image) : null;
+						window.__blacksiteWinTierCharacters.push({
+							state: character?.getAttribute('data-character-state'),
+							profile: character?.getAttribute('data-motion-profile'),
+							animation: style?.animationName ?? 'none',
+							animationDurationMs: style ? Number.parseFloat(style.animationDuration) * 1_000 : 0,
+							willChange: style?.willChange ?? 'auto', at: performance.now(),
+						});
+					};
+					capture();
+					window.__blacksiteWinTierObserver = new MutationObserver(capture);
+					window.__blacksiteWinTierObserver.observe(character, {
+						attributes: true, attributeFilter: ['data-character-state', 'data-motion-profile'],
+					});
+				}, SELECTORS.vaultkeeper);
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForEndpoint(network, 'play', index + 1);
+				await page.waitForFunction(
+					({ selector, state }) => document.querySelector(selector)?.getAttribute('data-character-state') === state,
+					{ selector: SELECTORS.vaultkeeper, state: reaction.state },
+				);
+				const screenshot = await saveScreenshot(page, `${group}-${reaction.state}`);
+				await waitForStableAction(page);
+				const timeline = await page.evaluate(() => window.__blacksiteWinTierCharacters);
+				const transitions = timeline.filter((entry, transitionIndex) =>
+					transitionIndex === 0 || entry.state !== timeline[transitionIndex - 1].state);
+				const startIndex = transitions.findIndex(({ state }) => state === reaction.state);
+				const start = transitions[startIndex];
+				const end = startIndex >= 0
+					? transitions.slice(startIndex + 1).find(({ state }) => state !== reaction.state)
+					: null;
+				const elapsedMs = start && end ? end.at - start.at : -1;
+				const finalWin = (await page.locator(SELECTORS.finalWin).innerText()).trim();
+				const expectedFinalWin = formatExactApi(
+					DEFAULT_BASE_AMOUNT * reaction.fixture.book.payoutMultiplier / 100, 'USD');
+				check(group, `${reaction.state} uses its authored semantic state and CSS clip`,
+					start?.profile === 'turbo' && start.animation.endsWith(reaction.animation) &&
+						start.animationDurationMs === reaction.durationMs,
+					serialize({ reaction, start, timeline }),
+				);
+				check(group, `${reaction.state} remains visible through its bounded authored window`,
+					elapsedMs >= reaction.minimumMs && elapsedMs <= reaction.maximumMs,
+					serialize({ reaction, elapsedMs, timeline }),
+				);
+				check(group, `${reaction.state} preserves the exact authoritative payout`,
+					finalWin === expectedFinalWin,
+					serialize({ fixture: reaction.fixture.id, finalWin, expectedFinalWin }),
+				);
+				evidence.push({ fixture: reaction.fixture.id, state: reaction.state, start, elapsedMs, finalWin, screenshot });
+			}
+			check(group, 'Small and Big Win reactions retain their authored turbo windows',
+				evidence.length === 2 && evidence.every(({ elapsedMs }) => elapsedMs > 0), serialize(evidence));
+			check(group, 'tier reactions add no event or settlement writes for inactive rounds',
+				network.byEndpoint.play.length === 2 && network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0, serialize(network.order));
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.evidence = evidence;
+			record.network = network;
+			record.diagnostics = diagnostics;
+			await page.evaluate(() => window.__blacksiteWinTierObserver?.disconnect());
 		} finally {
 			await context.close();
 		}

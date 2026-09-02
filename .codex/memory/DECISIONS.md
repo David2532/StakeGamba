@@ -23,3 +23,7 @@ Reproducible repository code/tests and exact current evidence override these mem
 ## D-005 — BlackSite CI scope
 
 BlackSite CI runs once for every push to `codex/blacksite-aaa-studio`; pull-request execution is limited to PRs targeting that branch so an existing outbound PR cannot duplicate the full 300,000-book gate. Production `src/**` plus Svelte/Vite config are checked with `svelte-check` and `checkJs: true`; JavaScript test fixtures are executed by Node's test runner instead of being treated as production type declarations. Third-party declaration conflicts are excluded with `skipLibCheck`, not application diagnostics.
+
+## D-006 — Base-win presentation tiers
+
+Base-phase `cluster_win.step_payout_raw` selects the static Vaultkeeper reaction at documented centi-x boundaries: `win_small` below 100, `win_medium` from 100 through 199, and `win_big` from 200. Feature-phase wins remain `bonus_win`, cap events remain `max_win`, and Reduced Motion resolves every tier at 0ms. These are presentation-only constants normalized to the Base wager; they never alter math, event values, final payout or wallet settlement.

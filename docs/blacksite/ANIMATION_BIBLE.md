@@ -188,6 +188,14 @@ Define presentation thresholds separately from math buckets. A suggested system 
 
 Threshold values are product/presentation constants and never alter payout. They must be documented and tested against high-cost modes so a feature-buy result is not incorrectly treated as gigantic merely because the raw payout multiplier is large.
 
+The current static Vaultkeeper fallback applies the three tiers only to Base-phase cluster-win steps, whose centi-x value is already normalized to the Base wager:
+
+- `win_small`: below 100 centi-x (<1x), 420ms normal / 140ms turbo;
+- `win_medium`: 100–199 centi-x (1x–<2x), 800ms normal / 260ms turbo;
+- `win_big`: at least 200 centi-x (>=2x), 1400ms normal / 420ms turbo.
+
+Feature-phase steps retain the dedicated `bonus_win` reaction, and `cap_reached` retains `max_win`. Reduced Motion resolves every tier at 0ms. These thresholds select presentation only; authoritative event amounts, cumulative totals, payouts, math buckets and wallet settlement remain untouched.
+
 ## 10. Boot intro
 
 Target normal path: roughly 2.5–4.0 s, skippable.
