@@ -1,5 +1,78 @@
 # Rolling automation metrics
 
+## BS-20260902-46
+
+```yaml
+closed_at_utc: 2026-09-02T21:48:29Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 4
+nested_subagents: 9
+total_subagents: 13
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-PACKAGE-HYGIENE-001
+focused_package_hygiene: { pass: 36, fail: 0, status: PASS }
+independent_red_team: SHIP
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 177
+local_app_status: PASS
+local_build: PASS
+local_build_pruned_generated_files: 7
+local_build_pruned_generated_bytes: 853570
+local_full_math_status: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_package_generation: PASS
+local_package_verification_first: PASS
+local_package_verification_second: PASS
+local_frontend_tree: 81c4580fd4f6ff3e37e99565396b783ab931ed40aad0945cbc007d274827c1ae
+local_frontend_files: 6
+local_frontend_bytes: 439499
+previous_exact_frontend_files: 10
+previous_exact_frontend_bytes: 712434
+exact_ci_run: 33685146602
+exact_ci_status: SUCCESS
+exact_ci_commit: f208e55c651d09273a42966bd31ef8bd738e62b7
+exact_app_tests: 177
+exact_full_math_status: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_build_pruned_generated_files: 4
+exact_build_pruned_generated_bytes: 272928
+exact_frontend_tree: ce43e9a08c36675e5bd47abdfee633d3780970323b8af6a14a0f68ab91835822
+exact_frontend_files: 6
+exact_frontend_bytes: 439506
+exact_frontend_reduction_bytes: 272928
+exact_frontend_reduction_percent: 38.31
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+exact_browser: { scenarios: 84, passed: 84, failed: 0, checks_pass: 2328, checks_fail: 0 }
+exact_diagnostics: { unexpected_requests: 0, forbidden_requests: 0, expected_negative_console_errors: 6, page_errors: 0, failed_requests: 0 }
+exact_compliance_resolver: PASS
+exact_compliance: { automated_proof_complete: 38, manual_gates_open: 23, external_gates_open: 6 }
+visual_viewports: [1920x1080, 1366x768, 390x844, 844x390]
+visual_review: PASS_PACKAGE_SLICE_EXISTING_BADGE_BLOCKER_OPEN
+artifact_id: 9868237907
+artifact_digest: sha256:391a67e703c5be8cec690a9d9ad8b749d3424942b23e9de6baad70a1cfb0c6d5
+verified_implementation_commit: f208e55c651d09273a42966bd31ef8bd738e62b7
+verified_implementation_tree: 8524f59410503927a4c9c312bfeb6015f7fd0d75
+million_user_capacity_claim: NOT_CLAIMED_NO_LOAD_OR_INFRA_EVIDENCE
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory and package/compliance skill reads; targeted package/build/test and scale-evidence searches; focused hygiene, frozen-install, lint, typecheck, full app, build, math and two verifier runs; exact GitHub workflow/job/artifact access; five current-head screenshot inspections; independent parser/provenance/rerun probes; diff/secret/debug/scope review and non-force Git persistence. Four direct and nine nested read-only reviewers/probes were used across the complete run. One combined memory read exceeded its output budget and was replaced by targeted slices. The first Git-data response-shape parse failed before ref mutation and was corrected once; one workflow-job nesting parse was corrected once. One nested history probe was policy-blocked, while a sibling independently supplied the required repeat-verification proof. No unchanged semantic failure was repeated, and no lockfile, generated bundle or minified asset was loaded into context. No runtime, math, wallet/provider schema, product asset or dependency changed.
+
 ## BS-20260902-45
 
 ```yaml
