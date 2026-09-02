@@ -885,11 +885,15 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /board-reveal-timing-normal-and-turbo/u);
 	assert.match(source, /normal board reveal retains every staggered cell through its authored window/u);
 	assert.match(source, /turbo board reveal retains every staggered cell through its authored window/u);
-	assert.match(source, /replay-hit-timing-normal-and-turbo/u);
+	assert.match(source, /replay-hit-timing-normal-turbo-and-reduced/u);
 	assert.match(source, /normal Replay Base Small hit remains visible for its authored tier timing/u);
 	assert.match(source, /normalHit\.durationMs >= 400 && normalHit\.durationMs <= 600/u);
 	assert.match(source, /turbo Replay Base Small hit remains visible for its authored tier timing/u);
 	assert.match(source, /turboHit\.durationMs >= 120 && turboHit\.durationMs <= 260/u);
+	assert.match(source, /Reduced Motion completes Replay without presenting a motion frame/u);
+	assert.match(source, /reducedReplay\.elapsedMs <= 250/u);
+	assert.match(source, /Reduced Motion Replay settles in a compositor-free legal state/u);
+	assert.match(source, /Reduced Motion Replay remains one read and zero wallet writes/u);
 	assert.match(source, /normal feature win uses its complete bounded bonus-specific reaction/u);
 	assert.match(source, /turbo feature win uses its complete bounded bonus-specific reaction/u);
 	assert.match(source, /expectedBonusWinAnimationMs: 280/u);

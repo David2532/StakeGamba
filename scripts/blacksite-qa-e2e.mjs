@@ -6255,10 +6255,13 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
-	await runScenario('replay-hit-timing-normal-and-turbo', async (record) => {
-		const group = 'replay-hit-timing-normal-and-turbo';
+	await runScenario('replay-hit-timing-normal-turbo-and-reduced', async (record) => {
+		const group = 'replay-hit-timing-normal-turbo-and-reduced';
 		const fixture = getGeneratedFixture('base_small');
-		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+		const context = await browser.newContext({
+			viewport: { width: 1366, height: 768 },
+			reducedMotion: 'no-preference',
+		});
 		try {
 			const network = await installMockRgs(context, {
 				pageOrigin: origin,
@@ -6311,6 +6314,62 @@ async function runNetworkScenarios(browser, origin) {
 			const normalHit = await measureHitWindow();
 			await page.locator(SELECTORS.motionMode).click();
 			const turboHit = await measureHitWindow();
+			await page.emulateMedia({ reducedMotion: 'reduce' });
+			await page.waitForFunction(
+				(motionSelector) =>
+					document.body.dataset.motionProfile === 'reduced' &&
+					document.querySelector(motionSelector)?.textContent?.trim() === 'REDUCED',
+				SELECTORS.motionMode,
+			);
+			await page.evaluate((selectors) => {
+				window.__blacksiteReducedReplayFrames = [];
+				window.__blacksiteReducedReplaySampling = true;
+				const sample = () => {
+					if (!window.__blacksiteReducedReplaySampling) return;
+					const board = document.querySelector(selectors.board);
+					const vaultkeeper = document.querySelector(selectors.vaultkeeper);
+					window.__blacksiteReducedReplayFrames.push({
+						phase: board?.getAttribute('data-motion-phase'),
+						boardProfile: board?.getAttribute('data-motion-profile'),
+						characterState: vaultkeeper?.getAttribute('data-character-state'),
+						characterProfile: vaultkeeper?.getAttribute('data-motion-profile'),
+						at: performance.now(),
+					});
+					requestAnimationFrame(sample);
+				};
+				requestAnimationFrame(sample);
+			}, SELECTORS);
+			await page.evaluate(() => new Promise((resolvePromise) => requestAnimationFrame(resolvePromise)));
+			const reducedStartedAt = await page.evaluate(() => performance.now());
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForReplayComplete(page);
+			await page.evaluate(() => new Promise((resolvePromise) => requestAnimationFrame(resolvePromise)));
+			const reducedReplay = await page.evaluate(({ selectors, startedAt }) => {
+				window.__blacksiteReducedReplaySampling = false;
+				const board = document.querySelector(selectors.board);
+				const vaultkeeper = document.querySelector(selectors.vaultkeeper);
+				const image = vaultkeeper?.querySelector('img');
+				const style = image ? getComputedStyle(image) : null;
+				return {
+					elapsedMs: performance.now() - startedAt,
+					frames: window.__blacksiteReducedReplayFrames,
+					runtimeState:
+						document.documentElement.dataset.runtimeState ??
+						document.body.dataset.runtimeState ??
+						null,
+					actionLabel: document.querySelector(selectors.primaryAction)?.textContent?.trim(),
+					motionLabel: document.querySelector(selectors.motionMode)?.textContent?.trim(),
+					motionDisabled: document.querySelector(selectors.motionMode)?.matches(':disabled'),
+					boardPhase: board?.getAttribute('data-motion-phase'),
+					boardProfile: board?.getAttribute('data-motion-profile'),
+					characterState: vaultkeeper?.getAttribute('data-character-state'),
+					characterProfile: vaultkeeper?.getAttribute('data-motion-profile'),
+					animationName: style?.animationName,
+					transitionDuration: style?.transitionDuration,
+					willChange: style?.willChange,
+					characterAnimations: image?.getAnimations().length ?? -1,
+				};
+			}, { selectors: SELECTORS, startedAt: reducedStartedAt });
 			check(
 				group,
 				'normal Replay Base Small hit remains visible for its authored tier timing',
@@ -6335,13 +6394,44 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			check(
 				group,
-				'Replay timing audit remains one read and zero wallet writes',
+				'Reduced Motion completes Replay without presenting a motion frame',
+				reducedReplay.elapsedMs <= 250 &&
+					reducedReplay.frames.length >= 1 &&
+					reducedReplay.frames.every(
+						({ phase, boardProfile, characterState, characterProfile }) =>
+							phase === 'idle' &&
+							boardProfile === 'reduced' &&
+							characterState === 'idle_a' &&
+							characterProfile === 'reduced',
+					),
+				serialize(reducedReplay),
+			);
+			check(
+				group,
+				'Reduced Motion Replay settles in a compositor-free legal state',
+				reducedReplay.runtimeState === 'replay-completed' &&
+					reducedReplay.actionLabel === 'PLAY AGAIN' &&
+					reducedReplay.motionLabel === 'REDUCED' &&
+					reducedReplay.motionDisabled === true &&
+					reducedReplay.boardPhase === 'idle' &&
+					reducedReplay.boardProfile === 'reduced' &&
+					reducedReplay.characterState === 'idle_a' &&
+					reducedReplay.characterProfile === 'reduced' &&
+					reducedReplay.animationName === 'none' &&
+					reducedReplay.transitionDuration === '0s' &&
+					reducedReplay.willChange === 'auto' &&
+					reducedReplay.characterAnimations === 0,
+				serialize(reducedReplay),
+			);
+			check(
+				group,
+				'Reduced Motion Replay remains one read and zero wallet writes',
 				network.byEndpoint.replay.length === 1 && walletWriteCount(network) === 0,
 				serialize(network.order),
 			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
-			record.hitWindows = { normalHit, turboHit };
+			record.hitWindows = { normalHit, turboHit, reducedReplay };
 			record.screenshot = await saveScreenshot(page, group);
 			record.network = network;
 			record.diagnostics = diagnostics;
