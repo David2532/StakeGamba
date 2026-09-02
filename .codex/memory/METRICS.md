@@ -1,5 +1,58 @@
 # Rolling automation metrics
 
+## BS-20260902-30
+
+```yaml
+closed_at_utc: 2026-09-02T03:13:00Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_REPRODUCED, missing_profile_properties: [animation, transition] }
+focused_syntax_status: PASS
+focused_motion_contracts_after: { pass: 3, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 139
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_seconds: 359.5
+local_full_math_status: PASS
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 139
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: a3cc4ac6a73dd36ccaed1baf8fc4e68c0910a3ea85c72e0a58c55245b058f62c
+exact_frontend_files: 10
+exact_frontend_bytes: 700597
+verified_ci_run: 33584733683
+verified_ci_status: PASS
+verified_ci_seconds: 992
+remote_browser: { scenarios: 80, checks_pass: 2245, checks_fail: 0, unexpected_failures: 0 }
+reduced_vaultkeeper: { animation_name: none, transition_duration: 0s, will_change: auto, wallet_writes: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9830010109
+remote_diagnostics_digest: sha256:975b0277aed033a18ee2a8ae0a67603f170ce5514e0077ca5c211485210a721a
+remote_implementation_commit: 759b60ca42fc488d8cfe03b5496e8699c19b0963
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-style reads; one expected-red then green focused CSS/contract/browser-binding regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/debug/scope review; connected Git-data fast-forward; one exact Actions run, artifact evidence and four screenshot inspections. The repository AAA-animation skill kept semantic Reduced Motion ownership explicit at the component boundary and required computed-style proof. Generated manifest churn from local package verification was restored exactly; one rejected destructive temporary-directory command was replaced with a fresh safe path. No subagents, dependencies, binary product assets or unchanged semantic failure retries were used; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260902-29
 
 ```yaml

@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260902-30 — SUCCESS
+
+- Sprint day: 4
+- Base commit: `c06184fd9790a28686da9b63000ef8463a4f319f`
+- Verified implementation commit: `759b60ca42fc488d8cfe03b5496e8699c19b0963`
+- Work item: `BSB-REDUCED-MOTION-VAULTKEEPER-001` (DONE; parent `BSB-MOTION-001` remains in progress)
+- Selection reason: the semantic `data-motion-profile='reduced'` Vaultkeeper rule cleared only `will-change`; animation and transition suppression depended on the separate global system-media fallback, so the selected profile was not a self-contained reduced-motion contract.
+- Before/after evidence: the expected-red contract failed because profile-level animation/transition suppression was absent. The explicit profile now disables both and releases compositor hints. Exact Chromium activates `feature_trigger` while Reduced Motion is authoritative and computes `animation-name: none`, `transition-duration: 0s` and `will-change: auto`; the stored Turbo preference returns after the override and play/event/settlement writes remain zero.
+- Changed files: Vaultkeeper profile CSS, static motion/browser-binding regressions, exact Chromium computed-style scenario and five sprint-memory files; math, wallet schema, assets, lockfile and dependencies unchanged.
+- Gates: expected-red focused contract 0 PASS / 1 FAIL; syntax plus focused motion/contracts/mobile 3/3 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 139/139 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 80/80 scenarios and 2245/2245 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not installed; exact isolated CI supplies current-package browser proof.
+- Visual review: exact 390x844 Reduced Motion state plus 1920x1080, 390x844 and 844x390 captures from artifact `9830010109` were inspected. Board, Vaultkeeper/penguin, controls, values and vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `a3cc4ac6a73dd36ccaed1baf8fc4e68c0910a3ea85c72e0a58c55245b058f62c`, 10 files / 700,597 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept semantic profile ownership and computed-style verification aligned. Generated manifest churn was restored exactly; one rejected destructive temporary cleanup used a fresh safe path; no unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33584733683`, artifact `9830010109` and digest `sha256:975b0277aed033a18ee2a8ae0a67603f170ce5514e0077ca5c211485210a721a` succeeded.
+- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
+
 ## BS-20260902-29 — SUCCESS
 
 - Sprint day: 4
@@ -324,20 +341,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33483678009`, artifact `9791347108` and digest `sha256:c3f58c5dad7334a4efaf95bb79dca197a359cee590567702c8039bf65148b4ef` succeeded.
 - Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup and final audio/listening/device QA remain open.
 - Next candidate: add the next safe authored-motion or foreground-layer evidence slice when approved inputs exist; otherwise continue a distinct automatable Day-3/4 provider or accessibility gap.
-
-## BS-20260901-10 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `e9ce382e437951becc6ac690432f2660eef4c8e7`
-- Verified implementation commit: `099c9feda5e159bafeae1ba3bae280020c926d43`
-- Work item: `BSB-TOUCH-001` (DONE)
-- Selection reason: checklist row 28 cited only viewport-meta and computed `touch-action` proxies although its repository proof contract requires actual browser interaction without disabling legitimate accessible scrolling.
-- Before/after evidence: exact 390x844 Chromium double-taps the board with visual viewport scale `1 → 1` and zero page displacement, opens Game Information by touch, then a real touch drag moves its internal scrollTop `0 → 1022` across a 1767px surface while document scroll and zoom remain fixed. One authenticate and zero play/settlement/event writes occur.
-- Changed files: Chromium QA, mobile regression, checklist evidence and five sprint-memory files; runtime UI/CSS, math, RGS/wallet behavior, assets, lockfile and dependencies unchanged.
-- Gates: syntax PASS; focused mobile/compliance 17/17 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 122/122 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 71/71 scenarios and 1854/1854 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies browser proof.
-- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640 and touch-scrolled Game Information 390x844 captures from artifact `9789541385` were inspected; 1366x768, 360x740, 768x1024 and orientation geometry also passed. Board, rules content, controls and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Real iOS/Android and physical-device sign-off remain open.
-- Package evidence: exact remote frontend tree `c051cc1a65100b1c9a42ee0c12e359650691934c6265e450d5c635b333c0f2e0`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The unauthenticated HTTPS push used the connected Git-data path; one timed browser wait completed through the same live tab. No unchanged semantic failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33478922886`, artifact `9789541385` and digest `sha256:bf8aecff16ecea50d34a8d9f3fdce16c9bfc6ce4570a5fcf1be6d00a3f03e8e1` succeeded.
-- Residual risk: real iOS/Android/device approval, deferred mid-feature restore evidence, 23 total manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
-- Next candidate: choose the next distinct safe Day-3 HUD/accessibility or provider-evidence gap; revisit mid-feature restore only with event-triggered instrumentation.
