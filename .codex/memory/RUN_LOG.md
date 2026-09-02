@@ -1,5 +1,22 @@
 # Material run log
 
+## BS-20260903-01 — SUCCESS
+
+- Sprint day: 5
+- Base remote commit: `122f251fd1b8d95ec95cd84b50df19d48e33829a`
+- Verified implementation commit: `97893340a75cc70a1cd8b855909b539d4c2e9dd8`
+- Work item: `BSB-FEATURE-MODE-BADGE-OVERLAP-001` (DONE)
+- Selection reason: the recorded active Deep Access chip/header geometry gap was the highest repository-solvable release blocker and had no current-package collision measurement.
+- Before/after evidence: the focused contract began 0/1 because the heading lacked stable geometry ownership. The stage heading now uses a bounded two-column grid; the chip is width-bounded, overflow-safe and exactly separated from copy. Exact Chromium measures 12px gap, stage containment and zero facility-kicker/heading-copy collision at 1920x1080 and 1366x768. Compact 390x844 and 844x390 deliberately hide the redundant chip while the selected route and right-side active-mode state remain visible.
+- Changed files: route layout/CSS, responsive contract regression, exact Chromium geometry/captures and five sprint-memory files. Math, RNG, wallet/provider schema, product assets, lockfile and dependencies are unchanged.
+- Gates: expected-red 0/1; focused-after 1/1 PASS; frozen install, lint, typecheck (0 errors / 0 warnings), 178/178 app tests, production build, 7/7 math over 300,000 books, isolated package generation/readback, 84/84 Chromium scenarios / 2358 checks and current-SHA 51-point resolver PASS. Unexpected/forbidden requests, page errors and failed requests are zero; six console errors are expected 401/503 negative-path fixtures. `git diff --check`, secret/debug/scope and full own-diff review PASS.
+- Visual review: active Deep Access at 1920x1080, 1366x768, 390x844 and 844x390 from artifact `9870942598` was inspected. Board, centered values, controls, penguin and vault are complete; no overlap, crop, scroll or broken image was observed.
+- Package evidence: frontend tree `7fbd99604f434e3fb8013396ac849b101dbd7d52febd063e1df140f22cc9041e`, 6 files / 439,752 bytes; math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; package verification PASS.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; subagents 0. The repository AAA visual-QA standard required exact build identity, collision measurement and current screenshots. Standard push credentials were unavailable once; a Git-data executable-mode mismatch was detected and corrected before ref synchronization; a stale build identity was rebuilt; local Chromium download timed out and was not repeatedly retried.
+- Persistence: implementation was fast-forwarded without force through connected Git data. Exact run `33692233510`, artifact `9870942598` and digest `sha256:359392899d0cfd9549ee8d96403e4db929ab3aa18025b4abec27cd3d10ab40fb` succeeded; memory closeout is fast-forwarded separately without force.
+- Residual risk: production-equivalent million-user CDN/RGS/provider load and resilience proof; approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/clipping/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals.
+- Next candidate: `BSB-SCALE-001`, beginning with a repository-bound workload/observability contract that can be executed against coordinated production-equivalent infrastructure without pretending client tests prove capacity.
+
 ## BS-20260902-46 — SUCCESS
 
 - Sprint day: 4
@@ -321,22 +338,5 @@ Newest entries first; retain at most 20.
 - Package evidence: exact remote frontend tree `26c88728c3782e60d6926a438620a717ed4d9c25e0b3a3d62f871b69c42b8826`, 10 files / 700,492 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept authored timing, Skip ownership and Reduced Motion aligned. One no-op package filter, one over-specific state assertion and one connector-truncated blob each used a changed, verified path; no semantic failure was repeated unchanged.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33576342359`, artifact `9827144982` and digest `sha256:b1398c0ee2c9cb37348acac4c2101a9d77112bebb129ce8b42253dc09399d0a2` succeeded.
-- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
-
-## BS-20260902-27 — SUCCESS
-
-- Sprint day: 4
-- Base commit: `3fd1d4c8ca88b9b177e9c55d03bbf63b96c4fb5e`
-- Verified implementation commit: `8f25bf900c3be4edd35573bb18b53cc72cd8106f`
-- Work item: `BSB-RECOVER-HERO-TIMING-001` (DONE; parent `BSB-MOTION-001` remains in progress)
-- Selection reason: terminal `settled` selected the visible Recovery state but inherited the generic 32ms Normal / 12ms Turbo step delay, cutting authored 1,000ms / 360ms recovery clips almost immediately.
-- Before/after evidence: expected-red timing measured Recovery at 33.3ms. PresentationDirector now gives terminal Recovery one bounded 1,000ms Normal / 360ms Turbo / 0ms Reduced window, avoids delaying a preceding completed feature exit twice and retains timer ownership for Skip. Exact Chromium observes 995.7ms Normal and 357.1ms Turbo before idle, exact `$10000.00` final win, `live-ready`, two plays and zero checkpoint/settlement writes.
-- Changed files: presentation timing director, contract/timer regressions, exact Chromium timing/screenshot scenario and five sprint-memory files; math, wallet schema, assets, lockfile and dependencies unchanged.
-- Gates: expected-red focused motion 1 PASS / 2 FAIL; focused motion 5/5 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 138/138 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 79/79 scenarios and 2233/2233 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not installed; exact isolated CI supplies current-package browser proof.
-- Visual review: exact 1366x768 Normal/Turbo Recovery frames plus 1920x1080, 390x844 and 844x390 captures from artifact `9825716662` were inspected. Gold board, Vaultkeeper/penguin, controls, values and vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
-- Package evidence: exact remote frontend tree `e097c4eb7528c5f627212c4be8f946e23ecf7b899a5a07d1bb5aaf65cd992bf6`, package verification PASS; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept authored timing, Skip ownership, Reduced Motion and duplicate feature-exit avoidance aligned. One broad gate exposed a stale cancellation-test setup and one bare package command lacked required identity arguments; both used changed safe paths, with no unchanged semantic retry.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33572370281`, artifact `9825716662` and digest `sha256:d9d0f6c918980c557484731dbd1630b138d47d83e488a613202a5c048ebfde83` succeeded.
 - Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
