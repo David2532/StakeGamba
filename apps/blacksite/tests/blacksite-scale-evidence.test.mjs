@@ -1,0 +1,102 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import {
+  SCALE_EVIDENCE_SCHEMA,
+  createSelfTestEvidence,
+  verifyScaleEvidence,
+} from '../../../scripts/blacksite-scale-evidence.mjs';
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+test('scale evidence binds exact client and external release identity', () => {
+  const evidence = createSelfTestEvidence();
+  const result = verifyScaleEvidence(evidence, {
+    gitSha: evidence.identity.gitSha,
+    frontendTreeSha256: evidence.identity.frontendTreeSha256,
+  });
+  assert.equal(result.schema, SCALE_EVIDENCE_SCHEMA);
+  assert.equal(result.status, 'PASS');
+  assert.equal(result.claim, 'EXTERNAL_SCALE_EVIDENCE_VALIDATED');
+});
+
+test('scale evidence rejects mocked or non-production-equivalent targets', () => {
+  const evidence = createSelfTestEvidence();
+  evidence.environment.mocked = true;
+  assert.throws(() => verifyScaleEvidence(evidence), /mocked environment/u);
+  evidence.environment.mocked = false;
+  evidence.environment.productionEquivalent = false;
+  assert.throws(() => verifyScaleEvidence(evidence), /production-equivalent/u);
+});
+
+test('scale evidence distinguishes planning population from achieved concurrency and rate', () => {
+  const evidence = createSelfTestEvidence();
+  evidence.workload.achievedPeakConcurrentUsers -= 1;
+  assert.throws(() => verifyScaleEvidence(evidence), /peak concurrency/u);
+  const rateEvidence = createSelfTestEvidence();
+  rateEvidence.workload.achievedRps -= 1;
+  assert.throws(() => verifyScaleEvidence(rateEvidence), /request rate/u);
+});
+
+test('scale evidence fails on latency, cache and saturation breaches', () => {
+  const latency = createSelfTestEvidence();
+  latency.latency.play.p99Ms = latency.latency.play.limits.p99Ms + 1;
+  assert.throws(() => verifyScaleEvidence(latency), /p99Ms exceeds/u);
+  const cache = createSelfTestEvidence();
+  cache.cdn.cacheHits = 0;
+  assert.throws(() => verifyScaleEvidence(cache), /cache hit rate/u);
+  const saturation = createSelfTestEvidence();
+  saturation.saturation[0].maxObserved = saturation.saturation[0].limit + 1;
+  assert.throws(() => verifyScaleEvidence(saturation), /exceeds approved limit/u);
+});
+
+test('scale evidence requires zero wallet and settlement integrity violations', () => {
+  for (const key of [
+    'duplicateAcceptedPaidPlays',
+    'duplicateSettlements',
+    'negativeBalances',
+    'payoutMismatches',
+    'uncertainRecoveryDuplicateWrites',
+  ]) {
+    const evidence = createSelfTestEvidence();
+    evidence.idempotency[key] = 1;
+    assert.throws(() => verifyScaleEvidence(evidence), new RegExp(key, 'u'));
+  }
+});
+
+test('scale evidence requires every resilience drill and bounded recovery', () => {
+  const missing = createSelfTestEvidence();
+  missing.resilience.scenarios.pop();
+  assert.throws(() => verifyScaleEvidence(missing), /was not executed/u);
+  const slow = createSelfTestEvidence();
+  slow.resilience.scenarios[0].recoverySeconds = slow.resilience.scenarios[0].limitSeconds + 1;
+  assert.throws(() => verifyScaleEvidence(slow), /exceeded recovery limit/u);
+});
+
+test('scale evidence requires correlated observability and exercised alerts', () => {
+  const evidence = createSelfTestEvidence();
+  evidence.observability.logsCorrelated = false;
+  assert.throws(() => verifyScaleEvidence(evidence), /logsCorrelated/u);
+  const alert = createSelfTestEvidence();
+  alert.observability.alertDrills[0].acknowledged = false;
+  assert.throws(() => verifyScaleEvidence(alert), /alert drills/u);
+});
+
+test('scale evidence requires a successful bounded rollback rehearsal', () => {
+  const evidence = createSelfTestEvidence();
+  evidence.rollback.healthyAfterRollback = false;
+  assert.throws(() => verifyScaleEvidence(evidence), /restore health/u);
+  const slow = createSelfTestEvidence();
+  slow.rollback.recoverySeconds = slow.rollback.limitSeconds + 1;
+  assert.throws(() => verifyScaleEvidence(slow), /rollback exceeded/u);
+});
+
+test('scale evidence artifact digests fail closed', () => {
+  const evidence = createSelfTestEvidence();
+  evidence.artifacts[0].sha256 = 'unbound';
+  assert.throws(() => verifyScaleEvidence(evidence), /lowercase hexadecimal/u);
+  const untouched = createSelfTestEvidence();
+  assert.doesNotThrow(() => verifyScaleEvidence(clone(untouched)));
+});

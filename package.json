@@ -43,6 +43,7 @@
     "blacksite:math:test": "node --test math/games/blacksite_breach/tests/*.test.mjs",
     "blacksite:package": "node scripts/blacksite-package-candidate.mjs",
     "blacksite:package:verify": "node scripts/blacksite-package-verify.mjs",
+    "blacksite:scale:contract": "node scripts/blacksite-scale-evidence.mjs --self-test",
     "blacksite:qa:e2e": "pnpm --filter blacksite qa:e2e",
     "publish-packages": "turbo run build lint test && changeset version && changeset publish",
     "e2e": "turbo run e2e",
