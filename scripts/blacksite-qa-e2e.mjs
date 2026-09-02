@@ -4557,6 +4557,16 @@ async function runNetworkScenarios(browser, origin) {
 					});
 					const captureCharacter = () => window.__blacksiteLiveFeatureCharacters.push({
 						state: character?.getAttribute('data-character-state'),
+						profile: character?.getAttribute('data-motion-profile'),
+						animation: character?.querySelector('img')
+							? getComputedStyle(character.querySelector('img')).animationName
+							: 'none',
+						animationDurationMs: character?.querySelector('img')
+							? Number.parseFloat(getComputedStyle(character.querySelector('img')).animationDuration) * 1_000
+							: 0,
+						willChange: character?.querySelector('img')
+							? getComputedStyle(character.querySelector('img')).willChange
+							: 'auto',
 						at: performance.now(),
 					});
 					captureBoard();
@@ -4612,6 +4622,12 @@ async function runNetworkScenarios(browser, origin) {
 					{ timeout: 10_000 },
 				);
 				record.featureEntryScreenshot = await saveScreenshot(page, `${group}-feature-entry`);
+				await page.waitForFunction(
+					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'bonus_win',
+					SELECTORS.vaultkeeper,
+					{ timeout: 10_000 },
+				);
+				record.bonusWinScreenshot = await saveScreenshot(page, `${group}-bonus-win`);
 				await waitForStableAction(page, 30_000);
 				const observed = await page.evaluate(() => ({
 					phases: window.__blacksiteLiveFeaturePhases,
@@ -4626,18 +4642,37 @@ async function runNetworkScenarios(browser, origin) {
 					return index >= 0;
 				});
 				let previousCharacterIndex = -1;
-				const orderedCharacters = ['feature_trigger', 'bonus_idle', 'recover', 'idle_a'].every((state) => {
+				const orderedCharacters = ['feature_trigger', 'bonus_idle', 'bonus_win', 'recover', 'idle_a'].every((state) => {
 					const index = characterNames.indexOf(state, previousCharacterIndex + 1);
 					previousCharacterIndex = index;
 					return index >= 0;
 				});
+				const characterTransitions = observed.characters.filter((entry, index, timeline) =>
+					index === 0 || entry.state !== timeline[index - 1].state);
+				const bonusWinIndex = characterTransitions.findIndex(({ state }) => state === 'bonus_win');
+				const bonusWinStart = characterTransitions[bonusWinIndex];
+				const bonusWinEnd = bonusWinIndex >= 0
+					? characterTransitions.slice(bonusWinIndex + 1).find(({ state }) => state !== 'bonus_win')
+					: null;
+				const bonusWinElapsedMs = bonusWinStart && bonusWinEnd
+					? bonusWinEnd.at - bonusWinStart.at
+					: -1;
 				check(group, 'live presentation visibly enters and exits BLACKOUT before returning idle',
 					orderedPhases,
 					serialize(observed.phases),
 				);
-				check(group, 'Vaultkeeper follows trigger, feature cycle, recovery and idle states in order',
+				check(group, 'Vaultkeeper follows trigger, feature cycle, bonus win, recovery and idle states in order',
 					orderedCharacters,
 					serialize(observed.characters),
+				);
+				check(group, 'turbo feature win uses its complete bounded bonus-specific reaction',
+					bonusWinStart?.profile === 'turbo' &&
+						bonusWinStart.animation.endsWith('vaultkeeper-bonus-win') &&
+						bonusWinStart.animationDurationMs === 110 &&
+						bonusWinStart.willChange.includes('transform') &&
+						bonusWinStart.willChange.includes('filter') &&
+						bonusWinElapsedMs >= 95 && bonusWinElapsedMs <= 300,
+					serialize({ bonusWinStart, bonusWinEnd, bonusWinElapsedMs }),
 				);
 				const completed = {
 					state: await runtimeState(page),

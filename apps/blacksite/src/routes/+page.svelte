@@ -1770,6 +1770,10 @@
 		animation: vaultkeeper-win-acknowledge 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 	}
 
+	.vaultkeeper-presence[data-character-state='bonus_win'] img {
+		animation: vaultkeeper-bonus-win 280ms cubic-bezier(0.16, 0.78, 0.18, 1) both;
+	}
+
 	.vaultkeeper-presence[data-character-state='loss_acknowledge'] img {
 		animation: vaultkeeper-loss-acknowledge 320ms cubic-bezier(0.24, 0.74, 0.24, 1) both;
 	}
@@ -1794,6 +1798,7 @@
 
 	.vaultkeeper-presence[data-character-state='spin_start'] img,
 	.vaultkeeper-presence[data-character-state='win_acknowledge'] img,
+	.vaultkeeper-presence[data-character-state='bonus_win'] img,
 	.vaultkeeper-presence[data-character-state='loss_acknowledge'] img,
 	.vaultkeeper-presence[data-character-state='feature_tease'] img,
 	.vaultkeeper-presence[data-character-state='feature_trigger'] img,
@@ -1803,7 +1808,8 @@
 	}
 
 	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='spin_start'] img,
-	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='win_acknowledge'] img {
+	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='win_acknowledge'] img,
+	.vaultkeeper-presence[data-motion-profile='turbo'][data-character-state='bonus_win'] img {
 		animation-duration: 110ms;
 	}
 
@@ -2209,6 +2215,12 @@
 		0% { filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) scale(1); }
 		52% { filter: brightness(1.18) saturate(1.12) drop-shadow(0 14px 20px rgba(216, 184, 111, 0.3)); transform: translateY(-2.2%) scale(1.016); }
 		100% { filter: brightness(1.04) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(-0.4%) scale(1.004); }
+	}
+
+	@keyframes vaultkeeper-bonus-win {
+		0% { filter: brightness(1.08) saturate(1.1) drop-shadow(0 12px 18px rgba(216, 184, 111, 0.24)); transform: translateY(-1.5%) scale(1.012); }
+		48% { filter: brightness(1.24) saturate(1.2) drop-shadow(0 9px 24px rgba(216, 184, 111, 0.42)); transform: translateY(-3%) scale(1.024) rotate(0.45deg); }
+		100% { filter: brightness(1.1) saturate(1.12) drop-shadow(0 11px 19px rgba(216, 184, 111, 0.28)); transform: translateY(-1.5%) scale(1.012); }
 	}
 
 	@keyframes vaultkeeper-loss-acknowledge {

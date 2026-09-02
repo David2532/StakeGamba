@@ -170,7 +170,10 @@ export class PresentationDirector {
 					stepWinRaw: event.step_payout_raw,
 					cumulativeWinRaw: event.cumulative_after_raw,
 					motion: motionState('hit', winningCells),
-					character: characterState('win_acknowledge', cue.eventIndex),
+					character: characterState(
+						event.phase === 'feature' ? 'bonus_win' : 'win_acknowledge',
+						cue.eventIndex,
+					),
 					notice: `${event.clusters.length} authoritative cluster cue(s)`,
 				});
 				break;

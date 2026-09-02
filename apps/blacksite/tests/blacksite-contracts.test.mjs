@@ -878,7 +878,15 @@ test('Vaultkeeper compositor hints are bounded to active reactions', () => {
 	);
 	assert.match(
 		source,
+		/\.vaultkeeper-presence\[data-character-state='bonus_win'\] img \{\s*animation: vaultkeeper-bonus-win 280ms/u,
+	);
+	assert.match(
+		source,
 		/\[data-motion-profile='turbo'\]\[data-character-state='loss_acknowledge'\] img[\s\S]*?animation-duration: 130ms;/u,
+	);
+	assert.match(
+		source,
+		/\[data-motion-profile='turbo'\]\[data-character-state='bonus_win'\] img[\s\S]*?animation-duration: 110ms;/u,
 	);
 });
 
@@ -953,7 +961,6 @@ test('PresentationDirector drives the static Vaultkeeper fallback from authorita
 	const expectedStates = new Map([
 		['round_started', 'spin_start'],
 		['board_snapshot', 'monitoring'],
-		['win', 'win_acknowledge'],
 		['feature_armed', 'feature_tease'],
 		['feature_started', 'feature_trigger'],
 		['feature_cycle', 'bonus_idle'],
@@ -963,14 +970,18 @@ test('PresentationDirector drives the static Vaultkeeper fallback from authorita
 	const seen = new Set();
 	for (const cue of cues) {
 		director.consume(cue);
-		const expected = expectedStates.get(cue.kind);
+		const expected = cue.kind === 'win'
+			? cue.event.phase === 'feature' ? 'bonus_win' : 'win_acknowledge'
+			: expectedStates.get(cue.kind);
 		if (!expected) continue;
-		seen.add(cue.kind);
+		seen.add(cue.kind === 'win' ? `${cue.kind}:${cue.event.phase}` : cue.kind);
 		assert.equal(director.state.character.state, expected);
 		assert.equal(director.state.character.sourceEventIndex, cue.eventIndex);
 		assert(Object.isFrozen(director.state.character));
 	}
 	for (const kind of expectedStates.keys()) assert(seen.has(kind), `missing ${kind} cue`);
+	assert(seen.has('win:base'), 'missing base win cue');
+	assert(seen.has('win:feature'), 'missing feature win cue');
 	director.reset();
 	director.setTimingProfile('reduced');
 	assert.equal(await director.play(cues), true);
