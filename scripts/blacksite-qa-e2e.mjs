@@ -3715,6 +3715,163 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('blackout-hero-timing-normal-and-turbo', async (record) => {
+		const group = 'blackout-hero-timing-normal-and-turbo';
+		const fixture = getGeneratedFixture('blackout_zero');
+		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: (request, audit) => ({
+						status: successStatus(),
+						balance: {
+							amount: DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT * MODE_COSTS.blackout,
+							currency: 'USD',
+						},
+						round: authoritativeFixtureRound({
+							fixture,
+							active: false,
+							amount: request.body.amount,
+							currency: request.body.currency,
+							id: `blacksite-qa-blackout-hero-${audit.byEndpoint.play.length}`,
+						}),
+					}),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			await page.locator(SELECTORS.modeBlackout).click();
+
+			const installTimeline = async () => {
+				await page.evaluate((selector) => {
+					window.__blacksiteBlackoutCharacters = [];
+					window.__blacksiteBlackoutObserver?.disconnect();
+					const character = document.querySelector(selector);
+					const capture = () => {
+						const image = character?.querySelector('img');
+						const style = image ? getComputedStyle(image) : null;
+						window.__blacksiteBlackoutCharacters.push({
+							state: character?.getAttribute('data-character-state'),
+							profile: character?.getAttribute('data-motion-profile'),
+							animation: style?.animationName ?? 'none',
+							animationDurationMs: style ? Number.parseFloat(style.animationDuration) * 1_000 : 0,
+							willChange: style?.willChange ?? 'auto',
+							at: performance.now(),
+						});
+					};
+					capture();
+					window.__blacksiteBlackoutObserver = new MutationObserver(capture);
+					window.__blacksiteBlackoutObserver.observe(character, {
+						attributes: true,
+						attributeFilter: ['data-character-state', 'data-motion-profile'],
+					});
+				}, SELECTORS.vaultkeeper);
+			};
+			const readTimeline = () => page.evaluate(() => window.__blacksiteBlackoutCharacters);
+			const stateWindow = (timeline, state) => {
+				const stateIndex = timeline.findIndex((entry) => entry.state === state);
+				const active = timeline[stateIndex];
+				const exit = timeline.slice(stateIndex + 1).find((entry) => entry.state !== state);
+				return { active, exit, elapsedMs: active && exit ? exit.at - active.at : -1 };
+			};
+			const playBlackout = async (profile) => {
+				await installTimeline();
+				await page.locator(SELECTORS.primaryAction).click();
+				const dialog = page.getByRole('dialog', { name: /Confirm complete play amount/i });
+				await dialog.waitFor({ state: 'visible' });
+				await dialog.getByRole('button', { name: /^CONFIRM$/i }).click();
+				await waitForEndpoint(network, 'play', profile === 'normal' ? 1 : 2);
+				await page.waitForFunction(
+					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'feature_trigger',
+					SELECTORS.vaultkeeper,
+					{ timeout: 15_000 },
+				);
+				const triggerScreenshot = await saveScreenshot(page, `${group}-${profile}-trigger`);
+				await page.waitForFunction(
+					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'recover',
+					SELECTORS.vaultkeeper,
+					{ timeout: 15_000 },
+				);
+				const recoverScreenshot = await saveScreenshot(page, `${group}-${profile}-recover`);
+				await waitForStableAction(page);
+				const timeline = await readTimeline();
+				return {
+					timeline,
+					triggerWindow: stateWindow(timeline, 'feature_trigger'),
+					recoverWindow: stateWindow(timeline, 'recover'),
+					triggerScreenshot,
+					recoverScreenshot,
+				};
+			};
+
+			const normal = await playBlackout('normal');
+			check(group, 'normal BLACKOUT trigger remains visible for its complete authored window',
+				normal.triggerWindow.active?.profile === 'normal' &&
+					normal.triggerWindow.active.animation.endsWith('vaultkeeper-feature-shift') &&
+					normal.triggerWindow.active.animationDurationMs === 1_000 &&
+					normal.triggerWindow.elapsedMs >= 900 && normal.triggerWindow.elapsedMs <= 1_400,
+				serialize(normal),
+			);
+			check(group, 'normal BLACKOUT recovery remains visible for its complete authored window',
+				normal.recoverWindow.active?.profile === 'normal' &&
+					normal.recoverWindow.active.animation.endsWith('vaultkeeper-feature-shift') &&
+					normal.recoverWindow.active.animationDurationMs === 1_000 &&
+					normal.recoverWindow.elapsedMs >= 900 && normal.recoverWindow.elapsedMs <= 1_400,
+				serialize(normal),
+			);
+
+			await page.locator(SELECTORS.motionMode).click();
+			const turbo = await playBlackout('turbo');
+			check(group, 'turbo BLACKOUT trigger remains visible for its complete authored window',
+				turbo.triggerWindow.active?.profile === 'turbo' &&
+					turbo.triggerWindow.active.animation.endsWith('vaultkeeper-feature-shift') &&
+					turbo.triggerWindow.active.animationDurationMs === 360 &&
+					turbo.triggerWindow.elapsedMs >= 320 && turbo.triggerWindow.elapsedMs <= 650,
+				serialize(turbo),
+			);
+			check(group, 'turbo BLACKOUT recovery remains visible for its complete authored window',
+				turbo.recoverWindow.active?.profile === 'turbo' &&
+					turbo.recoverWindow.active.animation.endsWith('vaultkeeper-feature-shift') &&
+					turbo.recoverWindow.active.animationDurationMs === 360 &&
+					turbo.recoverWindow.elapsedMs >= 320 && turbo.recoverWindow.elapsedMs <= 650,
+				serialize(turbo),
+			);
+			for (const request of network.byEndpoint.play) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/wallet/play',
+					body: {
+						sessionID: SESSION_ID,
+						currency: 'USD',
+						amount: DEFAULT_BASE_AMOUNT,
+						mode: 'blackout',
+					},
+				});
+			}
+			check(group, 'both BLACKOUT timing paths preserve exact authority and clean readiness',
+				(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00' &&
+					(await runtimeState(page)) === 'live-ready' &&
+					network.byEndpoint.play.length === 2 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
+				serialize({ finalWin: await page.locator(SELECTORS.finalWin).innerText(), order: network.order }),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.fixture = fixture.id;
+			record.normal = normal;
+			record.turbo = turbo;
+			record.network = network;
+			record.diagnostics = diagnostics;
+			await page.evaluate(() => window.__blacksiteBlackoutObserver?.disconnect());
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('authoritative-blackout-vault-transition', async (record) => {
 		const group = 'authoritative-blackout-vault-transition';
 		const fixture = getGeneratedFixture('blackout_zero');

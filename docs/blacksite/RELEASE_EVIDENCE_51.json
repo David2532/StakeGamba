@@ -182,6 +182,7 @@
 			"requirement": "Rules state feature and retrigger conditions",
 			"status": "AUTOMATED_PASS_MANUAL_OPEN",
 			"browserScenarios": [
+				"blackout-hero-timing-normal-and-turbo",
 				"authoritative-blackout-vault-transition",
 				"live-natural-base-blackout-enters-and-returns",
 				"live-deep-access-feature-confirms-enters-and-returns",

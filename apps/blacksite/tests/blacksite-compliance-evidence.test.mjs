@@ -271,6 +271,7 @@ test('feature evidence binds natural, purchased, and active-skip live lifecycles
 	assert(item);
 	assert.equal(item.status, 'AUTOMATED_PASS_MANUAL_OPEN');
 	assert.deepEqual(item.browserScenarios, [
+		'blackout-hero-timing-normal-and-turbo',
 		'authoritative-blackout-vault-transition',
 		'live-natural-base-blackout-enters-and-returns',
 		'live-deep-access-feature-confirms-enters-and-returns',
