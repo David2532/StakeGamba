@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260902-27 — SUCCESS
+
+- Sprint day: 4
+- Base commit: `3fd1d4c8ca88b9b177e9c55d03bbf63b96c4fb5e`
+- Verified implementation commit: `8f25bf900c3be4edd35573bb18b53cc72cd8106f`
+- Work item: `BSB-RECOVER-HERO-TIMING-001` (DONE; parent `BSB-MOTION-001` remains in progress)
+- Selection reason: terminal `settled` selected the visible Recovery state but inherited the generic 32ms Normal / 12ms Turbo step delay, cutting authored 1,000ms / 360ms recovery clips almost immediately.
+- Before/after evidence: expected-red timing measured Recovery at 33.3ms. PresentationDirector now gives terminal Recovery one bounded 1,000ms Normal / 360ms Turbo / 0ms Reduced window, avoids delaying a preceding completed feature exit twice and retains timer ownership for Skip. Exact Chromium observes 995.7ms Normal and 357.1ms Turbo before idle, exact `$10000.00` final win, `live-ready`, two plays and zero checkpoint/settlement writes.
+- Changed files: presentation timing director, contract/timer regressions, exact Chromium timing/screenshot scenario and five sprint-memory files; math, wallet schema, assets, lockfile and dependencies unchanged.
+- Gates: expected-red focused motion 1 PASS / 2 FAIL; focused motion 5/5 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 138/138 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 79/79 scenarios and 2233/2233 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not installed; exact isolated CI supplies current-package browser proof.
+- Visual review: exact 1366x768 Normal/Turbo Recovery frames plus 1920x1080, 390x844 and 844x390 captures from artifact `9825716662` were inspected. Gold board, Vaultkeeper/penguin, controls, values and vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `e097c4eb7528c5f627212c4be8f946e23ecf7b899a5a07d1bb5aaf65cd992bf6`, package verification PASS; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept authored timing, Skip ownership, Reduced Motion and duplicate feature-exit avoidance aligned. One broad gate exposed a stale cancellation-test setup and one bare package command lacked required identity arguments; both used changed safe paths, with no unchanged semantic retry.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33572370281`, artifact `9825716662` and digest `sha256:d9d0f6c918980c557484731dbd1630b138d47d83e488a613202a5c048ebfde83` succeeded.
+- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
+
 ## BS-20260902-26 — SUCCESS
 
 - Sprint day: 4
@@ -324,20 +341,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33471069057`, artifact `9786812481` and digest `sha256:c711f87cec181dbbb70a45b4caf872fccb1ea81c7cf9ff4f3b0d63ce5e34563b` succeeded.
 - Residual risk: real screen-reader/device approval, deferred mid-feature restore evidence, 23 total manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
 - Next candidate: choose the next distinct safe Day-3 HUD/accessibility or provider-evidence gap; revisit mid-feature restore only with event-triggered instrumentation.
-
-## BS-20260901-07 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `d8d118028f7ed11098bc225cedb55e59401dd6c5`
-- Verified implementation commit: `1f1c1dc0a6b6dd0f6975945774546fc5510d9622`
-- Work item: `BSB-MOTION-PREF-001` (DONE)
-- Selection reason: Normal/Turbo was a user-facing Game Information contract, but the selected speed reset on every reload and exact evidence did not prove how it interacts with the system reduced-motion override.
-- Before/after evidence: one versioned storage contract now persists only Normal/Turbo, defaults safely on invalid or blocked storage, and never stores REDUCED. Exact mobile Chromium selects Turbo, restores it, applies and reloads REDUCED without erasing Turbo, then resumes Turbo after removing the override. Four authentications occur with zero play, settlement or event writes.
-- Changed files: motion-preference runtime helper, page integration, unit/mobile regressions, Chromium QA, checklist evidence and five sprint-memory files; math, RGS/wallet behavior, assets, lockfile and dependencies unchanged.
-- Gates: syntax PASS; focused motion/mobile/compliance 19/19 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 119/119 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 70/70 scenarios and 1832/1832 checks PASS; unexpected network/page/request failures 0; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; the exact isolated CI package supplies browser proof.
-- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640, REDUCED override and restored-Turbo captures from artifact `9785970450` were inspected. Boards, values, controls and penguin/vault identity remain complete without overlap, scroll, crop or broken images; both motion labels remain centered in >=44px controls. Real screen-reader and physical-device sign-off remain open.
-- Package evidence: exact remote frontend tree `bd76ca0c9fa880b9367828ce2f46a9f3dd4f5368ead904163d1e168b250e137b`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Initial exact CI `33467496604` failed only because a harness helper classified authenticate as a wallet write after all five new state assertions passed; endpoint-specific checks and a regression produced green run `33468510345`. No failed call was repeated unchanged.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33468510345`, artifact `9785970450` and digest `sha256:359817d2905aa9aef791e911a50363ff31bf635356ad338ea6bea503ec59777d` succeeded.
-- Residual risk: checklist row 29 human reconciliation, deferred mid-feature restore evidence, 23 total manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
-- Next candidate: choose a distinct Day-3 HUD/accessibility or provider evidence gap; revisit mid-feature restore only with event-triggered instrumentation.

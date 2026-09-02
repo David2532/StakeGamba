@@ -1,5 +1,56 @@
 # Rolling automation metrics
 
+## BS-20260902-27
+
+```yaml
+closed_at_utc: 2026-09-02T00:02:00Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_motion_before: { pass: 1, fail: 2, status: EXPECTED_FAIL_REPRODUCED, measured_recover_ms: 33.3 }
+focused_syntax_status: PASS
+focused_motion_after: { pass: 5, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 138
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_status: PASS
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 138
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: e097c4eb7528c5f627212c4be8f946e23ecf7b899a5a07d1bb5aaf65cd992bf6
+verified_ci_run: 33572370281
+verified_ci_status: PASS
+verified_ci_seconds: 813
+remote_browser: { scenarios: 79, checks_pass: 2233, checks_fail: 0, unexpected_failures: 0 }
+recover_timing: { normal_ms: 995.7, turbo_ms: 357.1, authored_normal_ms: 1000, authored_turbo_ms: 360, reduced_ms: 0 }
+max_win_timing: { normal_ms: 1005.5, turbo_ms: 364.1 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9825716662
+remote_diagnostics_digest: sha256:d9d0f6c918980c557484731dbd1630b138d47d83e488a613202a5c048ebfde83
+remote_implementation_commit: 8f25bf900c3be4edd35573bb18b53cc72cd8106f
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused timing regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/debug/scope review; connected Git-data fast-forward; one exact Actions run, artifact evidence and five screenshot inspections. The repository AAA-animation skill anchored the semantic window to authored CSS, Skip ownership and Reduced Motion while preventing a duplicate post-feature delay. The broad gate exposed one stale cancellation-test setup and was corrected to test its intended Normal-timer contract; a bare package script invocation was rejected because required identity arguments were absent and was not repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260902-26
 
 ```yaml
