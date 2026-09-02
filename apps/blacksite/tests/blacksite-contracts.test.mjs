@@ -797,6 +797,9 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /normal cascade hit, remove, drop and settle clips complete their authored windows/u);
 	assert.match(source, /turbo cascade hit, remove, drop and settle clips complete their authored windows/u);
 	assert.match(source, /cascadePhaseWindows/u);
+	assert.match(source, /normal Vaultkeeper win acknowledgement remains visible for its complete authored window/u);
+	assert.match(source, /turbo Vaultkeeper win acknowledgement remains visible for its complete authored window/u);
+	assert.match(source, /characterStateWindows/u);
 	assert.match(source, /normal BLACKOUT transition has no sustained frame-pacing stalls/u);
 	assert.match(source, /normalReelStopCadence/u);
 	assert.match(source, /max-win-hero-timing-normal-and-turbo/u);

@@ -3348,6 +3348,9 @@ async function runNetworkScenarios(browser, origin) {
 						state: character?.getAttribute('data-character-state'),
 						profile: character?.getAttribute('data-motion-profile'),
 						animation: image ? getComputedStyle(image).animationName : 'none',
+						animationDurationMs: image
+							? Number.parseFloat(getComputedStyle(image).animationDuration) * 1_000
+							: 0,
 						willChange: image ? getComputedStyle(image).willChange : 'auto',
 						at: performance.now(),
 					});
@@ -3391,6 +3394,14 @@ async function runNetworkScenarios(browser, origin) {
 				}));
 			});
 			const reelStopScreenshot = await saveScreenshot(page, `${group}-reel-stop-cadence`);
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'hit',
+				SELECTORS.board,
+			);
+			const turboWinAcknowledgeScreenshot = await saveScreenshot(
+				page,
+				`${group}-turbo-win-acknowledge`,
+			);
 			await waitForStableAction(page);
 			const framePacing = await stopFrameSampler(page, 'turbo-cascade');
 			const turboPhases = await page.evaluate(() => window.__blacksiteMotionPhases);
@@ -3407,7 +3418,21 @@ async function runNetworkScenarios(browser, origin) {
 					return [phase, { start, end, elapsedMs: start && end ? end.at - start.at : -1 }];
 				}));
 			};
+			const characterStateWindows = (timeline, state) => {
+				const transitions = timeline.filter((entry, index) =>
+					index === 0 || entry.state !== timeline[index - 1].state || entry.profile !== timeline[index - 1].profile);
+				const index = transitions.findIndex((entry) => entry.state === state);
+				const start = transitions[index];
+				const end = index >= 0
+					? transitions.slice(index + 1).find((entry) => entry.state !== state)
+					: null;
+				return { start, end, elapsedMs: start && end ? end.at - start.at : -1 };
+			};
 			const turboPhaseWindows = cascadePhaseWindows(turboPhases);
+			const turboWinAcknowledgeWindow = characterStateWindows(
+				turboCharacterStates,
+				'win_acknowledge',
+			);
 			const turboNames = turboPhases.map(({ phase }) => phase);
 			let previousIndex = -1;
 			const orderedTurbo = ['hit', 'remove', 'drop', 'settle'].every((phase) => {
@@ -3451,6 +3476,14 @@ async function runNetworkScenarios(browser, origin) {
 			});
 			check(group, 'static Vaultkeeper fallback follows authoritative spin, board, win and recovery states', orderedCharacterFallback, serialize(turboCharacterStates));
 			check(group, 'Vaultkeeper fallback uses bounded CSS motion only while its semantic state is active', turboCharacterStates.some(({ state, animation }) => state === 'win_acknowledge' && animation.endsWith('vaultkeeper-win-acknowledge')), serialize(turboCharacterStates));
+			check(group, 'turbo Vaultkeeper win acknowledgement remains visible for its complete authored window',
+				turboWinAcknowledgeWindow.start?.profile === 'turbo' &&
+					turboWinAcknowledgeWindow.start.animation.endsWith('vaultkeeper-win-acknowledge') &&
+					turboWinAcknowledgeWindow.start.animationDurationMs === 110 &&
+					turboWinAcknowledgeWindow.elapsedMs >= 95 &&
+					turboWinAcknowledgeWindow.elapsedMs <= 300,
+				serialize({ turboWinAcknowledgeWindow, turboCharacterStates }),
+			);
 			check(group, 'Vaultkeeper promotes transform/filter only for active authored reactions',
 				turboCharacterStates.some(({ state, willChange }) => state === 'win_acknowledge' && willChange.includes('transform') && willChange.includes('filter')) &&
 					turboCharacterStates.some(({ state, willChange }) => state === 'idle_a' && willChange === 'auto'),
@@ -3479,10 +3512,23 @@ async function runNetworkScenarios(browser, origin) {
 				}));
 			});
 			const normalReelStopScreenshot = await saveScreenshot(page, `${group}-normal-reel-stop-cadence`);
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'hit',
+				SELECTORS.board,
+			);
+			const normalWinAcknowledgeScreenshot = await saveScreenshot(
+				page,
+				`${group}-normal-win-acknowledge`,
+			);
 			await waitForStableAction(page);
 			const normalFramePacing = await stopFrameSampler(page, 'normal-cascade');
 			const normalPhases = await page.evaluate(() => window.__blacksiteMotionPhases);
+			const normalCharacterStates = await page.evaluate(() => window.__blacksiteCharacterStates);
 			const normalPhaseWindows = cascadePhaseWindows(normalPhases);
+			const normalWinAcknowledgeWindow = characterStateWindows(
+				normalCharacterStates,
+				'win_acknowledge',
+			);
 			check(group, 'seven reel columns stop in the authored normal cadence',
 				normalReelStopCadence.length === 7 && normalReelStopCadence.every(({ column, delayMs, durationMs, animation }, index) =>
 					column === index && delayMs === index * 24 && durationMs === 180 && animation.endsWith('board-reveal')),
@@ -3507,6 +3553,14 @@ async function runNetworkScenarios(browser, origin) {
 					normalPhaseWindows.settle.start.animationDurationMs === 90 &&
 					normalPhaseWindows.settle.elapsedMs >= 70 && normalPhaseWindows.settle.elapsedMs <= 260,
 				serialize({ normalPhaseWindows, normalPhases }),
+			);
+			check(group, 'normal Vaultkeeper win acknowledgement remains visible for its complete authored window',
+				normalWinAcknowledgeWindow.start?.profile === 'normal' &&
+					normalWinAcknowledgeWindow.start.animation.endsWith('vaultkeeper-win-acknowledge') &&
+					normalWinAcknowledgeWindow.start.animationDurationMs === 280 &&
+					normalWinAcknowledgeWindow.elapsedMs >= 250 &&
+					normalWinAcknowledgeWindow.elapsedMs <= 500,
+				serialize({ normalWinAcknowledgeWindow, normalCharacterStates }),
 			);
 
 			await page.locator(SELECTORS.primaryAction).click();
@@ -3574,13 +3628,18 @@ async function runNetworkScenarios(browser, origin) {
 				turboPhaseWindows,
 				normalPhases,
 				normalPhaseWindows,
+				turboWinAcknowledgeWindow,
+				normalCharacterStates,
+				normalWinAcknowledgeWindow,
 				turboCharacterStates,
 				completed,
 				assetFallback,
 			};
 			record.screenshot = normalScreenshot;
 			record.reelStopScreenshot = reelStopScreenshot;
+			record.turboWinAcknowledgeScreenshot = turboWinAcknowledgeScreenshot;
 			record.normalReelStopScreenshot = normalReelStopScreenshot;
+			record.normalWinAcknowledgeScreenshot = normalWinAcknowledgeScreenshot;
 			record.hitScreenshot = hitScreenshot;
 			record.assetFallbackScreenshot = await saveScreenshot(page, `${group}-asset-fallback`);
 			record.network = network;
