@@ -1,5 +1,72 @@
 # Rolling automation metrics
 
+## BS-20260902-37
+
+```yaml
+closed_at_utc: 2026-09-02T11:10:44Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 2, status: EXPECTED_FAIL_REPRODUCED, missing_contract: feature-phase-bonus-win-reaction }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 4, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 140
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_package_generation: NOT_RUN_EXACT_CI_USED
+local_package_verification: NOT_RUN_EXACT_CI_USED
+local_compliance_resolver: NOT_RUN_EXACT_CI_USED
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 140
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: e92363b54c7c7bf66323c5ce1e44620821a9348665f4ac0fc2843ad2e8c4e5b0
+exact_frontend_files: 10
+exact_frontend_bytes: 707608
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+verified_ci_run: 33621532438
+verified_ci_status: PASS
+verified_ci_seconds: 762
+remote_browser: { scenarios: 83, checks_pass: 2303, checks_fail: 0, unexpected_failures: 0 }
+feature_win_reaction:
+  normal: { computed_animation_ms: 280, source: static_contract }
+  turbo_natural_base: { computed_animation_ms: 110, observed_semantic_ms: 204.2, payout: '$1000.00' }
+  turbo_deep_access: { computed_animation_ms: 110, observed_semantic_ms: 178.2, payout: '$2000.00' }
+  reduced_motion_ms: 0
+  paid_plays: 2
+  checkpoint_event_settlement_writes: 0
+remote_expected_negative_console_errors: 6
+remote_page_errors: 0
+remote_failed_requests: 0
+remote_diagnostics_artifact: 9843481852
+remote_diagnostics_digest: sha256:30be8b727172bbb981222311298965250fc113660fd18a37ac6a3fcb0390f368
+remote_implementation_commit: 51dcb62cb19cc3bac50def45d9a7373aa990243e
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused syntax/contract regression; one complete local frozen-install/lint/typecheck/test/build/math pass; connected Git-data fast-forward; one exact Actions package/browser verification; artifact evidence parsing and five screenshot inspections. The AAA-animation skill kept feature-phase authority, bounded CSS timing, Normal/Turbo/Reduced profiles, exact wallet isolation and clean compositor teardown in one proof. Generated-manifest churn was restored exactly. Initial fixture/module-path probes were corrected with targeted searches, direct HTTPS push fell back once to the connected Git-data path, and a later stdin syntax probe was not repeated because the earlier direct-file syntax gate already passed. No unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260902-36
 
 ```yaml
