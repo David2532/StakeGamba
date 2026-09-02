@@ -4598,6 +4598,10 @@ async function runNetworkScenarios(browser, origin) {
 			cost: MODE_COSTS.base,
 			expectedTotal: '$1.00',
 			confirmation: false,
+			timingProfile: 'normal',
+			expectedBonusWinAnimationMs: 280,
+			minimumBonusWinElapsedMs: 250,
+			maximumBonusWinElapsedMs: 500,
 		},
 		{
 			scenario: 'live-deep-access-feature-confirms-enters-and-returns',
@@ -4607,6 +4611,10 @@ async function runNetworkScenarios(browser, origin) {
 			cost: MODE_COSTS.deep_access,
 			expectedTotal: '$4.00',
 			confirmation: true,
+			timingProfile: 'turbo',
+			expectedBonusWinAnimationMs: 110,
+			minimumBonusWinElapsedMs: 95,
+			maximumBonusWinElapsedMs: 300,
 		},
 	]) {
 		await runScenario(featureCase.scenario, async (record) => {
@@ -4652,10 +4660,13 @@ async function runNetworkScenarios(browser, origin) {
 				const { page, diagnostics } = await openPage(context, origin, liveQuery());
 				await waitForEndpoint(network, 'authenticate', 1);
 				await waitForStableAction(page);
-				await page.locator(SELECTORS.motionMode).click();
-				check(group, 'live feature proof uses the bounded turbo presentation profile',
-					(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) === 'turbo' &&
-						(await page.locator(SELECTORS.motionMode).getAttribute('aria-pressed')) === 'true',
+				if (featureCase.timingProfile === 'turbo') {
+					await page.locator(SELECTORS.motionMode).click();
+				}
+				const expectedMotionPressed = String(featureCase.timingProfile === 'turbo');
+				check(group, `live feature proof uses the bounded ${featureCase.timingProfile} presentation profile`,
+					(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) === featureCase.timingProfile &&
+						(await page.locator(SELECTORS.motionMode).getAttribute('aria-pressed')) === expectedMotionPressed,
 					serialize({
 						profile: await page.locator(SELECTORS.board).getAttribute('data-motion-profile'),
 						pressed: await page.locator(SELECTORS.motionMode).getAttribute('aria-pressed'),
@@ -4780,13 +4791,17 @@ async function runNetworkScenarios(browser, origin) {
 					orderedCharacters,
 					serialize(observed.characters),
 				);
-				check(group, 'turbo feature win uses its complete bounded bonus-specific reaction',
-					bonusWinStart?.profile === 'turbo' &&
+				const bonusWinCheck = featureCase.timingProfile === 'normal'
+					? 'normal feature win uses its complete bounded bonus-specific reaction'
+					: 'turbo feature win uses its complete bounded bonus-specific reaction';
+				check(group, bonusWinCheck,
+					bonusWinStart?.profile === featureCase.timingProfile &&
 						bonusWinStart.animation.endsWith('vaultkeeper-bonus-win') &&
-						bonusWinStart.animationDurationMs === 110 &&
+						bonusWinStart.animationDurationMs === featureCase.expectedBonusWinAnimationMs &&
 						bonusWinStart.willChange.includes('transform') &&
 						bonusWinStart.willChange.includes('filter') &&
-						bonusWinElapsedMs >= 95 && bonusWinElapsedMs <= 300,
+						bonusWinElapsedMs >= featureCase.minimumBonusWinElapsedMs &&
+						bonusWinElapsedMs <= featureCase.maximumBonusWinElapsedMs,
 					serialize({ bonusWinStart, bonusWinEnd, bonusWinElapsedMs }),
 				);
 				const completed = {
@@ -4824,6 +4839,8 @@ async function runNetworkScenarios(browser, origin) {
 				record.feature = {
 					fixture: fixture.id,
 					mode: featureCase.mode,
+					timingProfile: featureCase.timingProfile,
+					bonusWinElapsedMs,
 					eventCount: fixture.book.events.length,
 					expectedPayout,
 					expectedBalance,

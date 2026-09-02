@@ -889,6 +889,10 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /normalHit\.durationMs >= 400 && normalHit\.durationMs <= 600/u);
 	assert.match(source, /turbo Replay Base Small hit remains visible for its authored tier timing/u);
 	assert.match(source, /turboHit\.durationMs >= 120 && turboHit\.durationMs <= 260/u);
+	assert.match(source, /normal feature win uses its complete bounded bonus-specific reaction/u);
+	assert.match(source, /turbo feature win uses its complete bounded bonus-specific reaction/u);
+	assert.match(source, /expectedBonusWinAnimationMs: 280/u);
+	assert.match(source, /expectedBonusWinAnimationMs: 110/u);
 	assert.match(
 		source,
 		/reduced-motion profile disables Vaultkeeper animation, transitions and compositor hints/u,
