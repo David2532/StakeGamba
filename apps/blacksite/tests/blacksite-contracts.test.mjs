@@ -866,6 +866,7 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /turbo Vaultkeeper Medium Win reaction remains visible for its complete authored window/u);
 	assert.match(source, /base-win-tier-reactions-turbo/u);
 	assert.match(source, /Small and Big Win reactions retain their authored turbo windows/u);
+	assert.match(source, /normal win_big remains visible through its bounded authored window/u);
 	assert.match(source, /characterStateWindows/u);
 	assert.match(source, /normal zero-win Vaultkeeper loss acknowledgement completes its authored window/u);
 	assert.match(source, /turbo zero-win Vaultkeeper loss acknowledgement completes its authored window/u);

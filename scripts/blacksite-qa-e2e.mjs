@@ -3657,12 +3657,16 @@ async function runNetworkScenarios(browser, origin) {
 		const group = 'base-win-tier-reactions-turbo';
 		const reactions = [
 			{
-				fixture: getGeneratedFixture('base_small'), state: 'win_small',
+				fixture: getGeneratedFixture('base_small'), profile: 'turbo', state: 'win_small',
 				animation: 'vaultkeeper-win-small', durationMs: 140, minimumMs: 120, maximumMs: 300,
 			},
 			{
-				fixture: getGeneratedFixture('base_win_02'), state: 'win_big',
+				fixture: getGeneratedFixture('base_win_02'), profile: 'turbo', state: 'win_big',
 				animation: 'vaultkeeper-win-big', durationMs: 420, minimumMs: 380, maximumMs: 650,
+			},
+			{
+				fixture: getGeneratedFixture('base_win_02'), profile: 'normal', state: 'win_big',
+				animation: 'vaultkeeper-win-big', durationMs: 1_400, minimumMs: 1_250, maximumMs: 1_800,
 			},
 		];
 		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
@@ -3696,6 +3700,13 @@ async function runNetworkScenarios(browser, origin) {
 
 			const evidence = [];
 			for (const [index, reaction] of reactions.entries()) {
+				if ((await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) !== reaction.profile) {
+					await page.locator(SELECTORS.motionMode).click();
+				}
+				check(group, `${reaction.profile} ${reaction.state} runs in its selected presentation profile`,
+					(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) === reaction.profile,
+					String(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')),
+				);
 				await page.evaluate((selector) => {
 					window.__blacksiteWinTierCharacters = [];
 					window.__blacksiteWinTierObserver?.disconnect();
@@ -3723,7 +3734,7 @@ async function runNetworkScenarios(browser, origin) {
 					({ selector, state }) => document.querySelector(selector)?.getAttribute('data-character-state') === state,
 					{ selector: SELECTORS.vaultkeeper, state: reaction.state },
 				);
-				const screenshot = await saveScreenshot(page, `${group}-${reaction.state}`);
+				const screenshot = await saveScreenshot(page, `${group}-${reaction.profile}-${reaction.state}`);
 				await waitForStableAction(page);
 				const timeline = await page.evaluate(() => window.__blacksiteWinTierCharacters);
 				const transitions = timeline.filter((entry, transitionIndex) =>
@@ -3738,7 +3749,7 @@ async function runNetworkScenarios(browser, origin) {
 				const expectedFinalWin = formatExactApi(
 					DEFAULT_BASE_AMOUNT * reaction.fixture.book.payoutMultiplier / 100, 'USD');
 				check(group, `${reaction.state} uses its authored semantic state and CSS clip`,
-					start?.profile === 'turbo' && start.animation.endsWith(reaction.animation) &&
+					start?.profile === reaction.profile && start.animation.endsWith(reaction.animation) &&
 						start.animationDurationMs === reaction.durationMs,
 					serialize({ reaction, start, timeline }),
 				);
@@ -3750,12 +3761,20 @@ async function runNetworkScenarios(browser, origin) {
 					finalWin === expectedFinalWin,
 					serialize({ fixture: reaction.fixture.id, finalWin, expectedFinalWin }),
 				);
-				evidence.push({ fixture: reaction.fixture.id, state: reaction.state, start, elapsedMs, finalWin, screenshot });
+				evidence.push({
+					fixture: reaction.fixture.id, profile: reaction.profile, state: reaction.state,
+					start, elapsedMs, finalWin, screenshot,
+				});
 			}
+			const turboEvidence = evidence.filter(({ profile }) => profile === 'turbo');
+			const normalBigEvidence = evidence.find(({ profile, state }) => profile === 'normal' && state === 'win_big');
 			check(group, 'Small and Big Win reactions retain their authored turbo windows',
-				evidence.length === 2 && evidence.every(({ elapsedMs }) => elapsedMs > 0), serialize(evidence));
+				turboEvidence.length === 2 && turboEvidence.every(({ elapsedMs }) => elapsedMs > 0), serialize(evidence));
+			check(group, 'normal win_big remains visible through its bounded authored window',
+				normalBigEvidence?.elapsedMs >= 1_250 && normalBigEvidence.elapsedMs <= 1_800,
+				serialize(normalBigEvidence));
 			check(group, 'tier reactions add no event or settlement writes for inactive rounds',
-				network.byEndpoint.play.length === 2 && network.byEndpoint.endRound.length === 0 &&
+				network.byEndpoint.play.length === 3 && network.byEndpoint.endRound.length === 0 &&
 					network.byEndpoint.event.length === 0, serialize(network.order));
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
