@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260902-35 — SUCCESS
+
+- Sprint day: 4
+- Base commit: `a74f69c62228c8650285aadf3d48675a8083a948`
+- Verified implementation commit: `346f9e8f669ca3acbd7bcb2e2cbc06e649cfaf6d`
+- Work item: `BSB-VAULTKEEPER-WIN-TIMING-EVIDENCE-001` (DONE; parent `BSB-MOTION-001` remains in progress)
+- Selection reason: exact cascade QA proved the Vaultkeeper `win_acknowledge` animation existed, but did not prove that either Normal or Turbo retained the semantic character state through its full computed animation window.
+- Before/after evidence: the focused contract began 0 PASS / 1 expected FAIL because both profile-owned character-window checks were absent. Exact Chromium now measures Turbo at 110ms computed animation and 190.3ms semantic ownership, and Normal at 280ms computed animation and 464.8ms ownership before Monitoring. Three exact Base requests remain authoritative and issue zero checkpoint/event/settlement writes.
+- Changed files: exact Chromium Vaultkeeper timing instrumentation, static exact-browser regression and five sprint-memory files; runtime UI, math, assets, lockfile and dependencies unchanged.
+- Gates: expected-red focused contract 0 PASS / 1 FAIL; syntax plus focused contract 1/1 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 139/139 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; exact identity-bound package generation/readback and 51-row resolver PASS; exact Chromium 83/83 scenarios / 2299/2299 checks PASS. Unexpected network/page/request failures are 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Exact isolated CI supplies current-package browser proof.
+- Visual review: exact 1366x768 Normal/Turbo win-acknowledge frames plus 1920x1080, 390x844 and 844x390 captures from artifact `9837345360` were inspected. The winning cluster, all 49 cells, controls, centered values and intended penguin/vault identity remain sharp and complete without overlap, document scroll, crop or broken images; automated geometry also passed 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `2141089729ca44a656dc3be0991a2b32a2808254cca096ac18a501f32ec1d0e5`, 10 files / 700,609 bytes, exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept computed animation, semantic state ownership, profile timing, wallet isolation and cleanup in one proof. Exact tree/blob identity caught one executable-mode mismatch and one truncated connector response; both were corrected without an unchanged semantic retry.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33605467946`, artifact `9837345360` and digest `sha256:2f3d78d87adf4e25a09829ed40271f4630413ee0b2ed615f13b87f29786907e3` succeeded.
+- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
+
 ## BS-20260902-34 — SUCCESS
 
 - Sprint day: 4
@@ -322,22 +339,5 @@ Newest entries first; retain at most 20.
 - Package evidence: exact remote frontend tree `284d7939a6929342d9167eddf4d7dbaf2736730608257984b3cbd2c400018331`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Targeted reads, one expected-red reproduction, one full local gate and one exact remote gate were used; no unchanged failure was repeated.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33503792855`, artifact `9799216714` and digest `sha256:4a2899ec4ea06af597fa32138acbd70e74583dba64b8bb2bc6f46b9ccf7eb1bb` succeeded.
-- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; revisit mid-feature restore only with event-triggered instrumentation.
-
-## BS-20260901-15 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `0c25386c2c594f7fd4ab1e1ba7a7f7674276309b`
-- Verified implementation commit: `da091a8f2180602203489cf47cc1b85b52afb220`
-- Work item: `BSB-SPACE-REPEAT-001` (DONE)
-- Selection reason: the global live-play Space handler deduplicated simultaneous input only while a request was busy; it did not reject browser key-repeat events, so holding Space could start another paid round after the first returned to ready.
-- Before/after evidence: the regression was first reproduced as 22 PASS / 1 FAIL against the missing repeat guard. The handler now consumes the Space default and returns before activation when `event.repeat` is true. Exact Chromium holds Space across one complete Base round, observes keydowns `[false, true]`, returns to `live-ready`, and records exactly `authenticate → play` with no second play, checkpoint or settlement write.
-- Changed files: live Space handler, contract regression, exact-browser wallet scenario and five sprint-memory files; pixels/layout, math, RGS request schema, assets, lockfile and dependencies unchanged.
-- Gates: syntax PASS; focused contract regression 23/23 PASS after the expected-red reproduction; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 125/125 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 71/71 scenarios and 1860/1860 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run because no browser executable is installed; exact isolated CI supplies browser proof.
-- Visual review: exact held-Space, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9797392950` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024 and the orientation round trip. Board, controls, values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device sign-off remains open.
-- Package evidence: exact remote frontend tree `491c9771daa553e521dc227809aaddfccbed8b20d5d8874fc59f7f3e072fa7d0`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Official URL fetches returned 404, the unauthenticated CLI push used connected Git data, and exact tree identity caught/corrected one executable-mode omission before CI. No unchanged semantic failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33499016878`, artifact `9797392950` and digest `sha256:62e347affa51ec8a157d361c7f868be51207306b7e8105408b534cf76fe75988` succeeded.
 - Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; revisit mid-feature restore only with event-triggered instrumentation.
