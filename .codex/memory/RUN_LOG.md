@@ -1,5 +1,22 @@
 # Material run log
 
+## BS-20260902-43 — BLOCKED
+
+- Sprint day: 4
+- Base remote commit: `c89783be8b256561c37e7fac02afd8b7b47574b0`
+- Pending evidence commit: `60e6562511c168bbe09f4875e1c5b2bc72e47a62`; last fully verified implementation remains `ca2e009503c96a95074fe8dd671e04567a478d29`
+- Work item: `BSB-REPLAY-REDUCED-MOTION-EVIDENCE-001` (BLOCKED; parent `BSB-EVIDENCE-001` remains in progress)
+- Selection reason: Replay already had exact Normal/Turbo timing proof and Reduced Motion runtime semantics, but lacked one full cached Replay/play-again path proving no transient motion frame, stable cleanup and wallet/network isolation under the Reduced profile.
+- Before/after evidence: the focused source contract began 29 PASS / 1 expected FAIL. QA now performs Normal, Turbo and Reduced presentations in one Replay session, samples every Reduced browser frame and requires idle board/character state, no CSS animation or transition, released compositor ownership, one Replay GET and zero wallet writes. Exact run `33654192804` passed every pre-browser gate and reached `replay-completed` / `reduced`, then failed only a stale final Turbo assertion (83/84 scenarios, 2317/2318 checks). The assertion and its source contract are corrected; exact rerun `33656188904` remains in progress.
+- Changed files: exact Chromium QA, QA source contract and five sprint-memory files; runtime, math, wallet/provider schema, assets, lockfile and dependencies unchanged.
+- Gates: expected-red contract 29/30 PASS; syntax plus focused contracts 30/30 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 141/141 PASS; production build PASS; local math 7/7 over 300,000 books with unchanged fingerprint; local isolated package generation/readback PASS. First exact run passed install/lint/typecheck/tests/build/math/package, then browser failed only the stale harness postcondition. Corrected exact browser, screenshots and current-SHA 51-point resolver are `BLOCKED/PENDING`; `git diff --check` and secret/debug/scope/full-own-diff review PASS.
+- Visual review: `NOT_RUN` for corrected current head. The first failed Replay scenario did not emit its final screenshot and historical visual artifacts were not inherited; desktop, portrait and landscape inspection therefore remains pending for this slice.
+- Package evidence: local frontend tree `7ca7bd5bf0eac27e32c663ecb5270a70a63ea4de137ecabbe325dde4d241b54b`, 10 files / 712,368 bytes; math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; package verification PASS.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Repository AAA-animation and visual-QA standards kept semantic profile, computed styles, painted-frame sampling, compositor cleanup, screenshots and wallet isolation in one acceptance proof. Standard Git push authentication failed once, then connected Git data performed non-force fast-forwards; one test-filter mismatch and one stale build identity were corrected with targeted changed methods.
+- Persistence: QA implementation and correction were fast-forwarded without force through connected Git data. Initial exact run `33654192804`, artifact `9856642108` and digest `sha256:766ac8bd18547ef6421a38e8468275daf8642a506209131f16fa69e557b6e017` supplied the harness diagnosis; corrected run `33656188904` is still in progress and is not claimed.
+- Residual risk: current-head Chromium, screenshots, wallet/network result and 51-point resolver remain pending, alongside approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup.
+- Next candidate: resume this same evidence item from exact run `33656188904`; do not begin another motion slice until its current-head browser and visual evidence is resolved.
+
 ## BS-20260902-42 — SUCCESS
 
 - Sprint day: 4
@@ -322,20 +339,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33553904771`, artifact `9819094154` and digest `sha256:6bd130b852b1924f72e41ef707c6dde8ece896547186bb4e7d02224c8671d5b1` succeeded.
 - Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct safe provider, accessibility or authored-motion gap that can close without unavailable human assets or physical-device approval.
-
-## BS-20260901-23 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `30a4e25824be2444645e2110384f991ad39d50e5`
-- Verified implementation commit: `5fa23e2d96d1ad3c0d0b8b96d506b5e5c1d5c614`
-- Work item: `BSB-AUDIO-VOICE-GAIN-LIFECYCLE-001` (DONE; parent `BSB-AUDIO-001` remains in progress)
-- Selection reason: source teardown stopped and disconnected oscillators but removed `onended` ownership without disconnecting each voice's private GainNode, leaving silent nodes attached to the master graph after mute and voice-cap eviction.
-- Before/after evidence: focused audio began 6 PASS / 1 expected FAIL with one retained outgoing gain connection after mute. AudioDirector now pairs and tears down oscillator/gain ownership on mute, eight-voice-cap eviction and natural completion. Exact Chromium starts an active UI voice plus ambience, reduces active graph edges `5 → 1`, increases gain disconnects `9 → 12`, and ends MUTED with zero voices/ambience; the retained edge is master-to-destination.
-- Changed files: AudioDirector lifecycle, audio regression, exact-browser graph instrumentation, compliance evidence and five sprint-memory files; pixels/layout, math, RGS/wallet schema, assets, lockfile and dependencies unchanged.
-- Gates: expected-red audio 6 PASS / 1 FAIL; syntax PASS; focused audio/compliance 20/20 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 131/131 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound package generation/readback and 51-row resolver PASS; exact Chromium 76/76 scenarios and 2202/2202 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was blocked by the absent executable; exact isolated CI supplies browser proof.
-- Visual review: exact muted-audio 1280x720, 1920x1080, 390x844 and 844x390 captures from artifact `9815667348` were inspected. SOUND OFF, board, controls, values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device/listening sign-off remains open.
-- Package evidence: exact remote frontend tree `73db3695448c1ea3bf62c0afae9d97fdf9dc3a74fd33b4a228f52a30d658c17d`, package verification PASS; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The mobile-performance skill kept lifecycle ownership and bounded graph work explicit. One malformed test regex and one pre-fetch local ref attempt each used a changed safe path; no semantic failure was repeated unchanged.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33545045810`, artifact `9815667348` and digest `sha256:9e28b8a67446387b460cc462964084045954e40ae9585f78b3d605833197a1c5` succeeded.
-- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct provider, accessibility or authored-motion evidence gap that does not depend on unavailable human assets or physical-device approval.

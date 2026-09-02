@@ -1,5 +1,57 @@
 # Rolling automation metrics
 
+## BS-20260902-43
+
+```yaml
+closed_at_utc: 2026-09-02T16:42:00Z
+sprint_day: 4
+status: BLOCKED
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-REPLAY-REDUCED-MOTION-EVIDENCE-001
+expected_red_contract: { pass: 29, fail: 1, status: EXPECTED_FAIL }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 30, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 141
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_package_generation: PASS
+local_package_verification: PASS
+local_frontend_tree: 7ca7bd5bf0eac27e32c663ecb5270a70a63ea4de137ecabbe325dde4d241b54b
+local_frontend_files: 10
+local_frontend_bytes: 712368
+local_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+local_math_files: 7
+local_math_bytes: 48697667
+initial_exact_ci_run: 33654192804
+initial_exact_ci_commit: a20b4495ac74c8ab1ab537885a9e0ed1610ff5df
+initial_exact_ci_status: FAIL
+initial_exact_pre_browser_gates: PASS
+initial_exact_browser: { scenarios: 84, passed: 83, failed: 1, checks_pass: 2317, checks_fail: 1 }
+initial_exact_failure: harness_expected_turbo_after_reduced_switch
+initial_artifact_id: 9856642108
+initial_artifact_digest: sha256:766ac8bd18547ef6421a38e8468275daf8642a506209131f16fa69e557b6e017
+corrected_remote_commit: 60e6562511c168bbe09f4875e1c5b2bc72e47a62
+corrected_exact_ci_run: 33656188904
+corrected_exact_ci_status: IN_PROGRESS_CURRENT_HEAD_NOT_CLAIMED
+exact_compliance_resolver: NOT_RUN_PENDING
+visual_review: NOT_RUN_CURRENT_CORRECTED_HEAD
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch, memory and repository-owned AAA motion/visual QA reads; one expected-red contract; one focused QA patch; one complete local frozen-install/lint/typecheck/test/build/math cycle; one identity-corrected package rebuild/readback; one exact failed browser run used as evidence; one targeted stale-assertion correction; and a corrected exact CI still in progress at bounded closeout. Standard Git push authentication failed once and connected Git data provided non-force fast-forwards. One test-name filter mismatch and one stale build-identity package attempt were each corrected with a changed, targeted method; no semantic failure was repeated unchanged. No subagents, dependencies, runtime code, product assets or token estimates were used.
+
 ## BS-20260902-42
 
 ```yaml
