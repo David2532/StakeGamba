@@ -1813,6 +1813,8 @@
 	}
 
 	.vaultkeeper-presence[data-motion-profile='reduced'] img {
+		animation: none !important;
+		transition: none;
 		will-change: auto;
 	}
 

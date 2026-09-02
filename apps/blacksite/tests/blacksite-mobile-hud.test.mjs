@@ -86,6 +86,10 @@ test('presentation speed persists while system reduced motion remains authoritat
 	);
 	assert.match(
 		browserSource,
+		/reduced-motion profile disables Vaultkeeper animation, transitions and compositor hints/u,
+	);
+	assert.match(
+		browserSource,
 		/presentation preference reloads never write to wallet or event endpoints/u,
 	);
 	assert.match(

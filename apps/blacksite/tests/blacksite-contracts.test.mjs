@@ -806,6 +806,10 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /replay-hit-timing-normal-and-turbo/u);
 	assert.match(source, /normal Replay hit remains visible for its authored timing profile/u);
 	assert.match(source, /turbo Replay hit remains visible for its authored timing profile/u);
+	assert.match(
+		source,
+		/reduced-motion profile disables Vaultkeeper animation, transitions and compositor hints/u,
+	);
 });
 
 test('BLACKOUT environment pulse stays on compositor-friendly opacity', () => {
@@ -833,7 +837,7 @@ test('Vaultkeeper compositor hints are bounded to active reactions', () => {
 	);
 	assert.match(
 		source,
-		/\.vaultkeeper-presence\[data-motion-profile='reduced'\] img \{\s*will-change: auto;/u,
+		/\.vaultkeeper-presence\[data-motion-profile='reduced'\] img \{\s*animation: none !important;\s*transition: none;\s*will-change: auto;/u,
 	);
 });
 

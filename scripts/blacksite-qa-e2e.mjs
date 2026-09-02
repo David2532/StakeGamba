@@ -3128,6 +3128,20 @@ async function runNetworkScenarios(browser, origin) {
 				profile: document.body.dataset.motionProfile,
 				stored: localStorage.getItem(storageKey),
 			}), MOTION_STORAGE_KEY);
+			const reducedVaultkeeper = await page.locator(SELECTORS.vaultkeeper).evaluate((element) => {
+				const previousState = element.getAttribute('data-character-state');
+				element.setAttribute('data-character-state', 'feature_trigger');
+				const image = element.querySelector('img');
+				const style = getComputedStyle(image);
+				const snapshot = {
+					profile: element.getAttribute('data-motion-profile'),
+					animationName: style.animationName,
+					transitionDuration: style.transitionDuration,
+					willChange: style.willChange,
+				};
+				element.setAttribute('data-character-state', previousState ?? 'idle_a');
+				return snapshot;
+			});
 			check(
 				group,
 				'system reduced-motion overrides and disables Turbo without erasing the preference',
@@ -3137,6 +3151,15 @@ async function runNetworkScenarios(browser, origin) {
 					reduced.profile === 'reduced' &&
 					reduced.stored === 'turbo',
 				serialize(reduced),
+			);
+			check(
+				group,
+				'reduced-motion profile disables Vaultkeeper animation, transitions and compositor hints',
+				reducedVaultkeeper.profile === 'reduced' &&
+					reducedVaultkeeper.animationName === 'none' &&
+					reducedVaultkeeper.transitionDuration === '0s' &&
+					reducedVaultkeeper.willChange === 'auto',
+				serialize(reducedVaultkeeper),
 			);
 			const reducedScreenshot = await saveScreenshot(page, 'presentation-speed-reduced-override');
 
@@ -3192,7 +3215,7 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
-			record.motionPreference = { selected, restored, reduced, resumed };
+			record.motionPreference = { selected, restored, reduced, reducedVaultkeeper, resumed };
 			record.screenshots = [
 				reducedScreenshot,
 				await saveScreenshot(page, 'presentation-speed-turbo-restored'),
