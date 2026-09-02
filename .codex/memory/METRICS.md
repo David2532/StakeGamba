@@ -1,5 +1,67 @@
 # Rolling automation metrics
 
+## BS-20260902-33
+
+```yaml
+closed_at_utc: 2026-09-02T06:26:13Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_REPRODUCED, missing_scenario: feature-tease-timing-normal-and-turbo }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 1, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 139
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: NOT_CAPTURED_PROCESS_COMPLETED_EXACT_CI_USED
+local_package_generation: PASS
+local_package_verification: NOT_CAPTURED_PROCESS_COMPLETED_EXACT_CI_USED
+local_compliance_resolver: BLOCKED_BROWSER_EVIDENCE_REQUIRED_EXACT_CI_USED
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 139
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: b98c764e224f92b2b75d321299de2cc23100f284f6c71446b667d536ffb5bcf8
+exact_frontend_files: 10
+exact_frontend_bytes: 700597
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+verified_ci_run: 33597126878
+verified_ci_status: PASS
+verified_ci_seconds: null
+remote_browser: { scenarios: 82, checks_pass: 2281, checks_fail: 0, unexpected_failures: 0 }
+feature_tease_timing:
+  normal: { character_css_ms: 600, lock_css_ms: 600, observed_ms: 752.8 }
+  turbo: { character_css_ms: 180, lock_css_ms: 180, observed_ms: 233.5 }
+  paid_base_plays: 2
+  checkpoint_event_settlement_writes: 0
+remote_expected_negative_console_errors: 6
+remote_page_errors: 0
+remote_failed_requests: 0
+remote_diagnostics_artifact: 9834155847
+remote_diagnostics_digest: sha256:f1904957a8ddb6e9448649c4dd60ed49d405e64fb622d0693132d2551f2c0e0e
+remote_implementation_commit: aaeedf89ee3f7663d8b0c601b8b72e539aa73c46
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused syntax/contract regression; one complete local frozen-install/lint/typecheck/test/build pass; local math/package processes whose terminal results were not retained and therefore were not claimed; connected Git-data fast-forwards; two exact Actions runs, with the first furnishing a precise selector diagnosis and the corrected run passing; artifact download/hash verification, evidence parsing and five screenshot inspections. The repository AAA-animation skill required semantic state ownership, computed character/lock durations and observed transition boundaries to remain in one exact-package proof. One package invocation missing required arguments was corrected, the exact package identity correctly forced a post-commit rebuild, and asynchronously generated manifest churn was restored byte-for-byte. No subagents, dependencies, binary product assets or unchanged semantic failure retries were used; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260902-32
 
 ```yaml
