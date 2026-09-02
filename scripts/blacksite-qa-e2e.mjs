@@ -3566,6 +3566,12 @@ async function runNetworkScenarios(browser, origin) {
 				const exit = timeline.slice(recoverIndex + 1).find(({ state }) => state !== 'recover');
 				return { recover, exit, elapsedMs: recover && exit ? exit.at - recover.at : -1 };
 			};
+			const spinStartWindow = (timeline) => {
+				const spinStartIndex = timeline.findIndex(({ state }) => state === 'spin_start');
+				const spinStart = timeline[spinStartIndex];
+				const exit = timeline.slice(spinStartIndex + 1).find(({ state }) => state !== 'spin_start');
+				return { spinStart, exit, elapsedMs: spinStart && exit ? exit.at - spinStart.at : -1 };
+			};
 
 			await installCharacterTimeline();
 			await page.locator(SELECTORS.primaryAction).click();
@@ -3584,6 +3590,7 @@ async function runNetworkScenarios(browser, origin) {
 			const normalRecoverScreenshot = await saveScreenshot(page, `${group}-normal-recover`);
 			await waitForStableAction(page);
 			const normalTimeline = await readCharacterTimeline();
+			const normalSpinStartWindow = spinStartWindow(normalTimeline);
 			const normalWindow = heroWindow(normalTimeline);
 			const normalRecoverWindow = recoverWindow(normalTimeline);
 			check(group, 'normal max-win hero clip remains visible for its complete authored window',
@@ -3599,6 +3606,13 @@ async function runNetworkScenarios(browser, origin) {
 					normalRecoverWindow.recover.animationDurationMs === 1_000 &&
 					normalRecoverWindow.elapsedMs >= 900 && normalRecoverWindow.elapsedMs <= 1_400,
 				serialize({ normalRecoverWindow, normalTimeline }),
+			);
+			check(group, 'normal spin-start reaction remains visible for its complete authored window',
+				normalSpinStartWindow.spinStart?.profile === 'normal' &&
+					normalSpinStartWindow.spinStart.animation.endsWith('vaultkeeper-spin-start') &&
+					normalSpinStartWindow.spinStart.animationDurationMs === 160 &&
+					normalSpinStartWindow.elapsedMs >= 140 && normalSpinStartWindow.elapsedMs <= 400,
+				serialize({ normalSpinStartWindow, normalTimeline }),
 			);
 
 			await page.locator(SELECTORS.motionMode).click();
@@ -3619,6 +3633,7 @@ async function runNetworkScenarios(browser, origin) {
 			const turboRecoverScreenshot = await saveScreenshot(page, `${group}-turbo-recover`);
 			await waitForStableAction(page);
 			const turboTimeline = await readCharacterTimeline();
+			const turboSpinStartWindow = spinStartWindow(turboTimeline);
 			const turboWindow = heroWindow(turboTimeline);
 			const turboRecoverWindow = recoverWindow(turboTimeline);
 			check(group, 'turbo max-win hero clip remains visible for its complete authored window',
@@ -3635,6 +3650,13 @@ async function runNetworkScenarios(browser, origin) {
 					turboRecoverWindow.elapsedMs >= 320 && turboRecoverWindow.elapsedMs <= 650,
 				serialize({ turboRecoverWindow, turboTimeline }),
 			);
+			check(group, 'turbo spin-start reaction remains visible for its complete authored window',
+				turboSpinStartWindow.spinStart?.profile === 'turbo' &&
+					turboSpinStartWindow.spinStart.animation.endsWith('vaultkeeper-spin-start') &&
+					turboSpinStartWindow.spinStart.animationDurationMs === 110 &&
+					turboSpinStartWindow.elapsedMs >= 95 && turboSpinStartWindow.elapsedMs <= 300,
+				serialize({ turboSpinStartWindow, turboTimeline }),
+			);
 			check(group, 'both max-win paths preserve exact payout authority and clean readiness',
 				(await page.locator(SELECTORS.finalWin).innerText()).trim() === formatExactApi(expectedPayout, 'USD') &&
 					(await runtimeState(page)) === 'live-ready' &&
@@ -3648,6 +3670,7 @@ async function runNetworkScenarios(browser, origin) {
 			record.fixture = fixture.id;
 			record.normal = {
 				timeline: normalTimeline,
+				spinStartWindow: normalSpinStartWindow,
 				window: normalWindow,
 				recoverWindow: normalRecoverWindow,
 				screenshot: normalScreenshot,
@@ -3655,6 +3678,7 @@ async function runNetworkScenarios(browser, origin) {
 			};
 			record.turbo = {
 				timeline: turboTimeline,
+				spinStartWindow: turboSpinStartWindow,
 				window: turboWindow,
 				recoverWindow: turboRecoverWindow,
 				screenshot: turboScreenshot,

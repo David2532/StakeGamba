@@ -16,7 +16,7 @@ export const PRESENTATION_TIMINGS = Object.freeze({
 	}),
 	turbo: Object.freeze({
 		step: 12,
-		spin: 60,
+		spin: 110,
 		reveal: 130,
 		anticipation: 180,
 		feature: 360,

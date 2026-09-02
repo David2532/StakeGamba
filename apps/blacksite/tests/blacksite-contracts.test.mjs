@@ -717,6 +717,8 @@ test('PresentationDirector exposes bounded normal, turbo and reduced timing gram
 		assert.equal(PRESENTATION_TIMINGS.reduced[phase], 0);
 	}
 	assert(PRESENTATION_TIMINGS.normal.hit >= 180);
+	assert.equal(PRESENTATION_TIMINGS.normal.spin, 160);
+	assert.equal(PRESENTATION_TIMINGS.turbo.spin, 110);
 	assert.equal(PRESENTATION_TIMINGS.normal.reveal, 360);
 	assert.equal(PRESENTATION_TIMINGS.turbo.reveal, 130);
 	assert(PRESENTATION_TIMINGS.normal.drop <= 550);
@@ -745,6 +747,24 @@ test('PresentationDirector preserves the authored recovery before returning to i
 	assert(elapsedMs >= 900, `recovery was cut after ${elapsedMs.toFixed(1)}ms`);
 	assert(elapsedMs <= 1_400, `recovery exceeded its bounded window at ${elapsedMs.toFixed(1)}ms`);
 	assert.deepEqual(states, ['recover', 'idle_a']);
+	assert.equal(director.timers.size, 0);
+});
+
+test('PresentationDirector preserves the authored turbo spin-start reaction', async () => {
+	const roundStartedCue = new GameEventAdapter()
+		.adaptBook(BASE_ZERO_FIXTURE.book, { expectedMode: 'base' })
+		.find(({ kind }) => kind === 'round_started');
+	assert(roundStartedCue);
+	const states = [];
+	const director = new PresentationDirector((state) => states.push(state.character.state));
+	const startedAt = performance.now();
+	assert.equal(await director.play([roundStartedCue], { timingProfile: 'turbo' }), true);
+	const elapsedMs = performance.now() - startedAt;
+	assert(elapsedMs >= 95, `turbo spin-start was cut after ${elapsedMs.toFixed(1)}ms`);
+	assert(elapsedMs <= 300, `turbo spin-start exceeded its bounded window at ${elapsedMs.toFixed(1)}ms`);
+	assert.equal(states.at(0), 'spin_start');
+	assert.equal(states.at(-1), 'idle_a');
+	assert(states.slice(0, -1).every((state) => state === 'spin_start'));
 	assert.equal(director.timers.size, 0);
 });
 
@@ -781,6 +801,8 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /turbo max-win hero clip remains visible for its complete authored window/u);
 	assert.match(source, /normal recovery clip remains visible for its complete authored window/u);
 	assert.match(source, /turbo recovery clip remains visible for its complete authored window/u);
+	assert.match(source, /normal spin-start reaction remains visible for its complete authored window/u);
+	assert.match(source, /turbo spin-start reaction remains visible for its complete authored window/u);
 });
 
 test('BLACKOUT environment pulse stays on compositor-friendly opacity', () => {
