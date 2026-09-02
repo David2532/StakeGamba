@@ -794,6 +794,9 @@ test('PresentationDirector keeps the authoritative max-win hero state visible un
 test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () => {
 	const source = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
 	assert.match(source, /normal cascade has no sustained frame-pacing stalls/u);
+	assert.match(source, /normal cascade hit, remove, drop and settle clips complete their authored windows/u);
+	assert.match(source, /turbo cascade hit, remove, drop and settle clips complete their authored windows/u);
+	assert.match(source, /cascadePhaseWindows/u);
 	assert.match(source, /normal BLACKOUT transition has no sustained frame-pacing stalls/u);
 	assert.match(source, /normalReelStopCadence/u);
 	assert.match(source, /max-win-hero-timing-normal-and-turbo/u);

@@ -3330,11 +3330,18 @@ async function runNetworkScenarios(browser, origin) {
 				const character = document.querySelector(characterSelector);
 				window.__blacksiteMotionPhases = [];
 				window.__blacksiteCharacterStates = [];
-				const captureBoard = () => window.__blacksiteMotionPhases.push({
-					phase: board?.getAttribute('data-motion-phase'),
-					profile: board?.getAttribute('data-motion-profile'),
-					at: performance.now(),
-				});
+				const captureBoard = () => {
+					const phase = board?.getAttribute('data-motion-phase');
+					const activeCell = phase ? board?.querySelector(`.cell.motion-${phase}`) : null;
+					const style = activeCell ? getComputedStyle(activeCell) : null;
+					window.__blacksiteMotionPhases.push({
+						phase,
+						profile: board?.getAttribute('data-motion-profile'),
+						animation: style?.animationName ?? 'none',
+						animationDurationMs: style ? Number.parseFloat(style.animationDuration) * 1_000 : 0,
+						at: performance.now(),
+					});
+				};
 				const captureCharacter = () => {
 					const image = character?.querySelector('img');
 					window.__blacksiteCharacterStates.push({
@@ -3388,6 +3395,19 @@ async function runNetworkScenarios(browser, origin) {
 			const framePacing = await stopFrameSampler(page, 'turbo-cascade');
 			const turboPhases = await page.evaluate(() => window.__blacksiteMotionPhases);
 			const turboCharacterStates = await page.evaluate(() => window.__blacksiteCharacterStates);
+			const cascadePhaseWindows = (timeline) => {
+				const transitions = timeline.filter((entry, index) =>
+					index === 0 || entry.phase !== timeline[index - 1].phase || entry.profile !== timeline[index - 1].profile);
+				return Object.fromEntries(['hit', 'remove', 'drop', 'settle'].map((phase) => {
+					const index = transitions.findIndex((entry) => entry.phase === phase);
+					const start = transitions[index];
+					const end = index >= 0
+						? transitions.slice(index + 1).find((entry) => entry.phase !== phase)
+						: null;
+					return [phase, { start, end, elapsedMs: start && end ? end.at - start.at : -1 }];
+				}));
+			};
+			const turboPhaseWindows = cascadePhaseWindows(turboPhases);
 			const turboNames = turboPhases.map(({ phase }) => phase);
 			let previousIndex = -1;
 			const orderedTurbo = ['hit', 'remove', 'drop', 'settle'].every((phase) => {
@@ -3396,6 +3416,22 @@ async function runNetworkScenarios(browser, origin) {
 				return index >= 0;
 			});
 			check(group, 'authoritative turbo cascade visibly traverses hit, remove, drop and settle', orderedTurbo, serialize(turboPhases));
+			check(group, 'turbo cascade hit, remove, drop and settle clips complete their authored windows',
+				turboPhaseWindows.hit.start?.profile === 'turbo' &&
+					turboPhaseWindows.hit.start.animation.endsWith('cluster-hit') &&
+					turboPhaseWindows.hit.start.animationDurationMs === 110 &&
+					turboPhaseWindows.hit.elapsedMs >= 95 && turboPhaseWindows.hit.elapsedMs <= 300 &&
+					turboPhaseWindows.remove.start?.animation.endsWith('cluster-remove') &&
+					turboPhaseWindows.remove.start.animationDurationMs === 55 &&
+					turboPhaseWindows.remove.elapsedMs >= 45 && turboPhaseWindows.remove.elapsedMs <= 200 &&
+					turboPhaseWindows.drop.start?.animation.endsWith('symbol-drop') &&
+					turboPhaseWindows.drop.start.animationDurationMs === 105 &&
+					turboPhaseWindows.drop.elapsedMs >= 90 && turboPhaseWindows.drop.elapsedMs <= 250 &&
+					turboPhaseWindows.settle.start?.animation.endsWith('symbol-settle') &&
+					turboPhaseWindows.settle.start.animationDurationMs === 35 &&
+					turboPhaseWindows.settle.elapsedMs >= 25 && turboPhaseWindows.settle.elapsedMs <= 160,
+				serialize({ turboPhaseWindows, turboPhases }),
+			);
 			check(group, 'seven reel columns stop in a strictly staggered turbo cadence',
 				reelStopCadence.length === 7 && reelStopCadence.every(({ column, durationMs, animation }, index) =>
 					column === index && durationMs === 70 && animation.endsWith('board-reveal')) &&
@@ -3422,6 +3458,10 @@ async function runNetworkScenarios(browser, origin) {
 			);
 
 			await page.locator(SELECTORS.motionMode).click();
+			await page.evaluate(() => {
+				window.__blacksiteMotionPhases = [];
+				window.__blacksiteCharacterStates = [];
+			});
 			await startFrameSampler(page, 'normal-cascade');
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 2);
@@ -3441,6 +3481,8 @@ async function runNetworkScenarios(browser, origin) {
 			const normalReelStopScreenshot = await saveScreenshot(page, `${group}-normal-reel-stop-cadence`);
 			await waitForStableAction(page);
 			const normalFramePacing = await stopFrameSampler(page, 'normal-cascade');
+			const normalPhases = await page.evaluate(() => window.__blacksiteMotionPhases);
+			const normalPhaseWindows = cascadePhaseWindows(normalPhases);
 			check(group, 'seven reel columns stop in the authored normal cadence',
 				normalReelStopCadence.length === 7 && normalReelStopCadence.every(({ column, delayMs, durationMs, animation }, index) =>
 					column === index && delayMs === index * 24 && durationMs === 180 && animation.endsWith('board-reveal')),
@@ -3450,6 +3492,22 @@ async function runNetworkScenarios(browser, origin) {
 				normalFramePacing.samples >= 20 && normalFramePacing.percentile95Ms <= 50 && normalFramePacing.over50Ms <= Math.max(2, Math.ceil(normalFramePacing.samples * 0.05)),
 				serialize(normalFramePacing),
 			);
+			check(group, 'normal cascade hit, remove, drop and settle clips complete their authored windows',
+				normalPhaseWindows.hit.start?.profile === 'normal' &&
+					normalPhaseWindows.hit.start.animation.endsWith('cluster-hit') &&
+					normalPhaseWindows.hit.start.animationDurationMs === 280 &&
+					normalPhaseWindows.hit.elapsedMs >= 250 && normalPhaseWindows.hit.elapsedMs <= 500 &&
+					normalPhaseWindows.remove.start?.animation.endsWith('cluster-remove') &&
+					normalPhaseWindows.remove.start.animationDurationMs === 150 &&
+					normalPhaseWindows.remove.elapsedMs >= 130 && normalPhaseWindows.remove.elapsedMs <= 350 &&
+					normalPhaseWindows.drop.start?.animation.endsWith('symbol-drop') &&
+					normalPhaseWindows.drop.start.animationDurationMs === 250 &&
+					normalPhaseWindows.drop.elapsedMs >= 220 && normalPhaseWindows.drop.elapsedMs <= 450 &&
+					normalPhaseWindows.settle.start?.animation.endsWith('symbol-settle') &&
+					normalPhaseWindows.settle.start.animationDurationMs === 90 &&
+					normalPhaseWindows.settle.elapsedMs >= 70 && normalPhaseWindows.settle.elapsedMs <= 260,
+				serialize({ normalPhaseWindows, normalPhases }),
+			);
 
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 3);
@@ -3457,6 +3515,7 @@ async function runNetworkScenarios(browser, origin) {
 				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'hit',
 				SELECTORS.board,
 			);
+			const hitScreenshot = await saveScreenshot(page, `${group}-hit-before-skip`);
 			const skippedAt = Date.now();
 			check(group, 'Skip becomes available only while authoritative presentation is active',
 				!(await page.locator(SELECTORS.skipPresentation).isDisabled()),
@@ -3505,10 +3564,24 @@ async function runNetworkScenarios(browser, origin) {
 				};
 			}, { characterSelector: SELECTORS.vaultkeeper, fallbackSelector: SELECTORS.vaultkeeperFallback });
 			check(group, 'missing Vaultkeeper image switches to the deterministic mechanical silhouette without blocking play', assetFallback.assetState === 'fallback' && assetFallback.imageDisplay === 'none' && assetFallback.fallbackDisplay === 'block' && (await runtimeState(page)) === 'live-ready', serialize(assetFallback));
-			record.motion = { fixture: fixture.id, reelStopCadence, framePacing, normalReelStopCadence, normalFramePacing, turboPhases, turboCharacterStates, completed, assetFallback };
+			record.motion = {
+				fixture: fixture.id,
+				reelStopCadence,
+				framePacing,
+				normalReelStopCadence,
+				normalFramePacing,
+				turboPhases,
+				turboPhaseWindows,
+				normalPhases,
+				normalPhaseWindows,
+				turboCharacterStates,
+				completed,
+				assetFallback,
+			};
 			record.screenshot = normalScreenshot;
 			record.reelStopScreenshot = reelStopScreenshot;
 			record.normalReelStopScreenshot = normalReelStopScreenshot;
+			record.hitScreenshot = hitScreenshot;
 			record.assetFallbackScreenshot = await saveScreenshot(page, `${group}-asset-fallback`);
 			record.network = network;
 			record.diagnostics = diagnostics;
