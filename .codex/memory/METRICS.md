@@ -1,5 +1,56 @@
 # Rolling automation metrics
 
+## BS-20260902-29
+
+```yaml
+closed_at_utc: 2026-09-02T02:03:00Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_REPRODUCED, stale_default_win_delay_ms: 220 }
+focused_syntax_status: PASS
+focused_replay_contracts_after: { pass: 45, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 139
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_seconds: 360.7
+local_full_math_status: PASS
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 139
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 1601bb16596afcc6bf9d7b484728f996deb046e4517c48959cad112589dd41bc
+verified_ci_run: 33580462193
+verified_ci_status: PASS
+verified_ci_seconds: 983
+remote_browser: { scenarios: 80, checks_pass: 2244, checks_fail: 0, unexpected_failures: 0 }
+replay_hit_timing: { normal_ms: 311.9, turbo_ms: 122.5, replay_gets: 1, wallet_writes: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9828528586
+remote_diagnostics_digest: sha256:6067a2386374349fd691b40f202a7afb6e4c1f45851bd5b4b1c1433ee99c4bb3
+remote_implementation_commit: 09759dfd89905fd23f5bedfbaa150924a0453a51
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/replay-motion reads; one expected-red then green focused Replay/contract regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/debug/scope review; connected Git-data fast-forward; one exact Actions run, artifact evidence and four screenshot inspections. The repository AAA-animation skill kept Replay cue ownership aligned with Normal/Turbo/Reduced timing while preserving explicit override support. The unavailable `gh` CLI was replaced once with the public Actions API; a broad tool-registry result was narrowed to exact names. No subagents, dependencies, binary product assets or unchanged semantic failure retries were used; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260902-28
 
 ```yaml

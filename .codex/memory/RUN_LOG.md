@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260902-29 — SUCCESS
+
+- Sprint day: 4
+- Base commit: `a0ee8388a68a509319a70179199a294dfb45c3a3`
+- Verified implementation commit: `09759dfd89905fd23f5bedfbaa150924a0453a51`
+- Work item: `BSB-REPLAY-MOTION-PROFILE-001` (DONE; parents `BSB-MOTION-001` and `BSB-EVIDENCE-001` remain in progress)
+- Selection reason: Replay pinned generic 16/220ms step/win delays into PresentationDirector, bypassing Normal/Turbo/Reduced timing and making the same authoritative win use a stale cadence distinct from live play.
+- Before/after evidence: the expected-red regression observed the stale 220ms default. Replay defaults now defer both delays to the active presentation profile while validated explicit overrides remain available. Exact Chromium measures the first hit for 311.9ms Normal and 122.5ms Turbo, completes two cached presentations after one queryless/bodyless Replay GET and performs zero authenticate/play/event/settlement writes.
+- Changed files: Replay controller defaults/validation, page composition, Replay/contract regressions, exact Chromium timing scenario and five sprint-memory files; math, wallet schema, assets, lockfile and dependencies unchanged.
+- Gates: expected-red focused Replay 0 PASS / 1 FAIL; syntax and focused Replay/contracts 45/45 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 139/139 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 80/80 scenarios and 2244/2244 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies current-package browser proof.
+- Visual review: exact 1366x768 Turbo Replay completion plus 1920x1080, 390x844 and 844x390 captures from artifact `9828528586` were inspected while the same exact browser timeline proves both hit windows. Board, Vaultkeeper/penguin, controls, values and vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `1601bb16596afcc6bf9d7b484728f996deb046e4517c48959cad112589dd41bc`, 10 files / 700,486 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept profile timing, explicit override validation and browser measurement aligned. The unavailable `gh` CLI used the public Actions API; no unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33580462193`, artifact `9828528586` and digest `sha256:6067a2386374349fd691b40f202a7afb6e4c1f45851bd5b4b1c1433ee99c4bb3` succeeded.
+- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
+
 ## BS-20260902-28 — SUCCESS
 
 - Sprint day: 4
@@ -323,21 +340,4 @@ Newest entries first; retain at most 20.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The unauthenticated HTTPS push used the connected Git-data path; one timed browser wait completed through the same live tab. No unchanged semantic failure was repeated.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33478922886`, artifact `9789541385` and digest `sha256:bf8aecff16ecea50d34a8d9f3fdce16c9bfc6ce4570a5fcf1be6d00a3f03e8e1` succeeded.
 - Residual risk: real iOS/Android/device approval, deferred mid-feature restore evidence, 23 total manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
-- Next candidate: choose the next distinct safe Day-3 HUD/accessibility or provider-evidence gap; revisit mid-feature restore only with event-triggered instrumentation.
-
-## BS-20260901-09 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `8497671b1a32d1c76a69356ea9488dfe063d3b44`
-- Verified implementation commit: `de327825da4c36c7c351e59497683058c550dc3b`
-- Work item: `BSB-TIMER-A11Y-001` (DONE)
-- Selection reason: the provider-controlled Session Timer updated every second inside one polite live region, which could force continuous assistive-technology announcements even when the player made no action.
-- Before/after evidence: Session Position now owns an atomic polite status; Session Time owns a labelled `timer` with `aria-live=off`. Exact mobile Chromium observes `00:00 → 00:01`, then one authoritative Base play updates position `$0.00 → +$7.00` and balance `$1000.00 → $993.00` without settlement/event writes.
-- Changed files: jurisdiction readout semantics, accessibility regression, exact-browser timer audit and five sprint-memory files; pixels/layout, math, RGS/wallet authority, assets, lockfile and dependencies unchanged.
-- Gates: syntax PASS; focused accessibility/mobile 11/11 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 121/121 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 70/70 scenarios and 1845/1845 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies browser proof.
-- Visual review: exact 1920x1080, 390x844, 844x390, Replay 360x640 and jurisdiction-timer 390x844 captures from artifact `9788005592` were inspected; 1366x768, 360x740, 768x1024 and orientation geometry also passed. Board, timer, values, controls and penguin/vault identity remain complete without overlap, scroll, crop or broken images. Real screen-reader and physical-device sign-off remain open.
-- Package evidence: exact remote frontend tree `7e05b9f89ed9f587bbc726a892c18df77305a3349f178c933774593e2a2a0a8c`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Unavailable `gh`, unauthenticated CLI push and rejected destructive temp cleanup each used a changed safe alternative; no semantic failure was repeated unchanged.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33474573594`, artifact `9788005592` and digest `sha256:7622da346f1d4a0dabc1117f711793ccb649315e68854d1032f04284ece2a6ce` succeeded.
-- Residual risk: real screen-reader/device approval, deferred mid-feature restore evidence, 23 total manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
 - Next candidate: choose the next distinct safe Day-3 HUD/accessibility or provider-evidence gap; revisit mid-feature restore only with event-triggered instrumentation.
