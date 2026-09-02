@@ -1,5 +1,65 @@
 # Rolling automation metrics
 
+## BS-20260902-41
+
+```yaml
+closed_at_utc: 2026-09-02T15:16:00Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-FEATURE-WIN-PROFILE-EVIDENCE-001
+expected_red_contract: { pass: 0, fail: 1, status: EXPECTED_FAIL }
+expected_red_ci_run: 33643364848
+expected_red_normal_observed_ms: 528.7
+expected_red_cause: qa_observation_cap_500ms_too_narrow
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 1, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 141
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: RESULT_NOT_RETAINED_NOT_CLAIMED
+exact_ci_run: 33645610063
+exact_ci_status: SUCCESS
+exact_ci_commit: f3d37c426b7b82b8cbdc3c22f6ccc0fe83cac0cc
+exact_app_tests: 141
+exact_full_math_status: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: f8feb78c50e4fefcd9948edfef18725713f6eaeb287d5ad6c0e0b989732dbcf9
+exact_frontend_files: 10
+exact_frontend_bytes: 712368
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+exact_browser: { scenarios: 84, passed: 84, failed: 0, checks_pass: 2317, checks_fail: 0 }
+exact_feature_win_css_ms: { normal: 280, turbo: 110 }
+exact_feature_win_observed_ms: { normal: 528.0, turbo: 177.3 }
+exact_live_network: { play: 2, event: 0, settlement: 0, unexpected: 0 }
+exact_compliance_resolver: PASS
+exact_compliance: { automated_proof_complete: 38, manual_gates_open: 23, external_gates_open: 6 }
+visual_viewports: [1366x768, 1920x1080, 390x844, 844x390]
+visual_feature_frames: [natural_base_normal_bonus_win, deep_access_turbo_bonus_win]
+visual_review: PASS_AUTOMATED_CURRENT_HEAD
+artifact_id: 9853187922
+artifact_digest: sha256:c07e2e3a787c171bc0ffaeed16a63d2060c1b85ba6995c3a501eb1621beeb0bb
+remote_implementation_commit: f3d37c426b7b82b8cbdc3c22f6ccc0fe83cac0cc
+source_tree_before_memory: 4f64a6cbca90849cb4ef12ea1171b71c6f158533
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/AAA-motion reads; one expected-red contract; one focused QA/contract patch; one complete local frozen-install/lint/typecheck/test/build cycle; exact workflow/job/log/artifact inspection; five current-head screenshots; two Git-data fast-forwards. The first exact run supplied new evidence that the 500ms Normal observation cap was too narrow, so one measured correction to 650ms produced the green run. Local math terminal output was not retained and is deliberately not counted; exact CI supplies the 7/7 proof. Prettier reported pre-existing broad style deviations in the two edited harness files and was not a repository gate, so no formatting churn was introduced. No subagents, dependencies, runtime code or product assets were added; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260902-40
 
 ```yaml
