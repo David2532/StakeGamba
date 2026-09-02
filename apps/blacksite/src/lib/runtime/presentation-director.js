@@ -11,6 +11,7 @@ export const PRESENTATION_TIMINGS = Object.freeze({
 		remove: 150,
 		drop: 250,
 		settle: 90,
+		loss: 320,
 		recover: 1_000,
 		maxWin: 1_000,
 	}),
@@ -24,6 +25,7 @@ export const PRESENTATION_TIMINGS = Object.freeze({
 		remove: 55,
 		drop: 105,
 		settle: 35,
+		loss: 130,
 		recover: 360,
 		maxWin: 360,
 	}),
@@ -37,6 +39,7 @@ export const PRESENTATION_TIMINGS = Object.freeze({
 		remove: 0,
 		drop: 0,
 		settle: 0,
+		loss: 0,
 		recover: 0,
 		maxWin: 0,
 	}),
@@ -252,7 +255,11 @@ export class PresentationDirector {
 					notice: 'Complete-round cap reached',
 				});
 				break;
-			case 'settled':
+			case 'settled': {
+				const settledCharacterState =
+					event.payout_multiplier_raw === 0 && this.state.character.state !== 'recover'
+						? 'loss_acknowledge'
+						: 'recover';
 				this.pendingTumble = null;
 				this.update({
 					...common,
@@ -264,10 +271,11 @@ export class PresentationDirector {
 					activeClusters: Object.freeze([]),
 					stepWinRaw: 0,
 					motion: motionState(),
-					character: characterState('recover', cue.eventIndex),
+					character: characterState(settledCharacterState, cue.eventIndex),
 					notice: 'Authoritative round_end reached',
 				});
 				break;
+			}
 			default:
 				throw new Error(`Unhandled presentation cue: ${String(cue.kind)}`);
 		}
@@ -336,7 +344,8 @@ export class PresentationDirector {
 			}
 			if (cue.kind === 'cap_reached') delayMs = timings.maxWin;
 			if (cue.kind === 'settled' && priorCharacterState !== 'recover') {
-				delayMs = timings.recover;
+				delayMs =
+					this.state.character.state === 'loss_acknowledge' ? timings.loss : timings.recover;
 			}
 			if (cue.kind === 'tumble') delayMs = timings.remove;
 			if (cue.kind === 'board_snapshot') {

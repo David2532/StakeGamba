@@ -77,6 +77,7 @@ Minimum semantic animations:
 | `win_small`       | no                 | restrained acknowledgment                  |
 | `win_medium`      | no                 | stronger positive reaction                 |
 | `win_big`         | no                 | energetic but not max-win level            |
+| `loss_acknowledge` | no                | restrained response to authoritative zero  |
 | `feature_tease`   | no/hold            | security alert/focus toward board          |
 | `feature_trigger` | no                 | full transition into feature state         |
 | `bonus_idle`      | yes                | heightened feature-mode idle               |

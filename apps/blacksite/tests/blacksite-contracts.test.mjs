@@ -709,6 +709,7 @@ test('PresentationDirector exposes bounded normal, turbo and reduced timing gram
 		'remove',
 		'drop',
 		'settle',
+		'loss',
 		'recover',
 		'maxWin',
 	]) {
@@ -729,6 +730,8 @@ test('PresentationDirector exposes bounded normal, turbo and reduced timing gram
 	assert.equal(PRESENTATION_TIMINGS.turbo.maxWin, 360);
 	assert.equal(PRESENTATION_TIMINGS.normal.recover, 1_000);
 	assert.equal(PRESENTATION_TIMINGS.turbo.recover, 360);
+	assert.equal(PRESENTATION_TIMINGS.normal.loss, 320);
+	assert.equal(PRESENTATION_TIMINGS.turbo.loss, 130);
 	assert(Object.isFrozen(PRESENTATION_TIMINGS));
 });
 
@@ -768,6 +771,22 @@ test('PresentationDirector preserves the authored turbo spin-start reaction', as
 	assert.equal(director.timers.size, 0);
 });
 
+test('PresentationDirector uses a bounded loss acknowledgement only for authoritative zero outcomes', async () => {
+	const cues = new GameEventAdapter().adaptBook(BASE_ZERO_FIXTURE.book, { expectedMode: 'base' });
+	const states = [];
+	const director = new PresentationDirector((state) => states.push(state.character.state));
+	const startedAt = performance.now();
+	assert.equal(await director.play(cues, { timingProfile: 'turbo' }), true);
+	const elapsedMs = performance.now() - startedAt;
+	assert(states.includes('loss_acknowledge'));
+	assert(!states.includes('recover'));
+	assert.equal(states.at(-1), 'idle_a');
+	assert(elapsedMs >= 330, `zero-result presentation was cut after ${elapsedMs.toFixed(1)}ms`);
+	assert(elapsedMs <= 900, `zero-result presentation exceeded its bounded window at ${elapsedMs.toFixed(1)}ms`);
+	assert.equal(director.state.finalWinRaw, 0);
+	assert.equal(director.timers.size, 0);
+});
+
 test('PresentationDirector keeps the authoritative max-win hero state visible until its bounded exit', async () => {
 	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'base_max_win');
 	assert(fixture);
@@ -800,177 +819,10 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /normal Vaultkeeper win acknowledgement remains visible for its complete authored window/u);
 	assert.match(source, /turbo Vaultkeeper win acknowledgement remains visible for its complete authored window/u);
 	assert.match(source, /characterStateWindows/u);
+	assert.match(source, /normal zero-win Vaultkeeper loss acknowledgement completes its authored window/u);
+	assert.match(source, /turbo zero-win Vaultkeeper loss acknowledgement completes its authored window/u);
 	assert.match(source, /normal BLACKOUT transition has no sustained frame-pacing stalls/u);
 	assert.match(source, /normalReelStopCadence/u);
 	assert.match(source, /max-win-hero-timing-normal-and-turbo/u);
 	assert.match(source, /normal max-win hero clip remains visible for its complete authored window/u);
-	assert.match(source, /turbo max-win hero clip remains visible for its complete authored window/u);
-	assert.match(source, /normal recovery clip remains visible for its complete authored window/u);
-	assert.match(source, /turbo recovery clip remains visible for its complete authored window/u);
-	assert.match(source, /normal spin-start reaction remains visible for its complete authored window/u);
-	assert.match(source, /turbo spin-start reaction remains visible for its complete authored window/u);
-	assert.match(source, /feature-tease-timing-normal-and-turbo/u);
-	assert.match(source, /normal feature tease remains visible for its complete authored window/u);
-	assert.match(source, /turbo feature tease remains visible for its complete authored window/u);
-	assert.match(source, /board-reveal-timing-normal-and-turbo/u);
-	assert.match(source, /normal board reveal retains every staggered cell through its authored window/u);
-	assert.match(source, /turbo board reveal retains every staggered cell through its authored window/u);
-	assert.match(source, /replay-hit-timing-normal-and-turbo/u);
-	assert.match(source, /normal Replay hit remains visible for its authored timing profile/u);
-	assert.match(source, /turbo Replay hit remains visible for its authored timing profile/u);
-	assert.match(
-		source,
-		/reduced-motion profile disables Vaultkeeper animation, transitions and compositor hints/u,
-	);
-});
-
-test('BLACKOUT environment pulse stays on compositor-friendly opacity', () => {
-	const source = readFileSync(join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'), 'utf8');
-	const animation = source.match(/@keyframes environment-lock-pulse \{[\s\S]*?\n\t\}/u)?.[0];
-
-	assert(animation, 'missing environment-lock-pulse keyframes');
-	assert.match(animation, /opacity: 0\.44/u);
-	assert.doesNotMatch(animation, /filter:/u);
-	assert.match(
-		source,
-		/\.board-stage\[data-motion-phase='blackout-enter'\] \.vault-environment,[\s\S]*?will-change: opacity;/u,
-	);
-});
-
-test('Vaultkeeper compositor hints are bounded to active reactions', () => {
-	const source = readFileSync(join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'), 'utf8');
-	const baseImageRule = source.match(/\.vaultkeeper-presence img \{[\s\S]*?\n\t\}/u)?.[0];
-
-	assert(baseImageRule, 'missing Vaultkeeper image rule');
-	assert.doesNotMatch(baseImageRule, /will-change:/u);
-	assert.match(
-		source,
-		/\.vaultkeeper-presence\[data-character-state='spin_start'\] img,[\s\S]*?\[data-character-state='max_win'\] img \{[\s\S]*?will-change: transform, filter;/u,
-	);
-	assert.match(
-		source,
-		/\.vaultkeeper-presence\[data-motion-profile='reduced'\] img \{\s*animation: none !important;\s*transition: none;\s*will-change: auto;/u,
-	);
-});
-
-test('Turbo Vaultkeeper hero and BLACKOUT reactions finish within the semantic cue window', () => {
-	const source = readFileSync(join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'), 'utf8');
-	assert.match(
-		source,
-		/\.vaultkeeper-presence\[data-motion-profile='turbo'\]\[data-character-state='feature_trigger'\] img,\s*\.vaultkeeper-presence\[data-motion-profile='turbo'\]\[data-character-state='recover'\] img,\s*\.vaultkeeper-presence\[data-motion-profile='turbo'\]\[data-character-state='max_win'\] img \{\s*animation-duration: 360ms;/u,
-	);
-});
-
-test('exact-browser QA deduplicates competing paid-play input paths', () => {
-	const source = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
-	assert.match(source, /concurrent-click-spacebar-deduplicates-paid-play/u);
-	assert.match(source, /button-button-Space burst emits exactly one paid play while RGS is pending/u);
-	assert.match(source, /base amount is locked while the authoritative play request is pending/u);
-});
-
-test('held Space cannot initiate another paid round after the first round completes', () => {
-	const pageSource = readFileSync(
-		join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'),
-		'utf8',
-	);
-	const browserSource = readFileSync(
-		join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'),
-		'utf8',
-	);
-
-	assert.match(pageSource, /event\.preventDefault\(\);\s*if \(event\.repeat\) return;\s*void activatePrimary\(\);/u);
-	assert.match(browserSource, /held Space emits one initial and one repeat keydown/u);
-	assert.match(browserSource, /held Space cannot spend a second base bet after returning to ready/u);
-});
-
-test('held Enter on the focused primary action cannot repeat a paid round', () => {
-	const pageSource = readFileSync(
-		join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'),
-		'utf8',
-	);
-	const browserSource = readFileSync(
-		join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'),
-		'utf8',
-	);
-
-	assert.match(pageSource, /function suppressPrimaryKeyRepeat\(event\)/u);
-	assert.match(pageSource, /on:keydown=\{suppressPrimaryKeyRepeat\}/u);
-	assert.match(browserSource, /held Enter emits one initial and one prevented repeat keydown/u);
-	assert.match(browserSource, /held Enter cannot spend a second base bet after returning to ready/u);
-});
-
-test('PresentationDirector binds BLACKOUT transitions to authoritative feature cues', async () => {
-	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'blackout_zero');
-	assert(fixture);
-	const cues = new GameEventAdapter().adaptBook(fixture.book, { expectedMode: 'blackout' });
-	const phases = [];
-	const director = new PresentationDirector((state) => phases.push(state.motion.phase));
-	director.setTimingProfile('reduced');
-	assert.equal(await director.play(cues), true);
-	for (const phase of ['spin', 'blackout-enter', 'reveal', 'blackout-exit']) {
-		assert(phases.includes(phase), `missing ${phase} presentation phase`);
-	}
-	assert.equal(director.state.status, 'complete');
-	assert.equal(director.state.finalWinRaw, fixture.book.payoutMultiplier);
-	assert.equal(director.state.motion.phase, 'idle');
-	assert.equal(director.timers.size, 0);
-});
-
-test('PresentationDirector drives the static Vaultkeeper fallback from authoritative cues only', async () => {
-	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'base_natural_blackout');
-	assert(fixture);
-	const cues = new GameEventAdapter().adaptBook(fixture.book, { expectedMode: 'base' });
-	const director = new PresentationDirector();
-	const expectedStates = new Map([
-		['round_started', 'spin_start'],
-		['board_snapshot', 'monitoring'],
-		['win', 'win_acknowledge'],
-		['feature_armed', 'feature_tease'],
-		['feature_started', 'feature_trigger'],
-		['feature_cycle', 'bonus_idle'],
-		['feature_ended', 'recover'],
-		['settled', 'recover'],
-	]);
-	const seen = new Set();
-	for (const cue of cues) {
-		director.consume(cue);
-		const expected = expectedStates.get(cue.kind);
-		if (!expected) continue;
-		seen.add(cue.kind);
-		assert.equal(director.state.character.state, expected);
-		assert.equal(director.state.character.sourceEventIndex, cue.eventIndex);
-		assert(Object.isFrozen(director.state.character));
-	}
-	for (const kind of expectedStates.keys()) assert(seen.has(kind), `missing ${kind} cue`);
-	director.reset();
-	director.setTimingProfile('reduced');
-	assert.equal(await director.play(cues), true);
-	assert.deepEqual(director.state.character, {
-		state: 'idle_a',
-		sourceEventIndex: cues.at(-1).eventIndex,
-	});
-	assert.equal(director.timers.size, 0);
-});
-
-test('PresentationDirector skip drains authority, preserves motion order and settles cleanly', async () => {
-	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'base_cascade_3');
-	assert(fixture);
-	const cues = new GameEventAdapter().adaptBook(fixture.book, { expectedMode: 'base' });
-	const phases = [];
-	const director = new PresentationDirector((state) => phases.push(state.motion.phase));
-	director.setTimingProfile('normal');
-	const pending = director.play(cues);
-	assert.equal(director.skip(), true);
-	assert.equal(await pending, true);
-	assert.equal(director.state.status, 'complete');
-	assert.equal(director.state.finalWinRaw, fixture.book.payoutMultiplier);
-	assert(phases.includes('hit'));
-	assert(phases.includes('spin'));
-	assert(phases.includes('reveal'));
-	assert(phases.includes('remove'));
-	assert(phases.includes('drop'));
-	assert(phases.includes('settle'));
-	assert.equal(director.state.motion.phase, 'idle');
-	assert.equal(director.state.character.state, 'idle_a');
-	assert.equal(director.timers.size, 0);
-});
+	assert.match

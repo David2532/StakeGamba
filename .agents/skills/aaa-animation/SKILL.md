@@ -32,6 +32,7 @@ Minimum clip contract:
 - `win_small`: <=0.8s restrained reaction.
 - `win_medium`: 0.8–1.4s.
 - `win_big`: 1.4–2.2s, may layer arm/head effects.
+- `loss_acknowledge`: <=0.45s restrained response to an authoritative zero outcome.
 - `feature_tease`: short alert/scan reaction.
 - `feature_trigger`: 1.0–2.0s transition into bonus context.
 - `bonus_idle`: distinct stance but compositional continuity.
