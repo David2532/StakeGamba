@@ -232,6 +232,7 @@ The transition must preserve:
 
 - current authoritative win display;
 - feature counter/state;
+- the `bonus_idle` character stance across every feature-phase board snapshot; Base `monitoring` resumes only after the feature exits;
 - skip/turbo path;
 - restore from mid-feature;
 - replay determinism.

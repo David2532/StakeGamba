@@ -179,7 +179,10 @@ export class PresentationDirector {
 					phase: event.phase,
 					featureCycle: event.feature_cycle,
 					motion: boardMotion,
-					character: characterState('monitoring', cue.eventIndex),
+					character: characterState(
+						event.phase === 'feature' ? 'bonus_idle' : 'monitoring',
+						cue.eventIndex,
+					),
 					notice: `Authoritative board ${event.tumble_index}`,
 				});
 				break;

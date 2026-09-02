@@ -4712,6 +4712,12 @@ async function runNetworkScenarios(browser, origin) {
 						willChange: character?.querySelector('img')
 							? getComputedStyle(character.querySelector('img')).willChange
 							: 'auto',
+						transform: character?.querySelector('img')
+							? getComputedStyle(character.querySelector('img')).transform
+							: 'none',
+						filter: character?.querySelector('img')
+							? getComputedStyle(character.querySelector('img')).filter
+							: 'none',
 						at: performance.now(),
 					});
 					captureBoard();
@@ -4768,6 +4774,12 @@ async function runNetworkScenarios(browser, origin) {
 				);
 				record.featureEntryScreenshot = await saveScreenshot(page, `${group}-feature-entry`);
 				await page.waitForFunction(
+					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'bonus_idle',
+					SELECTORS.vaultkeeper,
+					{ timeout: 10_000 },
+				);
+				record.bonusIdleScreenshot = await saveScreenshot(page, `${group}-bonus-idle`);
+				await page.waitForFunction(
 					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'bonus_win',
 					SELECTORS.vaultkeeper,
 					{ timeout: 10_000 },
@@ -4802,6 +4814,14 @@ async function runNetworkScenarios(browser, origin) {
 				const bonusWinElapsedMs = bonusWinStart && bonusWinEnd
 					? bonusWinEnd.at - bonusWinStart.at
 					: -1;
+				const featureTriggerIndex = characterTransitions.findIndex(({ state }) => state === 'feature_trigger');
+				const featureRecoverIndex = characterTransitions.findIndex(
+					({ state }, index) => index > featureTriggerIndex && state === 'recover',
+				);
+				const featureCharacterStates = featureTriggerIndex >= 0 && featureRecoverIndex > featureTriggerIndex
+					? characterTransitions.slice(featureTriggerIndex, featureRecoverIndex + 1)
+					: [];
+				const bonusIdleStates = featureCharacterStates.filter(({ state }) => state === 'bonus_idle');
 				check(group, 'live presentation visibly enters and exits BLACKOUT before returning idle',
 					orderedPhases,
 					serialize(observed.phases),
@@ -4809,6 +4829,17 @@ async function runNetworkScenarios(browser, origin) {
 				check(group, 'Vaultkeeper follows trigger, feature cycle, bonus win, recovery and idle states in order',
 					orderedCharacters,
 					serialize(observed.characters),
+				);
+				check(group, 'feature board snapshots preserve the Vaultkeeper bonus idle stance',
+					bonusIdleStates.length > 0 &&
+						featureCharacterStates.every(({ state }) => state !== 'monitoring') &&
+						bonusIdleStates.every((state) =>
+							state.profile === featureCase.timingProfile &&
+							state.animation === 'none' &&
+							state.willChange === 'auto' &&
+							state.transform !== 'none' &&
+							state.filter !== 'none'),
+					serialize({ featureCharacterStates, bonusIdleStates }),
 				);
 				const bonusWinCheck = featureCase.timingProfile === 'normal'
 					? 'normal feature win uses its complete bounded bonus-specific reaction'

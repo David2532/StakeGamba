@@ -1020,6 +1020,22 @@ test('PresentationDirector binds BLACKOUT transitions to authoritative feature c
 	assert.equal(director.timers.size, 0);
 });
 
+test('PresentationDirector preserves the bonus idle stance across feature board snapshots', () => {
+	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'base_natural_blackout');
+	assert(fixture);
+	const cues = new GameEventAdapter().adaptBook(fixture.book, { expectedMode: 'base' });
+	const director = new PresentationDirector();
+	let featureBoards = 0;
+	for (const cue of cues) {
+		director.consume(cue);
+		if (cue.kind !== 'board_snapshot') continue;
+		const expectedState = cue.event.phase === 'feature' ? 'bonus_idle' : 'monitoring';
+		assert.equal(director.state.character.state, expectedState);
+		if (cue.event.phase === 'feature') featureBoards += 1;
+	}
+	assert(featureBoards > 0, 'fixture must contain feature board snapshots');
+});
+
 test('PresentationDirector drives the static Vaultkeeper fallback from authoritative cues only', async () => {
 	const fixture = GENERATED_FIXTURES.find(({ id }) => id === 'base_natural_blackout');
 	assert(fixture);
@@ -1039,6 +1055,8 @@ test('PresentationDirector drives the static Vaultkeeper fallback from authorita
 		director.consume(cue);
 		const expected = cue.kind === 'win'
 			? cue.event.phase === 'feature' ? 'bonus_win' : selectBaseWinReaction(cue.event.step_payout_raw)
+			: cue.kind === 'board_snapshot'
+				? cue.event.phase === 'feature' ? 'bonus_idle' : 'monitoring'
 			: expectedStates.get(cue.kind);
 		if (!expected) continue;
 		seen.add(cue.kind === 'win' ? `${cue.kind}:${cue.event.phase}` : cue.kind);
