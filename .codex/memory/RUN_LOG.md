@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260902-32 — SUCCESS
+
+- Sprint day: 4
+- Base commit: `a060b9c3d62c7b74498780dbaf84fb15bd55a06a`
+- Verified implementation commit: `4b7fd363d5a9bf641958869c6f7cab669805adeb`
+- Work item: `BSB-CASCADE-PHASE-TIMING-EVIDENCE-001` (DONE; parent `BSB-MOTION-001` remains in progress)
+- Selection reason: deterministic cascade QA proved phase order and broad pacing but did not bind hit/remove/drop/settle to their computed Normal/Turbo CSS durations and observed presentation windows.
+- Before/after evidence: the focused contract began 0 PASS / 1 expected FAIL because exact-browser QA lacked both profile-owned phase-window checks. Exact Chromium now measures Turbo hit/remove/drop/settle at 124.5/56.9/104.3/40.2ms against 110/55/105/35ms CSS and Normal at 312.6/152.1/249.4/92.3ms against 280/150/250/90ms CSS. Both profiles retain 16.8ms p95, zero samples above 50ms, three exact 1,000,000-micro-unit Base requests and zero checkpoint/event/settlement writes.
+- Changed files: exact Chromium cascade instrumentation, static exact-browser regression and five sprint-memory files; runtime UI, math, assets, lockfile and dependencies unchanged.
+- Gates: expected-red focused contract 0 PASS / 1 FAIL; syntax plus focused contract 1/1 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 139/139 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; local and exact identity-bound package generation/readback PASS; exact 51-row resolver PASS; exact Chromium 81/81 scenarios and 2265/2265 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was unavailable and the local resolver required browser evidence, so exact isolated CI supplies those proofs.
+- Visual review: the exact 1366x768 cascade-hit frame plus 1920x1080, 390x844 and 844x390 captures from artifact `9832809110` were inspected. Board phases, controls, centered values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `6251b00d46bbb73121d3bbc99ae07e6a195eaf71cd60867c9038c0f87372fc36`, 10 files / 700,597 bytes, exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept computed CSS, semantic phase ownership and observed transition windows in the same proof. Obsolete/missing package arguments and one redundant math pass were corrected without being counted twice; no unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33593132383`, artifact `9832809110` and digest `sha256:26144af161e644ad249eb10b3fdd64916ad9dfabbd71c5eb6f6ce98b0ef6b24f` succeeded.
+- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
+
 ## BS-20260902-31 — SUCCESS
 
 - Sprint day: 4
@@ -324,20 +341,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33489360248`, artifact `9793569525` and digest `sha256:3d39b93011160658e39d60f2fa197778f9e50a7a298bbbfcf4d4cf6d7f09d28c` succeeded.
 - Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup and final audio/listening/device QA remain open.
 - Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; revisit mid-feature restore only with event-triggered instrumentation.
-
-## BS-20260901-12 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `80884debe87dbc53eb844a9863b4efada7683a26`
-- Verified implementation commit: `1ddeb5d3932d64443c5838c4766f541872b5a6ff`
-- Work item: `BSB-CHARACTER-LAYER-001` (DONE; parent `BSB-MOTION-001` remains in progress)
-- Selection reason: the Vaultkeeper image permanently reserved `transform, filter` compositing in Idle, Monitoring, Bonus Idle and Reduced Motion even though no authored reaction was active.
-- Before/after evidence: the persistent idle hint changes from `transform, filter` to `auto`; active `spin_start`, `win_acknowledge` and `recover` retain `transform, filter`, while monitoring, idle and skip completion return to `auto`. This closes a bounded compositor-lifecycle defect without claiming measured device memory savings.
-- Changed files: route motion CSS, Chromium character-state audit, contract regression and five sprint-memory files; pixels/layout, math, RGS/wallet behavior, assets, lockfile and dependencies unchanged.
-- Gates: syntax PASS; focused contracts/mobile 29/29 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 124/124 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 71/71 scenarios and 1855/1855 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies browser proof.
-- Visual review: exact active cascade, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9792318087` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024 and the orientation round trip. Board, controls and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device sign-off remains open.
-- Package evidence: exact remote frontend tree `5760052f8dbbf842bf1eaadea42faffa720ddcc20077893fe33082d219d9c2ff`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Local browser absence was not retried, and no unchanged semantic failure occurred.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33486188541`, artifact `9792318087` and digest `sha256:64bc591ef7bc85ca53db477c6c614fa65e363bb2353fd2253ffd30be2251323b` succeeded.
-- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup and final audio/listening/device QA remain open.
-- Next candidate: add the next safe authored-motion or foreground-layer evidence slice when approved inputs exist; otherwise continue a distinct automatable Day-3/4 provider or accessibility gap.

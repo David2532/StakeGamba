@@ -1,5 +1,69 @@
 # Rolling automation metrics
 
+## BS-20260902-32
+
+```yaml
+closed_at_utc: 2026-09-02T05:24:40Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_REPRODUCED, missing_contract: normal_and_turbo_cascade_phase_windows }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 1, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 139
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_status: PASS
+local_package_generation: PASS
+local_package_verification: PASS
+local_compliance_resolver: BLOCKED_BROWSER_EVIDENCE_REQUIRED_EXACT_CI_USED
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 139
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 6251b00d46bbb73121d3bbc99ae07e6a195eaf71cd60867c9038c0f87372fc36
+exact_frontend_files: 10
+exact_frontend_bytes: 700597
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+verified_ci_run: 33593132383
+verified_ci_status: PASS
+verified_ci_seconds: null
+remote_browser: { scenarios: 81, checks_pass: 2265, checks_fail: 0, unexpected_failures: 0 }
+cascade_phase_timing:
+  turbo: { css_ms: [110, 55, 105, 35], observed_ms: [124.5, 56.9, 104.3, 40.2], p95_frame_ms: 16.8, max_frame_ms: 33.3, over_50_ms: 0 }
+  normal: { css_ms: [280, 150, 250, 90], observed_ms: [312.6, 152.1, 249.4, 92.3], p95_frame_ms: 16.8, max_frame_ms: 16.8, over_50_ms: 0 }
+  paid_base_plays: 3
+  checkpoint_event_settlement_writes: 0
+remote_expected_negative_console_errors: 6
+remote_page_errors: 0
+remote_failed_requests: 0
+remote_diagnostics_artifact: 9832809110
+remote_diagnostics_digest: sha256:26144af161e644ad249eb10b3fdd64916ad9dfabbd71c5eb6f6ce98b0ef6b24f
+remote_implementation_commit: 4b7fd363d5a9bf641958869c6f7cab669805adeb
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused syntax/contract regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; isolated package generation/readback; diff/secret/debug/scope review; connected Git-data fast-forward; one exact Actions run, artifact evidence parsing and four screenshot inspections. The repository AAA-animation skill required phase-owned duration semantics, direct computed-style/timestamp proof and normal/turbo frame-pacing evidence. One obsolete package invocation and one resolver invocation without its required browser argument were corrected with explicit arguments; a redundant math generation/verification pair was not counted as additional release evidence, and generated manifest churn was restored exactly. No subagents, dependencies, binary product assets or unchanged semantic failure retries were used; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260902-31
 
 ```yaml
