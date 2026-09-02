@@ -13,8 +13,11 @@ import { createZstdDecompress } from 'node:zlib';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { verifyBlacksiteFrontendHygiene } from './blacksite-frontend-hygiene.mjs';
+
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDirectory, '..');
+const assetManifestSource = join(repoRoot, 'apps', 'blacksite', 'art', 'asset-manifest.json');
 const mathLibrary = join(repoRoot, 'math', 'games', 'blacksite_breach', 'library');
 const expectedModes = Object.freeze([
 	{ name: 'base', cost: 1, events: 'base_books.jsonl.zst', weights: 'base_lookup.csv' },
@@ -216,6 +219,17 @@ async function main() {
 	const mathManifest = createFileManifest(mathRoot);
 	assertManifestEqual(frontendManifest, manifest.packages?.frontend, 'Frontend');
 	assertManifestEqual(mathManifest, manifest.packages?.math, 'Math');
+	const frontendHygiene = verifyBlacksiteFrontendHygiene(
+		frontendRoot,
+		readJson(assetManifestSource),
+	);
+	if (
+		JSON.stringify(manifest.frontendEvidence?.assetManifest) !==
+			JSON.stringify(fileFact(assetManifestSource)) ||
+		JSON.stringify(manifest.frontendEvidence?.hygiene) !== JSON.stringify(frontendHygiene)
+	) {
+		fail('Frontend hygiene evidence does not match the exact package and asset manifest');
+	}
 
 	const frontendTopLevel = readdirSync(frontendRoot).sort();
 	if (JSON.stringify(frontendTopLevel) !== JSON.stringify(['_app', 'assets', 'index.html'])) {
@@ -315,6 +329,7 @@ async function main() {
 		gitSha: manifest.git.sha,
 		candidateRoot,
 		frontend: frontendManifest,
+		frontendHygiene,
 		math: mathManifest,
 		modeResults,
 		claims: {
@@ -336,6 +351,7 @@ async function main() {
 				result: verification.result,
 				gitSha: verification.gitSha,
 				frontendTreeSha256: frontendManifest.treeSha256,
+				frontendHygiene,
 				mathTreeSha256: mathManifest.treeSha256,
 				modeResults,
 			},

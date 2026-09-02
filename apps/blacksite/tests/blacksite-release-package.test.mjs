@@ -25,6 +25,7 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 	assert.match(packageScript, /validateFrontendBuildIdentity\(gitSha, gitTreeSha, gitStatusBefore === ''\)/u);
 	assert.match(packageScript, /blacksite-frontend-build-identity-v1/u);
 	assert.match(buildScript, /rmSync\(buildRoot, \{ recursive: true, force: true \}\)/u);
+	assert.match(buildScript, /pruneBlacksiteInlineBuildResidue\(buildRoot\)/u);
 	assert.match(buildScript, /blacksite-build-identity\.json/u);
 	assert.match(buildScript, /gitText\(\['rev-parse', 'HEAD\^\{tree\}'\]\)/u);
 	assert.equal(packageJson.scripts.build, 'node scripts/build-production.mjs');
@@ -34,6 +35,10 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 		/final production assets, animation and audio are not present/u,
 	);
 	assert.match(verifyScript, /JSON\.stringify\(\['_app', 'assets', 'index\.html'\]\)/u);
+	assert.match(verifyScript, /verifyBlacksiteFrontendHygiene/u);
+	assert.match(verifyScript, /manifest\.frontendEvidence\?\.hygiene/u);
+	assert.match(packageScript, /frontendEvidence: \{/u);
+	assert.match(packageScript, /assetManifest: fileFact\(assetManifestSource\)/u);
 
 	const packageStep = workflow.indexOf('Generate and verify isolated BlackSite package');
 	const browserStep = workflow.indexOf('Test exact extracted frontend in Chromium');

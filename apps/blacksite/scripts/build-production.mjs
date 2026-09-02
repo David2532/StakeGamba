@@ -3,6 +3,8 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { pruneBlacksiteInlineBuildResidue } from '../../../scripts/blacksite-frontend-hygiene.mjs';
+
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const appRoot = resolve(scriptDirectory, '..');
 const repoRoot = resolve(appRoot, '..', '..');
@@ -31,6 +33,11 @@ execFileSync(pnpmCommand, ['exec', 'vite', 'build'], {
 if (!existsSync(join(buildRoot, 'index.html'))) {
 	throw new Error('BLACKSITE production build did not create build/index.html');
 }
+
+const pruned = pruneBlacksiteInlineBuildResidue(buildRoot);
+process.stdout.write(
+	`BLACKSITE inline package pruned ${pruned.removedFiles} unreachable files / ${pruned.removedBytes} bytes\n`,
+);
 
 const identityRoot = join(buildRoot, '_app');
 mkdirSync(identityRoot, { recursive: true });

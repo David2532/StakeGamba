@@ -12,6 +12,8 @@ import {
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { verifyBlacksiteFrontendHygiene } from './blacksite-frontend-hygiene.mjs';
+
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDirectory, '..');
 const frontendSource = join(repoRoot, 'apps', 'blacksite', 'build');
@@ -20,6 +22,7 @@ const frontendBuildIdentitySource = join(
 	'_app',
 	'blacksite-build-identity.json',
 );
+const assetManifestSource = join(repoRoot, 'apps', 'blacksite', 'art', 'asset-manifest.json');
 const mathLibrary = join(repoRoot, 'math', 'games', 'blacksite_breach', 'library');
 const mathIndexSource = join(mathLibrary, 'publish_files', 'index.json');
 const mathConfigSource = join(mathLibrary, 'configs', 'game_config.json');
@@ -324,6 +327,10 @@ function main() {
 		gameConfig,
 	);
 	const frontendSourceManifest = createFileManifest(frontendSource);
+	const frontendHygiene = verifyBlacksiteFrontendHygiene(
+		frontendSource,
+		readJson(assetManifestSource),
+	);
 	if (frontendSourceManifest.treeSha256 !== expectedFrontendTreeSha256) {
 		fail(
 			`Frontend build tree ${frontendSourceManifest.treeSha256} does not match --expected-frontend-tree ${expectedFrontendTreeSha256}`,
@@ -396,6 +403,10 @@ function main() {
 				note: 'Evidence only; official minimal math upload folder contains index.json plus referenced CSV/ZST files.',
 			},
 			uploadPayloadFiles: mathCandidateManifest.upload_payload_files,
+		},
+		frontendEvidence: {
+			assetManifest: fileFact(assetManifestSource),
+			hygiene: frontendHygiene,
 		},
 		packages: {
 			frontend: frontendPackage,
