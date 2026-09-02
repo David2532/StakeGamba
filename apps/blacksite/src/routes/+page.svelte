@@ -855,7 +855,7 @@
 <main class="app-shell" data-launch-kind={launch.kind} data-testid="player-hud">
 	<header class="masthead" inert={modalOpen} aria-hidden={modalOpen ? 'true' : undefined}>
 		<div class="identity">
-			<span class="eyebrow">ARMORED ACCESS FACILITY</span>
+			<span class="eyebrow" data-testid="facility-kicker">ARMORED ACCESS FACILITY</span>
 			<h1>BLACKSITE <span>// BREACH</span></h1>
 		</div>
 		<div class="masthead-actions">
@@ -1022,8 +1022,8 @@
 					on:error={handleEnvironmentAssetError}
 				/>
 			</picture>
-			<div class="stage-heading">
-				<div>
+			<div class="stage-heading" data-testid="stage-heading">
+				<div data-testid="stage-heading-copy">
 					<span>GHOST ROUTE // VAULT GRID</span>
 					<strong
 						data-testid="board-status"
@@ -1032,7 +1032,9 @@
 						aria-atomic="true">{boardStatus}</strong
 					>
 				</div>
-				<div class="phase-chip">{getModeLabel(selectedMode.id, social)}</div>
+				<div class="phase-chip" data-testid="mode-phase-chip">
+					{getModeLabel(selectedMode.id, social)}
+				</div>
 			</div>
 
 			<div
@@ -1970,10 +1972,11 @@
 	}
 
 	.stage-heading {
-		display: flex;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
 		align-items: center;
-		justify-content: space-between;
 		gap: 12px;
+		min-width: 0;
 	}
 
 	.stage-heading > div:first-child {
@@ -1990,12 +1993,17 @@
 	}
 
 	.phase-chip {
-		flex: 0 0 auto;
+		min-width: 0;
+		max-width: min(42%, 180px);
 		padding: 5px 9px;
+		overflow: hidden;
 		border: 1px solid #506d73;
+		background: rgba(5, 15, 19, 0.86);
 		color: #9eb3b7;
 		font-size: 9px;
 		letter-spacing: 0.12em;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.board-frame {

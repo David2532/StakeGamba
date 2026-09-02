@@ -28,6 +28,26 @@ test('browser QA covers required desktop and mobile alignment plus focus evidenc
 	assert.match(source, /Math\.abs\(boardRatio - 1\) <= 0\.002/u);
 });
 
+test('active feature mode badge owns a collision-free responsive heading contract', async () => {
+	const pageSource = await readFile(pageUrl, 'utf8');
+	const browserSource = await readFile(browserQaUrl, 'utf8');
+	assert.match(pageSource, /data-testid="facility-kicker"/u);
+	assert.match(pageSource, /data-testid="stage-heading"/u);
+	assert.match(pageSource, /data-testid="stage-heading-copy"/u);
+	assert.match(pageSource, /data-testid="mode-phase-chip"/u);
+	assert.match(
+		pageSource,
+		/\.stage-heading \{[\s\S]*?display: grid;[\s\S]*?grid-template-columns: minmax\(0, 1fr\) auto;[\s\S]*?min-width: 0;/u,
+	);
+	assert.match(
+		pageSource,
+		/\.phase-chip \{[\s\S]*?min-width: 0;[\s\S]*?max-width: min\(42%, 180px\);[\s\S]*?overflow: hidden;[\s\S]*?text-overflow: ellipsis;[\s\S]*?white-space: nowrap;/u,
+	);
+	assert.match(browserSource, /active feature badge does not collide with heading or facility kicker/u);
+	assert.match(browserSource, /active feature badge remains inside its stage heading/u);
+	assert.match(browserSource, /geometry-\$\{viewport\.name\}-deep-access/u);
+});
+
 test('compact motion and info actions retain independent 44px columns', async () => {
 	const source = await readFile(pageUrl, 'utf8');
 	assert.match(

@@ -78,6 +78,10 @@ const SELECTORS = Object.freeze({
 	totalPlay: '[data-testid="total-play"]',
 	finalWin: '[data-testid="final-win"]',
 	boardStatus: '[data-testid="board-status"]',
+	facilityKicker: '[data-testid="facility-kicker"]',
+	stageHeading: '[data-testid="stage-heading"]',
+	stageHeadingCopy: '[data-testid="stage-heading-copy"]',
+	modePhaseChip: '[data-testid="mode-phase-chip"]',
 	sessionNetPosition: '[data-testid="session-net-position"]',
 	sessionTimer: '[data-testid="session-timer"]',
 });
@@ -6626,6 +6630,15 @@ async function geometryAudit(page) {
 			bounds.top >= -0.5 &&
 			bounds.right <= innerWidth + 0.5 &&
 			bounds.bottom <= innerHeight + 0.5;
+		const overlaps = (left, right) =>
+			Boolean(
+				left &&
+					right &&
+					left.left < right.right - 0.5 &&
+					left.right > right.left + 0.5 &&
+					left.top < right.bottom - 0.5 &&
+					left.bottom > right.top + 0.5,
+			);
 		const actionSelectors = [
 			selectors.primaryAction,
 			selectors.motionMode,
@@ -6665,6 +6678,10 @@ async function geometryAudit(page) {
 		const playerHud = document.querySelector(selectors.playerHud);
 		const launchStatus = document.querySelector(selectors.launchStatus);
 		const boardStatus = document.querySelector(selectors.boardStatus);
+		const facilityKicker = document.querySelector(selectors.facilityKicker);
+		const stageHeading = document.querySelector(selectors.stageHeading);
+		const stageHeadingCopy = document.querySelector(selectors.stageHeadingCopy);
+		const modePhaseChip = document.querySelector(selectors.modePhaseChip);
 		const vaultkeeper = document.querySelector('[data-testid="vaultkeeper-presence"]');
 		const vaultkeeperImage = vaultkeeper?.querySelector('img') ?? null;
 		const environment = document.querySelector('[data-testid="vault-environment"]');
@@ -6675,6 +6692,10 @@ async function geometryAudit(page) {
 		const focusedElement = document.activeElement;
 		const focusedStyle = focusedElement ? getComputedStyle(focusedElement) : null;
 		const meterCells = [...document.querySelectorAll('.meter-row > div')];
+		const facilityKickerBounds = rect(facilityKicker);
+		const stageHeadingBounds = rect(stageHeading);
+		const stageHeadingCopyBounds = rect(stageHeadingCopy);
+		const modePhaseChipBounds = rect(modePhaseChip);
 		const visibleText = document.body.innerText.toLowerCase();
 		const forbiddenVisibleCopy = [
 			'blacksite-book-events-v1',
@@ -6735,6 +6756,41 @@ async function geometryAudit(page) {
 				launchStatusVisible: isVisible(launchStatus),
 				boardStatusVisible: isVisible(boardStatus),
 				forbiddenVisibleCopy,
+			},
+			featureModeBadge: {
+				selected:
+					document.querySelector(selectors.modeDeepAccess)?.getAttribute('aria-pressed') === 'true',
+				label: modePhaseChip?.textContent?.trim() ?? null,
+				facilityKicker: {
+					visible: isVisible(facilityKicker),
+					bounds: facilityKickerBounds,
+				},
+				stageHeading: {
+					visible: isVisible(stageHeading),
+					bounds: stageHeadingBounds,
+				},
+				stageHeadingCopy: {
+					visible: isVisible(stageHeadingCopy),
+					bounds: stageHeadingCopyBounds,
+				},
+				chip: {
+					visible: isVisible(modePhaseChip),
+					bounds: modePhaseChipBounds,
+					insideStage:
+						Boolean(modePhaseChipBounds && stageHeadingBounds) &&
+						modePhaseChipBounds.left >= stageHeadingBounds.left - 0.5 &&
+						modePhaseChipBounds.right <= stageHeadingBounds.right + 0.5 &&
+						modePhaseChipBounds.top >= stageHeadingBounds.top - 0.5 &&
+						modePhaseChipBounds.bottom <= stageHeadingBounds.bottom + 0.5,
+					gapFromCopy:
+						modePhaseChipBounds && stageHeadingCopyBounds
+							? modePhaseChipBounds.left - stageHeadingCopyBounds.right
+							: null,
+				},
+				collisions: {
+					facilityKicker: overlaps(modePhaseChipBounds, facilityKickerBounds),
+					stageHeadingCopy: overlaps(modePhaseChipBounds, stageHeadingCopyBounds),
+				},
 			},
 			vaultkeeper: {
 				exists: Boolean(vaultkeeper),
@@ -6894,6 +6950,41 @@ function assertGeometryRecord(group, audit, viewport) {
 		check(group, `${action.selector} is at least 44x44 CSS pixels`, Boolean(action.bounds && action.bounds.width >= 44 && action.bounds.height >= 44), serialize(action.bounds));
 		check(group, `${action.selector} center is physically hittable`, action.centerHit, serialize(action));
 	}
+}
+
+function assertFeatureModeBadgeGeometry(group, audit, viewport) {
+	const badge = audit.featureModeBadge;
+	const compact = viewport.width <= 480 || viewport.height <= 560;
+	check(
+		group,
+		'active feature badge reports the exact selected Deep Access mode',
+		badge.selected && badge.label === 'DEEP ACCESS',
+		serialize(badge),
+	);
+	check(
+		group,
+		`active feature badge is ${compact ? 'compact-hidden' : 'visible'}`,
+		badge.stageHeading.visible && badge.chip.visible === !compact,
+		serialize(badge),
+	);
+	check(
+		group,
+		'active feature badge does not collide with heading or facility kicker',
+		!badge.collisions.stageHeadingCopy && !badge.collisions.facilityKicker,
+		serialize(badge),
+	);
+	check(
+		group,
+		'active feature badge remains inside its stage heading',
+		compact || badge.chip.insideStage,
+		serialize(badge),
+	);
+	check(
+		group,
+		'active feature badge preserves the authored heading gap',
+		compact || !badge.stageHeadingCopy.visible || badge.chip.gapFromCopy >= 11.5,
+		serialize(badge),
+	);
 }
 
 async function runGeometryScenarios(browser, origin) {
@@ -7058,9 +7149,28 @@ async function runGeometryScenarios(browser, origin) {
 				audit.screenshot = await saveScreenshot(page, `geometry-${viewport.name}`);
 				evidence.geometry.push(audit);
 				assertGeometryRecord(`geometry-${viewport.name}`, audit, viewport);
+				await page.locator(SELECTORS.modeDeepAccess).click();
+				await page.waitForFunction(
+					(selector) => document.querySelector(selector)?.getAttribute('aria-pressed') === 'true',
+					SELECTORS.modeDeepAccess,
+				);
+				const featureAudit = await geometryAudit(page);
+				featureAudit.name = `${viewport.name}-deep-access`;
+				featureAudit.surface = 'live-active-feature-mode';
+				featureAudit.screenshot = await saveScreenshot(
+					page,
+					`geometry-${viewport.name}-deep-access`,
+				);
+				evidence.geometry.push(featureAudit);
+				assertFeatureModeBadgeGeometry(
+					`geometry-${viewport.name}-deep-access`,
+					featureAudit,
+					viewport,
+				);
 				assertCleanNetwork(`geometry-${viewport.name}`, network);
 				assertCleanDiagnostics(`geometry-${viewport.name}`, diagnostics);
 				record.screenshot = audit.screenshot;
+				record.featureModeScreenshot = featureAudit.screenshot;
 				record.network = network;
 				record.diagnostics = diagnostics;
 			} finally {
