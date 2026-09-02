@@ -3823,11 +3823,12 @@ async function runNetworkScenarios(browser, origin) {
 					window.__blacksiteFeatureTeaseTimeline = [];
 					window.__blacksiteFeatureTeaseObserver?.disconnect();
 					const board = document.querySelector(boardSelector);
+					const boardFrame = board?.closest('.board-frame');
 					const character = document.querySelector(characterSelector);
 					const capture = () => {
 						const image = character?.querySelector('img');
 						const characterStyle = image ? getComputedStyle(image) : null;
-						const lockStyle = board ? getComputedStyle(board, '::before') : null;
+						const lockStyle = boardFrame ? getComputedStyle(boardFrame, '::before') : null;
 						window.__blacksiteFeatureTeaseTimeline.push({
 							state: character?.getAttribute('data-character-state'),
 							profile: character?.getAttribute('data-motion-profile'),
