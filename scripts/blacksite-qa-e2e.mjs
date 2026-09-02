@@ -6277,14 +6277,14 @@ async function runNetworkScenarios(browser, origin) {
 			const turboHit = await measureHitWindow();
 			check(
 				group,
-				'normal Replay hit remains visible for its authored timing profile',
-				normalHit.durationMs >= 275 && normalHit.durationMs <= 420,
+				'normal Replay Base Small hit remains visible for its authored tier timing',
+				normalHit.durationMs >= 400 && normalHit.durationMs <= 600,
 				serialize(normalHit),
 			);
 			check(
 				group,
-				'turbo Replay hit remains visible for its authored timing profile',
-				turboHit.durationMs >= 105 && turboHit.durationMs <= 180,
+				'turbo Replay Base Small hit remains visible for its authored tier timing',
+				turboHit.durationMs >= 120 && turboHit.durationMs <= 260,
 				serialize(turboHit),
 			);
 			check(

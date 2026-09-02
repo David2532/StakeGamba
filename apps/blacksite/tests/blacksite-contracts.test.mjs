@@ -885,8 +885,10 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /normal board reveal retains every staggered cell through its authored window/u);
 	assert.match(source, /turbo board reveal retains every staggered cell through its authored window/u);
 	assert.match(source, /replay-hit-timing-normal-and-turbo/u);
-	assert.match(source, /normal Replay hit remains visible for its authored timing profile/u);
-	assert.match(source, /turbo Replay hit remains visible for its authored timing profile/u);
+	assert.match(source, /normal Replay Base Small hit remains visible for its authored tier timing/u);
+	assert.match(source, /normalHit\.durationMs >= 400 && normalHit\.durationMs <= 600/u);
+	assert.match(source, /turbo Replay Base Small hit remains visible for its authored tier timing/u);
+	assert.match(source, /turboHit\.durationMs >= 120 && turboHit\.durationMs <= 260/u);
 	assert.match(
 		source,
 		/reduced-motion profile disables Vaultkeeper animation, transitions and compositor hints/u,
