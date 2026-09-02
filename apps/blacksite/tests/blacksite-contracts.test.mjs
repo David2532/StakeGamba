@@ -814,6 +814,7 @@ test('PresentationDirector maps authoritative base wins to bounded Small, Medium
 	assert.equal(selectBaseWinReaction(199), 'win_medium');
 	assert.equal(selectBaseWinReaction(200), 'win_big');
 	assert.throws(() => selectBaseWinReaction(-1), /non-negative safe integer/u);
+	assert.throws(() => selectBaseWinReaction(100.5), /non-negative safe integer/u);
 });
 
 test('PresentationDirector uses a bounded loss acknowledgement only for authoritative zero outcomes', async () => {
