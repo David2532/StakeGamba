@@ -1,5 +1,70 @@
 # Rolling automation metrics
 
+## BS-20260902-36
+
+```yaml
+closed_at_utc: 2026-09-02T09:23:14Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 3, status: EXPECTED_FAIL_REPRODUCED, missing_contract: authoritative-zero-loss-acknowledgement }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 4, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 140
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_package_generation: NOT_RUN_EXACT_CI_USED
+local_package_verification: NOT_RUN_EXACT_CI_USED
+local_compliance_resolver: NOT_RUN_EXACT_CI_USED
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 140
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: dcc1085621543388b16b7216435e122566a41ff42db7831c855f191617e3518f
+exact_frontend_files: 10
+exact_frontend_bytes: 703191
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+verified_ci_run: 33612508384
+verified_ci_status: PASS
+verified_ci_seconds: 864
+remote_browser: { scenarios: 83, checks_pass: 2301, checks_fail: 0, unexpected_failures: 0 }
+loss_acknowledgement:
+  normal: { computed_animation_ms: 320, observed_semantic_ms: 318.7, next_state: idle_a, compositor_hint: auto }
+  turbo: { computed_animation_ms: 130, observed_semantic_ms: 129.4, next_state: idle_a, compositor_hint: auto }
+  paid_base_plays: 2
+  checkpoint_event_settlement_writes: 0
+remote_expected_negative_console_errors: 6
+remote_page_errors: 0
+remote_failed_requests: 0
+remote_diagnostics_artifact: 9840064467
+remote_diagnostics_digest: sha256:e453ad04b4d3e8298c224adfedef2366f83b5af230182e1ce8aa7c45a6adf782
+remote_implementation_commit: c52dec039c27ab78a359d89ace81c8ec3e7f6021
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused syntax/contract regression; one complete local frozen-install/lint/typecheck/test/build/math pass; connected Git-data fast-forwards; exact Actions package/browser verification; artifact evidence parsing and five screenshot inspections. The AAA-animation skill kept semantic authority, bounded CSS timing, Normal/Turbo/Reduced profiles, wallet isolation and clean compositor teardown in one exact-package proof. Generated-manifest churn was restored exactly. Tree comparison caught base64 padding truncation before acceptance; the first exact browser run then exposed a capture-order race in the new Turbo proof, and the changed event-first capture path passed. No unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260902-35
 
 ```yaml

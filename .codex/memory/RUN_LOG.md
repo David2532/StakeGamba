@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260902-36 — SUCCESS
+
+- Sprint day: 4
+- Base commit: `e609d0a4d199ad67c89f4c5a093bb26d26dbff7b`
+- Verified implementation commit: `c52dec039c27ab78a359d89ace81c8ec3e7f6021`
+- Work item: `BSB-ZERO-WIN-CHARACTER-REACTION-001` (DONE; parent `BSB-MOTION-001` remains in progress)
+- Selection reason: authoritative zero outcomes reused `recover`, making an ordinary loss indistinguishable from the feature-recovery cinematic and leaving no dedicated bounded character acknowledgement despite a deterministic `base_zero` fixture.
+- Before/after evidence: the focused contract began 0 PASS / 3 expected FAIL because loss timing, semantic state and CSS were absent. Authoritative zero now enters `loss_acknowledge` for 320ms Normal / 130ms Turbo / 0ms Reduced; a preceding feature recovery is never duplicated. Exact Chromium observes 318.7ms / 129.4ms, then `idle_a` with `will-change: auto`, across two exact 1,000,000-micro-unit Base plays, `$0.00` outcomes and zero checkpoint/event/settlement writes.
+- Changed files: presentation timing director, Vaultkeeper state CSS, contract regression, exact Chromium QA, animation bible, AAA-animation skill and five sprint-memory files; math, wallet schema, product assets, lockfile and dependencies unchanged.
+- Gates: expected-red focused contract 0 PASS / 3 FAIL; syntax plus focused contract 4/4 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 140/140 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; exact identity-bound package generation/readback and 51-row resolver PASS; final exact Chromium 83/83 scenarios / 2301/2301 checks PASS. Unexpected network/page/request failures are 0; six expected negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was unavailable; exact isolated CI supplies current-package browser proof. One earlier exact run exposed a QA capture-order race and was superseded by the changed event-first capture path.
+- Visual review: exact 1366x768 Normal/Turbo loss-acknowledge frames plus 1920x1080, 390x844 and 844x390 captures from artifact `9840064467` were inspected. All 49 cells, board, controls, centered values and intended penguin/vault identity remain sharp and complete without overlap, document scroll, crop or broken images; automated geometry also passed 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `dcc1085621543388b16b7216435e122566a41ff42db7831c855f191617e3518f`, 10 files / 703,191 bytes, exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept semantic authority, authored timing, profile ownership, wallet isolation and cleanup in one proof. Tree identity caught and corrected one chunk-padding truncation; the first browser run localized a harness capture-order race, corrected by a changed path without an unchanged retry.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33612508384`, artifact `9840064467` and digest `sha256:e453ad04b4d3e8298c224adfedef2366f83b5af230182e1ce8aa7c45a6adf782` succeeded.
+- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
+
 ## BS-20260902-35 — SUCCESS
 
 - Sprint day: 4
@@ -322,22 +339,5 @@ Newest entries first; retain at most 20.
 - Package evidence: exact remote frontend tree `681990be8d236e27009cc154ddb95862fb7348c78f0d68b0e5d7953986557808`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Exact tree identity caught a tool-output-truncated QA blob before CI, and bounded chunk transfer restored the intended tree via normal fast-forward; no unchanged failure was repeated.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33506751334`, artifact `9800291335` and digest `sha256:1b77f02686fe713a7fed8a9b5d7b51010ef3d625770016f894081786bb5eae01` succeeded.
-- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; revisit mid-feature restore only with event-triggered instrumentation.
-
-## BS-20260901-16 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `4f87a3d8644aaa2380ab52be11b02948e92bcbb9`
-- Verified implementation commit: `ecbbfc50a6367efa80d6584223cf45038c105515`
-- Work item: `BSB-ENTER-REPEAT-001` (DONE)
-- Selection reason: request-layer in-flight deduplication covered only concurrent writes, and the global Space guard covered its shortcut, but the focused primary button had no explicit native Enter/Space repeat guard after a round returned to ready.
-- Before/after evidence: the regression was first reproduced as 23 PASS / 1 FAIL against the absent button guard. The primary action now preserves the initial native Enter/Space activation and prevents the default only for repeated Enter/Space keydowns. Exact Chromium holds Enter across one complete Base round, refocuses while still held, records initial Enter unprevented and repeat Enter prevented, returns to `live-ready`, and records exactly `authenticate → play` with no second play, checkpoint or settlement write.
-- Changed files: focused primary key handler, contract regression, exact-browser wallet scenario and five sprint-memory files; pixels/layout, math, RGS request schema, assets, lockfile and dependencies unchanged.
-- Gates: syntax PASS; focused contract regression 24/24 PASS after the expected-red reproduction; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 126/126 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 72/72 scenarios and 1871/1871 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run because no browser executable is installed; exact isolated CI supplies browser proof.
-- Visual review: exact held-Enter, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9799216714` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024 and the orientation round trip. Board, controls, values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device sign-off remains open.
-- Package evidence: exact remote frontend tree `284d7939a6929342d9167eddf4d7dbaf2736730608257984b3cbd2c400018331`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Targeted reads, one expected-red reproduction, one full local gate and one exact remote gate were used; no unchanged failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33503792855`, artifact `9799216714` and digest `sha256:4a2899ec4ea06af597fa32138acbd70e74583dba64b8bb2bc6f46b9ccf7eb1bb` succeeded.
 - Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; revisit mid-feature restore only with event-triggered instrumentation.
