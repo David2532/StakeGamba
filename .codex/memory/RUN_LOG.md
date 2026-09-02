@@ -1,5 +1,21 @@
 # Material run log
 
+## BS-20260902-39 — BLOCKED
+
+- Sprint day: 4
+- Base remote commit: `9868eddef4128d0701745177650842235ffb28d3`
+- Pending implementation commit: `b4211f6bab7009f56b9e507d95f8c3ea95e1788c`
+- Work item: `BSB-BASE-WIN-TIER-REACTIONS-001` (BLOCKED; parent `BSB-MOTION-001` remains in progress)
+- Selection reason: run 38 left exactly one independent evidence gap—current-head package/browser/visual proof for the already implemented Base Small/Medium/Big reactions.
+- Before/after evidence: before this run, only local app gates existed. The current product tree now also passes 7/7 math gates over 300,000 books and isolated package generation/readback. The package has 10 frontend files / 712,356 bytes with tree `5393337b…58e2e`; the unchanged math payload has 7 files / 48,697,667 bytes, tree `6bd0c4c7…01da` and fingerprint `d03fab…78d8`. GitHub still exposes no run/status for `b4211f6`.
+- Changed files: five sprint-memory files only; runtime, QA implementation, math, assets, lockfile and dependencies unchanged.
+- Gates: frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 141/141 PASS; production build PASS; math 7/7 and 300,000 books PASS; isolated package generation/readback PASS; QA-script syntax PASS; `git diff --check` plus secret/debug/scope/full-own-diff review PASS. The first package command correctly rejected a pre-created output root; the corrected non-existent child path passed. Browser and browser-bound 51-row resolver are BLOCKED/NOT_RUN.
+- Visual review: NOT_RUN for the pending source. The default Playwright download timed out at 30 seconds; one changed retry with 120-second tolerance received a truncated zero-byte archive and was stopped. No installed system browser or current-head artifact exists, and prior screenshots are not inherited.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill prevents closing a tier reaction without real-state screenshots. No dependency or asset churn occurred.
+- Persistence: source implementation remains accepted on remote commit `b4211f6`; this run records materially stronger local math/package evidence while keeping the exact-browser boundary explicit.
+- Residual risk: current-head Chromium timing/screenshots, wallet/network isolation and 51-row resolver; approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: resume this same item only when exact GitHub Actions or a valid local Chromium binary is available; otherwise choose a non-visual provider/accessibility slice without claiming this tier complete.
+
 ## BS-20260902-38 — BLOCKED
 
 - Sprint day: 4
@@ -323,20 +339,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33527487460`, artifact `9808902863` and digest `sha256:f754f0d68d07d07a69c1a93602fc9e13cddaa458a8ada8d5fa8ca81aee678399` succeeded.
 - Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct safe provider, accessibility or authored-motion gap that can close without unavailable human assets or physical-device approval.
-
-## BS-20260901-19 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `fe84c8a487698139c139b5b9224d51be2f0ac100`
-- Verified implementation commit: `21c0898c24fcfc96697a0bb698843e19a4860ee7`
-- Work item: `BSB-MID-FEATURE-RESTORE-001` (DONE; parent `BSB-EVIDENCE-001` remains in progress)
-- Selection reason: active-round reload/restore was the highest provider-evidence gap and prior polling attempts could not reliably observe its transient restore phase; repository memory required an event-triggered retry.
-- Before/after evidence: focused compliance began 9 PASS / 1 expected FAIL because no scenario existed. A pre-navigation MutationObserver now captures the primed 49-cell BREACH RUN at cursor 69 during `live-restoring`, before final-win disclosure. Exact Chromium sends one authenticate, zero plays, ordered cursors 70–84 exactly once, one end-round and reaches the exact $1000.00 win / $1999.00 balance ready shell.
-- Changed files: Chromium QA, 51-point evidence map, compliance regression and five sprint-memory files; runtime UI, math, assets, lockfile and dependencies unchanged.
-- Gates: focused syntax PASS and compliance 10/10 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 128/128 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 73/73 scenarios and 1952/1952 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was blocked by a transient browser-download 502/timeout; exact isolated CI supplies browser proof.
-- Visual review: exact 1366x768 restored-feature completion, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9804972383` were inspected. Board, values, controls and penguin/vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 360x740, 768x1024 and the orientation round trip. Physical-device sign-off remains open.
-- Package evidence: exact remote frontend tree `4cd782fc6517d0fe085fc6edeb3d2a48767a72a8f8a627f90c6ff4979215a715`, package verification PASS; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One connected-transfer truncation was restored from the exact local blob; one subsequent CI exposed DOM-root timing and directly informed the event-driven observer guard. The final exact-head run passed; no unchanged semantic failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33517845045`, artifact `9804972383` and digest `sha256:6eb8b67836593319715feb8e1748800912d18b323a7ec9b7166b9e2b6a93970e` succeeded.
-- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; prioritize gaps that can close without unavailable human assets or device approvals.

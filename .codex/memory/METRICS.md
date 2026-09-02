@@ -1,5 +1,52 @@
 # Rolling automation metrics
 
+## BS-20260902-39
+
+```yaml
+closed_at_utc: 2026-09-02T12:47:00Z
+sprint_day: 4
+status: BLOCKED
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-BASE-WIN-TIER-REACTIONS-001
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 141
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_package_generation: PASS
+local_package_verification: PASS
+local_frontend_tree: 5393337b99dc3469952dcf2168c850b065f22a7273ab14d5add0561f2a058e2e
+local_frontend_files: 10
+local_frontend_bytes: 712356
+local_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+local_math_files: 7
+local_math_bytes: 48697667
+local_compliance_resolver: BLOCKED_BROWSER_EVIDENCE_REQUIRED
+local_browser: BLOCKED_NO_EXECUTABLE
+browser_install_default_timeout: FAIL_TIMEOUT
+browser_install_extended_timeout: FAIL_TRUNCATED_ZERO_BYTE_ARCHIVE
+exact_ci_run: null
+exact_ci_status: NOT_CREATED_OR_NOT_DISCOVERABLE
+current_head_visual_review: NOT_RUN
+last_verified_ci_run: 33621532438
+last_verified_browser: { scenarios: 83, checks_pass: 2303, inherited_for_pending_source: false }
+remote_implementation_commit: b4211f6bab7009f56b9e507d95f8c3ea95e1788c
+source_tree_before_memory: 925381d404346dc01730ef6643379b0b3f6166ff
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/workflow/AAA-motion reads; GitHub branch, workflow and status inspection; one normal and one extended-timeout project-local Playwright installation attempt; one complete local frozen-install/lint/typecheck/test/build/math pass; one corrected isolated-package generation/readback after the package tool safely rejected a pre-created output root; focused syntax and full-own-diff review. The AAA-animation skill keeps browser screenshots mandatory, so static/package success did not promote the slice. No subagents, dependencies or product assets were added; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260902-38
 
 ```yaml
