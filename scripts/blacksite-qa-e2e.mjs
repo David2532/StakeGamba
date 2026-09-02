@@ -6384,9 +6384,9 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			check(
 				group,
-				'Replay timing profile switch keeps both presentations complete',
+				'Replay timing profile switch keeps all three presentations complete',
 				(await runtimeState(page)) === 'replay-completed' &&
-					(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) === 'turbo',
+					(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) === 'reduced',
 				serialize({
 					runtimeState: await runtimeState(page),
 					profile: await page.locator(SELECTORS.board).getAttribute('data-motion-profile'),

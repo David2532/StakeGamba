@@ -890,6 +890,7 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /normalHit\.durationMs >= 400 && normalHit\.durationMs <= 600/u);
 	assert.match(source, /turbo Replay Base Small hit remains visible for its authored tier timing/u);
 	assert.match(source, /turboHit\.durationMs >= 120 && turboHit\.durationMs <= 260/u);
+	assert.match(source, /Replay timing profile switch keeps all three presentations complete/u);
 	assert.match(source, /Reduced Motion completes Replay without presenting a motion frame/u);
 	assert.match(source, /reducedReplay\.elapsedMs <= 250/u);
 	assert.match(source, /Reduced Motion Replay settles in a compositor-free legal state/u);
