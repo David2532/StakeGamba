@@ -893,6 +893,7 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /turbo feature win uses its complete bounded bonus-specific reaction/u);
 	assert.match(source, /expectedBonusWinAnimationMs: 280/u);
 	assert.match(source, /expectedBonusWinAnimationMs: 110/u);
+	assert.match(source, /maximumBonusWinElapsedMs: 650/u);
 	assert.match(
 		source,
 		/reduced-motion profile disables Vaultkeeper animation, transitions and compositor hints/u,

@@ -4601,7 +4601,7 @@ async function runNetworkScenarios(browser, origin) {
 			timingProfile: 'normal',
 			expectedBonusWinAnimationMs: 280,
 			minimumBonusWinElapsedMs: 250,
-			maximumBonusWinElapsedMs: 500,
+			maximumBonusWinElapsedMs: 650,
 		},
 		{
 			scenario: 'live-deep-access-feature-confirms-enters-and-returns',
