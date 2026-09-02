@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260902-28 — SUCCESS
+
+- Sprint day: 4
+- Base commit: `5770b96a50c31986a364f726f582fc1388dd3ec1`
+- Verified implementation commit: `f364800c6f0e8d88f301cedddda2c35201dc688b`
+- Work item: `BSB-TURBO-SPIN-CUE-TIMING-001` (DONE; parent `BSB-MOTION-001` remains in progress)
+- Selection reason: Turbo advanced from visible `spin_start` to Monitoring after 60ms although the authored Vaultkeeper reaction lasts 110ms, cutting the character response about 50ms early and ending even before the 70ms board spin.
+- Before/after evidence: the expected-red regression measured 59.6ms. PresentationDirector now gives Turbo one bounded 110ms spin-start window; Normal remains 160ms, Reduced remains immediate and Skip retains timer ownership. Exact Chromium observes 111.7ms Turbo and 165.0ms Normal, authored animation durations 110/160ms, exact `$10000.00` payout authority, two plays and zero checkpoint/settlement writes.
+- Changed files: presentation timing director, contract/timer regression, exact Chromium timing scenario and five sprint-memory files; math, wallet schema, assets, lockfile and dependencies unchanged.
+- Gates: expected-red app suite 138 PASS / 1 FAIL; syntax plus focused motion 3/3 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 139/139 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 79/79 scenarios and 2235/2235 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not installed; exact isolated CI supplies current-package browser proof.
+- Visual review: exact 1366x768 Normal/Turbo Max-Win frames plus 1920x1080, 390x844 and 844x390 captures from artifact `9827144982` were inspected while the same exact browser timeline proves the spin-start windows. Gold board, Vaultkeeper/penguin, controls, values and vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `26c88728c3782e60d6926a438620a717ed4d9c25e0b3a3d62f871b69c42b8826`, 10 files / 700,492 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept authored timing, Skip ownership and Reduced Motion aligned. One no-op package filter, one over-specific state assertion and one connector-truncated blob each used a changed, verified path; no semantic failure was repeated unchanged.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33576342359`, artifact `9827144982` and digest `sha256:b1398c0ee2c9cb37348acac4c2101a9d77112bebb129ce8b42253dc09399d0a2` succeeded.
+- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
+
 ## BS-20260902-27 — SUCCESS
 
 - Sprint day: 4
@@ -322,22 +339,5 @@ Newest entries first; retain at most 20.
 - Package evidence: exact remote frontend tree `7e05b9f89ed9f587bbc726a892c18df77305a3349f178c933774593e2a2a0a8c`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Unavailable `gh`, unauthenticated CLI push and rejected destructive temp cleanup each used a changed safe alternative; no semantic failure was repeated unchanged.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33474573594`, artifact `9788005592` and digest `sha256:7622da346f1d4a0dabc1117f711793ccb649315e68854d1032f04284ece2a6ce` succeeded.
-- Residual risk: real screen-reader/device approval, deferred mid-feature restore evidence, 23 total manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
-- Next candidate: choose the next distinct safe Day-3 HUD/accessibility or provider-evidence gap; revisit mid-feature restore only with event-triggered instrumentation.
-
-## BS-20260901-08 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `dfdc5f26d5713fc3a46e2ff765fee75c7fb40eca`
-- Verified implementation commit: `5624b8cbc0f942ce12ea8fee4386407ba8205c46`
-- Work item: `BSB-GRID-A11Y-001` (DONE)
-- Selection reason: the visible board declared 49 `gridcell` nodes but the grid itself had no accessible name, explicit row ownership or programmatic row/column positions, leaving screen-reader topology under-specified despite strong visual geometry evidence.
-- Before/after evidence: the board now exposes one named 7x7 grid, seven owned and indexed rows, and 49 cells whose one-based indices agree with their visible coordinate labels. Exact browser geometry verifies this topology on eight surfaces while preserving a square 49-cell board.
-- Changed files: page board markup/CSS, accessibility regression, Chromium geometry audit and five sprint-memory files; math, RGS/wallet behavior, assets, lockfile and dependencies unchanged.
-- Gates: syntax PASS; focused accessibility/mobile 10/10 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 120/120 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 70/70 scenarios and 1843/1843 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies browser proof.
-- Visual review: exact 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9786812481` were inspected; 1366x768, 360x740, 768x1024 and orientation geometry also passed. Boards, values, controls and penguin/vault identity remain complete without overlap, scroll, crop or broken images. Real screen-reader and physical-device sign-off remain open.
-- Package evidence: exact remote frontend tree `991fe37fe7d6e62c8f18c8d7126b5af546f36cc10b5e6dc7c37f7937b03220bc`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One broad formatting check, one unauthenticated CLI push, one patch context mismatch and one rejected destructive temporary cleanup each used a changed safe path; no semantic failure was repeated unchanged.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33471069057`, artifact `9786812481` and digest `sha256:c711f87cec181dbbb70a45b4caf872fccb1ea81c7cf9ff4f3b0d63ce5e34563b` succeeded.
 - Residual risk: real screen-reader/device approval, deferred mid-feature restore evidence, 23 total manual gates, 6 external approvals, rights/Creative cleanup, approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA and real-device pacing remain open.
 - Next candidate: choose the next distinct safe Day-3 HUD/accessibility or provider-evidence gap; revisit mid-feature restore only with event-triggered instrumentation.
