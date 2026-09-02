@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260902-34 — SUCCESS
+
+- Sprint day: 4
+- Base commit: `511e701c89d886bae0197732c1e866d9743aac20`
+- Verified implementation commit: `c5ec4d8da38af8a7ca07710566b312de8e9f21e5`
+- Work item: `BSB-BOARD-REVEAL-TIMING-EVIDENCE-001` (DONE; parent `BSB-MOTION-001` remains in progress)
+- Selection reason: the authoritative reveal had source/CSS coverage, but exact-browser QA did not prove that its Normal/Turbo presentation window retained all 49 staggered cells until the final cell animation completed.
+- Before/after evidence: the focused contract began 0 PASS / 1 expected FAIL because the scenario and both profile checks were absent. Exact Chromium now measures Normal at 180ms animation with 0–156ms stagger and 359.8ms total reveal ownership, versus the final-cell 336ms boundary; Turbo measures 70ms with 0–54ms stagger and 128.4ms ownership, versus 124ms. Two exact 1,000,000-micro-unit Base requests finish at `$0.00` win / `$998.00` balance with zero checkpoint/event/settlement writes.
+- Changed files: exact Chromium reveal instrumentation, static exact-browser regression and five sprint-memory files; runtime UI, math, assets, lockfile and dependencies unchanged.
+- Gates: expected-red focused contract 0 PASS / 1 FAIL; syntax plus focused contract 1/1 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 139/139 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; exact identity-bound package generation/readback and 51-row resolver PASS; exact Chromium 83/83 scenarios / 2297/2297 checks PASS. Unexpected network/page/request failures are 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Exact isolated CI supplies current-package browser proof.
+- Visual review: exact 1366x768 Normal/Turbo reveal frames plus 1920x1080, 390x844 and 844x390 captures from artifact `9835693020` were inspected. All 49 cells, board, controls, centered values and penguin/vault identity remain sharp and complete without overlap, document scroll, crop or broken images; automated geometry also passed 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `287b6584ce872562fe0cddc1d67c1cf15024ee9fc71b7cd55d63926eebeedc7a`, 10 files / 700,609 bytes, exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept computed first/final-cell timing, stagger and observed phase ownership in one proof. Generated-manifest churn was restored exactly; connector argument names and one transient API approval were corrected through declared/authenticated paths without an unchanged semantic retry.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33601180214`, artifact `9835693020` and digest `sha256:4ae1fefbf906437f29257f578fbbbbb7a87d2d651d6f960a1539fbff64befac3` succeeded.
+- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
+
 ## BS-20260902-33 — SUCCESS
 
 - Sprint day: 4
@@ -322,22 +339,5 @@ Newest entries first; retain at most 20.
 - Package evidence: exact remote frontend tree `491c9771daa553e521dc227809aaddfccbed8b20d5d8874fc59f7f3e072fa7d0`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Official URL fetches returned 404, the unauthenticated CLI push used connected Git data, and exact tree identity caught/corrected one executable-mode omission before CI. No unchanged semantic failure was repeated.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33499016878`, artifact `9797392950` and digest `sha256:62e347affa51ec8a157d361c7f868be51207306b7e8105408b534cf76fe75988` succeeded.
-- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; revisit mid-feature restore only with event-triggered instrumentation.
-
-## BS-20260901-14 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `da2a95f30643b8476a8572c3e0f511a84ac8834e`
-- Verified implementation commit: `16f0f438306947e031bc2a670f30d8217eac92b2`
-- Work item: `BSB-AUDIO-MUTE-LIFECYCLE-001` (DONE; parent `BSB-AUDIO-001` remains in progress)
-- Selection reason: zero master gain silenced output but left the ambience oscillator and active Web Audio voices alive, contradicting the no-leak mute lifecycle required for release.
-- Before/after evidence: mute now stops/disconnects all owned voices, ambience oscillator and ambience gain, clears cooldowns and reports 0 voices/0 ambience. Exact Chromium proves LOW unmute recreates exactly one ambience, a second FULL → MUTE cycle returns to 0/0 without stacking, and muted reload remains locked at 0 ambience.
-- Changed files: AudioDirector lifecycle, audio unit regression, exact-browser audio scenario and five sprint-memory files; layout/pixels, math, RGS/wallet authority, assets, lockfile and dependencies unchanged.
-- Gates: syntax PASS; focused audio/contract/mobile 39/39 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 124/124 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 71/71 scenarios and 1858/1858 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies browser proof.
-- Visual review: exact muted-audio, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9795406701` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024 and the orientation round trip. Board, controls, values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device/listening sign-off remains open.
-- Package evidence: exact remote frontend tree `17d4348396c592ddaef1dc15fc0e928cf06745cf02a41ae0c83515f0aaa154e3`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One invalid fake-oscillator metric was replaced with lifecycle ownership/node assertions, and local ref sync used a safe fetch-first correction. No unchanged semantic failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33493907726`, artifact `9795406701` and digest `sha256:27ecbf55db79e64946da1053968c30568a21cbfe5228c99b9d58681517bdf280` succeeded.
 - Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; revisit mid-feature restore only with event-triggered instrumentation.
