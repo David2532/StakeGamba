@@ -2,6 +2,23 @@
 
 Newest entries first; retain at most 20.
 
+## BS-20260902-31 — SUCCESS
+
+- Sprint day: 4
+- Base commit: `8630156052c0177aa67796ead0cbfafc37485a74`
+- Verified implementation commit: `1858277da51c45fcfb831d5d7b3c5bd0f57db748`
+- Work item: `BSB-BLACKOUT-HERO-TIMING-EVIDENCE-001` (DONE; parent `BSB-MOTION-001` remains in progress)
+- Selection reason: BLACKOUT source/CSS timing and state order were covered, but current-package Chromium did not directly prove both Normal/Turbo trigger and recovery windows, exact paid request ownership and their visible frames.
+- Before/after evidence: focused compliance began 14 PASS / 1 expected FAIL because the 51-point evidence map lacked the deterministic timing scenario. Exact Chromium now runs `blackout_zero` twice and measures trigger/recovery at 1000.4/1026.9ms Normal and 359.7/365.8ms Turbo against 1000/360ms CSS. Two exact `mode:blackout` requests cost 1,000,000 micro-units each, end ready at exact `$0.00`, and issue no checkpoint, event or settlement writes.
+- Changed files: exact Chromium QA, checklist row-21 evidence binding, compliance regression and five sprint-memory files; runtime UI, math, assets, lockfile and dependencies unchanged.
+- Gates: expected-red compliance 14 PASS / 1 FAIL; syntax PASS; focused contracts/compliance 43/43 PASS and final compliance 15/15 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 139/139 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; exact identity-bound package generation/readback and 51-row resolver PASS; exact Chromium 81/81 scenarios and 2263/2263 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local package verification lost its tool session and local Chromium was unavailable, so exact isolated CI supplies those proofs.
+- Visual review: four exact 1366x768 BLACKOUT trigger/recovery frames plus 1920x1080, 390x844 and 844x390 captures from artifact `9831213913` were inspected. The gold lock/iris overlay, board, Vaultkeeper/penguin, controls, values and vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
+- Package evidence: exact remote frontend tree `6d639b1644b80c9644cc3f5df3219eb6462d76dfe969374ab55cf1ae41fb2d5f`, 10 files / 700,597 bytes, exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation and visual-QA skills kept authored durations, exact request ownership and all four hero frames in the same deterministic proof. Five changed-path recoveries handled tool/path/auth/result-shape issues; no unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33588488559`, artifact `9831213913` and digest `sha256:c04b47171320e4792638b0b156715f8c144fd30d7da6c08e166e57b6be3b7efe` succeeded.
+- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
+
 ## BS-20260902-30 — SUCCESS
 
 - Sprint day: 4
@@ -323,21 +340,4 @@ Newest entries first; retain at most 20.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Local browser absence was not retried, and no unchanged semantic failure occurred.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33486188541`, artifact `9792318087` and digest `sha256:64bc591ef7bc85ca53db477c6c614fa65e363bb2353fd2253ffd30be2251323b` succeeded.
 - Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup and final audio/listening/device QA remain open.
-- Next candidate: add the next safe authored-motion or foreground-layer evidence slice when approved inputs exist; otherwise continue a distinct automatable Day-3/4 provider or accessibility gap.
-
-## BS-20260901-11 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `ebd5f07b78ef3bc71fc33aacf00af4e75f987557`
-- Verified implementation commit: `cae8c0b9b506236be248dc03eee01c2c0317dbd7`
-- Work item: `BSB-BLACKOUT-PERF-001` (DONE; parent `BSB-MOTION-001` remains in progress)
-- Selection reason: exact current-package evidence measured the full-stage BLACKOUT scenario at 50.0ms p95 with four frames over 50ms, while source inspection found a large responsive vault image animating repaint-heavy CSS brightness/saturation filters.
-- Before/after evidence: the environment plate now animates phase-scoped compositor opacity and exposes `will-change: opacity`; the same exact Chromium scenario improves from 218 samples / 50.0ms p95 / four >50ms frames to 255 samples / 33.4ms p95 / one >50ms frame. Maximum remains 66.7ms, so real-device pacing is not claimed complete.
-- Changed files: route motion CSS, Chromium transition audit, contract regression and five sprint-memory files; math, RGS/wallet behavior, assets, lockfile and dependencies unchanged.
-- Gates: syntax PASS; focused contracts/mobile 28/28 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 123/123 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 71/71 scenarios and 1854/1854 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies browser proof.
-- Visual review: exact active BLACKOUT, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9791347108` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024 and the orientation round trip. Dimming/lock geometry, board, controls and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device sign-off remains open.
-- Package evidence: exact remote frontend tree `9d699302e55edd591472b13e7dd992152db25dda74fd25a6c9e70d1914361cd9`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. One connector-truncated large blob was caught by exact tree identity and replaced before any ref update; no unchanged semantic failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33483678009`, artifact `9791347108` and digest `sha256:c3f58c5dad7334a4efaf95bb79dca197a359cee590567702c8039bf65148b4ef` succeeded.
-- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals, rights/Creative cleanup and final audio/listening/device QA remain open.
 - Next candidate: add the next safe authored-motion or foreground-layer evidence slice when approved inputs exist; otherwise continue a distinct automatable Day-3/4 provider or accessibility gap.

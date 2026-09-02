@@ -1,5 +1,63 @@
 # Rolling automation metrics
 
+## BS-20260902-31
+
+```yaml
+closed_at_utc: 2026-09-02T04:08:21Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 14, fail: 1, status: EXPECTED_FAIL_REPRODUCED, missing_scenario: blackout-hero-timing-normal-and-turbo }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 43, fail: 0, status: PASS }
+focused_compliance_final: { pass: 15, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 139
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_seconds: 360.5
+local_full_math_status: PASS
+local_package_generation: PASS
+local_package_verification: BLOCKED_TOOL_SESSION_LOST_EXACT_CI_USED
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 139
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 6d639b1644b80c9644cc3f5df3219eb6462d76dfe969374ab55cf1ae41fb2d5f
+exact_frontend_files: 10
+exact_frontend_bytes: 700597
+exact_math_files: 7
+exact_math_bytes: 48697667
+verified_ci_run: 33588488559
+verified_ci_status: PASS
+verified_ci_seconds: 947
+remote_browser: { scenarios: 81, checks_pass: 2263, checks_fail: 0, unexpected_failures: 0 }
+blackout_hero_timing: { normal_trigger_ms: 1000.4, normal_recover_ms: 1026.9, turbo_trigger_ms: 359.7, turbo_recover_ms: 365.8, css_normal_ms: 1000, css_turbo_ms: 360, plays: 2, checkpoint_event_settlement_writes: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9831213913
+remote_diagnostics_digest: sha256:c04b47171320e4792638b0b156715f8c144fd30d7da6c08e166e57b6be3b7efe
+remote_implementation_commit: 1858277da51c45fcfb831d5d7b3c5bd0f57db748
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused compliance/contract/browser-binding regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; package generation; diff/secret/debug/scope review; connected Git-data fast-forward; one exact Actions run, artifact evidence and seven screenshot inspections. The repository AAA-animation and visual-QA skills required authored duration ownership, direct Chromium timing and inspection of both hero phases plus all target form factors. One wrong fixture path, one expected-SHA typo, one lost local package-verification tool session, one unauthenticated HTTPS push and one connector result-shape mismatch each used a changed safe path; exact CI supplied the missing package/browser proof. No subagents, dependencies, binary product assets or unchanged semantic failure retries were used; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260902-30
 
 ```yaml
