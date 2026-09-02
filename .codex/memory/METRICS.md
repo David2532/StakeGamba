@@ -1,5 +1,51 @@
 # Rolling automation metrics
 
+## BS-20260902-38
+
+```yaml
+closed_at_utc: 2026-09-02T12:12:00Z
+sprint_day: 4
+status: BLOCKED
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_REPRODUCED, missing_contract: base-win-tier-reactions }
+focused_contracts_after: { pass: 6, fail: 0, status: PASS }
+focused_timer_fixture_mapping: { pass: 1, fail: 0, status: PASS }
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 141
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: RESULT_NOT_RETAINED_NOT_CLAIMED
+local_package_generation: NOT_RUN
+local_package_verification: NOT_RUN
+local_compliance_resolver: NOT_RUN
+local_browser: BLOCKED_NO_EXECUTABLE
+exact_ci_run: null
+exact_ci_status: NOT_CREATED_OR_NOT_DISCOVERABLE
+exact_browser: NOT_RUN
+current_head_visual_review: NOT_RUN
+last_verified_ci_run: 33621532438
+last_verified_browser: { scenarios: 83, checks_pass: 2303, checks_fail: 0, unexpected_failures: 0, inherited_for_pending_source: false }
+base_win_tiers:
+  thresholds_raw_centi_x: { small_lt: 100, medium_lt: 200, big_gte: 200 }
+  normal_ms: { small: 420, medium: 800, big: 1400 }
+  turbo_ms: { small: 140, medium: 260, big: 420 }
+  reduced_ms: { small: 0, medium: 0, big: 0 }
+  fixture_contracts: [base_small, base_cascade_3, base_win_02]
+remote_implementation_commit: b4211f6bab7009f56b9e507d95f8c3ea95e1788c
+remote_implementation_tree: e7d024be9d5eb0c2e722baf93f40f80375ebebf4
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion reads; one expected-red and targeted green contract cycle; one complete local frozen-install/lint/typecheck/test/build pass; connected Git-data and Contents-API fast-forwards; workflow/status reads; no browser execution because no local executable and no discoverable exact workflow. The repository AAA-animation skill required semantic states, profile timing, authoritative payout-derived tiering, cleanup and deterministic QA to move together. One accidental formatter mismatch was restored before reapplying the controlled semantic patch; no unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260902-37
 
 ```yaml

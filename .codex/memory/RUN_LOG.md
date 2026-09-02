@@ -1,5 +1,21 @@
 # Material run log
 
+## BS-20260902-38 — BLOCKED
+
+- Sprint day: 4
+- Base commit: `e76b6dd75071a499d27957ec972be29bd1fab6cc`
+- Pending implementation commit: `b4211f6bab7009f56b9e507d95f8c3ea95e1788c`
+- Work item: `BSB-BASE-WIN-TIER-REACTIONS-001` (BLOCKED; parent `BSB-MOTION-001` remains in progress)
+- Selection reason: the mandatory animation/asset contracts name `win_small`, `win_medium` and `win_big`, while runtime collapsed every authoritative Base win into one `win_acknowledge` reaction.
+- Before/after evidence: the focused regression began 0 PASS / 1 expected FAIL on `base_small`. Pending source now selects exact Base tiers from raw centi-x payout: `<100` Small, `100–199` Medium, `>=200` Big; real fixtures `base_small`/`base_cascade_3`/`base_win_02`, boundaries 99/100/199/200 and invalid negative/fractional inputs are covered. Timings are 420/800/1400ms Normal, 140/260/420ms Turbo and 0ms Reduced; feature `bonus_win` remains isolated.
+- Changed files: PresentationDirector, Vaultkeeper CSS, contract and exact-browser QA, Animation Bible, durable decision and five sprint-memory files; math, wallet schema, assets, lockfile and dependencies unchanged.
+- Gates: expected-red 0/1 PASS; syntax PASS; focused contracts 6/6 PASS plus timer-backed fixture mapping 1/1 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 141/141 PASS; production build PASS; `git diff --check` and secret/debug/scope/full-own-diff review PASS. Local math process output was not retained and is not claimed. GitHub exposed no workflow run or combined status for the accepted pending commit, and no local Chromium executable exists; exact package, current-head browser and 51-row resolver are NOT_RUN/BLOCKED.
+- Visual review: NOT_RUN for pending source. The new QA scenario is authored to capture active Small and Big frames at 1366x768 and retain the standard 1920x1080, 390x844 and 844x390 suite, but no current-head artifact exists. Prior artifact `9843481852` is not inherited.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept semantic ownership, profile timings, exact payout-derived thresholds and cleanup aligned. One formatter mismatch was fully restored before a controlled patch; no unchanged semantic failure was repeated.
+- Persistence: implementation was fast-forwarded without force through connected Git data/Contents API. Remote commit `b4211f6` is accepted with exact local tree `e7d024be9d5eb0c2e722baf93f40f80375ebebf4`; it is deliberately not marked verified without current-head CI/browser evidence.
+- Residual risk: exact-package CI/browser/screenshots for this slice; approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: resume `BSB-BASE-WIN-TIER-REACTIONS-001` by obtaining one exact current-head workflow/browser artifact; do not add another motion slice first.
+
 Newest entries first; retain at most 20.
 
 ## BS-20260902-37 — SUCCESS
@@ -324,20 +340,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33517845045`, artifact `9804972383` and digest `sha256:6eb8b67836593319715feb8e1748800912d18b323a7ec9b7166b9e2b6a93970e` succeeded.
 - Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; prioritize gaps that can close without unavailable human assets or device approvals.
-
-## BS-20260901-18 — SUCCESS
-
-- Sprint day: 3
-- Base commit: `f2af20e3bb81012b2863f070075362e17989f7ff`
-- Verified implementation commit: `e602a1deb23ca9932ea76a734396db048703b4cb`
-- Work item: `BSB-AUDIO-VISIBILITY-RACE-001` (DONE; parent `BSB-AUDIO-001` remains in progress)
-- Selection reason: visibility events launched `suspend()` and `resume()` concurrently, allowing a delayed hidden suspend to complete after an immediate visible resume and strand an active visible session in `suspended`.
-- Before/after evidence: the expected-red delayed-suspend unit case ended `suspended`. Visibility operations are now serialized in event order, destruction blocks queued work, and exact Chromium delays suspend by 80ms then dispatches visible immediately; one suspend completes, one following resume occurs above the measured browser baseline, and final state is `running`/`MUTED` with 0 voices and 0 ambience.
-- Changed files: AudioDirector lifecycle queue/guards, audio regression, exact-browser race instrumentation and five sprint-memory files; pixels/layout, math, RGS/wallet schema, assets, lockfile and dependencies unchanged.
-- Gates: expected-red audio test 6 PASS / 1 FAIL; syntax PASS; focused audio/contract/mobile 38/38 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 128/128 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 72/72 scenarios and 1873/1873 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run because no browser executable is installed; exact isolated CI supplies browser proof.
-- Visual review: exact serialized muted-audio, 1920x1080, 390x844, 844x390 and Replay 360x640 captures from artifact `9802165851` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024 and the orientation round trip. Board, controls, values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device/listening sign-off remains open.
-- Package evidence: exact remote frontend tree `0a0ef0d42a4bf70c31fc450e97e470921824e8617fe29f9796c47781c21a8033`, 10 files and one JS bundle; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Native Chromium's variable initial AudioContext state required measuring resume calls relative to the browser baseline; the first CI was superseded and the corrected exact-head run passed. No unchanged semantic failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33511226684`, artifact `9802165851` and digest `sha256:b6aef0e7c024477520ba2440208518b44a8bae3e19b2e7dae5ccbde3eacff89a` succeeded.
-- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, deferred mid-feature restore evidence, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct safe Day-3/4 provider, accessibility or authored-motion gap; revisit mid-feature restore only with event-triggered instrumentation.
