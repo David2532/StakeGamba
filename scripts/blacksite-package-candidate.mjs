@@ -330,6 +330,7 @@ function main() {
 	const frontendHygiene = verifyBlacksiteFrontendHygiene(
 		frontendSource,
 		readJson(assetManifestSource),
+		repoRoot,
 	);
 	if (frontendSourceManifest.treeSha256 !== expectedFrontendTreeSha256) {
 		fail(

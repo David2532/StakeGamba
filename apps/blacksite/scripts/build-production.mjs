@@ -36,7 +36,7 @@ if (!existsSync(join(buildRoot, 'index.html'))) {
 
 const pruned = pruneBlacksiteInlineBuildResidue(buildRoot);
 process.stdout.write(
-	`BLACKSITE inline package pruned ${pruned.removedFiles} unreachable files / ${pruned.removedBytes} bytes\n`,
+	`BLACKSITE inline package pruned ${pruned.removedFiles} generated external-residue files / ${pruned.removedBytes} bytes\n`,
 );
 
 const identityRoot = join(buildRoot, '_app');

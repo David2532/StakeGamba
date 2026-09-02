@@ -36,7 +36,16 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 	);
 	assert.match(verifyScript, /JSON\.stringify\(\['_app', 'assets', 'index\.html'\]\)/u);
 	assert.match(verifyScript, /verifyBlacksiteFrontendHygiene/u);
-	assert.match(verifyScript, /manifest\.frontendEvidence\?\.hygiene/u);
+	assert.match(verifyScript, /assertPhysicalPackageDirectory/u);
+	assert.match(verifyScript, /'Candidate package root'/u);
+	assert.match(verifyScript, /'Candidate frontend root'/u);
+	assert.match(verifyScript, /'Candidate math root'/u);
+	assert.match(verifyScript, /validatePackagedFrontendBuildIdentity/u);
+	assert.match(verifyScript, /currentGitTreeSha/u);
+	assert.match(verifyScript, /JSON\.stringify\(manifest\.game\)/u);
+	assert.match(verifyScript, /JSON\.stringify\(manifest\.mathEvidence\)/u);
+	assert.match(verifyScript, /expectedReadme/u);
+	assert.match(verifyScript, /JSON\.stringify\(manifest\.frontendEvidence\)/u);
 	assert.match(packageScript, /frontendEvidence: \{/u);
 	assert.match(packageScript, /assetManifest: fileFact\(assetManifestSource\)/u);
 

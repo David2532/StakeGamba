@@ -3,9 +3,9 @@ import { createHash } from 'node:crypto';
 import {
 	createReadStream,
 	existsSync,
+	lstatSync,
 	readFileSync,
 	readdirSync,
-	statSync,
 	writeFileSync,
 } from 'node:fs';
 import { createInterface } from 'node:readline';
@@ -13,11 +13,16 @@ import { createZstdDecompress } from 'node:zlib';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { verifyBlacksiteFrontendHygiene } from './blacksite-frontend-hygiene.mjs';
+import {
+	assertPhysicalPackageDirectory,
+	verifyBlacksiteFrontendHygiene,
+} from './blacksite-frontend-hygiene.mjs';
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDirectory, '..');
 const assetManifestSource = join(repoRoot, 'apps', 'blacksite', 'art', 'asset-manifest.json');
+const frontendPackageJsonSource = join(repoRoot, 'apps', 'blacksite', 'package.json');
+const rootPackageJsonSource = join(repoRoot, 'package.json');
 const mathLibrary = join(repoRoot, 'math', 'games', 'blacksite_breach', 'library');
 const expectedModes = Object.freeze([
 	{ name: 'base', cost: 1, events: 'base_books.jsonl.zst', weights: 'base_lookup.csv' },
@@ -36,6 +41,11 @@ const expectedModes = Object.freeze([
 ]);
 const booksPerMode = 100_000;
 const maxPayoutRaw = 1_000_000;
+const expectedWarnings = Object.freeze([
+	'In-progress production frontend; final asset rights/Creative approval, penguin Spine rig, authored character/reel polish, final audio mix and real-device review remain open.',
+	'M1 initial non-release math candidate; the math upload root contains only the seven official minimal payload files and no Stake Math approval is claimed.',
+	'No manual visual/device, extracted archive, Stake/ACP, upload, release or live approval is claimed.',
+]);
 
 function fail(message) {
 	throw new Error(message);
@@ -55,6 +65,14 @@ function readJson(path) {
 	return JSON.parse(readFileSync(path, 'utf8'));
 }
 
+function assertPhysicalRegularFile(path, context) {
+	if (!existsSync(path)) fail(`${context} is missing: ${path}`);
+	const stats = lstatSync(path);
+	if (stats.isSymbolicLink() || !stats.isFile()) {
+		fail(`${context} must be a physical regular file: ${path}`);
+	}
+}
+
 function fileFact(path) {
 	const bytes = readFileSync(path);
 	return {
@@ -64,7 +82,7 @@ function fileFact(path) {
 }
 
 function collectFiles(target, files = []) {
-	const targetStats = statSync(target);
+	const targetStats = lstatSync(target);
 	if (targetStats.isFile()) {
 		files.push(target);
 		return files;
@@ -168,12 +186,52 @@ async function verifyBook(path, modeName, payouts) {
 	return id;
 }
 
-function gitHead() {
-	return execFileSync('git', ['rev-parse', 'HEAD'], {
+function gitText(args) {
+	return execFileSync('git', args, {
 		cwd: repoRoot,
 		encoding: 'utf8',
 		stdio: ['ignore', 'pipe', 'pipe'],
 	}).trim();
+}
+
+function gitHead() {
+	return gitText(['rev-parse', 'HEAD']);
+}
+
+function expectedReadme(gitSha, frontendVersion, mathCandidateVersion) {
+	return [
+		'BLACKSITE // BREACH — ISOLATED UPLOAD-FOLDER CANDIDATE',
+		'',
+		`Git SHA: ${gitSha}`,
+		`Frontend version: ${frontendVersion}`,
+		`Math candidate: ${mathCandidateVersion}`,
+		'',
+		'Use frontend/ only as the frontend upload root.',
+		'Use math/ only as the math upload root.',
+		'The math/ root contains exactly index.json, three lookup CSV files and three zstd JSONL books.',
+		'Do not upload the repository publish/ folder; it belongs to Golden Goal Rush.',
+		'',
+		'IMPORTANT: This is a SHA-bound technical package candidate, not Stake-approved or release-ready.',
+		'Final asset approval/Spine work/audio mix, manual device/visual review and external Stake gates remain open.',
+		'',
+	].join('\n');
+}
+
+function validatePackagedFrontendBuildIdentity(frontendRoot, expectedGitSha, expectedGitTreeSha) {
+	const path = join(frontendRoot, '_app', 'blacksite-build-identity.json');
+	assertPhysicalRegularFile(path, 'Frontend build identity');
+	const identity = readJson(path);
+	if (
+		JSON.stringify(identity) !==
+		JSON.stringify({
+			schema: 'blacksite-frontend-build-identity-v1',
+			gitSha: expectedGitSha,
+			gitTreeSha: expectedGitTreeSha,
+			clean: true,
+		})
+	) {
+		fail('Packaged frontend build identity does not match the current clean checkout');
+	}
 }
 
 function gitStatus() {
@@ -185,15 +243,67 @@ function gitStatus() {
 }
 
 async function main() {
-	const candidateRoot = parseCandidateArgument();
-	const frontendRoot = join(candidateRoot, 'frontend');
-	const mathRoot = join(candidateRoot, 'math');
+	const candidateRoot = assertPhysicalPackageDirectory(
+		parseCandidateArgument(),
+		'Candidate package root',
+	);
+	const frontendRoot = assertPhysicalPackageDirectory(
+		join(candidateRoot, 'frontend'),
+		'Candidate frontend root',
+	);
+	const mathRoot = assertPhysicalPackageDirectory(
+		join(candidateRoot, 'math'),
+		'Candidate math root',
+	);
 	const manifestPath = join(candidateRoot, 'candidate-manifest.json');
-	for (const path of [frontendRoot, join(frontendRoot, 'index.html'), mathRoot, manifestPath]) {
-		if (!existsSync(path)) fail(`Missing candidate path: ${path}`);
+	const readmePath = join(candidateRoot, 'README_UPLOAD_CANDIDATE.txt');
+	const priorVerificationPath = join(candidateRoot, 'package-verification.json');
+	for (const [path, context] of [
+		[manifestPath, 'Candidate manifest'],
+		[readmePath, 'Candidate README'],
+		[join(frontendRoot, 'index.html'), 'Candidate frontend entrypoint'],
+	]) {
+		assertPhysicalRegularFile(path, context);
+	}
+	if (existsSync(priorVerificationPath)) {
+		assertPhysicalRegularFile(priorVerificationPath, 'Prior package verification result');
+	}
+	const candidateTopLevel = readdirSync(candidateRoot).sort();
+	const expectedCandidateTopLevel = [
+		'README_UPLOAD_CANDIDATE.txt',
+		'candidate-manifest.json',
+		'frontend',
+		'math',
+		...(existsSync(priorVerificationPath) ? ['package-verification.json'] : []),
+	].sort();
+	if (
+		JSON.stringify(candidateTopLevel) !== JSON.stringify(expectedCandidateTopLevel)
+	) {
+		fail(`Unexpected candidate root entries: ${candidateTopLevel.join(', ')}`);
 	}
 
 	const manifest = readJson(manifestPath);
+	if (
+		JSON.stringify(Object.keys(manifest)) !==
+		JSON.stringify([
+			'schema',
+			'lifecycle',
+			'approvalStatus',
+			'uploadAuthorized',
+			'generatedAt',
+			'git',
+			'toolchain',
+			'commands',
+			'game',
+			'mathEvidence',
+			'frontendEvidence',
+			'packages',
+			'uploadRoots',
+			'warnings',
+		])
+	) {
+		fail('Candidate manifest fields do not match the canonical schema');
+	}
 	if (manifest.schema !== 'blacksite-upload-candidate-v1')
 		fail('Unknown candidate manifest schema');
 	if (manifest.lifecycle !== 'PACKAGE_CANDIDATE_GENERATED_NOT_SUBMISSION_READY') {
@@ -202,15 +312,48 @@ async function main() {
 	if (manifest.approvalStatus !== 'MANUAL_PRODUCTION_AND_EXTERNAL_GATES_OPEN') {
 		fail('Candidate approval status must retain the open manual/production/external gates');
 	}
-	if (manifest.git?.sha !== gitHead()) fail('Candidate SHA does not match current checkout');
 	if (
-		manifest.git?.dirty !== false ||
-		manifest.git?.cleanBefore !== true ||
-		manifest.git?.cleanAfter !== true ||
-		manifest.git?.sha !== manifest.git?.expectedSha ||
+		typeof manifest.generatedAt !== 'string' ||
+		Number.isNaN(Date.parse(manifest.generatedAt)) ||
+		new Date(manifest.generatedAt).toISOString() !== manifest.generatedAt
+	) {
+		fail('Candidate generatedAt must be a canonical ISO timestamp');
+	}
+	const currentGitSha = gitHead();
+	const currentGitTreeSha = gitText(['rev-parse', 'HEAD^{tree}']);
+	const currentGitBranch = gitText(['branch', '--show-current']);
+	if (
+		JSON.stringify(manifest.git) !==
+		JSON.stringify({
+			branch: currentGitBranch,
+			sha: currentGitSha,
+			expectedSha: currentGitSha,
+			cleanBefore: true,
+			cleanAfter: true,
+			dirty: false,
+		}) ||
 		gitStatus() !== ''
 	) {
 		fail('Candidate and current checkout must be bound to the same clean worktree');
+	}
+	const rootPackageJson = readJson(rootPackageJsonSource);
+	if (
+		JSON.stringify(manifest.toolchain) !==
+		JSON.stringify({
+			node: process.version,
+			packageManager: rootPackageJson.packageManager,
+			platform: process.platform,
+			arch: process.arch,
+		})
+	) {
+		fail('Candidate toolchain identity does not match this verifier runtime');
+	}
+	if (
+		JSON.stringify(manifest.uploadRoots) !==
+		JSON.stringify({ frontend: 'frontend/', math: 'math/' }) ||
+		JSON.stringify(manifest.warnings) !== JSON.stringify(expectedWarnings)
+	) {
+		fail('Candidate upload roots or release-truth warnings changed');
 	}
 	if (manifest.uploadAuthorized !== false)
 		fail('Candidate must explicitly remain unauthorized for upload');
@@ -219,16 +362,36 @@ async function main() {
 	const mathManifest = createFileManifest(mathRoot);
 	assertManifestEqual(frontendManifest, manifest.packages?.frontend, 'Frontend');
 	assertManifestEqual(mathManifest, manifest.packages?.math, 'Math');
+	if (
+		JSON.stringify(manifest.packages) !==
+		JSON.stringify({ frontend: frontendManifest, math: mathManifest })
+	) {
+		fail('Candidate payload manifests contain unexpected or missing fields');
+	}
+	validatePackagedFrontendBuildIdentity(frontendRoot, currentGitSha, currentGitTreeSha);
 	const frontendHygiene = verifyBlacksiteFrontendHygiene(
 		frontendRoot,
 		readJson(assetManifestSource),
+		repoRoot,
 	);
 	if (
-		JSON.stringify(manifest.frontendEvidence?.assetManifest) !==
-			JSON.stringify(fileFact(assetManifestSource)) ||
-		JSON.stringify(manifest.frontendEvidence?.hygiene) !== JSON.stringify(frontendHygiene)
+		JSON.stringify(manifest.frontendEvidence) !==
+		JSON.stringify({
+			assetManifest: fileFact(assetManifestSource),
+			hygiene: frontendHygiene,
+		})
 	) {
 		fail('Frontend hygiene evidence does not match the exact package and asset manifest');
+	}
+	const expectedCommands = {
+		build: 'pnpm --filter blacksite build',
+		mathVerify: 'pnpm blacksite:math:verify -- --no-write',
+		package: `node scripts/blacksite-package-candidate.mjs --output <path> --expected-commit ${currentGitSha} --expected-frontend-tree ${frontendManifest.treeSha256}`,
+		verify: 'node scripts/blacksite-package-verify.mjs --candidate <path> --write-result',
+		packageBrowserQa: `BLACKSITE_QA_BUILD_ROOT=<path>/frontend BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256=${frontendManifest.treeSha256} node scripts/blacksite-qa-e2e.mjs`,
+	};
+	if (JSON.stringify(manifest.commands) !== JSON.stringify(expectedCommands)) {
+		fail('Candidate verification commands do not match the exact payload identity');
 	}
 
 	const frontendTopLevel = readdirSync(frontendRoot).sort();
@@ -273,6 +436,7 @@ async function main() {
 		join(mathLibrary, 'publish_files', 'CANDIDATE_MANIFEST.json'),
 	);
 	const canonicalVerifyResult = readJson(join(mathLibrary, 'publish_files', 'VERIFY_RESULT.json'));
+	const frontendPackageJson = readJson(frontendPackageJsonSource);
 	const recordedConfig = canonicalCandidateManifest.files?.find(
 		(record) => record.path === 'configs/game_config.json',
 	);
@@ -309,6 +473,42 @@ async function main() {
 			'Outer candidate math identity/lifecycle fields are not bound to the canonical M1 evidence',
 		);
 	}
+	const expectedGame = {
+		id: canonicalConfig.game_id,
+		name: canonicalConfig.game_name,
+		frontendVersion: frontendPackageJson.version,
+		mathCandidateVersion: canonicalConfig.candidate_version,
+		mathLifecycle: canonicalConfig.lifecycle,
+		modes: index.modes,
+	};
+	if (JSON.stringify(manifest.game) !== JSON.stringify(expectedGame)) {
+		fail('Candidate game identity does not match the canonical frontend and math sources');
+	}
+	const expectedMathEvidence = {
+		candidateFingerprintSha256: canonicalVerifyResult.candidate_fingerprint_sha256,
+		eventSchemaSha256: canonicalVerifyResult.canonical_event_schema_sha256,
+		booksVerified: canonicalVerifyResult.books_verified,
+		gatesPassed: canonicalVerifyResult.gates_passed,
+		gatesTotal: canonicalVerifyResult.gates_total,
+		candidateManifest: candidateManifestFact,
+		verifyResult: verifyResultFact,
+		gameConfigEvidenceOnly: {
+			...canonicalConfigFact,
+			gameId: canonicalConfig.game_id,
+			candidateVersion: canonicalConfig.candidate_version,
+			note: 'Evidence only; official minimal math upload folder contains index.json plus referenced CSV/ZST files.',
+		},
+		uploadPayloadFiles: canonicalCandidateManifest.upload_payload_files,
+	};
+	if (JSON.stringify(manifest.mathEvidence) !== JSON.stringify(expectedMathEvidence)) {
+		fail('Candidate math evidence fields do not exactly match the canonical M1 sources');
+	}
+	if (
+		readFileSync(readmePath, 'utf8') !==
+		expectedReadme(currentGitSha, frontendPackageJson.version, canonicalConfig.candidate_version)
+	) {
+		fail('Candidate README does not match the canonical payload identity and release boundary');
+	}
 
 	const modeResults = [];
 	for (const mode of expectedModes) {
@@ -333,7 +533,7 @@ async function main() {
 		math: mathManifest,
 		modeResults,
 		claims: {
-			packageStructureAndIdentity: 'PASS',
+			uploadPayloadStructureAndIdentity: 'PASS',
 			bookLookupIdAndPayoutMatch: 'PASS',
 			stakeApproval: 'NOT_CLAIMED',
 			releaseReadiness: 'NOT_CLAIMED',
