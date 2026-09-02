@@ -3933,6 +3933,160 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('board-reveal-timing-normal-and-turbo', async (record) => {
+		const group = 'board-reveal-timing-normal-and-turbo';
+		const fixture = BASE_ZERO_FIXTURE;
+		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: (request, audit) => ({
+						status: successStatus(),
+						balance: {
+							amount: DEFAULT_BALANCE - audit.byEndpoint.play.length * DEFAULT_BASE_AMOUNT,
+							currency: 'USD',
+						},
+						round: authoritativeFixtureRound({
+							fixture,
+							active: false,
+							amount: request.body.amount,
+							currency: request.body.currency,
+							id: `blacksite-qa-board-reveal-${audit.byEndpoint.play.length}`,
+						}),
+					}),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+
+			const installTimeline = async () => {
+				await page.evaluate((boardSelector) => {
+					window.__blacksiteRevealTimeline = [];
+					window.__blacksiteRevealObserver?.disconnect();
+					const board = document.querySelector(boardSelector);
+					const readMilliseconds = (value) => Number.parseFloat(value) * 1_000;
+					const capture = () => {
+						const cells = [...(board?.querySelectorAll('.cell') ?? [])];
+						const firstStyle = cells[0] ? getComputedStyle(cells[0]) : null;
+						const lastStyle = cells.at(-1) ? getComputedStyle(cells.at(-1)) : null;
+						window.__blacksiteRevealTimeline.push({
+							phase: board?.getAttribute('data-motion-phase'),
+							profile: board?.getAttribute('data-motion-profile'),
+							cellCount: cells.length,
+							firstAnimation: firstStyle?.animationName ?? 'none',
+							firstDurationMs: firstStyle ? readMilliseconds(firstStyle.animationDuration) : 0,
+							firstDelayMs: firstStyle ? readMilliseconds(firstStyle.animationDelay) : 0,
+							lastAnimation: lastStyle?.animationName ?? 'none',
+							lastDurationMs: lastStyle ? readMilliseconds(lastStyle.animationDuration) : 0,
+							lastDelayMs: lastStyle ? readMilliseconds(lastStyle.animationDelay) : 0,
+							at: performance.now(),
+						});
+					};
+					capture();
+					window.__blacksiteRevealObserver = new MutationObserver(capture);
+					window.__blacksiteRevealObserver.observe(board, {
+						attributes: true,
+						attributeFilter: ['data-motion-phase', 'data-motion-profile'],
+					});
+				}, SELECTORS.board);
+			};
+			const revealWindow = (timeline) => {
+				const revealIndex = timeline.findIndex(({ phase }) => phase === 'reveal');
+				const reveal = timeline[revealIndex];
+				const exit = timeline.slice(revealIndex + 1).find(({ phase }) => phase !== 'reveal');
+				return {
+					reveal,
+					exit,
+					elapsedMs: reveal && exit ? exit.at - reveal.at : -1,
+					lastCellEndMs: reveal ? reveal.lastDelayMs + reveal.lastDurationMs : -1,
+				};
+			};
+			const playReveal = async (profile) => {
+				await installTimeline();
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForEndpoint(network, 'play', profile === 'normal' ? 1 : 2);
+				await page.waitForFunction(
+					(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'reveal',
+					SELECTORS.board,
+					{ timeout: 10_000 },
+				);
+				const screenshot = await saveScreenshot(page, `${group}-${profile}`);
+				await waitForStableAction(page);
+				const timeline = await page.evaluate(() => window.__blacksiteRevealTimeline);
+				return { timeline, window: revealWindow(timeline), screenshot };
+			};
+
+			const normal = await playReveal('normal');
+			check(group, 'normal board reveal retains every staggered cell through its authored window',
+				normal.window.reveal?.profile === 'normal' &&
+					normal.window.reveal.cellCount === 49 &&
+					normal.window.reveal.firstAnimation.endsWith('board-reveal') &&
+					normal.window.reveal.lastAnimation.endsWith('board-reveal') &&
+					normal.window.reveal.firstDurationMs === 180 &&
+					normal.window.reveal.firstDelayMs === 0 &&
+					normal.window.reveal.lastDurationMs === 180 &&
+					normal.window.reveal.lastDelayMs === 156 &&
+					normal.window.elapsedMs + 8 >= normal.window.lastCellEndMs &&
+					normal.window.elapsedMs >= 330 && normal.window.elapsedMs <= 520,
+				serialize(normal),
+			);
+
+			await page.locator(SELECTORS.motionMode).click();
+			const turbo = await playReveal('turbo');
+			check(group, 'turbo board reveal retains every staggered cell through its authored window',
+				turbo.window.reveal?.profile === 'turbo' &&
+					turbo.window.reveal.cellCount === 49 &&
+					turbo.window.reveal.firstAnimation.endsWith('board-reveal') &&
+					turbo.window.reveal.lastAnimation.endsWith('board-reveal') &&
+					turbo.window.reveal.firstDurationMs === 70 &&
+					turbo.window.reveal.firstDelayMs === 0 &&
+					turbo.window.reveal.lastDurationMs === 70 &&
+					turbo.window.reveal.lastDelayMs === 54 &&
+					turbo.window.elapsedMs + 8 >= turbo.window.lastCellEndMs &&
+					turbo.window.elapsedMs >= 118 && turbo.window.elapsedMs <= 260,
+				serialize(turbo),
+			);
+			for (const request of network.byEndpoint.play) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/wallet/play',
+					body: {
+						sessionID: SESSION_ID,
+						currency: 'USD',
+						amount: DEFAULT_BASE_AMOUNT,
+						mode: 'base',
+					},
+				});
+			}
+			check(group, 'both reveal paths preserve zero-win authority and clean readiness',
+				(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00' &&
+					(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$998.00' &&
+					(await runtimeState(page)) === 'live-ready' &&
+					network.byEndpoint.play.length === 2 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
+				serialize({
+					finalWin: await page.locator(SELECTORS.finalWin).innerText(),
+					balance: await page.locator(SELECTORS.walletBalance).innerText(),
+					order: network.order,
+				}),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.fixture = fixture.id;
+			record.normal = normal;
+			record.turbo = turbo;
+			record.network = network;
+			record.diagnostics = diagnostics;
+			await page.evaluate(() => window.__blacksiteRevealObserver?.disconnect());
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('blackout-hero-timing-normal-and-turbo', async (record) => {
 		const group = 'blackout-hero-timing-normal-and-turbo';
 		const fixture = getGeneratedFixture('blackout_zero');
