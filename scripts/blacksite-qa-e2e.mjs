@@ -4099,13 +4099,13 @@ async function runNetworkScenarios(browser, origin) {
 					SELECTORS.board,
 					{ timeout: 10_000 },
 				);
-				const screenshot = await saveScreenshot(page, `${group}-${profile}`);
 				await page.waitForFunction(
 					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'loss_acknowledge',
 					SELECTORS.vaultkeeper,
 					{ timeout: 10_000 },
 				);
 				const lossScreenshot = await saveScreenshot(page, `${group}-${profile}-loss-acknowledge`);
+				const screenshot = await saveScreenshot(page, `${group}-${profile}`);
 				await waitForStableAction(page);
 				const { timeline, lossTimeline } = await page.evaluate(() => ({
 					timeline: window.__blacksiteRevealTimeline,
