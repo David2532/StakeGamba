@@ -1,5 +1,70 @@
 # Rolling automation metrics
 
+## BS-20260902-42
+
+```yaml
+closed_at_utc: 2026-09-02T15:57:04Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-NORMAL-BIG-WIN-TIMING-EVIDENCE-001
+expected_red_contract: { pass: 0, fail: 1, status: EXPECTED_FAIL }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 1, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 141
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_package_generation: PASS
+local_package_verification: PASS
+local_frontend_tree: 24d7a5ca5ba51a34a7f0884819e2962137166b2c7180091c09dde39aa7f5ed44
+local_frontend_files: 10
+local_frontend_bytes: 712368
+exact_ci_run: 33649656438
+exact_ci_status: SUCCESS
+exact_ci_commit: ca2e009503c96a95074fe8dd671e04567a478d29
+exact_app_tests: 141
+exact_full_math_status: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: b72aa6a71ba28cb1edf17faa346859276cc030723e2608a7d1ecebcc97ae4625
+exact_frontend_files: 10
+exact_frontend_bytes: 712368
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+exact_browser: { scenarios: 84, passed: 84, failed: 0, checks_pass: 2324, checks_fail: 0 }
+exact_base_tier_css_ms: { turbo_small: 140, turbo_big: 420, normal_big: 1400 }
+exact_base_tier_observed_ms: { turbo_small: 212.7, turbo_big: 492.2, normal_big: 1584.2 }
+exact_live_network: { play: 3, event: 0, settlement: 0, unexpected: 0 }
+exact_compliance_resolver: PASS
+exact_compliance: { automated_proof_complete: 38, manual_gates_open: 23, external_gates_open: 6 }
+visual_viewports: [1366x768, 1920x1080, 390x844, 844x390]
+visual_tier_frames: [normal_win_big, desktop_idle, portrait_idle, landscape_idle]
+visual_review: PASS_AUTOMATED_CURRENT_HEAD
+artifact_id: 9854884410
+artifact_digest: sha256:c0cd0b1529f24c29aa5f34a6ce1678b2c4f56ec486cf885d5a08aac517657707
+remote_implementation_commit: ca2e009503c96a95074fe8dd671e04567a478d29
+source_tree_before_memory: 561e3eb47593daae5db28b5864509fb687cc6e48
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/AAA-motion reads; one expected-red contract; one focused exact-browser/contract patch; one complete local frozen-install/lint/typecheck/test/build/math/package cycle; exact workflow/job/log/artifact inspection; four current-head screenshots; two connected Git-data fast-forwards. The exact run passed on its first attempt. One local package process outlived its initial tool yield and was read back from its completed verification file; no gate was repeated. No subagents, dependencies, runtime code or product assets were added; exact aggregate tool/file/token telemetry was not exposed.
+
 ## BS-20260902-41
 
 ```yaml
