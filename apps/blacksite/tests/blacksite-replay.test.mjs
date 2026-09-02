@@ -416,7 +416,7 @@ test('ReplayController loads once and Play Again uses cached immutable cues only
 	assert.equal(normalizeCount, 1);
 	assert.equal(director.playCount, 2);
 	assert.equal(director.lastCues, immutableCues);
-	assert.deepEqual(director.lastOptions, { stepDelayMs: 16, winDelayMs: 220 });
+	assert.deepEqual(director.lastOptions, { stepDelayMs: null, winDelayMs: null });
 	assert.deepEqual(observedMethods, ['GET']);
 	assert.deepEqual(statuses, ['loading', 'ready', 'playing', 'completed', 'playing', 'completed']);
 	await assert.rejects(
@@ -523,5 +523,5 @@ test('ReplayController validates and forwards an explicit visible playback delay
 	});
 	await controller.load(launch());
 	await controller.play();
-	assert.deepEqual(director.lastOptions, { stepDelayMs: 24, winDelayMs: 220 });
+	assert.deepEqual(director.lastOptions, { stepDelayMs: 24, winDelayMs: null });
 });

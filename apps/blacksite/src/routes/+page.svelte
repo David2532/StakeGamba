@@ -793,8 +793,6 @@
 					normalizer: createReplayNormalizer({ gameEventAdapter: adapter }),
 					director,
 					onState: handleReplayState,
-					stepDelayMs: 16,
-					winDelayMs: 220,
 				});
 				await replayController.load(launch);
 				return;

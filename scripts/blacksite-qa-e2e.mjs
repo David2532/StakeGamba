@@ -5390,6 +5390,101 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('replay-hit-timing-normal-and-turbo', async (record) => {
+		const group = 'replay-hit-timing-normal-and-turbo';
+		const fixture = getGeneratedFixture('base_small');
+		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				replayOnly: true,
+				handlers: { replay: () => replayResponseFromFixture(fixture) },
+			});
+			const { page, diagnostics } = await openPage(
+				context,
+				origin,
+				replayQuery({ mode: fixture.mode, event: String(fixture.bookId) }),
+			);
+			await waitForEndpoint(network, 'replay', 1);
+			await waitForStableAction(page);
+			await page.evaluate((boardSelector) => {
+				const board = document.querySelector(boardSelector);
+				window.__blacksiteReplayHitStates = [];
+				window.__blacksiteReplayHitObserver = new MutationObserver(() => {
+					window.__blacksiteReplayHitStates.push({
+						phase: board?.getAttribute('data-motion-phase'),
+						profile: board?.getAttribute('data-motion-profile'),
+						at: performance.now(),
+					});
+				});
+				window.__blacksiteReplayHitObserver.observe(board, {
+					attributes: true,
+					attributeFilter: ['data-motion-phase'],
+				});
+			}, SELECTORS.board);
+
+			const measureHitWindow = async () => {
+				await page.evaluate(() => {
+					window.__blacksiteReplayHitStates = [];
+				});
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForReplayComplete(page);
+				const states = await page.evaluate(() => window.__blacksiteReplayHitStates);
+				const hitIndex = states.findIndex(({ phase }) => phase === 'hit');
+				const nextIndex = states.findIndex(
+					({ phase }, index) => index > hitIndex && phase !== 'hit',
+				);
+				return {
+					durationMs:
+						hitIndex >= 0 && nextIndex > hitIndex
+							? states[nextIndex].at - states[hitIndex].at
+							: null,
+					states,
+				};
+			};
+
+			const normalHit = await measureHitWindow();
+			await page.locator(SELECTORS.motionMode).click();
+			const turboHit = await measureHitWindow();
+			check(
+				group,
+				'normal Replay hit remains visible for its authored timing profile',
+				normalHit.durationMs >= 275 && normalHit.durationMs <= 420,
+				serialize(normalHit),
+			);
+			check(
+				group,
+				'turbo Replay hit remains visible for its authored timing profile',
+				turboHit.durationMs >= 105 && turboHit.durationMs <= 180,
+				serialize(turboHit),
+			);
+			check(
+				group,
+				'Replay timing profile switch keeps both presentations complete',
+				(await runtimeState(page)) === 'replay-completed' &&
+					(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) === 'turbo',
+				serialize({
+					runtimeState: await runtimeState(page),
+					profile: await page.locator(SELECTORS.board).getAttribute('data-motion-profile'),
+				}),
+			);
+			check(
+				group,
+				'Replay timing audit remains one read and zero wallet writes',
+				network.byEndpoint.replay.length === 1 && walletWriteCount(network) === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.hitWindows = { normalHit, turboHit };
+			record.screenshot = await saveScreenshot(page, group);
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('replay-repeated-play-again-drains-timers', async (record) => {
 		const group = 'replay-repeated-play-again-drains-timers';
 		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });

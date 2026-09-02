@@ -25,15 +25,15 @@ function initialState() {
 
 export class ReplayController {
 	/**
-	 * @param {{client?: any, normalizer?: any, director?: any, onState?: (state: any) => void, stepDelayMs?: number, winDelayMs?: number}} [options]
+	 * @param {{client?: any, normalizer?: any, director?: any, onState?: (state: any) => void, stepDelayMs?: number | null, winDelayMs?: number | null}} [options]
 	 */
 	constructor({
 		client,
 		normalizer,
 		director,
 		onState = () => {},
-		stepDelayMs = 16,
-		winDelayMs = 220,
+		stepDelayMs = null,
+		winDelayMs = null,
 	} = {}) {
 		if (!client || typeof client.fetchRound !== 'function') {
 			throw new TypeError('ReplayController requires client.fetchRound.');
@@ -49,10 +49,10 @@ export class ReplayController {
 			throw new TypeError('ReplayController requires a resettable presentation director.');
 		}
 		if (typeof onState !== 'function') throw new TypeError('Replay onState must be a function.');
-		if (!Number.isSafeInteger(stepDelayMs) || stepDelayMs < 0) {
+		if (stepDelayMs !== null && (!Number.isSafeInteger(stepDelayMs) || stepDelayMs < 0)) {
 			throw new TypeError('Replay stepDelayMs must be a non-negative safe integer.');
 		}
-		if (!Number.isSafeInteger(winDelayMs) || winDelayMs < 0) {
+		if (winDelayMs !== null && (!Number.isSafeInteger(winDelayMs) || winDelayMs < 0)) {
 			throw new TypeError('Replay winDelayMs must be a non-negative safe integer.');
 		}
 
