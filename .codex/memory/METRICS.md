@@ -1,5 +1,65 @@
 # Rolling automation metrics
 
+## BS-20260902-44
+
+```yaml
+closed_at_utc: 2026-09-02T17:43:19Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-REPLAY-REDUCED-MOTION-EVIDENCE-001
+focused_syntax_status: PASS
+focused_contracts: { pass: 30, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 141
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_ci_run: 33656188904
+exact_ci_status: SUCCESS
+exact_ci_commit: 60e6562511c168bbe09f4875e1c5b2bc72e47a62
+exact_app_tests: 141
+exact_full_math_status: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 3404bf61dba292a21465b432170310c002b0a59a87d40c44c0a046e57dd49f4e
+exact_frontend_files: 10
+exact_frontend_bytes: 712368
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+exact_browser: { scenarios: 84, passed: 84, failed: 0, checks_pass: 2326, checks_fail: 0 }
+exact_replay_hit_ms: { normal: 452.3, turbo: 153.9 }
+exact_reduced_replay_ms: 50.3
+exact_reduced_frames: 4
+exact_reduced_frame_contract: ALL_IDLE_REDUCED_NO_ANIMATION
+exact_replay_network: { replay_get: 1, authenticate: 0, play: 0, end_round: 0, event: 0, unexpected: 0, forbidden: 0 }
+exact_diagnostics: { scenario_console_errors: 0, page_errors: 0, failed_requests: 0 }
+exact_compliance_resolver: PASS
+exact_compliance: { automated_proof_complete: 38, manual_gates_open: 23, external_gates_open: 6 }
+visual_viewports: [1366x768, 1920x1080, 390x844, 844x390]
+visual_review: PASS_AUTOMATED_CURRENT_HEAD
+artifact_id: 9857355056
+artifact_digest: sha256:4b1837744d0cf98a1c6032659c1f83927e74f85edd5da7ef7b49d8848a890e37
+verified_implementation_commit: 60e6562511c168bbe09f4875e1c5b2bc72e47a62
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/AAA visual reads; exact workflow, jobs, logs and artifact retrieval; targeted JSON/network/diagnostic extraction; four exact screenshot inspections; focused syntax/contracts; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/scope review and content-addressed Git persistence. One artifact/job call used incorrect argument names and one log-filter JavaScript regex was malformed; both were corrected once with changed arguments and no semantic gate was repeated. No subagents, dependencies, runtime changes, product assets or token estimates were used.
+
 ## BS-20260902-43
 
 ```yaml
