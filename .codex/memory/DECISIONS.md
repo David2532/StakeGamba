@@ -27,3 +27,7 @@ BlackSite CI runs once for every push to `codex/blacksite-aaa-studio`; pull-requ
 ## D-006 — Base-win presentation tiers
 
 Base-phase `cluster_win.step_payout_raw` selects the static Vaultkeeper reaction at documented centi-x boundaries: `win_small` below 100, `win_medium` from 100 through 199, and `win_big` from 200. Feature-phase wins remain `bonus_win`, cap events remain `max_win`, and Reduced Motion resolves every tier at 0ms. These are presentation-only constants normalized to the Base wager; they never alter math, event values, final payout or wallet settlement.
+
+## D-007 — Feature idle character ownership
+
+Every authoritative `board_snapshot` owns a phase-specific static Vaultkeeper stance: feature-phase snapshots preserve `bonus_idle`, while Base snapshots use `monitoring`. One-shot feature reactions such as `bonus_win` may temporarily supersede that stance, but no feature board update may fall back to Base monitoring before the authoritative feature exit. This is presentation-only state and never changes event, payout, wallet or provider authority.

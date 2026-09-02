@@ -1,5 +1,22 @@
 # Material run log
 
+## BS-20260902-45 — SUCCESS
+
+- Sprint day: 4
+- Base remote commit: `55f2551e0b4644caa1db7f58bbaace7f62be75ef`
+- Verified implementation commit: `e9ada5144852fcf7fece66c849a4f4b20fa9a952`
+- Work item: `BSB-FEATURE-IDLE-CONTINUITY-001` (DONE; parent `BSB-MOTION-001` remains in progress)
+- Selection reason: `PresentationDirector` assigned Base `monitoring` to every `board_snapshot`, so authoritative feature boards repeatedly erased the distinct `bonus_idle` stance after the generic feature-cycle delay. Prior exact evidence made the defect deterministic: both Natural Base and purchased Deep Access feature segments contained 23 Monitoring regressions.
+- Before/after evidence: the focused regression began 0/1 with actual `monitoring` versus expected `bonus_idle`. Feature snapshots now retain `bonus_idle`; Base snapshots remain `monitoring`, while one-shot `bonus_win` reactions retain ownership. Exact Chromium observes 25 transitions per Normal/Turbo feature segment—one trigger, 12 static bonus-idle stances, 11 bonus wins and one recovery—with zero Monitoring. Idle styles compute animation `none`, duration 0ms, `will-change: auto` and the authored transform/filter. Exact payouts remain `$1000.00` / `$2000.00`; each flow performs one play and zero event/settlement writes.
+- Changed files: PresentationDirector, direct contract regression, exact Chromium instrumentation/captures, Animation Bible, durable decision and five sprint-memory files. Math, RNG, wallet/provider schema, product assets, lockfile and dependencies are unchanged.
+- Gates: expected-red focused contract 0/1 PASS; syntax plus focused-after contracts 2/2 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 142/142 PASS; production build PASS; local and exact math 7/7 over 300,000 books with unchanged fingerprint; exact isolated package generation/readback and current-SHA 51-point resolver PASS; exact Chromium 84/84 scenarios / 2328/2328 checks PASS. Selected scenarios have zero console/page/request errors and zero unexpected/forbidden calls; aggregate six console messages are expected 401/503 negative paths. `git diff --check` and secret/debug/scope/full-own-diff review PASS.
+- Visual review: exact Natural Base Normal and Deep Access Turbo `bonus_idle` frames at 1366x768 plus 1920x1080, 390x844 and 844x390 captures from artifact `9862279235` were inspected. Board, centered values, controls, penguin and responsive vault remain complete and sharp without crop, scroll or broken images. The inspection newly exposed a Deep Access active-state chip collision with the desktop header kicker; visual DoD is downgraded to partial and `BSB-FEATURE-MODE-BADGE-OVERLAP-001` is open.
+- Package evidence: exact frontend tree `23053edf6731bc1440570bd60a7934dea1f7f042591dc1041e469f47b8d594bb`, 10 files / 712,434 bytes; exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; package verification PASS.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Repository AAA-animation and visual-QA standards kept semantic authority, both presentation profiles, compositor cleanup, exact package identity and manual target-view inspection in one proof. The stale local build identity failed closed and was rebuilt once; an artifact field-path mismatch and over-broad debug scan were narrowed once. No semantic gate was repeated unchanged.
+- Persistence: implementation was fast-forwarded without force through connected Git data. Exact run `33669021386`, artifact `9862279235` and digest `sha256:ba8bf4f308a08fbe83353991c30ee2b27197d30fb98320eba0f33cf7d0e0bb13` succeeded; memory closeout is fast-forwarded separately without force.
+- Residual risk: the new Deep Access chip/header overlap; approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
+- Next candidate: resolve `BSB-FEATURE-MODE-BADGE-OVERLAP-001` with safe-area-aware positioning and active-feature overlap geometry across desktop, portrait and landscape.
+
 ## BS-20260902-44 — SUCCESS
 
 - Sprint day: 4
@@ -322,20 +339,3 @@ Newest entries first; retain at most 20.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33567927794`, artifact `9824259887` and digest `sha256:af6d3a31179ad191564eb4826fb6fcdca2ec60e76db3cf500b9c4fb69b1cf3aa` succeeded.
 - Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
-
-## BS-20260901-25 — SUCCESS
-
-- Sprint day: 3 (closed after the calendar rollover into day 4)
-- Base commit: `1bcd28641dbefd1f941bec8c66b20c828b4376a4`
-- Verified implementation commit: `2bea9119feb11fab8f2ee2c5d4ea76b085e58d79`
-- Work item: `BSB-REPLAY-TEARDOWN-ABORT-001` (DONE; parent `BSB-EVIDENCE-001` remains in progress)
-- Selection reason: read-only Replay destruction ignored late state but left its underlying fetch alive until the 10-second timeout, wasting transport work and weakening deterministic navigation cleanup despite the equivalent live-session lifecycle already being safe.
-- Before/after evidence: three expected-red Replay regressions first failed because neither client cancellation nor controller delegation existed. The client now owns every in-flight AbortController, distinguishes lifecycle cancellation from timeout, aborts all pending reads and remains reusable; controller destroy and `pagehide` call the same idempotent teardown. Exact Chromium reloads during a stalled Replay GET, records two attempts and one app-owned abort, recovers to `replay-ready` with one exact queryless/bodyless GET and sends zero authenticate/play/event/settlement writes.
-- Changed files: Replay client/controller, page lifecycle, Replay/compliance regressions, exact Chromium QA, checklist row-40 evidence binding and five sprint-memory files; math, assets, lockfile and dependencies unchanged.
-- Gates: expected-red Replay 14 PASS / 3 FAIL; syntax PASS; focused Replay/compliance 32/32 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 135/135 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 78/78 scenarios and 2223/2223 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not installed; exact isolated CI supplies current-package browser proof.
-- Visual review: exact 1280x720 Replay reload-recovery completion plus 1920x1080, 390x844 and 844x390 captures from artifact `9822522754` were inspected; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Board, controls, exact values and penguin/vault identity remain complete without overlap, document scroll, crop or broken images. Physical-device sign-off remains open.
-- Package evidence: exact remote frontend tree `199b2d5c6f9eb878c10f3193729d165eead32092c87b18301828353d8c62b5d7`, package verification PASS; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. A patch context mismatch, unavailable authenticated HTTPS push, broad registry result and malformed diagnostic regex each used a changed safe path; no unchanged semantic failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33563146222`, artifact `9822522754` and digest `sha256:42386a80211fc75ced9eb8202c875da38e3918776ed31857b30c611f61a111b8` succeeded.
-- Residual risk: final approved audio assets and listening/clipping/device QA, approved Spine rig/clips, BLACKOUT/foreground art layers, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct provider, accessibility or authored-motion gap that can close without unavailable human assets or physical-device approval.

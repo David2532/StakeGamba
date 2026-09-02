@@ -1,5 +1,67 @@
 # Rolling automation metrics
 
+## BS-20260902-45
+
+```yaml
+closed_at_utc: 2026-09-02T19:03:05Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-FEATURE-IDLE-CONTINUITY-001
+expected_red_contract: { pass: 0, fail: 1, status: EXPECTED_FAIL }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 2, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 142
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_package_generation: PASS
+local_package_verification: PASS
+local_frontend_tree: 2428550715bb854646c0098d224b2c6cdb4ec4256272fde0627053fe3f28a0a2
+exact_ci_run: 33669021386
+exact_ci_status: SUCCESS
+exact_ci_commit: e9ada5144852fcf7fece66c849a4f4b20fa9a952
+exact_app_tests: 142
+exact_full_math_status: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 23053edf6731bc1440570bd60a7934dea1f7f042591dc1041e469f47b8d594bb
+exact_frontend_files: 10
+exact_frontend_bytes: 712434
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+exact_browser: { scenarios: 84, passed: 84, failed: 0, checks_pass: 2328, checks_fail: 0 }
+exact_feature_segments: { normal: { total: 25, bonus_idle: 12, bonus_win: 11, monitoring: 0 }, turbo: { total: 25, bonus_idle: 12, bonus_win: 11, monitoring: 0 } }
+exact_feature_idle_styles: { animation: none, animation_duration_ms: 0, will_change: auto, authored_transform: true, authored_filter: true }
+exact_feature_network_each: { authenticate: 1, play: 1, end_round: 0, event: 0, replay: 0, unexpected: 0, forbidden: 0 }
+exact_diagnostics: { selected_scenario_console_errors: 0, aggregate_expected_negative_console_errors: 6, page_errors: 0, failed_requests: 0 }
+exact_compliance_resolver: PASS
+exact_compliance: { automated_proof_complete: 38, manual_gates_open: 23, external_gates_open: 6 }
+visual_viewports: [1366x768, 1920x1080, 390x844, 844x390]
+visual_review: PARTIAL_ACTIVE_FEATURE_BADGE_OVERLAP
+artifact_id: 9862279235
+artifact_digest: sha256:ba8bf4f308a08fbe83353991c30ee2b27197d30fb98320eba0f33cf7d0e0bb13
+verified_implementation_commit: e9ada5144852fcf7fece66c849a4f4b20fa9a952
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory and repository AAA animation/visual-QA reads; targeted source/event/evidence searches; one expected-red and one focused-after contract run; one complete frozen-install/lint/typecheck/test/build/math cycle; exact GitHub workflow/job/log/artifact access; package and JSON extraction; five exact screenshot inspections; diff/secret/debug/scope review and content-addressed Git persistence. A stale local build identity correctly blocked the first package attempt, then one exact-source rebuild produced a verified package. One artifact-download result path and one broad debug scan were corrected with narrower declared data; no semantic gate was repeated unchanged. No subagents, dependencies, math, wallet/provider contracts or product assets changed.
+
 ## BS-20260902-44
 
 ```yaml
