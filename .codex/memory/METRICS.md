@@ -1,5 +1,39 @@
 # Rolling automation metrics
 
+## BS-20260903-11
+
+```yaml
+started_at_utc: 2026-09-03T13:32:28Z
+closed_at_utc: 2026-09-03T14:12:13Z
+sprint_day: 5
+status: BLOCKED
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-ACCEPTED-WINNING-PLAY-RESPONSE-LOSS-001
+parent_work_item: { id: BSB-EVIDENCE-001, state: IN_PROGRESS_PROVIDER_AND_MANUAL_EVIDENCE_REQUIRED }
+expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL, exit: 1 }
+focused_final: { pass: 1, fail: 0, status: PASS, exit: 0 }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck: { errors: 0, warnings: 0, status: PASS }
+local_app_tests: { pass: 192, fail: 0 }
+local_build: PASS
+local_scale_self_test: { pass: 31, fail: 0, status: PASS, exit: 0 }
+local_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+local_browser: BLOCKED_MISSING_CHROMIUM_BINARY
+first_exact_ci: { run: 33763426664, commit: 3dfc04a9416ac1bbe44749539b8c7913cbc2317a, status: FAIL_BROWSER_HARNESS_OPTIONAL_READOUT_DISABLED }
+corrected_exact_ci: { run: 33765392559, commit: bfb3e8447d0c4858b029fcca736866951dc35dac, status: IN_PROGRESS }
+manual_visual_review: BLOCKED_CORRECTED_ARTIFACT_PENDING
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+git_diff_check: PASS
+final_diff_review: PASS_3_EVIDENCE_FILES_PLUS_1_TARGETED_HARNESS_CORRECTION_AND_MEMORY
+manual_identical_retries: 0
+```
+
+Observed categories: targeted memory/source reads and `rg`; one expected-red/focused cycle; one complete local product gate; exact workflow and diagnostic-log inspection; targeted jurisdiction correction; non-force Git-data persistence. The RGS replay standard required exact request bodies/order/count, authoritative restore and one-time payout. One fixture-export probe and one workflow-log result-shape access were corrected with changed inputs; HTTPS push authentication used connected Git data. No subagents, product runtime, math, wallet/provider schema, product assets, dependencies or lockfile changed.
+
 ## BS-20260903-10
 
 ```yaml

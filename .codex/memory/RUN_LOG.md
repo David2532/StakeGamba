@@ -1,5 +1,21 @@
 # Material run log
 
+## BS-20260903-11 — BLOCKED
+
+- Sprint day: 5
+- Base remote commit: `8b762e414d41d80e9f4dfa8034f5c5dc6425d0d0`
+- Candidate commits: implementation `3dfc04a9416ac1bbe44749539b8c7913cbc2317a`; targeted correction `bfb3e8447d0c4858b029fcca736866951dc35dac`.
+- Work item: `BSB-ACCEPTED-WINNING-PLAY-RESPONSE-LOSS-001` remains IN_PROGRESS under `BSB-EVIDENCE-001`.
+- Selection reason: the existing accepted-play response-loss evidence ended at zero win and could not numerically prove one-time positive payout after an ambiguous accepted paid write.
+- Before/after evidence: the compliance contract began with one expected missing-scenario failure and then passed. The new `base_big` case records one accepted `$1.00` play, response abort on reload, two authentications, 49 distinct durable checkpoint writes, one settlement, `$200.00` win and intended `$1199.00` balance. Exact endpoint bodies and order are asserted.
+- Changed files: Chromium QA, 51-point mapping, compliance regression, then one targeted QA jurisdiction correction and five memory files. Product runtime/layout, math, wallet/provider schema, assets, dependencies and lockfile are unchanged.
+- Gates: local frozen install, lint, 0/0 typecheck, 192/192 tests, build, 31/31 scale verifier and 7/7 math over 300,000 books PASS; fingerprint unchanged. First exact CI `33763426664` passed every non-browser gate and failed because `session-net-position` was correctly absent under the default disabled jurisdiction flag. Correction explicitly enables the flag on both authentications; syntax, focused contract, 192/192 tests, lint and `git diff --check` pass locally. Corrected CI `33765392559` remains IN_PROGRESS, so browser, resolver and artifact review are BLOCKED and the item is not closed.
+- Visual review: NOT RUN for the corrected artifact because CI is pending; no product visual source changed.
+- Tool/token metrics: see `METRICS.md`; subagents 0; tokens `null` / `not_exposed`. One fixture-export probe and one log result-shape read were corrected; no unchanged semantic retry occurred.
+- Persistence: both candidate commits were fast-forwarded through connected Git data with `force: false`; final verification is intentionally deferred to the next run.
+- Residual risk: production-equivalent CDN/RGS/provider load proof remains absent, so one-million-user capacity is NOT_CLAIMED. Approved Spine/art/audio, device, rights/Creative, 23 manual and 6 external gates remain open.
+- Next candidate: first verify corrected CI `33765392559`, exact browser counts, resolver and artifact views; only then close this item. Afterwards return to real owner-approved `BSB-SCALE-001` evidence.
+
 ## BS-20260903-10 — SUCCESS
 
 - Sprint day: 5
@@ -323,20 +339,3 @@
 - Next candidate: resume `BSB-BASE-WIN-TIER-REACTIONS-001` by obtaining one exact current-head workflow/browser artifact; do not add another motion slice first.
 
 Newest entries first; retain at most 20.
-
-## BS-20260902-37 — SUCCESS
-
-- Sprint day: 4
-- Base commit: `df607d4491b2b7132687a84123619ca87bb656e3`
-- Verified implementation commit: `51dcb62cb19cc3bac50def45d9a7373aa990243e`
-- Work item: `BSB-FEATURE-WIN-CHARACTER-REACTION-001` (DONE; parent `BSB-MOTION-001` remains in progress)
-- Selection reason: all win cues mapped to ordinary `win_acknowledge`, so feature payouts overwrote `bonus_idle` without the bonus-specific Vaultkeeper response required by the animation contract.
-- Before/after evidence: the focused contract began 0 PASS / 2 expected FAIL because feature-phase state selection and `bonus_win` CSS were absent. Feature wins now own `bonus_win` for 280ms Normal / 110ms Turbo / 0ms Reduced while Base wins retain `win_acknowledge`. Exact Chromium observes complete 204.2ms and 178.2ms Turbo semantic windows in natural Base and confirmed Deep Access features, then clean Monitoring/idle cleanup. The two exact 1,000,000-micro-unit plays settle at `$1000.00` / `$2000.00` with zero checkpoint/event/settlement writes.
-- Changed files: presentation timing director, Vaultkeeper state CSS, contract regression, exact Chromium QA and five sprint-memory files; math, wallet schema, product assets, lockfile and dependencies unchanged.
-- Gates: expected-red focused contract 0 PASS / 2 FAIL; syntax plus focused contract 4/4 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 140/140 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; exact identity-bound package generation/readback and 51-row resolver PASS; exact Chromium 83/83 scenarios / 2303/2303 checks PASS. Unexpected network/page/request failures are 0; six expected negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was unavailable; exact isolated CI supplies current-package browser proof.
-- Visual review: both exact 1366x768 active `bonus_win` frames plus 1920x1080, 390x844 and 844x390 captures from artifact `9843481852` were inspected. All 49 cells, board, controls, centered values and intended penguin/vault identity remain sharp and complete without overlap, document scroll, crop or broken images; automated geometry also passed 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
-- Package evidence: exact remote frontend tree `e92363b54c7c7bf66323c5ce1e44620821a9348665f4ac0fc2843ad2e8c4e5b0`, 10 files / 707,608 bytes, exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept feature authority, profile timing, wallet isolation and compositor cleanup together. Targeted search corrected two path probes; direct HTTPS push used the connected Git-data fallback; no unchanged semantic failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33621532438`, artifact `9843481852` and digest `sha256:30be8b727172bbb981222311298965250fc113660fd18a37ac6a3fcb0390f368` succeeded.
-- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
