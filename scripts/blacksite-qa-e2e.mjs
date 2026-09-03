@@ -2167,15 +2167,6 @@ async function runNetworkScenarios(browser, origin) {
 	await runScenario('accepted-winning-checkpoint-response-loss-restores-and-pays-exactly-once', async (record) => {
 		const group = 'accepted-winning-checkpoint-response-loss-restores-and-pays-exactly-once';
 		const fixture = getGeneratedFixture('base_big');
-		const acceptedCursor = encodePresentationCursor(2);
-		const round = authoritativeFixtureRound({
-			fixture,
-			active: true,
-			id: 'blacksite-qa-accepted-winning-checkpoint-response-loss',
-			event: acceptedCursor,
-		});
-		const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
-		const settledBalance = debitedBalance + round.payout;
 		const checkpointEventTypes = new Set([
 			'board_set',
 			'breach_state',
@@ -2187,10 +2178,16 @@ async function runNetworkScenarios(browser, origin) {
 		const expectedCheckpointCursors = fixture.book.events
 			.filter(({ type }) => checkpointEventTypes.has(type))
 			.map(({ index }) => encodePresentationCursor(index + 1));
-		const expectedRemainingCursors = fixture.book.events
-			.slice(2)
-			.filter(({ type }) => checkpointEventTypes.has(type))
-			.map(({ index }) => encodePresentationCursor(index + 1));
+		const acceptedCursor = expectedCheckpointCursors[0];
+		const expectedRemainingCursors = expectedCheckpointCursors.slice(1);
+		const round = authoritativeFixtureRound({
+			fixture,
+			active: true,
+			id: 'blacksite-qa-accepted-winning-checkpoint-response-loss',
+			event: acceptedCursor,
+		});
+		const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
+		const settledBalance = debitedBalance + round.payout;
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 		try {
 			await context.addInitScript(
