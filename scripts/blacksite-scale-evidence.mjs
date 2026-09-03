@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 export const SCALE_EVIDENCE_SCHEMA = 'blacksite-scale-evidence-v6';
 export const SCALE_ARTIFACT_BINDING_SCHEMA = 'blacksite-scale-artifact-binding-v2';
 export const SCALE_ARTIFACT_ATTESTATION_SCHEMA = 'blacksite-scale-artifact-attestation-v1';
-export const SCALE_TRUST_STORE_SCHEMA = 'blacksite-scale-trusted-signers-v2';
+export const SCALE_TRUST_STORE_SCHEMA = 'blacksite-scale-trusted-signers-v3';
 const expectedResilienceScenarios = Object.freeze(['cdn-origin-degradation', 'rgs-http-5xx', 'provider-timeout', 'instance-restart']);
 const requiredArtifactRoles = Object.freeze(['load-report', 'cdn-report', 'provider-ledger', 'resilience-report', 'observability-export', 'rollback-report']);
 
@@ -154,6 +154,7 @@ export function createScaleTrustStore(evidence, signers) {
   return {
     schema: SCALE_TRUST_STORE_SCHEMA,
     identitySha256: sha256Value(evidence.identity),
+    approvalSha256: sha256Value(evidence.approval),
     signers,
   };
 }
@@ -162,6 +163,7 @@ function verifyTrustedSigners(evidence, trustStore) {
   requireValue(trustStore && typeof trustStore === 'object', 'trusted signer trust store is required');
   requireValue(trustStore.schema === SCALE_TRUST_STORE_SCHEMA, `trust store schema must be ${SCALE_TRUST_STORE_SCHEMA}`);
   requireValue(trustStore.identitySha256 === sha256Value(evidence.identity), 'trust store release identity does not match evidence');
+  requireValue(trustStore.approvalSha256 === sha256Value(evidence.approval), 'trust store approval does not match evidence');
   requireValue(Array.isArray(trustStore.signers) && trustStore.signers.length > 0, 'trusted signers are required');
   const ids = trustStore.signers.map((signer) => signer?.id);
   requireValue(new Set(ids).size === ids.length, 'trusted signer ids must be unique');
@@ -840,6 +842,13 @@ async function runSelfTest() {
       },
       false,
     ],
+    [
+      'substituted pre-run approval metadata',
+      (evidence) => {
+        evidence.approval.evidenceRef = 'substituted-after-the-run';
+      },
+      false,
+    ],
     ['missing artifact', (evidence, directory) => rmSync(join(directory, evidence.artifacts[0].name)), false],
     [
       'artifact path traversal',
@@ -917,6 +926,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       trustStoreReadback: {
         schema: trustStore.schema,
         sha256: trustStoreSha256,
+        approvalSha256: trustStore.approvalSha256,
       },
       artifactReadback,
       warning: 'This validates supplied production-equivalent evidence and exact artifact bytes; external owners still decide whether it proves approved capacity.',
