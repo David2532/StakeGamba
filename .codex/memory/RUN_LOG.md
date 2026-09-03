@@ -1,5 +1,22 @@
 # Material run log
 
+## BS-20260903-17 — SUCCESS
+
+- Sprint day: 5
+- Base remote commit: `41375e4af0dca8b9bf8b68dbf6f2dc03bb807ca4`
+- Verified implementation commit: `aaf9ba590b78e69a185ca1d84df790c0e48930ba`
+- Work item: `BSB-SCALE-TRUST-STORE-PINNING-001` (DONE); parent `BSB-SCALE-001` remains OPEN for real infrastructure evidence.
+- Selection reason: path separation prevented an evidence bundle from carrying its own keys, but the real CLI still accepted a substituted out-of-band trust-store file because release control could not pin its exact bytes.
+- Before/after evidence: expected-red 0/1 proves acceptance despite an explicitly wrong digest. The CLI now requires and validates a 64-character SHA-256 of the exact trust-store bytes before parsing or signer authorization and emits that verified digest; focused regression 3/3 and self-test 32/32 pass.
+- Changed files: scale verifier, focused scale regression, scale readiness contract and five sprint-memory files. Product runtime/layout, math/RNG, wallet/provider schema, product assets, dependencies and lockfile are unchanged.
+- Gates: local frozen install, lint, production `svelte-check` 0 errors/0 warnings, 195/195 app tests and build PASS; focused scale regression 3/3 and self-test 32/32 PASS. Exact CI `33797481152` passes all gates, math 7/7 over 300,000 books, six-file package/readback, Chromium 89/89 scenarios / 2878 checks and current-SHA 51-point resolution. Unexpected/forbidden requests, page errors and unclassified request failures are zero. `git diff --check` and secret/debug/scope/full-own-diff review PASS.
+- Visual review: artifact `9910339166` matched `sha256:ee706a66e2dc151849960c5c2732b11e8e2b580e751a982ff1b9827f0e6e97a0`; 1920x1080, 1366x768, 390x844 and 844x390 views were manually inspected without overlap, crop, scrollbar or broken images. Penguin, vault, board, HUD and controls remain intact.
+- Package evidence: exact frontend tree `1fa79b90e15738b8ba9f7b19d795e207576315116517c8dee2a3c8e61e83b0fd`, 6 files / 439,759 bytes; unchanged math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`.
+- Tool/token metrics: see `METRICS.md`; subagents 0; tokens `null` / `not_exposed`. The Stake RGS replay skill enforced the independently pinned, fail-closed trust boundary; failed tool methods were changed before retry.
+- Persistence: implementation fast-forwarded through connected Git data without force; exact CI and artifact succeeded. This memory closeout is fast-forwarded separately without force.
+- Residual risk: production-equivalent CDN/RGS/provider load and resilience proof remains absent, so capacity for 1,000,000 users is NOT_CLAIMED. Approved Spine rig/clips, BLACKOUT/foreground art, final audio/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals remain open.
+- Next candidate: obtain owner-approved production-equivalent `BSB-SCALE-001` evidence and validate all six independently signed reports against the external digest-pinned trust store.
+
 ## BS-20260903-16 — SUCCESS
 
 - Sprint day: 5
@@ -322,21 +339,4 @@
 - Persistence: verified implementation `60e6562`, exact run `33656188904`, artifact `9857355056` and digest `sha256:4b1837744d0cf98a1c6032659c1f83927e74f85edd5da7ef7b49d8848a890e37` are bound together. Memory closeout is fast-forwarded separately without force.
 - Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
-## BS-20260902-43 — BLOCKED
-
-- Sprint day: 4
-- Base remote commit: `c89783be8b256561c37e7fac02afd8b7b47574b0`
-- Pending evidence commit: `60e6562511c168bbe09f4875e1c5b2bc72e47a62`; last fully verified implementation remains `ca2e009503c96a95074fe8dd671e04567a478d29`
-- Work item: `BSB-REPLAY-REDUCED-MOTION-EVIDENCE-001` (BLOCKED; parent `BSB-EVIDENCE-001` remains in progress)
-- Selection reason: Replay already had exact Normal/Turbo timing proof and Reduced Motion runtime semantics, but lacked one full cached Replay/play-again path proving no transient motion frame, stable cleanup and wallet/network isolation under the Reduced profile.
-- Before/after evidence: the focused source contract began 29 PASS / 1 expected FAIL. QA now performs Normal, Turbo and Reduced presentations in one Replay session, samples every Reduced browser frame and requires idle board/character state, no CSS animation or transition, released compositor ownership, one Replay GET and zero wallet writes. Exact run `33654192804` passed every pre-browser gate and reached `replay-completed` / `reduced`, then failed only a stale final Turbo assertion (83/84 scenarios, 2317/2318 checks). The assertion and its source contract are corrected; exact rerun `33656188904` remains in progress.
-- Changed files: exact Chromium QA, QA source contract and five sprint-memory files; runtime, math, wallet/provider schema, assets, lockfile and dependencies unchanged.
-- Gates: expected-red contract 29/30 PASS; syntax plus focused contracts 30/30 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 141/141 PASS; production build PASS; local math 7/7 over 300,000 books with unchanged fingerprint; local isolated package generation/readback PASS. First exact run passed install/lint/typecheck/tests/build/math/package, then browser failed only the stale harness postcondition. Corrected exact browser, screenshots and current-SHA 51-point resolver are `BLOCKED/PENDING`; `git diff --check` and secret/debug/scope/full-own-diff review PASS.
-- Visual review: `NOT_RUN` for corrected current head. The first failed Replay scenario did not emit its final screenshot and historical visual artifacts were not inherited; desktop, portrait and landscape inspection therefore remains pending for this slice.
-- Package evidence: local frontend tree `7ca7bd5bf0eac27e32c663ecb5270a70a63ea4de137ecabbe325dde4d241b54b`, 10 files / 712,368 bytes; math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; package verification PASS.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Repository AAA-animation and visual-QA standards kept semantic profile, computed styles, painted-frame sampling, compositor cleanup, screenshots and wallet isolation in one acceptance proof. Standard Git push authentication failed once, then connected Git data performed non-force fast-forwards; one test-filter mismatch and one stale build identity were corrected with targeted changed methods.
-- Persistence: QA implementation and correction were fast-forwarded without force through connected Git data. Initial exact run `33654192804`, artifact `9856642108` and digest `sha256:766ac8bd18547ef6421a38e8468275daf8642a506209131f16fa69e557b6e017` supplied the harness diagnosis; corrected run `33656188904` is still in progress and is not claimed.
-- Residual risk: current-head Chromium, screenshots, wallet/network result and 51-point resolver remain pending, alongside approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup.
-- Next candidate: resume this same evidence item from exact run `33656188904`; do not begin another motion slice until its current-head browser and visual evidence is resolved.
-
 Newest entries first; retain at most 20.

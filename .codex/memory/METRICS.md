@@ -1,5 +1,41 @@
 # Rolling automation metrics
 
+## BS-20260903-17
+
+```yaml
+started_at_utc: 2026-09-03T19:30:58Z
+closed_at_utc: 2026-09-03T19:58:41Z
+sprint_day: 5
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-SCALE-TRUST-STORE-PINNING-001
+parent_work_item: { id: BSB-SCALE-001, state: OPEN_PRODUCTION_EQUIVALENT_EVIDENCE_REQUIRED }
+expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_SUBSTITUTED_TRUST_STORE_ACCEPTED, exit: 1 }
+focused_final: { pass: 3, fail: 0, status: PASS, exit: 0 }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck: { errors: 0, warnings: 0, status: PASS }
+local_app_tests: { pass: 195, fail: 0, exit: 0 }
+local_build: PASS
+local_scale_self_test: { pass: 32, fail: 0, status: PASS, exit: 0 }
+exact_ci: { run: 33797481152, commit: aaf9ba590b78e69a185ca1d84df790c0e48930ba, status: SUCCESS }
+exact_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_browser: { scenarios: 89, passed: 89, checks: 2878, passed_checks: 2878, failed_checks: 0 }
+exact_package: { frontend_tree: 1fa79b90e15738b8ba9f7b19d795e207576315116517c8dee2a3c8e61e83b0fd, files: 6, bytes: 439759, status: PASS }
+exact_resolver: { total: 51, automated_proof_complete: 38, manual_open: 23, external_open: 6, status: PASS }
+artifact: { id: 9910339166, bytes: 57774663, sha256: ee706a66e2dc151849960c5c2732b11e8e2b580e751a982ff1b9827f0e6e97a0 }
+manual_visual_review: PASS_1920X1080_1366X768_390X844_844X390
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+git_diff_check: PASS
+final_diff_review: PASS_VERIFIER_TEST_RUNBOOK_AND_MEMORY_ONLY
+manual_identical_retries: 0
+```
+
+Observed categories: targeted contract/source/test/memory reads; one expected-red substitution attack and corrected focused regression; one complete local product gate; connected Git-data fast-forward; exact workflow/job/log/artifact retrieval; four-image manual review; targeted memory patching. One malformed `rg` option, one focused fixture declaration error, one absent `gh` binary, one rejected temporary cleanup and one transient wait transport failed; each was corrected with a materially changed method and no semantic gate was repeated unchanged. The Stake RGS replay standard enforced a separately controlled, digest-pinned trust anchor. No subagents, product runtime, UI, math, wallet/provider schema, assets, dependencies or lockfile changed.
+
 ## BS-20260903-16
 
 ```yaml
