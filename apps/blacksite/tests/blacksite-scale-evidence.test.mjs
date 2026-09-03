@@ -1,10 +1,17 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import {
   SCALE_EVIDENCE_SCHEMA,
   createSelfTestEvidence,
   verifyScaleEvidence,
+  verifyScaleEvidenceArtifacts,
 } from '../../../scripts/blacksite-scale-evidence.mjs';
 
 function clone(value) {
@@ -19,7 +26,7 @@ test('scale evidence binds exact client and external release identity', () => {
   });
   assert.equal(result.schema, SCALE_EVIDENCE_SCHEMA);
   assert.equal(result.status, 'PASS');
-  assert.equal(result.claim, 'EXTERNAL_SCALE_EVIDENCE_VALIDATED');
+  assert.equal(result.claim, 'EXTERNAL_SCALE_METADATA_VALIDATED');
 });
 
 test('scale evidence rejects mocked or non-production-equivalent targets', () => {
@@ -123,4 +130,73 @@ test('scale evidence binds approvals, phase duration, request totals and require
     (artifact) => artifact.role !== 'rollback-report',
   );
   assert.throws(() => verifyScaleEvidence(missingArtifactRole), /rollback-report/u);
+});
+
+test('real scale verification refuses metadata-only artifact claims', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'blacksite-scale-readback-red-'));
+  try {
+    const evidence = createSelfTestEvidence();
+    const evidencePath = join(directory, 'evidence.json');
+    writeFileSync(evidencePath, `${JSON.stringify(evidence)}\n`, 'utf8');
+    const result = spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(new URL('../../../scripts/blacksite-scale-evidence.mjs', import.meta.url)),
+        '--evidence',
+        evidencePath,
+        '--expected-commit',
+        evidence.identity.gitSha,
+        '--expected-frontend-tree',
+        evidence.identity.frontendTreeSha256,
+      ],
+      { encoding: 'utf8' },
+    );
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /artifacts-root/u);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('scale artifact readback verifies exact files and detects tampering', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'blacksite-scale-readback-'));
+  try {
+    const evidence = createSelfTestEvidence();
+    for (const artifact of evidence.artifacts) {
+      const content = `${artifact.role}\n`;
+      writeFileSync(join(directory, artifact.name), content, 'utf8');
+      artifact.bytes = Buffer.byteLength(content);
+      artifact.sha256 = createHash('sha256').update(content).digest('hex');
+    }
+    const result = await verifyScaleEvidenceArtifacts(evidence, directory);
+    assert.equal(result.status, 'PASS');
+    assert.equal(result.verifiedArtifacts.length, 6);
+
+    const evidencePath = join(directory, 'evidence.json');
+    writeFileSync(evidencePath, `${JSON.stringify(evidence)}\n`, 'utf8');
+    const cli = spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(new URL('../../../scripts/blacksite-scale-evidence.mjs', import.meta.url)),
+        '--evidence',
+        evidencePath,
+        '--artifacts-root',
+        directory,
+        '--expected-commit',
+        evidence.identity.gitSha,
+        '--expected-frontend-tree',
+        evidence.identity.frontendTreeSha256,
+      ],
+      { encoding: 'utf8' },
+    );
+    assert.equal(cli.status, 0, cli.stderr);
+    const cliResult = JSON.parse(cli.stdout);
+    assert.equal(cliResult.claim, 'EXTERNAL_SCALE_EVIDENCE_VALIDATED');
+    assert.equal(cliResult.artifactReadback.verifiedArtifacts.length, 6);
+
+    writeFileSync(join(directory, evidence.artifacts[0].name), 'tampered\n', 'utf8');
+    await assert.rejects(() => verifyScaleEvidenceArtifacts(evidence, directory), /bytes mismatch|sha256 mismatch/u);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });

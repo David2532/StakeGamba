@@ -1,8 +1,19 @@
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
+import {
+  createReadStream,
+  lstatSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const SCALE_EVIDENCE_SCHEMA = 'blacksite-scale-evidence-v2';
+export const SCALE_EVIDENCE_SCHEMA = 'blacksite-scale-evidence-v3';
 const expectedResilienceScenarios = Object.freeze([
   'cdn-origin-degradation',
   'rgs-http-5xx',
@@ -52,6 +63,59 @@ function exactHex(value, length, name) {
 function timestamp(value, name) {
   nonEmpty(value, name);
   requireValue(Number.isFinite(Date.parse(value)), `${name} must be an ISO-8601 timestamp`);
+}
+
+function containedRelativePath(root, candidate, name) {
+  const fromRoot = relative(root, candidate);
+  requireValue(
+    fromRoot.length > 0 && fromRoot !== '..' && !fromRoot.startsWith(`..${process.platform === 'win32' ? '\\' : '/'}`),
+    `${name} must stay inside the artifacts root`,
+  );
+}
+
+async function sha256File(path) {
+  const hash = createHash('sha256');
+  for await (const chunk of createReadStream(path)) hash.update(chunk);
+  return hash.digest('hex');
+}
+
+export async function verifyScaleEvidenceArtifacts(evidence, artifactsRoot) {
+  nonEmpty(artifactsRoot, 'artifacts-root');
+  const rootStat = lstatSync(artifactsRoot, { throwIfNoEntry: false });
+  requireValue(rootStat?.isDirectory() === true && rootStat.isSymbolicLink() === false, 'artifacts-root must be a real directory');
+  const realRoot = realpathSync(artifactsRoot);
+  const names = evidence.artifacts.map((artifact) => artifact?.name);
+  requireValue(new Set(names).size === names.length, 'artifact names must be unique');
+
+  const realPaths = new Set();
+  const verifiedArtifacts = [];
+  for (const artifact of evidence.artifacts) {
+    nonEmpty(artifact?.name, 'artifact.name');
+    requireValue(!isAbsolute(artifact.name), `artifact ${artifact.role}.name must be relative`);
+    requireValue(!artifact.name.includes('\\'), `artifact ${artifact.role}.name must use portable separators`);
+    requireValue(
+      artifact.name.split('/').every((segment) => segment.length > 0 && segment !== '.' && segment !== '..'),
+      `artifact ${artifact.role}.name contains an unsafe path segment`,
+    );
+
+    const candidate = resolve(realRoot, artifact.name);
+    containedRelativePath(realRoot, candidate, `artifact ${artifact.role}.name`);
+    const candidateStat = lstatSync(candidate, { throwIfNoEntry: false });
+    requireValue(candidateStat, `artifact ${artifact.role} is missing`);
+    requireValue(candidateStat.isSymbolicLink() === false, `artifact ${artifact.role} must not be a symbolic link`);
+    requireValue(candidateStat.isFile() === true, `artifact ${artifact.role} must be a regular file`);
+
+    const realCandidate = realpathSync(candidate);
+    containedRelativePath(realRoot, realCandidate, `artifact ${artifact.role}.realPath`);
+    requireValue(!realPaths.has(realCandidate), 'artifact files must be unique');
+    realPaths.add(realCandidate);
+    requireValue(candidateStat.size === artifact.bytes, `artifact ${artifact.role}.bytes mismatch`);
+    const digest = await sha256File(realCandidate);
+    requireValue(digest === artifact.sha256, `artifact ${artifact.role}.sha256 mismatch`);
+    verifiedArtifacts.push({ role: artifact.role, name: artifact.name, bytes: candidateStat.size, sha256: digest });
+  }
+
+  return { status: 'PASS', verifiedArtifacts };
 }
 
 function verifyLatencyMetric(name, metric) {
@@ -238,7 +302,7 @@ export function verifyScaleEvidence(evidence, expected = {}) {
   return {
     schema: SCALE_EVIDENCE_SCHEMA,
     status: 'PASS',
-    claim: 'EXTERNAL_SCALE_EVIDENCE_VALIDATED',
+    claim: 'EXTERNAL_SCALE_METADATA_VALIDATED',
     identity: evidence.identity,
     approvedWorkload: {
       populationUsers: evidence.workload.populationUsers,
@@ -251,7 +315,7 @@ export function verifyScaleEvidence(evidence, expected = {}) {
     },
     cdn: { cacheHitRate, originRequestRatio },
     warning:
-      'This validates supplied production-equivalent evidence; it does not turn CI self-tests or mocked traffic into a capacity claim.',
+      'Metadata validation is incomplete until the CLI reads back every bound artifact; CI self-tests and mocked traffic never prove capacity.',
   };
 }
 
@@ -364,7 +428,16 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function runSelfTest() {
+function materializeSelfTestArtifacts(evidence, directory) {
+  for (const artifact of evidence.artifacts) {
+    const content = `${artifact.role}\n`;
+    writeFileSync(join(directory, artifact.name), content, 'utf8');
+    artifact.bytes = Buffer.byteLength(content);
+    artifact.sha256 = createHash('sha256').update(content).digest('hex');
+  }
+}
+
+async function runSelfTest() {
   const valid = createSelfTestEvidence();
   const cases = [
     ['valid evidence', valid, true],
@@ -402,7 +475,49 @@ function runSelfTest() {
     requireValue(didPass === expectedPass, `self-test failed: ${name}`);
     passed += 1;
   }
-  process.stdout.write(`BLACKSITE scale evidence gate self-test: ${passed}/${cases.length} PASS\n`);
+
+  const artifactCases = [
+    ['valid artifact readback', () => {}, true],
+    [
+      'tampered artifact',
+      (evidence, directory) => writeFileSync(join(directory, evidence.artifacts[0].name), 'tampered\n', 'utf8'),
+      false,
+    ],
+    ['artifact size mismatch', (evidence) => { evidence.artifacts[0].bytes += 1; }, false],
+    [
+      'missing artifact',
+      (evidence, directory) => rmSync(join(directory, evidence.artifacts[0].name)),
+      false,
+    ],
+    ['artifact path traversal', (evidence) => { evidence.artifacts[0].name = '../outside.json'; }, false],
+    [
+      'artifact symbolic link',
+      (evidence, directory) => {
+        const artifactPath = join(directory, evidence.artifacts[0].name);
+        rmSync(artifactPath);
+        symlinkSync(evidence.artifacts[1].name, artifactPath);
+      },
+      false,
+    ],
+  ];
+  for (const [name, mutate, expectedPass] of artifactCases) {
+    const directory = mkdtempSync(join(tmpdir(), 'blacksite-scale-self-test-'));
+    let didPass = false;
+    try {
+      const evidence = createSelfTestEvidence();
+      materializeSelfTestArtifacts(evidence, directory);
+      mutate(evidence, directory);
+      await verifyScaleEvidenceArtifacts(evidence, directory);
+      didPass = true;
+    } catch {
+      didPass = false;
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+    requireValue(didPass === expectedPass, `self-test failed: ${name}`);
+    passed += 1;
+  }
+  process.stdout.write(`BLACKSITE scale evidence gate self-test: ${passed}/${cases.length + artifactCases.length} PASS\n`);
 }
 
 function argument(name) {
@@ -412,14 +527,23 @@ function argument(name) {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (process.argv.includes('--self-test')) {
-    runSelfTest();
+    await runSelfTest();
   } else {
     const evidencePath = argument('--evidence');
     const gitSha = argument('--expected-commit');
     const frontendTreeSha256 = argument('--expected-frontend-tree');
-    requireValue(evidencePath && gitSha && frontendTreeSha256, 'Usage: node scripts/blacksite-scale-evidence.mjs --evidence <json> --expected-commit <sha> --expected-frontend-tree <sha256> [--output <json>]');
+    const artifactsRoot = argument('--artifacts-root');
+    requireValue(evidencePath && gitSha && frontendTreeSha256 && artifactsRoot, 'Usage: node scripts/blacksite-scale-evidence.mjs --evidence <json> --artifacts-root <directory> --expected-commit <sha> --expected-frontend-tree <sha256> [--output <json>]');
     const evidence = JSON.parse(readFileSync(evidencePath, 'utf8'));
-    const result = verifyScaleEvidence(evidence, { gitSha, frontendTreeSha256 });
+    const metadata = verifyScaleEvidence(evidence, { gitSha, frontendTreeSha256 });
+    const artifactReadback = await verifyScaleEvidenceArtifacts(evidence, artifactsRoot);
+    const result = {
+      ...metadata,
+      claim: 'EXTERNAL_SCALE_EVIDENCE_VALIDATED',
+      artifactReadback,
+      warning:
+        'This validates supplied production-equivalent evidence and exact artifact bytes; external owners still decide whether it proves approved capacity.',
+    };
     const output = `${JSON.stringify(result, null, 2)}\n`;
     const outputPath = argument('--output');
     if (outputPath) writeFileSync(outputPath, output, 'utf8');
