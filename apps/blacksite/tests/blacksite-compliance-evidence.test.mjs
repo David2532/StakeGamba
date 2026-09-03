@@ -226,6 +226,8 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 	assert.match(browserQa, /accepted winning checkpoint recovery pays the authoritative result exactly once/u);
 	assert.match(browserQa, /const acceptedCursor = expectedCheckpointCursors\[0\]/u);
 	assert.match(browserQa, /const expectedRemainingCursors = expectedCheckpointCursors\.slice\(1\)/u);
+	assert.match(browserQa, /const playRound = authoritativeFixtureRound\(\{[\s\S]*?active: true,[\s\S]*?\}\);/u);
+	assert.match(browserQa, /round: playRound/u);
 	assert(
 		browserQa.includes(
 			"expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/bet/event`",

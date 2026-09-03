@@ -2180,6 +2180,11 @@ async function runNetworkScenarios(browser, origin) {
 			.map(({ index }) => encodePresentationCursor(index + 1));
 		const acceptedCursor = expectedCheckpointCursors[0];
 		const expectedRemainingCursors = expectedCheckpointCursors.slice(1);
+		const playRound = authoritativeFixtureRound({
+			fixture,
+			active: true,
+			id: 'blacksite-qa-accepted-winning-checkpoint-response-loss',
+		});
 		const round = authoritativeFixtureRound({
 			fixture,
 			active: true,
@@ -2252,7 +2257,7 @@ async function runNetworkScenarios(browser, origin) {
 					play: () => ({
 						status: successStatus(),
 						balance: { amount: debitedBalance, currency: 'USD' },
-						round,
+						round: playRound,
 					}),
 					event: (request) => ({ event: request.body.event }),
 					endRound: () => endRoundResponse({ balance: settledBalance }),
