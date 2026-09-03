@@ -8,19 +8,20 @@ This is a BlackSite release-evidence contract, not a Stake rule and not a substi
 
 The workload must identify a planning population of exactly 1,000,000 users and separately record the approved peak concurrency and request rate. One million registered or addressable users does not mean one million simultaneous sessions. The workload owner, provider owner and platform owner must approve the actual concurrency/RPS model before execution.
 
-Accepted evidence must bind:
+Accepted schema-v2 evidence must bind:
 
 - the exact Git commit and packaged frontend SHA-256;
 - the provider and CDN release identities;
 - a non-mocked, production-equivalent environment and approved non-player-funds data policy;
-- ramp, steady-state and soak phases with achieved concurrency and RPS at least equal to the approved targets;
+- a unique run ID, a pre-run approval evidence reference, and ramp, steady-state and soak phases whose sum fits within the measured run window;
+- achieved concurrency and RPS at least equal to the approved targets, plus a measured request total equal to the endpoint samples;
 - CDN cache-hit ratio, origin-request ratio, origin egress and invalidation behavior;
 - p50/p95/p99, error rate and timeout rate for frontend, authenticate, play, event, end-round and Replay traffic;
 - zero duplicate accepted paid plays, duplicate settlements, negative balances, payout mismatches and uncertain-recovery duplicate writes;
 - CDN-origin degradation, RGS 5xx, provider timeout and instance-restart recovery drills;
 - bounded saturation metrics, correlated logs/metrics/traces, captured dashboards and acknowledged alert drills;
 - a successful bounded rollback rehearsal;
-- SHA-256-bound raw load, CDN, provider-ledger and observability artifacts.
+- six unique, run-ID-bound artifact roles with positive byte sizes and SHA-256 digests: load report, CDN report, provider ledger, resilience report, observability export and rollback report.
 
 Performance, cache, saturation and recovery limits are supplied by the approved workload evidence. The verifier compares observed values with those approved limits; it does not invent universal provider thresholds.
 
@@ -42,7 +43,7 @@ node scripts/blacksite-scale-evidence.mjs \
   --output /secure/path/blacksite-scale-verification.json
 ```
 
-The real command must be executed against the exact release candidate after the coordinated test. Its PASS output and all referenced artifacts must be retained by the release owner. Do not commit credentials, session IDs, player data, provider secrets or unrestricted production URLs.
+The workload approval must exist before the run starts. The real command must be executed against the exact release candidate after the coordinated test. Its PASS output, approval reference and all six referenced artifacts must be retained by the release owner. Do not commit credentials, session IDs, player data, provider secrets or unrestricted production URLs.
 
 ## Release decision
 

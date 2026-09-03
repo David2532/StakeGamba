@@ -2,12 +2,20 @@ import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-export const SCALE_EVIDENCE_SCHEMA = 'blacksite-scale-evidence-v1';
+export const SCALE_EVIDENCE_SCHEMA = 'blacksite-scale-evidence-v2';
 const expectedResilienceScenarios = Object.freeze([
   'cdn-origin-degradation',
   'rgs-http-5xx',
   'provider-timeout',
   'instance-restart',
+]);
+const requiredArtifactRoles = Object.freeze([
+  'load-report',
+  'cdn-report',
+  'provider-ledger',
+  'resilience-report',
+  'observability-export',
+  'rollback-report',
 ]);
 
 function fail(message) {
@@ -20,6 +28,10 @@ function requireValue(condition, message) {
 
 function finitePositive(value, name) {
   requireValue(Number.isFinite(value) && value > 0, `${name} must be a positive number`);
+}
+
+function positiveInteger(value, name) {
+  requireValue(Number.isSafeInteger(value) && value > 0, `${name} must be a positive safe integer`);
 }
 
 function boundedRatio(value, name) {
@@ -84,6 +96,7 @@ export function verifyScaleEvidence(evidence, expected = {}) {
 
   requireValue(evidence.approval?.status === 'approved', 'approval.status must be approved');
   timestamp(evidence.approval?.approvedAt, 'approval.approvedAt');
+  nonEmpty(evidence.approval?.evidenceRef, 'approval.evidenceRef');
   nonEmpty(evidence.approval?.workloadOwner, 'approval.workloadOwner');
   nonEmpty(evidence.approval?.providerOwner, 'approval.providerOwner');
   nonEmpty(evidence.approval?.platformOwner, 'approval.platformOwner');
@@ -118,10 +131,31 @@ export function verifyScaleEvidence(evidence, expected = {}) {
   requireValue(evidence.workload.achievedRps >= evidence.workload.targetRps, 'approved request rate was not achieved');
   timestamp(evidence.run?.startedAt, 'run.startedAt');
   timestamp(evidence.run?.completedAt, 'run.completedAt');
+  nonEmpty(evidence.run?.id, 'run.id');
+  requireValue(
+    Date.parse(evidence.approval.approvedAt) <= Date.parse(evidence.run.startedAt),
+    'workload and limits must be approved before the run starts',
+  );
   requireValue(Date.parse(evidence.run.completedAt) > Date.parse(evidence.run.startedAt), 'run duration is invalid');
+  const runDurationSeconds = (Date.parse(evidence.run.completedAt) - Date.parse(evidence.run.startedAt)) / 1000;
+  const claimedPhaseSeconds =
+    evidence.workload.rampSeconds + evidence.workload.steadyStateSeconds + evidence.workload.soakSeconds;
+  requireValue(
+    runDurationSeconds >= claimedPhaseSeconds,
+    'run duration is shorter than the claimed workload phase duration',
+  );
 
   const requiredEndpoints = ['frontend', 'authenticate', 'play', 'event', 'endRound', 'replay'];
   for (const name of requiredEndpoints) verifyLatencyMetric(name, evidence.latency?.[name]);
+  positiveInteger(evidence.workload?.measuredRequests, 'workload.measuredRequests');
+  const measuredEndpointRequests = requiredEndpoints.reduce((sum, name) => {
+    positiveInteger(evidence.latency[name].requests, `latency.${name}.requests`);
+    return sum + evidence.latency[name].requests;
+  }, 0);
+  requireValue(
+    evidence.workload.measuredRequests === measuredEndpointRequests,
+    'workload.measuredRequests must equal the sum of endpoint request samples',
+  );
 
   finitePositive(evidence.cdn?.requests, 'cdn.requests');
   finitePositive(evidence.cdn?.cacheableRequests, 'cdn.cacheableRequests');
@@ -187,9 +221,17 @@ export function verifyScaleEvidence(evidence, expected = {}) {
   finitePositive(evidence.rollback?.limitSeconds, 'rollback.limitSeconds');
   requireValue(evidence.rollback.recoverySeconds <= evidence.rollback.limitSeconds, 'rollback exceeded approved limit');
 
-  requireValue(Array.isArray(evidence.artifacts) && evidence.artifacts.length >= 4, 'at least four evidence artifacts are required');
+  requireValue(Array.isArray(evidence.artifacts), 'evidence artifacts are required');
+  const artifactRoles = evidence.artifacts.map((artifact) => artifact?.role);
+  requireValue(new Set(artifactRoles).size === artifactRoles.length, 'artifact roles must be unique');
+  for (const role of requiredArtifactRoles) {
+    requireValue(artifactRoles.includes(role), `required artifact role ${role} is missing`);
+  }
   for (const artifact of evidence.artifacts) {
+    nonEmpty(artifact?.role, 'artifact.role');
     nonEmpty(artifact?.name, 'artifact.name');
+    requireValue(artifact?.runId === evidence.run.id, `artifact ${artifact?.role}.runId mismatch`);
+    positiveInteger(artifact?.bytes, `artifact ${artifact?.role}.bytes`);
     exactHex(artifact?.sha256, 64, `artifact ${artifact?.name}.sha256`);
   }
 
@@ -239,6 +281,7 @@ export function createSelfTestEvidence() {
     approval: {
       status: 'approved',
       approvedAt: '2026-09-03T00:00:00.000Z',
+      evidenceRef: 'change-test-approved-001',
       workloadOwner: 'test-workload-owner',
       providerOwner: 'test-provider-owner',
       platformOwner: 'test-platform-owner',
@@ -255,13 +298,15 @@ export function createSelfTestEvidence() {
       targetRps: 25_000,
       achievedPeakConcurrentUsers: 100_000,
       achievedRps: 25_000,
+      measuredRequests: 60_000,
       rampSeconds: 900,
       steadyStateSeconds: 1800,
       soakSeconds: 3600,
     },
     run: {
+      id: 'scale-run-test-001',
       startedAt: '2026-09-03T00:00:00.000Z',
-      completedAt: '2026-09-03T01:30:00.000Z',
+      completedAt: '2026-09-03T02:00:00.000Z',
     },
     latency,
     cdn: {
@@ -305,9 +350,12 @@ export function createSelfTestEvidence() {
       alertDrills: [{ name: 'rgs-error-rate', fired: true, acknowledged: true }],
     },
     rollback: { executed: true, healthyAfterRollback: true, recoverySeconds: 45, limitSeconds: 120 },
-    artifacts: ['load-report', 'cdn-report', 'provider-ledger', 'observability-export'].map((name) => ({
-      name,
-      sha256: createHash('sha256').update(name).digest('hex'),
+    artifacts: requiredArtifactRoles.map((role) => ({
+      role,
+      name: `${role}.json`,
+      runId: 'scale-run-test-001',
+      bytes: 1_024,
+      sha256: createHash('sha256').update(role).digest('hex'),
     })),
   };
 }
@@ -333,6 +381,11 @@ function runSelfTest() {
     ['missing observability', (() => { const value = clone(valid); value.observability.tracesCorrelated = false; return value; })(), false],
     ['rollback breach', (() => { const value = clone(valid); value.rollback.recoverySeconds = 121; return value; })(), false],
     ['invalid artifact digest', (() => { const value = clone(valid); value.artifacts[0].sha256 = 'nope'; return value; })(), false],
+    ['approval after start', (() => { const value = clone(valid); value.approval.approvedAt = '2026-09-03T00:00:01.000Z'; return value; })(), false],
+    ['phase duration mismatch', (() => { const value = clone(valid); value.run.completedAt = '2026-09-03T01:00:00.000Z'; return value; })(), false],
+    ['request total mismatch', (() => { const value = clone(valid); value.workload.measuredRequests -= 1; return value; })(), false],
+    ['duplicate artifact role', (() => { const value = clone(valid); value.artifacts[5] = { ...value.artifacts[0] }; return value; })(), false],
+    ['missing artifact role', (() => { const value = clone(valid); value.artifacts = value.artifacts.filter((artifact) => artifact.role !== 'rollback-report'); return value; })(), false],
   ];
   let passed = 0;
   for (const [name, evidence, expectedPass] of cases) {

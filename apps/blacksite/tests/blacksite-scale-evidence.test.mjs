@@ -100,3 +100,27 @@ test('scale evidence artifact digests fail closed', () => {
   const untouched = createSelfTestEvidence();
   assert.doesNotThrow(() => verifyScaleEvidence(clone(untouched)));
 });
+
+test('scale evidence binds approvals, phase duration, request totals and required artifact roles', () => {
+  const lateApproval = createSelfTestEvidence();
+  lateApproval.approval.approvedAt = '2026-09-03T00:00:01.000Z';
+  assert.throws(() => verifyScaleEvidence(lateApproval), /approved before the run/u);
+
+  const shortRun = createSelfTestEvidence();
+  shortRun.run.completedAt = '2026-09-03T01:00:00.000Z';
+  assert.throws(() => verifyScaleEvidence(shortRun), /phase duration/u);
+
+  const requestMismatch = createSelfTestEvidence();
+  requestMismatch.workload.measuredRequests -= 1;
+  assert.throws(() => verifyScaleEvidence(requestMismatch), /measuredRequests/u);
+
+  const duplicateArtifact = createSelfTestEvidence();
+  duplicateArtifact.artifacts[5] = { ...duplicateArtifact.artifacts[0] };
+  assert.throws(() => verifyScaleEvidence(duplicateArtifact), /unique/u);
+
+  const missingArtifactRole = createSelfTestEvidence();
+  missingArtifactRole.artifacts = missingArtifactRole.artifacts.filter(
+    (artifact) => artifact.role !== 'rollback-report',
+  );
+  assert.throws(() => verifyScaleEvidence(missingArtifactRole), /rollback-report/u);
+});
