@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 55243)
-Total output lines: 4190
-
 # Rolling automation metrics
 
 ## BS-20260903-12
@@ -983,7 +980,1977 @@ exact_full_math_status: PASS
 exact_full_math_tests: 7
 exact_full_math_books: 300000
 exact_package_generation: PASS
-exact_package_…25243 tokens truncated… output: null, total: null, source: not_exposed }
+exact_package_verification: PASS
+exact_frontend_tree: 9fa4981e7eab6bebf53b44c63e153a89ff80548ef4f2867112f8fd0a0a62c0a3
+exact_frontend_files: 10
+exact_frontend_bytes: 712368
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+exact_browser: { scenarios: 84, passed: 84, failed: 0, checks_pass: 2317, checks_fail: 0 }
+exact_replay_small_ms: { normal: 452.2, turbo: 153.6 }
+exact_live_turbo_ms: { small: 211.5, big: 491.7 }
+exact_live_wins: { small: "$0.38", big: "$2.07" }
+exact_live_network: { authenticate: 1, play: 2, event: 0, settlement: 0, unexpected: 0 }
+exact_compliance_resolver: PASS
+exact_compliance: { automated_proof_complete: 38, manual_gates_open: 23, external_gates_open: 6 }
+visual_viewports: [1366x768, 1920x1080, 390x844, 844x390]
+visual_tier_frames: [win_small, win_medium, win_big]
+visual_review: PASS_AUTOMATED_CURRENT_HEAD
+artifact_id: 9850039612
+artifact_digest: sha256:157e8a126866b699edee23fbc6f62de520f757d290995131ab69e3a8d642bce7
+remote_implementation_commit: 826e49ea6c03d5c17345ed2e50f80738141a95af
+source_tree_before_memory: e1945f34f55b3b15c5e5c2516abd4c9cb384c223
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/AAA-motion reads; delayed workflow discovery plus exact job/log/artifact inspection; one focused stale Replay timing correction and one focused contract; one complete local frozen-install/lint/typecheck/test/build/math cycle; one identity-only targeted rebuild after the first package attempt safely rejected stale build identity; isolated package generation/readback; Git-data fast-forward; one exact CI/browser/51-point run; six inspected current-head screenshots. The AAA-animation skill kept timing semantics, cleanup, wallet isolation and current screenshots in the same exit gate. No subagents, dependencies, runtime code or product assets were added; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260902-39
+
+```yaml
+closed_at_utc: 2026-09-02T12:47:00Z
+sprint_day: 4
+status: BLOCKED
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-BASE-WIN-TIER-REACTIONS-001
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 141
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_package_generation: PASS
+local_package_verification: PASS
+local_frontend_tree: 5393337b99dc3469952dcf2168c850b065f22a7273ab14d5add0561f2a058e2e
+local_frontend_files: 10
+local_frontend_bytes: 712356
+local_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+local_math_files: 7
+local_math_bytes: 48697667
+local_compliance_resolver: BLOCKED_BROWSER_EVIDENCE_REQUIRED
+local_browser: BLOCKED_NO_EXECUTABLE
+browser_install_default_timeout: FAIL_TIMEOUT
+browser_install_extended_timeout: FAIL_TRUNCATED_ZERO_BYTE_ARCHIVE
+exact_ci_run: null
+exact_ci_status: NOT_CREATED_OR_NOT_DISCOVERABLE
+current_head_visual_review: NOT_RUN
+last_verified_ci_run: 33621532438
+last_verified_browser: { scenarios: 83, checks_pass: 2303, inherited_for_pending_source: false }
+remote_implementation_commit: b4211f6bab7009f56b9e507d95f8c3ea95e1788c
+source_tree_before_memory: 925381d404346dc01730ef6643379b0b3f6166ff
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/workflow/AAA-motion reads; GitHub branch, workflow and status inspection; one normal and one extended-timeout project-local Playwright installation attempt; one complete local frozen-install/lint/typecheck/test/build/math pass; one corrected isolated-package generation/readback after the package tool safely rejected a pre-created output root; focused syntax and full-own-diff review. The AAA-animation skill keeps browser screenshots mandatory, so static/package success did not promote the slice. No subagents, dependencies or product assets were added; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260902-38
+
+```yaml
+closed_at_utc: 2026-09-02T12:12:00Z
+sprint_day: 4
+status: BLOCKED
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_REPRODUCED, missing_contract: base-win-tier-reactions }
+focused_contracts_after: { pass: 6, fail: 0, status: PASS }
+focused_timer_fixture_mapping: { pass: 1, fail: 0, status: PASS }
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 141
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: RESULT_NOT_RETAINED_NOT_CLAIMED
+local_package_generation: NOT_RUN
+local_package_verification: NOT_RUN
+local_compliance_resolver: NOT_RUN
+local_browser: BLOCKED_NO_EXECUTABLE
+exact_ci_run: null
+exact_ci_status: NOT_CREATED_OR_NOT_DISCOVERABLE
+exact_browser: NOT_RUN
+current_head_visual_review: NOT_RUN
+last_verified_ci_run: 33621532438
+last_verified_browser: { scenarios: 83, checks_pass: 2303, checks_fail: 0, unexpected_failures: 0, inherited_for_pending_source: false }
+base_win_tiers:
+  thresholds_raw_centi_x: { small_lt: 100, medium_lt: 200, big_gte: 200 }
+  normal_ms: { small: 420, medium: 800, big: 1400 }
+  turbo_ms: { small: 140, medium: 260, big: 420 }
+  reduced_ms: { small: 0, medium: 0, big: 0 }
+  fixture_contracts: [base_small, base_cascade_3, base_win_02]
+remote_implementation_commit: b4211f6bab7009f56b9e507d95f8c3ea95e1788c
+remote_implementation_tree: e7d024be9d5eb0c2e722baf93f40f80375ebebf4
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion reads; one expected-red and targeted green contract cycle; one complete local frozen-install/lint/typecheck/test/build pass; connected Git-data and Contents-API fast-forwards; workflow/status reads; no browser execution because no local executable and no discoverable exact workflow. The repository AAA-animation skill required semantic states, profile timing, authoritative payout-derived tiering, cleanup and deterministic QA to move together. One accidental formatter mismatch was restored before reapplying the controlled semantic patch; no unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260902-37
+
+```yaml
+closed_at_utc: 2026-09-02T11:10:44Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 2, status: EXPECTED_FAIL_REPRODUCED, missing_contract: feature-phase-bonus-win-reaction }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 4, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 140
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_package_generation: NOT_RUN_EXACT_CI_USED
+local_package_verification: NOT_RUN_EXACT_CI_USED
+local_compliance_resolver: NOT_RUN_EXACT_CI_USED
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 140
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: e92363b54c7c7bf66323c5ce1e44620821a9348665f4ac0fc2843ad2e8c4e5b0
+exact_frontend_files: 10
+exact_frontend_bytes: 707608
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+verified_ci_run: 33621532438
+verified_ci_status: PASS
+verified_ci_seconds: 762
+remote_browser: { scenarios: 83, checks_pass: 2303, checks_fail: 0, unexpected_failures: 0 }
+feature_win_reaction:
+  normal: { computed_animation_ms: 280, source: static_contract }
+  turbo_natural_base: { computed_animation_ms: 110, observed_semantic_ms: 204.2, payout: '$1000.00' }
+  turbo_deep_access: { computed_animation_ms: 110, observed_semantic_ms: 178.2, payout: '$2000.00' }
+  reduced_motion_ms: 0
+  paid_plays: 2
+  checkpoint_event_settlement_writes: 0
+remote_expected_negative_console_errors: 6
+remote_page_errors: 0
+remote_failed_requests: 0
+remote_diagnostics_artifact: 9843481852
+remote_diagnostics_digest: sha256:30be8b727172bbb981222311298965250fc113660fd18a37ac6a3fcb0390f368
+remote_implementation_commit: 51dcb62cb19cc3bac50def45d9a7373aa990243e
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused syntax/contract regression; one complete local frozen-install/lint/typecheck/test/build/math pass; connected Git-data fast-forward; one exact Actions package/browser verification; artifact evidence parsing and five screenshot inspections. The AAA-animation skill kept feature-phase authority, bounded CSS timing, Normal/Turbo/Reduced profiles, exact wallet isolation and clean compositor teardown in one proof. Generated-manifest churn was restored exactly. Initial fixture/module-path probes were corrected with targeted searches, direct HTTPS push fell back once to the connected Git-data path, and a later stdin syntax probe was not repeated because the earlier direct-file syntax gate already passed. No unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260902-36
+
+```yaml
+closed_at_utc: 2026-09-02T09:23:14Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 3, status: EXPECTED_FAIL_REPRODUCED, missing_contract: authoritative-zero-loss-acknowledgement }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 4, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 140
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_package_generation: NOT_RUN_EXACT_CI_USED
+local_package_verification: NOT_RUN_EXACT_CI_USED
+local_compliance_resolver: NOT_RUN_EXACT_CI_USED
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 140
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: dcc1085621543388b16b7216435e122566a41ff42db7831c855f191617e3518f
+exact_frontend_files: 10
+exact_frontend_bytes: 703191
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+verified_ci_run: 33612508384
+verified_ci_status: PASS
+verified_ci_seconds: 864
+remote_browser: { scenarios: 83, checks_pass: 2301, checks_fail: 0, unexpected_failures: 0 }
+loss_acknowledgement:
+  normal: { computed_animation_ms: 320, observed_semantic_ms: 318.7, next_state: idle_a, compositor_hint: auto }
+  turbo: { computed_animation_ms: 130, observed_semantic_ms: 129.4, next_state: idle_a, compositor_hint: auto }
+  paid_base_plays: 2
+  checkpoint_event_settlement_writes: 0
+remote_expected_negative_console_errors: 6
+remote_page_errors: 0
+remote_failed_requests: 0
+remote_diagnostics_artifact: 9840064467
+remote_diagnostics_digest: sha256:e453ad04b4d3e8298c224adfedef2366f83b5af230182e1ce8aa7c45a6adf782
+remote_implementation_commit: c52dec039c27ab78a359d89ace81c8ec3e7f6021
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused syntax/contract regression; one complete local frozen-install/lint/typecheck/test/build/math pass; connected Git-data fast-forwards; exact Actions package/browser verification; artifact evidence parsing and five screenshot inspections. The AAA-animation skill kept semantic authority, bounded CSS timing, Normal/Turbo/Reduced profiles, wallet isolation and clean compositor teardown in one exact-package proof. Generated-manifest churn was restored exactly. Tree comparison caught base64 padding truncation before acceptance; the first exact browser run then exposed a capture-order race in the new Turbo proof, and the changed event-first capture path passed. No unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260902-35
+
+```yaml
+closed_at_utc: 2026-09-02T08:12:26Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_REPRODUCED, missing_scenario: Vaultkeeper-win-acknowledgement-normal-and-turbo }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 1, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 139
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_package_generation: NOT_RUN_EXACT_CI_USED
+local_package_verification: NOT_RUN_EXACT_CI_USED
+local_compliance_resolver: NOT_RUN_EXACT_CI_USED
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 139
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 2141089729ca44a656dc3be0991a2b32a2808254cca096ac18a501f32ec1d0e5
+exact_frontend_files: 10
+exact_frontend_bytes: 700609
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+verified_ci_run: 33605467946
+verified_ci_status: PASS
+verified_ci_seconds: 989
+remote_browser: { scenarios: 83, checks_pass: 2299, checks_fail: 0, unexpected_failures: 0 }
+vaultkeeper_win_acknowledgement:
+  turbo: { computed_animation_ms: 110, observed_semantic_ms: 190.3, next_state: monitoring }
+  normal: { computed_animation_ms: 280, observed_semantic_ms: 464.8, next_state: monitoring }
+  paid_base_plays: 3
+  checkpoint_event_settlement_writes: 0
+remote_expected_negative_console_errors: 6
+remote_page_errors: 0
+remote_failed_requests: 0
+remote_diagnostics_artifact: 9837345360
+remote_diagnostics_digest: sha256:2f3d78d87adf4e25a09829ed40271f4630413ee0b2ed615f13b87f29786907e3
+remote_implementation_commit: 346f9e8f669ca3acbd7bcb2e2cbc06e649cfaf6d
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused syntax/contract regression; one complete local frozen-install/lint/typecheck/test/build/math pass; connected Git-data fast-forward; one exact Actions run; artifact download/hash verification, evidence parsing and five screenshot inspections. The AAA-animation skill required computed character animation, actual semantic-state ownership, Normal/Turbo profiles, wallet isolation and cleanup to remain in one exact-package proof. Generated manifest churn was restored exactly. One executable-mode mismatch and one connector response-truncation problem were detected through tree/blob identity and corrected with exact non-destructive uploads. During final persistence, one response-parser escape and one ref-field binding were corrected against the returned payload and declared schema; no unchanged semantic failure was repeated. No subagents, dependencies, binary product assets or runtime/math changes were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260902-34
+
+```yaml
+closed_at_utc: 2026-09-02T07:19:56Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_REPRODUCED, missing_scenario: board-reveal-timing-normal-and-turbo }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 1, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 139
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+local_package_generation: NOT_RUN_EXACT_CI_USED
+local_package_verification: NOT_RUN_EXACT_CI_USED
+local_compliance_resolver: NOT_RUN_EXACT_CI_USED
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 139
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 287b6584ce872562fe0cddc1d67c1cf15024ee9fc71b7cd55d63926eebeedc7a
+exact_frontend_files: 10
+exact_frontend_bytes: 700609
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+verified_ci_run: 33601180214
+verified_ci_status: PASS
+verified_ci_seconds: 957
+remote_browser: { scenarios: 83, checks_pass: 2297, checks_fail: 0, unexpected_failures: 0 }
+board_reveal_timing:
+  normal: { first_duration_ms: 180, first_delay_ms: 0, last_duration_ms: 180, last_delay_ms: 156, last_cell_end_ms: 336, observed_ms: 359.8 }
+  turbo: { first_duration_ms: 70, first_delay_ms: 0, last_duration_ms: 70, last_delay_ms: 54, last_cell_end_ms: 124, observed_ms: 128.4 }
+  paid_base_plays: 2
+  final_win: $0.00
+  final_balance: $998.00
+  checkpoint_event_settlement_writes: 0
+remote_expected_negative_console_errors: 6
+remote_page_errors: 0
+remote_failed_requests: 0
+remote_diagnostics_artifact: 9835693020
+remote_diagnostics_digest: sha256:4ae1fefbf906437f29257f578fbbbbb7a87d2d651d6f960a1539fbff64befac3
+remote_implementation_commit: c5ec4d8da38af8a7ca07710566b312de8e9f21e5
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused syntax/contract regression; one complete local frozen-install/lint/typecheck/test/build/math pass; connected Git-data fast-forward; one exact Actions run; artifact download/hash verification, evidence parsing and five screenshot inspections. The AAA-animation skill required the first/final cell computed durations, per-cell stagger and actual reveal boundary to remain in one exact-package proof. Generated manifest churn was restored exactly. Three connector argument-binding failures were corrected with the declared parameter names, and one transient public-API approval cancellation moved to the authenticated Actions connector; no unchanged semantic failure was repeated. No subagents, dependencies, binary product assets or runtime/math changes were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260902-33
+
+```yaml
+closed_at_utc: 2026-09-02T06:26:13Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_REPRODUCED, missing_scenario: feature-tease-timing-normal-and-turbo }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 1, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 139
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: NOT_CAPTURED_PROCESS_COMPLETED_EXACT_CI_USED
+local_package_generation: PASS
+local_package_verification: NOT_CAPTURED_PROCESS_COMPLETED_EXACT_CI_USED
+local_compliance_resolver: BLOCKED_BROWSER_EVIDENCE_REQUIRED_EXACT_CI_USED
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 139
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: b98c764e224f92b2b75d321299de2cc23100f284f6c71446b667d536ffb5bcf8
+exact_frontend_files: 10
+exact_frontend_bytes: 700597
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+verified_ci_run: 33597126878
+verified_ci_status: PASS
+verified_ci_seconds: null
+remote_browser: { scenarios: 82, checks_pass: 2281, checks_fail: 0, unexpected_failures: 0 }
+feature_tease_timing:
+  normal: { character_css_ms: 600, lock_css_ms: 600, observed_ms: 752.8 }
+  turbo: { character_css_ms: 180, lock_css_ms: 180, observed_ms: 233.5 }
+  paid_base_plays: 2
+  checkpoint_event_settlement_writes: 0
+remote_expected_negative_console_errors: 6
+remote_page_errors: 0
+remote_failed_requests: 0
+remote_diagnostics_artifact: 9834155847
+remote_diagnostics_digest: sha256:f1904957a8ddb6e9448649c4dd60ed49d405e64fb622d0693132d2551f2c0e0e
+remote_implementation_commit: aaeedf89ee3f7663d8b0c601b8b72e539aa73c46
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused syntax/contract regression; one complete local frozen-install/lint/typecheck/test/build pass; local math/package processes whose terminal results were not retained and therefore were not claimed; connected Git-data fast-forwards; two exact Actions runs, with the first furnishing a precise selector diagnosis and the corrected run passing; artifact download/hash verification, evidence parsing and five screenshot inspections. The repository AAA-animation skill required semantic state ownership, computed character/lock durations and observed transition boundaries to remain in one exact-package proof. One package invocation missing required arguments was corrected, the exact package identity correctly forced a post-commit rebuild, and asynchronously generated manifest churn was restored byte-for-byte. No subagents, dependencies, binary product assets or unchanged semantic failure retries were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260902-32
+
+```yaml
+closed_at_utc: 2026-09-02T05:24:40Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_REPRODUCED, missing_contract: normal_and_turbo_cascade_phase_windows }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 1, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 139
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_status: PASS
+local_package_generation: PASS
+local_package_verification: PASS
+local_compliance_resolver: BLOCKED_BROWSER_EVIDENCE_REQUIRED_EXACT_CI_USED
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 139
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 6251b00d46bbb73121d3bbc99ae07e6a195eaf71cd60867c9038c0f87372fc36
+exact_frontend_files: 10
+exact_frontend_bytes: 700597
+exact_math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da
+exact_math_files: 7
+exact_math_bytes: 48697667
+verified_ci_run: 33593132383
+verified_ci_status: PASS
+verified_ci_seconds: null
+remote_browser: { scenarios: 81, checks_pass: 2265, checks_fail: 0, unexpected_failures: 0 }
+cascade_phase_timing:
+  turbo: { css_ms: [110, 55, 105, 35], observed_ms: [124.5, 56.9, 104.3, 40.2], p95_frame_ms: 16.8, max_frame_ms: 33.3, over_50_ms: 0 }
+  normal: { css_ms: [280, 150, 250, 90], observed_ms: [312.6, 152.1, 249.4, 92.3], p95_frame_ms: 16.8, max_frame_ms: 16.8, over_50_ms: 0 }
+  paid_base_plays: 3
+  checkpoint_event_settlement_writes: 0
+remote_expected_negative_console_errors: 6
+remote_page_errors: 0
+remote_failed_requests: 0
+remote_diagnostics_artifact: 9832809110
+remote_diagnostics_digest: sha256:26144af161e644ad249eb10b3fdd64916ad9dfabbd71c5eb6f6ce98b0ef6b24f
+remote_implementation_commit: 4b7fd363d5a9bf641958869c6f7cab669805adeb
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused syntax/contract regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; isolated package generation/readback; diff/secret/debug/scope review; connected Git-data fast-forward; one exact Actions run, artifact evidence parsing and four screenshot inspections. The repository AAA-animation skill required phase-owned duration semantics, direct computed-style/timestamp proof and normal/turbo frame-pacing evidence. One obsolete package invocation and one resolver invocation without its required browser argument were corrected with explicit arguments; a redundant math generation/verification pair was not counted as additional release evidence, and generated manifest churn was restored exactly. No subagents, dependencies, binary product assets or unchanged semantic failure retries were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260902-31
+
+```yaml
+closed_at_utc: 2026-09-02T04:08:21Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 14, fail: 1, status: EXPECTED_FAIL_REPRODUCED, missing_scenario: blackout-hero-timing-normal-and-turbo }
+focused_syntax_status: PASS
+focused_contracts_after: { pass: 43, fail: 0, status: PASS }
+focused_compliance_final: { pass: 15, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 139
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_seconds: 360.5
+local_full_math_status: PASS
+local_package_generation: PASS
+local_package_verification: BLOCKED_TOOL_SESSION_LOST_EXACT_CI_USED
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 139
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 6d639b1644b80c9644cc3f5df3219eb6462d76dfe969374ab55cf1ae41fb2d5f
+exact_frontend_files: 10
+exact_frontend_bytes: 700597
+exact_math_files: 7
+exact_math_bytes: 48697667
+verified_ci_run: 33588488559
+verified_ci_status: PASS
+verified_ci_seconds: 947
+remote_browser: { scenarios: 81, checks_pass: 2263, checks_fail: 0, unexpected_failures: 0 }
+blackout_hero_timing: { normal_trigger_ms: 1000.4, normal_recover_ms: 1026.9, turbo_trigger_ms: 359.7, turbo_recover_ms: 365.8, css_normal_ms: 1000, css_turbo_ms: 360, plays: 2, checkpoint_event_settlement_writes: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9831213913
+remote_diagnostics_digest: sha256:c04b47171320e4792638b0b156715f8c144fd30d7da6c08e166e57b6be3b7efe
+remote_implementation_commit: 1858277da51c45fcfb831d5d7b3c5bd0f57db748
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused compliance/contract/browser-binding regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; package generation; diff/secret/debug/scope review; connected Git-data fast-forward; one exact Actions run, artifact evidence and seven screenshot inspections. The repository AAA-animation and visual-QA skills required authored duration ownership, direct Chromium timing and inspection of both hero phases plus all target form factors. One wrong fixture path, one expected-SHA typo, one lost local package-verification tool session, one unauthenticated HTTPS push and one connector result-shape mismatch each used a changed safe path; exact CI supplied the missing package/browser proof. No subagents, dependencies, binary product assets or unchanged semantic failure retries were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260902-30
+
+```yaml
+closed_at_utc: 2026-09-02T03:13:00Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_REPRODUCED, missing_profile_properties: [animation, transition] }
+focused_syntax_status: PASS
+focused_motion_contracts_after: { pass: 3, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 139
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_seconds: 359.5
+local_full_math_status: PASS
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 139
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: a3cc4ac6a73dd36ccaed1baf8fc4e68c0910a3ea85c72e0a58c55245b058f62c
+exact_frontend_files: 10
+exact_frontend_bytes: 700597
+verified_ci_run: 33584733683
+verified_ci_status: PASS
+verified_ci_seconds: 992
+remote_browser: { scenarios: 80, checks_pass: 2245, checks_fail: 0, unexpected_failures: 0 }
+reduced_vaultkeeper: { animation_name: none, transition_duration: 0s, will_change: auto, wallet_writes: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9830010109
+remote_diagnostics_digest: sha256:975b0277aed033a18ee2a8ae0a67603f170ce5514e0077ca5c211485210a721a
+remote_implementation_commit: 759b60ca42fc488d8cfe03b5496e8699c19b0963
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-style reads; one expected-red then green focused CSS/contract/browser-binding regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/debug/scope review; connected Git-data fast-forward; one exact Actions run, artifact evidence and four screenshot inspections. The repository AAA-animation skill kept semantic Reduced Motion ownership explicit at the component boundary and required computed-style proof. Generated manifest churn from local package verification was restored exactly; one rejected destructive temporary-directory command was replaced with a fresh safe path. No subagents, dependencies, binary product assets or unchanged semantic failure retries were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260902-29
+
+```yaml
+closed_at_utc: 2026-09-02T02:03:00Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_REPRODUCED, stale_default_win_delay_ms: 220 }
+focused_syntax_status: PASS
+focused_replay_contracts_after: { pass: 45, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 139
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_seconds: 360.7
+local_full_math_status: PASS
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 139
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 1601bb16596afcc6bf9d7b484728f996deb046e4517c48959cad112589dd41bc
+verified_ci_run: 33580462193
+verified_ci_status: PASS
+verified_ci_seconds: 983
+remote_browser: { scenarios: 80, checks_pass: 2244, checks_fail: 0, unexpected_failures: 0 }
+replay_hit_timing: { normal_ms: 311.9, turbo_ms: 122.5, replay_gets: 1, wallet_writes: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9828528586
+remote_diagnostics_digest: sha256:6067a2386374349fd691b40f202a7afb6e4c1f45851bd5b4b1c1433ee99c4bb3
+remote_implementation_commit: 09759dfd89905fd23f5bedfbaa150924a0453a51
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/replay-motion reads; one expected-red then green focused Replay/contract regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/debug/scope review; connected Git-data fast-forward; one exact Actions run, artifact evidence and four screenshot inspections. The repository AAA-animation skill kept Replay cue ownership aligned with Normal/Turbo/Reduced timing while preserving explicit override support. The unavailable `gh` CLI was replaced once with the public Actions API; a broad tool-registry result was narrowed to exact names. No subagents, dependencies, binary product assets or unchanged semantic failure retries were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260902-28
+
+```yaml
+closed_at_utc: 2026-09-02T01:03:00Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 138, fail: 1, status: EXPECTED_FAIL_REPRODUCED, measured_turbo_spin_start_ms: 59.6 }
+focused_syntax_status: PASS
+focused_motion_after: { pass: 3, fail: 0, status: PASS, measured_turbo_spin_start_ms: 112.9 }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 139
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_seconds: 372.8
+local_full_math_status: PASS
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 139
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 26c88728c3782e60d6926a438620a717ed4d9c25e0b3a3d62f871b69c42b8826
+verified_ci_run: 33576342359
+verified_ci_status: PASS
+verified_ci_seconds: 1010
+remote_browser: { scenarios: 79, checks_pass: 2235, checks_fail: 0, unexpected_failures: 0 }
+spin_start_timing: { normal_ms: 165.0, authored_normal_ms: 160, turbo_ms: 111.7, authored_turbo_ms: 110, reduced_ms: 0 }
+max_win_timing: { normal_ms: 1006.2, turbo_ms: 365.7 }
+recover_timing: { normal_ms: 995.4, turbo_ms: 355.8 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9827144982
+remote_diagnostics_digest: sha256:b1398c0ee2c9cb37348acac4c2101a9d77112bebb129ce8b42253dc09399d0a2
+remote_implementation_commit: f364800c6f0e8d88f301cedddda2c35201dc688b
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused timing regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/debug/scope review; connected Git-data fast-forward; one exact Actions run, artifact evidence and five screenshot inspections. The repository AAA-animation skill anchored cue ownership to authored CSS, Skip and Reduced Motion. One incorrect package filter matched no project and was not counted as evidence; one overly strict state-count assertion was replaced by the intended semantic first/last-state contract. A connector-truncated QA blob was detected by exact tree comparison and recreated in full before any ref update. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260902-27
+
+```yaml
+closed_at_utc: 2026-09-02T00:02:00Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_motion_before: { pass: 1, fail: 2, status: EXPECTED_FAIL_REPRODUCED, measured_recover_ms: 33.3 }
+focused_syntax_status: PASS
+focused_motion_after: { pass: 5, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 138
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_status: PASS
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 138
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: e097c4eb7528c5f627212c4be8f946e23ecf7b899a5a07d1bb5aaf65cd992bf6
+verified_ci_run: 33572370281
+verified_ci_status: PASS
+verified_ci_seconds: 813
+remote_browser: { scenarios: 79, checks_pass: 2233, checks_fail: 0, unexpected_failures: 0 }
+recover_timing: { normal_ms: 995.7, turbo_ms: 357.1, authored_normal_ms: 1000, authored_turbo_ms: 360, reduced_ms: 0 }
+max_win_timing: { normal_ms: 1005.5, turbo_ms: 364.1 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9825716662
+remote_diagnostics_digest: sha256:d9d0f6c918980c557484731dbd1630b138d47d83e488a613202a5c048ebfde83
+remote_implementation_commit: 8f25bf900c3be4edd35573bb18b53cc72cd8106f
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion-contract reads; one expected-red then green focused timing regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/debug/scope review; connected Git-data fast-forward; one exact Actions run, artifact evidence and five screenshot inspections. The repository AAA-animation skill anchored the semantic window to authored CSS, Skip ownership and Reduced Motion while preventing a duplicate post-feature delay. The broad gate exposed one stale cancellation-test setup and was corrected to test its intended Normal-timer contract; a bare package script invocation was rejected because required identity arguments were absent and was not repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260902-26
+
+```yaml
+closed_at_utc: 2026-09-01T23:04:00Z
+sprint_day: 4
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_expected_red: { pass: 1, fail: 2, status: EXPECTED_FAIL_REPRODUCED }
+focused_motion_after: { pass: 5, fail: 0, status: PASS }
+focused_contract_compliance_after: { pass: 41, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 137
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_seconds: 356
+local_full_math_status: PASS
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 137
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: e3311809caaccba7461b915d7a229bd9891d63f99bc0e80e8bbcfac430458443
+verified_ci_run: 33567927794
+verified_ci_status: PASS
+verified_ci_seconds: 922
+remote_browser: { scenarios: 79, checks_pass: 2231, checks_fail: 0, unexpected_failures: 0 }
+max_win_hero_ms: { normal: 1006.2, turbo: 364.3, expected_normal: 1000, expected_turbo: 360 }
+max_win_provider: { play_writes: 2, checkpoint_writes: 0, settlement_writes: 0, final_win: '$10000.00', final_state: live-ready }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9824259887
+remote_diagnostics_digest: sha256:af6d3a31179ad191564eb4826fb6fcdca2ec60e76db3cf500b9c4fb69b1cf3aa
+remote_implementation_commit: 7ac27366dfbcd94827ddb4e2d0054c1014babb91
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion and exact QA reads; one expected-red then green focused timing regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/debug/scope review; connected Git-data fast-forward; one exact Actions run, artifact evidence and five screenshot inspections. The repository AAA-animation skill kept the semantic state duration, skip ownership, reduced-motion zero path and measured browser timing aligned with the authored clip. One unauthenticated HTTPS push and one rejected destructive temporary-artifact cleanup each used a changed safe path; no semantic failure was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260901-25
+
+```yaml
+closed_at_utc: 2026-09-01T22:06:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_replay_before: { pass: 14, fail: 3, status: EXPECTED_FAIL_REPRODUCED }
+focused_syntax_status: PASS
+focused_replay_compliance_after: { pass: 32, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 135
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_seconds: 368
+local_full_math_status: PASS
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 135
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 199b2d5c6f9eb878c10f3193729d165eead32092c87b18301828353d8c62b5d7
+verified_ci_run: 33563146222
+verified_ci_status: PASS
+verified_ci_seconds: 905
+remote_browser: { scenarios: 78, checks_pass: 2223, checks_fail: 0, unexpected_failures: 0 }
+replay_navigation_teardown: { attempts: 2, app_owned_aborts: 1, recovered_gets: 1, authenticate_writes: 0, play_writes: 0, event_writes: 0, settlement_writes: 0, final_state: replay-ready }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9822522754
+remote_diagnostics_digest: sha256:42386a80211fc75ced9eb8202c875da38e3918776ed31857b30c611f61a111b8
+remote_implementation_commit: 2bea9119feb11fab8f2ee2c5d4ea76b085e58d79
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/Replay lifecycle and exact QA reads; one expected-red then green focused Replay regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/debug/scope review; connected Git-data fast-forward; one exact Actions run, artifact evidence and four screenshot inspections. The Stake RGS/Replay skill kept the exact read-only endpoint, query/body absence and zero-wallet-write recovery evidence in scope. One patch context mismatch, one unavailable authenticated HTTPS push, one overly broad registry result and one malformed diagnostic regex were each corrected with a changed safe path; no semantic failure was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260901-24
+
+```yaml
+closed_at_utc: 2026-09-01T20:28:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_rgs_before: { pass: 0, fail: 2, status: EXPECTED_FAIL_REPRODUCED }
+focused_syntax_status: PASS
+focused_rgs_compliance_after: { pass: 47, fail: 0, status: PASS }
+local_frozen_install: PASS_AFTER_OFFLINE_CACHE_MISS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 133
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_status: PASS
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 133
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 75f1faf9fd75a918d6db0c7bc46e507c9d4a36fb5b951f215e35e3000fb6ac94
+verified_ci_run: 33553904771
+verified_ci_status: PASS
+verified_ci_seconds: 926
+remote_browser: { scenarios: 77, checks_pass: 2214, checks_fail: 0, unexpected_failures: 0 }
+navigation_teardown: { attempts: 2, app_owned_aborts: 1, successful_authenticates: 1, play_writes: 0, event_writes: 0, settlement_writes: 0, final_state: live-ready }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9819094154
+remote_diagnostics_digest: sha256:6bd130b852b1924f72e41ef707c6dde8ece896547186bb4e7d02224c8671d5b1
+remote_implementation_commit: a2fcd484e398a6249328df171cc3add77ba1c260
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/RGS lifecycle and exact QA reads; one expected-red then green focused provider regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/debug/scope review; connected Git-data fast-forwards; two exact Actions runs with the first exposing the full-page lifecycle gap and the final proving the correction; artifact evidence and four screenshot inspections. The Stake RGS/Replay skill kept exact endpoints, authority and zero-wallet-write recovery evidence in scope. One offline dependency-cache miss used the normal frozen install, one ineffective package filter was rejected as evidence and rerun with the correct package, and one connector-truncated QA blob was caught by exact tree comparison and restored before final verification. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260901-23
+
+```yaml
+closed_at_utc: 2026-09-01T18:58:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_audio_before: { pass: 6, fail: 1, status: EXPECTED_FAIL_REPRODUCED, retained_voice_gain_edges: 1 }
+focused_syntax_status: PASS
+focused_audio_compliance_after: { pass: 20, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 131
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_status: PASS
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 131
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 73db3695448c1ea3bf62c0afae9d97fdf9dc3a74fd33b4a228f52a30d658c17d
+verified_ci_run: 33545045810
+verified_ci_status: PASS
+verified_ci_seconds: 879
+remote_browser: { scenarios: 76, checks_pass: 2202, checks_fail: 0, unexpected_failures: 0 }
+audio_graph_before_mute: { connect_calls: 23, disconnect_calls: 18, active_connections: 5, gain_disconnects: 9 }
+audio_graph_after_mute: { connect_calls: 25, disconnect_calls: 24, active_connections: 1, gain_disconnects: 12, voices: 0, ambience: 0, status: MUTED }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9815667348
+remote_diagnostics_digest: sha256:9e28b8a67446387b460cc462964084045954e40ae9585f78b3d605833197a1c5
+remote_implementation_commit: 5fa23e2d96d1ad3c0d0b8b96d506b5e5c1d5c614
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/audio lifecycle and repository art/performance gate reads; one expected-red then green focused audio reproduction; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/debug/scope review; connected Git-data fast-forward; exact Actions evidence; artifact extraction, structured graph reads and four screenshot inspections. The repository mobile-performance skill kept graph ownership, bounded lifecycle work and exact device surfaces in scope. One malformed focused-test regex was corrected immediately, and one local ref update attempted before the remote object was fetched then used the safe fetch-first path; no unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260901-22
+
+```yaml
+closed_at_utc: 2026-09-01T17:31:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_compliance_before: { pass: 11, fail: 1, status: EXPECTED_FAIL_REPRODUCED }
+focused_syntax_status: PASS
+focused_tests_after: { pass: 44, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 130
+local_app_status: PASS
+local_build: PASS
+local_full_math_status: RESULT_NOT_CAPTURED_EXACT_CI_USED
+local_browser: BLOCKED_NO_CHROMIUM_EXECUTABLE_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 130
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 0eaa6159ea7c69c287df1301413b427ee7c940a49ccf6b0f64314492209ab07e
+verified_ci_run: 33536390205
+verified_ci_status: PASS
+verified_ci_seconds: 905
+remote_browser: { scenarios: 76, checks_pass: 2201, checks_fail: 0, unexpected_failures: 0 }
+auth_timeout_recovery: { attempts: 2, aborts: 1, successful_authenticates: 1, play_writes: 0, event_writes: 0, settlement_writes: 0, error_code: RGS_TIMEOUT, final_state: live-ready }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9812356729
+remote_diagnostics_digest: sha256:02d2ae43891d51ec000b5459abb532bee3f4d87f4a60b20658e21e9fef9ae840
+remote_implementation_commit: a0a76479eaf5755b880e21ddfc96f9d6cb83f175
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/provider-contract and QA reads; one expected-red then green focused regression; one local frozen-install/lint/typecheck/test/build gate; one unrecorded local math subprocess superseded by exact CI; diff/secret/scope review; connected Git-data fast-forward; exact Actions evidence; artifact extraction, structured evidence reads and four screenshot inspections. A wrong initial QA path, a dirty-tree harness precondition, absent local Chromium, existing Prettier deviations, an unauthenticated CLI push and rejected destructive temporary cleanup each used a changed safe path. No subagents, dependencies, runtime files or binary product assets changed; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260901-21
+
+```yaml
+closed_at_utc: 2026-09-01T17:00:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_compliance_before: { pass: 0, fail: 1, status: EXPECTED_FAIL_REPRODUCED }
+focused_syntax_status: PASS
+focused_tests_after: { pass: 2, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 129
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 359740
+local_full_gate_duration_seconds: null
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 129
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_duration_ms: 437332
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 6c48d38d76525087618a73eb9164712b83d0c81f5925de816136ec9bc7b6f97b
+verified_ci_run: 33533314785
+verified_ci_status: PASS
+verified_ci_seconds: 893
+remote_browser: { scenarios: 75, checks_pass: 2182, checks_fail: 0, unexpected_failures: 0 }
+replay_timer_lifecycle: { cycles: 6, replay_reads: 1, wallet_writes: 0, active_after_each_cycle: [0, 0, 0, 0, 0, 0], created_after_each_cycle: [5, 9, 13, 17, 21, 25], peak_active: 2, unique_presentations: 1 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9811160327
+remote_diagnostics_digest: sha256:e550806dc3ba25a00104c76608c7d244d49d725e6c9876540f80a56a8f4a0519
+remote_implementation_commit: 35f3d3d933889aa23907efbdd2f21b22b3d783f6
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/Replay and QA reads; one expected-red then green focused regression; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/scope review; connected Git-data fast-forward; exact Actions evidence; artifact extraction, structured lifecycle reads and four screenshot inspections. Exact CI exposed all six timer snapshots directly, so no polling or inferred leak claim was used. No subagents, dependencies, binary product assets or runtime files were changed; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260901-20
+
+```yaml
+closed_at_utc: 2026-09-01T16:02:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_compliance_before: { pass: 0, fail: 1, status: EXPECTED_FAIL_REPRODUCED }
+focused_syntax_status: PASS
+focused_compliance_after: { pass: 1, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 128
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 376106
+local_full_gate_duration_seconds: null
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 128
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: f32d45318298350561b8ddc93db96a89eaee3dd53a6c7fc0ce041caccf4c4b95
+verified_ci_run: 33527487460
+verified_ci_status: PASS
+verified_ci_seconds: 894
+remote_browser: { scenarios: 74, checks_pass: 2174, checks_fail: 0, unexpected_failures: 0 }
+active_feature_skip: { checkpoint_writes: 51, duplicate_plays: 0, duplicate_checkpoints: 0, settlements: 1, skip_elapsed_ms: 969, final_win_micro: 1000000000, final_balance_micro: 1999000000 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9808902863
+remote_diagnostics_digest: sha256:f754f0d68d07d07a69c1a93602fc9e13cddaa458a8ada8d5fa8ca81aee678399
+remote_implementation_commit: 0d2dc258c353e027c9adeba192664288f1d65b96
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/provider and QA reads; one expected-red then green focused compliance reproduction; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/scope review; connected Git-data fast-forward; exact Actions evidence; artifact extraction, structured evidence reads and four screenshot inspections. The first connected blob response exposed a result-shape mismatch and was parsed through its actual top-level SHA on the changed retry. An unused non-executable QA tree was corrected before commit/ref update, and rejected destructive temporary cleanup was replaced with a new inspection directory. No unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260901-19
+
+```yaml
+closed_at_utc: 2026-09-01T14:27:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_compliance_before: { pass: 9, fail: 1, status: EXPECTED_FAIL_REPRODUCED }
+focused_syntax_status: PASS
+focused_compliance_after: { pass: 10, fail: 0, status: PASS }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 128
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 363600
+local_full_gate_duration_seconds: null
+local_browser: BLOCKED_TRANSIENT_CDN_502_TIMEOUT_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 128
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 4cd782fc6517d0fe085fc6edeb3d2a48767a72a8f8a627f90c6ff4979215a715
+verified_ci_run: 33517845045
+verified_ci_status: PASS
+verified_ci_seconds: 890
+remote_browser: { scenarios: 73, checks_pass: 1952, checks_fail: 0, unexpected_failures: 0 }
+active_feature_restore: { resume_cursor: 69, trace_samples: 21, remaining_checkpoints: 15, duplicate_plays: 0, settlements: 1, final_win_micro: 1000000000, final_balance_micro: 1999000000 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9804972383
+remote_diagnostics_digest: sha256:6eb8b67836593319715feb8e1748800912d18b323a7ec9b7166b9e2b6a93970e
+remote_implementation_commit: 21c0898c24fcfc96697a0bb698843e19a4860ee7
+superseded_ci_runs: [33515867589, 33516075878]
+superseded_reasons: [connected_contents_payload_truncated_final_test_lines, init_script_observer_started_before_dom_root]
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/provider and QA reads; one expected-red then green focused compliance reproduction; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/scope review; connected Git-data fast-forwards; exact Actions evidence; artifact extraction, structured evidence reads and five screenshot inspections. A connected Contents transfer accidentally omitted the final eight test lines and was restored from the exact local blob; the next CI supplied new evidence that the init script could precede the DOM root, so observer startup was bound to `DOMContentLoaded`. The final exact-head run passed. Local Playwright installation was blocked by a transient CDN 502/timeout; isolated CI supplied the browser authority. No unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
+
+## BS-20260901-18
+
+```yaml
+closed_at_utc: 2026-09-01T13:22:38Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_audio_tests_before: { pass: 6, fail: 1, status: EXPECTED_FAIL_REPRODUCED, final_context: suspended }
+focused_syntax_status: PASS
+focused_audio_contract_mobile_tests_after: 38
+focused_audio_contract_mobile_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 128
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 359528
+local_full_gate_duration_seconds: null
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 128
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 0a0ef0d42a4bf70c31fc450e97e470921824e8617fe29f9796c47781c21a8033
+verified_ci_run: 33511226684
+verified_ci_status: PASS
+verified_ci_seconds: 737
+remote_browser: { scenarios: 72, checks_pass: 1873, checks_fail: 0, unexpected_failures: 0 }
+audio_visibility_before: { rapid_hidden_visible_final_context: suspended }
+audio_visibility_after: { suspend_started: 1, suspend_completed: 1, resume_calls_after_baseline: 1, final_context: running, final_status: muted, voices: 0, ambience: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9802165851
+remote_diagnostics_digest: sha256:b6aef0e7c024477520ba2440208518b44a8bae3e19b2e7dae5ccbde3eacff89a
+remote_implementation_commit: e602a1deb23ca9932ea76a734396db048703b4cb
+superseded_ci_run: 33509910587
+superseded_reason: absolute browser resume count replaced with measured pre-visibility baseline
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/audio/lifecycle source reads; repository Audio/Lifecycle and mobile-performance gates; one expected-red then green focused audio reproduction; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/scope review; connected Git-data fast-forwards; exact Actions evidence; artifact extraction and five screenshot inspections. Native Chromium may start Web Audio already running, so an absolute resume-count assumption was calibrated to the measured browser baseline while preserving the delayed-suspend race. The first CI was superseded before it could act as the final gate; the exact corrected-head run passed. No unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry and complete local-gate duration were not exposed.
+
+## BS-20260901-17
+
+```yaml
+closed_at_utc: 2026-09-01T12:32:28Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_audio_tests_before: { pass: 5, fail: 1, status: EXPECTED_FAIL_REPRODUCED }
+focused_syntax_status: PASS
+focused_audio_contract_mobile_tests_after: 37
+focused_audio_contract_mobile_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 127
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 366515
+local_full_gate_duration_seconds: null
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 127
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 681990be8d236e27009cc154ddb95862fb7348c78f0d68b0e5d7953986557808
+verified_ci_run: 33506751334
+verified_ci_status: PASS
+verified_ci_seconds: 669
+remote_browser: { scenarios: 72, checks_pass: 1872, checks_fail: 0, unexpected_failures: 0 }
+audio_visibility_before: { resumed_muted_ambience: 1 }
+audio_visibility_after: { muted_unlock_ambience: 0, context_suspended: true, context_resumed: true, resumed_muted_voices: 0, resumed_muted_ambience: 0, explicit_unmute_ambience: 1 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9800291335
+remote_diagnostics_digest: sha256:1b77f02686fe713a7fed8a9b5d7b51010ef3d625770016f894081786bb5eae01
+remote_implementation_commit: 4a811db6c654230a861118525a71af50f5f87e04
+initial_git_data_tree_identity: FAIL_TRUNCATED_QA_BLOB_CAUGHT_PRE_CI
+corrected_git_data_tree_identity: PASS
+transfer_correction_commit: 4a811db6c654230a861118525a71af50f5f87e04
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/audio/lifecycle source reads guided by the repository AAA-animation and mobile-performance gates; one expected-red then green focused audio reproduction; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/scope review; connected Git-data fast-forwards; one bounded exact Actions completion check; artifact extraction, evidence reads and five screenshot inspections. A large QA blob was truncated by direct tool output, and exact tree identity caught it before CI; bounded chunk transfer then restored the intended tree through a normal fast-forward. No unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry and complete local-gate duration were not exposed.
+
+## BS-20260901-16
+
+```yaml
+closed_at_utc: 2026-09-01T12:00:09Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_contract_tests_before: { pass: 23, fail: 1, status: EXPECTED_FAIL_REPRODUCED }
+focused_syntax_status: PASS
+focused_contract_tests_after: 24
+focused_contract_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 126
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 358176
+local_full_gate_duration_seconds: null
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 126
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 284d7939a6929342d9167eddf4d7dbaf2736730608257984b3cbd2c400018331
+verified_ci_run: 33503792855
+verified_ci_status: PASS
+verified_ci_seconds: 863
+remote_browser: { scenarios: 72, checks_pass: 1871, checks_fail: 0, unexpected_failures: 0 }
+held_enter_before: { explicit_repeat_guard: false }
+held_enter_after: { initial_default_prevented: false, repeat_default_prevented: true, play_requests: 1, final_state: live-ready, event_writes: 0, settlement_writes: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9799216714
+remote_diagnostics_digest: sha256:4a2899ec4ea06af597fa32138acbd70e74583dba64b8bb2bc6f46b9ccf7eb1bb
+remote_implementation_commit: ecbbfc50a6367efa80d6584223cf45038c105515
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch, memory, provider-contract and input-source reads; one expected-red then green focused contract reproduction; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/scope review; connected Git-data fast-forward; one bounded exact Actions completion check; artifact extraction and five screenshot inspections. No unchanged semantic failure or tool call was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry and complete local-gate duration were not exposed.
+
+## BS-20260901-15
+
+```yaml
+closed_at_utc: 2026-09-01T11:05:38Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_contract_tests_before: { pass: 22, fail: 1, status: EXPECTED_FAIL_REPRODUCED }
+focused_syntax_status: PASS
+focused_contract_tests_after: 23
+focused_contract_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 125
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 363200
+local_full_gate_duration_seconds: null
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 125
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 491c9771daa553e521dc227809aaddfccbed8b20d5d8874fc59f7f3e072fa7d0
+verified_ci_run: 33499016878
+verified_ci_status: PASS
+verified_ci_seconds: 914
+remote_browser: { scenarios: 71, checks_pass: 1860, checks_fail: 0, unexpected_failures: 0 }
+held_space_before: { repeat_guard: false, potential_second_ready_play: true }
+held_space_after: { keydowns: [false, true], play_requests: 1, final_state: live-ready, event_writes: 0, settlement_writes: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9797392950
+remote_diagnostics_digest: sha256:62e347affa51ec8a157d361c7f868be51207306b7e8105408b534cf76fe75988
+remote_implementation_commit: da091a8f2180602203489cf47cc1b85b52afb220
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/provider/input source reads, one expected-red then green focused contract reproduction, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, connected Git-data fast-forwards, exact Actions/artifact reads and five screenshot inspections. The current official Stake URLs returned 404 through the fetcher, so repository-indexed current contracts remained authoritative. One unauthenticated CLI push used the connected Git-data path; an executable-mode omission was caught by exact tree identity and corrected by a normal fast-forward before CI. No unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry and complete local-gate duration were not exposed.
+
+## BS-20260901-14
+
+```yaml
+closed_at_utc: 2026-09-01T10:01:01Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_audio_contract_mobile_tests: 39
+focused_audio_contract_mobile_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 124
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 367222
+local_full_gate_duration_seconds: null
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 124
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 17d4348396c592ddaef1dc15fc0e928cf06745cf02a41ae0c83515f0aaa154e3
+verified_ci_run: 33493907726
+verified_ci_status: PASS
+verified_ci_seconds: 916
+remote_browser: { scenarios: 71, checks_pass: 1858, checks_fail: 0, unexpected_failures: 0 }
+audio_mute_before: { master_gain: 0, retained_ambience_sources: 1, retained_active_sources: true }
+audio_mute_after: { muted_voices: 0, muted_ambience: 0, unmuted_ambience: 1, remuted_voices: 0, remuted_ambience: 0, restored_muted_ambience: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9795406701
+remote_diagnostics_digest: sha256:27ecbf55db79e64946da1053968c30568a21cbfe5228c99b9d58681517bdf280
+remote_implementation_commit: 16f0f438306947e031bc2a670f30d8217eac92b2
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/audio source reads, one focused syntax/audio/contract/mobile check, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, connected Git-data fast-forward, exact Actions/artifact reads, source-count extraction and five screenshot inspections. One fake-oscillator metric that treated a future stop as immediately inactive was replaced with director ownership plus exact node-state assertions; one local ref update attempted before the remote object was fetched and then used the safe fetch-first path. No unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry and complete local-gate duration were not exposed.
+
+## BS-20260901-13
+
+```yaml
+closed_at_utc: 2026-09-01T09:12:23Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_accessibility_mobile_tests: 12
+focused_accessibility_mobile_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 124
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 357154
+local_full_gate_duration_seconds: 374
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 124
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: dddf8429c9d796074481c616f0fdf948b926faa65c0ef845781ef4ce4323f9b5
+verified_ci_run: 33489360248
+verified_ci_status: PASS
+verified_ci_seconds: 864
+remote_browser: { scenarios: 71, checks_pass: 1856, checks_fail: 0, unexpected_failures: 0 }
+session_timer_before: { interval_ms: 250, nominal_callbacks_per_second: 4, nominal_callbacks_per_minute: 240 }
+session_timer_after: { interval_ms: 1000, measured_callback_delta: 1, measurement_window_ms: 1100, nominal_callbacks_per_second: 1, nominal_callbacks_per_minute: 60 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9793569525
+remote_diagnostics_digest: sha256:3d39b93011160658e39d60f2fa197778f9e50a7a298bbbfcf4d4cf6d7f09d28c
+remote_implementation_commit: 9749cfebbcc6ebbea941ced19f0d1b1124d87a55
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/performance source reads, one focused syntax/accessibility/mobile check, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, connected Git-data fast-forwards, exact Actions/artifact reads, timer-cadence extraction and five screenshot inspections. One invalid focused-test regex was corrected once; one overly broad harness insertion was moved to the intended scenario before commit. Exact tree identity caught an executable-mode mismatch, which a normal fast-forward correction restored before CI. The cancelled superseded implementation run is not counted as a gate failure; exact current-head CI passed. No unchanged semantic failure was repeated, and no subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
+## BS-20260901-12
+
+```yaml
+closed_at_utc: 2026-09-01T08:35:38Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_character_tests: 29
+focused_character_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 124
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 357447
+local_full_gate_duration_seconds: 373
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 124
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 5760052f8dbbf842bf1eaadea42faffa720ddcc20077893fe33082d219d9c2ff
+verified_ci_run: 33486188541
+verified_ci_status: PASS
+verified_ci_seconds: 881
+remote_browser: { scenarios: 71, checks_pass: 1855, checks_fail: 0, unexpected_failures: 0 }
+remote_vaultkeeper_compositor: { idle_before: 'transform, filter', idle_after: auto, active: 'transform, filter', skip_after: auto }
+remote_turbo_frame_pacing: { samples: 76, p95_ms: 16.7, max_ms: 16.8, over_50_ms: 0 }
+remote_normal_frame_pacing: { samples: 181, p95_ms: 16.8, max_ms: 16.8, over_50_ms: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9792318087
+remote_diagnostics_digest: sha256:64bc591ef7bc85ca53db477c6c614fa65e363bb2353fd2253ffd30be2251323b
+remote_implementation_commit: 1ddeb5d3932d64443c5838c4766f541872b5a6ff
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/animation source reads, one focused syntax/contract/mobile check, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, connected Git-data fast-forward, exact Actions/artifact reads, compositor-state extraction and five screenshot inspections. The unavailable local Playwright browser was not retried; exact isolated CI supplied current-package proof. No semantic failure was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
+## BS-20260901-11
+
+```yaml
+closed_at_utc: 2026-09-01T08:05:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_motion_tests: 28
+focused_motion_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 123
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 372651
+local_full_gate_duration_seconds: 389
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 123
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 9d699302e55edd591472b13e7dd992152db25dda74fd25a6c9e70d1914361cd9
+verified_ci_run: 33483678009
+verified_ci_status: PASS
+verified_ci_seconds: 905
+remote_browser: { scenarios: 71, checks_pass: 1854, checks_fail: 0, unexpected_failures: 0 }
+remote_blackout_before: { samples: 218, p95_ms: 50.0, max_ms: 66.7, over_50_ms: 4 }
+remote_blackout_after: { samples: 255, p95_ms: 33.4, max_ms: 66.7, over_50_ms: 1, environment_will_change: opacity }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9791347108
+remote_diagnostics_digest: sha256:c3f58c5dad7334a4efaf95bb79dca197a359cee590567702c8039bf65148b4ef
+remote_implementation_commit: cae8c0b9b506236be248dc03eee01c2c0317dbd7
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/motion source reads, one focused syntax/motion/mobile check, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, connected Git-data fast-forward, exact Actions/artifact reads, before/after pacing extraction and six screenshot inspections. One oversized text blob was truncated by the connector, caught by exact tree comparison and replaced with a full base64 blob before any commit/ref update. No semantic failure was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
+## BS-20260901-10
+
+```yaml
+closed_at_utc: 2026-09-01T07:01:20Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_mobile_compliance_tests: 17
+focused_mobile_compliance_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 122
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 370210
+local_full_gate_duration_seconds: 383
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 122
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: c051cc1a65100b1c9a42ee0c12e359650691934c6265e450d5c635b333c0f2e0
+verified_ci_run: 33478922886
+verified_ci_status: PASS
+verified_ci_seconds: 868
+remote_browser: { scenarios: 71, checks_pass: 1854, checks_fail: 0, unexpected_failures: 0 }
+remote_touch: { double_tap_scale_before: 1, double_tap_scale_after: 1, rules_scroll_before: 0, rules_scroll_after: 1022, writes: 0 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9789541385
+remote_diagnostics_digest: sha256:bf8aecff16ecea50d34a8d9f3fdce16c9bfc6ce4570a5fcf1be6d00a3f03e8e1
+remote_implementation_commit: 099c9feda5e159bafeae1ba3bae280020c926d43
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/mobile/checklist source reads, one focused syntax/mobile/compliance check, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, connected Git-data fast-forward, exact public Actions/artifact reads, one real-touch browser scenario and five screenshot inspections. A broad Prettier diagnostic reported existing non-canonical repository files and no rewrite was applied; the unauthenticated HTTPS push switched to the connected path. One long browser status wait hit the control timeout, then the same live tab was read after completion; no semantic failure was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
+## BS-20260901-09
+
+```yaml
+closed_at_utc: 2026-09-01T05:59:17Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_accessibility_mobile_tests: 11
+focused_accessibility_mobile_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 121
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 356191
+local_full_gate_duration_seconds: 373
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 121
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 7e05b9f89ed9f587bbc726a892c18df77305a3349f178c933774593e2a2a0a8c
+verified_ci_run: 33474573594
+verified_ci_status: PASS
+verified_ci_seconds: 878
+remote_browser: { scenarios: 70, checks_pass: 1845, checks_fail: 0, unexpected_failures: 0 }
+remote_timer_semantics: { position_role: status, position_live: polite, timer_role: timer, timer_live: off, initial: '00:00', progressed: '00:01' }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9788005592
+remote_diagnostics_digest: sha256:7622da346f1d4a0dabc1117f711793ccb649315e68854d1032f04284ece2a6ce
+remote_implementation_commit: de327825da4c36c7c351e59497683058c550dc3b
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/accessibility/jurisdiction source reads, one focused syntax/accessibility/mobile check, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, content-addressed Git-data fast-forward, exact Actions/job/artifact reads, and five screenshot inspections. The unavailable `gh` command switched to the public exact-run API; one direct HTTPS push lacked credentials and switched to the connected path. One destructive temporary-artifact cleanup was policy-rejected and replaced by a unique non-destructive directory. No failed semantic call was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
+## BS-20260901-08
+
+```yaml
+closed_at_utc: 2026-09-01T05:03:15Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_accessibility_mobile_tests: 10
+focused_accessibility_mobile_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 120
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 356732
+local_full_gate_duration_seconds: 373
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 120
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 991fe37fe7d6e62c8f18c8d7126b5af546f36cc10b5e6dc7c37f7937b03220bc
+verified_ci_run: 33471069057
+verified_ci_status: PASS
+verified_ci_seconds: 861
+remote_browser: { scenarios: 70, checks_pass: 1843, checks_fail: 0, unexpected_failures: 0 }
+remote_grid_topology: { named_grids: 1, rows: 7, cells: 49, indexed_cells: 49, geometry_surfaces: 8 }
+remote_expected_negative_console_errors: 6
+remote_diagnostics_artifact: 9786812481
+remote_diagnostics_digest: sha256:c711f87cec181dbbb70a45b4caf872fccb1ea81c7cf9ff4f3b0d63ce5e34563b
+remote_implementation_commit: 5624b8cbc0f942ce12ea8fee4386407ba8205c46
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/accessibility source reads, one focused syntax/accessibility/mobile check, one complete local frozen-install/lint/typecheck/test/build/math cycle, diff/secret/scope review, content-addressed Git-data fast-forward, exact Actions/job/artifact reads, and four screenshot inspections. One broad Prettier check reported the three already non-canonical repository files and no rewrite was applied; one direct HTTPS push lacked credentials and switched to the connected path. An initial patch context mismatch and one policy-rejected temporary cleanup used narrower, non-destructive alternatives. No failed semantic call was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
+## BS-20260901-07
+
+```yaml
+closed_at_utc: 2026-09-01T04:19:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_motion_mobile_compliance_tests: 19
+focused_motion_mobile_compliance_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 119
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 360501
+local_package_generation: PASS
+local_package_verification: PASS
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 119
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: bd76ca0c9fa880b9367828ce2f46a9f3dd4f5368ead904163d1e168b250e137b
+verified_ci_run: 33468510345
+verified_ci_status: PASS
+remote_browser: { scenarios: 70, checks_pass: 1832, checks_fail: 0, unexpected_failures: 0 }
+remote_motion_preference: { states: 5, authenticate: 4, play_settlement_event_writes: 0 }
+remote_diagnostics_artifact: 9785970450
+remote_diagnostics_digest: sha256:359817d2905aa9aef791e911a50363ff31bf635356ad338ea6bea503ec59777d
+remote_implementation_commit: 1f1c1dc0a6b6dd0f6975945774546fc5510d9622
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/checklist/motion-source reads, focused syntax/motion/mobile/compliance regression, one full local frozen-install/lint/typecheck/test/build/math/package cycle, two exact Actions runs, artifact extraction, six screenshot inspections, diff/secret/scope review and content-addressed fast-forward persistence. The first exact browser run proved all five preference states but exposed a harness-only predicate that counted four allowed authentications as wallet writes; endpoint-specific zero-write assertions plus a regression corrected it, and the single follow-up CI passed. One unsupported browser wait API, one unavailable `gh` command, one orchestration runtime without `TextEncoder`, and two SHA-detected Git-blob assembly mismatches each used a changed corrective path; no failed call was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
+## BS-20260901-06
+
+```yaml
+closed_at_utc: 2026-09-01T03:00:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_compliance_tests: 10
+focused_compliance_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 115
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 364242
+local_browser: NOT_RUN_EXACT_CI_USED
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 115
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: ac80d9dc69847ef9d54d84e46de2ea175c981e49898813c2455a1a993fb4c0a3
+verified_ci_run: 33463575542
+verified_ci_status: PASS
+remote_browser: { scenarios: 69, checks_pass: 1821, checks_fail: 0, unexpected_failures: 0 }
+remote_social_replay_outcomes: { classes: 4, checks_pass: 82, restricted_hits: 0, replay_gets: 4, wallet_event_writes: 0 }
+remote_diagnostics_artifact: 9784332622
+remote_diagnostics_digest: sha256:ba2d0603d372ff1fc749755f41ca78445b2e0ffd2b124ad3a050704ab6a3a901
+remote_implementation_commit: d7ced76e4aa363d4933349f825c71e1c65479874
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/checklist/compliance reads, current first-party Replay/Jurisdiction page checks, focused syntax/compliance regression, one full local frozen-install/lint/typecheck/test/build/math cycle, exact Actions package/browser/evidence verification, artifact extraction, eight screenshot inspections, diff/secret/scope review and content-addressed fast-forward persistence. One malformed orchestration string, one over-broad formatter pass and one unauthenticated CLI push each used a changed corrective path; formatter churn was removed before verification and no failed call was repeated unchanged. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was unavailable.
+
+## BS-20260901-05
+
+```yaml
+closed_at_utc: 2026-09-01T02:21:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_mobile_tests: 5
+focused_mobile_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 114
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 356000
+local_package_generation: PASS
+local_package_verification: PASS
+local_browser: BLOCKED_PLAYWRIGHT_BROWSER_MISSING
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 114
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 83d4f7877faf6186721c4573d4c3cc862bd193d2c0220ea2e0c8313233a2561b
+verified_ci_run: 33461309637
+verified_ci_status: PASS
+remote_browser: { scenarios: 65, checks_pass: 1739, checks_fail: 0, unexpected_failures: 0 }
+remote_orientation: { phases: 3, authenticate: 1, wallet_writes: 0, portrait_tolerance_css_px: 0.5 }
+remote_diagnostics_artifact: 9783536314
+remote_diagnostics_digest: sha256:8874194d92a8c910d11c3c84215cadd4ae2afd512835642013da512b4b7fcbd8
+remote_implementation_commit: 1fe84e55864c316d594b5c871f3d5982a7ec78a8
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/checklist/mobile-QA reads, focused syntax/mobile regressions, one full local frozen-install/lint/typecheck/test/build/math/package cycle, two exact Actions runs, artifact extraction, eight screenshot inspections, diff/secret/scope review and content-addressed fast-forward persistence. The first exact browser run exposed a test-only predicate that included the sole authenticate request in `walletWriteCount`; endpoint-specific zero-write assertions plus a regression corrected it, and the next exact run passed. One policy-rejected temporary-directory cleanup and one output-truncated blob attempt used safer changed alternatives; neither was repeated unchanged. No subagents, dependencies or binary assets were used; exact token telemetry was unavailable.
+
+## BS-20260901-04
+
+```yaml
+closed_at_utc: 2026-09-01T01:10:00Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+focused_contract_and_accessibility_tests: 23
+focused_contract_and_accessibility_status: PASS
+focused_syntax_status: PASS
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck_errors: 0
+local_typecheck_warnings: 0
+local_app_tests: 113
+local_app_status: PASS
+local_build: PASS
+local_full_math_tests: 7
+local_full_math_books: 300000
+local_full_math_duration_ms: 354218
+local_package_generation: PASS
+local_package_verification: PASS
+local_browser: BLOCKED_PLAYWRIGHT_BROWSER_MISSING
+exact_lint: PASS
+exact_typecheck_errors: 0
+exact_typecheck_warnings: 0
+exact_app_tests: 113
+exact_build: PASS
+exact_full_math_tests: 7
+exact_full_math_books: 300000
+exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
+exact_package_generation: PASS
+exact_package_verification: PASS
+exact_frontend_tree: 113c7e7d25805d70f9951e5819947713c224d92964d1ea6354b0fdf3b33addff
+verified_ci_run: 33456368436
+verified_ci_status: PASS
+remote_browser: { scenarios: 64, checks_pass: 1579, checks_fail: 0, unexpected_failures: 0 }
+remote_interaction_guide: { guide_entries: 10, missing_visible_controls: 0, missing_required_keys: 0 }
+remote_diagnostics_artifact: 9781885504
+remote_diagnostics_digest: sha256:07afc832223a1a8f5ca2abfbb92273fcfc27b7c3d8f9472108054bc736dd8002
+remote_implementation_commit: 521c4c4bb96c5f8343412b1f85dab62d6b900a7e
+final_diff_check: PASS
+manual_identical_retries: 0
+```
+
+Observed categories: compact branch/memory/checklist/guide-source reads, focused syntax/contracts/accessibility tests, one full local frozen-install/lint/typecheck/test/build/math/package cycle, exact Actions verification, artifact extraction, five screenshot inspections, diff/secret review and content-addressed fast-forward persistence. A broad formatter pass created unrelated legacy churn and was fully removed before verification. One unauthenticated HTTPS push was replaced by the connected Git-data path; no unchanged failure was repeated. No subagents, dependencies or binary assets were used; exact token telemetry was unavailable.
+
+## BS-20260901-03
+
+```yaml
+closed_at_utc: 2026-09-01T00:17:30Z
+sprint_day: 3
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
 focused_release_package_tests: 1
 focused_release_package_status: PASS
 stale_bundle_injection_removed: true
