@@ -5987,6 +5987,17 @@ async function runNetworkScenarios(browser, origin) {
 		});
 		const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
 		const settledBalance = debitedBalance + round.payout;
+		const checkpointEventTypes = new Set([
+			'board_set',
+			'breach_state',
+			'feature_start',
+			'feature_cycle',
+			'feature_end',
+			'cap_reached',
+		]);
+		const expectedCheckpointCursors = fixture.book.events
+			.filter(({ type }) => checkpointEventTypes.has(type))
+			.map(({ index }) => encodePresentationCursor(index + 1));
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 		try {
 			await context.addInitScript(
@@ -6102,14 +6113,22 @@ async function runNetworkScenarios(browser, origin) {
 				'accepted winning settlement response loss never retries payout settlement',
 				network.byEndpoint.endRound.length === 1 &&
 					network.byEndpoint.play.length === 1 &&
-					network.byEndpoint.event.length === 1,
+					serialize(network.byEndpoint.event.map(({ body }) => body.event)) ===
+						serialize(expectedCheckpointCursors),
 				serialize(network.order),
 			);
 			check(
 				group,
 				'accepted winning settlement recovery order is authoritative and exact',
 				network.byEndpoint.authenticate.length === 2 &&
-					serialize(network.order) === serialize(['authenticate', 'play', 'event', 'endRound', 'authenticate']),
+					serialize(network.order) ===
+						serialize([
+							'authenticate',
+							'play',
+							...expectedCheckpointCursors.map(() => 'event'),
+							'endRound',
+							'authenticate',
+						]),
 				serialize(network.order),
 			);
 			check(
