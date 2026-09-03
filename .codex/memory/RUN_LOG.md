@@ -1,5 +1,23 @@
 # Material run log
 
+## BS-20260903-02 — SUCCESS
+
+- Sprint day: 5
+- Base remote commit: `cadf2ce497bf2062ef984eda782e767e5d01ceae`
+- Verified implementation commit: `1d22d4b8de7d023df4a3693b4b18ecf0844928c1`
+- Work item: `BSB-SCALE-EVIDENCE-GATE-001` (DONE); parent `BSB-SCALE-001` remains OPEN.
+- Selection reason: after closing the badge blocker, the highest release-critical repository-solvable gap was the absence of an executable acceptance boundary for the requested million-user infrastructure claim.
+- Before/after evidence: previously the backlog listed requirements but no machine-checkable evidence format existed. The new SHA-bound verifier and operator contract require owner-approved workload/SLO values and reject mock targets, missed concurrency/RPS, latency/cache/saturation breaches, duplicate paid-play/settlement or wallet mismatches, incomplete CDN/RGS/provider failure drills, missing correlated telemetry/acknowledged alerts, failed rollback and invalid artifact digests. Fourteen synthetic cases prove fail-closed behavior; they do not prove infrastructure capacity.
+- Changed files: scale verifier, 9-test contract suite, scale-readiness runbook, root script entry, exact CI step and five sprint-memory files. Product runtime/layout, math/RNG, wallet/provider schema, assets, dependencies and lockfile are unchanged.
+- Gates: local expected-red and local gates BLOCKED because the selected runner became unavailable. Exact current-commit CI `33696034709`: frozen install PASS; lint PASS; typecheck 0 errors/0 warnings PASS; 187/187 app tests PASS; scale self-test 14/14 PASS; production build PASS; math 7/7 over 300,000 books with fingerprint `d03fab…78d8`; package generation/readback PASS; Chromium 84/84 scenarios / 2358 checks PASS; current-SHA 51-point resolver PASS. Unexpected/forbidden requests, page errors and failed requests are zero; six console messages are expected negative-path fixtures.
+- Visual/browser review: exact current package executed target viewports 1920x1080, 1366x768, 390x844 and 844x390 plus compact coverage with zero geometry failures. Artifact `9872216210` is SHA-bound. Manual image inspection for this head and local `git diff --check` are NOT_RUN/BLOCKED by the unavailable runner; no product visual source changed and prior inspected visuals were not relabeled as current manual evidence.
+- Package evidence: frontend tree `eb477b0564988ad8a6986bcba4ce3e7f0e5bb9bd34db9f7d0999f24553fa2820`, 6 files / 439,752 bytes; math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes.
+- Review: GitHub compare shows exactly five intended implementation files (+537/-0); complete authored contents were reviewed for scope, secrets, debug residue and capacity overclaim. No credential, endpoint or user data was added.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; subagents 0. No unchanged failed tool invocation was repeated.
+- Persistence: implementation was fast-forwarded with `force: false`; exact run and artifact succeeded. Memory closeout is fast-forwarded separately without force.
+- Residual risk: no real production-equivalent CDN/RGS/provider load/soak run exists, so capacity for 1,000,000 users is NOT_CLAIMED. Approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals remain open.
+- Next candidate: coordinate and ingest a real owner-approved scale run for `BSB-SCALE-001`; if external infrastructure is unavailable, close another repository-side release gate without substituting mocks for acceptance.
+
 ## BS-20260903-01 — SUCCESS
 
 - Sprint day: 5
@@ -321,22 +339,5 @@ Newest entries first; retain at most 20.
 - Package evidence: exact remote frontend tree `1601bb16596afcc6bf9d7b484728f996deb046e4517c48959cad112589dd41bc`, 10 files / 700,486 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept profile timing, explicit override validation and browser measurement aligned. The unavailable `gh` CLI used the public Actions API; no unchanged semantic failure was repeated.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33580462193`, artifact `9828528586` and digest `sha256:6067a2386374349fd691b40f202a7afb6e4c1f45851bd5b4b1c1433ee99c4bb3` succeeded.
-- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
-
-## BS-20260902-28 — SUCCESS
-
-- Sprint day: 4
-- Base commit: `5770b96a50c31986a364f726f582fc1388dd3ec1`
-- Verified implementation commit: `f364800c6f0e8d88f301cedddda2c35201dc688b`
-- Work item: `BSB-TURBO-SPIN-CUE-TIMING-001` (DONE; parent `BSB-MOTION-001` remains in progress)
-- Selection reason: Turbo advanced from visible `spin_start` to Monitoring after 60ms although the authored Vaultkeeper reaction lasts 110ms, cutting the character response about 50ms early and ending even before the 70ms board spin.
-- Before/after evidence: the expected-red regression measured 59.6ms. PresentationDirector now gives Turbo one bounded 110ms spin-start window; Normal remains 160ms, Reduced remains immediate and Skip retains timer ownership. Exact Chromium observes 111.7ms Turbo and 165.0ms Normal, authored animation durations 110/160ms, exact `$10000.00` payout authority, two plays and zero checkpoint/settlement writes.
-- Changed files: presentation timing director, contract/timer regression, exact Chromium timing scenario and five sprint-memory files; math, wallet schema, assets, lockfile and dependencies unchanged.
-- Gates: expected-red app suite 138 PASS / 1 FAIL; syntax plus focused motion 3/3 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 139/139 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 79/79 scenarios and 2235/2235 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not installed; exact isolated CI supplies current-package browser proof.
-- Visual review: exact 1366x768 Normal/Turbo Max-Win frames plus 1920x1080, 390x844 and 844x390 captures from artifact `9827144982` were inspected while the same exact browser timeline proves the spin-start windows. Gold board, Vaultkeeper/penguin, controls, values and vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
-- Package evidence: exact remote frontend tree `26c88728c3782e60d6926a438620a717ed4d9c25e0b3a3d62f871b69c42b8826`, 10 files / 700,492 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept authored timing, Skip ownership and Reduced Motion aligned. One no-op package filter, one over-specific state assertion and one connector-truncated blob each used a changed, verified path; no semantic failure was repeated unchanged.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33576342359`, artifact `9827144982` and digest `sha256:b1398c0ee2c9cb37348acac4c2101a9d77112bebb129ce8b42253dc09399d0a2` succeeded.
 - Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.

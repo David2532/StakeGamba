@@ -1,5 +1,47 @@
 # Rolling automation metrics
 
+## BS-20260903-02
+
+```yaml
+closed_at_utc: 2026-09-02T23:55:21Z
+sprint_day: 5
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-SCALE-EVIDENCE-GATE-001
+parent_work_item: { id: BSB-SCALE-001, state: OPEN_EXTERNAL_EVIDENCE_REQUIRED }
+local_runner: BLOCKED_ENV_UNAVAILABLE
+expected_red: NOT_RUN_BLOCKED_LOCAL_RUNNER
+exact_ci_run: 33696034709
+exact_ci_status: SUCCESS
+exact_ci_commit: 1d22d4b8de7d023df4a3693b4b18ecf0844928c1
+exact_frozen_install: PASS
+exact_lint: PASS
+exact_typecheck: { errors: 0, warnings: 0, status: PASS }
+exact_app_tests: { pass: 187, fail: 0 }
+exact_scale_contract_tests: { pass: 9, fail: 0 }
+exact_scale_self_test: { pass: 14, fail: 0 }
+exact_build: PASS
+exact_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_package: { generation: PASS, verification: PASS, frontend_tree: eb477b0564988ad8a6986bcba4ce3e7f0e5bb9bd34db9f7d0999f24553fa2820, frontend_files: 6, frontend_bytes: 439752, math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da, math_files: 7, math_bytes: 48697667 }
+exact_browser: { scenarios: 84, passed: 84, failed: 0, checks_pass: 2358, checks_fail: 0 }
+exact_diagnostics: { unexpected_requests: 0, forbidden_requests: 0, expected_negative_console_errors: 6, page_errors: 0, failed_requests: 0 }
+exact_compliance_resolver: PASS
+exact_compliance: { automated_proof_complete: 38, manual_gates_open: 23, external_gates_open: 6 }
+artifact_id: 9872216210
+artifact_digest: sha256:3b0dc5d4edf064d98ba1e32178c0f95490cc227b1726e13efef0df7d75165197
+manual_visual_review: BLOCKED_LOCAL_RUNNER_UNAVAILABLE
+current_exact_browser_geometry: PASS
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+final_diff_review: PASS_GITHUB_COMPARE_5_EXPECTED_FILES
+git_diff_check: NOT_RUN_BLOCKED_LOCAL_RUNNER
+manual_identical_retries: 0
+```
+
+Observed categories: targeted GitHub branch/memory/source/workflow reads; five-file implementation through non-force Git data; exact current-commit CI polling/log review; compare-based scope/secret/debug review; five memory-file persistence. The local selected runner disappeared before execution, so expected-red, local `git diff --check` and manual image inspection are explicitly not claimed. Exact CI supplied every executable product gate and current-package browser geometry. No subagent, dependency, lockfile, product runtime, math, provider schema or product asset changed. The synthetic scale fixture verifies rejection behavior only and cannot establish external capacity.
+
 ## BS-20260903-01
 
 ```yaml
