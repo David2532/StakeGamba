@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const SCALE_EVIDENCE_SCHEMA = 'blacksite-scale-evidence-v5';
+export const SCALE_EVIDENCE_SCHEMA = 'blacksite-scale-evidence-v6';
 export const SCALE_ARTIFACT_BINDING_SCHEMA = 'blacksite-scale-artifact-binding-v2';
 export const SCALE_ARTIFACT_ATTESTATION_SCHEMA = 'blacksite-scale-artifact-attestation-v1';
-export const SCALE_TRUST_STORE_SCHEMA = 'blacksite-scale-trusted-signers-v1';
+export const SCALE_TRUST_STORE_SCHEMA = 'blacksite-scale-trusted-signers-v2';
 const expectedResilienceScenarios = Object.freeze(['cdn-origin-degradation', 'rgs-http-5xx', 'provider-timeout', 'instance-restart']);
 const requiredArtifactRoles = Object.freeze(['load-report', 'cdn-report', 'provider-ledger', 'resilience-report', 'observability-export', 'rollback-report']);
 
@@ -160,6 +160,7 @@ function verifyTrustedSigners(evidence, trustStore) {
   const ids = trustStore.signers.map((signer) => signer?.id);
   requireValue(new Set(ids).size === ids.length, 'trusted signer ids must be unique');
   const trusted = new Map();
+  const publicKeyFingerprints = new Set();
   for (const signer of trustStore.signers) {
     nonEmpty(signer?.id, 'trusted signer id');
     requireValue(Array.isArray(signer.roles) && signer.roles.length > 0, `trusted signer ${signer.id}.roles is required`);
@@ -175,6 +176,9 @@ function verifyTrustedSigners(evidence, trustStore) {
       fail(`trusted signer ${signer.id} public key is invalid`);
     }
     requireValue(publicKey.asymmetricKeyType === 'ed25519', `trusted signer ${signer.id} key must be Ed25519`);
+    const publicKeyFingerprint = createHash('sha256').update(publicKey.export({ type: 'spki', format: 'der' })).digest('hex');
+    requireValue(!publicKeyFingerprints.has(publicKeyFingerprint), 'trusted signer public keys must be unique across approval owners');
+    publicKeyFingerprints.add(publicKeyFingerprint);
     trusted.set(signer.id, { ...signer, publicKey });
   }
   return trusted;
@@ -304,6 +308,8 @@ export function verifyScaleEvidence(evidence, expected = {}) {
   nonEmpty(evidence.approval?.workloadOwner, 'approval.workloadOwner');
   nonEmpty(evidence.approval?.providerOwner, 'approval.providerOwner');
   nonEmpty(evidence.approval?.platformOwner, 'approval.platformOwner');
+  const approvalOwners = [evidence.approval.workloadOwner, evidence.approval.providerOwner, evidence.approval.platformOwner];
+  requireValue(new Set(approvalOwners).size === approvalOwners.length, 'approval owners must be distinct');
 
   requireValue(evidence.environment?.productionEquivalent === true, 'environment must be production-equivalent');
   requireValue(evidence.environment?.mocked === false, 'mocked environment evidence is not accepted');
@@ -813,6 +819,18 @@ async function runSelfTest() {
       (_evidence, _directory, trustStore) => {
         const { publicKey } = generateKeyPairSync('ed25519');
         trustStore.signers[0].publicKeyPem = publicKey.export({ type: 'spki', format: 'pem' });
+      },
+      false,
+    ],
+    [
+      'shared signer key across approval owners',
+      (evidence, directory, trustStore, privateKeys) => {
+        const workloadOwner = evidence.approval.workloadOwner;
+        const providerOwner = evidence.approval.providerOwner;
+        const sharedPublicKey = trustStore.signers.find((signer) => signer.id === workloadOwner).publicKeyPem;
+        privateKeys.set(providerOwner, privateKeys.get(workloadOwner));
+        trustStore.signers.find((signer) => signer.id === providerOwner).publicKeyPem = sharedPublicKey;
+        materializeSelfTestArtifacts(evidence, directory, privateKeys);
       },
       false,
     ],

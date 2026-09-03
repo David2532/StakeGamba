@@ -169,6 +169,27 @@ test('scale evidence binds approvals, phase duration, request totals and require
   assert.throws(() => verifyScaleEvidence(missingArtifactRole), /rollback-report/u);
 });
 
+test('scale evidence requires distinct approval owners and cryptographic signer keys', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'blacksite-scale-signer-separation-red-'));
+  try {
+    const evidence = createSelfTestEvidence();
+    const { privateKeys, trustStore } = signerFixture(evidence);
+    const sharedOwnerKey = privateKeys.get(evidence.approval.workloadOwner);
+    const sharedPublicKey = trustStore.signers.find((signer) => signer.id === evidence.approval.workloadOwner).publicKeyPem;
+    privateKeys.set(evidence.approval.providerOwner, sharedOwnerKey);
+    trustStore.signers.find((signer) => signer.id === evidence.approval.providerOwner).publicKeyPem = sharedPublicKey;
+    writeSignedArtifacts(evidence, directory, privateKeys);
+
+    await assert.rejects(() => verifyScaleEvidenceArtifacts(evidence, directory, trustStore), /trusted signer public keys must be unique/u);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+
+  const duplicateOwner = createSelfTestEvidence();
+  duplicateOwner.approval.platformOwner = duplicateOwner.approval.providerOwner;
+  assert.throws(() => verifyScaleEvidence(duplicateOwner), /approval owners must be distinct/u);
+});
+
 test('real scale verification refuses metadata-only artifact claims', () => {
   const directory = mkdtempSync(join(tmpdir(), 'blacksite-scale-readback-red-'));
   try {
