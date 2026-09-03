@@ -89,6 +89,7 @@
 				"active-feature-restore-resumes-at-checkpoint-once",
 				"uncertain-live-play-reloads-and-restores-without-retry",
 				"accepted-play-response-loss-reloads-and-restores-exactly-once",
+				"accepted-checkpoint-response-loss-restores-without-rewrite",
 				"settlement-http-503-reloads-and-restores-exactly-once",
 				"accepted-settlement-response-loss-reauthenticates-without-retry",
 				"settlement-session-expiry-reauthenticates-and-settles-once"

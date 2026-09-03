@@ -200,6 +200,7 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 		'active-feature-restore-resumes-at-checkpoint-once',
 		'uncertain-live-play-reloads-and-restores-without-retry',
 		'accepted-play-response-loss-reloads-and-restores-exactly-once',
+		'accepted-checkpoint-response-loss-restores-without-rewrite',
 		'settlement-http-503-reloads-and-restores-exactly-once',
 		'accepted-settlement-response-loss-reauthenticates-without-retry',
 		'settlement-session-expiry-reauthenticates-and-settles-once',
@@ -214,6 +215,14 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 	assert.match(browserQa, /expectedAbortedRequests\[0\]\?\.error === 'net::ERR_ABORTED'/u);
 	assert.match(browserQa, /accepted play response loss never sends a duplicate paid play/u);
 	assert.match(browserQa, /accepted play response loss restores and settles exactly once/u);
+	assert.match(browserQa, /accepted checkpoint response loss aborts only the pending client transport/u);
+	assert.match(browserQa, /accepted checkpoint is not rewritten after authoritative restore/u);
+	assert.match(browserQa, /accepted checkpoint recovery order is authoritative and exact/u);
+	assert(
+		browserQa.includes(
+			"expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/bet/event`",
+		),
+	);
 	assert.match(browserQa, /exactly one new settlement attempt/u);
 	assert.match(browserQa, /accepted settlement response loss aborts only the pending client transport/u);
 	assert.match(browserQa, /accepted settlement response loss never sends a duplicate end-round/u);
