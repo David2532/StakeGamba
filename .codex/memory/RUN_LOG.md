@@ -1,5 +1,22 @@
 # Material run log
 
+## BS-20260903-12 — SUCCESS
+
+- Sprint day: 5
+- Base remote commit: `c9ae6d8367a706ca23155905941abd335a149f52`
+- Verified implementation commit: `bc260688036231fba3ec5cb967e043b9dd6cbb3d`
+- Work item: `BSB-ACCEPTED-WINNING-PLAY-RESPONSE-LOSS-001` (DONE); parent `BSB-EVIDENCE-001` remains IN_PROGRESS for provider/manual evidence.
+- Selection reason: exact CI had isolated the only remaining failure to the harness expectation for session position after reauthentication; all product gates already passed.
+- Before/after evidence: the harness expected `−$199.00` from the pre-play balance, but runtime intentionally resets the session baseline to the authoritative `$999.00` returned after reload. The exact-package assertion now expects `−$200.00`. Chromium proves one accepted `$1.00` play, one intentional response abort, two authentications, 49 unique ordered checkpoints, one `$200.00` settlement, final `$1199.00` and no duplicate play/checkpoint/payout.
+- Changed files: one exact Chromium QA assertion plus five sprint-memory files. Product runtime/layout, math/RNG, wallet/provider schema, assets, dependencies and lockfile are unchanged.
+- Gates: syntax PASS; focused contract 1/1 PASS; frozen install, lint, production `svelte-check` 0 errors/0 warnings, 192/192 tests, production build, scale self-test 31/31 and math 7/7 over 300,000 books PASS; fingerprint unchanged. Correctly parameterized local package/readback PASS. Exact CI `33767664586` passes every gate, 88/88 Chromium scenarios / 2651 checks and current-SHA 51-point resolution; unexpected/forbidden requests, page errors and unclassified failed requests are zero. `git diff --check` and secret/debug/scope/full-own-diff review PASS.
+- Visual review: exact artifact `9898887055` was downloaded. 1920x1080, 1366x768, 390x844, 844x390 and both pending/restored winning-play captures were manually inspected without overlap, crop, scrollbar or broken images; Penguin, vault, board, HUD and controls remain intact.
+- Package evidence: exact frontend tree `4f32da215e0326a5c9981b44761782175f1c13c6dde11b27beb031717f884919`, 6 files / 439,752 bytes; math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; artifact digest `sha256:98d93fe691b30f8d01856f6fd252273978f03a5545b67fc35f0fd6b5aebdd9c6`.
+- Tool/token metrics: see `METRICS.md`; subagents 0; tokens `null` / `not_exposed`. The initially unparameterized local package command failed closed and was replaced once by the documented workflow invocation; no unchanged failed command or semantic gate was repeated.
+- Persistence: implementation was fast-forwarded through connected Git data with `force: false`; exact CI and artifact succeeded. Memory closeout is fast-forwarded separately without force.
+- Residual risk: production-equivalent CDN/RGS/provider load proof remains absent, so one-million-user capacity is NOT_CLAIMED. Approved Spine/art/audio, real-device, rights/Creative, 23 manual and 6 external gates remain open.
+- Next candidate: obtain owner-approved production-equivalent `BSB-SCALE-001` evidence and validate all six signed role-owned reports; if unavailable, address the next repository-solvable high provider/manual-evidence prerequisite.
+
 ## BS-20260903-11 — BLOCKED
 
 - Sprint day: 5
@@ -321,21 +338,5 @@
 - Persistence: source implementation remains accepted on remote commit `b4211f6`; this run records materially stronger local math/package evidence while keeping the exact-browser boundary explicit.
 - Residual risk: current-head Chromium timing/screenshots, wallet/network isolation and 51-row resolver; approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: resume this same item only when exact GitHub Actions or a valid local Chromium binary is available; otherwise choose a non-visual provider/accessibility slice without claiming this tier complete.
-
-## BS-20260902-38 — BLOCKED
-
-- Sprint day: 4
-- Base commit: `e76b6dd75071a499d27957ec972be29bd1fab6cc`
-- Pending implementation commit: `b4211f6bab7009f56b9e507d95f8c3ea95e1788c`
-- Work item: `BSB-BASE-WIN-TIER-REACTIONS-001` (BLOCKED; parent `BSB-MOTION-001` remains in progress)
-- Selection reason: the mandatory animation/asset contracts name `win_small`, `win_medium` and `win_big`, while runtime collapsed every authoritative Base win into one `win_acknowledge` reaction.
-- Before/after evidence: the focused regression began 0 PASS / 1 expected FAIL on `base_small`. Pending source now selects exact Base tiers from raw centi-x payout: `<100` Small, `100–199` Medium, `>=200` Big; real fixtures `base_small`/`base_cascade_3`/`base_win_02`, boundaries 99/100/199/200 and invalid negative/fractional inputs are covered. Timings are 420/800/1400ms Normal, 140/260/420ms Turbo and 0ms Reduced; feature `bonus_win` remains isolated.
-- Changed files: PresentationDirector, Vaultkeeper CSS, contract and exact-browser QA, Animation Bible, durable decision and five sprint-memory files; math, wallet schema, assets, lockfile and dependencies unchanged.
-- Gates: expected-red 0/1 PASS; syntax PASS; focused contracts 6/6 PASS plus timer-backed fixture mapping 1/1 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 141/141 PASS; production build PASS; `git diff --check` and secret/debug/scope/full-own-diff review PASS. Local math process output was not retained and is not claimed. GitHub exposed no workflow run or combined status for the accepted pending commit, and no local Chromium executable exists; exact package, current-head browser and 51-row resolver are NOT_RUN/BLOCKED.
-- Visual review: NOT_RUN for pending source. The new QA scenario is authored to capture active Small and Big frames at 1366x768 and retain the standard 1920x1080, 390x844 and 844x390 suite, but no current-head artifact exists. Prior artifact `9843481852` is not inherited.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept semantic ownership, profile timings, exact payout-derived thresholds and cleanup aligned. One formatter mismatch was fully restored before a controlled patch; no unchanged semantic failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data/Contents API. Remote commit `b4211f6` is accepted with exact local tree `e7d024be9d5eb0c2e722baf93f40f80375ebebf4`; it is deliberately not marked verified without current-head CI/browser evidence.
-- Residual risk: exact-package CI/browser/screenshots for this slice; approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: resume `BSB-BASE-WIN-TIER-REACTIONS-001` by obtaining one exact current-head workflow/browser artifact; do not add another motion slice first.
 
 Newest entries first; retain at most 20.
