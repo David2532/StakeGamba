@@ -215,6 +215,8 @@ function verifyTrustedSigners(evidence, trustStore) {
 }
 
 export async function verifyScaleEvidenceArtifacts(evidence, artifactsRoot, trustStore) {
+  const verifiedAt = new Date().toISOString();
+  const verificationTime = Date.parse(verifiedAt);
   nonEmpty(artifactsRoot, 'artifacts-root');
   const trustedSigners = verifyTrustedSigners(evidence, trustStore);
   const rootStat = lstatSync(artifactsRoot, { throwIfNoEntry: false });
@@ -273,6 +275,7 @@ export async function verifyScaleEvidenceArtifacts(evidence, artifactsRoot, trus
     requireValue(trustedSigner.roles.includes(artifact.role), `artifact ${artifact.role} signer is not trusted for this role`);
     timestamp(attestation.signedAt, `artifact ${artifact.role}.attestation.signedAt`);
     requireValue(Date.parse(attestation.signedAt) >= Date.parse(evidence.run.completedAt), `artifact ${artifact.role} was attested before the run completed`);
+    requireValue(Date.parse(attestation.signedAt) <= verificationTime, `artifact ${artifact.role} attestation is in the future relative to verification time`);
     nonEmpty(attestation.signatureBase64, `artifact ${artifact.role}.attestation.signatureBase64`);
     let signature;
     try {
@@ -298,7 +301,7 @@ export async function verifyScaleEvidenceArtifacts(evidence, artifactsRoot, trus
     });
   }
 
-  return { status: 'PASS', verifiedArtifacts };
+  return { status: 'PASS', verifiedAt, verifiedArtifacts };
 }
 
 function verifyLatencyMetric(name, metric) {
@@ -320,6 +323,8 @@ function verifyLatencyMetric(name, metric) {
 }
 
 export function verifyScaleEvidence(evidence, expected = {}) {
+  const verifiedAt = new Date().toISOString();
+  const verificationTime = Date.parse(verifiedAt);
   requireValue(evidence && typeof evidence === 'object' && !Array.isArray(evidence), 'evidence must be an object');
   requireValue(evidence.schema === SCALE_EVIDENCE_SCHEMA, `schema must be ${SCALE_EVIDENCE_SCHEMA}`);
 
@@ -357,6 +362,7 @@ export function verifyScaleEvidence(evidence, expected = {}) {
   nonEmpty(evidence.run?.id, 'run.id');
   requireValue(Date.parse(evidence.approval.approvedAt) <= Date.parse(evidence.run.startedAt), 'workload and limits must be approved before the run starts');
   requireValue(Date.parse(evidence.run.completedAt) > Date.parse(evidence.run.startedAt), 'run duration is invalid');
+  requireValue(Date.parse(evidence.run.completedAt) <= verificationTime, 'run.completedAt is in the future relative to verification time');
   const runDurationSeconds = (Date.parse(evidence.run.completedAt) - Date.parse(evidence.run.startedAt)) / 1000;
   const claimedPhaseSeconds = evidence.workload.rampSeconds + evidence.workload.steadyStateSeconds + evidence.workload.soakSeconds;
   requireValue(runDurationSeconds >= claimedPhaseSeconds, 'run duration is shorter than the claimed workload phase duration');
@@ -445,6 +451,7 @@ export function verifyScaleEvidence(evidence, expected = {}) {
     schema: SCALE_EVIDENCE_SCHEMA,
     status: 'PASS',
     claim: 'EXTERNAL_SCALE_METADATA_VALIDATED',
+    verifiedAt,
     identity: evidence.identity,
     approvedWorkload: {
       populationUsers: evidence.workload.populationUsers,
@@ -732,6 +739,17 @@ async function runSelfTest() {
       false,
     ],
     [
+      'future run completion',
+      (() => {
+        const value = clone(valid);
+        value.approval.approvedAt = '9999-01-01T00:00:00.000Z';
+        value.run.startedAt = '9999-01-01T01:00:00.000Z';
+        value.run.completedAt = '9999-01-01T03:00:00.000Z';
+        return value;
+      })(),
+      false,
+    ],
+    [
       'request total mismatch',
       (() => {
         const value = clone(valid);
@@ -839,6 +857,22 @@ async function runSelfTest() {
         delete report.blacksiteScaleAttestation;
         const signerId = evidence.approval.platformOwner;
         report.blacksiteScaleAttestation = createScaleArtifactAttestation(evidence, evidence.artifacts[0].role, report, { signerId, privateKey: privateKeys.get(signerId) });
+        rewriteSelfTestArtifact(evidence, directory, 0, report);
+      },
+      false,
+    ],
+    [
+      'future signer attestation',
+      (evidence, directory, _trustStore, privateKeys) => {
+        const artifactPath = join(directory, evidence.artifacts[0].name);
+        const report = JSON.parse(readFileSync(artifactPath, 'utf8'));
+        delete report.blacksiteScaleAttestation;
+        const signerId = requiredSignerForRole(evidence, evidence.artifacts[0].role);
+        report.blacksiteScaleAttestation = createScaleArtifactAttestation(evidence, evidence.artifacts[0].role, report, {
+          signerId,
+          privateKey: privateKeys.get(signerId),
+          signedAt: '9999-01-01T00:00:00.000Z',
+        });
         rewriteSelfTestArtifact(evidence, directory, 0, report);
       },
       false,

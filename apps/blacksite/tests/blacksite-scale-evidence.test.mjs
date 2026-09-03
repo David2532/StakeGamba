@@ -43,7 +43,7 @@ function signerForRole(evidence, role) {
   return evidence.approval.platformOwner;
 }
 
-function writeSignedArtifacts(evidence, directory, privateKeys) {
+function writeSignedArtifacts(evidence, directory, privateKeys, signedAt) {
   for (const artifact of evidence.artifacts) {
     const unsignedReport = {
       ...createScaleArtifactProof(evidence, artifact.role),
@@ -55,6 +55,7 @@ function writeSignedArtifacts(evidence, directory, privateKeys) {
       blacksiteScaleAttestation: createScaleArtifactAttestation(evidence, artifact.role, unsignedReport, {
         signerId,
         privateKey: privateKeys.get(signerId),
+        ...(signedAt ? { signedAt } : {}),
       }),
     })}\n`;
     writeFileSync(join(directory, artifact.name), content, 'utf8');
@@ -167,6 +168,24 @@ test('scale evidence binds approvals, phase duration, request totals and require
   const missingArtifactRole = createSelfTestEvidence();
   missingArtifactRole.artifacts = missingArtifactRole.artifacts.filter((artifact) => artifact.role !== 'rollback-report');
   assert.throws(() => verifyScaleEvidence(missingArtifactRole), /rollback-report/u);
+});
+
+test('scale evidence rejects future run completion and report attestations', async () => {
+  const futureRun = createSelfTestEvidence();
+  futureRun.approval.approvedAt = '9999-01-01T00:00:00.000Z';
+  futureRun.run.startedAt = '9999-01-01T01:00:00.000Z';
+  futureRun.run.completedAt = '9999-01-01T03:00:00.000Z';
+  assert.throws(() => verifyScaleEvidence(futureRun), /future|verification time/u);
+
+  const directory = mkdtempSync(join(tmpdir(), 'blacksite-scale-future-attestation-red-'));
+  try {
+    const evidence = createSelfTestEvidence();
+    const { privateKeys, trustStore } = signerFixture(evidence);
+    writeSignedArtifacts(evidence, directory, privateKeys, '9999-01-01T00:00:00.000Z');
+    await assert.rejects(() => verifyScaleEvidenceArtifacts(evidence, directory, trustStore), /future|verification time/u);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test('scale evidence requires distinct approval owners and cryptographic signer keys', async () => {
