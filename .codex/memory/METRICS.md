@@ -1,5 +1,57 @@
 # Rolling automation metrics
 
+## BS-20260903-08
+
+```yaml
+started_at_utc: 2026-09-03T06:29:20Z
+closed_at_utc: 2026-09-03T07:13:44Z
+sprint_day: 5
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-ACCEPTED-CHECKPOINT-RESPONSE-LOSS-001
+parent_work_item: { id: BSB-EVIDENCE-001, state: IN_PROGRESS_PROVIDER_AND_MANUAL_EVIDENCE_REQUIRED }
+expected_red: { pass: 190, fail: 1, status: EXPECTED_FAIL, exit: 1 }
+focused_final: { pass: 191, fail: 0, status: PASS, exit: 0 }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck: { errors: 0, warnings: 0, status: PASS }
+local_app_tests: { pass: 191, fail: 0 }
+local_build: PASS
+local_scale_self_test: { pass: 27, fail: 0, status: PASS, exit: 0 }
+local_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+local_package: { generation: PASS, verification: PASS, frontend_files: 6, frontend_bytes: 439752 }
+local_browser: BLOCKED_MISSING_CHROMIUM_BINARY
+exact_ci_run: 33724943687
+exact_ci_status: SUCCESS
+exact_ci_commit: 36f0f7a58d1995829be123a80284d492ddc899ce
+exact_frozen_install: PASS
+exact_lint: PASS
+exact_typecheck: { errors: 0, warnings: 0, status: PASS }
+exact_app_tests: { pass: 191, fail: 0 }
+exact_scale_self_test: { pass: 27, fail: 0 }
+exact_build: PASS
+exact_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_package: { generation: PASS, verification: PASS, frontend_tree: dd35171a2e154f7c3fb2e276bc65c387eac46c9ad744664b5dbd922b62617c95, frontend_files: 6, frontend_bytes: 439752, math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da, math_files: 7, math_bytes: 48697667 }
+exact_browser: { scenarios: 87, passed: 87, failed: 0, checks_pass: 2432, checks_fail: 0 }
+checkpoint_response_loss_contract: { checkpoint_attempts: 1, server_acceptances: 1, expected_client_aborts: 1, authentications: 2, plays: 1, events: 1, settlements: 1, cursor: blacksite-book-events-v1:2, final_balance: USD_999_00, final_win: USD_0_00 }
+exact_diagnostics: { unexpected_requests: 0, forbidden_requests: 0, expected_response_loss_aborts_total: 3, expected_negative_console_errors: 6, page_errors: 0, failed_requests: 0 }
+exact_compliance_resolver: PASS
+exact_compliance: { automated_proof_complete: 38, manual_gates_open: 23, external_gates_open: 6 }
+artifact_id: 9882091742
+artifact_digest: sha256:0b089d1e1666509d84e0e9cb8641ff2472fccbc93c03015711938b93c8ae5dab
+current_exact_browser_geometry: PASS
+manual_visual_review: PASS_4_PRIMARY_TARGET_VIEWS_AND_PENDING_PLUS_RESTORED_CHECKPOINT_RESPONSE_LOSS_STATES
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+git_diff_check: PASS
+final_diff_review: PASS_3_EXPECTED_IMPLEMENTATION_FILES_182_INSERTIONS
+manual_identical_retries: 0
+```
+
+Observed categories: targeted branch/memory/provider-contract reads and `rg`; one expected-red/focused cycle; one complete local frozen-install/lint/typecheck/test/build/scale/math/package cycle; exact GitHub workflow/artifact verification; six-image manual review; diff/secret/debug/scope review and non-force Git persistence. The Stake RGS replay skill required fail-closed recovery, exact endpoint/body/order/count evidence and no automatic rewrite of an uncertain accepted checkpoint. Local Chromium was absent; exact isolated CI supplied browser proof. One disallowed temporary-directory cleanup command was replaced by a unique directory, the package verifier was correctly awaited, and standard HTTPS push authentication fell back to connected Git data. No unchanged semantic failure was repeated. No subagent, dependency, lockfile, product runtime, math, wallet/provider schema or product asset changed.
+
 ## BS-20260903-07
 
 ```yaml
