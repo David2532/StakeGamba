@@ -296,19 +296,30 @@ test('real scale verification pins the out-of-band trust store digest', () => {
   }
 });
 
-test('scale trust store binds the pre-run approval metadata', async () => {
+test('scale trust store binds the complete pre-run approval plan', async () => {
   const directory = mkdtempSync(join(tmpdir(), 'blacksite-scale-approval-binding-red-'));
   try {
-    const evidence = createSelfTestEvidence();
-    const { privateKeys, trustStore } = signerFixture(evidence);
-    writeSignedArtifacts(evidence, directory, privateKeys);
-
-    evidence.approval.evidenceRef = 'substituted-after-the-run';
-
-    await assert.rejects(
-      () => verifyScaleEvidenceArtifacts(evidence, directory, trustStore),
-      /trust store approval does not match evidence/u,
-    );
+    const attacks = [
+      (evidence) => {
+        evidence.approval.evidenceRef = 'substituted-after-the-run';
+      },
+      (evidence) => {
+        evidence.workload.targetRps -= 1;
+      },
+      (evidence) => {
+        evidence.latency.play.limits.p99Ms += 1;
+      },
+    ];
+    for (const mutate of attacks) {
+      const evidence = createSelfTestEvidence();
+      const { privateKeys, trustStore } = signerFixture(evidence);
+      writeSignedArtifacts(evidence, directory, privateKeys);
+      mutate(evidence);
+      await assert.rejects(
+        () => verifyScaleEvidenceArtifacts(evidence, directory, trustStore),
+        /trust store pre-run approval plan does not match evidence/u,
+      );
+    }
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
@@ -353,7 +364,7 @@ test('scale artifact readback verifies exact files and detects tampering', async
     const cliResult = JSON.parse(cli.stdout);
     assert.equal(cliResult.claim, 'EXTERNAL_SCALE_EVIDENCE_VALIDATED');
     assert.equal(cliResult.trustStoreReadback.sha256, createHash('sha256').update(trustStoreBytes).digest('hex'));
-    assert.equal(cliResult.trustStoreReadback.approvalSha256, trustStore.approvalSha256);
+    assert.equal(cliResult.trustStoreReadback.approvedPlanSha256, trustStore.approvedPlanSha256);
     assert.equal(cliResult.artifactReadback.verifiedArtifacts.length, 6);
 
     const forgedArtifact = evidence.artifacts[0];

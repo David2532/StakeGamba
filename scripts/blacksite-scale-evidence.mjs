@@ -10,6 +10,7 @@ export const SCALE_ARTIFACT_ATTESTATION_SCHEMA = 'blacksite-scale-artifact-attes
 export const SCALE_TRUST_STORE_SCHEMA = 'blacksite-scale-trusted-signers-v3';
 const expectedResilienceScenarios = Object.freeze(['cdn-origin-degradation', 'rgs-http-5xx', 'provider-timeout', 'instance-restart']);
 const requiredArtifactRoles = Object.freeze(['load-report', 'cdn-report', 'provider-ledger', 'resilience-report', 'observability-export', 'rollback-report']);
+const requiredLatencyEndpoints = Object.freeze(['frontend', 'authenticate', 'play', 'event', 'endRound', 'replay']);
 
 function fail(message) {
   throw new Error(message);
@@ -150,11 +151,32 @@ export function createScaleArtifactAttestation(evidence, role, unsignedReport, {
   };
 }
 
+function preRunApprovalPlan(evidence) {
+  return {
+    approval: evidence.approval,
+    environment: evidence.environment,
+    workload: {
+      populationUsers: evidence.workload?.populationUsers,
+      peakConcurrentUsers: evidence.workload?.peakConcurrentUsers,
+      targetRps: evidence.workload?.targetRps,
+      rampSeconds: evidence.workload?.rampSeconds,
+      steadyStateSeconds: evidence.workload?.steadyStateSeconds,
+      soakSeconds: evidence.workload?.soakSeconds,
+    },
+    latencyLimits: Object.fromEntries(requiredLatencyEndpoints.map((name) => [name, evidence.latency?.[name]?.limits])),
+    cdnLimits: evidence.cdn?.limits,
+    resilienceLimits: evidence.resilience?.scenarios?.map((scenario) => ({ name: scenario?.name, limitSeconds: scenario?.limitSeconds })),
+    saturationLimits: evidence.saturation?.map((metric) => ({ name: metric?.name, limit: metric?.limit })),
+    alertDrills: evidence.observability?.alertDrills?.map((drill) => drill?.name),
+    rollbackLimitSeconds: evidence.rollback?.limitSeconds,
+  };
+}
+
 export function createScaleTrustStore(evidence, signers) {
   return {
     schema: SCALE_TRUST_STORE_SCHEMA,
     identitySha256: sha256Value(evidence.identity),
-    approvalSha256: sha256Value(evidence.approval),
+    approvedPlanSha256: sha256Value(preRunApprovalPlan(evidence)),
     signers,
   };
 }
@@ -163,7 +185,7 @@ function verifyTrustedSigners(evidence, trustStore) {
   requireValue(trustStore && typeof trustStore === 'object', 'trusted signer trust store is required');
   requireValue(trustStore.schema === SCALE_TRUST_STORE_SCHEMA, `trust store schema must be ${SCALE_TRUST_STORE_SCHEMA}`);
   requireValue(trustStore.identitySha256 === sha256Value(evidence.identity), 'trust store release identity does not match evidence');
-  requireValue(trustStore.approvalSha256 === sha256Value(evidence.approval), 'trust store approval does not match evidence');
+  requireValue(trustStore.approvedPlanSha256 === sha256Value(preRunApprovalPlan(evidence)), 'trust store pre-run approval plan does not match evidence');
   requireValue(Array.isArray(trustStore.signers) && trustStore.signers.length > 0, 'trusted signers are required');
   const ids = trustStore.signers.map((signer) => signer?.id);
   requireValue(new Set(ids).size === ids.length, 'trusted signer ids must be unique');
@@ -339,10 +361,9 @@ export function verifyScaleEvidence(evidence, expected = {}) {
   const claimedPhaseSeconds = evidence.workload.rampSeconds + evidence.workload.steadyStateSeconds + evidence.workload.soakSeconds;
   requireValue(runDurationSeconds >= claimedPhaseSeconds, 'run duration is shorter than the claimed workload phase duration');
 
-  const requiredEndpoints = ['frontend', 'authenticate', 'play', 'event', 'endRound', 'replay'];
-  for (const name of requiredEndpoints) verifyLatencyMetric(name, evidence.latency?.[name]);
+  for (const name of requiredLatencyEndpoints) verifyLatencyMetric(name, evidence.latency?.[name]);
   positiveInteger(evidence.workload?.measuredRequests, 'workload.measuredRequests');
-  const measuredEndpointRequests = requiredEndpoints.reduce((sum, name) => {
+  const measuredEndpointRequests = requiredLatencyEndpoints.reduce((sum, name) => {
     positiveInteger(evidence.latency[name].requests, `latency.${name}.requests`);
     return sum + evidence.latency[name].requests;
   }, 0);
@@ -926,7 +947,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       trustStoreReadback: {
         schema: trustStore.schema,
         sha256: trustStoreSha256,
-        approvalSha256: trustStore.approvalSha256,
+        approvedPlanSha256: trustStore.approvedPlanSha256,
       },
       artifactReadback,
       warning: 'This validates supplied production-equivalent evidence and exact artifact bytes; external owners still decide whether it proves approved capacity.',
