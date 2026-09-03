@@ -1,5 +1,6 @@
 <script>
 	import { onMount, tick } from 'svelte';
+	import BootIntro from '../lib/components/BootIntro.svelte';
 	import { BLACKSITE_ASSETS } from '../lib/assets/blacksite-assets.js';
 	import { waitForDecodedImagePaint } from '../lib/assets/image-paint.js';
 	import { watchCharacterAssetVisibility } from '../lib/assets/responsive-asset-gate.js';
@@ -31,6 +32,13 @@
 		formatSignedExactApi,
 	} from '../lib/runtime/display-money.js';
 	import { resolveLaunchMode } from '../lib/runtime/launch-mode.js';
+	import {
+		createInitialIntroState,
+		introEligibility,
+		readIntroSeen,
+		writeIntroSeen,
+	} from '../lib/runtime/intro-config.js';
+	import { IntroController } from '../lib/runtime/intro-controller.js';
 	import { readMotionMode, writeMotionMode } from '../lib/runtime/motion-preference.js';
 	import {
 		PresentationDirector,
@@ -74,6 +82,9 @@
 	let audioState = createInitialAudioState();
 	let liveSession = null;
 	let replayController = null;
+	let introController = null;
+	let introState = createInitialIntroState();
+	let introGatePending = true;
 	let liveSnapshot = {
 		status: 'idle',
 		balance: null,
@@ -99,6 +110,7 @@
 	let confirmationCancelButton = null;
 	let rulesDialog = null;
 	let rulesCloseButton = null;
+	let primaryActionElement = null;
 	let returnFocusElement = null;
 	let motionMode = 'normal';
 	let reducedMotion = false;
@@ -167,6 +179,7 @@
 					? formatExactApi(finalWinApi, currency)
 					: '—';
 	$: modalOpen = confirmationOpen || rulesOpen;
+	$: introBlocking = launch.kind === 'live' && (introGatePending || introState.status === 'playing');
 	$: actionLabel = primaryActionLabel({
 		launchKind: launch.kind,
 		liveStatus: liveSnapshot.status,
@@ -178,7 +191,7 @@
 		launchKind: launch.kind,
 		liveStatus: liveSnapshot.status,
 		replayStatus: replaySnapshot.status,
-		busy: primaryBusy,
+		busy: primaryBusy || introBlocking,
 		confirming: confirmationOpen,
 		showingRules: rulesOpen,
 		fixtureReady: Boolean(activeFixture),
@@ -212,6 +225,9 @@
 	$: presentationTimingProfile = reducedMotion ? 'reduced' : motionMode;
 	$: if (director) director.setTimingProfile(presentationTimingProfile);
 	$: if (typeof document !== 'undefined') {
+		document.body.dataset.introStatus = introState.status;
+		document.body.dataset.introBeat = introState.beat ?? 'none';
+		document.body.dataset.introDismissReason = introState.dismissReason ?? 'none';
 		document.body.dataset.motionPhase = presentation.motion?.phase ?? 'idle';
 		document.body.dataset.motionProfile = presentationTimingProfile;
 		document.body.dataset.audioStatus = audioState.status;
@@ -295,6 +311,7 @@
 	function playerStatusLabel(state, error) {
 		if (error) return 'ATTENTION REQUIRED';
 		if (state.includes('authenticating') || state === 'booting') return 'CONNECTING';
+		if (state === 'live-intro') return 'INITIALIZING VAULT';
 		if (state.includes('requesting') || state.includes('presenting') || state.includes('playing')) {
 			return 'BREACH IN PROGRESS';
 		}
@@ -304,6 +321,7 @@
 	}
 
 	function boardStatusLabel(state, activeClusterCount) {
+		if (state === 'live-intro') return 'INITIALIZING VAULT';
 		if (activeClusterCount > 0) return 'ACCESS CLUSTER FOUND';
 		if (state.includes('presenting') || state.includes('playing')) return 'BREACHING VAULT GRID';
 		if (state.includes('settling') || state.includes('minimum-duration')) return 'VERIFYING RESULT';
@@ -329,6 +347,16 @@
 
 	function recoverRuntime() {
 		window.location.reload();
+	}
+
+	function bypassIntro(reason) {
+		introGatePending = false;
+		return introController?.bypass(reason);
+	}
+
+	async function skipIntro(reason = 'player') {
+		if (introState.status !== 'playing') return;
+		await introController?.skip(reason);
 	}
 
 	function fixtureFailure(code, message) {
@@ -375,7 +403,14 @@
 			selectedModeId = nextState.round?.mode ?? selectedModeId;
 		}
 		if (nextState.status === 'settling') runtimeState = 'live-settling';
-		if (nextState.status === 'ready' && !primaryBusy) runtimeState = 'live-ready';
+		if (
+			nextState.status === 'ready' &&
+			!primaryBusy &&
+			!introGatePending &&
+			introState.status !== 'playing'
+		) {
+			runtimeState = 'live-ready';
+		}
 		if (nextState.status === 'error') {
 			runtimeState = 'live-error';
 			runtimeError = nextState.lastError ?? {
@@ -721,6 +756,11 @@
 	}
 
 	function keydown(event) {
+		if (introState.status === 'playing' && event.key === 'Escape') {
+			event.preventDefault();
+			void skipIntro('player');
+			return;
+		}
 		const openDialog = confirmationOpen ? confirmationDialog : rulesOpen ? rulesDialog : null;
 		if (openDialog && trapDialogFocus(event, openDialog)) return;
 		if (event.key === 'Escape') {
@@ -733,6 +773,7 @@
 			event.code === 'Space' &&
 			launch.kind === 'live' &&
 			!spacebarDisabled &&
+			!introBlocking &&
 			!confirmationOpen &&
 			!rulesOpen &&
 			!['BUTTON', 'SELECT', 'INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)
@@ -751,6 +792,9 @@
 		const destroyReplaySession = () => {
 			replayController?.destroy();
 		};
+		const destroyIntro = () => {
+			void introController?.destroy();
+		};
 		motionMode = readMotionMode(window.localStorage);
 		const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 		const stopWatchingCharacterAsset = watchCharacterAssetVisibility(
@@ -759,6 +803,9 @@
 		);
 		const syncReducedMotion = () => {
 			reducedMotion = reducedMotionQuery.matches;
+			if (reducedMotion && introState.status === 'playing') {
+				void bypassIntro('reduced-motion');
+			}
 		};
 		syncReducedMotion();
 		reducedMotionQuery.addEventListener('change', syncReducedMotion);
@@ -772,6 +819,11 @@
 			},
 		});
 		audioState = audioDirector.state;
+		introController = new IntroController({
+			onState: (nextState) => {
+				introState = nextState;
+			},
+		});
 		director = new PresentationDirector(
 			(nextState) => {
 				presentation = nextState;
@@ -784,21 +836,31 @@
 		window.addEventListener('keydown', keydown);
 		window.addEventListener('pagehide', destroyLiveSession);
 		window.addEventListener('pagehide', destroyReplaySession);
+		window.addEventListener('pagehide', destroyIntro);
+		const handleVisibilityChange = () => {
+			if (document.visibilityState === 'hidden' && introState.status === 'playing') {
+				void bypassIntro('document-hidden');
+			}
+		};
+		document.addEventListener('visibilitychange', handleVisibilityChange);
 		if (environmentAssetElement?.complete) {
 			void confirmAssetPaint('environment', environmentAssetElement);
 		}
 
 		void (async () => {
 			if (launch.kind === 'error') {
+				void bypassIntro('launch-error');
 				runtimeState = 'error';
 				runtimeError = { code: launch.code, message: launch.message };
 				return;
 			}
 			if (launch.kind === 'fixture') {
+				void bypassIntro('fixture');
 				await loadDevelopmentFixture(launch.fixtureId, adapter);
 				return;
 			}
 			if (launch.kind === 'replay') {
+				void bypassIntro('replay');
 				selectedModeId = launch.mode;
 				replayController = new ReplayController({
 					client: createReplayClient(),
@@ -820,13 +882,40 @@
 				const state = await liveSession.bootstrap();
 				if (disposed) return;
 				if (state.round?.active) {
+					void bypassIntro('active-round-restore');
 					pendingRoundOrigin = 'restore';
 					selectedModeId = state.round.mode;
 					runtimeState = 'live-restore-ready';
 					await presentLiveRound();
+					return;
 				}
+
+				const eligibility = introEligibility({
+					launchKind: launch.kind,
+					activeRound: false,
+					reducedMotion,
+					seen: readIntroSeen(window.localStorage),
+					motionMode,
+				});
+				if (!eligibility.play) {
+					void bypassIntro(eligibility.reason);
+					runtimeState = 'live-ready';
+					return;
+				}
+
+				runtimeState = 'live-intro';
+				introGatePending = false;
+				const terminal = await introController.playBoot(eligibility.profile);
+				if (disposed || terminal.status === 'destroyed') return;
+				if (terminal.status === 'completed' || terminal.status === 'skipped') {
+					writeIntroSeen(window.localStorage);
+				}
+				runtimeState = 'live-ready';
+				await tick();
+				primaryActionElement?.focus({ preventScroll: true });
 			} catch (error) {
 				if (!disposed) {
+					void bypassIntro('authentication-error');
 					runtimeError = publicError(error, 'AUTHENTICATION_ERROR');
 					runtimeState = 'live-error';
 				}
@@ -840,8 +929,11 @@
 			window.removeEventListener('keydown', keydown);
 			window.removeEventListener('pagehide', destroyLiveSession);
 			window.removeEventListener('pagehide', destroyReplaySession);
+			window.removeEventListener('pagehide', destroyIntro);
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
 			destroyLiveSession();
 			destroyReplaySession();
+			destroyIntro();
 			if (sessionTimerHandle !== null) window.clearInterval(sessionTimerHandle);
 			if (minimumRoundWait) {
 				window.clearTimeout(minimumRoundWait.timer);
@@ -851,6 +943,9 @@
 			if (!replayController) director?.destroy();
 			audioDirector?.destroy();
 			delete document.body.dataset.runtimeState;
+			delete document.body.dataset.introStatus;
+			delete document.body.dataset.introBeat;
+			delete document.body.dataset.introDismissReason;
 			delete document.body.dataset.motionPhase;
 			delete document.body.dataset.motionProfile;
 			delete document.body.dataset.audioStatus;
@@ -866,7 +961,15 @@
 </svelte:head>
 
 <main class="app-shell" data-launch-kind={launch.kind} data-testid="player-hud">
-	<header class="masthead" inert={modalOpen} aria-hidden={modalOpen ? 'true' : undefined}>
+	{#if introState.status === 'playing'}
+		<BootIntro state={introState} onSkip={() => void skipIntro('player')} />
+	{/if}
+
+	<header
+		class="masthead"
+		inert={modalOpen || introBlocking}
+		aria-hidden={modalOpen || introBlocking ? 'true' : undefined}
+	>
 		<div class="identity">
 			<span class="eyebrow" data-testid="facility-kicker">ARMORED ACCESS FACILITY</span>
 			<h1>BLACKSITE <span>// BREACH</span></h1>
@@ -908,8 +1011,8 @@
 	<section
 		class="studio"
 		aria-label="BLACKSITE game interface"
-		inert={modalOpen}
-		aria-hidden={modalOpen ? 'true' : undefined}
+		inert={modalOpen || introBlocking}
+		aria-hidden={modalOpen || introBlocking ? 'true' : undefined}
 	>
 		<aside class="panel mode-panel">
 			<div class="panel-heading">
@@ -1272,6 +1375,7 @@
 					class="primary-action"
 					data-testid="primary-action"
 					type="button"
+					bind:this={primaryActionElement}
 					disabled={actionDisabled}
 					on:keydown={suppressPrimaryKeyRepeat}
 					on:click={() => void activatePrimary()}

@@ -25,6 +25,7 @@ import {
 import { BASE_ZERO_FIXTURE } from '../apps/blacksite/src/lib/fixtures/base-zero.js';
 import { encodePresentationCursor } from '../apps/blacksite/src/lib/rgs/contracts.js';
 import { formatExactApi } from '../apps/blacksite/src/lib/runtime/display-money.js';
+import { INTRO_SEEN_KEY } from '../apps/blacksite/src/lib/runtime/intro-config.js';
 import { MOTION_STORAGE_KEY } from '../apps/blacksite/src/lib/runtime/motion-preference.js';
 import {
 	FIXTURE_IDS as GENERATED_FIXTURE_IDS,
@@ -63,6 +64,8 @@ const SELECTORS = Object.freeze({
 	playerHud: '[data-testid="player-hud"]',
 	launchStatus: '[data-testid="launch-status"]',
 	launchError: '[data-testid="launch-error"]',
+	bootIntro: '[data-testid="boot-intro"]',
+	skipIntro: '[data-testid="skip-intro"]',
 	board: '[data-testid="board"]',
 	vaultkeeper: '[data-testid="vaultkeeper-presence"]',
 	vaultkeeperFallback: '[data-testid="vaultkeeper-safe-fallback"]',
@@ -723,6 +726,24 @@ async function waitForRuntimeState(page, expectedState, timeoutMs = 10_000) {
 async function waitForStableAction(page, timeoutMs = 10_000) {
 	await page.locator(SELECTORS.primaryAction).waitFor({ state: 'visible', timeout: timeoutMs });
 	await page.waitForFunction(
+		({ actionSelector, introSelector }) => {
+			const introSkip = document.querySelector(introSelector);
+			if (introSkip && introSkip.getClientRects().length > 0) return true;
+			const action = document.querySelector(actionSelector);
+			const state =
+				document.documentElement.dataset.runtimeState ?? document.body.dataset.runtimeState ?? '';
+			return (
+				action &&
+				!action.disabled &&
+				!/(?:booting|authenticating|loading|playing|presenting|settling|intro)/i.test(state)
+			);
+		},
+		{ actionSelector: SELECTORS.primaryAction, introSelector: SELECTORS.skipIntro },
+		{ timeout: timeoutMs },
+	);
+	const introSkip = page.locator(SELECTORS.skipIntro);
+	if ((await introSkip.count()) > 0 && (await introSkip.isVisible())) await introSkip.click();
+	await page.waitForFunction(
 		(selector) => {
 			const action = document.querySelector(selector);
 			const state =
@@ -730,7 +751,7 @@ async function waitForStableAction(page, timeoutMs = 10_000) {
 			return (
 				action &&
 				!action.disabled &&
-				!/(?:booting|authenticating|loading|playing|presenting|settling)/i.test(state)
+				!/(?:booting|authenticating|loading|playing|presenting|settling|intro)/i.test(state)
 			);
 		},
 		SELECTORS.primaryAction,
@@ -1062,6 +1083,221 @@ async function runScenario(name, execute) {
 }
 
 async function runNetworkScenarios(browser, origin) {
+	await runScenario('boot-intro-full-fresh-live', async (record) => {
+		const group = 'boot-intro-full-fresh-live';
+		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: { authenticate: () => authenticateResponse() },
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await page.locator(SELECTORS.bootIntro).waitFor({ state: 'visible', timeout: 10_000 });
+			const startedAt = await page.evaluate(() => performance.now());
+			const beats = [];
+			for (const beat of ['wake', 'scan', 'title', 'breach', 'resolve']) {
+				await page.waitForFunction(
+					(expectedBeat) => document.body.dataset.introBeat === expectedBeat,
+					beat,
+					{ timeout: 4_250 },
+				);
+				beats.push({ beat, atMs: (await page.evaluate(() => performance.now())) - startedAt });
+				if (beat === 'breach') {
+					record.screenshot = await saveScreenshot(page, 'boot-intro-full-breach');
+				}
+			}
+			await page.waitForFunction(
+				() =>
+					document.body.dataset.introStatus === 'completed' &&
+					(document.body.dataset.runtimeState ?? '') === 'live-ready',
+				undefined,
+				{ timeout: 4_250 },
+			);
+			const completedAt = await page.evaluate(() => performance.now());
+			const introCount = await page.locator(SELECTORS.bootIntro).count();
+			const seen = await page.evaluate((key) => localStorage.getItem(key), INTRO_SEEN_KEY);
+			check(
+				group,
+				'fresh live boot follows the complete ordered cinematic beat contract',
+				serialize(beats.map(({ beat }) => beat)) ===
+					serialize(['wake', 'scan', 'title', 'breach', 'resolve']) &&
+					beats.every(({ atMs }, index) => index === 0 || atMs >= beats[index - 1].atMs) &&
+					completedAt - startedAt >= 3_700 &&
+					completedAt - startedAt <= 4_250,
+				serialize({ beats, durationMs: completedAt - startedAt }),
+			);
+			check(
+				group,
+				'full intro resolves to one focused playable action and persists the version only after completion',
+				introCount === 0 &&
+					seen === '1' &&
+					!(await page.locator(SELECTORS.primaryAction).isDisabled()) &&
+					(await page.locator(SELECTORS.primaryAction).evaluate((element) =>
+						document.activeElement === element,
+					)),
+				serialize({ introCount, seen, runtimeState: await runtimeState(page) }),
+			);
+			check(
+				group,
+				'boot intro never issues a wallet write',
+				network.byEndpoint.authenticate.length === 1 && walletWriteCount(network) === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.intro = { beats, durationMs: completedAt - startedAt, seen };
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('boot-intro-skip-mobile', async (record) => {
+		const group = 'boot-intro-skip-mobile';
+		const context = await browser.newContext({
+			viewport: { width: 390, height: 844 },
+			isMobile: true,
+			hasTouch: true,
+		});
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: { authenticate: () => authenticateResponse() },
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery({ device: 'mobile' }));
+			await waitForEndpoint(network, 'authenticate', 1);
+			const skip = page.locator(SELECTORS.skipIntro);
+			await skip.waitFor({ state: 'visible', timeout: 10_000 });
+			const blocking = await page.evaluate(
+				({ introSelector, skipSelector, actionSelector }) => {
+					const intro = document.querySelector(introSelector);
+					const button = document.querySelector(skipSelector);
+					const bounds = button?.getBoundingClientRect();
+					return {
+						modal: intro?.getAttribute('aria-modal'),
+						mastheadInert: document.querySelector('.masthead')?.hasAttribute('inert'),
+						studioInert: document.querySelector('.studio')?.hasAttribute('inert'),
+						primaryDisabled: document.querySelector(actionSelector)?.disabled,
+						skipWidth: bounds?.width ?? 0,
+						skipHeight: bounds?.height ?? 0,
+						skipFocused: document.activeElement === button,
+					};
+				},
+				{
+					introSelector: SELECTORS.bootIntro,
+					skipSelector: SELECTORS.skipIntro,
+					actionSelector: SELECTORS.primaryAction,
+				},
+			);
+			check(
+				group,
+				'mobile intro owns focus while its background is inert and its skip target is at least 44px',
+				blocking.modal === 'true' &&
+					blocking.mastheadInert &&
+					blocking.studioInert &&
+					blocking.primaryDisabled &&
+					blocking.skipWidth >= 44 &&
+					blocking.skipHeight >= 44 &&
+					blocking.skipFocused,
+				serialize(blocking),
+			);
+			const skipStartedAt = await page.evaluate(() => performance.now());
+			await skip.click();
+			await page.waitForFunction(
+				() =>
+					document.body.dataset.introStatus === 'skipped' &&
+					(document.body.dataset.runtimeState ?? '') === 'live-ready',
+			);
+			const skipDurationMs = (await page.evaluate(() => performance.now())) - skipStartedAt;
+			check(
+				group,
+				'mobile Skip reaches the exact playable state within 250ms and records the seen version',
+				skipDurationMs <= 250 &&
+					(await page.locator(SELECTORS.bootIntro).count()) === 0 &&
+					(await page.evaluate((key) => localStorage.getItem(key), INTRO_SEEN_KEY)) === '1' &&
+					!(await page.locator(SELECTORS.primaryAction).isDisabled()),
+				serialize({ skipDurationMs, state: await runtimeState(page) }),
+			);
+
+			await page.reload({ waitUntil: 'domcontentloaded' });
+			await waitForEndpoint(network, 'authenticate', 2);
+			await waitForStableAction(page);
+			check(
+				group,
+				'seen intro version bypasses a repeat live launch without mounting an animated frame',
+				(await page.locator(SELECTORS.bootIntro).count()) === 0 &&
+					(await page.evaluate(() => document.body.dataset.introStatus)) === 'bypassed',
+				serialize({ state: await runtimeState(page) }),
+			);
+			check(
+				group,
+				'boot intro never issues a wallet write after skip or seen-version bypass',
+				network.byEndpoint.authenticate.length === 2 && walletWriteCount(network) === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.screenshot = await saveScreenshot(page, 'boot-intro-skip-mobile-ready');
+			record.intro = { blocking, skipDurationMs };
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('boot-intro-reduced-motion-bypass', async (record) => {
+		const group = 'boot-intro-reduced-motion-bypass';
+		const context = await browser.newContext({
+			viewport: { width: 390, height: 844 },
+			isMobile: true,
+			hasTouch: true,
+			reducedMotion: 'reduce',
+		});
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: { authenticate: () => authenticateResponse() },
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery({ device: 'mobile' }));
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			const state = await page.evaluate((introSelector) => ({
+				introCount: document.querySelectorAll(introSelector).length,
+				introStatus: document.body.dataset.introStatus,
+				dismissReason: document.body.dataset.introDismissReason,
+				motionProfile: document.body.dataset.motionProfile,
+				seen: localStorage.getItem('blacksite.boot-intro.v1.seen'),
+			}), SELECTORS.bootIntro);
+			check(
+				group,
+				'initial reduced motion schedules no animated intro and does not persist a presentation history',
+				state.introCount === 0 &&
+					state.introStatus === 'bypassed' &&
+					state.dismissReason === 'reduced-motion' &&
+					state.motionProfile === 'reduced' &&
+					state.seen === null,
+				serialize(state),
+			);
+			check(
+				group,
+				'reduced-motion intro bypass authenticates once and issues zero wallet writes',
+				network.byEndpoint.authenticate.length === 1 && walletWriteCount(network) === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.screenshot = await saveScreenshot(page, 'boot-intro-reduced-motion-ready');
+			record.intro = state;
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('invalid-rgs-url-fails-closed-before-network', async (record) => {
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 		try {
@@ -1109,6 +1345,14 @@ async function runNetworkScenarios(browser, origin) {
 			const errorText = await page.locator(SELECTORS.launchError).innerText();
 			check('invalid-session-auth-response-fails-closed', 'invalid session response is visibly reported', errorText.trim().length > 0, errorText);
 			check('invalid-session-auth-response-fails-closed', 'invalid session response enters an error state', /error/i.test(state ?? ''), serialize(state));
+			check(
+				'invalid-session-auth-response-fails-closed',
+				'authentication error preempts the intro before any cinematic surface can hide recovery',
+				(await page.locator(SELECTORS.bootIntro).count()) === 0 &&
+					(await page.evaluate(() => document.body.dataset.introDismissReason)) ===
+						'authentication-error',
+				await page.evaluate(() => document.body.dataset.introStatus),
+			);
 			check('invalid-session-auth-response-fails-closed', 'invalid session authenticates exactly once', network.byEndpoint.authenticate.length === 1, serialize(network.order));
 			check('invalid-session-auth-response-fails-closed', 'invalid session sends zero play or settlement writes', network.byEndpoint.play.length === 0 && network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0, serialize(network.order));
 			assertCleanNetwork('invalid-session-auth-response-fails-closed', network);
@@ -6620,6 +6864,14 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForEndpoint(network, 'endRound', 1);
 			await waitForRuntimeState(page, 'live-ready');
 			await page.waitForTimeout(200);
+			check(
+				group,
+				'active-round restore bypasses boot intro before authoritative reconstruction',
+				(await page.locator(SELECTORS.bootIntro).count()) === 0 &&
+					(await page.evaluate(() => document.body.dataset.introDismissReason)) ===
+						'active-round-restore',
+				await page.evaluate(() => document.body.dataset.introStatus),
+			);
 			const restoredBoard = await boardSymbols(page);
 			check(group, 'disabled Buy Feature does not block presentation of an already-active feature round', restoredBoard.length === 49 && restoredBoard.some((symbol) => symbol !== ''), serialize(restoredBoard));
 			check(group, 'restored feature round exposes its exact result only after completion', (await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00', await page.locator(SELECTORS.finalWin).innerText());
@@ -6949,6 +7201,13 @@ async function runNetworkScenarios(browser, origin) {
 				);
 				await waitForEndpoint(network, 'replay', 1);
 				await waitForStableAction(page);
+				check(
+					group,
+					'Replay bypasses the live-session boot intro without mounting an overlay',
+					(await page.locator(SELECTORS.bootIntro).count()) === 0 &&
+						(await page.evaluate(() => document.body.dataset.introDismissReason)) === 'replay',
+					await page.evaluate(() => document.body.dataset.introStatus),
+				);
 				const request = network.byEndpoint.replay[0];
 				const expectedPath = `/bet/replay/blacksite_breach/${REPLAY_VERSION}/${fixture.mode}/${event}`;
 				check(group, 'fixture is math-backed', fixture.mathBacked === true, serialize({ fixtureId: fixture.id, mathBacked: fixture.mathBacked }));
