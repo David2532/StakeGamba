@@ -1760,6 +1760,165 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('accepted-play-response-loss-reloads-and-restores-exactly-once', async (record) => {
+		const group = 'accepted-play-response-loss-reloads-and-restores-exactly-once';
+		const restoredBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			await context.addInitScript(
+				({ rgsOrigin }) => {
+					const auditKey = 'blacksite-qa-accepted-play-response-loss-audit';
+					const nativeFetch = window.fetch.bind(window);
+					const readAudit = () => {
+						try {
+							return JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
+								attempts: 0,
+								acceptedResponses: 0,
+								aborts: 0,
+								consumed: false,
+							};
+						} catch {
+							return { attempts: 0, acceptedResponses: 0, aborts: 0, consumed: false };
+						}
+					};
+					const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
+					window.fetch = async (input, init = {}) => {
+						const url = new URL(
+							typeof input === 'string' || input instanceof URL ? input : input.url,
+							window.location.href,
+						);
+						if (url.origin !== rgsOrigin || url.pathname !== '/wallet/play') {
+							return nativeFetch(input, init);
+						}
+						const audit = readAudit();
+						if (audit.consumed) return nativeFetch(input, init);
+						audit.consumed = true;
+						audit.attempts += 1;
+						writeAudit(audit);
+						await nativeFetch(input, init);
+						const accepted = readAudit();
+						accepted.acceptedResponses += 1;
+						writeAudit(accepted);
+						return new Promise((_resolve, reject) => {
+							const abort = () => {
+								const aborted = readAudit();
+								aborted.aborts += 1;
+								writeAudit(aborted);
+								reject(new DOMException('BLACKSITE QA discarded the accepted play response.', 'AbortError'));
+							};
+							if (init.signal?.aborted) abort();
+							else init.signal?.addEventListener('abort', abort, { once: true });
+						});
+					};
+				},
+				{ rgsOrigin: BLACKSITE_QA_RGS_ORIGIN },
+			);
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: (_request, networkEvidence) =>
+						networkEvidence.byEndpoint.authenticate.length === 1
+							? authenticateResponse()
+							: authenticateResponse({
+									balance: restoredBalance,
+									round: authoritativeZeroRound({
+										active: true,
+										id: 'blacksite-qa-accepted-play-response-loss',
+										event: encodePresentationCursor(2),
+									}),
+								}),
+					play: () => playResponse(),
+					endRound: () => endRoundResponse({ balance: restoredBalance }),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 1);
+			await page.waitForFunction(() => {
+				const audit = JSON.parse(
+					sessionStorage.getItem('blacksite-qa-accepted-play-response-loss-audit') ?? 'null',
+				);
+				return audit?.acceptedResponses === 1;
+			});
+			assertExactRequest(group, network.byEndpoint.play[0], {
+				method: 'POST',
+				path: '/wallet/play',
+				body: {
+					sessionID: SESSION_ID,
+					currency: 'USD',
+					amount: DEFAULT_BASE_AMOUNT,
+					mode: 'base',
+				},
+			});
+			record.acceptedScreenshot = await saveScreenshot(page, `${group}-pending-client-response`);
+
+			await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
+			await waitForEndpoint(network, 'authenticate', 2);
+			await waitForEndpoint(network, 'endRound', 1);
+			await waitForRuntimeState(page, 'live-ready');
+			await page.waitForTimeout(200);
+
+			const responseLossAudit = await page.evaluate(() =>
+				JSON.parse(
+					sessionStorage.getItem('blacksite-qa-accepted-play-response-loss-audit') ?? 'null',
+				),
+			);
+			for (const request of network.byEndpoint.authenticate) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/wallet/authenticate',
+					body: { sessionID: SESSION_ID, language: 'en' },
+				});
+			}
+			assertExactRequest(group, network.byEndpoint.endRound[0], {
+				method: 'POST',
+				path: '/wallet/end-round',
+				body: { sessionID: SESSION_ID },
+			});
+			check(
+				group,
+				'accepted play response loss aborts the pending client transport on reload',
+				responseLossAudit?.attempts === 1 &&
+					responseLossAudit?.acceptedResponses === 1 &&
+					responseLossAudit?.aborts === 1,
+				serialize(responseLossAudit),
+			);
+			check(
+				group,
+				'accepted play response loss never sends a duplicate paid play',
+				network.byEndpoint.play.length === 1 && network.byEndpoint.event.length === 0,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'accepted play response loss restores and settles exactly once',
+				network.byEndpoint.authenticate.length === 2 &&
+					network.byEndpoint.endRound.length === 1 &&
+					serialize(network.order) === serialize(['authenticate', 'play', 'authenticate', 'endRound']),
+				serialize(network.order),
+			);
+			check(
+				group,
+				'restored accepted play exposes the exact authoritative balance and result',
+				(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$999.00' &&
+					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00',
+				serialize({
+					balance: await page.locator(SELECTORS.walletBalance).innerText(),
+					win: await page.locator(SELECTORS.finalWin).innerText(),
+				}),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.screenshot = await saveScreenshot(page, group);
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('expired-session-on-play-reauthenticates-without-automatic-retry', async (record) => {
 		const group = 'expired-session-on-play-reauthenticates-without-automatic-retry';
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
