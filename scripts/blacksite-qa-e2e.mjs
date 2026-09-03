@@ -1836,10 +1836,13 @@ async function runNetworkScenarios(browser, origin) {
 				handlers: {
 					authenticate: (_request, networkEvidence) =>
 						networkEvidence.byEndpoint.authenticate.length === 1
-							? authenticateResponse()
+							? authenticateResponse({
+									jurisdictionOverrides: { displayNetPosition: true },
+								})
 							: authenticateResponse({
 									balance: debitedBalance,
 									round,
+									jurisdictionOverrides: { displayNetPosition: true },
 								}),
 					play: () => ({
 						status: successStatus(),
