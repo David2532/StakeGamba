@@ -1,5 +1,22 @@
 # Material run log
 
+## BS-20260903-04 — SUCCESS
+
+- Sprint day: 5
+- Base remote commit: `65379dc7cbd740bb845306db6c46d86f1c92b358`
+- Verified implementation commit: `75fd1adf311449921bbaf4c2000c7cd7c51cacc1`
+- Work item: `BSB-SCALE-ARTIFACT-READBACK-001` (DONE); parent `BSB-SCALE-001` remains OPEN.
+- Selection reason: schema v2 checked only declared size and SHA-256 syntax. Its CLI could return the final external-evidence claim without opening any referenced artifact, so fabricated metadata could falsely pass the repository gate.
+- Before/after evidence: the expected-red CLI regression finished 10/11 because metadata-only input exited 0. Schema v3 now separates metadata validation from the final claim and requires `--artifacts-root`; the CLI reads all six role-bound files and verifies root/path containment, non-symlink regular-file type, unique names and real paths, exact byte size and streamed SHA-256. Missing, tampered, mismatched, duplicate, traversing and symlinked artifacts fail closed. Final focused tests are 12/12 and verifier self-test 25/25.
+- Changed files: scale verifier, focused scale contract test, scale-readiness runbook and five sprint-memory files. Product runtime/layout, math/RNG, wallet/provider schema, assets, dependencies and lockfile are unchanged.
+- Gates: expected-red 10/11, exit 1; focused 12/12 PASS, exit 0; scale self-test 25/25 PASS, exit 0; frozen install, lint, typecheck 0 errors/0 warnings, 190/190 app tests, production build and 7/7 math gates over 300,000 books all PASS locally, exit 0. Exact current-head CI `33705358061` repeats all product gates, exact six-file package/readback, Chromium 84/84 scenarios / 2358 checks and the current-SHA 51-point resolver. Unexpected/forbidden requests, page errors and failed requests are zero; six console messages are expected 401/503 fixtures. `git diff --check`, secret/debug/scope and full own-diff review PASS.
+- Visual/browser review: exact package executed 1920x1080, 1366x768, 390x844 and 844x390 plus compact geometry with no layout/runtime/network failure. Artifact `9875363496` supplied all four primary captures; manual inspection found no overlap, crop, scroll or broken image. No product visual source changed.
+- Package evidence: exact frontend tree `f5ebd84df3b870145c8a6d5aa4dd95293d5c890c53f952071fa10c4d77a2de1e`, 6 files / 439,759 bytes; math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; package verification PASS.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; subagents 0. The repository Stake compliance skill required exact artifact readback and current package evidence rather than trusting declarations. Standard push authentication failed once; connected Git data performed the non-force fast-forward. A premature job-log fetch returned 404 and succeeded after completion; no semantic gate was repeated unchanged.
+- Persistence: implementation was fast-forwarded through connected Git data with `force: false`; exact run `33705358061`, artifact `9875363496` and digest `sha256:27fb5eb62d93d86a2172524616dd6e58e2faeedcb55f3fa03a1ddc3dbdc2406b` succeeded. Memory closeout is fast-forwarded separately without force.
+- Residual risk: there is still no owner-approved production-equivalent CDN/RGS/provider load/soak run, so capacity for 1,000,000 users is NOT_CLAIMED. Approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/clipping/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals remain open.
+- Next candidate: obtain and validate the real production-equivalent scale run for `BSB-SCALE-001`; if external infrastructure remains unavailable, advance only another repository-solvable high release gate without substituting mocks for acceptance.
+
 ## BS-20260903-03 — SUCCESS
 
 - Sprint day: 5
@@ -322,22 +339,5 @@ Newest entries first; retain at most 20.
 - Package evidence: exact remote frontend tree `6d639b1644b80c9644cc3f5df3219eb6462d76dfe969374ab55cf1ae41fb2d5f`, 10 files / 700,597 bytes, exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation and visual-QA skills kept authored durations, exact request ownership and all four hero frames in the same deterministic proof. Five changed-path recoveries handled tool/path/auth/result-shape issues; no unchanged semantic failure was repeated.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33588488559`, artifact `9831213913` and digest `sha256:c04b47171320e4792638b0b156715f8c144fd30d7da6c08e166e57b6be3b7efe` succeeded.
-- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
-
-## BS-20260902-30 — SUCCESS
-
-- Sprint day: 4
-- Base commit: `c06184fd9790a28686da9b63000ef8463a4f319f`
-- Verified implementation commit: `759b60ca42fc488d8cfe03b5496e8699c19b0963`
-- Work item: `BSB-REDUCED-MOTION-VAULTKEEPER-001` (DONE; parent `BSB-MOTION-001` remains in progress)
-- Selection reason: the semantic `data-motion-profile='reduced'` Vaultkeeper rule cleared only `will-change`; animation and transition suppression depended on the separate global system-media fallback, so the selected profile was not a self-contained reduced-motion contract.
-- Before/after evidence: the expected-red contract failed because profile-level animation/transition suppression was absent. The explicit profile now disables both and releases compositor hints. Exact Chromium activates `feature_trigger` while Reduced Motion is authoritative and computes `animation-name: none`, `transition-duration: 0s` and `will-change: auto`; the stored Turbo preference returns after the override and play/event/settlement writes remain zero.
-- Changed files: Vaultkeeper profile CSS, static motion/browser-binding regressions, exact Chromium computed-style scenario and five sprint-memory files; math, wallet schema, assets, lockfile and dependencies unchanged.
-- Gates: expected-red focused contract 0 PASS / 1 FAIL; syntax plus focused motion/contracts/mobile 3/3 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 139/139 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 80/80 scenarios and 2245/2245 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not installed; exact isolated CI supplies current-package browser proof.
-- Visual review: exact 390x844 Reduced Motion state plus 1920x1080, 390x844 and 844x390 captures from artifact `9830010109` were inspected. Board, Vaultkeeper/penguin, controls, values and vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
-- Package evidence: exact remote frontend tree `a3cc4ac6a73dd36ccaed1baf8fc4e68c0910a3ea85c72e0a58c55245b058f62c`, 10 files / 700,597 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept semantic profile ownership and computed-style verification aligned. Generated manifest churn was restored exactly; one rejected destructive temporary cleanup used a fresh safe path; no unchanged semantic failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33584733683`, artifact `9830010109` and digest `sha256:975b0277aed033a18ee2a8ae0a67603f170ce5514e0077ca5c211485210a721a` succeeded.
 - Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
