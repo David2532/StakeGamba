@@ -5977,6 +5977,178 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('accepted-winning-settlement-response-loss-prevents-double-payout', async (record) => {
+		const group = 'accepted-winning-settlement-response-loss-prevents-double-payout';
+		const fixture = getGeneratedFixture('base_big');
+		const round = authoritativeFixtureRound({
+			fixture,
+			active: true,
+			id: 'blacksite-qa-accepted-winning-settlement-response-loss',
+		});
+		const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
+		const settledBalance = debitedBalance + round.payout;
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			await context.addInitScript(
+				({ rgsOrigin }) => {
+					const auditKey = 'blacksite-qa-accepted-winning-settlement-response-loss-audit';
+					const nativeFetch = window.fetch.bind(window);
+					const readAudit = () => {
+						try {
+							return JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
+								attempts: 0,
+								acceptedResponses: 0,
+								aborts: 0,
+								consumed: false,
+							};
+						} catch {
+							return { attempts: 0, acceptedResponses: 0, aborts: 0, consumed: false };
+						}
+					};
+					const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
+					window.fetch = async (input, init = {}) => {
+						const url = new URL(
+							typeof input === 'string' || input instanceof URL ? input : input.url,
+							window.location.href,
+						);
+						if (url.origin !== rgsOrigin || url.pathname !== '/wallet/end-round') {
+							return nativeFetch(input, init);
+						}
+						const audit = readAudit();
+						if (audit.consumed) return nativeFetch(input, init);
+						audit.consumed = true;
+						audit.attempts += 1;
+						writeAudit(audit);
+						await nativeFetch(input, init);
+						const accepted = readAudit();
+						accepted.acceptedResponses += 1;
+						writeAudit(accepted);
+						return new Promise((_resolve, reject) => {
+							const abort = () => {
+								const aborted = readAudit();
+								aborted.aborts += 1;
+								writeAudit(aborted);
+								reject(new DOMException('BLACKSITE QA discarded the accepted winning settlement response.', 'AbortError'));
+							};
+							if (init.signal?.aborted) abort();
+							else init.signal?.addEventListener('abort', abort, { once: true });
+						});
+					};
+				},
+				{ rgsOrigin: BLACKSITE_QA_RGS_ORIGIN },
+			);
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: (_request, networkEvidence) =>
+						networkEvidence.byEndpoint.authenticate.length === 1
+							? authenticateResponse()
+							: authenticateResponse({ balance: settledBalance }),
+					play: () => ({
+						status: successStatus(),
+						balance: { amount: debitedBalance, currency: 'USD' },
+						round,
+					}),
+					event: (request) => ({ event: request.body.event }),
+					endRound: () => endRoundResponse({ balance: settledBalance }),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'endRound', 1, 30_000);
+			await page.waitForFunction(() => {
+				const audit = JSON.parse(
+					sessionStorage.getItem('blacksite-qa-accepted-winning-settlement-response-loss-audit') ?? 'null',
+				);
+				return audit?.acceptedResponses === 1;
+			});
+			assertExactRequest(group, network.byEndpoint.endRound[0], {
+				method: 'POST',
+				path: '/wallet/end-round',
+				body: { sessionID: SESSION_ID },
+			});
+			record.acceptedScreenshot = await saveScreenshot(page, `${group}-pending-client-response`);
+
+			await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
+			await waitForEndpoint(network, 'authenticate', 2);
+			await waitForRuntimeState(page, 'live-ready');
+			await waitForStableAction(page);
+			await page.waitForTimeout(300);
+
+			const responseLossAudit = await page.evaluate(() =>
+				JSON.parse(
+					sessionStorage.getItem('blacksite-qa-accepted-winning-settlement-response-loss-audit') ?? 'null',
+				),
+			);
+			for (const request of network.byEndpoint.authenticate) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/wallet/authenticate',
+					body: { sessionID: SESSION_ID, language: 'en' },
+				});
+			}
+			check(
+				group,
+				'accepted winning settlement response loss aborts only the pending client transport',
+				responseLossAudit?.attempts === 1 &&
+					responseLossAudit?.acceptedResponses === 1 &&
+					responseLossAudit?.aborts === 1,
+				serialize(responseLossAudit),
+			);
+			check(
+				group,
+				'accepted winning settlement response loss never retries payout settlement',
+				network.byEndpoint.endRound.length === 1 &&
+					network.byEndpoint.play.length === 1 &&
+					network.byEndpoint.event.length === 1,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'accepted winning settlement recovery order is authoritative and exact',
+				network.byEndpoint.authenticate.length === 2 &&
+					serialize(network.order) === serialize(['authenticate', 'play', 'event', 'endRound', 'authenticate']),
+				serialize(network.order),
+			);
+			check(
+				group,
+				'accepted winning settlement recovery adopts the one-time authoritative payout balance',
+				round.payout === 200 * API_UNIT &&
+					settledBalance === 1_199 * API_UNIT &&
+					(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1199.00' &&
+					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '—' &&
+					await runtimeState(page) === 'live-ready',
+				serialize({
+					payout: round.payout,
+					settledBalance,
+					balance: await page.locator(SELECTORS.walletBalance).innerText(),
+					win: await page.locator(SELECTORS.finalWin).innerText(),
+					state: await runtimeState(page),
+				}),
+			);
+			const expectedAbortedRequests = diagnostics.failedRequests.splice(0);
+			check(
+				group,
+				'accepted winning settlement response loss reports the exact aborted settlement transport',
+				expectedAbortedRequests.length === 1 &&
+					expectedAbortedRequests[0]?.method === 'POST' &&
+					expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/wallet/end-round` &&
+					expectedAbortedRequests[0]?.error === 'net::ERR_ABORTED',
+				serialize(expectedAbortedRequests),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.screenshot = await saveScreenshot(page, group);
+			record.expectedAbortedRequests = expectedAbortedRequests;
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('settlement-session-expiry-reauthenticates-and-settles-once', async (record) => {
 		const group = 'settlement-session-expiry-reauthenticates-and-settles-once';
 		const restoredBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;

@@ -92,6 +92,7 @@
 				"accepted-checkpoint-response-loss-restores-without-rewrite",
 				"settlement-http-503-reloads-and-restores-exactly-once",
 				"accepted-settlement-response-loss-reauthenticates-without-retry",
+				"accepted-winning-settlement-response-loss-prevents-double-payout",
 				"settlement-session-expiry-reauthenticates-and-settles-once"
 			]
 		},

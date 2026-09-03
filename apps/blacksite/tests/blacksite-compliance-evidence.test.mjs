@@ -203,6 +203,7 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 		'accepted-checkpoint-response-loss-restores-without-rewrite',
 		'settlement-http-503-reloads-and-restores-exactly-once',
 		'accepted-settlement-response-loss-reauthenticates-without-retry',
+		'accepted-winning-settlement-response-loss-prevents-double-payout',
 		'settlement-session-expiry-reauthenticates-and-settles-once',
 	]);
 	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
@@ -227,6 +228,8 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 	assert.match(browserQa, /accepted settlement response loss aborts only the pending client transport/u);
 	assert.match(browserQa, /accepted settlement response loss never sends a duplicate end-round/u);
 	assert.match(browserQa, /accepted settlement recovery order is authoritative and exact/u);
+	assert.match(browserQa, /accepted winning settlement response loss never retries payout settlement/u);
+	assert.match(browserQa, /accepted winning settlement recovery adopts the one-time authoritative payout balance/u);
 	assert(
 		browserQa.includes(
 			"expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/wallet/end-round`",
