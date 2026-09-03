@@ -1954,7 +1954,7 @@ async function runNetworkScenarios(browser, origin) {
 					settledBalance === 1_199 * API_UNIT &&
 					(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1199.00' &&
 					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$200.00' &&
-					(await page.locator(SELECTORS.sessionNetPosition).innerText()).trim() === '−$199.00' &&
+					(await page.locator(SELECTORS.sessionNetPosition).innerText()).trim() === '−$200.00' &&
 					await runtimeState(page) === 'live-ready',
 				serialize({
 					balance: await page.locator(SELECTORS.walletBalance).innerText(),
