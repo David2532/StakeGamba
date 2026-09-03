@@ -899,7 +899,6 @@ function rgsRequestCount(network) {
 
 function walletWriteCount(network) {
 	return (
-		network.byEndpoint.authenticate.length +
 		network.byEndpoint.play.length +
 		network.byEndpoint.endRound.length +
 		network.byEndpoint.event.length
@@ -4015,6 +4014,13 @@ async function runNetworkScenarios(browser, origin) {
 			await page.waitForFunction(
 				(selector) => document.querySelector(selector)?.textContent?.trim() === 'REDUCED',
 				SELECTORS.motionMode,
+			);
+			await page.setViewportSize({ width: 1366, height: 768 });
+			await page.waitForFunction(
+				(selector) =>
+					document.querySelector(selector)?.getAttribute('data-asset-paint-state') ===
+					'painted',
+				SELECTORS.vaultkeeper,
 			);
 			const reduced = await motion.evaluate((element, storageKey) => ({
 				label: element.textContent?.trim(),
@@ -7851,7 +7857,7 @@ async function runNetworkScenarios(browser, origin) {
 
 async function geometryAudit(page) {
 	await waitForAssetPaint(page);
-	await page.evaluate(() => document.activeElement?.blur());
+	await page.locator(SELECTORS.soundAction).focus();
 	await page.keyboard.press('Tab');
 	return page.evaluate((selectors) => {
 		const rect = (element) => {
