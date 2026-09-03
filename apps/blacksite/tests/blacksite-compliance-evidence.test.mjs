@@ -199,6 +199,7 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 		'active-restore-no-duplicate-play',
 		'active-feature-restore-resumes-at-checkpoint-once',
 		'uncertain-live-play-reloads-and-restores-without-retry',
+		'accepted-play-response-loss-reloads-and-restores-exactly-once',
 		'settlement-http-503-reloads-and-restores-exactly-once',
 		'settlement-session-expiry-reauthenticates-and-settles-once',
 	]);
@@ -207,6 +208,9 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 		assert.match(browserQa, new RegExp(`runScenario\\('${scenario}'`, 'u'));
 	}
 	assert.match(browserQa, /never retried automatically/u);
+	assert.match(browserQa, /accepted play response loss aborts the pending client transport on reload/u);
+	assert.match(browserQa, /accepted play response loss never sends a duplicate paid play/u);
+	assert.match(browserQa, /accepted play response loss restores and settles exactly once/u);
 	assert.match(browserQa, /exactly one new settlement attempt/u);
 	assert.match(browserQa, /expired settlement session never retries authentication or settlement automatically/u);
 	assert.match(browserQa, /reauthenticated settlement performs exactly one new completion attempt/u);
