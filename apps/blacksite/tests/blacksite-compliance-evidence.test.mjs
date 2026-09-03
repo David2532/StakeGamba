@@ -199,7 +199,7 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 		'active-restore-no-duplicate-play',
 		'active-feature-restore-resumes-at-checkpoint-once',
 		'uncertain-live-play-reloads-and-restores-without-retry',
-		'accepted-play-response-loss-reloads-and-restores-exactly-once',
+		'accepted-winning-play-response-loss-restores-and-pays-exactly-once',
 		'accepted-checkpoint-response-loss-restores-without-rewrite',
 		'settlement-http-503-reloads-and-restores-exactly-once',
 		'accepted-settlement-response-loss-reauthenticates-without-retry',
@@ -211,11 +211,12 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 		assert.match(browserQa, new RegExp(`runScenario\\('${scenario}'`, 'u'));
 	}
 	assert.match(browserQa, /never retried automatically/u);
-	assert.match(browserQa, /accepted play response loss aborts the pending client transport on reload/u);
-	assert.match(browserQa, /accepted play response loss reports exactly the intentionally aborted paid transport/u);
+	assert.match(browserQa, /accepted winning play response loss aborts the pending client transport on reload/u);
+	assert.match(browserQa, /accepted winning play response loss reports exactly the intentionally aborted paid transport/u);
 	assert.match(browserQa, /expectedAbortedRequests\[0\]\?\.error === 'net::ERR_ABORTED'/u);
-	assert.match(browserQa, /accepted play response loss never sends a duplicate paid play/u);
-	assert.match(browserQa, /accepted play response loss restores and settles exactly once/u);
+	assert.match(browserQa, /accepted winning play response loss never sends a duplicate paid play/u);
+	assert.match(browserQa, /accepted winning play recovery persists each checkpoint exactly once in order/u);
+	assert.match(browserQa, /accepted winning play response loss restores and pays exactly once/u);
 	assert.match(browserQa, /accepted checkpoint response loss aborts only the pending client transport/u);
 	assert.match(browserQa, /accepted checkpoint is not rewritten after authoritative restore/u);
 	assert.match(browserQa, /accepted checkpoint recovery order is authoritative and exact/u);

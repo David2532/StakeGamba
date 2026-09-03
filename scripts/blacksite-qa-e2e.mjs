@@ -1760,14 +1760,32 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
-	await runScenario('accepted-play-response-loss-reloads-and-restores-exactly-once', async (record) => {
-		const group = 'accepted-play-response-loss-reloads-and-restores-exactly-once';
-		const restoredBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
+	await runScenario('accepted-winning-play-response-loss-restores-and-pays-exactly-once', async (record) => {
+		const group = 'accepted-winning-play-response-loss-restores-and-pays-exactly-once';
+		const fixture = getGeneratedFixture('base_big');
+		const round = authoritativeFixtureRound({
+			fixture,
+			active: true,
+			id: 'blacksite-qa-accepted-winning-play-response-loss',
+		});
+		const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
+		const settledBalance = debitedBalance + round.payout;
+		const checkpointEventTypes = new Set([
+			'board_set',
+			'breach_state',
+			'feature_start',
+			'feature_cycle',
+			'feature_end',
+			'cap_reached',
+		]);
+		const expectedCheckpointCursors = fixture.book.events
+			.filter(({ type }) => checkpointEventTypes.has(type))
+			.map(({ index }) => encodePresentationCursor(index + 1));
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 		try {
 			await context.addInitScript(
 				({ rgsOrigin }) => {
-					const auditKey = 'blacksite-qa-accepted-play-response-loss-audit';
+					const auditKey = 'blacksite-qa-accepted-winning-play-response-loss-audit';
 					const nativeFetch = window.fetch.bind(window);
 					const readAudit = () => {
 						try {
@@ -1804,7 +1822,7 @@ async function runNetworkScenarios(browser, origin) {
 								const aborted = readAudit();
 								aborted.aborts += 1;
 								writeAudit(aborted);
-								reject(new DOMException('BLACKSITE QA discarded the accepted play response.', 'AbortError'));
+								reject(new DOMException('BLACKSITE QA discarded the accepted winning play response.', 'AbortError'));
 							};
 							if (init.signal?.aborted) abort();
 							else init.signal?.addEventListener('abort', abort, { once: true });
@@ -1820,15 +1838,16 @@ async function runNetworkScenarios(browser, origin) {
 						networkEvidence.byEndpoint.authenticate.length === 1
 							? authenticateResponse()
 							: authenticateResponse({
-									balance: restoredBalance,
-									round: authoritativeZeroRound({
-										active: true,
-										id: 'blacksite-qa-accepted-play-response-loss',
-										event: encodePresentationCursor(2),
-									}),
+									balance: debitedBalance,
+									round,
 								}),
-					play: () => playResponse(),
-					endRound: () => endRoundResponse({ balance: restoredBalance }),
+					play: () => ({
+						status: successStatus(),
+						balance: { amount: debitedBalance, currency: 'USD' },
+						round,
+					}),
+					event: (request) => ({ event: request.body.event }),
+					endRound: () => endRoundResponse({ balance: settledBalance }),
 				},
 			});
 			const { page, diagnostics } = await openPage(context, origin, liveQuery());
@@ -1838,7 +1857,7 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForEndpoint(network, 'play', 1);
 			await page.waitForFunction(() => {
 				const audit = JSON.parse(
-					sessionStorage.getItem('blacksite-qa-accepted-play-response-loss-audit') ?? 'null',
+					sessionStorage.getItem('blacksite-qa-accepted-winning-play-response-loss-audit') ?? 'null',
 				);
 				return audit?.acceptedResponses === 1;
 			});
@@ -1856,13 +1875,13 @@ async function runNetworkScenarios(browser, origin) {
 
 			await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
 			await waitForEndpoint(network, 'authenticate', 2);
-			await waitForEndpoint(network, 'endRound', 1);
+			await waitForEndpoint(network, 'endRound', 1, 30_000);
 			await waitForRuntimeState(page, 'live-ready');
 			await page.waitForTimeout(200);
 
 			const responseLossAudit = await page.evaluate(() =>
 				JSON.parse(
-					sessionStorage.getItem('blacksite-qa-accepted-play-response-loss-audit') ?? 'null',
+					sessionStorage.getItem('blacksite-qa-accepted-winning-play-response-loss-audit') ?? 'null',
 				),
 			);
 			for (const request of network.byEndpoint.authenticate) {
@@ -1877,9 +1896,16 @@ async function runNetworkScenarios(browser, origin) {
 				path: '/wallet/end-round',
 				body: { sessionID: SESSION_ID },
 			});
+			for (const request of network.byEndpoint.event) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/bet/event',
+					body: { sessionID: SESSION_ID, event: request.body.event },
+				});
+			}
 			check(
 				group,
-				'accepted play response loss aborts the pending client transport on reload',
+				'accepted winning play response loss aborts the pending client transport on reload',
 				responseLossAudit?.attempts === 1 &&
 					responseLossAudit?.acceptedResponses === 1 &&
 					responseLossAudit?.aborts === 1,
@@ -1887,32 +1913,58 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			check(
 				group,
-				'accepted play response loss never sends a duplicate paid play',
-				network.byEndpoint.play.length === 1 && network.byEndpoint.event.length === 0,
+				'accepted winning play response loss never sends a duplicate paid play',
+				network.byEndpoint.play.length === 1,
 				serialize(network.order),
 			);
 			check(
 				group,
-				'accepted play response loss restores and settles exactly once',
+				'accepted winning play recovery persists each checkpoint exactly once in order',
+				serialize(network.byEndpoint.event.map(({ body }) => body.event)) ===
+					serialize(expectedCheckpointCursors) &&
+					new Set(network.byEndpoint.event.map(({ body }) => body.event)).size ===
+						expectedCheckpointCursors.length,
+				serialize({
+					expectedCheckpointCursors,
+					actual: network.byEndpoint.event.map(({ body }) => body.event),
+				}),
+			);
+			check(
+				group,
+				'accepted winning play response loss restores and pays exactly once',
 				network.byEndpoint.authenticate.length === 2 &&
 					network.byEndpoint.endRound.length === 1 &&
-					serialize(network.order) === serialize(['authenticate', 'play', 'authenticate', 'endRound']),
+					serialize(network.order) ===
+						serialize([
+							'authenticate',
+							'play',
+							'authenticate',
+							...expectedCheckpointCursors.map(() => 'event'),
+							'endRound',
+						]),
 				serialize(network.order),
 			);
 			check(
 				group,
-				'restored accepted play exposes the exact authoritative balance and result',
-				(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$999.00' &&
-					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00',
+				'restored accepted winning play exposes the exact one-time payout, balance and session position',
+				round.payout === 200 * API_UNIT &&
+					settledBalance === 1_199 * API_UNIT &&
+					(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1199.00' &&
+					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$200.00' &&
+					(await page.locator(SELECTORS.sessionNetPosition).innerText()).trim() === '−$199.00' &&
+					await runtimeState(page) === 'live-ready',
 				serialize({
 					balance: await page.locator(SELECTORS.walletBalance).innerText(),
 					win: await page.locator(SELECTORS.finalWin).innerText(),
+					netPosition: await page.locator(SELECTORS.sessionNetPosition).innerText(),
+					payoutApi: round.payout,
+					settledBalance,
 				}),
 			);
 			const expectedAbortedRequests = diagnostics.failedRequests.splice(0);
 			check(
 				group,
-				'accepted play response loss reports exactly the intentionally aborted paid transport',
+				'accepted winning play response loss reports exactly the intentionally aborted paid transport',
 				expectedAbortedRequests.length === 1 &&
 					expectedAbortedRequests[0]?.method === 'POST' &&
 					expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/wallet/play` &&
@@ -1922,6 +1974,13 @@ async function runNetworkScenarios(browser, origin) {
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.screenshot = await saveScreenshot(page, group);
+			record.restore = {
+				fixture: fixture.id,
+				payoutApi: round.payout,
+				debitedBalance,
+				settledBalance,
+				expectedCheckpointCursors,
+			};
 			record.expectedAbortedRequests = expectedAbortedRequests;
 			record.network = network;
 			record.diagnostics = diagnostics;
