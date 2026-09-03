@@ -1,5 +1,21 @@
 # Material run log
 
+## BS-20260903-13 — BLOCKED
+
+- Sprint day: 5
+- Base remote commit: `aab96f23589db7f91d93d7e4c92762c8712411e6`
+- Candidate commits: implementation `d0f9f78d86fc8f34b5274d8a5d82f4d6bd55064e`; first fixture correction `20e1e4e5e1bf42494fe3647999757c607fce1b30`; final model correction `85dcadfeee87699652359ad3e3acb334249d3a9f`.
+- Work item: `BSB-ACCEPTED-WINNING-CHECKPOINT-RESPONSE-LOSS-001` remains IN_PROGRESS under `BSB-EVIDENCE-001`.
+- Selection reason: the zero-payout checkpoint-loss case did not numerically prove that a positive outcome resumes at the authoritative cursor and reaches one payout without duplicate checkpoint or settlement writes.
+- Before/after evidence: the focused compliance contract began 0/1 and finishes 1/1 locally. The intended `base_big` case accepts the first checkpoint, loses its response during reload, restores from that cursor, requires 49 unique ordered cursors overall, one settlement and final `$1199.00`. Exact runs `33774863738` and `33777051665` exposed that the harness incorrectly returned the restore cursor in the initial play response, making the client correctly skip that first network checkpoint. Final candidate `85dcadfe` now returns a fresh cursorless play round and exposes the accepted cursor only on reauthentication; focused and full app tests pass locally.
+- Changed files: Chromium QA, 51-point mapping, compliance regression and five sprint-memory files. Product runtime/layout, math/RNG, wallet/provider schema, assets, dependencies and lockfile are unchanged.
+- Gates: expected red 0/1, exit 1; focused final 1/1 PASS; local frozen install, lint, production `svelte-check` 0 errors/0 warnings, 192/192 tests and production build PASS. Both exact attempts pass all non-browser gates, including scale self-test 31/31, math 7/7 over 300,000 books and six-file package/readback; exact run `33777051665` fails only the new scenario at 88/89 Chromium scenarios / 2658/2659 checks, so resolver is not run. The final model correction has no exact Chromium result yet. `git diff --check` and own-scope review PASS.
+- Visual review: exact red artifact `9902484244` supplied 1920x1080, 1366x768, 390x844 and 844x390 views, manually inspected without overlap, crop, scrollbar or broken images. The scenario-specific pending/restored captures are blocked because the browser scenario failed before capture. No product visual source changed.
+- Tool/token metrics: see `METRICS.md`; subagents 0; tokens `null` / `not_exposed`. The Stake RGS replay skill required exact endpoint/body/order/count and separated the play response from authoritative restore state. One generated candidate-manifest side effect was excluded and restored. The two exact failures were diagnosed with changed evidence, not repeated unchanged.
+- Persistence: all candidate commits were fast-forwarded through connected Git data with `force: false`; memory closeout is fast-forwarded separately. No candidate is marked fully verified.
+- Residual risk: exact Chromium/resolver/scenario captures for `85dcadfe`; production-equivalent CDN/RGS/provider load proof; approved Spine/art/audio, real-device, rights/Creative, 23 manual and 6 external gates. One-million-user capacity remains NOT_CLAIMED.
+- Next candidate: verify the exact CI triggered by `85dcadfe`, browser counts, resolver and scenario captures; close the item only on full pass, then return to owner-approved `BSB-SCALE-001` evidence.
+
 ## BS-20260903-12 — SUCCESS
 
 - Sprint day: 5
@@ -322,21 +338,5 @@
 - Persistence: implementation was fast-forwarded without force through connected Git data. Exact run `33637682367`, artifact `9850039612` and digest `sha256:157e8a126866b699edee23fbc6f62de520f757d290995131ab69e3a8d642bce7` succeeded.
 - Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
-
-## BS-20260902-39 — BLOCKED
-
-- Sprint day: 4
-- Base remote commit: `9868eddef4128d0701745177650842235ffb28d3`
-- Pending implementation commit: `b4211f6bab7009f56b9e507d95f8c3ea95e1788c`
-- Work item: `BSB-BASE-WIN-TIER-REACTIONS-001` (BLOCKED; parent `BSB-MOTION-001` remains in progress)
-- Selection reason: run 38 left exactly one independent evidence gap—current-head package/browser/visual proof for the already implemented Base Small/Medium/Big reactions.
-- Before/after evidence: before this run, only local app gates existed. The current product tree now also passes 7/7 math gates over 300,000 books and isolated package generation/readback. The package has 10 frontend files / 712,356 bytes with tree `5393337b…58e2e`; the unchanged math payload has 7 files / 48,697,667 bytes, tree `6bd0c4c7…01da` and fingerprint `d03fab…78d8`. GitHub still exposes no run/status for `b4211f6`.
-- Changed files: five sprint-memory files only; runtime, QA implementation, math, assets, lockfile and dependencies unchanged.
-- Gates: frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 141/141 PASS; production build PASS; math 7/7 and 300,000 books PASS; isolated package generation/readback PASS; QA-script syntax PASS; `git diff --check` plus secret/debug/scope/full-own-diff review PASS. The first package command correctly rejected a pre-created output root; the corrected non-existent child path passed. Browser and browser-bound 51-row resolver are BLOCKED/NOT_RUN.
-- Visual review: NOT_RUN for the pending source. The default Playwright download timed out at 30 seconds; one changed retry with 120-second tolerance received a truncated zero-byte archive and was stopped. No installed system browser or current-head artifact exists, and prior screenshots are not inherited.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill prevents closing a tier reaction without real-state screenshots. No dependency or asset churn occurred.
-- Persistence: source implementation remains accepted on remote commit `b4211f6`; this run records materially stronger local math/package evidence while keeping the exact-browser boundary explicit.
-- Residual risk: current-head Chromium timing/screenshots, wallet/network isolation and 51-row resolver; approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: resume this same item only when exact GitHub Actions or a valid local Chromium binary is available; otherwise choose a non-visual provider/accessibility slice without claiming this tier complete.
 
 Newest entries first; retain at most 20.

@@ -1,5 +1,41 @@
 # Rolling automation metrics
 
+## BS-20260903-13
+
+```yaml
+started_at_utc: 2026-09-03T15:31:36Z
+closed_at_utc: 2026-09-03T16:32:00Z
+sprint_day: 5
+status: BLOCKED
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-ACCEPTED-WINNING-CHECKPOINT-RESPONSE-LOSS-001
+parent_work_item: { id: BSB-EVIDENCE-001, state: IN_PROGRESS_PROVIDER_AND_MANUAL_EVIDENCE_REQUIRED }
+expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL, exit: 1 }
+focused_final: { pass: 1, fail: 0, status: PASS, exit: 0 }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck: { errors: 0, warnings: 0, status: PASS }
+local_app_tests: { pass: 192, fail: 0, exit: 0 }
+local_build: PASS
+first_exact_ci: { run: 33774863738, status: FAIL_BROWSER_HARNESS_CURSOR_MODEL }
+second_exact_ci: { run: 33777051665, commit: 20e1e4e5e1bf42494fe3647999757c607fce1b30, status: FAIL_BROWSER_HARNESS_CURSOR_MODEL }
+second_exact_non_browser: { install: PASS, lint: PASS, typecheck: PASS, tests: PASS, build: PASS, scale_self_test: 31/31_PASS, math: 7/7_300000_PASS, package: PASS }
+second_exact_browser: { scenarios: 89, passed: 88, checks: 2659, passed_checks: 2658, failed_checks: 1 }
+final_candidate: { commit: 85dcadfeee87699652359ad3e3acb334249d3a9f, exact_ci: PENDING_REQUIRED }
+exact_resolver: BLOCKED_BROWSER_GATE
+artifact: { id: 9902484244, sha256: b34950378f0a4a4c701ad99eb47d9db62b7e2a4531b0cf526177a64a5959c9d2 }
+manual_visual_review: PASS_PRIMARY_1920X1080_1366X768_390X844_844X390_SCENARIO_STATES_BLOCKED
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+git_diff_check: PASS
+final_diff_review: PASS_TARGETED_QA_EVIDENCE_AND_MEMORY_ONLY
+manual_identical_retries: 0
+```
+
+Observed categories: targeted memory/source reads and `rg`; expected-red/focused checks; one full local product gate; exact workflow/log/artifact inspection; four-image manual review; non-force Git-data persistence. The RGS replay standard required separate fresh-play and authoritative-restore rounds plus exact endpoint/body/order/count and one-time settlement. A verifier-generated candidate-manifest side effect was excluded from commits and restored with a targeted patch. The first two exact browser failures produced distinct diagnostic evidence; the final model correction remains explicitly unverified in exact Chromium. No subagents, product runtime, math, wallet/provider schema, product assets, dependencies or lockfile changed.
+
 ## BS-20260903-12
 
 ```yaml
