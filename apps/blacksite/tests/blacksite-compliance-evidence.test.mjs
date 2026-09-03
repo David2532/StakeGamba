@@ -210,7 +210,7 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 	assert.match(browserQa, /never retried automatically/u);
 	assert.match(browserQa, /accepted play response loss aborts the pending client transport on reload/u);
 	assert.match(browserQa, /accepted play response loss reports exactly the intentionally aborted paid transport/u);
-	assert.match(browserQa, /expectedAbortedRequests\\[0\\]\\?\\.error === 'net::ERR_ABORTED'/u);
+	assert.match(browserQa, /expectedAbortedRequests\[0\]\?\.error === 'net::ERR_ABORTED'/u);
 	assert.match(browserQa, /accepted play response loss never sends a duplicate paid play/u);
 	assert.match(browserQa, /accepted play response loss restores and settles exactly once/u);
 	assert.match(browserQa, /exactly one new settlement attempt/u);
