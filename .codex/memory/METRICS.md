@@ -1,5 +1,55 @@
 # Rolling automation metrics
 
+## BS-20260903-03
+
+```yaml
+closed_at_utc: 2026-09-03T01:11:16Z
+sprint_day: 5
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-SCALE-EVIDENCE-INTEGRITY-001
+parent_work_item: { id: BSB-SCALE-001, state: OPEN_EXTERNAL_EVIDENCE_REQUIRED }
+expected_red: { pass: 9, fail: 1, status: EXPECTED_FAIL, exit: 1 }
+focused_first_after: { pass: 9, fail: 1, status: TEST_EXPECTATION_MISMATCH, exit: 1 }
+focused_final: { pass: 10, fail: 0, status: PASS, exit: 0 }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck: { errors: 0, warnings: 0, status: PASS }
+local_app_tests: { pass: 188, fail: 0 }
+local_scale_self_test: { pass: 19, fail: 0 }
+local_build: PASS
+local_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_ci_run: 33701131998
+exact_ci_status: SUCCESS
+exact_ci_commit: 116e93410d153be6d4e00de37680baab6a284f19
+exact_frozen_install: PASS
+exact_lint: PASS
+exact_typecheck: { errors: 0, warnings: 0, status: PASS }
+exact_app_tests: { pass: 188, fail: 0 }
+exact_scale_contract_tests: { pass: 10, fail: 0 }
+exact_scale_self_test: { pass: 19, fail: 0 }
+exact_build: PASS
+exact_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_package: { generation: PASS, verification: PASS, frontend_tree: 9ec8ae5703e7770bf8ba98fb47c5a29e20dc2bad2d1d3d4cdabdbdae38499542, frontend_files: 6, frontend_bytes: 439752, math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da, math_files: 7, math_bytes: 48697667 }
+exact_browser: { scenarios: 84, passed: 84, failed: 0, checks_pass: 2358, checks_fail: 0 }
+exact_diagnostics: { unexpected_requests: 0, forbidden_requests: 0, expected_negative_console_errors: 6, page_errors: 0, failed_requests: 0 }
+exact_compliance_resolver: PASS
+exact_compliance: { automated_proof_complete: 38, manual_gates_open: 23, external_gates_open: 6 }
+artifact_id: 9873890152
+artifact_digest: sha256:0b57706eabd0102f7601fe4cb476d68e86041d26ddd796c72febb2ee9d3d1e58
+current_exact_browser_geometry: PASS
+manual_visual_review: BLOCKED_TRANSIENT_ARTIFACT_DOWNLOAD_HTTP_502
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+git_diff_check: PASS
+final_diff_review: PASS_3_EXPECTED_IMPLEMENTATION_FILES
+manual_identical_retries: 0
+```
+
+Observed categories: targeted branch/memory/scale-contract/compliance reads; one expected-red and corrected focused-after cycle; one complete local frozen-install/lint/typecheck/test/build/scale/math cycle; exact GitHub workflow/log/artifact verification; diff/secret/debug/scope review and non-force Git persistence. A first focused-after assertion expected a role-specific message before the count guard and was corrected once. Standard HTTPS push authentication failed once and connected Git data completed the exact fast-forward. Artifact materialization succeeded, but its transient download URL returned HTTP 502 and was not repeatedly retried; current automated geometry passed and no visual source changed. No subagent, dependency, lockfile, product runtime, math, wallet/provider schema or product asset changed. Synthetic scale evidence validates rejection behavior only and cannot establish external capacity.
+
 ## BS-20260903-02
 
 ```yaml

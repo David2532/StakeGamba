@@ -1,5 +1,22 @@
 # Material run log
 
+## BS-20260903-03 — SUCCESS
+
+- Sprint day: 5
+- Base remote commit: `1b6e17d39d824bd940e07b50fefba3005f875a17`
+- Verified implementation commit: `116e93410d153be6d4e00de37680baab6a284f19`
+- Work item: `BSB-SCALE-EVIDENCE-INTEGRITY-001` (DONE); parent `BSB-SCALE-001` remains OPEN.
+- Selection reason: adversarial review found that schema v1 could accept approval after execution began, a run window shorter than its declared phases, request totals inconsistent with endpoint samples, and arbitrary or duplicate evidence roles. Those holes could falsely validate a million-user production claim.
+- Before/after evidence: expected-red finished 9/10 with the late-approval case accepted by v1. Schema v2 requires an approval reference before run start, one run ID, an actual window covering ramp+steady+soak, measured requests equal to the exact endpoint sum, and six unique load/CDN/provider-ledger/resilience/observability/rollback artifacts bound to run ID, positive size and SHA-256. Final focused tests are 10/10 and verifier self-test 19/19.
+- Changed files: scale verifier, focused scale contract test, scale-readiness runbook and five sprint-memory files. Product runtime/layout, math/RNG, wallet/provider schema, assets, dependencies and lockfile are unchanged.
+- Gates: expected-red 9/10, exit 1; first focused-after 9/10 due to a test-message-order mismatch, exit 1; corrected focused 10/10 PASS; frozen install, lint, typecheck 0 errors/0 warnings, 188/188 app tests, production build, 19/19 scale self-tests and 7/7 math gates over 300,000 books all PASS locally. Exact current-head CI `33701131998` repeats all product gates, exact six-file package/readback, Chromium 84/84 scenarios / 2358 checks and the current-SHA 51-point resolver. Unexpected/forbidden requests, page errors and failed requests are zero; six console messages are expected 401/503 fixtures. `git diff --check`, secret/debug/scope and full own-diff review PASS.
+- Visual/browser review: exact package executed 1920x1080, 1366x768, 390x844 and 844x390 plus compact geometry with no layout/runtime/network failure. Artifact `9873890152` is SHA-bound. Manual current-artifact download was blocked by transient HTTP 502 and is not claimed; no product visual source changed, and historical screenshots were not relabeled.
+- Package evidence: exact frontend tree `9ec8ae5703e7770bf8ba98fb47c5a29e20dc2bad2d1d3d4cdabdbdae38499542`, 6 files / 439,752 bytes; math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; package verification PASS.
+- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; subagents 0. Calls were targeted; no unchanged semantic failure was repeated. One assertion-order issue, standard-push authentication failure and artifact 502 were handled without weakening gates.
+- Persistence: implementation was fast-forwarded through connected Git data with `force: false`; exact run `33701131998`, artifact `9873890152` and digest `sha256:0b57706eabd0102f7601fe4cb476d68e86041d26ddd796c72febb2ee9d3d1e58` succeeded. Memory closeout is fast-forwarded separately without force.
+- Residual risk: there is still no owner-approved production-equivalent CDN/RGS/provider load/soak run, so capacity for 1,000,000 users is NOT_CLAIMED. Approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/clipping/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals remain open.
+- Next candidate: obtain and validate the real production-equivalent scale run for `BSB-SCALE-001`; if external infrastructure remains unavailable, advance only another repository-solvable high release gate without substituting mocks for acceptance.
+
 ## BS-20260903-02 — SUCCESS
 
 - Sprint day: 5
@@ -322,22 +339,5 @@ Newest entries first; retain at most 20.
 - Package evidence: exact remote frontend tree `a3cc4ac6a73dd36ccaed1baf8fc4e68c0910a3ea85c72e0a58c55245b058f62c`, 10 files / 700,597 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept semantic profile ownership and computed-style verification aligned. Generated manifest churn was restored exactly; one rejected destructive temporary cleanup used a fresh safe path; no unchanged semantic failure was repeated.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33584733683`, artifact `9830010109` and digest `sha256:975b0277aed033a18ee2a8ae0a67603f170ce5514e0077ca5c211485210a721a` succeeded.
-- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
-
-## BS-20260902-29 — SUCCESS
-
-- Sprint day: 4
-- Base commit: `a0ee8388a68a509319a70179199a294dfb45c3a3`
-- Verified implementation commit: `09759dfd89905fd23f5bedfbaa150924a0453a51`
-- Work item: `BSB-REPLAY-MOTION-PROFILE-001` (DONE; parents `BSB-MOTION-001` and `BSB-EVIDENCE-001` remain in progress)
-- Selection reason: Replay pinned generic 16/220ms step/win delays into PresentationDirector, bypassing Normal/Turbo/Reduced timing and making the same authoritative win use a stale cadence distinct from live play.
-- Before/after evidence: the expected-red regression observed the stale 220ms default. Replay defaults now defer both delays to the active presentation profile while validated explicit overrides remain available. Exact Chromium measures the first hit for 311.9ms Normal and 122.5ms Turbo, completes two cached presentations after one queryless/bodyless Replay GET and performs zero authenticate/play/event/settlement writes.
-- Changed files: Replay controller defaults/validation, page composition, Replay/contract regressions, exact Chromium timing scenario and five sprint-memory files; math, wallet schema, assets, lockfile and dependencies unchanged.
-- Gates: expected-red focused Replay 0 PASS / 1 FAIL; syntax and focused Replay/contracts 45/45 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 139/139 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; identity-bound isolated package/readback and 51-row resolver PASS; exact Chromium 80/80 scenarios and 2244/2244 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local Chromium was not run; exact isolated CI supplies current-package browser proof.
-- Visual review: exact 1366x768 Turbo Replay completion plus 1920x1080, 390x844 and 844x390 captures from artifact `9828528586` were inspected while the same exact browser timeline proves both hit windows. Board, Vaultkeeper/penguin, controls, values and vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 1366x768, 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
-- Package evidence: exact remote frontend tree `1601bb16596afcc6bf9d7b484728f996deb046e4517c48959cad112589dd41bc`, 10 files / 700,486 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept profile timing, explicit override validation and browser measurement aligned. The unavailable `gh` CLI used the public Actions API; no unchanged semantic failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33580462193`, artifact `9828528586` and digest `sha256:6067a2386374349fd691b40f202a7afb6e4c1f45851bd5b4b1c1433ee99c4bb3` succeeded.
 - Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
