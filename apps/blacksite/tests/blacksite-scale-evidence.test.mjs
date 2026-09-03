@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   SCALE_EVIDENCE_SCHEMA,
+  createScaleArtifactProof,
   createSelfTestEvidence,
   verifyScaleEvidence,
   verifyScaleEvidenceArtifacts,
@@ -163,7 +164,10 @@ test('scale artifact readback verifies exact files and detects tampering', async
   try {
     const evidence = createSelfTestEvidence();
     for (const artifact of evidence.artifacts) {
-      const content = `${artifact.role}\n`;
+      const content = `${JSON.stringify({
+        ...createScaleArtifactProof(evidence, artifact.role),
+        report: { source: 'test' },
+      })}\n`;
       writeFileSync(join(directory, artifact.name), content, 'utf8');
       artifact.bytes = Buffer.byteLength(content);
       artifact.sha256 = createHash('sha256').update(content).digest('hex');
@@ -196,6 +200,34 @@ test('scale artifact readback verifies exact files and detects tampering', async
 
     writeFileSync(join(directory, evidence.artifacts[0].name), 'tampered\n', 'utf8');
     await assert.rejects(() => verifyScaleEvidenceArtifacts(evidence, directory), /bytes mismatch|sha256 mismatch/u);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('scale artifact readback rejects files whose structured binding contradicts the evidence', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'blacksite-scale-binding-red-'));
+  try {
+    const evidence = createSelfTestEvidence();
+    for (const artifact of evidence.artifacts) {
+      const content = `${JSON.stringify({
+        blacksiteScaleBinding: {
+          schema: 'blacksite-scale-artifact-binding-v1',
+          role: artifact.role,
+          runId: evidence.run.id,
+          identitySha256: '0'.repeat(64),
+          measurementsSha256: '0'.repeat(64),
+        },
+      })}\n`;
+      writeFileSync(join(directory, artifact.name), content, 'utf8');
+      artifact.bytes = Buffer.byteLength(content);
+      artifact.sha256 = createHash('sha256').update(content).digest('hex');
+    }
+
+    await assert.rejects(
+      () => verifyScaleEvidenceArtifacts(evidence, directory),
+      /identitySha256/u,
+    );
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }

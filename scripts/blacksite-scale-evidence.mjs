@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
 import {
-  createReadStream,
   lstatSync,
   mkdtempSync,
   readFileSync,
@@ -13,7 +12,8 @@ import { tmpdir } from 'node:os';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const SCALE_EVIDENCE_SCHEMA = 'blacksite-scale-evidence-v3';
+export const SCALE_EVIDENCE_SCHEMA = 'blacksite-scale-evidence-v4';
+export const SCALE_ARTIFACT_BINDING_SCHEMA = 'blacksite-scale-artifact-binding-v1';
 const expectedResilienceScenarios = Object.freeze([
   'cdn-origin-degradation',
   'rgs-http-5xx',
@@ -73,10 +73,60 @@ function containedRelativePath(root, candidate, name) {
   );
 }
 
-async function sha256File(path) {
-  const hash = createHash('sha256');
-  for await (const chunk of createReadStream(path)) hash.update(chunk);
-  return hash.digest('hex');
+function canonicalize(value) {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((key) => [key, canonicalize(value[key])]),
+    );
+  }
+  return value;
+}
+
+function sha256Value(value) {
+  return createHash('sha256').update(JSON.stringify(canonicalize(value))).digest('hex');
+}
+
+function measurementsForRole(evidence, role) {
+  const byRole = {
+    'load-report': {
+      environment: evidence.environment,
+      latency: evidence.latency,
+      run: evidence.run,
+      workload: evidence.workload,
+    },
+    'cdn-report': { cdn: evidence.cdn, run: evidence.run },
+    'provider-ledger': { idempotency: evidence.idempotency, run: evidence.run },
+    'resilience-report': {
+      resilience: evidence.resilience,
+      run: evidence.run,
+      saturation: evidence.saturation,
+    },
+    'observability-export': { observability: evidence.observability, run: evidence.run },
+    'rollback-report': { rollback: evidence.rollback, run: evidence.run },
+  };
+  requireValue(Object.hasOwn(byRole, role), `artifact role ${role} cannot be bound`);
+  return byRole[role];
+}
+
+export function createScaleArtifactBinding(evidence, role) {
+  return {
+    schema: SCALE_ARTIFACT_BINDING_SCHEMA,
+    role,
+    runId: evidence.run.id,
+    identitySha256: sha256Value(evidence.identity),
+    measurementsSha256: sha256Value(measurementsForRole(evidence, role)),
+  };
+}
+
+export function createScaleArtifactProof(evidence, role) {
+  return {
+    blacksiteScaleBinding: createScaleArtifactBinding(evidence, role),
+    blacksiteScaleIdentity: evidence.identity,
+    blacksiteScaleMeasurements: measurementsForRole(evidence, role),
+  };
 }
 
 export async function verifyScaleEvidenceArtifacts(evidence, artifactsRoot) {
@@ -110,8 +160,33 @@ export async function verifyScaleEvidenceArtifacts(evidence, artifactsRoot) {
     requireValue(!realPaths.has(realCandidate), 'artifact files must be unique');
     realPaths.add(realCandidate);
     requireValue(candidateStat.size === artifact.bytes, `artifact ${artifact.role}.bytes mismatch`);
-    const digest = await sha256File(realCandidate);
+    const content = readFileSync(realCandidate);
+    requireValue(content.byteLength === artifact.bytes, `artifact ${artifact.role}.bytes changed during readback`);
+    const digest = createHash('sha256').update(content).digest('hex');
     requireValue(digest === artifact.sha256, `artifact ${artifact.role}.sha256 mismatch`);
+    let parsed;
+    try {
+      parsed = JSON.parse(content.toString('utf8'));
+    } catch {
+      fail(`artifact ${artifact.role} must be structured JSON with a scale binding`);
+    }
+    const binding = parsed?.blacksiteScaleBinding;
+    requireValue(binding && typeof binding === 'object', `artifact ${artifact.role} structured binding is required`);
+    const expectedBinding = createScaleArtifactBinding(evidence, artifact.role);
+    for (const key of ['schema', 'role', 'runId', 'identitySha256', 'measurementsSha256']) {
+      requireValue(
+        binding[key] === expectedBinding[key],
+        `artifact ${artifact.role} binding.${key} mismatch`,
+      );
+    }
+    requireValue(
+      sha256Value(parsed.blacksiteScaleIdentity) === binding.identitySha256,
+      `artifact ${artifact.role} embedded identity does not match its binding`,
+    );
+    requireValue(
+      sha256Value(parsed.blacksiteScaleMeasurements) === binding.measurementsSha256,
+      `artifact ${artifact.role} embedded measurements do not match its binding`,
+    );
     verifiedArtifacts.push({ role: artifact.role, name: artifact.name, bytes: candidateStat.size, sha256: digest });
   }
 
@@ -430,7 +505,10 @@ function clone(value) {
 
 function materializeSelfTestArtifacts(evidence, directory) {
   for (const artifact of evidence.artifacts) {
-    const content = `${artifact.role}\n`;
+    const content = `${JSON.stringify({
+      ...createScaleArtifactProof(evidence, artifact.role),
+      selfTest: true,
+    })}\n`;
     writeFileSync(join(directory, artifact.name), content, 'utf8');
     artifact.bytes = Buffer.byteLength(content);
     artifact.sha256 = createHash('sha256').update(content).digest('hex');
@@ -484,6 +562,32 @@ async function runSelfTest() {
       false,
     ],
     ['artifact size mismatch', (evidence) => { evidence.artifacts[0].bytes += 1; }, false],
+    [
+      'artifact measurement contradiction',
+      (evidence, directory) => {
+        const artifact = evidence.artifacts[0];
+        const artifactPath = join(directory, artifact.name);
+        const report = JSON.parse(readFileSync(artifactPath, 'utf8'));
+        report.blacksiteScaleMeasurements.workload.achievedRps -= 1;
+        const content = `${JSON.stringify(report)}\n`;
+        writeFileSync(artifactPath, content, 'utf8');
+        artifact.bytes = Buffer.byteLength(content);
+        artifact.sha256 = createHash('sha256').update(content).digest('hex');
+      },
+      false,
+    ],
+    [
+      'unstructured artifact',
+      (evidence, directory) => {
+        const artifact = evidence.artifacts[0];
+        const artifactPath = join(directory, artifact.name);
+        const content = `${artifact.role}\n`;
+        writeFileSync(artifactPath, content, 'utf8');
+        artifact.bytes = Buffer.byteLength(content);
+        artifact.sha256 = createHash('sha256').update(content).digest('hex');
+      },
+      false,
+    ],
     [
       'missing artifact',
       (evidence, directory) => rmSync(join(directory, evidence.artifacts[0].name)),

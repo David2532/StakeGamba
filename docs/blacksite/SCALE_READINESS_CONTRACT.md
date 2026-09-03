@@ -8,7 +8,7 @@ This is a BlackSite release-evidence contract, not a Stake rule and not a substi
 
 The workload must identify a planning population of exactly 1,000,000 users and separately record the approved peak concurrency and request rate. One million registered or addressable users does not mean one million simultaneous sessions. The workload owner, provider owner and platform owner must approve the actual concurrency/RPS model before execution.
 
-Accepted schema-v3 evidence must bind:
+Accepted schema-v4 evidence must bind:
 
 - the exact Git commit and packaged frontend SHA-256;
 - the provider and CDN release identities;
@@ -22,7 +22,8 @@ Accepted schema-v3 evidence must bind:
 - bounded saturation metrics, correlated logs/metrics/traces, captured dashboards and acknowledged alert drills;
 - a successful bounded rollback rehearsal;
 - six unique, run-ID-bound artifact roles with portable relative paths, positive byte sizes and SHA-256 digests: load report, CDN report, provider ledger, resilience report, observability export and rollback report;
-- an explicit artifacts root from which the verifier reads every regular, non-symlink file and independently matches its path containment, byte size and streamed SHA-256 digest.
+- an explicit artifacts root from which the verifier reads every regular, non-symlink file and independently matches its path containment, byte size and SHA-256 digest.
+- `blacksiteScaleBinding`, `blacksiteScaleIdentity` and `blacksiteScaleMeasurements` objects inside every JSON report. The binding schema, role, run ID, embedded release identity and role-specific measurement summary must match the top-level evidence, so unrelated, empty or contradictory report bytes cannot substantiate the final claim.
 
 Performance, cache, saturation and recovery limits are supplied by the approved workload evidence. The verifier compares observed values with those approved limits; it does not invent universal provider thresholds.
 
@@ -45,7 +46,7 @@ node scripts/blacksite-scale-evidence.mjs \
   --output /secure/path/blacksite-scale-verification.json
 ```
 
-The workload approval must exist before the run starts. The real command must be executed against the exact release candidate after the coordinated test. Metadata-only evidence is rejected: all six referenced files must exist below the supplied artifacts root, and traversal, duplicate paths, symlinks, missing files, size drift or digest drift fail closed. Its PASS output, approval reference and all six verified artifacts must be retained by the release owner. Do not commit credentials, session IDs, player data, provider secrets or unrestricted production URLs.
+The workload approval must exist before the run starts. The real command must be executed against the exact release candidate after the coordinated test. Metadata-only evidence is rejected: all six referenced files must exist below the supplied artifacts root as structured JSON reports, and traversal, duplicate paths, symlinks, missing files, size drift, digest drift or mismatched embedded proof fields fail closed. Add the exact result of `createScaleArtifactProof(evidence, role)` to each report before hashing it; the helper includes the binding plus the release identity and role-specific measurement summary that the verifier independently hashes and compares. The release owner must retain the PASS output, approval reference and all six verified reports. Do not commit credentials, session IDs, player data, provider secrets or unrestricted production URLs.
 
 ## Release decision
 
