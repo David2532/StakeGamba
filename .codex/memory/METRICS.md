@@ -1,5 +1,54 @@
 # Rolling automation metrics
 
+## BS-20260903-05
+
+```yaml
+closed_at_utc: 2026-09-03T03:08:26Z
+sprint_day: 5
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-SCALE-REPORT-BINDING-001
+parent_work_item: { id: BSB-SCALE-001, state: OPEN_EXTERNAL_EVIDENCE_REQUIRED }
+expected_red: { pass: 12, fail: 1, status: EXPECTED_FAIL, exit: 1 }
+focused_final: { pass: 13, fail: 0, status: PASS, exit: 0 }
+local_scale_self_test: { pass: 27, fail: 0, status: PASS, exit: 0 }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck: { errors: 0, warnings: 0, status: PASS }
+local_app_tests: { pass: 191, fail: 0 }
+local_build: PASS
+local_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_ci_run: 33709162435
+exact_ci_status: SUCCESS
+exact_ci_commit: 42909989329453019b5d72ef4d72f15c01fdbe9b
+exact_frozen_install: PASS
+exact_lint: PASS
+exact_typecheck: { errors: 0, warnings: 0, status: PASS }
+exact_app_tests: { pass: 191, fail: 0 }
+exact_scale_contract_tests: { pass: 13, fail: 0 }
+exact_scale_self_test: { pass: 27, fail: 0 }
+exact_build: PASS
+exact_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_package: { generation: PASS, verification: PASS, frontend_tree: 58f41163495aaaa931202a094266387fdf5bd53db8548ccc132d891445cfb1eb, frontend_files: 6, frontend_bytes: 439759, math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da, math_files: 7, math_bytes: 48697667 }
+exact_browser: { scenarios: 84, passed: 84, failed: 0, checks_pass: 2358, checks_fail: 0 }
+exact_diagnostics: { unexpected_requests: 0, forbidden_requests: 0, expected_negative_console_errors: 6, page_errors: 0, failed_requests: 0 }
+exact_compliance_resolver: PASS
+exact_compliance: { automated_proof_complete: 38, manual_gates_open: 23, external_gates_open: 6 }
+artifact_id: 9876572820
+artifact_digest: sha256:0e4e7b8e9f0a99218250923407b6508ddd894bcc96b37925f236f00542a3dce0
+current_exact_browser_geometry: PASS
+manual_visual_review: PASS_4_PRIMARY_TARGET_VIEWS
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+git_diff_check: PASS
+final_diff_review: PASS_3_EXPECTED_IMPLEMENTATION_FILES
+manual_identical_retries: 0
+```
+
+Observed categories: targeted branch/memory/scale/asset-policy reads; one expected-red and one focused-after cycle; one complete local frozen-install/lint/typecheck/test/build/scale/math cycle; exact GitHub workflow/log/artifact verification; current-artifact manual review across four target views; diff/secret/debug/scope review and non-force Git persistence. Standard HTTPS push authentication failed once and connected Git data completed the exact fast-forward; one result-shape mismatch and one pre-completion 404 occurred while retrieving job logs, without rerunning a semantic gate. No subagent, dependency, lockfile, product runtime, math, wallet/provider schema or product asset changed. Structured report binding validates claim consistency only and cannot establish external capacity.
+
 ## BS-20260903-04
 
 ```yaml

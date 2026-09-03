@@ -1,5 +1,22 @@
 # Material run log
 
+## BS-20260903-05 — SUCCESS
+
+- Sprint day: 5
+- Base commit: `2abf47fae2d8dc48034aa6a7bfeb0155c1ec630b`
+- Verified implementation commit: `42909989329453019b5d72ef4d72f15c01fdbe9b`
+- Work item: `BSB-SCALE-REPORT-BINDING-001` (DONE); parent `BSB-SCALE-001` remains OPEN.
+- Selection reason: schema v3 verified the six declared artifact files and their digests but did not prove that their contents agreed with the top-level release identity and load/CDN/provider/resilience/observability/rollback measurements. Arbitrary self-hashed files could therefore substantiate a contradictory claim.
+- Before/after evidence: the new focused regression began 12 PASS / 1 expected FAIL because the old verifier accepted six JSON files whose embedded identity and measurements contradicted the evidence. Schema v4 now requires canonical role/run, release-identity and role-specific measurement bindings in every structured JSON report; final focused tests pass 13/13 and the verifier self-test passes 27/27, including contradictory and unstructured-report rejections.
+- Changed files: scale verifier, scale contract tests, scale readiness runbook and five sprint-memory files. Product runtime, layout, math, wallet/provider schema, product assets, dependencies and lockfile are unchanged.
+- Gates: expected red 12/13 with exit 1; focused final 13/13 PASS; frozen install PASS; lint PASS; production `svelte-check` 0 errors/0 warnings; app tests 191/191 PASS; production build PASS; scale self-test 27/27 PASS; math 7/7 over 300,000 books with fingerprint `d03fab…78d8`; exact package generation/readback PASS at 6 frontend files / 439,759 bytes; exact CI `33709162435` PASS; Chromium 84/84 scenarios / 2358 checks PASS; unexpected/forbidden requests, page errors and failed requests 0; current-SHA 51-point resolver PASS; `git diff --check` plus secret/debug/scope review PASS.
+- Visual review: exact artifact `9876572820` was downloaded; 1920x1080, 1366x768, 390x844 and 844x390 captures were manually inspected. Board, HUD, controls and vault remain complete without overlap, crop, scrollbar or broken images; the Penguin Vaultkeeper remains intact on desktop and the intended compact vault plate remains intact on mobile. No product visual source changed.
+- Package evidence: exact frontend tree `58f41163495aaaa931202a094266387fdf5bd53db8548ccc132d891445cfb1eb`, 6 files / 439,759 bytes; math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; artifact digest `sha256:0e4e7b8e9f0a99218250923407b6508ddd894bcc96b37925f236f00542a3dce0`.
+- Tool/token metrics: targeted reads and `rg`, one expected-red/focused cycle, one full local gate, exact CI/log/artifact retrieval, four-image manual review, patching and Git persistence; direct subagents 0; tokens `null` / `not_exposed`. One HTTPS push-auth failure fell back to connected Git data without force; one result-shape error and one pre-completion log 404 were not repeated unchanged as semantic work.
+- Persistence: implementation fast-forwarded through connected Git data without force; exact CI and artifact succeeded. The final memory-only closeout commit is recorded by the run handoff.
+- Residual risk: no production-equivalent CDN/RGS/provider load result exists, so capacity for 1,000,000 users remains NOT_CLAIMED. Approved Spine rig/clips, BLACKOUT/foreground art, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals remain open.
+- Next candidate: obtain and validate the real owner-approved production-equivalent run for `BSB-SCALE-001`; if infrastructure remains externally unavailable, advance only another repository-solvable high release gate without substituting synthetic evidence for acceptance.
+
 ## BS-20260903-04 — SUCCESS
 
 - Sprint day: 5
@@ -322,22 +339,5 @@ Newest entries first; retain at most 20.
 - Package evidence: exact remote frontend tree `6251b00d46bbb73121d3bbc99ae07e6a195eaf71cd60867c9038c0f87372fc36`, 10 files / 700,597 bytes, exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation skill kept computed CSS, semantic phase ownership and observed transition windows in the same proof. Obsolete/missing package arguments and one redundant math pass were corrected without being counted twice; no unchanged semantic failure was repeated.
 - Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33593132383`, artifact `9832809110` and digest `sha256:26144af161e644ad249eb10b3fdd64916ad9dfabbd71c5eb6f6ce98b0ef6b24f` succeeded.
-- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
-
-## BS-20260902-31 — SUCCESS
-
-- Sprint day: 4
-- Base commit: `8630156052c0177aa67796ead0cbfafc37485a74`
-- Verified implementation commit: `1858277da51c45fcfb831d5d7b3c5bd0f57db748`
-- Work item: `BSB-BLACKOUT-HERO-TIMING-EVIDENCE-001` (DONE; parent `BSB-MOTION-001` remains in progress)
-- Selection reason: BLACKOUT source/CSS timing and state order were covered, but current-package Chromium did not directly prove both Normal/Turbo trigger and recovery windows, exact paid request ownership and their visible frames.
-- Before/after evidence: focused compliance began 14 PASS / 1 expected FAIL because the 51-point evidence map lacked the deterministic timing scenario. Exact Chromium now runs `blackout_zero` twice and measures trigger/recovery at 1000.4/1026.9ms Normal and 359.7/365.8ms Turbo against 1000/360ms CSS. Two exact `mode:blackout` requests cost 1,000,000 micro-units each, end ready at exact `$0.00`, and issue no checkpoint, event or settlement writes.
-- Changed files: exact Chromium QA, checklist row-21 evidence binding, compliance regression and five sprint-memory files; runtime UI, math, assets, lockfile and dependencies unchanged.
-- Gates: expected-red compliance 14 PASS / 1 FAIL; syntax PASS; focused contracts/compliance 43/43 PASS and final compliance 15/15 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 139/139 PASS; production build PASS; local and exact math 7/7 with 300,000 books and unchanged fingerprint; exact identity-bound package generation/readback and 51-row resolver PASS; exact Chromium 81/81 scenarios and 2263/2263 checks PASS; unexpected network/page/request failures 0; six expected 401/503 negative-path console messages; `git diff --check` and secret/debug/scope review PASS. Local package verification lost its tool session and local Chromium was unavailable, so exact isolated CI supplies those proofs.
-- Visual review: four exact 1366x768 BLACKOUT trigger/recovery frames plus 1920x1080, 390x844 and 844x390 captures from artifact `9831213913` were inspected. The gold lock/iris overlay, board, Vaultkeeper/penguin, controls, values and vault identity remain complete without overlap, document scroll, crop or broken images; automated geometry also passed 360x740, 768x1024, Replay 360x640 and the orientation round trip. Physical-device sign-off remains open.
-- Package evidence: exact remote frontend tree `6d639b1644b80c9644cc3f5df3219eb6462d76dfe969374ab55cf1ae41fb2d5f`, 10 files / 700,597 bytes, exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes, package verification PASS; math fingerprint remains `d03fab…78d8`.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation and visual-QA skills kept authored durations, exact request ownership and all four hero frames in the same deterministic proof. Five changed-path recoveries handled tool/path/auth/result-shape issues; no unchanged semantic failure was repeated.
-- Persistence: implementation was fast-forwarded without force through connected Git data; exact run `33588488559`, artifact `9831213913` and digest `sha256:c04b47171320e4792638b0b156715f8c144fd30d7da6c08e166e57b6be3b7efe` succeeded.
 - Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
