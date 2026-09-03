@@ -225,7 +225,8 @@ test('real scale verification requires the trust store outside the artifact root
     const evidencePath = join(directory, 'evidence.json');
     const trustStorePath = join(directory, 'trusted-signers.json');
     writeFileSync(evidencePath, `${JSON.stringify(evidence)}\n`, 'utf8');
-    writeFileSync(trustStorePath, `${JSON.stringify(trustStore)}\n`, 'utf8');
+    const trustStoreBytes = `${JSON.stringify(trustStore)}\n`;
+    writeFileSync(trustStorePath, trustStoreBytes, 'utf8');
 
     const result = spawnSync(
       process.execPath,
@@ -237,6 +238,8 @@ test('real scale verification requires the trust store outside the artifact root
         directory,
         '--trusted-signers',
         trustStorePath,
+        '--expected-trust-store-sha256',
+        createHash('sha256').update(trustStoreBytes).digest('hex'),
         '--expected-commit',
         evidence.identity.gitSha,
         '--expected-frontend-tree',
@@ -249,6 +252,47 @@ test('real scale verification requires the trust store outside the artifact root
     assert.match(result.stderr, /trusted-signers must be outside artifacts-root/u);
   } finally {
     rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('real scale verification pins the out-of-band trust store digest', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'blacksite-scale-trust-pin-red-'));
+  const trustDirectory = mkdtempSync(join(tmpdir(), 'blacksite-scale-trust-pin-store-'));
+  try {
+    const evidence = createSelfTestEvidence();
+    const { privateKeys, trustStore } = signerFixture(evidence);
+    writeSignedArtifacts(evidence, directory, privateKeys);
+    const evidencePath = join(directory, 'evidence.json');
+    const trustStorePath = join(trustDirectory, 'trusted-signers.json');
+    writeFileSync(evidencePath, `${JSON.stringify(evidence)}\n`, 'utf8');
+    const trustStoreBytes = `${JSON.stringify(trustStore)}\n`;
+    writeFileSync(trustStorePath, trustStoreBytes, 'utf8');
+
+    const result = spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(new URL('../../../scripts/blacksite-scale-evidence.mjs', import.meta.url)),
+        '--evidence',
+        evidencePath,
+        '--artifacts-root',
+        directory,
+        '--trusted-signers',
+        trustStorePath,
+        '--expected-trust-store-sha256',
+        '0'.repeat(64),
+        '--expected-commit',
+        evidence.identity.gitSha,
+        '--expected-frontend-tree',
+        evidence.identity.frontendTreeSha256,
+      ],
+      { encoding: 'utf8' },
+    );
+
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /trusted-signers sha256 mismatch/u);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+    rmSync(trustDirectory, { recursive: true, force: true });
   }
 });
 
@@ -266,7 +310,8 @@ test('scale artifact readback verifies exact files and detects tampering', async
     const evidencePath = join(directory, 'evidence.json');
     const trustStorePath = join(trustDirectory, 'trusted-signers.json');
     writeFileSync(evidencePath, `${JSON.stringify(evidence)}\n`, 'utf8');
-    writeFileSync(trustStorePath, `${JSON.stringify(trustStore)}\n`, 'utf8');
+    const trustStoreBytes = `${JSON.stringify(trustStore)}\n`;
+    writeFileSync(trustStorePath, trustStoreBytes, 'utf8');
     const cli = spawnSync(
       process.execPath,
       [
@@ -277,6 +322,8 @@ test('scale artifact readback verifies exact files and detects tampering', async
         directory,
         '--trusted-signers',
         trustStorePath,
+        '--expected-trust-store-sha256',
+        createHash('sha256').update(trustStoreBytes).digest('hex'),
         '--expected-commit',
         evidence.identity.gitSha,
         '--expected-frontend-tree',
@@ -287,6 +334,7 @@ test('scale artifact readback verifies exact files and detects tampering', async
     assert.equal(cli.status, 0, cli.stderr);
     const cliResult = JSON.parse(cli.stdout);
     assert.equal(cliResult.claim, 'EXTERNAL_SCALE_EVIDENCE_VALIDATED');
+    assert.equal(cliResult.trustStoreReadback.sha256, createHash('sha256').update(trustStoreBytes).digest('hex'));
     assert.equal(cliResult.artifactReadback.verifiedArtifacts.length, 6);
 
     const forgedArtifact = evidence.artifacts[0];

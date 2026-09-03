@@ -893,22 +893,31 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const frontendTreeSha256 = argument('--expected-frontend-tree');
     const artifactsRoot = argument('--artifacts-root');
     const trustedSignersPath = argument('--trusted-signers');
+    const expectedTrustStoreSha256 = argument('--expected-trust-store-sha256');
     requireValue(
-      evidencePath && gitSha && frontendTreeSha256 && artifactsRoot && trustedSignersPath,
-      'Usage: node scripts/blacksite-scale-evidence.mjs --evidence <json> --artifacts-root <directory> --trusted-signers <json> --expected-commit <sha> --expected-frontend-tree <sha256> [--output <json>]',
+      evidencePath && gitSha && frontendTreeSha256 && artifactsRoot && trustedSignersPath && expectedTrustStoreSha256,
+      'Usage: node scripts/blacksite-scale-evidence.mjs --evidence <json> --artifacts-root <directory> --trusted-signers <json> --expected-trust-store-sha256 <sha256> --expected-commit <sha> --expected-frontend-tree <sha256> [--output <json>]',
     );
+    exactHex(expectedTrustStoreSha256, 64, 'expected-trust-store-sha256');
     const evidence = JSON.parse(readFileSync(evidencePath, 'utf8'));
     const artifactsRootStat = lstatSync(artifactsRoot, { throwIfNoEntry: false });
     requireValue(artifactsRootStat?.isDirectory() === true && artifactsRootStat.isSymbolicLink() === false, 'artifacts-root must be a real directory');
     const trustedSignersStat = lstatSync(trustedSignersPath, { throwIfNoEntry: false });
     requireValue(trustedSignersStat?.isFile() === true && trustedSignersStat.isSymbolicLink() === false, 'trusted-signers must be a real regular file');
     requirePathOutsideRoot(realpathSync(artifactsRoot), realpathSync(trustedSignersPath), 'trusted-signers');
-    const trustStore = JSON.parse(readFileSync(trustedSignersPath, 'utf8'));
+    const trustStoreBytes = readFileSync(trustedSignersPath);
+    const trustStoreSha256 = createHash('sha256').update(trustStoreBytes).digest('hex');
+    requireValue(trustStoreSha256 === expectedTrustStoreSha256, 'trusted-signers sha256 mismatch');
+    const trustStore = JSON.parse(trustStoreBytes.toString('utf8'));
     const metadata = verifyScaleEvidence(evidence, { gitSha, frontendTreeSha256 });
     const artifactReadback = await verifyScaleEvidenceArtifacts(evidence, artifactsRoot, trustStore);
     const result = {
       ...metadata,
       claim: 'EXTERNAL_SCALE_EVIDENCE_VALIDATED',
+      trustStoreReadback: {
+        schema: trustStore.schema,
+        sha256: trustStoreSha256,
+      },
       artifactReadback,
       warning: 'This validates supplied production-equivalent evidence and exact artifact bytes; external owners still decide whether it proves approved capacity.',
     };
