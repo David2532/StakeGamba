@@ -90,6 +90,7 @@
 				"uncertain-live-play-reloads-and-restores-without-retry",
 				"accepted-winning-play-response-loss-restores-and-pays-exactly-once",
 				"accepted-checkpoint-response-loss-restores-without-rewrite",
+				"accepted-winning-checkpoint-response-loss-restores-and-pays-exactly-once",
 				"settlement-http-503-reloads-and-restores-exactly-once",
 				"accepted-settlement-response-loss-reauthenticates-without-retry",
 				"accepted-winning-settlement-response-loss-prevents-double-payout",

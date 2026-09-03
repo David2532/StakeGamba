@@ -2164,6 +2164,247 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('accepted-winning-checkpoint-response-loss-restores-and-pays-exactly-once', async (record) => {
+		const group = 'accepted-winning-checkpoint-response-loss-restores-and-pays-exactly-once';
+		const fixture = getGeneratedFixture('base_big');
+		const acceptedCursor = encodePresentationCursor(2);
+		const round = authoritativeFixtureRound({
+			fixture,
+			active: true,
+			id: 'blacksite-qa-accepted-winning-checkpoint-response-loss',
+			event: acceptedCursor,
+		});
+		const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
+		const settledBalance = debitedBalance + round.payout;
+		const checkpointEventTypes = new Set([
+			'board_set',
+			'breach_state',
+			'feature_start',
+			'feature_cycle',
+			'feature_end',
+			'cap_reached',
+		]);
+		const expectedCheckpointCursors = fixture.book.events
+			.filter(({ type }) => checkpointEventTypes.has(type))
+			.map(({ index }) => encodePresentationCursor(index + 1));
+		const expectedRemainingCursors = fixture.book.events
+			.slice(2)
+			.filter(({ type }) => checkpointEventTypes.has(type))
+			.map(({ index }) => encodePresentationCursor(index + 1));
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			await context.addInitScript(
+				({ rgsOrigin }) => {
+					const auditKey = 'blacksite-qa-accepted-winning-checkpoint-response-loss-audit';
+					const nativeFetch = window.fetch.bind(window);
+					const readAudit = () => {
+						try {
+							return JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
+								attempts: 0,
+								acceptedResponses: 0,
+								aborts: 0,
+								consumed: false,
+							};
+						} catch {
+							return { attempts: 0, acceptedResponses: 0, aborts: 0, consumed: false };
+						}
+					};
+					const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
+					window.fetch = async (input, init = {}) => {
+						const url = new URL(
+							typeof input === 'string' || input instanceof URL ? input : input.url,
+							window.location.href,
+						);
+						if (url.origin !== rgsOrigin || url.pathname !== '/bet/event') {
+							return nativeFetch(input, init);
+						}
+						const audit = readAudit();
+						if (audit.consumed) return nativeFetch(input, init);
+						audit.consumed = true;
+						audit.attempts += 1;
+						writeAudit(audit);
+						await nativeFetch(input, init);
+						const accepted = readAudit();
+						accepted.acceptedResponses += 1;
+						writeAudit(accepted);
+						return new Promise((_resolve, reject) => {
+							const abort = () => {
+								const aborted = readAudit();
+								aborted.aborts += 1;
+								writeAudit(aborted);
+								reject(new DOMException('BLACKSITE QA discarded the accepted winning checkpoint response.', 'AbortError'));
+							};
+							if (init.signal?.aborted) abort();
+							else init.signal?.addEventListener('abort', abort, { once: true });
+						});
+					};
+				},
+				{ rgsOrigin: BLACKSITE_QA_RGS_ORIGIN },
+			);
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: (_request, networkEvidence) =>
+						networkEvidence.byEndpoint.authenticate.length === 1
+							? authenticateResponse({ jurisdictionOverrides: { displayNetPosition: true } })
+							: authenticateResponse({
+									balance: debitedBalance,
+									round,
+									jurisdictionOverrides: { displayNetPosition: true },
+								}),
+					play: () => ({
+						status: successStatus(),
+						balance: { amount: debitedBalance, currency: 'USD' },
+						round,
+					}),
+					event: (request) => ({ event: request.body.event }),
+					endRound: () => endRoundResponse({ balance: settledBalance }),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'event', 1);
+			await page.waitForFunction(() => {
+				const audit = JSON.parse(
+					sessionStorage.getItem('blacksite-qa-accepted-winning-checkpoint-response-loss-audit') ?? 'null',
+				);
+				return audit?.acceptedResponses === 1;
+			});
+			assertExactRequest(group, network.byEndpoint.play[0], {
+				method: 'POST',
+				path: '/wallet/play',
+				body: {
+					sessionID: SESSION_ID,
+					currency: 'USD',
+					amount: DEFAULT_BASE_AMOUNT,
+					mode: 'base',
+				},
+			});
+			assertExactRequest(group, network.byEndpoint.event[0], {
+				method: 'POST',
+				path: '/bet/event',
+				body: { sessionID: SESSION_ID, event: acceptedCursor },
+			});
+			record.acceptedScreenshot = await saveScreenshot(page, `${group}-pending-client-response`);
+
+			await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
+			await waitForEndpoint(network, 'authenticate', 2);
+			await waitForEndpoint(network, 'endRound', 1, 30_000);
+			await waitForRuntimeState(page, 'live-ready');
+			await page.waitForTimeout(200);
+
+			const responseLossAudit = await page.evaluate(() =>
+				JSON.parse(
+					sessionStorage.getItem('blacksite-qa-accepted-winning-checkpoint-response-loss-audit') ?? 'null',
+				),
+			);
+			for (const request of network.byEndpoint.authenticate) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/wallet/authenticate',
+					body: { sessionID: SESSION_ID, language: 'en' },
+				});
+			}
+			for (const request of network.byEndpoint.event) {
+				assertExactRequest(group, request, {
+					method: 'POST',
+					path: '/bet/event',
+					body: { sessionID: SESSION_ID, event: request.body.event },
+				});
+			}
+			assertExactRequest(group, network.byEndpoint.endRound[0], {
+				method: 'POST',
+				path: '/wallet/end-round',
+				body: { sessionID: SESSION_ID },
+			});
+			check(
+				group,
+				'accepted winning checkpoint response loss aborts only the pending client transport',
+				responseLossAudit?.attempts === 1 &&
+					responseLossAudit?.acceptedResponses === 1 &&
+					responseLossAudit?.aborts === 1,
+				serialize(responseLossAudit),
+			);
+			const actualCheckpointCursors = network.byEndpoint.event.map(({ body }) => body.event);
+			check(
+				group,
+				'accepted winning checkpoint is never rewritten after authoritative restore',
+				actualCheckpointCursors[0] === acceptedCursor &&
+					actualCheckpointCursors.filter((cursor) => cursor === acceptedCursor).length === 1,
+				serialize(actualCheckpointCursors),
+			);
+			check(
+				group,
+				'accepted winning checkpoint recovery persists every remaining cursor exactly once',
+				serialize(actualCheckpointCursors.slice(1)) === serialize(expectedRemainingCursors) &&
+					serialize(actualCheckpointCursors) === serialize(expectedCheckpointCursors) &&
+					new Set(actualCheckpointCursors).size === expectedCheckpointCursors.length,
+				serialize({ expectedCheckpointCursors, actualCheckpointCursors }),
+			);
+			check(
+				group,
+				'accepted winning checkpoint recovery order is authoritative and exact',
+				network.byEndpoint.authenticate.length === 2 &&
+					network.byEndpoint.play.length === 1 &&
+					network.byEndpoint.endRound.length === 1 &&
+					serialize(network.order) === serialize([
+						'authenticate',
+						'play',
+						'event',
+						'authenticate',
+						...expectedRemainingCursors.map(() => 'event'),
+						'endRound',
+					]),
+				serialize(network.order),
+			);
+			check(
+				group,
+				'accepted winning checkpoint recovery pays the authoritative result exactly once',
+				round.payout === 200 * API_UNIT &&
+					settledBalance === 1_199 * API_UNIT &&
+					(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1199.00' &&
+					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$200.00' &&
+					(await page.locator(SELECTORS.sessionNetPosition).innerText()).trim() === '−$200.00' &&
+					await runtimeState(page) === 'live-ready',
+				serialize({
+					balance: await page.locator(SELECTORS.walletBalance).innerText(),
+					win: await page.locator(SELECTORS.finalWin).innerText(),
+					netPosition: await page.locator(SELECTORS.sessionNetPosition).innerText(),
+					payoutApi: round.payout,
+					settledBalance,
+				}),
+			);
+			const expectedAbortedRequests = diagnostics.failedRequests.splice(0);
+			check(
+				group,
+				'accepted winning checkpoint response loss reports exactly the intentionally aborted event transport',
+				expectedAbortedRequests.length === 1 &&
+					expectedAbortedRequests[0]?.method === 'POST' &&
+					expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/bet/event` &&
+					expectedAbortedRequests[0]?.error === 'net::ERR_ABORTED',
+				serialize(expectedAbortedRequests),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.screenshot = await saveScreenshot(page, group);
+			record.restore = {
+				fixture: fixture.id,
+				payoutApi: round.payout,
+				acceptedCursor,
+				expectedCheckpointCursors,
+				debitedBalance,
+				settledBalance,
+			};
+			record.expectedAbortedRequests = expectedAbortedRequests;
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('expired-session-on-play-reauthenticates-without-automatic-retry', async (record) => {
 		const group = 'expired-session-on-play-reauthenticates-without-automatic-retry';
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });

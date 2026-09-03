@@ -201,6 +201,7 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 		'uncertain-live-play-reloads-and-restores-without-retry',
 		'accepted-winning-play-response-loss-restores-and-pays-exactly-once',
 		'accepted-checkpoint-response-loss-restores-without-rewrite',
+		'accepted-winning-checkpoint-response-loss-restores-and-pays-exactly-once',
 		'settlement-http-503-reloads-and-restores-exactly-once',
 		'accepted-settlement-response-loss-reauthenticates-without-retry',
 		'accepted-winning-settlement-response-loss-prevents-double-payout',
@@ -220,6 +221,9 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 	assert.match(browserQa, /accepted checkpoint response loss aborts only the pending client transport/u);
 	assert.match(browserQa, /accepted checkpoint is not rewritten after authoritative restore/u);
 	assert.match(browserQa, /accepted checkpoint recovery order is authoritative and exact/u);
+	assert.match(browserQa, /accepted winning checkpoint is never rewritten after authoritative restore/u);
+	assert.match(browserQa, /accepted winning checkpoint recovery persists every remaining cursor exactly once/u);
+	assert.match(browserQa, /accepted winning checkpoint recovery pays the authoritative result exactly once/u);
 	assert(
 		browserQa.includes(
 			"expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/bet/event`",
