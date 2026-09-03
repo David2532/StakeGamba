@@ -1,7 +1,7 @@
 # BLACKSITE seven-day sprint
 
 - Sprint window: 2026-08-30 through 2026-09-05 (Europe/Berlin calendar days)
-- Current sprint day: 5
+- Current sprint day: 6
 - Lifecycle: `QA_BLOCKED_EXTERNAL_AND_MANUAL`
 - Release candidate ready: no
 
@@ -9,13 +9,13 @@
 
 | Area                                     | Current evidence                                                                                                                                                                                   |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Production build                         | PASS locally and in exact current-head CI `33805319296` for commit `760a0be1`, exit 0 |
-| Lint                                     | PASS locally and in exact current-head CI `33805319296`, exit 0 |
-| Typecheck                                | PASS locally and in exact current-head CI `33805319296` — production `svelte-check`, `checkJs: true`, 0 errors / 0 warnings |
-| Automated app tests                      | PASS locally and in exact current-head CI `33805319296` — 196/196, exit 0; validator self-test 33/33 PASS |
-| Math/package invariants                  | PASS in exact current-head CI — 7/7 math tests, 300,000 books, fingerprint `d03fab…78d8`; exact CI frontend is 6 files / 439,752 bytes with tree `8dc2a6e2…545bc3`, unchanged math tree `6bd0c4c7…01da`. |
-| Current-head browser/E2E                 | PASS for candidate `760a0be1` — exact CI `33805319296` passes 89/89 scenarios and 2878/2878 checks plus the current-SHA resolver. The established accepted-write recovery matrix remains exact; the current slice changes verifier tooling only. |
-| Desktop/portrait/landscape visual review | PASS for automated candidate scope — artifact `9913304478` supplied 1920x1080, 1366x768, 390x844 and 844x390 geometry views, manually inspected without overlap, crop, scroll or broken images. Real-device sign-off remains external. |
+| Production build                         | PASS locally and in exact current-head CI `33809586680` for commit `af9aa168`, exit 0 |
+| Lint                                     | PASS locally and in exact current-head CI `33809586680`, exit 0 |
+| Typecheck                                | PASS locally and in exact current-head CI `33809586680` — production `svelte-check`, `checkJs: true`, 0 errors / 0 warnings |
+| Automated app tests                      | PASS locally and in exact current-head CI `33809586680` — 197/197, exit 0; validator self-test 35/35 PASS |
+| Math/package invariants                  | PASS in exact current-head CI — 7/7 math tests, 300,000 books, fingerprint `d03fab…78d8`; exact CI frontend is 6 files / 439,759 bytes with tree `1ea770c8…bd8f75`, unchanged math tree `6bd0c4c7…01da`. |
+| Current-head browser/E2E                 | PASS for candidate `af9aa168` — exact CI `33809586680` passes 89/89 scenarios and 2878/2878 checks plus the current-SHA resolver. The established accepted-write recovery matrix remains exact; the current slice changes verifier tooling only. |
+| Desktop/portrait/landscape visual review | PASS for automated candidate scope — artifact `9914780746` supplied 1920x1080, 1366x768, 390x844 and 844x390 geometry views, manually inspected without overlap, crop, scroll or broken images. Real-device sign-off remains external. |
 | Live wallet/replay/restore               | PARTIAL — real auth-timeout abort/reload, dynamic/ambiguous authenticate parameters, fractional new-play/restore, uncertain paid-play reload/restore, server-accepted/client-response-lost play and checkpoint recovery, zero- and positive-payout settlement response-loss recovery without retry/double credit, event-driven feature cursor restore, active-feature Skip, auth/session expiry, failed settlement, `ERR_IPB`, competing-input deduplication, exact currency families and Social Replay surfaces are current-package browser proven; broader provider evidence remains |
 | Gameplay state matrix                    | PARTIAL — exact current-package proof covers five deterministic rule wins per canonical mode plus natural Base and confirmed Deep Access feature entry/cycles/exit/ready cleanup; the full requested production interaction matrix is not yet current-head proven |
 | Player HUD/responsiveness/accessibility  | PASS for the current automated control surface — computed centering, uncut labels, >=44px touch geometry, safe viewport placement, real double-tap/no-zoom plus touch-scroll behavior, 3px/2px keyboard focus, named route/presentation groups, atomic state/net-position statuses, a named non-live timer, exact high-cost descriptions and a ten-entry visible interaction guide pass exact-package checks; real screen-reader/device sign-off remains open |
@@ -24,6 +24,8 @@
 | Product identity/assets/licenses         | PARTIAL — original penguin fallback and separate desktop/portrait base-vault plates are hash/provenance-bound, optimized and exact-browser integrated; human approval, cleanup/Spine, BLACKOUT and foreground layers remain open |
 | Stake/provider checklist                 | PARTIAL — all 51 rows are exactly mapped: 20 automated PASS, 18 automated-proof/manual-open, 5 manual-only, 6 external and 2 N/A; all 38 automated references resolve on exact current-head package/browser identity, while 23 manual gates and 6 external approvals remain explicitly unclaimed |
 | Release blockers                         | OPEN — known critical/high blockers remain; do not claim `RELEASE_CANDIDATE_READY`                                                                                                                 |
+
+Run `BS-20260904-19` closes the scale-evidence verification-clock gap without changing product runtime. Expected-red proved a future `run.completedAt` was accepted. The verifier now captures its actual UTC time, rejects a run completed after that instant, rejects every report attestation signed after it, and emits the verification timestamp in metadata/readback results. Focused regression passes 1/1 and self-test 35/35. Exact CI `33809586680` passes frozen install, lint, 0/0 typecheck, 197 tests, build, 7/7 math over 300,000 books, package readback, 89/89 Chromium scenarios / 2878 checks and current-SHA 51-point resolution on `af9aa168`; artifact `9914780746` supplied four inspected target views. This proves verifier behavior only; production-equivalent capacity and external/manual approvals remain open.
 
 Run `BS-20260903-18` closes mutable pre-run scale-plan authorization without changing product runtime. Expected-red proved that an approval reference could be changed after trust-store creation; follow-up review showed workload targets and latency limits shared the same weakness. Trust schema v3 now hashes the complete approved plan and rejects changed approval metadata, target RPS or endpoint limits. Focused regression passes 3/3 and self-test 33/33. Exact CI `33805319296` passes frozen install, lint, 0/0 typecheck, 196 tests, build, 7/7 math over 300,000 books, package readback, 89/89 Chromium scenarios / 2878 checks and current-SHA 51-point resolution on `760a0be1`; artifact `9913304478` supplied four inspected target views. This proves verifier governance only; production-equivalent capacity and external/manual approvals remain open.
 

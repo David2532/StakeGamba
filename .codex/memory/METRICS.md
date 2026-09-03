@@ -1,5 +1,42 @@
 # Rolling automation metrics
 
+## BS-20260904-19
+
+```yaml
+started_at_utc: 2026-09-03T21:30:34Z
+closed_at_utc: 2026-09-03T22:06:29Z
+sprint_day: 6
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-SCALE-VERIFICATION-CLOCK-001
+parent_work_item: { id: BSB-SCALE-001, state: OPEN_PRODUCTION_EQUIVALENT_EVIDENCE_REQUIRED }
+expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_FUTURE_RUN_ACCEPTED, exit: 1 }
+focused_final: { pass: 1, fail: 0, status: PASS, exit: 0 }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck: { errors: 0, warnings: 0, status: PASS }
+local_app_tests: { pass: 197, fail: 0, exit: 0 }
+local_build: PASS
+local_scale_self_test: { pass: 35, fail: 0, status: PASS, exit: 0 }
+local_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_ci: { run: 33809586680, commit: af9aa1681ce1005ad709cacece53066a45ebf320, status: SUCCESS }
+exact_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_browser: { scenarios: 89, passed: 89, checks: 2878, passed_checks: 2878, failed_checks: 0 }
+exact_package: { frontend_tree: 1ea770c8ca0424e8eacf34cffa7d06acb3032ca1ae1c4abd8329a23085bd8f75, files: 6, bytes: 439759, status: PASS }
+exact_resolver: { total: 51, automated_proof_complete: 38, manual_open: 23, external_open: 6, status: PASS }
+artifact: { id: 9914780746, bytes: 57724872, sha256: 1a89449f4562d6ea99e9493d1bfa069bedb275f8abcb2980e1c2d68cd5c585bb }
+manual_visual_review: PASS_1920X1080_1366X768_390X844_844X390
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+git_diff_check: PASS
+final_diff_review: PASS_VERIFIER_TEST_CONTRACT_AND_MEMORY_ONLY
+manual_identical_retries: 0
+```
+
+Observed categories: targeted governance/source/test/memory reads; one expected-red future-time attack and focused fix; one complete local product gate; exact package/readback and one locally blocked Chromium attempt; connected Git-data implementation fast-forward; exact workflow/job/artifact retrieval; four-image manual review; targeted memory patching. Standard HTTPS push authentication failed once and was replaced with connected Git data. Two package invocations were corrected for stale identity and an existing output directory; local Chromium was blocked by the absent browser binary and exact CI supplied the browser proof. The Stake 3-star compliance skill kept repository verifier evidence distinct from provider and Stake approval. No subagents, product runtime, UI, math, wallet/provider schema, assets, dependencies or lockfile changed.
+
 ## BS-20260903-18
 
 ```yaml

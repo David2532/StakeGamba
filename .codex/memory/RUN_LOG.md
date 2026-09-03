@@ -1,5 +1,22 @@
 # Material run log
 
+## BS-20260904-19 — SUCCESS
+
+- Sprint day: 6
+- Base remote commit: `9cd66c59e824a8dc888defb9651ae4e5c73ad365`
+- Verified implementation commit: `af9aa1681ce1005ad709cacece53066a45ebf320`
+- Work item: `BSB-SCALE-VERIFICATION-CLOCK-001` (DONE); parent `BSB-SCALE-001` remains OPEN for real infrastructure evidence.
+- Selection reason: the signed scale-evidence gate ordered attestations after the declared run, but never bounded either timestamp by the verifier's actual clock; a future-dated not-yet-run workload could therefore pass cryptographic validation.
+- Before/after evidence: expected-red 0/1 proved a future `run.completedAt` was accepted. The verifier now captures actual UTC verification time, rejects future run completion and future report signatures, and records `verifiedAt` in metadata/readback output. Focused regression 1/1 and self-test 35/35 pass.
+- Changed files: scale verifier, focused scale regression, scale-readiness contract and five sprint-memory files. Product runtime/layout, math/RNG, wallet/provider schema, product assets, dependencies and lockfile are unchanged.
+- Gates: local frozen install, lint, production `svelte-check` 0 errors/0 warnings, 197/197 app tests, production build, scale self-test 35/35 and math 7/7 over 300,000 books PASS. Exact CI `33809586680` passes every gate, six-file package/readback, Chromium 89/89 scenarios / 2878 checks and current-SHA 51-point resolution. Unexpected/forbidden requests, page errors and unclassified failed requests are zero. `git diff --check` and secret/debug/scope/full-own-diff review PASS.
+- Visual review: artifact `9914780746` matched `sha256:1a89449f4562d6ea99e9493d1bfa069bedb275f8abcb2980e1c2d68cd5c585bb`; 1920x1080, 1366x768, 390x844 and 844x390 views were manually inspected without overlap, crop, scrollbar or broken images. Penguin, vault, board, HUD and controls remain intact.
+- Package evidence: exact frontend tree `1ea770c8ca0424e8eacf34cffa7d06acb3032ca1ae1c4abd8329a23085bd8f75`, 6 files / 439,759 bytes; unchanged math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes.
+- Tool/token metrics: see `METRICS.md`; subagents 0; tokens `null` / `not_exposed`. The Stake 3-star compliance skill kept verifier proof separate from external capacity approval. Standard HTTPS push failed once; connected Git data provided non-force persistence. Package path/identity issues used changed corrective commands; local Chromium's absent binary was not retried and exact CI supplied the proof.
+- Persistence: implementation was fast-forwarded through connected Git data with `force: false`; exact CI and artifact succeeded. This memory closeout is fast-forwarded separately without force.
+- Residual risk: production-equivalent CDN/RGS/provider load and resilience proof remains absent, so capacity for 1,000,000 users is NOT_CLAIMED. Approved Spine rig/clips, BLACKOUT/foreground art, final audio/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals remain open.
+- Next candidate: obtain owner-approved production-equivalent `BSB-SCALE-001` evidence and validate all six independently signed reports against the external, digest-, plan- and clock-bounded trust path.
+
 ## BS-20260903-18 — SUCCESS
 
 - Sprint day: 5
@@ -322,22 +339,5 @@
 - Persistence: implementation was fast-forwarded without force. Exact run `33685146602`, artifact `9868237907` and digest `sha256:391a67e703c5be8cec690a9d9ad8b749d3424942b23e9de6baad70a1cfb0c6d5` succeeded on `f208e55`; connected Git data then fast-forwarded the memory closeout with `force: false` and exact tree verification.
 - Residual risk: active feature-mode badge/header acceptance, production-equivalent scale/load/resilience proof, approved Spine rig/clips, BLACKOUT/foreground art, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals remain open.
 - Next candidate: integrate and current-head verify the isolated active-mode badge geometry fix, then prepare the repository-side load/observability contract required for coordinated CDN/RGS/provider testing.
-
-## BS-20260902-45 — SUCCESS
-
-- Sprint day: 4
-- Base remote commit: `55f2551e0b4644caa1db7f58bbaace7f62be75ef`
-- Verified implementation commit: `e9ada5144852fcf7fece66c849a4f4b20fa9a952`
-- Work item: `BSB-FEATURE-IDLE-CONTINUITY-001` (DONE; parent `BSB-MOTION-001` remains in progress)
-- Selection reason: `PresentationDirector` assigned Base `monitoring` to every `board_snapshot`, so authoritative feature boards repeatedly erased the distinct `bonus_idle` stance after the generic feature-cycle delay. Prior exact evidence made the defect deterministic: both Natural Base and purchased Deep Access feature segments contained 23 Monitoring regressions.
-- Before/after evidence: the focused regression began 0/1 with actual `monitoring` versus expected `bonus_idle`. Feature snapshots now retain `bonus_idle`; Base snapshots remain `monitoring`, while one-shot `bonus_win` reactions retain ownership. Exact Chromium observes 25 transitions per Normal/Turbo feature segment—one trigger, 12 static bonus-idle stances, 11 bonus wins and one recovery—with zero Monitoring. Idle styles compute animation `none`, duration 0ms, `will-change: auto` and the authored transform/filter. Exact payouts remain `$1000.00` / `$2000.00`; each flow performs one play and zero event/settlement writes.
-- Changed files: PresentationDirector, direct contract regression, exact Chromium instrumentation/captures, Animation Bible, durable decision and five sprint-memory files. Math, RNG, wallet/provider schema, product assets, lockfile and dependencies are unchanged.
-- Gates: expected-red focused contract 0/1 PASS; syntax plus focused-after contracts 2/2 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 142/142 PASS; production build PASS; local and exact math 7/7 over 300,000 books with unchanged fingerprint; exact isolated package generation/readback and current-SHA 51-point resolver PASS; exact Chromium 84/84 scenarios / 2328/2328 checks PASS. Selected scenarios have zero console/page/request errors and zero unexpected/forbidden calls; aggregate six console messages are expected 401/503 negative paths. `git diff --check` and secret/debug/scope/full-own-diff review PASS.
-- Visual review: exact Natural Base Normal and Deep Access Turbo `bonus_idle` frames at 1366x768 plus 1920x1080, 390x844 and 844x390 captures from artifact `9862279235` were inspected. Board, centered values, controls, penguin and responsive vault remain complete and sharp without crop, scroll or broken images. The inspection newly exposed a Deep Access active-state chip collision with the desktop header kicker; visual DoD is downgraded to partial and `BSB-FEATURE-MODE-BADGE-OVERLAP-001` is open.
-- Package evidence: exact frontend tree `23053edf6731bc1440570bd60a7934dea1f7f042591dc1041e469f47b8d594bb`, 10 files / 712,434 bytes; exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; package verification PASS.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. Repository AAA-animation and visual-QA standards kept semantic authority, both presentation profiles, compositor cleanup, exact package identity and manual target-view inspection in one proof. The stale local build identity failed closed and was rebuilt once; an artifact field-path mismatch and over-broad debug scan were narrowed once. No semantic gate was repeated unchanged.
-- Persistence: implementation was fast-forwarded without force through connected Git data. Exact run `33669021386`, artifact `9862279235` and digest `sha256:ba8bf4f308a08fbe83353991c30ee2b27197d30fb98320eba0f33cf7d0e0bb13` succeeded; memory closeout is fast-forwarded separately without force.
-- Residual risk: the new Deep Access chip/header overlap; approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: resolve `BSB-FEATURE-MODE-BADGE-OVERLAP-001` with safe-area-aware positioning and active-feature overlap geometry across desktop, portrait and landscape.
 
 Newest entries first; retain at most 20.
