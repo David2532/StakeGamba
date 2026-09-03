@@ -1,4 +1,58 @@
+Warning: truncated output (original token count: 50396)
+Total output lines: 3920
+
 # Rolling automation metrics
+
+## BS-20260903-06
+
+```yaml
+started_at_utc: 2026-09-03T03:33:55Z
+closed_at_utc: 2026-09-03T04:44:42Z
+sprint_day: 5
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-ACCEPTED-PLAY-RESPONSE-LOSS-001
+parent_work_item: { id: BSB-EVIDENCE-001, state: IN_PROGRESS_PROVIDER_AND_MANUAL_EVIDENCE_REQUIRED }
+expected_red: { pass: 190, fail: 1, status: EXPECTED_FAIL, exit: 1 }
+focused_final: { pass: 191, fail: 0, status: PASS, exit: 0 }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck: { errors: 0, warnings: 0, status: PASS }
+local_app_tests: { pass: 191, fail: 0 }
+local_build: PASS
+local_scale_self_test: { pass: 27, fail: 0, status: PASS, exit: 0 }
+local_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+local_browser: BLOCKED_MISSING_CHROMIUM_AND_TRANSIENT_CDN_DOWNLOAD_FAILURE
+exact_ci_run: 33714953239
+exact_ci_status: SUCCESS
+exact_ci_commit: 046692035909c382baf1d4157f4b41fa2b2bc312
+exact_frozen_install: PASS
+exact_lint: PASS
+exact_typecheck: { errors: 0, warnings: 0, status: PASS }
+exact_app_tests: { pass: 191, fail: 0 }
+exact_scale_self_test: { pass: 27, fail: 0 }
+exact_build: PASS
+exact_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_package: { generation: PASS, verification: PASS, frontend_tree: fb9723b5a24079c0c255f19228d4b9c8a8101d04062568d215a854a5167dff7f, frontend_files: 6, frontend_bytes: 439759, math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da, math_files: 7, math_bytes: 48697667 }
+exact_browser: { scenarios: 85, passed: 85, failed: 0, checks_pass: 2384, checks_fail: 0 }
+response_loss_contract: { play_attempts: 1, server_acceptances: 1, expected_client_aborts: 1, play_requests: 1, event_requests: 0, settlements: 1, final_balance: USD_999_00, final_win: USD_0_00 }
+exact_diagnostics: { unexpected_requests: 0, forbidden_requests: 0, expected_response_loss_aborts: 1, expected_negative_console_errors: 6, page_errors: 0, failed_requests: 0 }
+exact_compliance_resolver: PASS
+exact_compliance: { automated_proof_complete: 38, manual_gates_open: 23, external_gates_open: 6 }
+artifact_id: 9878505321
+artifact_digest: sha256:525bf4b070267b8d2afa0563527b5d36392208dfd581a222bf9218c1b4307737
+current_exact_browser_geometry: PASS
+manual_visual_review: PASS_4_PRIMARY_TARGET_VIEWS_AND_RESTORED_RESPONSE_LOSS_STATE
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+git_diff_check: PASS
+final_diff_review: PASS_3_EXPECTED_IMPLEMENTATION_FILES_177_INSERTIONS
+manual_identical_retries: 0
+```
+
+Observed categories: targeted branch/memory/provider-contract reads and `rg`; one expected-red/focused cycle; one complete local frozen-install/lint/typecheck/test/build/scale/math cycle; exact GitHub workflow/log/artifact verification; five-image manual review; diff/secret/debug/scope review and non-force Git persistence. The Stake RGS replay skill required fail-closed recovery, exact endpoint/body/order/count evidence and no automatic retry of an uncertain accepted write. Local Chromium was absent and its install met one HTTP 502 plus timeouts; exact isolated CI supplied browser proof. The first exact run exposed only misclassification of the intentional reload abort, and one connector-written assertion briefly contained doubled escapes; both were corrected with changed inputs, with no unchanged semantic retry. Standard HTTPS push authentication failed once and connected Git data completed the fast-forward. No subagent, dependency, lockfile, product runtime, math, wallet/provider schema or product asset changed.
 
 ## BS-20260903-05
 
@@ -1788,49 +1842,7 @@ final_diff_check: PASS
 manual_identical_retries: 0
 ```
 
-Observed categories: compact branch/memory/provider and QA reads; one expected-red then green focused compliance reproduction; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/scope review; connected Git-data fast-forward; exact Actions evidence; artifact extraction, structured evidence reads and four screenshot inspections. The first connected blob response exposed a result-shape mismatch and was parsed through its actual top-level SHA on the changed retry. An unused non-executable QA tree was corrected before commit/ref update, and rejected destructive temporary cleanup was replaced with a new inspection directory. No unchanged semantic failure was repeated. No subagents, dependencies or binary product assets were used; exact aggregate tool/file/token telemetry was not exposed.
-
-## BS-20260901-19
-
-```yaml
-closed_at_utc: 2026-09-01T14:27:00Z
-sprint_day: 3
-status: SUCCESS
-direct_subagents: 0
-tool_call_counts: null
-file_read_count: null
-tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
-focused_compliance_before: { pass: 9, fail: 1, status: EXPECTED_FAIL_REPRODUCED }
-focused_syntax_status: PASS
-focused_compliance_after: { pass: 10, fail: 0, status: PASS }
-local_frozen_install: PASS
-local_lint: PASS
-local_typecheck_errors: 0
-local_typecheck_warnings: 0
-local_app_tests: 128
-local_app_status: PASS
-local_build: PASS
-local_full_math_tests: 7
-local_full_math_books: 300000
-local_full_math_duration_ms: 363600
-local_full_gate_duration_seconds: null
-local_browser: BLOCKED_TRANSIENT_CDN_502_TIMEOUT_EXACT_CI_USED
-exact_lint: PASS
-exact_typecheck_errors: 0
-exact_typecheck_warnings: 0
-exact_app_tests: 128
-exact_build: PASS
-exact_full_math_tests: 7
-exact_full_math_books: 300000
-exact_full_math_fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8
-exact_package_generation: PASS
-exact_package_verification: PASS
-exact_frontend_tree: 4cd782fc6517d0fe085fc6edeb3d2a48767a72a8f8a627f90c6ff4979215a715
-verified_ci_run: 33517845045
-verified_ci_status: PASS
-verified_ci_seconds: 890
-remote_browser: { scenarios: 73, checks_pass: 1952, checks_fail: 0, unexpected_failures: 0 }
-active_feature_restore: { resume_cursor: 69, trace_samples: 21, remaining_checkpoints: 15, duplicate_plays: 0, settlements: 1, final_win_micro: 1000000000, final_balance_micro: 1999000000 }
+Observed categories: compact branch/memory/provider and QA reads; one expected-red then green focused compliance reproduction; one complete local frozen-install/lint/typecheck/test/build/math cycle; diff/secret/scope review; connected Git-data fast-forward; exact Actions evidence; artifact extraction, structured evidence reads and four screenshot inspections. The first connected blob response exposed a result-shape mismatch and was parsed through its actual top-level SHA on the changed retry. An unused non-executable QA tree was corrected before commit/ref update, and rejected destructive temporary cleanup was replaced with a new inspection directory. No unchanged semantic failure was repeated. No subagents, d…396 tokens truncated…ents: 1, final_win_micro: 1000000000, final_balance_micro: 1999000000 }
 remote_expected_negative_console_errors: 6
 remote_diagnostics_artifact: 9804972383
 remote_diagnostics_digest: sha256:6eb8b67836593319715feb8e1748800912d18b323a7ec9b7166b9e2b6a93970e
