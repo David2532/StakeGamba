@@ -1,5 +1,22 @@
 # Material run log
 
+## BS-20260903-18 — SUCCESS
+
+- Sprint day: 5
+- Base remote commit: `df2502913976d36005b83b56bbef19ef0a01f331`
+- Verified implementation commit: `760a0be117fd6b08ce2e635d92390a6b14386414`
+- Work item: `BSB-SCALE-PRE-RUN-APPROVAL-BINDING-001` (DONE); parent `BSB-SCALE-001` remains OPEN for real infrastructure evidence.
+- Selection reason: the digest-pinned external trust store authenticated signer keys but did not bind the independently approved workload/SLO plan, so evidence could replace approval metadata, lower targets or relax limits while retaining valid signer authorization.
+- Before/after evidence: expected-red 0/1 proved a changed approval reference was accepted. Own-diff review broadened the fix to the complete pre-run plan. Trust schema v3 now pins approval/environment, population/concurrency/RPS/phases, all endpoint and CDN limits, resilience/saturation/alert drills and rollback limit; changed approval reference, target RPS or play p99 limit all fail closed. Focused regression 3/3 and self-test 33/33 pass.
+- Changed files: scale verifier, focused scale regression, scale-readiness contract and five sprint-memory files. Product runtime/layout, math/RNG, wallet/provider schema, product assets, dependencies and lockfile are unchanged.
+- Gates: local frozen install, lint, production `svelte-check` 0 errors/0 warnings, 196/196 app tests, production build, scale self-test 33/33 and math 7/7 over 300,000 books PASS. Exact CI `33805319296` passes every gate, six-file package/readback, Chromium 89/89 scenarios / 2878 checks and current-SHA 51-point resolution. Unexpected/forbidden requests, page errors and unclassified request failures are zero. `git diff --check` and secret/debug/scope/full-own-diff review PASS.
+- Visual review: artifact `9913304478` matched `sha256:01e4947c958972f17339e888e2b62752a0445027eef5ba9301979e082870d08a`; 1920x1080, 1366x768, 390x844 and 844x390 views were manually inspected without overlap, crop, scrollbar or broken images. Penguin, vault, board, HUD and controls remain intact.
+- Package evidence: exact frontend tree `8dc2a6e2b849ebd0d87bc7bfd9cbe12ee61f37a81d3234973a00270f54545bc3`, 6 files / 439,752 bytes; unchanged math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`.
+- Tool/token metrics: see `METRICS.md`; subagents 0; tokens `null` / `not_exposed`. The Stake 3-star compliance skill kept repository validation distinct from provider and Stake approval. Standard HTTPS push failed once and connected Git data provided non-force persistence; own review replaced the narrow first patch with full-plan binding.
+- Persistence: both implementation refinements were fast-forwarded through connected Git data with `force: false`; exact CI and artifact succeeded. This memory closeout is fast-forwarded separately without force.
+- Residual risk: production-equivalent CDN/RGS/provider load and resilience proof remains absent, so capacity for 1,000,000 users is NOT_CLAIMED. Approved Spine rig/clips, BLACKOUT/foreground art, final audio/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals remain open.
+- Next candidate: obtain owner-approved production-equivalent `BSB-SCALE-001` evidence and validate all six independently signed reports against the external, digest- and plan-pinned trust store.
+
 ## BS-20260903-17 — SUCCESS
 
 - Sprint day: 5
@@ -323,20 +340,4 @@
 - Residual risk: the new Deep Access chip/header overlap; approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: resolve `BSB-FEATURE-MODE-BADGE-OVERLAP-001` with safe-area-aware positioning and active-feature overlap geometry across desktop, portrait and landscape.
 
-## BS-20260902-44 — SUCCESS
-
-- Sprint day: 4
-- Base remote commit: `aea50cf4e6b3a227bae0b818efcda31733c9572e`
-- Verified implementation commit: `60e6562511c168bbe09f4875e1c5b2bc72e47a62`
-- Work item: `BSB-REPLAY-REDUCED-MOTION-EVIDENCE-001` (DONE; parent `BSB-EVIDENCE-001` remains in progress)
-- Selection reason: run 43 safely stopped with the corrected exact CI in progress; current-head Chromium, screenshot, wallet/network and 51-point evidence were the highest unresolved blocker and had to be verified before another motion slice.
-- Before/after evidence: exact run `33656188904` is now green. Reduced Replay completes in 50.3ms; four consecutive painted frames remain board `idle`, Vaultkeeper `idle_a`, profile `reduced`, with no character animation, CSS animation `none`, transition `0s` and `will-change: auto`. Normal/Turbo Replay hit ownership remains 452.3ms / 153.9ms. One exact Replay GET is queryless/bodyless and there are zero authenticate/play/end-round/event, unexpected or forbidden calls.
-- Changed files: five sprint-memory files only. The implementation, exact browser contract and runtime source were already secured in run 43; math, wallet/provider schema, assets, lockfile and dependencies remain unchanged.
-- Gates: focused syntax plus contracts 30/30 PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 141/141 PASS; production build PASS; local and exact math 7/7 over 300,000 books with unchanged fingerprint; exact isolated package generation/readback PASS; current-SHA 51-point resolver PASS; Chromium 84/84 scenarios / 2326/2326 checks PASS; Reduced Replay diagnostics 0 console/page/request errors; aggregate six console messages are expected 401/503 negative-path fixtures; unexpected/forbidden network requests 0; `git diff --check` and secret/debug/scope/full-own-diff review PASS.
-- Visual review: exact Reduced Replay completion at 1366x768 plus 1920x1080, 390x844 and 844x390 captures from artifact `9857355056` were inspected. Board, centered values, controls, desktop penguin and responsive vault environment remain complete and sharp without overlap, document scroll, crop or broken images; physical-device sign-off remains open.
-- Package evidence: exact frontend tree `3404bf61dba292a21465b432170310c002b0a59a87d40c44c0a046e57dd49f4e`, 10 files / 712,368 bytes; exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; package verification PASS.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA visual-QA standard required exact-package identity, frame-state proof and manual inspection of every target viewport before closing the blocker. One incorrect connector argument pair and one malformed log-filter regex were each corrected once with changed input; no gate was repeated unchanged.
-- Persistence: verified implementation `60e6562`, exact run `33656188904`, artifact `9857355056` and digest `sha256:4b1837744d0cf98a1c6032659c1f83927e74f85edd5da7ef7b49d8848a890e37` are bound together. Memory closeout is fast-forwarded separately without force.
-- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
 Newest entries first; retain at most 20.
