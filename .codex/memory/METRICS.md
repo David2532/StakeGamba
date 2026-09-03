@@ -1,5 +1,44 @@
 # Rolling automation metrics
 
+## BS-20260903-14
+
+```yaml
+started_at_utc: 2026-09-03T16:38:13Z
+closed_at_utc: 2026-09-03T16:58:30Z
+sprint_day: 5
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-ACCEPTED-WINNING-CHECKPOINT-RESPONSE-LOSS-001
+parent_work_item: { id: BSB-EVIDENCE-001, state: IN_PROGRESS_PROVIDER_AND_MANUAL_EVIDENCE_REQUIRED }
+expected_red: { status: INHERITED_FROM_RUN_13, pass: 0, fail: 1, exit: 1 }
+focused_final: { pass: 1, fail: 0, status: PASS, exit: 0 }
+local_frozen_install: NOT_RUN_EXACT_CI_PASS
+local_lint: PASS
+local_typecheck: { errors: 0, warnings: 0, status: PASS }
+local_app_tests: { pass: 192, fail: 0, exit: 0 }
+local_build: PASS
+local_scale_self_test: { pass: 31, fail: 0, status: PASS, exit: 0 }
+local_full_math: NOT_RUN_EXACT_CI_PASS
+local_package: NOT_RUN_EXACT_CI_PASS
+exact_ci: { run: 33779286645, commit: 85dcadfeee87699652359ad3e3acb334249d3a9f, status: SUCCESS }
+exact_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_browser: { scenarios: 89, passed: 89, checks: 2878, passed_checks: 2878, failed_checks: 0 }
+winning_checkpoint_recovery: { auth: 2, play: 1, events: 49, distinct_events: 49, settlement: 1, accepted_response_abort: 1, debited_balance_api: 999000000, payout_api: 200000000, settled_balance_api: 1199000000, status: PASS }
+exact_package: { frontend_tree: d3d6169466b119bc18c593dac2e3c0c7b74fc199c413a5563eb4e42e522f1eda, files: 6, bytes: 439752, status: PASS }
+exact_resolver: { total: 51, automated_proof_complete: 38, manual_open: 23, external_open: 6, status: PASS }
+artifact: { id: 9903557420, sha256: b276764ad848463fe7aac25798e821b488dfc14f0eb58bb2d3fb588b9f754dbc }
+manual_visual_review: PASS_1920X1080_1366X768_390X844_844X390_PLUS_PENDING_AND_RESTORED_WINNING_CHECKPOINT
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+git_diff_check: PASS
+final_diff_review: PASS_MEMORY_CLOSEOUT_ONLY
+manual_identical_retries: 0
+```
+
+Observed categories: targeted memory/source reads and `rg`; one focused plus one complete local product gate excluding frozen install/math/package; exact workflow/job/artifact retrieval; structured browser/package/resolver inspection; manual six-image review; targeted memory patching and non-force Git persistence. The Stake RGS replay standard required exact endpoint/body/order/count, a cursorless fresh play response, authoritative post-reload cursor adoption and one-time settlement. One prohibited cleanup-shaped shell command was rejected before execution and replaced with a unique temporary directory; no semantic gate or unchanged failed command was repeated. No subagents, product runtime, layout, math, wallet/provider schema, product assets, dependencies or lockfile changed.
+
 ## BS-20260903-13
 
 ```yaml
