@@ -29,6 +29,10 @@ const environmentAssets = Object.freeze([
 const pageUrl = new URL('../src/routes/+page.svelte', import.meta.url);
 const assetMapUrl = new URL('../src/lib/assets/blacksite-assets.js', import.meta.url);
 const imagePaintUrl = new URL('../src/lib/assets/image-paint.js', import.meta.url);
+const responsiveAssetGateUrl = new URL(
+	'../src/lib/assets/responsive-asset-gate.js',
+	import.meta.url,
+);
 const browserQaUrl = new URL('../../../scripts/blacksite-qa-e2e.mjs', import.meta.url);
 
 function sha256(buffer) {
@@ -57,7 +61,7 @@ test('penguin fallback source and optimized runtime export match the manifest', 
 	);
 });
 
-test('runtime uses the semantic asset map and hides decorative character in compact layouts', async () => {
+test('runtime uses the semantic asset map and omits decorative character in compact layouts', async () => {
 	const [page, assetMap] = await Promise.all([
 		readFile(pageUrl, 'utf8'),
 		readFile(assetMapUrl, 'utf8'),
@@ -70,6 +74,9 @@ test('runtime uses the semantic asset map and hides decorative character in comp
 		/data-testid="vaultkeeper-presence"[\s\S]*data-character-state=[\s\S]*data-asset-state=[\s\S]*aria-hidden="true"/u,
 	);
 	assert.match(page, /on:error=\{handleCharacterAssetError\}/u);
+	assert.match(page, /\{#if renderCharacterAsset\}[\s\S]*BLACKSITE_ASSETS\.character\.vaultkeeperFallback[\s\S]*\{\/if\}/u);
+	assert.match(page, /let characterAssetState = 'omitted'/u);
+	assert.match(page, /watchCharacterAssetVisibility/u);
 	assert.match(page, /data-asset-paint-state=\{characterAssetState\}/u);
 	assert.match(page, /data-testid="vaultkeeper-safe-fallback"/u);
 	assert.match(page, /\[data-asset-state='fallback'\][\s\S]*vaultkeeper-safe-fallback/u);
@@ -136,12 +143,51 @@ test('asset paint barrier decodes, reveals and waits for two compositor frames',
 	);
 });
 
+test('responsive character asset gate tracks compact composition and disposes cleanly', async () => {
+	const { COMPACT_CHARACTER_MEDIA_QUERY, watchCharacterAssetVisibility } = await import(
+		responsiveAssetGateUrl.href
+	);
+	const listeners = new Set();
+	const mediaQueryList = {
+		matches: true,
+		addEventListener(type, listener) {
+			assert.equal(type, 'change');
+			listeners.add(listener);
+		},
+		removeEventListener(type, listener) {
+			assert.equal(type, 'change');
+			listeners.delete(listener);
+		},
+	};
+	const windowRef = {
+		matchMedia(query) {
+			assert.equal(query, COMPACT_CHARACTER_MEDIA_QUERY);
+			return mediaQueryList;
+		},
+	};
+	const visibility = [];
+	const dispose = watchCharacterAssetVisibility(windowRef, (visible) => visibility.push(visible));
+	assert.deepEqual(visibility, [false]);
+	assert.equal(listeners.size, 1);
+
+	mediaQueryList.matches = false;
+	for (const listener of listeners) listener({ matches: false });
+	assert.deepEqual(visibility, [false, true]);
+
+	mediaQueryList.matches = true;
+	for (const listener of listeners) listener({ matches: true });
+	assert.deepEqual(visibility, [false, true, false]);
+
+	dispose();
+	assert.equal(listeners.size, 0);
+});
+
 test('browser evidence identity includes shipped static assets', async () => {
 	const source = await readFile(browserQaUrl, 'utf8');
 	assert.match(source, /join\(repoRoot, 'apps', 'blacksite', 'static'\)/u);
-	assert.match(source, /\['painted', 'fallback'\]\.includes\(characterState \?\? ''\)/u);
+	assert.match(source, /\['painted', 'fallback', 'omitted'\]\.includes\(characterState \?\? ''\)/u);
 	assert.doesNotMatch(source, /\['painted', 'fallback', 'failed'\]\.includes/u);
-	assert.match(source, /vaultkeeper fallback is.*compact-hidden.*and loaded/u);
+	assert.match(source, /vaultkeeper fallback is.*compact-omitted/u);
 	assert.match(source, /missing Vaultkeeper image switches to the deterministic mechanical silhouette/u);
 	assert.match(source, /responsive mechanical vault environment selects/u);
 });

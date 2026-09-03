@@ -2,6 +2,7 @@
 	import { onMount, tick } from 'svelte';
 	import { BLACKSITE_ASSETS } from '../lib/assets/blacksite-assets.js';
 	import { waitForDecodedImagePaint } from '../lib/assets/image-paint.js';
+	import { watchCharacterAssetVisibility } from '../lib/assets/responsive-asset-gate.js';
 	import { MODES, getMode, getModeLabel } from '../lib/contracts/modes.js';
 	import {
 		CLUSTER_BANDS,
@@ -102,7 +103,8 @@
 	let motionMode = 'normal';
 	let reducedMotion = false;
 	let characterAssetFailed = false;
-	let characterAssetState = 'loading';
+	let characterAssetState = 'omitted';
+	let renderCharacterAsset = false;
 	let environmentAssetState = 'loading';
 	/** @type {HTMLImageElement | null} */
 	let characterAssetElement = null;
@@ -215,12 +217,21 @@
 		document.body.dataset.audioStatus = audioState.status;
 		document.body.dataset.audioLevel = audioState.level;
 		document.body.dataset.assetPaintState =
-			['painted', 'fallback'].includes(characterAssetState) &&
+			['painted', 'fallback', 'omitted'].includes(characterAssetState) &&
 			environmentAssetState === 'painted'
 				? 'painted'
 				: characterAssetState === 'failed' || environmentAssetState === 'failed'
 					? 'failed'
 					: 'loading';
+	}
+
+	function setCharacterAssetVisibility(visible) {
+		if (renderCharacterAsset === visible) return;
+		characterPaintRequest += 1;
+		characterAssetElement = null;
+		characterAssetFailed = false;
+		renderCharacterAsset = visible;
+		characterAssetState = visible ? 'loading' : 'omitted';
 	}
 
 	async function confirmAssetPaint(kind, image) {
@@ -742,6 +753,10 @@
 		};
 		motionMode = readMotionMode(window.localStorage);
 		const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+		const stopWatchingCharacterAsset = watchCharacterAssetVisibility(
+			window,
+			setCharacterAssetVisibility,
+		);
 		const syncReducedMotion = () => {
 			reducedMotion = reducedMotionQuery.matches;
 		};
@@ -769,9 +784,6 @@
 		window.addEventListener('keydown', keydown);
 		window.addEventListener('pagehide', destroyLiveSession);
 		window.addEventListener('pagehide', destroyReplaySession);
-		if (characterAssetElement?.complete) {
-			void confirmAssetPaint('character', characterAssetElement);
-		}
 		if (environmentAssetElement?.complete) {
 			void confirmAssetPaint('environment', environmentAssetElement);
 		}
@@ -823,6 +835,7 @@
 
 		return () => {
 			disposed = true;
+			stopWatchingCharacterAsset();
 			reducedMotionQuery.removeEventListener('change', syncReducedMotion);
 			window.removeEventListener('keydown', keydown);
 			window.removeEventListener('pagehide', destroyLiveSession);
@@ -967,20 +980,26 @@
 				data-testid="vaultkeeper-presence"
 				data-character-state={presentation.character?.state ?? 'idle_a'}
 				data-motion-profile={presentationTimingProfile}
-				data-asset-state={characterAssetFailed ? 'fallback' : 'image'}
+				data-asset-state={characterAssetState === 'omitted'
+					? 'omitted'
+					: characterAssetFailed
+						? 'fallback'
+						: 'image'}
 				data-asset-paint-state={characterAssetState}
 				aria-hidden="true"
 			>
-				<img
-					bind:this={characterAssetElement}
-					src={BLACKSITE_ASSETS.character.vaultkeeperFallback}
-					alt=""
-					width="702"
-					height="1080"
-					decoding="async"
-					on:load={(event) => void confirmAssetPaint('character', event.currentTarget)}
-					on:error={handleCharacterAssetError}
-				/>
+				{#if renderCharacterAsset}
+					<img
+						bind:this={characterAssetElement}
+						src={BLACKSITE_ASSETS.character.vaultkeeperFallback}
+						alt=""
+						width="702"
+						height="1080"
+						decoding="async"
+						on:load={(event) => void confirmAssetPaint('character', event.currentTarget)}
+						on:error={handleCharacterAssetError}
+					/>
+				{/if}
 				<div class="vaultkeeper-safe-fallback" data-testid="vaultkeeper-safe-fallback">
 					<span></span>
 				</div>
