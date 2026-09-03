@@ -1,33 +1,15 @@
-import { createHash } from 'node:crypto';
-import {
-  lstatSync,
-  mkdtempSync,
-  readFileSync,
-  realpathSync,
-  rmSync,
-  symlinkSync,
-  writeFileSync,
-} from 'node:fs';
+import { createHash, createPublicKey, generateKeyPairSync, sign as signPayload, verify as verifySignature } from 'node:crypto';
+import { lstatSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const SCALE_EVIDENCE_SCHEMA = 'blacksite-scale-evidence-v4';
-export const SCALE_ARTIFACT_BINDING_SCHEMA = 'blacksite-scale-artifact-binding-v1';
-const expectedResilienceScenarios = Object.freeze([
-  'cdn-origin-degradation',
-  'rgs-http-5xx',
-  'provider-timeout',
-  'instance-restart',
-]);
-const requiredArtifactRoles = Object.freeze([
-  'load-report',
-  'cdn-report',
-  'provider-ledger',
-  'resilience-report',
-  'observability-export',
-  'rollback-report',
-]);
+export const SCALE_EVIDENCE_SCHEMA = 'blacksite-scale-evidence-v5';
+export const SCALE_ARTIFACT_BINDING_SCHEMA = 'blacksite-scale-artifact-binding-v2';
+export const SCALE_ARTIFACT_ATTESTATION_SCHEMA = 'blacksite-scale-artifact-attestation-v1';
+export const SCALE_TRUST_STORE_SCHEMA = 'blacksite-scale-trusted-signers-v1';
+const expectedResilienceScenarios = Object.freeze(['cdn-origin-degradation', 'rgs-http-5xx', 'provider-timeout', 'instance-restart']);
+const requiredArtifactRoles = Object.freeze(['load-report', 'cdn-report', 'provider-ledger', 'resilience-report', 'observability-export', 'rollback-report']);
 
 function fail(message) {
   throw new Error(message);
@@ -54,10 +36,7 @@ function nonEmpty(value, name) {
 }
 
 function exactHex(value, length, name) {
-  requireValue(
-    typeof value === 'string' && new RegExp(`^[0-9a-f]{${length}}$`, 'u').test(value),
-    `${name} must be ${length} lowercase hexadecimal characters`,
-  );
+  requireValue(typeof value === 'string' && new RegExp(`^[0-9a-f]{${length}}$`, 'u').test(value), `${name} must be ${length} lowercase hexadecimal characters`);
 }
 
 function timestamp(value, name) {
@@ -67,10 +46,7 @@ function timestamp(value, name) {
 
 function containedRelativePath(root, candidate, name) {
   const fromRoot = relative(root, candidate);
-  requireValue(
-    fromRoot.length > 0 && fromRoot !== '..' && !fromRoot.startsWith(`..${process.platform === 'win32' ? '\\' : '/'}`),
-    `${name} must stay inside the artifacts root`,
-  );
+  requireValue(fromRoot.length > 0 && fromRoot !== '..' && !fromRoot.startsWith(`..${process.platform === 'win32' ? '\\' : '/'}`), `${name} must stay inside the artifacts root`);
 }
 
 function canonicalize(value) {
@@ -86,7 +62,26 @@ function canonicalize(value) {
 }
 
 function sha256Value(value) {
-  return createHash('sha256').update(JSON.stringify(canonicalize(value))).digest('hex');
+  return createHash('sha256')
+    .update(JSON.stringify(canonicalize(value)))
+    .digest('hex');
+}
+
+function canonicalBytes(value) {
+  return Buffer.from(JSON.stringify(canonicalize(value)), 'utf8');
+}
+
+function requiredSignerForRole(evidence, role) {
+  const byRole = {
+    'load-report': evidence.approval.workloadOwner,
+    'cdn-report': evidence.approval.platformOwner,
+    'provider-ledger': evidence.approval.providerOwner,
+    'resilience-report': evidence.approval.providerOwner,
+    'observability-export': evidence.approval.platformOwner,
+    'rollback-report': evidence.approval.platformOwner,
+  };
+  requireValue(Object.hasOwn(byRole, role), `artifact role ${role} has no signer owner`);
+  return byRole[role];
 }
 
 function measurementsForRole(evidence, role) {
@@ -129,8 +124,65 @@ export function createScaleArtifactProof(evidence, role) {
   };
 }
 
-export async function verifyScaleEvidenceArtifacts(evidence, artifactsRoot) {
+function createAttestationPayload(evidence, role, unsignedReport, signerId, signedAt) {
+  return {
+    schema: SCALE_ARTIFACT_ATTESTATION_SCHEMA,
+    role,
+    runId: evidence.run.id,
+    signerId,
+    signedAt,
+    bindingSha256: sha256Value(createScaleArtifactBinding(evidence, role)),
+    reportSha256: sha256Value(unsignedReport),
+  };
+}
+
+export function createScaleArtifactAttestation(evidence, role, unsignedReport, { signerId, privateKey, signedAt = evidence.run.completedAt }) {
+  const payload = createAttestationPayload(evidence, role, unsignedReport, signerId, signedAt);
+  return {
+    ...payload,
+    signatureBase64: signPayload(null, canonicalBytes(payload), privateKey).toString('base64'),
+  };
+}
+
+export function createScaleTrustStore(evidence, signers) {
+  return {
+    schema: SCALE_TRUST_STORE_SCHEMA,
+    identitySha256: sha256Value(evidence.identity),
+    signers,
+  };
+}
+
+function verifyTrustedSigners(evidence, trustStore) {
+  requireValue(trustStore && typeof trustStore === 'object', 'trusted signer trust store is required');
+  requireValue(trustStore.schema === SCALE_TRUST_STORE_SCHEMA, `trust store schema must be ${SCALE_TRUST_STORE_SCHEMA}`);
+  requireValue(trustStore.identitySha256 === sha256Value(evidence.identity), 'trust store release identity does not match evidence');
+  requireValue(Array.isArray(trustStore.signers) && trustStore.signers.length > 0, 'trusted signers are required');
+  const ids = trustStore.signers.map((signer) => signer?.id);
+  requireValue(new Set(ids).size === ids.length, 'trusted signer ids must be unique');
+  const trusted = new Map();
+  for (const signer of trustStore.signers) {
+    nonEmpty(signer?.id, 'trusted signer id');
+    requireValue(Array.isArray(signer.roles) && signer.roles.length > 0, `trusted signer ${signer.id}.roles is required`);
+    requireValue(new Set(signer.roles).size === signer.roles.length, `trusted signer ${signer.id}.roles must be unique`);
+    for (const role of signer.roles) {
+      requireValue(requiredArtifactRoles.includes(role), `trusted signer ${signer.id} has unknown role ${role}`);
+    }
+    nonEmpty(signer.publicKeyPem, `trusted signer ${signer.id}.publicKeyPem`);
+    let publicKey;
+    try {
+      publicKey = createPublicKey(signer.publicKeyPem);
+    } catch {
+      fail(`trusted signer ${signer.id} public key is invalid`);
+    }
+    requireValue(publicKey.asymmetricKeyType === 'ed25519', `trusted signer ${signer.id} key must be Ed25519`);
+    trusted.set(signer.id, { ...signer, publicKey });
+  }
+  return trusted;
+}
+
+export async function verifyScaleEvidenceArtifacts(evidence, artifactsRoot, trustStore) {
   nonEmpty(artifactsRoot, 'artifacts-root');
+  const trustedSigners = verifyTrustedSigners(evidence, trustStore);
   const rootStat = lstatSync(artifactsRoot, { throwIfNoEntry: false });
   requireValue(rootStat?.isDirectory() === true && rootStat.isSymbolicLink() === false, 'artifacts-root must be a real directory');
   const realRoot = realpathSync(artifactsRoot);
@@ -174,20 +226,42 @@ export async function verifyScaleEvidenceArtifacts(evidence, artifactsRoot) {
     requireValue(binding && typeof binding === 'object', `artifact ${artifact.role} structured binding is required`);
     const expectedBinding = createScaleArtifactBinding(evidence, artifact.role);
     for (const key of ['schema', 'role', 'runId', 'identitySha256', 'measurementsSha256']) {
-      requireValue(
-        binding[key] === expectedBinding[key],
-        `artifact ${artifact.role} binding.${key} mismatch`,
-      );
+      requireValue(binding[key] === expectedBinding[key], `artifact ${artifact.role} binding.${key} mismatch`);
     }
-    requireValue(
-      sha256Value(parsed.blacksiteScaleIdentity) === binding.identitySha256,
-      `artifact ${artifact.role} embedded identity does not match its binding`,
-    );
-    requireValue(
-      sha256Value(parsed.blacksiteScaleMeasurements) === binding.measurementsSha256,
-      `artifact ${artifact.role} embedded measurements do not match its binding`,
-    );
-    verifiedArtifacts.push({ role: artifact.role, name: artifact.name, bytes: candidateStat.size, sha256: digest });
+    requireValue(sha256Value(parsed.blacksiteScaleIdentity) === binding.identitySha256, `artifact ${artifact.role} embedded identity does not match its binding`);
+    requireValue(sha256Value(parsed.blacksiteScaleMeasurements) === binding.measurementsSha256, `artifact ${artifact.role} embedded measurements do not match its binding`);
+    const attestation = parsed.blacksiteScaleAttestation;
+    requireValue(attestation && typeof attestation === 'object', `artifact ${artifact.role} signer attestation is required`);
+    const expectedSignerId = requiredSignerForRole(evidence, artifact.role);
+    requireValue(attestation.signerId === expectedSignerId, `artifact ${artifact.role} signer does not match its approved owner`);
+    const trustedSigner = trustedSigners.get(attestation.signerId);
+    requireValue(trustedSigner, `artifact ${artifact.role} signer is not in the trusted signer store`);
+    requireValue(trustedSigner.roles.includes(artifact.role), `artifact ${artifact.role} signer is not trusted for this role`);
+    timestamp(attestation.signedAt, `artifact ${artifact.role}.attestation.signedAt`);
+    requireValue(Date.parse(attestation.signedAt) >= Date.parse(evidence.run.completedAt), `artifact ${artifact.role} was attested before the run completed`);
+    nonEmpty(attestation.signatureBase64, `artifact ${artifact.role}.attestation.signatureBase64`);
+    let signature;
+    try {
+      signature = Buffer.from(attestation.signatureBase64, 'base64');
+    } catch {
+      fail(`artifact ${artifact.role} attestation signature is invalid base64`);
+    }
+    requireValue(signature.length > 0 && signature.toString('base64') === attestation.signatureBase64, `artifact ${artifact.role} attestation signature is invalid base64`);
+    const unsignedReport = { ...parsed };
+    delete unsignedReport.blacksiteScaleAttestation;
+    const expectedAttestation = createAttestationPayload(evidence, artifact.role, unsignedReport, attestation.signerId, attestation.signedAt);
+    for (const key of ['schema', 'role', 'runId', 'signerId', 'signedAt', 'bindingSha256', 'reportSha256']) {
+      requireValue(attestation[key] === expectedAttestation[key], `artifact ${artifact.role} attestation.${key} mismatch`);
+    }
+    requireValue(verifySignature(null, canonicalBytes(expectedAttestation), trustedSigner.publicKey, signature), `artifact ${artifact.role} attestation signature is not valid`);
+    verifiedArtifacts.push({
+      role: artifact.role,
+      name: artifact.name,
+      bytes: candidateStat.size,
+      sha256: digest,
+      signerId: attestation.signerId,
+      signedAt: attestation.signedAt,
+    });
   }
 
   return { status: 'PASS', verifiedArtifacts };
@@ -197,10 +271,7 @@ function verifyLatencyMetric(name, metric) {
   requireValue(metric && typeof metric === 'object', `latency.${name} is required`);
   finitePositive(metric.requests, `latency.${name}.requests`);
   for (const key of ['p50Ms', 'p95Ms', 'p99Ms']) finitePositive(metric[key], `latency.${name}.${key}`);
-  requireValue(
-    metric.p50Ms <= metric.p95Ms && metric.p95Ms <= metric.p99Ms,
-    `latency.${name} percentiles must be monotonic`,
-  );
+  requireValue(metric.p50Ms <= metric.p95Ms && metric.p95Ms <= metric.p99Ms, `latency.${name} percentiles must be monotonic`);
   boundedRatio(metric.errorRate, `latency.${name}.errorRate`);
   boundedRatio(metric.timeoutRate, `latency.${name}.timeoutRate`);
   requireValue(metric.limits && typeof metric.limits === 'object', `latency.${name}.limits is required`);
@@ -211,10 +282,7 @@ function verifyLatencyMetric(name, metric) {
   requireValue(metric.p95Ms <= metric.limits.p95Ms, `latency.${name}.p95Ms exceeds approved limit`);
   requireValue(metric.p99Ms <= metric.limits.p99Ms, `latency.${name}.p99Ms exceeds approved limit`);
   requireValue(metric.errorRate <= metric.limits.errorRate, `latency.${name}.errorRate exceeds approved limit`);
-  requireValue(
-    metric.timeoutRate <= metric.limits.timeoutRate,
-    `latency.${name}.timeoutRate exceeds approved limit`,
-  );
+  requireValue(metric.timeoutRate <= metric.limits.timeoutRate, `latency.${name}.timeoutRate exceeds approved limit`);
 }
 
 export function verifyScaleEvidence(evidence, expected = {}) {
@@ -227,10 +295,7 @@ export function verifyScaleEvidence(evidence, expected = {}) {
   nonEmpty(evidence.identity?.cdnRelease, 'identity.cdnRelease');
   if (expected.gitSha) requireValue(evidence.identity.gitSha === expected.gitSha, 'identity.gitSha mismatch');
   if (expected.frontendTreeSha256) {
-    requireValue(
-      evidence.identity.frontendTreeSha256 === expected.frontendTreeSha256,
-      'identity.frontendTreeSha256 mismatch',
-    );
+    requireValue(evidence.identity.frontendTreeSha256 === expected.frontendTreeSha256, 'identity.frontendTreeSha256 mismatch');
   }
 
   requireValue(evidence.approval?.status === 'approved', 'approval.status must be approved');
@@ -242,47 +307,23 @@ export function verifyScaleEvidence(evidence, expected = {}) {
 
   requireValue(evidence.environment?.productionEquivalent === true, 'environment must be production-equivalent');
   requireValue(evidence.environment?.mocked === false, 'mocked environment evidence is not accepted');
-  requireValue(
-    Array.isArray(evidence.environment?.regions) && evidence.environment.regions.length > 0,
-    'environment.regions is required',
-  );
+  requireValue(Array.isArray(evidence.environment?.regions) && evidence.environment.regions.length > 0, 'environment.regions is required');
   nonEmpty(evidence.environment?.dataPolicy, 'environment.dataPolicy');
 
-  requireValue(
-    evidence.workload?.populationUsers === 1_000_000,
-    'workload.populationUsers must bind the one-million-user planning population',
-  );
-  for (const key of [
-    'peakConcurrentUsers',
-    'targetRps',
-    'achievedPeakConcurrentUsers',
-    'achievedRps',
-    'rampSeconds',
-    'steadyStateSeconds',
-    'soakSeconds',
-  ]) {
+  requireValue(evidence.workload?.populationUsers === 1_000_000, 'workload.populationUsers must bind the one-million-user planning population');
+  for (const key of ['peakConcurrentUsers', 'targetRps', 'achievedPeakConcurrentUsers', 'achievedRps', 'rampSeconds', 'steadyStateSeconds', 'soakSeconds']) {
     finitePositive(evidence.workload?.[key], `workload.${key}`);
   }
-  requireValue(
-    evidence.workload.achievedPeakConcurrentUsers >= evidence.workload.peakConcurrentUsers,
-    'approved peak concurrency was not achieved',
-  );
+  requireValue(evidence.workload.achievedPeakConcurrentUsers >= evidence.workload.peakConcurrentUsers, 'approved peak concurrency was not achieved');
   requireValue(evidence.workload.achievedRps >= evidence.workload.targetRps, 'approved request rate was not achieved');
   timestamp(evidence.run?.startedAt, 'run.startedAt');
   timestamp(evidence.run?.completedAt, 'run.completedAt');
   nonEmpty(evidence.run?.id, 'run.id');
-  requireValue(
-    Date.parse(evidence.approval.approvedAt) <= Date.parse(evidence.run.startedAt),
-    'workload and limits must be approved before the run starts',
-  );
+  requireValue(Date.parse(evidence.approval.approvedAt) <= Date.parse(evidence.run.startedAt), 'workload and limits must be approved before the run starts');
   requireValue(Date.parse(evidence.run.completedAt) > Date.parse(evidence.run.startedAt), 'run duration is invalid');
   const runDurationSeconds = (Date.parse(evidence.run.completedAt) - Date.parse(evidence.run.startedAt)) / 1000;
-  const claimedPhaseSeconds =
-    evidence.workload.rampSeconds + evidence.workload.steadyStateSeconds + evidence.workload.soakSeconds;
-  requireValue(
-    runDurationSeconds >= claimedPhaseSeconds,
-    'run duration is shorter than the claimed workload phase duration',
-  );
+  const claimedPhaseSeconds = evidence.workload.rampSeconds + evidence.workload.steadyStateSeconds + evidence.workload.soakSeconds;
+  requireValue(runDurationSeconds >= claimedPhaseSeconds, 'run duration is shorter than the claimed workload phase duration');
 
   const requiredEndpoints = ['frontend', 'authenticate', 'play', 'event', 'endRound', 'replay'];
   for (const name of requiredEndpoints) verifyLatencyMetric(name, evidence.latency?.[name]);
@@ -291,10 +332,7 @@ export function verifyScaleEvidence(evidence, expected = {}) {
     positiveInteger(evidence.latency[name].requests, `latency.${name}.requests`);
     return sum + evidence.latency[name].requests;
   }, 0);
-  requireValue(
-    evidence.workload.measuredRequests === measuredEndpointRequests,
-    'workload.measuredRequests must equal the sum of endpoint request samples',
-  );
+  requireValue(evidence.workload.measuredRequests === measuredEndpointRequests, 'workload.measuredRequests must equal the sum of endpoint request samples');
 
   finitePositive(evidence.cdn?.requests, 'cdn.requests');
   finitePositive(evidence.cdn?.cacheableRequests, 'cdn.cacheableRequests');
@@ -315,13 +353,7 @@ export function verifyScaleEvidence(evidence, expected = {}) {
   finitePositive(evidence.idempotency?.paidPlayAttempts, 'idempotency.paidPlayAttempts');
   finitePositive(evidence.idempotency?.settlementAttempts, 'idempotency.settlementAttempts');
   finitePositive(evidence.idempotency?.uncertainRecoveryCases, 'idempotency.uncertainRecoveryCases');
-  for (const key of [
-    'duplicateAcceptedPaidPlays',
-    'duplicateSettlements',
-    'negativeBalances',
-    'payoutMismatches',
-    'uncertainRecoveryDuplicateWrites',
-  ]) {
+  for (const key of ['duplicateAcceptedPaidPlays', 'duplicateSettlements', 'negativeBalances', 'payoutMismatches', 'uncertainRecoveryDuplicateWrites']) {
     requireValue(evidence.idempotency?.[key] === 0, `idempotency.${key} must be zero`);
   }
 
@@ -389,8 +421,7 @@ export function verifyScaleEvidence(evidence, expected = {}) {
       rps: evidence.workload.achievedRps,
     },
     cdn: { cacheHitRate, originRequestRatio },
-    warning:
-      'Metadata validation is incomplete until the CLI reads back every bound artifact; CI self-tests and mocked traffic never prove capacity.',
+    warning: 'Metadata validation is incomplete until the CLI reads back every bound artifact; CI self-tests and mocked traffic never prove capacity.',
   };
 }
 
@@ -454,7 +485,11 @@ export function createSelfTestEvidence() {
       cacheHits: 760_000,
       originRequests: 40_000,
       originEgressBytes: 1_000_000_000,
-      limits: { minCacheHitRate: 0.9, maxOriginRequestRatio: 0.05, maxOriginEgressBytes: 2_000_000_000 },
+      limits: {
+        minCacheHitRate: 0.9,
+        maxOriginRequestRatio: 0.05,
+        maxOriginEgressBytes: 2_000_000_000,
+      },
       invalidationValidated: true,
     },
     idempotency: {
@@ -488,7 +523,12 @@ export function createSelfTestEvidence() {
       dashboardsCaptured: true,
       alertDrills: [{ name: 'rgs-error-rate', fired: true, acknowledged: true }],
     },
-    rollback: { executed: true, healthyAfterRollback: true, recoverySeconds: 45, limitSeconds: 120 },
+    rollback: {
+      executed: true,
+      healthyAfterRollback: true,
+      recoverySeconds: 45,
+      limitSeconds: 120,
+    },
     artifacts: requiredArtifactRoles.map((role) => ({
       role,
       name: `${role}.json`,
@@ -503,16 +543,52 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function materializeSelfTestArtifacts(evidence, directory) {
+function createSelfTestTrust(evidence) {
+  const signerRoles = new Map([
+    [evidence.approval.workloadOwner, ['load-report']],
+    [evidence.approval.providerOwner, ['provider-ledger', 'resilience-report']],
+    [evidence.approval.platformOwner, ['cdn-report', 'observability-export', 'rollback-report']],
+  ]);
+  const privateKeys = new Map();
+  const signers = [];
+  for (const [id, roles] of signerRoles) {
+    const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+    privateKeys.set(id, privateKey);
+    signers.push({
+      id,
+      roles,
+      publicKeyPem: publicKey.export({ type: 'spki', format: 'pem' }),
+    });
+  }
+  return { privateKeys, trustStore: createScaleTrustStore(evidence, signers) };
+}
+
+function materializeSelfTestArtifacts(evidence, directory, privateKeys) {
   for (const artifact of evidence.artifacts) {
-    const content = `${JSON.stringify({
+    const unsignedReport = {
       ...createScaleArtifactProof(evidence, artifact.role),
       selfTest: true,
+    };
+    const signerId = requiredSignerForRole(evidence, artifact.role);
+    const content = `${JSON.stringify({
+      ...unsignedReport,
+      blacksiteScaleAttestation: createScaleArtifactAttestation(evidence, artifact.role, unsignedReport, {
+        signerId,
+        privateKey: privateKeys.get(signerId),
+      }),
     })}\n`;
     writeFileSync(join(directory, artifact.name), content, 'utf8');
     artifact.bytes = Buffer.byteLength(content);
     artifact.sha256 = createHash('sha256').update(content).digest('hex');
   }
+}
+
+function rewriteSelfTestArtifact(evidence, directory, index, report) {
+  const artifact = evidence.artifacts[index];
+  const content = `${JSON.stringify(report)}\n`;
+  writeFileSync(join(directory, artifact.name), content, 'utf8');
+  artifact.bytes = Buffer.byteLength(content);
+  artifact.sha256 = createHash('sha256').update(content).digest('hex');
 }
 
 async function runSelfTest() {
@@ -522,21 +598,131 @@ async function runSelfTest() {
     ['wrong commit', Object.assign(clone(valid), { identity: { ...valid.identity, gitSha: 'c'.repeat(40) } }), false],
     ['wrong population', Object.assign(clone(valid), { workload: { ...valid.workload, populationUsers: 999_999 } }), false],
     ['mocked environment', Object.assign(clone(valid), { environment: { ...valid.environment, mocked: true } }), false],
-    ['missed concurrency', Object.assign(clone(valid), { workload: { ...valid.workload, achievedPeakConcurrentUsers: 99_999 } }), false],
+    [
+      'missed concurrency',
+      Object.assign(clone(valid), {
+        workload: { ...valid.workload, achievedPeakConcurrentUsers: 99_999 },
+      }),
+      false,
+    ],
     ['missed rps', Object.assign(clone(valid), { workload: { ...valid.workload, achievedRps: 24_999 } }), false],
-    ['latency breach', (() => { const value = clone(valid); value.latency.play.p99Ms = 151; return value; })(), false],
-    ['cache breach', (() => { const value = clone(valid); value.cdn.cacheHits = 700_000; return value; })(), false],
-    ['duplicate settlement', (() => { const value = clone(valid); value.idempotency.duplicateSettlements = 1; return value; })(), false],
-    ['missing resilience', (() => { const value = clone(valid); value.resilience.scenarios.pop(); return value; })(), false],
-    ['saturation breach', (() => { const value = clone(valid); value.saturation[0].maxObserved = 81; return value; })(), false],
-    ['missing observability', (() => { const value = clone(valid); value.observability.tracesCorrelated = false; return value; })(), false],
-    ['rollback breach', (() => { const value = clone(valid); value.rollback.recoverySeconds = 121; return value; })(), false],
-    ['invalid artifact digest', (() => { const value = clone(valid); value.artifacts[0].sha256 = 'nope'; return value; })(), false],
-    ['approval after start', (() => { const value = clone(valid); value.approval.approvedAt = '2026-09-03T00:00:01.000Z'; return value; })(), false],
-    ['phase duration mismatch', (() => { const value = clone(valid); value.run.completedAt = '2026-09-03T01:00:00.000Z'; return value; })(), false],
-    ['request total mismatch', (() => { const value = clone(valid); value.workload.measuredRequests -= 1; return value; })(), false],
-    ['duplicate artifact role', (() => { const value = clone(valid); value.artifacts[5] = { ...value.artifacts[0] }; return value; })(), false],
-    ['missing artifact role', (() => { const value = clone(valid); value.artifacts = value.artifacts.filter((artifact) => artifact.role !== 'rollback-report'); return value; })(), false],
+    [
+      'latency breach',
+      (() => {
+        const value = clone(valid);
+        value.latency.play.p99Ms = 151;
+        return value;
+      })(),
+      false,
+    ],
+    [
+      'cache breach',
+      (() => {
+        const value = clone(valid);
+        value.cdn.cacheHits = 700_000;
+        return value;
+      })(),
+      false,
+    ],
+    [
+      'duplicate settlement',
+      (() => {
+        const value = clone(valid);
+        value.idempotency.duplicateSettlements = 1;
+        return value;
+      })(),
+      false,
+    ],
+    [
+      'missing resilience',
+      (() => {
+        const value = clone(valid);
+        value.resilience.scenarios.pop();
+        return value;
+      })(),
+      false,
+    ],
+    [
+      'saturation breach',
+      (() => {
+        const value = clone(valid);
+        value.saturation[0].maxObserved = 81;
+        return value;
+      })(),
+      false,
+    ],
+    [
+      'missing observability',
+      (() => {
+        const value = clone(valid);
+        value.observability.tracesCorrelated = false;
+        return value;
+      })(),
+      false,
+    ],
+    [
+      'rollback breach',
+      (() => {
+        const value = clone(valid);
+        value.rollback.recoverySeconds = 121;
+        return value;
+      })(),
+      false,
+    ],
+    [
+      'invalid artifact digest',
+      (() => {
+        const value = clone(valid);
+        value.artifacts[0].sha256 = 'nope';
+        return value;
+      })(),
+      false,
+    ],
+    [
+      'approval after start',
+      (() => {
+        const value = clone(valid);
+        value.approval.approvedAt = '2026-09-03T00:00:01.000Z';
+        return value;
+      })(),
+      false,
+    ],
+    [
+      'phase duration mismatch',
+      (() => {
+        const value = clone(valid);
+        value.run.completedAt = '2026-09-03T01:00:00.000Z';
+        return value;
+      })(),
+      false,
+    ],
+    [
+      'request total mismatch',
+      (() => {
+        const value = clone(valid);
+        value.workload.measuredRequests -= 1;
+        return value;
+      })(),
+      false,
+    ],
+    [
+      'duplicate artifact role',
+      (() => {
+        const value = clone(valid);
+        value.artifacts[5] = { ...value.artifacts[0] };
+        return value;
+      })(),
+      false,
+    ],
+    [
+      'missing artifact role',
+      (() => {
+        const value = clone(valid);
+        value.artifacts = value.artifacts.filter((artifact) => artifact.role !== 'rollback-report');
+        return value;
+      })(),
+      false,
+    ],
   ];
   let passed = 0;
   for (const [name, evidence, expectedPass] of cases) {
@@ -556,12 +742,14 @@ async function runSelfTest() {
 
   const artifactCases = [
     ['valid artifact readback', () => {}, true],
+    ['tampered artifact', (evidence, directory) => writeFileSync(join(directory, evidence.artifacts[0].name), 'tampered\n', 'utf8'), false],
     [
-      'tampered artifact',
-      (evidence, directory) => writeFileSync(join(directory, evidence.artifacts[0].name), 'tampered\n', 'utf8'),
+      'artifact size mismatch',
+      (evidence) => {
+        evidence.artifacts[0].bytes += 1;
+      },
       false,
     ],
-    ['artifact size mismatch', (evidence) => { evidence.artifacts[0].bytes += 1; }, false],
     [
       'artifact measurement contradiction',
       (evidence, directory) => {
@@ -589,11 +777,53 @@ async function runSelfTest() {
       false,
     ],
     [
-      'missing artifact',
-      (evidence, directory) => rmSync(join(directory, evidence.artifacts[0].name)),
+      'missing signer attestation',
+      (evidence, directory) => {
+        const artifactPath = join(directory, evidence.artifacts[0].name);
+        const report = JSON.parse(readFileSync(artifactPath, 'utf8'));
+        delete report.blacksiteScaleAttestation;
+        rewriteSelfTestArtifact(evidence, directory, 0, report);
+      },
       false,
     ],
-    ['artifact path traversal', (evidence) => { evidence.artifacts[0].name = '../outside.json'; }, false],
+    [
+      'rehashed report with stale signature',
+      (evidence, directory) => {
+        const artifactPath = join(directory, evidence.artifacts[0].name);
+        const report = JSON.parse(readFileSync(artifactPath, 'utf8'));
+        report.selfTest = 'forged-after-signing';
+        rewriteSelfTestArtifact(evidence, directory, 0, report);
+      },
+      false,
+    ],
+    [
+      'wrong role signer',
+      (evidence, directory, _trustStore, privateKeys) => {
+        const artifactPath = join(directory, evidence.artifacts[0].name);
+        const report = JSON.parse(readFileSync(artifactPath, 'utf8'));
+        delete report.blacksiteScaleAttestation;
+        const signerId = evidence.approval.platformOwner;
+        report.blacksiteScaleAttestation = createScaleArtifactAttestation(evidence, evidence.artifacts[0].role, report, { signerId, privateKey: privateKeys.get(signerId) });
+        rewriteSelfTestArtifact(evidence, directory, 0, report);
+      },
+      false,
+    ],
+    [
+      'untrusted replacement public key',
+      (_evidence, _directory, trustStore) => {
+        const { publicKey } = generateKeyPairSync('ed25519');
+        trustStore.signers[0].publicKeyPem = publicKey.export({ type: 'spki', format: 'pem' });
+      },
+      false,
+    ],
+    ['missing artifact', (evidence, directory) => rmSync(join(directory, evidence.artifacts[0].name)), false],
+    [
+      'artifact path traversal',
+      (evidence) => {
+        evidence.artifacts[0].name = '../outside.json';
+      },
+      false,
+    ],
     [
       'artifact symbolic link',
       (evidence, directory) => {
@@ -609,9 +839,10 @@ async function runSelfTest() {
     let didPass = false;
     try {
       const evidence = createSelfTestEvidence();
-      materializeSelfTestArtifacts(evidence, directory);
-      mutate(evidence, directory);
-      await verifyScaleEvidenceArtifacts(evidence, directory);
+      const { privateKeys, trustStore } = createSelfTestTrust(evidence);
+      materializeSelfTestArtifacts(evidence, directory, privateKeys);
+      mutate(evidence, directory, trustStore, privateKeys);
+      await verifyScaleEvidenceArtifacts(evidence, directory, trustStore);
       didPass = true;
     } catch {
       didPass = false;
@@ -637,16 +868,22 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const gitSha = argument('--expected-commit');
     const frontendTreeSha256 = argument('--expected-frontend-tree');
     const artifactsRoot = argument('--artifacts-root');
-    requireValue(evidencePath && gitSha && frontendTreeSha256 && artifactsRoot, 'Usage: node scripts/blacksite-scale-evidence.mjs --evidence <json> --artifacts-root <directory> --expected-commit <sha> --expected-frontend-tree <sha256> [--output <json>]');
+    const trustedSignersPath = argument('--trusted-signers');
+    requireValue(
+      evidencePath && gitSha && frontendTreeSha256 && artifactsRoot && trustedSignersPath,
+      'Usage: node scripts/blacksite-scale-evidence.mjs --evidence <json> --artifacts-root <directory> --trusted-signers <json> --expected-commit <sha> --expected-frontend-tree <sha256> [--output <json>]',
+    );
     const evidence = JSON.parse(readFileSync(evidencePath, 'utf8'));
+    const trustedSignersStat = lstatSync(trustedSignersPath, { throwIfNoEntry: false });
+    requireValue(trustedSignersStat?.isFile() === true && trustedSignersStat.isSymbolicLink() === false, 'trusted-signers must be a real regular file');
+    const trustStore = JSON.parse(readFileSync(trustedSignersPath, 'utf8'));
     const metadata = verifyScaleEvidence(evidence, { gitSha, frontendTreeSha256 });
-    const artifactReadback = await verifyScaleEvidenceArtifacts(evidence, artifactsRoot);
+    const artifactReadback = await verifyScaleEvidenceArtifacts(evidence, artifactsRoot, trustStore);
     const result = {
       ...metadata,
       claim: 'EXTERNAL_SCALE_EVIDENCE_VALIDATED',
       artifactReadback,
-      warning:
-        'This validates supplied production-equivalent evidence and exact artifact bytes; external owners still decide whether it proves approved capacity.',
+      warning: 'This validates supplied production-equivalent evidence and exact artifact bytes; external owners still decide whether it proves approved capacity.',
     };
     const output = `${JSON.stringify(result, null, 2)}\n`;
     const outputPath = argument('--output');
