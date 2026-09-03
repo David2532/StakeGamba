@@ -1909,9 +1909,20 @@ async function runNetworkScenarios(browser, origin) {
 					win: await page.locator(SELECTORS.finalWin).innerText(),
 				}),
 			);
+			const expectedAbortedRequests = diagnostics.failedRequests.splice(0);
+			check(
+				group,
+				'accepted play response loss reports exactly the intentionally aborted paid transport',
+				expectedAbortedRequests.length === 1 &&
+					expectedAbortedRequests[0]?.method === 'POST' &&
+					expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/wallet/play` &&
+					expectedAbortedRequests[0]?.error === 'net::ERR_ABORTED',
+				serialize(expectedAbortedRequests),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.screenshot = await saveScreenshot(page, group);
+			record.expectedAbortedRequests = expectedAbortedRequests;
 			record.network = network;
 			record.diagnostics = diagnostics;
 		} finally {
