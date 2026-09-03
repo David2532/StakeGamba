@@ -1,5 +1,22 @@
 # Material run log
 
+## BS-20260903-15 — SUCCESS
+
+- Sprint day: 5
+- Base remote commit: `c8a912c2a437510b7fb36bda94c60dba091a9674`
+- Verified implementation commit: `386166d1c4e536b1fc91c9dff2507f38663b14f4`
+- Work item: `BSB-SCALE-SIGNER-SEPARATION-001` (DONE); parent `BSB-SCALE-001` remains OPEN for real infrastructure evidence.
+- Selection reason: schema v5 required three approved role signers but accepted the same Ed25519 private key registered under distinct signer aliases, so one controller could impersonate independent workload and provider approval.
+- Before/after evidence: the focused attack began 0/1 because the verifier accepted one shared key. Schema v6 / trust schema v2 normalize every key to SPKI DER, reject duplicate SHA-256 key fingerprints and require distinct workload/provider/platform owner IDs. Shared-key aliases and reused approval-owner identities now fail closed; focused regression 1/1 and self-test 32/32 pass.
+- Changed files: scale verifier, focused scale regression, scale readiness contract and five sprint-memory files. Product runtime/layout, math/RNG, wallet/provider schema, assets, dependencies and lockfile are unchanged.
+- Gates: expected-red shared-key attack 0/1, focused final 1/1, frozen install, lint, production `svelte-check` 0 errors/0 warnings, 193/193 app tests, production build, scale self-test 32/32 and local math 7/7 over 300,000 books PASS. Exact CI `33786591571` passes all gates, six-file package/readback, Chromium 89/89 scenarios / 2878 checks and current-SHA 51-point resolution. Unexpected/forbidden requests, page errors and unclassified request failures are zero. `git diff --check` and secret/debug/scope/full-own-diff review PASS.
+- Visual review: exact artifact `9906288764` was downloaded and matched digest `sha256:e4f0c423b9ef5eaf695c62b0f8e3c54e181555fa008d2d2817c85e2a6ceb538d`. The 1920x1080, 1366x768, 390x844 and 844x390 views were manually inspected without overlap, crop, scrollbar or broken images; penguin, vault, board, HUD and controls remain intact.
+- Package evidence: exact CI frontend tree `b2476910abb70a92dffccbf67448594b6216718fa788ff14ca6e0da5de05d16d`, 6 files / 439,752 bytes; unchanged math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes.
+- Tool/token metrics: see `METRICS.md`; subagents 0; tokens `null` / `not_exposed`. The Stake RGS replay skill enforced fail-closed approval identity and prevented synthetic validator success from being presented as provider capacity. Package invocations were corrected across distinct fail-closed preconditions, and one disconnected artifact download used a fresh materialized URL; no unchanged semantic failure was repeated.
+- Persistence: implementation fast-forwarded through connected Git data without force; exact CI and artifact succeeded. This memory-only closeout is fast-forwarded separately without force.
+- Residual risk: production-equivalent CDN/RGS/provider load and resilience proof remains absent, so capacity for 1,000,000 users is NOT_CLAIMED. Approved Spine rig/clips, BLACKOUT/foreground art, final audio/listening/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals remain open.
+- Next candidate: obtain owner-approved production-equivalent `BSB-SCALE-001` evidence and validate all six independently signed reports; if unavailable, advance only another repository-solvable high provider/release gate.
+
 ## BS-20260903-14 — SUCCESS
 
 - Sprint day: 5
@@ -319,23 +336,6 @@
 - Package evidence: exact remote frontend tree `b72aa6a71ba28cb1edf17faa346859276cc030723e2608a7d1ecebcc97ae4625`, 10 files / 712,368 bytes; exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; package verification PASS.
 - Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation standard kept profile control, computed CSS, semantic ownership, cleanup and screenshot evidence in one proof. The exact run passed first attempt; one locally yielded package process was resolved by reading its completed verification result, without repeating the gate.
 - Persistence: implementation was fast-forwarded without force through connected Git data. Exact run `33649656438`, artifact `9854884410` and digest `sha256:c0cd0b1529f24c29aa5f34a6ce1678b2c4f56ec486cf885d5a08aac517657707` succeeded.
-- Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
-- Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
-
-## BS-20260902-41 — SUCCESS
-
-- Sprint day: 4
-- Base remote commit: `d0f8e76d74ef32446593437285f70f759644ddd3`
-- Verified implementation commit: `f3d37c426b7b82b8cbdc3c22f6ccc0fe83cac0cc`
-- Work item: `BSB-FEATURE-WIN-PROFILE-EVIDENCE-001` (DONE; parent `BSB-MOTION-001` remains in progress)
-- Selection reason: feature wins had a distinct `bonus_win` state and both live flows were exact-browser covered, but both scenarios forced Turbo. The authored 280ms Normal profile therefore lacked direct current-package evidence.
-- Before/after evidence: the focused source contract began 0 PASS / 1 expected FAIL because no Normal feature-win check existed. Natural Base now explicitly exercises Normal and confirmed Deep Access Turbo, asserting selected controls, state, computed animation/duration, compositor ownership and bounded exit. Initial exact run `33643364848` measured valid Normal ownership at 528.7ms and failed only the speculative 500ms observation cap. The evidence-led 650ms cap passes exact run `33645610063`: 280ms CSS / 528.0ms observed Normal and 110ms / 177.3ms Turbo.
-- Changed files: exact Chromium QA, QA source contract and five sprint-memory files; runtime, math, wallet/provider schema, assets, lockfile and dependencies unchanged.
-- Gates: expected-red contract 0/1 PASS; initial exact CI 2316 PASS / 1 expected FAIL; syntax plus focused contracts PASS; frozen install PASS; lint PASS; `svelte-check` 0 errors/0 warnings PASS; app tests 141/141 PASS; production build PASS. The local math result was not retained and is not claimed; exact CI proves 7/7 over 300,000 books with unchanged fingerprint. Exact isolated package/readback and 51-point resolver PASS; Chromium 84/84 scenarios / 2317/2317 checks PASS; unexpected network/page/request failures 0; `git diff --check` and secret/debug/scope/full-own-diff review PASS.
-- Visual review: exact active Natural-Base Normal and Deep-Access Turbo `bonus_win` frames at 1366x768 plus 1920x1080, 390x844 and 844x390 captures from artifact `9853187922` were inspected. Board, centered values, controls, desktop penguin and responsive vault environment remain complete and sharp without overlap, document scroll, crop or broken images; physical-device sign-off remains open.
-- Package evidence: exact remote frontend tree `f8feb78c50e4fefcd9948edfef18725713f6eaeb287d5ad6c0e0b989732dbcf9`, 10 files / 712,368 bytes; exact math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; package verification PASS.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; direct subagents 0. The AAA-animation standard kept semantic ownership, computed CSS, profile controls, cleanup and screenshots in one proof. One evidence-led bound correction followed the first exact measurement; no unchanged semantic failure was repeated. Prettier surfaced existing non-gate style deviations, so no broad formatter churn was accepted.
-- Persistence: implementation was fast-forwarded without force through connected Git data. Exact run `33645610063`, artifact `9853187922` and digest `sha256:c07e2e3a787c171bc0ffaeed16a63d2060c1b85ba6995c3a501eb1621beeb0bb` succeeded.
 - Residual risk: approved Spine rig/clips, BLACKOUT/foreground art layers, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, 23 manual gates, 6 external approvals and rights/Creative cleanup remain open.
 - Next candidate: choose the next distinct authored-motion, provider or accessibility gap that does not depend on unavailable human assets or physical-device approval.
 

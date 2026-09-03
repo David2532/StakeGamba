@@ -1,5 +1,43 @@
 # Rolling automation metrics
 
+## BS-20260903-15
+
+```yaml
+started_at_utc: 2026-09-03T17:30:09Z
+closed_at_utc: 2026-09-03T18:09:20Z
+sprint_day: 5
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-SCALE-SIGNER-SEPARATION-001
+parent_work_item: { id: BSB-SCALE-001, state: OPEN_PRODUCTION_EQUIVALENT_EVIDENCE_REQUIRED }
+expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_SHARED_KEY_ACCEPTED, exit: 1 }
+focused_final: { pass: 1, fail: 0, status: PASS, exit: 0 }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck: { errors: 0, warnings: 0, status: PASS }
+local_app_tests: { pass: 193, fail: 0, exit: 0 }
+local_build: PASS
+local_scale_self_test: { pass: 32, fail: 0, status: PASS, exit: 0 }
+local_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+local_package: { files: 6, bytes: 439752, status: PASS }
+exact_ci: { run: 33786591571, commit: 386166d1c4e536b1fc91c9dff2507f38663b14f4, status: SUCCESS }
+exact_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_browser: { scenarios: 89, passed: 89, checks: 2878, passed_checks: 2878, failed_checks: 0 }
+exact_package: { frontend_tree: b2476910abb70a92dffccbf67448594b6216718fa788ff14ca6e0da5de05d16d, files: 6, bytes: 439752, status: PASS }
+exact_resolver: { total: 51, automated_proof_complete: 38, manual_open: 23, external_open: 6, status: PASS }
+artifact: { id: 9906288764, bytes: 57706556, sha256: e4f0c423b9ef5eaf695c62b0f8e3c54e181555fa008d2d2817c85e2a6ceb538d }
+manual_visual_review: PASS_1920X1080_1366X768_390X844_844X390
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+git_diff_check: PASS
+final_diff_review: PASS_VERIFIER_TEST_RUNBOOK_AND_MEMORY_ONLY
+manual_identical_retries: 0
+```
+
+Observed categories: targeted source, test, contract and memory reads; expected-red plus focused regression; one complete local product gate; exact workflow/job/log/artifact retrieval; structured package/browser/resolver inspection; manual four-image review; targeted memory patching and non-force Git persistence. The Stake RGS replay standard kept approval authority, cryptographic identity and the production-evidence boundary fail closed. Three package attempts changed their inputs to satisfy output-path, clean-tree and exact-build identity preconditions; one artifact download transport disconnected and was retried with a fresh materialized URL. No semantic failure or unchanged command was repeated. No subagents, product runtime, UI, math, wallet/provider schema, assets, dependencies or lockfile changed.
+
 ## BS-20260903-14
 
 ```yaml
