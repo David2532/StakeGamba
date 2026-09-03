@@ -1,5 +1,52 @@
 # Rolling automation metrics
 
+## BS-20260903-09
+
+```yaml
+started_at_utc: 2026-09-03T07:30:31Z
+closed_at_utc: 2026-09-03T08:26:48Z
+sprint_day: 5
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-ACCEPTED-WINNING-SETTLEMENT-RESPONSE-LOSS-001
+parent_work_item: { id: BSB-EVIDENCE-001, state: IN_PROGRESS_PROVIDER_AND_MANUAL_EVIDENCE_REQUIRED }
+expected_red: { pass: 14, fail: 1, status: EXPECTED_FAIL, exit: 1 }
+focused_final: { pass: 15, fail: 0, status: PASS, exit: 0 }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck: { errors: 0, warnings: 0, status: PASS }
+local_app_tests: { pass: 191, fail: 0 }
+local_build: PASS
+local_scale_self_test: { pass: 27, fail: 0, status: PASS, exit: 0 }
+local_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+local_package: { generation: PASS, verification: PASS, frontend_files: 6, frontend_bytes: 439752 }
+local_browser: BLOCKED_MISSING_CHROMIUM_BINARY
+first_exact_ci: { run: 33729942648, status: EXPECTED_HARNESS_FAILURE, scenarios_passed: 87, scenarios_failed: 1, cause: EXPECTED_ONE_CHECKPOINT_INSTEAD_OF_49 }
+exact_ci_run: 33731906526
+exact_ci_status: SUCCESS
+exact_ci_commit: 104bf9a5377d5813d2ba7a5a31df4be73a9e6497
+exact_app_tests: { pass: 191, fail: 0 }
+exact_scale_self_test: { pass: 27, fail: 0 }
+exact_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_package: { generation: PASS, verification: PASS, frontend_tree: 90ee8944305d28b07036b0f84c157c477cfe5af1674a830e6847a30f579f5232, frontend_files: 6, frontend_bytes: 439752, math_tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da, math_files: 7, math_bytes: 48697667 }
+exact_browser: { scenarios: 88, passed: 88, failed: 0, checks_pass: 2454, checks_fail: 0 }
+winning_settlement_response_loss: { payout: USD_200_00, checkpoint_cursors: 49, settlement_attempts: 1, server_acceptances: 1, expected_client_aborts: 1, authentications: 2, plays: 1, settlements: 1, final_balance: USD_1199_00, final_win_surface: CLEARED }
+exact_diagnostics: { unexpected_requests: 0, forbidden_requests: 0, expected_response_loss_aborts_total: 4, expected_negative_console_errors: 6, page_errors: 0, unclassified_failed_requests: 0 }
+exact_compliance: { status: PASS, automated_proof_complete: 38, manual_gates_open: 23, external_gates_open: 6 }
+artifact_id: 9884742420
+artifact_digest: sha256:233961dde58dd3106e5f03d1ae3d534ac38c0ecf6a6af98f6d22e5c510e95d72
+manual_visual_review: PASS_4_PRIMARY_TARGET_VIEWS_PLUS_PENDING_AND_RESTORED_WINNING_SETTLEMENT
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+git_diff_check: PASS
+final_diff_review: PASS_INTENDED_QA_EVIDENCE_AND_MEMORY_ONLY
+manual_identical_retries: 0
+```
+
+Observed categories: targeted memory/provider-contract reads and `rg`; one expected-red/focused contract cycle; one complete local install/lint/typecheck/test/build/scale/math/package cycle; two exact GitHub runs because the first exposed a real harness-count defect; exact artifact download and six-image review; diff/secret/debug/scope review and non-force Git persistence. The Stake RGS replay skill required exact endpoint/body/order/count evidence and fail-closed handling of an uncertain accepted payout. Local Chromium was unavailable. Two package CLI invocations were corrected, one stale build identity was rebuilt, and HTTPS push authentication fell back to connected Git data; no unchanged semantic failure was repeated. No subagent, dependency, runtime, math, wallet/provider schema, asset or lockfile changed.
+
 ## BS-20260903-08
 
 ```yaml
