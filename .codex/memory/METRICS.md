@@ -1,5 +1,42 @@
 # Rolling automation metrics
 
+## BS-20260903-16
+
+```yaml
+started_at_utc: 2026-09-03T18:33:48Z
+closed_at_utc: 2026-09-03T19:07:36Z
+sprint_day: 5
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-SCALE-TRUST-STORE-SEPARATION-001
+parent_work_item: { id: BSB-SCALE-001, state: OPEN_PRODUCTION_EQUIVALENT_EVIDENCE_REQUIRED }
+expected_red: { pass: 0, fail: 1, status: EXPECTED_FAIL_IN_BUNDLE_TRUST_STORE_ACCEPTED, exit: 1 }
+focused_final: { pass: 2, fail: 0, status: PASS, exit: 0 }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck: { errors: 0, warnings: 0, status: PASS }
+local_app_tests: { pass: 194, fail: 0, exit: 0 }
+local_build: PASS
+local_scale_self_test: { pass: 32, fail: 0, status: PASS, exit: 0 }
+local_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_ci: { run: 33792626690, commit: 7d50d8e1c26b242fbd9f3d8ce304b9da948eaf86, status: SUCCESS }
+exact_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_browser: { scenarios: 89, passed: 89, checks: 2878, passed_checks: 2878, failed_checks: 0 }
+exact_package: { frontend_tree: ce27823f07997901d7aa8dbda88f7139d8bbe6e5a21dc86a77dcfdfe74b98ad6, files: 6, bytes: 439752, status: PASS }
+exact_resolver: { total: 51, automated_proof_complete: 38, manual_open: 23, external_open: 6, status: PASS }
+artifact: { id: 9908532046, bytes: 57692232, sha256: 08e19e96facd32a500bb3ed6ed80cfc5f9ff19073b7d36fb04f55c45792f990c }
+manual_visual_review: PASS_1920X1080_1366X768_390X844_844X390
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+git_diff_check: PASS
+final_diff_review: PASS_VERIFIER_TEST_RUNBOOK_AND_MEMORY_ONLY
+manual_identical_retries: 0
+```
+
+Observed categories: targeted contract/source/test/memory reads; expected-red plus focused regression; one complete local product gate; exact workflow/job/log/artifact retrieval; four-image manual review; targeted memory patching and non-force Git persistence. The Stake RGS replay standard enforced the out-of-band trust boundary and prevented an untrusted bundle from self-authorizing. No unchanged semantic failure was repeated; no subagents, product runtime, UI, math, wallet/provider schema, assets, dependencies or lockfile changed.
+
 ## BS-20260903-15
 
 ```yaml
