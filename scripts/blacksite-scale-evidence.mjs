@@ -49,6 +49,12 @@ function containedRelativePath(root, candidate, name) {
   requireValue(fromRoot.length > 0 && fromRoot !== '..' && !fromRoot.startsWith(`..${process.platform === 'win32' ? '\\' : '/'}`), `${name} must stay inside the artifacts root`);
 }
 
+function requirePathOutsideRoot(root, candidate, name) {
+  const fromRoot = relative(root, candidate);
+  const parentPrefix = `..${process.platform === 'win32' ? '\\' : '/'}`;
+  requireValue(fromRoot === '..' || fromRoot.startsWith(parentPrefix) || isAbsolute(fromRoot), `${name} must be outside artifacts-root`);
+}
+
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
   if (value && typeof value === 'object') {
@@ -892,8 +898,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       'Usage: node scripts/blacksite-scale-evidence.mjs --evidence <json> --artifacts-root <directory> --trusted-signers <json> --expected-commit <sha> --expected-frontend-tree <sha256> [--output <json>]',
     );
     const evidence = JSON.parse(readFileSync(evidencePath, 'utf8'));
+    const artifactsRootStat = lstatSync(artifactsRoot, { throwIfNoEntry: false });
+    requireValue(artifactsRootStat?.isDirectory() === true && artifactsRootStat.isSymbolicLink() === false, 'artifacts-root must be a real directory');
     const trustedSignersStat = lstatSync(trustedSignersPath, { throwIfNoEntry: false });
     requireValue(trustedSignersStat?.isFile() === true && trustedSignersStat.isSymbolicLink() === false, 'trusted-signers must be a real regular file');
+    requirePathOutsideRoot(realpathSync(artifactsRoot), realpathSync(trustedSignersPath), 'trusted-signers');
     const trustStore = JSON.parse(readFileSync(trustedSignersPath, 'utf8'));
     const metadata = verifyScaleEvidence(evidence, { gitSha, frontendTreeSha256 });
     const artifactReadback = await verifyScaleEvidenceArtifacts(evidence, artifactsRoot, trustStore);

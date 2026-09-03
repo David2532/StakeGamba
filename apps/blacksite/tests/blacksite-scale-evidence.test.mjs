@@ -216,8 +216,45 @@ test('real scale verification refuses metadata-only artifact claims', () => {
   }
 });
 
+test('real scale verification requires the trust store outside the artifact root', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'blacksite-scale-trust-boundary-red-'));
+  try {
+    const evidence = createSelfTestEvidence();
+    const { privateKeys, trustStore } = signerFixture(evidence);
+    writeSignedArtifacts(evidence, directory, privateKeys);
+    const evidencePath = join(directory, 'evidence.json');
+    const trustStorePath = join(directory, 'trusted-signers.json');
+    writeFileSync(evidencePath, `${JSON.stringify(evidence)}\n`, 'utf8');
+    writeFileSync(trustStorePath, `${JSON.stringify(trustStore)}\n`, 'utf8');
+
+    const result = spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(new URL('../../../scripts/blacksite-scale-evidence.mjs', import.meta.url)),
+        '--evidence',
+        evidencePath,
+        '--artifacts-root',
+        directory,
+        '--trusted-signers',
+        trustStorePath,
+        '--expected-commit',
+        evidence.identity.gitSha,
+        '--expected-frontend-tree',
+        evidence.identity.frontendTreeSha256,
+      ],
+      { encoding: 'utf8' },
+    );
+
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /trusted-signers must be outside artifacts-root/u);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test('scale artifact readback verifies exact files and detects tampering', async () => {
   const directory = mkdtempSync(join(tmpdir(), 'blacksite-scale-readback-'));
+  const trustDirectory = mkdtempSync(join(tmpdir(), 'blacksite-scale-trust-'));
   try {
     const evidence = createSelfTestEvidence();
     const { privateKeys, trustStore } = signerFixture(evidence);
@@ -227,7 +264,7 @@ test('scale artifact readback verifies exact files and detects tampering', async
     assert.equal(result.verifiedArtifacts.length, 6);
 
     const evidencePath = join(directory, 'evidence.json');
-    const trustStorePath = join(directory, 'trusted-signers.json');
+    const trustStorePath = join(trustDirectory, 'trusted-signers.json');
     writeFileSync(evidencePath, `${JSON.stringify(evidence)}\n`, 'utf8');
     writeFileSync(trustStorePath, `${JSON.stringify(trustStore)}\n`, 'utf8');
     const cli = spawnSync(
@@ -267,6 +304,7 @@ test('scale artifact readback verifies exact files and detects tampering', async
     await assert.rejects(() => verifyScaleEvidenceArtifacts(evidence, directory, trustStore), /bytes mismatch|sha256 mismatch/u);
   } finally {
     rmSync(directory, { recursive: true, force: true });
+    rmSync(trustDirectory, { recursive: true, force: true });
   }
 });
 
