@@ -201,6 +201,7 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 		'uncertain-live-play-reloads-and-restores-without-retry',
 		'accepted-play-response-loss-reloads-and-restores-exactly-once',
 		'settlement-http-503-reloads-and-restores-exactly-once',
+		'accepted-settlement-response-loss-reauthenticates-without-retry',
 		'settlement-session-expiry-reauthenticates-and-settles-once',
 	]);
 	const browserQa = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
@@ -214,6 +215,9 @@ test('active-round evidence binds uncertain play and failed-settlement recovery'
 	assert.match(browserQa, /accepted play response loss never sends a duplicate paid play/u);
 	assert.match(browserQa, /accepted play response loss restores and settles exactly once/u);
 	assert.match(browserQa, /exactly one new settlement attempt/u);
+	assert.match(browserQa, /accepted settlement response loss aborts only the pending client transport/u);
+	assert.match(browserQa, /accepted settlement response loss never sends a duplicate end-round/u);
+	assert.match(browserQa, /accepted settlement recovery order is authoritative and exact/u);
 	assert.match(browserQa, /expired settlement session never retries authentication or settlement automatically/u);
 	assert.match(browserQa, /reauthenticated settlement performs exactly one new completion attempt/u);
 	assert.match(browserQa, /event-driven trace observes the primed feature checkpoint without polling a transient state/u);
