@@ -43,8 +43,8 @@ the same clean commit and package bytes:
    checks and zero failed scenarios. Candidate resolution also requires the declared accessibility audits
    and complete raw/recomputed performance records for that same package.
 5. `repository-gates.json` reports the complete ten-gate release ledger and SHA-256-binds each required raw
-   workflow, `.npmrc`, manifest, lockfile, security, package and browser input. `security-evidence.json`
-   reports the complete Security-v2 check set; both records carry the same candidate SHA and only required
+   workflow, `.npmrc`, workspace policy, manifest, lockfile, security, package and browser input. `security-evidence.json`
+   reports the complete Security-v3 check set; both records carry the same candidate SHA and only required
    `PASS` gates.
 6. The 51-point resolver accepts those exact package, browser, repository and security records and emits
    `blacksite-51-evidence.json`. It must also bind the canonical

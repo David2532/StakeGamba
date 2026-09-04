@@ -360,9 +360,7 @@ function fixture() {
 	mkdirSync(securityRoot);
 	const auditReportPath = join(securityRoot, 'pnpm-audit.json');
 	writeJson(auditReportPath, {
-		actions: [],
 		advisories: {},
-		muted: [],
 		metadata: {
 			vulnerabilities: { info: 0, low: 0, moderate: 0, high: 0, critical: 0 },
 			dependencies: 100,
@@ -386,6 +384,7 @@ function fixture() {
 			manifestInputs,
 			lockfileSource: readFileSync(join(repoRoot, 'pnpm-lock.yaml'), 'utf8'),
 			npmrcSource: readFileSync(join(repoRoot, '.npmrc'), 'utf8'),
+			workspaceSource: readFileSync(join(repoRoot, 'pnpm-workspace.yaml'), 'utf8'),
 			effectiveAuditRegistry: BLACKSITE_SECURITY_POLICY.audit.registry,
 			auditReportSource: readFileSync(auditReportPath, 'utf8'),
 			auditExitCode: 0,
@@ -397,6 +396,7 @@ function fixture() {
 	const repositorySources = [
 		['workflow', join(repoRoot, '.github', 'workflows', 'blacksite-ci.yml')],
 		['npmrc', join(repoRoot, '.npmrc')],
+		['workspace-config', join(repoRoot, 'pnpm-workspace.yaml')],
 		['package-manifest', join(repoRoot, 'package.json')],
 		['lockfile', join(repoRoot, 'pnpm-lock.yaml')],
 		['security-evidence', securityEvidencePath],

@@ -102,6 +102,8 @@ const expectedAccessibilityTags = Object.freeze([
 const expectedSecurityCheckIds = Object.freeze([
 	'exact-git-identity',
 	'repository-inputs-readable',
+	'package-manager-version',
+	'workspace-package-manager-policy',
 	'audit-registry-and-npmrc-policy',
 	'vite-exact-manifest-pin',
 	'adapter-static-exact-pin',
@@ -812,6 +814,9 @@ function validateSecurityEvidence(securityEvidence, manifest) {
 		!sameJson(securityEvidence.policy, BLACKSITE_SECURITY_POLICY) ||
 		securityEvidence.inputs?.npmrc?.path !== '.npmrc' ||
 		securityEvidence.inputs?.npmrc?.sha256 !== BLACKSITE_SECURITY_POLICY.audit.npmrcSha256 ||
+		securityEvidence.inputs?.workspace?.path !== 'pnpm-workspace.yaml' ||
+		securityEvidence.inputs?.workspace?.sha256 !==
+			BLACKSITE_SECURITY_POLICY.audit.workspaceSha256 ||
 		securityEvidence.inputs?.auditRegistry?.url !== BLACKSITE_SECURITY_POLICY.audit.registry ||
 		!BLACKSITE_SECURITY_POLICY.audit.allowedOrigins.includes(
 			securityEvidence.inputs?.auditRegistry?.origin,
@@ -863,6 +868,7 @@ function validateRepositoryGates(repositoryEvidence, manifest) {
 	const expectedInputLabels = [
 		'workflow',
 		'npmrc',
+		'workspace-config',
 		'package-manifest',
 		'lockfile',
 		'security-evidence',

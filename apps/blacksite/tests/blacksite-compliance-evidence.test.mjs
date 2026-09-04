@@ -245,6 +245,8 @@ function validSecurityEvidence() {
 	const checkIds = [
 		'exact-git-identity',
 		'repository-inputs-readable',
+		'package-manager-version',
+		'workspace-package-manager-policy',
 		'audit-registry-and-npmrc-policy',
 		'vite-exact-manifest-pin',
 		'adapter-static-exact-pin',
@@ -264,6 +266,10 @@ function validSecurityEvidence() {
 				origin: BLACKSITE_SECURITY_POLICY.audit.allowedOrigins[0],
 			},
 			npmrc: { path: '.npmrc', sha256: BLACKSITE_SECURITY_POLICY.audit.npmrcSha256 },
+			workspace: {
+				path: 'pnpm-workspace.yaml',
+				sha256: BLACKSITE_SECURITY_POLICY.audit.workspaceSha256,
+			},
 			lockfile: {
 				path: 'pnpm-lock.yaml',
 				sha256: repositoryInput('lockfile', join(repoRoot, 'pnpm-lock.yaml')).sha256,
@@ -380,6 +386,7 @@ function extendedFixture() {
 		inputs: [
 			repositoryInput('workflow', join(repoRoot, '.github/workflows/blacksite-ci.yml')),
 			repositoryInput('npmrc', join(repoRoot, '.npmrc')),
+			repositoryInput('workspace-config', join(repoRoot, 'pnpm-workspace.yaml')),
 			repositoryInput('package-manifest', join(repoRoot, 'package.json')),
 			repositoryInput('lockfile', join(repoRoot, 'pnpm-lock.yaml')),
 			repositoryInput('security-evidence', securityEvidencePath),
@@ -1148,7 +1155,7 @@ test('extended candidate evidence binds performance, accessibility, security, re
 			runs: 9,
 		});
 		assert.equal(evidence.candidate.accessibilitySummary.audits, 8);
-		assert.equal(evidence.candidate.securitySummary.pass, 9);
+		assert.equal(evidence.candidate.securitySummary.pass, 11);
 		assert.equal(evidence.candidate.repositoryGateSummary.pass, BLACKSITE_REPOSITORY_GATES.length);
 		for (const id of [23, 34]) {
 			const item = evidence.items.find((candidate) => candidate.id === id);

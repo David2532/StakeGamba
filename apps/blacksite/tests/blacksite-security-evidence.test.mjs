@@ -13,15 +13,24 @@ import {
 
 const gitSha = '0123456789abcdef0123456789abcdef01234567';
 const npmrcSource = [
-	'auto-install-peers = true',
-	'public-hoist-pattern[]=*storybook*',
 	'registry = https://registry.npmjs.org/',
 	'',
 ].join('\n');
+const workspaceSource = [
+	'packages:',
+	'  - "apps/*"',
+	'  - "packages/*"',
+	'autoInstallPeers: true',
+	'publicHoistPattern:',
+	'  - "*storybook*"',
+	'allowBuilds:',
+	'  esbuild: true',
+	'overrides:',
+	'  devalue: "5.8.1"',
+	'',
+].join('\n');
 const cleanAudit = JSON.stringify({
-	actions: [],
 	advisories: {},
-	muted: [],
 	metadata: {
 		vulnerabilities: { info: 0, low: 0, moderate: 0, high: 0, critical: 0 },
 		dependencies: 100,
@@ -31,12 +40,7 @@ const cleanAudit = JSON.stringify({
 	},
 });
 const belowThresholdAudit = JSON.stringify({
-	actions: [],
-	advisories: {
-		1001: { severity: 'low' },
-		1002: { severity: 'moderate' },
-	},
-	muted: [],
+	advisories: {},
 	metadata: {
 		vulnerabilities: { info: 0, low: 1, moderate: 1, high: 0, critical: 0 },
 		dependencies: 100,
@@ -56,7 +60,7 @@ function validInputs(overrides = {}) {
 		actualGitSha: gitSha,
 		manifestInputs: [
 			manifest('package.json', {
-				pnpm: { overrides: { devalue: '5.8.1' } },
+				packageManager: 'pnpm@11.25.0',
 			}),
 			manifest('apps/blacksite/package.json', {
 				dependencies: { vite: '6.4.3' },
@@ -72,6 +76,7 @@ function validInputs(overrides = {}) {
 			}),
 		],
 		npmrcSource,
+		workspaceSource,
 		effectiveAuditRegistry: 'https://registry.npmjs.org/',
 		lockfileSource: [
 			"lockfileVersion: '9.0'",
@@ -92,13 +97,17 @@ function validInputs(overrides = {}) {
 }
 
 test('security policy records the cumulative Vite and devalue advisory floors', () => {
-	assert.equal(BLACKSITE_SECURITY_POLICY.id, 'blacksite-dependency-security-policy-v2');
+	assert.equal(BLACKSITE_SECURITY_POLICY.id, 'blacksite-dependency-security-policy-v3');
 	assert.equal(BLACKSITE_SECURITY_POLICY.reviewedAt, '2026-09-04');
 	assert.equal(BLACKSITE_SECURITY_POLICY.versions.vite, '6.4.3');
 	assert.equal(BLACKSITE_SECURITY_POLICY.versions.devalue, '5.8.1');
 	assert.equal(BLACKSITE_SECURITY_POLICY.versions.adapterStatic, '3.0.10');
-	assert.equal(BLACKSITE_SECURITY_POLICY.audit.pnpmVersion, '10.5.0');
+	assert.equal(BLACKSITE_SECURITY_POLICY.audit.pnpmVersion, '11.25.0');
 	assert.equal(BLACKSITE_SECURITY_POLICY.audit.registry, 'https://registry.npmjs.org/');
+	assert.equal(
+		BLACKSITE_SECURITY_POLICY.audit.workspaceSha256,
+		'171d9c0a94e65a85e268cc68d7e53ee5bc744fe25d36af8c70c9c2869285c584',
+	);
 	assert.deepEqual(BLACKSITE_SECURITY_POLICY.audit.allowedOrigins, ['https://registry.npmjs.org']);
 	assert.deepEqual(
 		BLACKSITE_SECURITY_POLICY.advisories.map(({ id }) => id),
@@ -163,10 +172,10 @@ test('offline policy is independently testable without claiming that an audit ra
 	assert.match(audit.detail.reason, /no audit result is claimed/u);
 });
 
-test('pnpm 10.5 JSON exit 1 passes only for a complete report below the high threshold', () => {
+test('pnpm 11.25 JSON omits below-threshold advisories and exits zero for them', () => {
 	const audit = assessPnpmAudit({
 		source: belowThresholdAudit,
-		exitCode: 1,
+		exitCode: 0,
 		required: true,
 		registry: 'https://registry.npmjs.org/',
 	});
@@ -185,7 +194,7 @@ test('audit handling fails closed for missing, malformed, registry-error and inv
 			required: true,
 		}),
 		assessPnpmAudit({ source: cleanAudit, exitCode: 1, required: true }),
-		assessPnpmAudit({ source: belowThresholdAudit, exitCode: 0, required: true }),
+		assessPnpmAudit({ source: belowThresholdAudit, exitCode: 1, required: true }),
 		assessPnpmAudit({ source: belowThresholdAudit, exitCode: 2, required: true }),
 	]) {
 		assert.equal(audit.status, 'FAIL');
@@ -195,9 +204,7 @@ test('audit handling fails closed for missing, malformed, registry-error and inv
 test('audit handling rejects incomplete and internally inconsistent JSON reports', () => {
 	const incomplete = assessPnpmAudit({
 		source: JSON.stringify({
-			actions: [],
 			advisories: {},
-			muted: [],
 			metadata: { vulnerabilities: { high: 0, critical: 0 } },
 		}),
 		exitCode: 0,
@@ -206,8 +213,8 @@ test('audit handling rejects incomplete and internally inconsistent JSON reports
 	assert.equal(incomplete.status, 'FAIL');
 	assert.match(incomplete.reason, /incomplete/u);
 
-	const inconsistent = JSON.parse(belowThresholdAudit);
-	inconsistent.metadata.vulnerabilities.moderate = 0;
+	const inconsistent = JSON.parse(cleanAudit);
+	inconsistent.metadata.vulnerabilities.high = 1;
 	const assessed = assessPnpmAudit({
 		source: JSON.stringify(inconsistent),
 		exitCode: 1,
@@ -216,10 +223,14 @@ test('audit handling rejects incomplete and internally inconsistent JSON reports
 	assert.equal(assessed.status, 'FAIL');
 	assert.match(assessed.reason, /conflict/u);
 
-	const muted = JSON.parse(belowThresholdAudit);
-	muted.muted.push('GHSA-example-muted-finding');
+	const unexpectedBelowThresholdDetail = JSON.parse(belowThresholdAudit);
+	unexpectedBelowThresholdDetail.advisories = { 1001: { severity: 'moderate' } };
 	assert.equal(
-		assessPnpmAudit({ source: JSON.stringify(muted), exitCode: 1, required: true }).status,
+		assessPnpmAudit({
+			source: JSON.stringify(unexpectedBelowThresholdDetail),
+			exitCode: 0,
+			required: true,
+		}).status,
 		'FAIL',
 	);
 
@@ -238,9 +249,7 @@ test('audit handling rejects incomplete and internally inconsistent JSON reports
 test('reported or contradictory detailed high findings fail with a pnpm finding exit', () => {
 	const reportedHigh = assessPnpmAudit({
 		source: JSON.stringify({
-			actions: [],
 			advisories: { 2001: { severity: 'high' } },
-			muted: [],
 			metadata: {
 				vulnerabilities: {
 					info: 0,
@@ -298,6 +307,26 @@ test('the committed npmrc content is the exact reviewed registry policy input', 
 	);
 });
 
+test('the committed workspace config is the exact pnpm 11 policy input', async () => {
+	const source = await readFile(new URL('../../../pnpm-workspace.yaml', import.meta.url), 'utf8');
+	assert.equal(source, workspaceSource);
+	assert.equal(
+		createHash('sha256').update(source).digest('hex'),
+		BLACKSITE_SECURITY_POLICY.audit.workspaceSha256,
+	);
+});
+
+test('the package manifest and both release workflows pin the reviewed pnpm version', async () => {
+	const [manifestSource, blacksiteWorkflow, stakeWorkflow] = await Promise.all([
+		readFile(new URL('../../../package.json', import.meta.url), 'utf8'),
+		readFile(new URL('../../../.github/workflows/blacksite-ci.yml', import.meta.url), 'utf8'),
+		readFile(new URL('../../../.github/workflows/stake-compliance-ci.yml', import.meta.url), 'utf8'),
+	]);
+	assert.equal(JSON.parse(manifestSource).packageManager, 'pnpm@11.25.0');
+	assert.match(blacksiteWorkflow, /version: 11\.25\.0/u);
+	assert.match(stakeWorkflow, /version: 11\.25\.0/u);
+});
+
 test('wrong SHA and vulnerable Vite or devalue inputs each fail their exact checks', () => {
 	const wrongSha = buildSecurityEvidence(validInputs({ actualGitSha: 'f'.repeat(40) }));
 	assert.equal(wrongSha.status, 'FAIL');
@@ -305,8 +334,9 @@ test('wrong SHA and vulnerable Vite or devalue inputs each fail their exact chec
 
 	const vulnerableManifests = validInputs();
 	vulnerableManifests.manifestInputs[0] = manifest('package.json', {
-		pnpm: { overrides: { devalue: '5.1.1' } },
+		packageManager: 'pnpm@11.25.0',
 	});
+	vulnerableManifests.workspaceSource = workspaceSource.replace('5.8.1', '5.1.1');
 	vulnerableManifests.manifestInputs[1] = manifest('apps/blacksite/package.json', {
 		dependencies: { vite: '6.2.0' },
 	});
@@ -345,6 +375,7 @@ test('CI retains raw audit and normalized exact-SHA security evidence and requir
 	assert.match(workflow, /for audit_attempt in 1 2 3; do/u);
 	assert.match(workflow, /: > "\$audit_report"/u);
 	assert.match(workflow, /timeout --signal=TERM --kill-after=30s 300s/u);
+	assert.match(workflow, /version: 11\.25\.0/u);
 	assert.match(workflow, /pnpm audit --prod --audit-level high --json/u);
 	assert.match(workflow, /printf 'attempt=%s exit_code=%s\\n'/u);
 	assert.match(workflow, /\[\[ "\$audit_exit_code" =~ \^\[01\]\$ \]\]/u);

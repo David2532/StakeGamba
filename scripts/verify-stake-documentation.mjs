@@ -471,7 +471,7 @@ Full math regeneration is mandatory when production math files, cluster logic, P
 
 	const pipeline = `# Stake compliance pipeline
 
-Node version: package engine \`>=22.16.0\`. pnpm version: \`10.5.0\`. Browser dependency: Playwright Chromium via the repo Playwright install.
+Node version: package engine \`>=22.16.0\`. pnpm version: \`11.25.0\`. Browser dependency: Playwright Chromium via the repo Playwright install.
 
 | Level | Stage | Purpose | Trigger | Commands | Outputs | Exit 0 | Non-zero causes | Skipping |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |

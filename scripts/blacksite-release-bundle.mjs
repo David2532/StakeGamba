@@ -807,12 +807,17 @@ function validateSecurityReceipt(
 	const manifestInputs = manifestFiles.map(({ path, source }) => ({ path, source }));
 	const lockfileInput = repositoryInput('lockfile', join(repoRoot, 'pnpm-lock.yaml'));
 	const npmrcInput = repositoryInput('npmrc', join(repoRoot, '.npmrc'));
+	const workspaceInput = repositoryInput(
+		'workspace package-manager policy',
+		join(repoRoot, 'pnpm-workspace.yaml'),
+	);
 	const independentlyResolved = buildSecurityEvidence({
 		expectedGitSha,
 		actualGitSha: expectedGitSha,
 		manifestInputs,
 		lockfileSource: lockfileInput.source,
 		npmrcSource: npmrcInput.source,
+		workspaceSource: workspaceInput.source,
 		effectiveAuditRegistry: securityEvidence.inputs?.auditRegistry?.url,
 		auditReportSource: readFileSync(auditDocument.path, 'utf8'),
 		auditExitCode: auditCheck.detail.exitCode,
@@ -830,7 +835,7 @@ function validateSecurityReceipt(
 		auditStderrPath: physicalAuditStderrPath,
 		auditStderrFile,
 		auditCheck,
-		rawRepositoryInputs: [...manifestFiles, lockfileInput, npmrcInput],
+		rawRepositoryInputs: [...manifestFiles, lockfileInput, npmrcInput, workspaceInput],
 	};
 }
 
@@ -847,6 +852,7 @@ function validateRepositoryReceipt(
 	const inputSources = [
 		repositoryInput('workflow', join(repoRoot, '.github', 'workflows', 'blacksite-ci.yml')),
 		repositoryInput('npmrc', join(repoRoot, '.npmrc')),
+		repositoryInput('workspace-config', join(repoRoot, 'pnpm-workspace.yaml')),
 		repositoryInput('package-manifest', join(repoRoot, 'package.json')),
 		repositoryInput('lockfile', join(repoRoot, 'pnpm-lock.yaml')),
 		repositoryInput('security-evidence', security.document.path),
@@ -863,7 +869,7 @@ function validateRepositoryReceipt(
 	requireValue(
 		repositoryEvidence.schema === BLACKSITE_REPOSITORY_EVIDENCE_SCHEMA &&
 			sameJson(repositoryEvidence, independentlyResolved),
-		'Repository gate evidence differs from independent recomputation over its eight raw inputs',
+		'Repository gate evidence differs from independent recomputation over its nine raw inputs',
 	);
 	return { document, evidence: repositoryEvidence, inputSources };
 }
@@ -956,6 +962,10 @@ function securityReceiptInputBindings(security, sourceInputs) {
 		npmrc: {
 			...sourceBinding(security.evidence.inputs.npmrc.path),
 			sha256: security.evidence.inputs.npmrc.sha256,
+		},
+		workspace: {
+			...sourceBinding(security.evidence.inputs.workspace.path),
+			sha256: security.evidence.inputs.workspace.sha256,
 		},
 		lockfile: {
 			...sourceBinding(security.evidence.inputs.lockfile.path),

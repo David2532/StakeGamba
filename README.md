@@ -63,13 +63,13 @@ nvm install 22.16.0
 node -v
 ```
 
-- Install pnpm with version 10.5.0.
+- Install pnpm with version 11.25.0.
 
 ```
 # Install pnpm
-npm install pnpm@10.5.0 -g
+npm install pnpm@11.25.0 -g
 
-# Verify the pnpm versions. Should print "v10.5.0"
+# Verify the pnpm versions. Should print "11.25.0"
 pnpm -v
 ```
 

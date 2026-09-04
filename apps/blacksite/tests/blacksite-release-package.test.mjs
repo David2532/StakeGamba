@@ -20,6 +20,7 @@ const buildScriptUrl = new URL('../scripts/build-production.mjs', import.meta.ur
 const svelteConfigUrl = new URL('../svelte.config.js', import.meta.url);
 const packageJsonUrl = new URL('../package.json', import.meta.url);
 const rootPackageJsonUrl = new URL('../../../package.json', import.meta.url);
+const workspaceConfigUrl = new URL('../../../pnpm-workspace.yaml', import.meta.url);
 const recoveryMetadataUrl = new URL('../build/_app/version.json', import.meta.url);
 const repoRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const packageScriptPath = fileURLToPath(packageScriptUrl);
@@ -55,6 +56,7 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 		packageJson,
 		rootPackageJson,
 		releaseBundleScript,
+		workspaceConfig,
 	] = await Promise.all([
 		readFile(packageScriptUrl, 'utf8'),
 		readFile(verifyScriptUrl, 'utf8'),
@@ -64,6 +66,7 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 		readFile(packageJsonUrl, 'utf8').then(JSON.parse),
 		readFile(rootPackageJsonUrl, 'utf8').then(JSON.parse),
 		readFile(releaseBundleScriptUrl, 'utf8'),
+		readFile(workspaceConfigUrl, 'utf8'),
 	]);
 
 	assert.match(packageScript, /--print-frontend-tree-sha256/u);
@@ -101,7 +104,7 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 		rootPackageJson.scripts['blacksite:scale:contract'],
 		'node scripts/blacksite-scale-evidence.mjs --self-test',
 	);
-	assert.equal(rootPackageJson.pnpm.overrides.devalue, '5.8.1');
+	assert.match(workspaceConfig, /^overrides:\n\s{2}devalue: "5\.8\.1"$/mu);
 	assert.match(releaseBundleScript, /blacksite-release-evidence-bundle-v2/u);
 	assert.match(releaseBundleScript, /captureGitHubActionsReleaseIdentity/u);
 	assert.match(releaseBundleScript, /\['push', 'workflow_dispatch'\]/u);

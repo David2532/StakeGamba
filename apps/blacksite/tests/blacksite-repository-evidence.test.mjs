@@ -11,6 +11,7 @@ const gitSha = 'a'.repeat(40);
 const labels = [
 	'workflow',
 	'npmrc',
+	'workspace-config',
 	'package-manifest',
 	'lockfile',
 	'security-evidence',

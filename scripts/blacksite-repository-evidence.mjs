@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDirectory, '..');
 
-export const BLACKSITE_REPOSITORY_EVIDENCE_SCHEMA = 'blacksite-repository-gate-evidence-v2';
+export const BLACKSITE_REPOSITORY_EVIDENCE_SCHEMA = 'blacksite-repository-gate-evidence-v3';
 export const BLACKSITE_REPOSITORY_GATES = Object.freeze([
 	'pnpm install --frozen-lockfile --reporter=silent',
 	'pnpm audit --prod --audit-level high --json',
@@ -24,6 +24,7 @@ export const BLACKSITE_REPOSITORY_GATES = Object.freeze([
 const REQUIRED_INPUT_LABELS = Object.freeze([
 	'workflow',
 	'npmrc',
+	'workspace-config',
 	'package-manifest',
 	'lockfile',
 	'security-evidence',
@@ -110,6 +111,7 @@ function main() {
 	const inputSources = [
 		readInput('workflow', '.github/workflows/blacksite-ci.yml'),
 		readInput('npmrc', '.npmrc'),
+		readInput('workspace-config', 'pnpm-workspace.yaml'),
 		readInput('package-manifest', 'package.json'),
 		readInput('lockfile', 'pnpm-lock.yaml'),
 		readInput('security-evidence', requiredArgument('--security-evidence')),

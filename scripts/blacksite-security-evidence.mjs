@@ -7,16 +7,17 @@ import { fileURLToPath } from 'node:url';
 const scriptPath = fileURLToPath(import.meta.url);
 const defaultRepoRoot = resolve(dirname(scriptPath), '..');
 
-export const BLACKSITE_SECURITY_EVIDENCE_SCHEMA = 'blacksite-security-evidence-v2';
+export const BLACKSITE_SECURITY_EVIDENCE_SCHEMA = 'blacksite-security-evidence-v3';
 export const BLACKSITE_SECURITY_POLICY = Object.freeze({
-	id: 'blacksite-dependency-security-policy-v2',
+	id: 'blacksite-dependency-security-policy-v3',
 	reviewedAt: '2026-09-04',
 	audit: Object.freeze({
-		pnpmVersion: '10.5.0',
+		pnpmVersion: '11.25.0',
 		level: 'high',
 		registry: 'https://registry.npmjs.org/',
 		allowedOrigins: Object.freeze(['https://registry.npmjs.org']),
-		npmrcSha256: '8af0d64554bba4954bdf9d6d8db03952046a49549f737d18b7b38e118f0792a1',
+		npmrcSha256: '52860f9b45d3e516986ecb81ffbf853f5e3f9bee82666148e37df24691e693de',
+		workspaceSha256: '171d9c0a94e65a85e268cc68d7e53ee5bc744fe25d36af8c70c9c2869285c584',
 	}),
 	versions: Object.freeze({
 		vite: '6.4.3',
@@ -236,10 +237,7 @@ export function assessPnpmAudit({ source, exitCode, required, registry = null })
 				report.metadata[key] >= 0,
 		);
 	if (
-		!Array.isArray(report.actions) ||
-		!report.actions.every(isPlainObject) ||
 		!isPlainObject(report.advisories) ||
-		!Array.isArray(report.muted) ||
 		!countsComplete ||
 		!dependencyCountsComplete
 	) {
@@ -250,7 +248,7 @@ export function assessPnpmAudit({ source, exitCode, required, registry = null })
 			reportSha256,
 			vulnerabilities: null,
 			reason:
-				'Audit report is incomplete; pnpm 10.5 actions, advisories, muted entries, dependency metadata and every vulnerability count are required.',
+				'Audit report is incomplete; pnpm 11.25 advisories, dependency metadata and every vulnerability count are required.',
 		};
 	}
 
@@ -267,16 +265,22 @@ export function assessPnpmAudit({ source, exitCode, required, registry = null })
 		total: severityTotal,
 	};
 	const detailedCounts = countDetailedFindings(report.advisories);
+	const reportedAuditSeverities = Object.values(report.advisories).map(
+		(finding) => finding?.severity,
+	);
+	const blockingFindingTotal = vulnerabilities.high + vulnerabilities.critical;
 	const countsConsistent =
 		Number.isSafeInteger(severityTotal) &&
 		Number.isSafeInteger(dependencyTotal) &&
 		dependencyTotal === report.metadata.totalDependencies &&
-		report.muted.length === 0 &&
 		Boolean(detailedCounts) &&
-		auditSeverities.every((severity) => detailedCounts[severity] === vulnerabilities[severity]);
+		reportedAuditSeverities.every((severity) => severity === 'high' || severity === 'critical') &&
+		detailedCounts.high === vulnerabilities.high &&
+		detailedCounts.critical === vulnerabilities.critical;
 	const exitSemanticsValid =
-		(severityTotal === 0 && exitCode === 0) || (severityTotal > 0 && exitCode === 1);
-	const noReleaseBlockingFinding = vulnerabilities.high === 0 && vulnerabilities.critical === 0;
+		(blockingFindingTotal === 0 && exitCode === 0) ||
+		(blockingFindingTotal > 0 && exitCode === 1);
+	const noReleaseBlockingFinding = blockingFindingTotal === 0;
 	const passed = countsConsistent && exitSemanticsValid && noReleaseBlockingFinding;
 
 	return {
@@ -288,12 +292,12 @@ export function assessPnpmAudit({ source, exitCode, required, registry = null })
 		detailedVulnerabilities: detailedCounts,
 		reason: passed
 			? severityTotal === 0
-				? 'Registry audit completed with no production findings and the expected pnpm 10.5 exit code.'
-				: 'Registry audit returned pnpm 10.5 exit code 1 only for findings below the high-severity release threshold.'
+				? 'Registry audit completed with no production findings and the expected pnpm 11.25 exit code.'
+				: 'Registry audit reported only findings below the high-severity release threshold and returned the expected pnpm 11.25 exit code.'
 			: !countsConsistent
-				? 'Detailed advisories, muted entries or report totals conflict with the audit metadata.'
+				? 'High/critical advisories or report totals conflict with the pnpm 11.25 audit metadata.'
 				: !exitSemanticsValid
-					? 'Audit exit code contradicts pnpm 10.5 JSON-mode semantics; registry failures and timeouts fail closed.'
+					? 'Audit exit code contradicts pnpm 11.25 high-threshold JSON semantics; registry failures and timeouts fail closed.'
 					: 'Audit reported at least one high or critical production finding.',
 	};
 }
@@ -314,6 +318,7 @@ export function buildSecurityEvidence({
 	manifestInputs,
 	lockfileSource,
 	npmrcSource,
+	workspaceSource,
 	effectiveAuditRegistry,
 	auditReportSource,
 	auditExitCode,
@@ -322,6 +327,8 @@ export function buildSecurityEvidence({
 }) {
 	const manifests = parseManifestInputs(manifestInputs);
 	const rootManifest = manifests.find(({ path }) => path === 'package.json');
+	const packageManager = rootManifest?.value?.packageManager ?? null;
+	const requiredPackageManager = `pnpm@${BLACKSITE_SECURITY_POLICY.audit.pnpmVersion}`;
 	const malformedManifests = manifests
 		.filter(({ error }) => error)
 		.map(({ path, error }) => ({ path, error }));
@@ -349,7 +356,12 @@ export function buildSecurityEvidence({
 
 	const lockfileReadable = typeof lockfileSource === 'string' && lockfileSource.length > 0;
 	const npmrcReadable = typeof npmrcSource === 'string' && npmrcSource.length > 0;
+	const workspaceReadable = typeof workspaceSource === 'string' && workspaceSource.length > 0;
 	const npmrcSha256 = npmrcReadable ? sha256(npmrcSource) : null;
+	const workspaceSha256 = workspaceReadable ? sha256(workspaceSource) : null;
+	const workspaceDevalueOverride = workspaceReadable
+		? /^\s{2}devalue:\s*["']?([^\s"']+)["']?\s*$/mu.exec(workspaceSource)?.[1] ?? null
+		: null;
 	const configuredRegistryDeclarations = npmrcRegistryDeclarations(npmrcSource);
 	const configuredRegistry =
 		configuredRegistryDeclarations.length === 1 ? configuredRegistryDeclarations[0] : null;
@@ -388,14 +400,32 @@ export function buildSecurityEvidence({
 		),
 		check(
 			'repository-inputs-readable',
-			rootManifest && lockfileReadable && npmrcReadable && malformedManifests.length === 0
+			rootManifest &&
+			lockfileReadable &&
+			npmrcReadable &&
+			workspaceReadable &&
+			malformedManifests.length === 0
 				? 'PASS'
 				: 'FAIL',
 			{
 				rootManifestPresent: Boolean(rootManifest),
 				lockfilePresent: lockfileReadable,
 				npmrcPresent: npmrcReadable,
+				workspacePresent: workspaceReadable,
 				malformedManifests,
+			},
+		),
+		check(
+			'package-manager-version',
+			packageManager === requiredPackageManager ? 'PASS' : 'FAIL',
+			{ actual: packageManager, required: requiredPackageManager },
+		),
+		check(
+			'workspace-package-manager-policy',
+			workspaceSha256 === BLACKSITE_SECURITY_POLICY.audit.workspaceSha256 ? 'PASS' : 'FAIL',
+			{
+				sha256: workspaceSha256,
+				requiredSha256: BLACKSITE_SECURITY_POLICY.audit.workspaceSha256,
 			},
 		),
 		check('audit-registry-and-npmrc-policy', registryPolicyPassed ? 'PASS' : 'FAIL', {
@@ -434,12 +464,12 @@ export function buildSecurityEvidence({
 		),
 		check(
 			'devalue-exact-override',
-			rootManifest?.value?.pnpm?.overrides?.devalue === BLACKSITE_SECURITY_POLICY.versions.devalue
+			workspaceDevalueOverride === BLACKSITE_SECURITY_POLICY.versions.devalue
 				? 'PASS'
 				: 'FAIL',
 			{
 				requiredVersion: BLACKSITE_SECURITY_POLICY.versions.devalue,
-				actualVersion: rootManifest?.value?.pnpm?.overrides?.devalue ?? null,
+				actualVersion: workspaceDevalueOverride,
 			},
 		),
 		check(
@@ -494,6 +524,10 @@ export function buildSecurityEvidence({
 			npmrc: {
 				path: '.npmrc',
 				sha256: npmrcSha256,
+			},
+			workspace: {
+				path: 'pnpm-workspace.yaml',
+				sha256: workspaceSha256,
 			},
 			lockfile: {
 				path: 'pnpm-lock.yaml',
@@ -566,6 +600,10 @@ export function runSecurityEvidenceCli({ repoRoot = defaultRepoRoot } = {}) {
 	const lockfileSource = existsSync(lockfilePath) ? readFileSync(lockfilePath, 'utf8') : null;
 	const npmrcPath = resolve(repoRoot, '.npmrc');
 	const npmrcSource = existsSync(npmrcPath) ? readFileSync(npmrcPath, 'utf8') : null;
+	const workspacePath = resolve(repoRoot, 'pnpm-workspace.yaml');
+	const workspaceSource = existsSync(workspacePath)
+		? readFileSync(workspacePath, 'utf8')
+		: null;
 	const auditReportSource =
 		auditReportPath && existsSync(auditReportPath)
 			? readFileSync(auditReportPath, 'utf8')
@@ -580,6 +618,7 @@ export function runSecurityEvidenceCli({ repoRoot = defaultRepoRoot } = {}) {
 		manifestInputs,
 		lockfileSource,
 		npmrcSource,
+		workspaceSource,
 		effectiveAuditRegistry,
 		auditReportSource,
 		auditExitCode,
