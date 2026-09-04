@@ -1527,7 +1527,7 @@
 					>
 				</header>
 
-				<!-- svelte-ignore a11y_no_noninteractive_tabindex (keyboard access is required for this overflow region) -->
+				<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 				<div
 					class="rules-scroll"
 					role="region"
