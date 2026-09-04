@@ -1,5 +1,21 @@
 # Material run log
 
+## BS-20260904-24 — BLOCKED
+
+- Sprint day: 6
+- Base remote commit: `62e00151eb9cae8c137fff97000d826df03147a7`; final implementation commit: `505cf4db6e41014cb3c24ea7542de28c18cf013a`.
+- Work item: `BSB-RELEASE-HARDENING-001` remains `IN_PROGRESS`; dependency security is repaired, but the complete final-SHA release workflow has not yet completed green.
+- Selection reason: exact audit exposed 44 high dependency findings and blocked package/browser/accessibility/performance/resolver proof.
+- Before/after evidence: dependency upgrades/overrides and a versioned SvelteKit compatibility patch preserve the proven Svelte 5.20.5 runtime while using secured SvelteKit 2.57.1, Vite 6.4.3 and pnpm 11.25.0. Exact CI `33893017611` reports 0 critical, 0 high, 16 moderate and 4 low findings, with the high/critical threshold unchanged. Svelte 5.45.0 produced nine browser failures; the compatibility patch reduced these to six, and final source addresses all six.
+- Implementation: bind optional Kit exports without Rollup missing-export warnings; freeze the remediated lockfile/security identity; block synchronous base-amount mutation while a paid intent is busy; expose exact select value semantics and keyboard-accessible rules overflow; correct contradictory desktop Vaultkeeper and opaque Replay-unit browser assertions; normalize the Svelte suppression syntax found by exact lint.
+- Changed files: dependency/config/patch/security-evidence files, BlackSite runtime components, browser QA and focused contract tests. Math/RNG, wallet/provider schemas and binary assets are unchanged.
+- Gates: local final lint PASS, production `svelte-check` 0 errors/0 warnings, 316/316 app tests PASS, production build PASS and `git diff --check` PASS. Exact intermediate CI `33893017611` passes install, audit, lint, typecheck, tests, build, scale 46/46, math 7/7 over 300,000 books and package readback, then fails six browser assertions. Exact `33895825974` fails only the malformed suppression comment at lint; final exact CI `33896177773` is in progress.
+- Visual review: `NOT_RUN_CURRENT_SHA`; final CI has not yet produced current desktop/mobile artifacts. Earlier captures are not relabelled.
+- Tool/token metrics: targeted memory/source/audit/browser-log reads, local focused/full BlackSite gates, four exact CI diagnoses and connected Git-data non-force updates. Direct subagents 0; tokens `null`, source `not_exposed`. HTTPS push credentials were unavailable; one local browser install timed out; one command alias and one Git file-mode drift were corrected with changed inputs.
+- Persistence: final implementation is pushed without force and local/remote trees match. Memory closeout is separate.
+- Residual risk: exact final package/browser/axe/performance/resolver proof remains pending, as do production-equivalent infrastructure, physical-device/real-Popout, final audio/accessibility/assets/Spine/rights/Creative/Stake work, 23 manual gates and 6 external approvals. Million-user capacity and release readiness remain `NOT_CLAIMED`.
+- Next action: finish exact CI `33896177773` and inspect current artifacts; if green, proceed to owner-approved `BSB-SCALE-001` evidence rather than synthetic substitutes.
+
 ## BS-20260904-23 — BLOCKED
 
 - Sprint day: 6
@@ -319,22 +335,5 @@
 - Persistence: implementation fast-forwarded through connected Git data without force; exact CI and artifact succeeded. The final memory-only closeout commit is recorded by the run handoff.
 - Residual risk: no production-equivalent CDN/RGS/provider load result exists, so capacity for 1,000,000 users remains NOT_CLAIMED. Approved Spine rig/clips, BLACKOUT/foreground art, final approved audio/listening/clipping/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals remain open.
 - Next candidate: obtain and validate the real owner-approved production-equivalent run for `BSB-SCALE-001`; if infrastructure remains externally unavailable, advance only another repository-solvable high release gate without substituting synthetic evidence for acceptance.
-
-## BS-20260903-04 — SUCCESS
-
-- Sprint day: 5
-- Base remote commit: `65379dc7cbd740bb845306db6c46d86f1c92b358`
-- Verified implementation commit: `75fd1adf311449921bbaf4c2000c7cd7c51cacc1`
-- Work item: `BSB-SCALE-ARTIFACT-READBACK-001` (DONE); parent `BSB-SCALE-001` remains OPEN.
-- Selection reason: schema v2 checked only declared size and SHA-256 syntax. Its CLI could return the final external-evidence claim without opening any referenced artifact, so fabricated metadata could falsely pass the repository gate.
-- Before/after evidence: the expected-red CLI regression finished 10/11 because metadata-only input exited 0. Schema v3 now separates metadata validation from the final claim and requires `--artifacts-root`; the CLI reads all six role-bound files and verifies root/path containment, non-symlink regular-file type, unique names and real paths, exact byte size and streamed SHA-256. Missing, tampered, mismatched, duplicate, traversing and symlinked artifacts fail closed. Final focused tests are 12/12 and verifier self-test 25/25.
-- Changed files: scale verifier, focused scale contract test, scale-readiness runbook and five sprint-memory files. Product runtime/layout, math/RNG, wallet/provider schema, assets, dependencies and lockfile are unchanged.
-- Gates: expected-red 10/11, exit 1; focused 12/12 PASS, exit 0; scale self-test 25/25 PASS, exit 0; frozen install, lint, typecheck 0 errors/0 warnings, 190/190 app tests, production build and 7/7 math gates over 300,000 books all PASS locally, exit 0. Exact current-head CI `33705358061` repeats all product gates, exact six-file package/readback, Chromium 84/84 scenarios / 2358 checks and the current-SHA 51-point resolver. Unexpected/forbidden requests, page errors and failed requests are zero; six console messages are expected 401/503 fixtures. `git diff --check`, secret/debug/scope and full own-diff review PASS.
-- Visual/browser review: exact package executed 1920x1080, 1366x768, 390x844 and 844x390 plus compact geometry with no layout/runtime/network failure. Artifact `9875363496` supplied all four primary captures; manual inspection found no overlap, crop, scroll or broken image. No product visual source changed.
-- Package evidence: exact frontend tree `f5ebd84df3b870145c8a6d5aa4dd95293d5c890c53f952071fa10c4d77a2de1e`, 6 files / 439,759 bytes; math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; package verification PASS.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; subagents 0. The repository Stake compliance skill required exact artifact readback and current package evidence rather than trusting declarations. Standard push authentication failed once; connected Git data performed the non-force fast-forward. A premature job-log fetch returned 404 and succeeded after completion; no semantic gate was repeated unchanged.
-- Persistence: implementation was fast-forwarded through connected Git data with `force: false`; exact run `33705358061`, artifact `9875363496` and digest `sha256:27fb5eb62d93d86a2172524616dd6e58e2faeedcb55f3fa03a1ddc3dbdc2406b` succeeded. Memory closeout is fast-forwarded separately without force.
-- Residual risk: there is still no owner-approved production-equivalent CDN/RGS/provider load/soak run, so capacity for 1,000,000 users is NOT_CLAIMED. Approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/clipping/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals remain open.
-- Next candidate: obtain and validate the real production-equivalent scale run for `BSB-SCALE-001`; if external infrastructure remains unavailable, advance only another repository-solvable high release gate without substituting mocks for acceptance.
 
 Newest entries first; retain at most 20.
