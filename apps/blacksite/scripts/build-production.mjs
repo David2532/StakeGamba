@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -27,11 +27,26 @@ rmSync(buildRoot, { recursive: true, force: true });
 const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 execFileSync(pnpmCommand, ['exec', 'vite', 'build'], {
 	cwd: appRoot,
+	env: { ...process.env, BLACKSITE_BUILD_GIT_SHA: gitSha },
 	stdio: 'inherit',
 });
 
 if (!existsSync(join(buildRoot, 'index.html'))) {
 	throw new Error('BLACKSITE production build did not create build/index.html');
+}
+
+const recoveryMetadataPath = join(buildRoot, '_app', 'version.json');
+let recoveryMetadata;
+try {
+	recoveryMetadata = JSON.parse(readFileSync(recoveryMetadataPath, 'utf8'));
+} catch (error) {
+	throw new Error(`BLACKSITE production build has invalid recovery metadata: ${error.message}`);
+}
+if (
+	JSON.stringify(Object.keys(recoveryMetadata)) !== JSON.stringify(['version']) ||
+	recoveryMetadata.version !== gitSha
+) {
+	throw new Error('BLACKSITE production build version must equal the exact Git SHA');
 }
 
 const pruned = pruneBlacksiteInlineBuildResidue(buildRoot);

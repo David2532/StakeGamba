@@ -15,14 +15,26 @@ const sourceAssetUrl = new URL(
 const environmentAssets = Object.freeze([
 	{
 		id: 'product.environment.mechanical_vault.desktop.v1',
-		source: new URL('../art/production/environment/mechanical-vault-desktop-v1.png', import.meta.url),
-		runtime: new URL('../static/assets/blacksite/environment/mechanical-vault-desktop-v1.webp', import.meta.url),
+		source: new URL(
+			'../art/production/environment/mechanical-vault-desktop-v1.png',
+			import.meta.url,
+		),
+		runtime: new URL(
+			'../static/assets/blacksite/environment/mechanical-vault-desktop-v1.webp',
+			import.meta.url,
+		),
 		bytes: 77_992,
 	},
 	{
 		id: 'product.environment.mechanical_vault.portrait.v1',
-		source: new URL('../art/production/environment/mechanical-vault-portrait-v1.png', import.meta.url),
-		runtime: new URL('../static/assets/blacksite/environment/mechanical-vault-portrait-v1.webp', import.meta.url),
+		source: new URL(
+			'../art/production/environment/mechanical-vault-portrait-v1.png',
+			import.meta.url,
+		),
+		runtime: new URL(
+			'../static/assets/blacksite/environment/mechanical-vault-portrait-v1.webp',
+			import.meta.url,
+		),
 		bytes: 48_628,
 	},
 ]);
@@ -74,7 +86,22 @@ test('runtime uses the semantic asset map and omits decorative character in comp
 		/data-testid="vaultkeeper-presence"[\s\S]*data-character-state=[\s\S]*data-asset-state=[\s\S]*aria-hidden="true"/u,
 	);
 	assert.match(page, /on:error=\{handleCharacterAssetError\}/u);
-	assert.match(page, /\{#if renderCharacterAsset\}[\s\S]*BLACKSITE_ASSETS\.character\.vaultkeeperFallback[\s\S]*\{\/if\}/u);
+	assert.match(
+		page,
+		/function handleCharacterAssetError\(event\) \{[\s\S]*?confirmAssetPaint\('character', event\.currentTarget\)/u,
+	);
+	assert.match(
+		page,
+		/if \(kind === 'character' && \(!renderCharacterAsset \|\| image !== characterAssetElement\)\) return;/u,
+	);
+	assert.match(
+		page,
+		/request !== characterPaintRequest \|\|[\s\S]*?!renderCharacterAsset \|\|[\s\S]*?image !== characterAssetElement[\s\S]*?return;[\s\S]*?characterAssetState = 'fallback'/u,
+	);
+	assert.match(
+		page,
+		/\{#if renderCharacterAsset\}[\s\S]*BLACKSITE_ASSETS\.character\.vaultkeeperFallback[\s\S]*\{\/if\}/u,
+	);
 	assert.match(page, /let characterAssetState = 'omitted'/u);
 	assert.match(page, /watchCharacterAssetVisibility/u);
 	assert.match(page, /data-asset-paint-state=\{characterAssetState\}/u);
@@ -111,7 +138,10 @@ test('runtime selects an independent portrait vault plate without exposing decor
 	assert.match(assetMap, /vaultDesktop:[\s\S]*mechanical-vault-desktop-v1\.webp/u);
 	assert.match(assetMap, /vaultPortrait:[\s\S]*mechanical-vault-portrait-v1\.webp/u);
 	assert.match(page, /data-testid="vault-environment"[\s\S]*aria-hidden="true"/u);
-	assert.match(page, /media="\(max-width: 820px\)"[\s\S]*BLACKSITE_ASSETS\.environment\.vaultPortrait/u);
+	assert.match(
+		page,
+		/media="\(max-width: 820px\)"[\s\S]*BLACKSITE_ASSETS\.environment\.vaultPortrait/u,
+	);
 	assert.match(page, /BLACKSITE_ASSETS\.environment\.vaultDesktop/u);
 	assert.match(page, /\.vault-environment \{[\s\S]*pointer-events: none;/u);
 	assert.match(page, /data-asset-paint-state=\{environmentAssetState\}/u);
@@ -188,6 +218,9 @@ test('browser evidence identity includes shipped static assets', async () => {
 	assert.match(source, /\['painted', 'fallback', 'omitted'\]\.includes\(characterState \?\? ''\)/u);
 	assert.doesNotMatch(source, /\['painted', 'fallback', 'failed'\]\.includes/u);
 	assert.match(source, /vaultkeeper fallback is.*compact-omitted/u);
-	assert.match(source, /missing Vaultkeeper image switches to the deterministic mechanical silhouette/u);
+	assert.match(
+		source,
+		/missing Vaultkeeper image switches to the deterministic mechanical silhouette/u,
+	);
 	assert.match(source, /responsive mechanical vault environment selects/u);
 });

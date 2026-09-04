@@ -136,14 +136,7 @@ const EVENT_KEYS = Object.freeze({
 		'remaining_cycles_after_current',
 		'next_access_multiplier',
 	],
-	tumble: [
-		'index',
-		'type',
-		'phase',
-		'tumble_index',
-		'removed_positions',
-		'entering_symbols',
-	],
+	tumble: ['index', 'type', 'phase', 'tumble_index', 'removed_positions', 'entering_symbols'],
 	feature_end: [
 		'index',
 		'type',
@@ -200,6 +193,8 @@ const CUE_BY_EVENT = Object.freeze({
 	cap_reached: 'cap_reached',
 	round_end: 'settled',
 });
+
+export const GAME_EVENT_CUE_KINDS = Object.freeze([...new Set(Object.values(CUE_BY_EVENT))]);
 
 export class ContractViolation extends Error {
 	constructor(message, eventIndex = null) {
@@ -260,12 +255,7 @@ function validatePositions(positions, label, eventIndex, withSymbol = false) {
 	if (!Array.isArray(positions)) fail(`${label} must be an array`, eventIndex);
 	const keys = new Set();
 	positions.forEach((position, positionIndex) => {
-		const key = validatePosition(
-			position,
-			`${label}[${positionIndex}]`,
-			eventIndex,
-			withSymbol,
-		);
+		const key = validatePosition(position, `${label}[${positionIndex}]`, eventIndex, withSymbol);
 		if (keys.has(key)) fail(`${label} contains duplicate ${key}`, eventIndex);
 		keys.add(key);
 	});
@@ -383,7 +373,8 @@ function validatePorts(ports, label, eventIndex) {
 }
 
 function validateBoard(board, eventIndex) {
-	if (!Array.isArray(board) || board.length !== 7) fail('board must have seven columns', eventIndex);
+	if (!Array.isArray(board) || board.length !== 7)
+		fail('board must have seven columns', eventIndex);
 	board.forEach((column, columnIndex) => {
 		if (!Array.isArray(column) || column.length !== 7) {
 			fail(`board column ${columnIndex} must have seven rows`, eventIndex);
@@ -400,9 +391,7 @@ function orthogonalNeighbours(position) {
 		{ column: position.column - 1, row: position.row },
 		{ column: position.column + 1, row: position.row },
 		{ column: position.column, row: position.row + 1 },
-	].filter(
-		(next) => next.column >= 0 && next.column < 7 && next.row >= 0 && next.row < 7,
-	);
+	].filter((next) => next.column >= 0 && next.column < 7 && next.row >= 0 && next.row < 7);
 }
 
 function payingComponents(board) {
@@ -483,11 +472,7 @@ function validateClusterBoardAndRoute(event, eventIndex, boardState, liveKeys, c
 function validateClusterAward(cluster, clusterIndex, eventIndex, capRemaining) {
 	const label = `cluster ${clusterIndex}`;
 	const band = PAYTABLE_BAND_BY_ID.get(cluster.cluster_band);
-	if (
-		!band ||
-		!Number.isSafeInteger(band.minimum) ||
-		!Number.isSafeInteger(band.maximum)
-	) {
+	if (!band || !Number.isSafeInteger(band.minimum) || !Number.isSafeInteger(band.maximum)) {
 		fail(`${label}.cluster_band is not a canonical paytable band`, eventIndex);
 	}
 	if (cluster.cluster_size < band.minimum || cluster.cluster_size > band.maximum) {
@@ -539,10 +524,12 @@ function validateRoute(value, eventIndex, { includeBreached = false } = {}) {
 
 function validateEvent(event, eventIndex) {
 	assertObject(event, `event ${eventIndex}`, eventIndex);
-	if (!Object.hasOwn(EVENT_KEYS, event.type)) fail(`unknown event type ${String(event.type)}`, eventIndex);
+	if (!Object.hasOwn(EVENT_KEYS, event.type))
+		fail(`unknown event type ${String(event.type)}`, eventIndex);
 	assertExactKeys(event, EVENT_KEYS[event.type], `event ${eventIndex}`, eventIndex);
 	assertUint(event.index, 'event.index', eventIndex);
-	if (event.index !== eventIndex) fail('event indices must be contiguous and zero-based', eventIndex);
+	if (event.index !== eventIndex)
+		fail('event indices must be contiguous and zero-based', eventIndex);
 
 	if (event.type === 'round_start') {
 		if (event.schema_version !== 1 || event.event_contract !== EVENT_CONTRACT) {
@@ -565,11 +552,7 @@ function validateEvent(event, eventIndex) {
 			'seeded_breached_cells',
 			eventIndex,
 		);
-		const seededLive = validatePositions(
-			event.seeded_live_cells,
-			'seeded_live_cells',
-			eventIndex,
-		);
+		const seededLive = validatePositions(event.seeded_live_cells, 'seeded_live_cells', eventIndex);
 		const expectedBreached = new Set(mode.seedBreachedCells.map(cellKey));
 		const expectedLive = new Set(mode.seedLiveCells.map(cellKey));
 		if (!sameSet(seededBreached, expectedBreached) || !sameSet(seededLive, expectedLive)) {
@@ -625,12 +608,7 @@ function validateEvent(event, eventIndex) {
 			if (!ACCESS_MULTIPLIERS.has(cluster.access_multiplier)) {
 				fail(`cluster ${clusterIndex}.access_multiplier is invalid`, eventIndex);
 			}
-			const validated = validateClusterAward(
-				cluster,
-				clusterIndex,
-				eventIndex,
-				capRemaining,
-			);
+			const validated = validateClusterAward(cluster, clusterIndex, eventIndex, capRemaining);
 			capRemaining = validated.capRemaining;
 			calculatedStep += validated.calculatedAward;
 			appliedStep += validated.appliedAward;
@@ -686,17 +664,15 @@ function validateEvent(event, eventIndex) {
 	}
 
 	if (event.type === 'feature_armed') {
-		if (
-			event.reason !== 'core_became_live' ||
-			event.enter_after_current_cascade_chain !== true
-		) {
+		if (event.reason !== 'core_became_live' || event.enter_after_current_cascade_chain !== true) {
 			fail('feature_armed semantics are invalid', eventIndex);
 		}
 		assertUint(event.cumulative_payout_raw, 'cumulative_payout_raw', eventIndex);
 	}
 
 	if (event.type === 'feature_start') {
-		if (event.feature !== 'blackout_protocol') fail('feature_start identity is invalid', eventIndex);
+		if (event.feature !== 'blackout_protocol')
+			fail('feature_start identity is invalid', eventIndex);
 		assertBoolean(event.direct, 'direct', eventIndex);
 		if (event.core_live !== true) fail('feature_start requires core_live=true', eventIndex);
 		for (const field of ['initial_cycles', 'total_cycles', 'access_multiplier']) {
@@ -746,10 +722,7 @@ function validateEvent(event, eventIndex) {
 		]) {
 			assertUint(event[field], field, eventIndex);
 		}
-		if (
-			event.awarded_cycles !== 2 ||
-			!new Set([7, 10, 15]).has(event.next_access_multiplier)
-		) {
+		if (event.awarded_cycles !== 2 || !new Set([7, 10, 15]).has(event.next_access_multiplier)) {
 			fail('exfil_reached award/access contract is invalid', eventIndex);
 		}
 	}
@@ -897,9 +870,7 @@ function validateEventSequence(events) {
 			}
 			const previousCoreLive = live.has(CORE_KEY);
 			const previousPorts = new Set(reachedPorts);
-			const removed = new Set(
-				event.clusters.flatMap((cluster) => cluster.positions.map(cellKey)),
-			);
+			const removed = new Set(event.clusters.flatMap((cluster) => cluster.positions.map(cellKey)));
 			const newlyBreached = new Set([...removed].filter((key) => !breached.has(key)));
 			const nextBreached = new Set([...breached, ...removed]);
 			const nextLive = computeLiveCells(nextBreached);
@@ -910,14 +881,8 @@ function validateEventSequence(events) {
 			const nextAccess = phaseFeature
 				? featureAccessForPorts(route.reachedPorts)
 				: accessForLiveCells(nextLive);
-			const gross = event.clusters.reduce(
-				(sum, cluster) => sum + cluster.calculated_award_raw,
-				0,
-			);
-			const accepted = event.clusters.reduce(
-				(sum, cluster) => sum + cluster.applied_award_raw,
-				0,
-			);
+			const gross = event.clusters.reduce((sum, cluster) => sum + cluster.calculated_award_raw, 0);
+			const accepted = event.clusters.reduce((sum, cluster) => sum + cluster.applied_award_raw, 0);
 			cumulativeRaw = event.cumulative_after_raw;
 			capped = cumulativeRaw === MAX_WIN_RAW;
 			pendingWin = {
@@ -960,12 +925,14 @@ function validateEventSequence(events) {
 				currentAccess = nextAccess;
 				reachedPorts = route.reachedPorts;
 				pendingSeed = false;
-				notifications = [{
-					type: 'access_changed',
-					previous: 1,
-					next: currentAccess,
-					reason: 'mode_seed',
-				}];
+				notifications = [
+					{
+						type: 'access_changed',
+						previous: 1,
+						next: currentAccess,
+						reason: 'mode_seed',
+					},
+				];
 				afterNotificationsType = directFeature ? 'feature_start' : 'board_set';
 				setRequiredFromNotifications();
 				continue;
@@ -973,10 +940,7 @@ function validateEventSequence(events) {
 
 			if (!pendingWin) fail('breach_state requires a preceding cluster_win', eventIndex);
 			if (
-				!sameSet(
-					new Set(event.newly_breached_cells.map(cellKey)),
-					pendingWin.newlyBreached,
-				) ||
+				!sameSet(new Set(event.newly_breached_cells.map(cellKey)), pendingWin.newlyBreached) ||
 				!routePayloadMatches(event, pendingWin.route, { includeBreached: true }) ||
 				event.current_access_multiplier !== pendingWin.nextAccess ||
 				event.feature_multiplier !== (phaseFeature ? pendingWin.nextAccess : 1) ||
@@ -1034,7 +998,10 @@ function validateEventSequence(events) {
 
 		if (event.type === 'feature_armed') {
 			const expected = notifications[0];
-			if (expected?.type !== 'feature_armed' || event.cumulative_payout_raw !== expected.cumulative) {
+			if (
+				expected?.type !== 'feature_armed' ||
+				event.cumulative_payout_raw !== expected.cumulative
+			) {
 				fail('feature_armed does not match the authoritative route transition', eventIndex);
 			}
 			featureArmed = true;
@@ -1238,13 +1205,7 @@ export class GameEventAdapter {
 				};
 			}
 			if (event.type === 'cluster_win') {
-				validateClusterBoardAndRoute(
-					event,
-					eventIndex,
-					boardState,
-					liveKeys,
-					currentAccess,
-				);
+				validateClusterBoardAndRoute(event, eventIndex, boardState, liveKeys, currentAccess);
 				if (event.cumulative_before_raw !== cumulativePayoutRaw) {
 					fail('cluster_win cumulative_before_raw breaks round continuity', eventIndex);
 				}
@@ -1271,7 +1232,8 @@ export class GameEventAdapter {
 		if (last.payout_multiplier_raw !== cumulativePayoutRaw) {
 			fail('round_end payout does not match cluster_win cumulative total', last.index);
 		}
-		if (last.payout_multiplier_raw > MAX_WIN_RAW) fail('book exceeds complete-round cap', last.index);
+		if (last.payout_multiplier_raw > MAX_WIN_RAW)
+			fail('book exceeds complete-round cap', last.index);
 
 		for (let index = 0; index < events.length - 1; index += 1) {
 			const event = events[index];
@@ -1283,10 +1245,7 @@ export class GameEventAdapter {
 				event.type === 'cluster_win' &&
 				next.cumulative_payout_raw !== event.cumulative_after_raw
 			) {
-				fail(
-					'breach_state cumulative_payout_raw does not match preceding cluster_win',
-					next.index,
-				);
+				fail('breach_state cumulative_payout_raw does not match preceding cluster_win', next.index);
 			}
 			if (event.type === 'tumble' && next.type !== 'board_set') {
 				fail('tumble must be followed by board_set', event.index);

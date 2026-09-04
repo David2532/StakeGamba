@@ -68,6 +68,8 @@ export function introEligibility({
 	reducedMotion = false,
 	seen = false,
 	motionMode = 'normal',
+	disabledTurbo = false,
+	documentHidden = false,
 } = {}) {
 	if (launchKind === 'replay') return { play: false, profile: null, reason: 'replay' };
 	if (launchKind === 'fixture') return { play: false, profile: null, reason: 'fixture' };
@@ -75,10 +77,11 @@ export function introEligibility({
 	if (launchKind !== 'live') return { play: false, profile: null, reason: 'not-live' };
 	if (activeRound) return { play: false, profile: null, reason: 'active-round-restore' };
 	if (reducedMotion) return { play: false, profile: null, reason: 'reduced-motion' };
+	if (documentHidden) return { play: false, profile: null, reason: 'document-hidden' };
 	if (seen) return { play: false, profile: null, reason: 'seen' };
 	return {
 		play: true,
-		profile: motionMode === 'turbo' ? 'turbo' : 'normal',
+		profile: motionMode === 'turbo' && !disabledTurbo ? 'turbo' : 'normal',
 		reason: null,
 	};
 }

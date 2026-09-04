@@ -62,16 +62,18 @@ Chromium QA exercises live RGS flows, Replay, restore/reconnect, Social Mode, fr
 
 The branch workflow performs frozen install, lint, typecheck, app tests, build, full math verification, isolated-package generation/readback, exact-package Chromium QA and current-SHA resolution of the 51-point evidence matrix.
 
-Generate technical candidate folders outside the repository; the packager refuses a dirty worktree, an unpinned commit, a mismatched frontend tree or an existing output directory:
+Generate technical candidate folders outside the repository; the packager refuses a dirty worktree, an unpinned branch/commit, a mismatched frontend tree or an existing output directory. The production build uses the exact full Git SHA as its SvelteKit recovery version, so two builds from the same clean checkout produce the same frontend bytes:
 
 ```sh
 pnpm --filter blacksite build
 node scripts/blacksite-package-candidate.mjs \
   --output <new-candidate-directory> \
+  --expected-branch <branch> \
   --expected-commit <full-git-sha> \
   --expected-frontend-tree <fresh-frontend-tree-sha256>
 node scripts/blacksite-package-verify.mjs \
   --candidate <new-candidate-directory> \
+  --expected-branch <branch> \
   --write-result
 ```
 

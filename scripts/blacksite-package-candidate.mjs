@@ -17,11 +17,8 @@ import { verifyBlacksiteFrontendHygiene } from './blacksite-frontend-hygiene.mjs
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDirectory, '..');
 const frontendSource = join(repoRoot, 'apps', 'blacksite', 'build');
-const frontendBuildIdentitySource = join(
-	frontendSource,
-	'_app',
-	'blacksite-build-identity.json',
-);
+const frontendBuildIdentitySource = join(frontendSource, '_app', 'blacksite-build-identity.json');
+const frontendRecoveryMetadataSource = join(frontendSource, '_app', 'version.json');
 const assetManifestSource = join(repoRoot, 'apps', 'blacksite', 'art', 'asset-manifest.json');
 const mathLibrary = join(repoRoot, 'math', 'games', 'blacksite_breach', 'library');
 const mathIndexSource = join(mathLibrary, 'publish_files', 'index.json');
@@ -48,22 +45,54 @@ function requiredArgument(name) {
 
 function parseArguments() {
 	const usage =
-		'Usage: node scripts/blacksite-package-candidate.mjs --output <new-directory> --expected-commit <full-sha> --expected-frontend-tree <sha256> | --print-frontend-tree-sha256';
+		'Usage: node scripts/blacksite-package-candidate.mjs --output <new-directory> --expected-branch <branch> --expected-commit <full-sha> --expected-frontend-tree <sha256> | --print-frontend-tree-sha256';
 	try {
 		if (process.argv.includes('--print-frontend-tree-sha256')) {
 			return { printFrontendTreeSha256: true };
 		}
 		const outputRoot = resolve(repoRoot, requiredArgument('--output'));
+		const expectedBranch = validateExpectedBranch(requiredArgument('--expected-branch'));
 		const expectedCommit = requiredArgument('--expected-commit');
 		const expectedFrontendTreeSha256 = requiredArgument('--expected-frontend-tree');
 		if (!/^[0-9a-f]{40}$/iu.test(expectedCommit)) fail('--expected-commit must be a full Git SHA');
 		if (!/^[0-9a-f]{64}$/iu.test(expectedFrontendTreeSha256)) {
 			fail('--expected-frontend-tree must be a SHA-256 hex digest');
 		}
-		return { outputRoot, expectedCommit, expectedFrontendTreeSha256 };
+		return { outputRoot, expectedBranch, expectedCommit, expectedFrontendTreeSha256 };
 	} catch (error) {
 		if (error instanceof Error) error.message = `${error.message}\n${usage}`;
 		throw error;
+	}
+}
+
+function validateExpectedBranch(branch) {
+	if (!/^[A-Za-z0-9][A-Za-z0-9._/-]{0,254}$/u.test(branch)) {
+		fail('--expected-branch must be a non-empty canonical Git branch name');
+	}
+	try {
+		if (gitText(['check-ref-format', '--branch', branch]) !== branch) {
+			fail('--expected-branch was normalized by Git');
+		}
+	} catch {
+		fail('--expected-branch must be a non-empty canonical Git branch name');
+	}
+	return branch;
+}
+
+function checkoutBranchEvidence() {
+	const githubHeadRef = process.env.GITHUB_HEAD_REF?.trim();
+	if (githubHeadRef) return githubHeadRef;
+	const githubRef = process.env.GITHUB_REF?.trim();
+	if (githubRef?.startsWith('refs/heads/')) return githubRef.slice('refs/heads/'.length);
+	return gitText(['branch', '--show-current']);
+}
+
+function assertExpectedBranch(expectedBranch) {
+	const checkoutBranch = checkoutBranchEvidence();
+	if (checkoutBranch && checkoutBranch !== expectedBranch) {
+		fail(
+			`Current checkout branch ${checkoutBranch} does not match --expected-branch ${expectedBranch}`,
+		);
 	}
 }
 
@@ -166,7 +195,7 @@ function validateFrontendBuildIdentity(expectedGitSha, expectedGitTreeSha, expec
 	const identity = readJson(frontendBuildIdentitySource);
 	if (
 		JSON.stringify(Object.keys(identity)) !==
-		JSON.stringify(['schema', 'gitSha', 'gitTreeSha', 'clean']) ||
+			JSON.stringify(['schema', 'gitSha', 'gitTreeSha', 'clean']) ||
 		identity.schema !== 'blacksite-frontend-build-identity-v1' ||
 		!/^[0-9a-f]{40}$/u.test(identity.gitSha) ||
 		!/^[0-9a-f]{40}$/u.test(identity.gitTreeSha) ||
@@ -182,6 +211,13 @@ function validateFrontendBuildIdentity(expectedGitSha, expectedGitTreeSha, expec
 		fail(
 			`Frontend build identity does not match the current checkout: ${JSON.stringify(identity)}`,
 		);
+	}
+	const recoveryMetadata = readJson(frontendRecoveryMetadataSource);
+	if (
+		JSON.stringify(Object.keys(recoveryMetadata)) !== JSON.stringify(['version']) ||
+		recoveryMetadata.version !== expectedGitSha
+	) {
+		fail('Frontend recovery build version does not match the exact Git SHA');
 	}
 	return identity;
 }
@@ -283,18 +319,28 @@ function copyMath(files, mathRoot) {
 
 function main() {
 	const arguments_ = parseArguments();
-	if (!existsSync(join(frontendSource, 'index.html'))) {
-		fail('Missing BLACKSITE frontend build; run pnpm --filter blacksite build first');
-	}
 	const gitSha = gitText(['rev-parse', 'HEAD']);
 	const gitTreeSha = gitText(['rev-parse', 'HEAD^{tree}']);
 	const gitStatusBefore = gitText(['status', '--porcelain=v1', '--untracked-files=all']);
+	if (!arguments_.printFrontendTreeSha256) {
+		assertExpectedBranch(arguments_.expectedBranch);
+		if (gitSha !== arguments_.expectedCommit) {
+			fail(
+				`Current Git SHA ${gitSha} does not match --expected-commit ${arguments_.expectedCommit}`,
+			);
+		}
+		if (gitStatusBefore !== '')
+			fail(`Worktree must be clean before packaging:\n${gitStatusBefore}`);
+	}
+	if (!existsSync(join(frontendSource, 'index.html'))) {
+		fail('Missing BLACKSITE frontend build; run pnpm --filter blacksite build first');
+	}
 	validateFrontendBuildIdentity(gitSha, gitTreeSha, gitStatusBefore === '');
 	if (arguments_.printFrontendTreeSha256) {
 		process.stdout.write(`${createFileManifest(frontendSource).treeSha256}\n`);
 		return;
 	}
-	const { outputRoot, expectedCommit, expectedFrontendTreeSha256 } = arguments_;
+	const { outputRoot, expectedBranch, expectedCommit, expectedFrontendTreeSha256 } = arguments_;
 	assertSafeNewOutput(outputRoot);
 	for (const path of [
 		mathIndexSource,
@@ -305,11 +351,7 @@ function main() {
 		if (!existsSync(path)) fail(`Missing BLACKSITE math candidate input: ${path}`);
 	}
 
-	const gitBranch = gitText(['branch', '--show-current']);
 	if (!/^[0-9a-f]{40}$/iu.test(gitSha)) fail(`Invalid git SHA: ${gitSha}`);
-	if (gitSha !== expectedCommit)
-		fail(`Current Git SHA ${gitSha} does not match --expected-commit ${expectedCommit}`);
-	if (gitStatusBefore !== '') fail(`Worktree must be clean before packaging:\n${gitStatusBefore}`);
 
 	const index = readJson(mathIndexSource);
 	const gameConfig = readJson(mathConfigSource);
@@ -361,7 +403,7 @@ function main() {
 		uploadAuthorized: false,
 		generatedAt: new Date().toISOString(),
 		git: {
-			branch: gitBranch,
+			branch: expectedBranch,
 			sha: gitSha,
 			expectedSha: expectedCommit,
 			cleanBefore: gitStatusBefore === '',
@@ -377,8 +419,8 @@ function main() {
 		commands: {
 			build: 'pnpm --filter blacksite build',
 			mathVerify: 'pnpm blacksite:math:verify -- --no-write',
-			package: `node scripts/blacksite-package-candidate.mjs --output <path> --expected-commit ${gitSha} --expected-frontend-tree ${frontendPackage.treeSha256}`,
-			verify: 'node scripts/blacksite-package-verify.mjs --candidate <path> --write-result',
+			package: `node scripts/blacksite-package-candidate.mjs --output <path> --expected-branch ${expectedBranch} --expected-commit ${gitSha} --expected-frontend-tree ${frontendPackage.treeSha256}`,
+			verify: `node scripts/blacksite-package-verify.mjs --candidate <path> --expected-branch ${expectedBranch} --write-result`,
 			packageBrowserQa: `BLACKSITE_QA_BUILD_ROOT=<path>/frontend BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256=${frontendPackage.treeSha256} node scripts/blacksite-qa-e2e.mjs`,
 		},
 		game: {
@@ -432,6 +474,7 @@ function main() {
 		[
 			'BLACKSITE // BREACH — ISOLATED UPLOAD-FOLDER CANDIDATE',
 			'',
+			`Git branch: ${expectedBranch}`,
 			`Git SHA: ${gitSha}`,
 			`Frontend version: ${frontendPackageJson.version}`,
 			`Math candidate: ${gameConfig.candidate_version}`,
@@ -452,6 +495,7 @@ function main() {
 			{
 				status: 'PASS',
 				outputRoot,
+				gitBranch: expectedBranch,
 				gitSha,
 				frontendTreeSha256: frontendPackage.treeSha256,
 				mathTreeSha256: mathPackage.treeSha256,

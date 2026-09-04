@@ -20,10 +20,8 @@ const { parse: parseSvelteDocument } = requireFromBlacksite('svelte/compiler');
 const staticPrefix = 'apps/blacksite/static/';
 const buildIdentityPath = '_app/blacksite-build-identity.json';
 const recoveryMetadataPath = '_app/version.json';
-const generatedInlineResidue = Object.freeze([
-	'_app/immutable',
-	'_app/env.js',
-]);
+const exactGitShaPattern = /^[0-9a-f]{40}$/u;
+const generatedInlineResidue = Object.freeze(['_app/immutable', '_app/env.js']);
 const textExtensions = new Set([
 	'.atlas',
 	'.cjs',
@@ -48,7 +46,10 @@ const forbiddenSecretContent = Object.freeze([
 		pattern: /-----BEGIN (?:[A-Z0-9][A-Z0-9 ]* )?PRIVATE KEY(?: BLOCK)?-----/u,
 	},
 	{ label: 'AWS access key', pattern: /\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/u },
-	{ label: 'GitHub token', pattern: /\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/u },
+	{
+		label: 'GitHub token',
+		pattern: /\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/u,
+	},
 	{ label: 'Google API key', pattern: /\bAIza[0-9A-Za-z_-]{35}\b/u },
 	{ label: 'Slack token', pattern: /\bxox[baprs]-[0-9A-Za-z-]{20,}\b/u },
 	{ label: 'Stripe key', pattern: /\bsk_(?:live|test)_[0-9A-Za-z]{16,}\b/u },
@@ -166,9 +167,7 @@ function decodeCssEscapes(source) {
 		.replace(/\\([0-9a-f]{1,6})\s?|\\([^\r\n\f0-9a-f])/giu, (match, hex, escaped) => {
 			if (hex) {
 				const codePoint = Number.parseInt(hex, 16);
-				return codePoint === 0 || codePoint > 0x10ffff
-					? '\ufffd'
-					: String.fromCodePoint(codePoint);
+				return codePoint === 0 || codePoint > 0x10ffff ? '\ufffd' : String.fromCodePoint(codePoint);
 			}
 			return escaped ?? match;
 		});
@@ -292,9 +291,7 @@ function staticPrimitiveValue(node) {
 			if (expression === unresolvedStaticValue) return unresolvedStaticValue;
 			value += String(expression);
 			value +=
-				unwrapped.quasis[index + 1]?.value?.cooked ??
-				unwrapped.quasis[index + 1]?.value?.raw ??
-				'';
+				unwrapped.quasis[index + 1]?.value?.cooked ?? unwrapped.quasis[index + 1]?.value?.raw ?? '';
 		}
 		return value;
 	}
@@ -526,7 +523,9 @@ function parsePinnedInlineDocument(content) {
 	}
 	const scripts = elements.filter((element) => element.node.name === 'script');
 	if (scripts.length !== 1) {
-		fail(`Inline package must contain exactly one generated runtime script; received ${scripts.length}`);
+		fail(
+			`Inline package must contain exactly one generated runtime script; received ${scripts.length}`,
+		);
 	}
 	const script = scripts[0];
 	if (script.attributes.size !== 0) {
@@ -700,10 +699,7 @@ function runtimeAssetRecords(assetManifest, sourceRoot) {
 				fail(`${asset.id}: runtime asset requires documented ${field}`);
 			}
 		}
-		if (
-			typeof asset.sourceSha256 !== 'string' ||
-			!/^[0-9a-f]{64}$/u.test(asset.sourceSha256)
-		) {
+		if (typeof asset.sourceSha256 !== 'string' || !/^[0-9a-f]{64}$/u.test(asset.sourceSha256)) {
 			fail(`${asset.id}: runtime asset requires a source SHA-256 digest`);
 		}
 		if (
@@ -782,15 +778,14 @@ function scanForbiddenContent(root, files, inlineDocument) {
 				fail(`Forbidden release content source map directive in ${path}`);
 			}
 			if (path === 'index.html') continue;
-			if (
-				containsEffectiveDataUri(extension === '.css' ? cssWithoutComments(content) : content)
-			) {
+			if (containsEffectiveDataUri(extension === '.css' ? cssWithoutComments(content) : content)) {
 				fail(`Forbidden release content embedded data URI in ${path}`);
 			}
 		}
 	}
 	for (const attribute of inlineDocument.attributeValues) {
-		const value = attribute.name === 'style' ? cssWithoutComments(attribute.value) : attribute.value;
+		const value =
+			attribute.name === 'style' ? cssWithoutComments(attribute.value) : attribute.value;
 		if (containsEffectiveDataUri(value)) {
 			fail(
 				`Forbidden release content embedded data URI in index.html ${attribute.element}.${attribute.name}`,
@@ -818,8 +813,7 @@ function isExactRecoveryFetchTarget(node) {
 		node.expressions.length === 1 &&
 		node.expressions[0]?.type === 'Identifier' &&
 		(node.quasis[0]?.value?.cooked ?? node.quasis[0]?.value?.raw) === '' &&
-		(node.quasis[1]?.value?.cooked ?? node.quasis[1]?.value?.raw) ===
-			`/${recoveryMetadataPath}`
+		(node.quasis[1]?.value?.cooked ?? node.quasis[1]?.value?.raw) === `/${recoveryMetadataPath}`
 	);
 }
 
@@ -834,7 +828,7 @@ function readInlineRuntimeVersion(program) {
 				version.id?.type === 'Identifier' &&
 				version.init?.type === 'Literal' &&
 				typeof version.init.value === 'string' &&
-				/^\d+$/u.test(version.init.value) &&
+				exactGitShaPattern.test(version.init.value) &&
 				marker.init?.type === 'Literal' &&
 				marker.init.value === 'sveltekit:snapshot'
 			) {
@@ -890,9 +884,9 @@ function readRecoveryMetadata(root) {
 		typeof metadata !== 'object' ||
 		Array.isArray(metadata) ||
 		typeof metadata.version !== 'string' ||
-		!/^\d+$/u.test(metadata.version)
+		!exactGitShaPattern.test(metadata.version)
 	) {
-		fail(`${recoveryMetadataPath} must contain the generated numeric version string`);
+		fail(`${recoveryMetadataPath} must contain the exact lowercase Git SHA build version`);
 	}
 	return metadata.version;
 }

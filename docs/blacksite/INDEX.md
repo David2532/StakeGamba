@@ -33,6 +33,9 @@ Every major Codex task starts with:
 - `MATH_STANDARD.md` — math file contract, statelessness, lookup/books, RTP, volatility, force/evidence and optimization requirements.
 - `ASSET_ART_STANDARD.md` — original asset pipeline, game-tile package, Spine delivery contract, audio, provenance and bundle budget.
 - `QUALITY_QA_RELEASE.md` — deterministic fixtures, browser QA, extracted-package testing, candidate identity and approval lifecycle.
+- `DEVICE_QA_RUNBOOK.md` — candidate-bound physical/device-farm iOS/Android and real Popout S/L collection protocol, proposed old-device floor, manual/external ownership boundary and structural validation commands.
+- `DEVICE_QA_EVIDENCE.schema.json` / `DEVICE_QA_EVIDENCE.template.json` — versioned fail-closed manual-device record contract and deliberately incomplete starter record; schema conformance never means device or release approval.
+- `DEVICE_QA_OWNER_REVIEW.schema.json` / `DEVICE_QA_OWNER_REVIEW.template.json` — detached exact-evidence-bound Ed25519 reviewer decision; signature validity does not establish organizational authority or Stake/release approval.
 - `CODEX_MASTER_TASK.md` — reusable autonomous build brief for moving the project through M1–M6 without repeatedly rewriting the whole prompt.
 
 ## Specialist agents

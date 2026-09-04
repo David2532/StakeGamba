@@ -50,9 +50,7 @@
 		column: index % 7,
 		row: Math.floor(index / 7),
 	}));
-	const boardRows = Array.from({ length: 7 }, (_, row) =>
-		boardCells.slice(row * 7, row * 7 + 7),
-	);
+	const boardRows = Array.from({ length: 7 }, (_, row) => boardCells.slice(row * 7, row * 7 + 7));
 	const symbolPresentation = Object.freeze({
 		byte: Object.freeze({ label: 'BYTE', mark: '01' }),
 		relay: Object.freeze({ label: 'RELAY', mark: '↯' }),
@@ -132,6 +130,16 @@
 	$: betLevelsApi = liveSnapshot.config?.betLevelsApi ?? [];
 	$: spacebarDisabled = liveSnapshot.config?.jurisdiction?.disabledSpacebar === true;
 	$: buyFeatureDisabled = liveSnapshot.config?.jurisdiction?.disabledBuyFeature === true;
+	$: turboDisabled =
+		launch.kind === 'booting' ||
+		launch.kind === 'error' ||
+		(launch.kind === 'live' && liveSnapshot.config?.jurisdiction?.disabledTurbo !== false);
+	$: slamstopDisabled = liveSnapshot.config?.jurisdiction?.disabledSlamstop === true;
+	$: displayRTP = liveSnapshot.config?.jurisdiction?.displayRTP === true;
+	$: showHudRtp =
+		launch.kind === 'fixture' ||
+		launch.kind === 'replay' ||
+		(launch.kind === 'live' && liveSnapshot.config !== null && displayRTP);
 	$: selectedModeBlocked = Boolean(
 		buyFeatureDisabled && liveSnapshot.config?.betModes?.[selectedModeId]?.feature,
 	);
@@ -168,6 +176,10 @@
 					replaySnapshot.replay.packagePayoutCentiX,
 				)
 			: null;
+	$: visibleTotalAmountText =
+		launch.kind === 'replay'
+			? formatReplayQueryUnits(replayTotalUnits, launch.currency)
+			: totalAmountText;
 	$: finalWinText =
 		launch.kind === 'replay'
 			? replaySnapshot.status === 'completed'
@@ -179,7 +191,8 @@
 					? formatExactApi(finalWinApi, currency)
 					: '—';
 	$: modalOpen = confirmationOpen || rulesOpen;
-	$: introBlocking = launch.kind === 'live' && (introGatePending || introState.status === 'playing');
+	$: introModalActive = launch.kind === 'live' && introState.status === 'playing';
+	$: introBlocking = launch.kind === 'live' && (introGatePending || introModalActive);
 	$: actionLabel = primaryActionLabel({
 		launchKind: launch.kind,
 		liveStatus: liveSnapshot.status,
@@ -222,7 +235,7 @@
 		),
 	);
 	$: activeMotionKeys = new Set((presentation.motion?.cells ?? []).map((cell) => cellKey(cell)));
-	$: presentationTimingProfile = reducedMotion ? 'reduced' : motionMode;
+	$: presentationTimingProfile = reducedMotion ? 'reduced' : turboDisabled ? 'normal' : motionMode;
 	$: if (director) director.setTimingProfile(presentationTimingProfile);
 	$: if (typeof document !== 'undefined') {
 		document.body.dataset.introStatus = introState.status;
@@ -251,8 +264,8 @@
 	}
 
 	async function confirmAssetPaint(kind, image) {
-		const request =
-			kind === 'character' ? ++characterPaintRequest : ++environmentPaintRequest;
+		if (kind === 'character' && (!renderCharacterAsset || image !== characterAssetElement)) return;
+		const request = kind === 'character' ? characterPaintRequest : ++environmentPaintRequest;
 		if (kind === 'character') characterAssetState = 'loading';
 		else environmentAssetState = 'loading';
 
@@ -260,7 +273,13 @@
 			await waitForDecodedImagePaint(image, {
 				reveal: async () => {
 					if (kind === 'character') {
-						if (request !== characterPaintRequest) return;
+						if (
+							request !== characterPaintRequest ||
+							!renderCharacterAsset ||
+							image !== characterAssetElement
+						) {
+							return;
+						}
 						characterAssetState = 'decoded';
 					} else {
 						if (request !== environmentPaintRequest) return;
@@ -269,20 +288,35 @@
 					await tick();
 				},
 			});
-			if (kind === 'character' && request === characterPaintRequest) {
+			if (
+				kind === 'character' &&
+				request === characterPaintRequest &&
+				renderCharacterAsset &&
+				image === characterAssetElement
+			) {
 				characterAssetState = 'painted';
 			}
 			if (kind === 'environment' && request === environmentPaintRequest) {
 				environmentAssetState = 'painted';
 			}
 		} catch {
-			if (kind === 'character' && request === characterPaintRequest) {
+			if (
+				kind === 'character' &&
+				request === characterPaintRequest &&
+				renderCharacterAsset &&
+				image === characterAssetElement
+			) {
 				characterAssetFailed = true;
 				characterAssetState = 'failed';
 				await tick();
-				await new Promise((resolve) =>
-					requestAnimationFrame(() => requestAnimationFrame(resolve)),
-				);
+				await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+				if (
+					request !== characterPaintRequest ||
+					!renderCharacterAsset ||
+					image !== characterAssetElement
+				) {
+					return;
+				}
 				characterAssetState = 'fallback';
 			}
 			if (kind === 'environment' && request === environmentPaintRequest) {
@@ -291,8 +325,8 @@
 		}
 	}
 
-	function handleCharacterAssetError() {
-		void confirmAssetPaint('character', null);
+	function handleCharacterAssetError(event) {
+		void confirmAssetPaint('character', event.currentTarget);
 	}
 
 	function handleEnvironmentAssetError() {
@@ -564,15 +598,13 @@
 	}
 
 	function toggleMotionMode() {
-		if (reducedMotion) return;
+		if (introBlocking || reducedMotion || turboDisabled) return;
 		audioDirector?.playUi();
-		motionMode = writeMotionMode(
-			window.localStorage,
-			motionMode === 'normal' ? 'turbo' : 'normal',
-		);
+		motionMode = writeMotionMode(window.localStorage, motionMode === 'normal' ? 'turbo' : 'normal');
 	}
 
 	function skipPresentation() {
+		if (slamstopDisabled) return;
 		audioDirector?.playUi();
 		director?.skip();
 	}
@@ -750,6 +782,10 @@
 	}
 
 	function suppressPrimaryKeyRepeat(event) {
+		if (launch.kind === 'live' && spacebarDisabled && event.code === 'Space') {
+			event.preventDefault();
+			return;
+		}
 		if (!event.repeat) return;
 		if (event.key !== 'Enter' && event.code !== 'Space') return;
 		event.preventDefault();
@@ -896,6 +932,8 @@
 					reducedMotion,
 					seen: readIntroSeen(window.localStorage),
 					motionMode,
+					disabledTurbo: state.config?.jurisdiction?.disabledTurbo === true,
+					documentHidden: document.visibilityState === 'hidden',
 				});
 				if (!eligibility.play) {
 					void bypassIntro(eligibility.reason);
@@ -967,8 +1005,8 @@
 
 	<header
 		class="masthead"
-		inert={modalOpen || introBlocking}
-		aria-hidden={modalOpen || introBlocking ? 'true' : undefined}
+		inert={modalOpen || introModalActive}
+		aria-hidden={modalOpen || introModalActive ? 'true' : undefined}
 	>
 		<div class="identity">
 			<span class="eyebrow" data-testid="facility-kicker">ARMORED ACCESS FACILITY</span>
@@ -1115,7 +1153,9 @@
 			<div class="mode-readout">
 				<div><span>Mode</span><strong>{getModeLabel(selectedMode.id, social)}</strong></div>
 				<div><span>Cost</span><strong>{selectedMode.costMultiplier}× play amount</strong></div>
-				<div><span>RTP</span><strong>96.20%</strong></div>
+				{#if showHudRtp}
+					<div data-testid="hud-rtp"><span>RTP</span><strong>96.20%</strong></div>
+				{/if}
 				<div><span>Max win</span><strong>10,000×</strong></div>
 			</div>
 		</aside>
@@ -1147,11 +1187,8 @@
 			<div class="stage-heading" data-testid="stage-heading">
 				<div data-testid="stage-heading-copy">
 					<span>GHOST ROUTE // VAULT GRID</span>
-					<strong
-						data-testid="board-status"
-						role="status"
-						aria-live="polite"
-						aria-atomic="true">{boardStatus}</strong
+					<strong data-testid="board-status" role="status" aria-live="polite" aria-atomic="true"
+						>{boardStatus}</strong
 					>
 				</div>
 				<div class="phase-chip" data-testid="mode-phase-chip">
@@ -1245,13 +1282,9 @@
 						{launch.kind === 'replay' ? 'READ-ONLY' : balanceText}
 					</strong>
 				</div>
-				<div class="primary-meter">
+				<div class="primary-meter" data-total-play-surface>
 					<span>TOTAL PLAY</span>
-					<strong data-testid="total-play">
-						{launch.kind === 'replay'
-							? formatReplayQueryUnits(replayTotalUnits, launch.currency)
-							: totalAmountText}
-					</strong>
+					<strong data-testid="total-play">{visibleTotalAmountText}</strong>
 				</div>
 				<div>
 					<span>WIN</span>
@@ -1322,8 +1355,7 @@
 								role="status"
 								aria-live="polite"
 								aria-atomic="true"
-								aria-labelledby="session-position-label"
-								>{netPositionText}</strong
+								aria-labelledby="session-position-label">{netPositionText}</strong
 							></span
 						>
 					{/if}
@@ -1343,31 +1375,35 @@
 
 			<div class="play-summary">
 				<div><span>ACTIVE MODE</span><strong>{getModeLabel(selectedMode.id, social)}</strong></div>
-				<div><span>TOTAL PLAY</span><strong>{totalAmountText}</strong></div>
+				<div data-total-play-surface>
+					<span>TOTAL PLAY</span><strong>{visibleTotalAmountText}</strong>
+				</div>
 				<p>Select an access level and breach the vault when you are ready.</p>
 			</div>
 
 			<div class="action-stack">
-				<div
-					class="motion-controls"
-					role="group"
-					aria-label="Presentation speed controls"
-				>
+				<div class="motion-controls" role="group" aria-label="Presentation speed controls">
 					<button
 						class="motion-action"
 						data-testid="motion-mode"
 						type="button"
 						aria-pressed={presentationTimingProfile === 'turbo'}
-						disabled={reducedMotion || presentationBusy}
+						disabled={introBlocking || reducedMotion || turboDisabled || presentationBusy}
 						on:click={toggleMotionMode}
 					>
-						{reducedMotion ? 'REDUCED' : motionMode === 'turbo' ? 'TURBO' : 'NORMAL'}
+						{reducedMotion
+							? 'REDUCED'
+							: turboDisabled
+								? 'NORMAL'
+								: motionMode === 'turbo'
+									? 'TURBO'
+									: 'NORMAL'}
 					</button>
 					<button
 						class="motion-action"
 						data-testid="skip-presentation"
 						type="button"
-						disabled={!presentationBusy}
+						disabled={slamstopDisabled || !presentationBusy}
 						on:click={skipPresentation}>SKIP</button
 					>
 				</div>
@@ -1509,7 +1545,10 @@
 						<section>
 							<h3>Controls</h3>
 							{#each CONTROL_GUIDE as entry}
-								<p data-control-key={entry.key}><strong>{entry.label}:</strong> {entry.description}</p>
+								<p data-control-key={entry.key}>
+									<strong>{entry.label}:</strong>
+									{entry.description}
+								</p>
 							{/each}
 						</section>
 					</div>
@@ -1990,7 +2029,9 @@
 			radial-gradient(circle at 38% 30%, #8fd4df 0 2.5%, transparent 3.5%),
 			radial-gradient(circle at 62% 30%, #8fd4df 0 2.5%, transparent 3.5%),
 			linear-gradient(145deg, #16282d, #071115 74%);
-		box-shadow: inset 0 0 28px rgba(95, 161, 170, 0.18), 0 12px 20px rgba(0, 0, 0, 0.48);
+		box-shadow:
+			inset 0 0 28px rgba(95, 161, 170, 0.18),
+			0 12px 20px rgba(0, 0, 0, 0.48);
 	}
 
 	.vaultkeeper-safe-fallback span {
@@ -2160,7 +2201,12 @@
 	.board-frame::before {
 		border: 2px solid rgba(216, 184, 111, 0.82);
 		background:
-			radial-gradient(circle at center, transparent 0 31%, rgba(216, 184, 111, 0.42) 31.5% 32%, transparent 32.5%),
+			radial-gradient(
+				circle at center,
+				transparent 0 31%,
+				rgba(216, 184, 111, 0.42) 31.5% 32%,
+				transparent 32.5%
+			),
 			repeating-conic-gradient(from 0deg, rgba(216, 184, 111, 0.7) 0 2deg, transparent 2deg 22.5deg);
 		box-shadow:
 			inset 0 0 55px rgba(216, 184, 111, 0.18),
@@ -2313,102 +2359,248 @@
 	}
 
 	@keyframes vault-prime {
-		0% { filter: brightness(0.76); transform: scale(0.992); }
-		100% { filter: brightness(1); transform: scale(1); }
+		0% {
+			filter: brightness(0.76);
+			transform: scale(0.992);
+		}
+		100% {
+			filter: brightness(1);
+			transform: scale(1);
+		}
 	}
 
 	@keyframes board-reveal {
-		0% { filter: brightness(0.58); opacity: 0.42; transform: translateY(-5%); }
-		100% { filter: brightness(1); opacity: 1; transform: translateY(0); }
+		0% {
+			filter: brightness(0.58);
+			opacity: 0.42;
+			transform: translateY(-5%);
+		}
+		100% {
+			filter: brightness(1);
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 
 	@keyframes lock-anticipation {
-		0%, 100% { opacity: 0; transform: rotate(-3deg) scale(0.92); }
-		35%, 72% { opacity: 0.78; }
-		52% { opacity: 1; transform: rotate(1deg) scale(1); }
+		0%,
+		100% {
+			opacity: 0;
+			transform: rotate(-3deg) scale(0.92);
+		}
+		35%,
+		72% {
+			opacity: 0.78;
+		}
+		52% {
+			opacity: 1;
+			transform: rotate(1deg) scale(1);
+		}
 	}
 
 	@keyframes lock-engage {
-		0% { opacity: 0; transform: rotate(-20deg) scale(1.18); }
-		38% { opacity: 0.96; }
-		72% { opacity: 0.72; transform: rotate(0deg) scale(0.98); }
-		100% { opacity: 0; transform: rotate(2deg) scale(1); }
+		0% {
+			opacity: 0;
+			transform: rotate(-20deg) scale(1.18);
+		}
+		38% {
+			opacity: 0.96;
+		}
+		72% {
+			opacity: 0.72;
+			transform: rotate(0deg) scale(0.98);
+		}
+		100% {
+			opacity: 0;
+			transform: rotate(2deg) scale(1);
+		}
 	}
 
 	@keyframes blackout-shutter {
-		0%, 100% { opacity: 0; }
-		48% { opacity: 0.92; }
-		70% { opacity: 0.44; }
+		0%,
+		100% {
+			opacity: 0;
+		}
+		48% {
+			opacity: 0.92;
+		}
+		70% {
+			opacity: 0.44;
+		}
 	}
 
 	@keyframes lock-release {
-		0% { opacity: 0; transform: rotate(0deg) scale(0.98); }
-		35% { opacity: 0.78; }
-		100% { opacity: 0; transform: rotate(18deg) scale(1.14); }
+		0% {
+			opacity: 0;
+			transform: rotate(0deg) scale(0.98);
+		}
+		35% {
+			opacity: 0.78;
+		}
+		100% {
+			opacity: 0;
+			transform: rotate(18deg) scale(1.14);
+		}
 	}
 
 	@keyframes blackout-release {
-		0%, 100% { opacity: 0; }
-		32% { opacity: 0.72; }
+		0%,
+		100% {
+			opacity: 0;
+		}
+		32% {
+			opacity: 0.72;
+		}
 	}
 
 	@keyframes environment-lock-pulse {
-		0%, 100% { opacity: 1; }
-		48% { opacity: 0.44; }
+		0%,
+		100% {
+			opacity: 1;
+		}
+		48% {
+			opacity: 0.44;
+		}
 	}
 
 	@keyframes vaultkeeper-spin-start {
-		0% { filter: brightness(0.88) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) rotate(0); }
-		45% { filter: brightness(1.12) drop-shadow(0 13px 18px rgba(92, 174, 184, 0.22)); transform: translateY(-1.2%) rotate(-0.7deg); }
-		100% { filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) rotate(0); }
+		0% {
+			filter: brightness(0.88) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
+			transform: translateY(0) rotate(0);
+		}
+		45% {
+			filter: brightness(1.12) drop-shadow(0 13px 18px rgba(92, 174, 184, 0.22));
+			transform: translateY(-1.2%) rotate(-0.7deg);
+		}
+		100% {
+			filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
+			transform: translateY(0) rotate(0);
+		}
 	}
 
 	@keyframes vaultkeeper-win-small {
-		0% { filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) scale(1); }
-		52% { filter: brightness(1.12) saturate(1.08) drop-shadow(0 14px 18px rgba(216, 184, 111, 0.24)); transform: translateY(-1.2%) scale(1.01); }
-		100% { filter: brightness(1.04) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(-0.4%) scale(1.004); }
+		0% {
+			filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
+			transform: translateY(0) scale(1);
+		}
+		52% {
+			filter: brightness(1.12) saturate(1.08) drop-shadow(0 14px 18px rgba(216, 184, 111, 0.24));
+			transform: translateY(-1.2%) scale(1.01);
+		}
+		100% {
+			filter: brightness(1.04) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
+			transform: translateY(-0.4%) scale(1.004);
+		}
 	}
 
 	@keyframes vaultkeeper-win-medium {
-		0%, 100% { filter: brightness(1) saturate(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) scale(1) rotate(0); }
-		42% { filter: brightness(1.2) saturate(1.14) drop-shadow(0 10px 22px rgba(216, 184, 111, 0.34)); transform: translateY(-2.2%) scale(1.018) rotate(-0.35deg); }
-		72% { filter: brightness(1.08) saturate(1.06) drop-shadow(0 12px 19px rgba(216, 184, 111, 0.22)); transform: translateY(-0.8%) scale(1.008) rotate(0.2deg); }
+		0%,
+		100% {
+			filter: brightness(1) saturate(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
+			transform: translateY(0) scale(1) rotate(0);
+		}
+		42% {
+			filter: brightness(1.2) saturate(1.14) drop-shadow(0 10px 22px rgba(216, 184, 111, 0.34));
+			transform: translateY(-2.2%) scale(1.018) rotate(-0.35deg);
+		}
+		72% {
+			filter: brightness(1.08) saturate(1.06) drop-shadow(0 12px 19px rgba(216, 184, 111, 0.22));
+			transform: translateY(-0.8%) scale(1.008) rotate(0.2deg);
+		}
 	}
 
 	@keyframes vaultkeeper-win-big {
-		0%, 100% { filter: brightness(1) saturate(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) scale(1) rotate(0); }
-		28% { filter: brightness(1.26) saturate(1.18) drop-shadow(0 8px 26px rgba(216, 184, 111, 0.42)); transform: translateY(-3%) scale(1.026) rotate(-0.55deg); }
-		58% { filter: brightness(1.1) saturate(1.08) drop-shadow(0 12px 20px rgba(216, 184, 111, 0.26)); transform: translateY(-1%) scale(1.012) rotate(0.28deg); }
-		78% { filter: brightness(1.22) saturate(1.14) drop-shadow(0 9px 24px rgba(216, 184, 111, 0.36)); transform: translateY(-2%) scale(1.02) rotate(-0.22deg); }
+		0%,
+		100% {
+			filter: brightness(1) saturate(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
+			transform: translateY(0) scale(1) rotate(0);
+		}
+		28% {
+			filter: brightness(1.26) saturate(1.18) drop-shadow(0 8px 26px rgba(216, 184, 111, 0.42));
+			transform: translateY(-3%) scale(1.026) rotate(-0.55deg);
+		}
+		58% {
+			filter: brightness(1.1) saturate(1.08) drop-shadow(0 12px 20px rgba(216, 184, 111, 0.26));
+			transform: translateY(-1%) scale(1.012) rotate(0.28deg);
+		}
+		78% {
+			filter: brightness(1.22) saturate(1.14) drop-shadow(0 9px 24px rgba(216, 184, 111, 0.36));
+			transform: translateY(-2%) scale(1.02) rotate(-0.22deg);
+		}
 	}
 
 	@keyframes vaultkeeper-bonus-win {
-		0% { filter: brightness(1.08) saturate(1.1) drop-shadow(0 12px 18px rgba(216, 184, 111, 0.24)); transform: translateY(-1.5%) scale(1.012); }
-		48% { filter: brightness(1.24) saturate(1.2) drop-shadow(0 9px 24px rgba(216, 184, 111, 0.42)); transform: translateY(-3%) scale(1.024) rotate(0.45deg); }
-		100% { filter: brightness(1.1) saturate(1.12) drop-shadow(0 11px 19px rgba(216, 184, 111, 0.28)); transform: translateY(-1.5%) scale(1.012); }
+		0% {
+			filter: brightness(1.08) saturate(1.1) drop-shadow(0 12px 18px rgba(216, 184, 111, 0.24));
+			transform: translateY(-1.5%) scale(1.012);
+		}
+		48% {
+			filter: brightness(1.24) saturate(1.2) drop-shadow(0 9px 24px rgba(216, 184, 111, 0.42));
+			transform: translateY(-3%) scale(1.024) rotate(0.45deg);
+		}
+		100% {
+			filter: brightness(1.1) saturate(1.12) drop-shadow(0 11px 19px rgba(216, 184, 111, 0.28));
+			transform: translateY(-1.5%) scale(1.012);
+		}
 	}
 
 	@keyframes vaultkeeper-loss-acknowledge {
-		0%, 100% { filter: brightness(1) saturate(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) rotate(0); }
-		48% { filter: brightness(0.78) saturate(0.76) drop-shadow(-3px 14px 18px rgba(101, 154, 162, 0.18)); transform: translateY(1.2%) rotate(-0.5deg); }
+		0%,
+		100% {
+			filter: brightness(1) saturate(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
+			transform: translateY(0) rotate(0);
+		}
+		48% {
+			filter: brightness(0.78) saturate(0.76) drop-shadow(-3px 14px 18px rgba(101, 154, 162, 0.18));
+			transform: translateY(1.2%) rotate(-0.5deg);
+		}
 	}
 
 	@keyframes vaultkeeper-feature-tease {
-		0%, 100% { filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateX(0) rotate(0); }
-		35% { filter: brightness(0.82) saturate(1.18) drop-shadow(-7px 8px 18px rgba(220, 86, 82, 0.28)); transform: translateX(-1.2%) rotate(-0.8deg); }
-		68% { filter: brightness(1.12) saturate(1.08) drop-shadow(5px 10px 18px rgba(216, 184, 111, 0.22)); transform: translateX(0.8%) rotate(0.5deg); }
+		0%,
+		100% {
+			filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
+			transform: translateX(0) rotate(0);
+		}
+		35% {
+			filter: brightness(0.82) saturate(1.18) drop-shadow(-7px 8px 18px rgba(220, 86, 82, 0.28));
+			transform: translateX(-1.2%) rotate(-0.8deg);
+		}
+		68% {
+			filter: brightness(1.12) saturate(1.08) drop-shadow(5px 10px 18px rgba(216, 184, 111, 0.22));
+			transform: translateX(0.8%) rotate(0.5deg);
+		}
 	}
 
 	@keyframes vaultkeeper-feature-shift {
-		0% { filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) scale(1); }
-		42% { filter: brightness(0.58) saturate(0.78) drop-shadow(0 14px 20px rgba(220, 86, 82, 0.3)); transform: translateY(1.4%) scale(0.992); }
-		72% { filter: brightness(1.16) saturate(1.1) drop-shadow(0 10px 22px rgba(216, 184, 111, 0.3)); transform: translateY(-1.8%) scale(1.014); }
-		100% { filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) scale(1); }
+		0% {
+			filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
+			transform: translateY(0) scale(1);
+		}
+		42% {
+			filter: brightness(0.58) saturate(0.78) drop-shadow(0 14px 20px rgba(220, 86, 82, 0.3));
+			transform: translateY(1.4%) scale(0.992);
+		}
+		72% {
+			filter: brightness(1.16) saturate(1.1) drop-shadow(0 10px 22px rgba(216, 184, 111, 0.3));
+			transform: translateY(-1.8%) scale(1.014);
+		}
+		100% {
+			filter: brightness(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
+			transform: translateY(0) scale(1);
+		}
 	}
 
 	@keyframes vaultkeeper-max-win {
-		0%, 100% { filter: brightness(1) saturate(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6)); transform: translateY(0) scale(1); }
-		48% { filter: brightness(1.24) saturate(1.18) drop-shadow(0 10px 25px rgba(216, 184, 111, 0.42)); transform: translateY(-2.8%) scale(1.022); }
+		0%,
+		100% {
+			filter: brightness(1) saturate(1) drop-shadow(0 12px 16px rgba(0, 0, 0, 0.6));
+			transform: translateY(0) scale(1);
+		}
+		48% {
+			filter: brightness(1.24) saturate(1.18) drop-shadow(0 10px 25px rgba(216, 184, 111, 0.42));
+			transform: translateY(-2.8%) scale(1.022);
+		}
 	}
 
 	@keyframes cluster-hit {

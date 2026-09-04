@@ -25,23 +25,23 @@ This does not close M3. The integrated candidates have exact source/runtime hash
 | `concept.symbols.material_language.v1`                | `apps/blacksite/art/concepts/m3/symbols-material-language-concept-v1.png`                | 1254 × 1254 | `e63ff125b5fbdc4b361176a3019a5590cca942ef710fbdb82c11fbf6fb148662` | `concept`              | BYTE/RELAY/PROXY/CIPHER/DAEMON/VAULT family language in reading order                                      |
 | `product.character.penguin_vaultkeeper.fallback.v1`   | `apps/blacksite/art/production/character/penguin-vaultkeeper-fallback-v1.png`            | 1024 × 1536 | `9eda38025f7adc6685215e50def26be7abedeac1406c1984be46c644a107d58d` | `production-candidate` | Original static fallback; optimized runtime WebP is integrated, while human approval and Spine remain open |
 | `product.environment.mechanical_vault.desktop.v1`     | `apps/blacksite/art/production/environment/mechanical-vault-desktop-v1.png`              |  1672 × 941 | `6a66ab13003b4e92228bdf4cfa7c19dddf7bd46725604ca1846ed8c8d13a680b` | `production-candidate` | Original wide base-vault plate; optimized runtime WebP is integrated behind the desktop board              |
-| `product.environment.mechanical_vault.portrait.v1`    | `apps/blacksite/art/production/environment/mechanical-vault-portrait-v1.png`             |  941 × 1672 | `e7786bbf289a1655cabc9a53199353913bc0a214c0563259c5dce2560f6ba44c` | `production-candidate` | Independent tall base-vault recomposition; selected for compact/mobile rather than cropped from desktop     |
+| `product.environment.mechanical_vault.portrait.v1`    | `apps/blacksite/art/production/environment/mechanical-vault-portrait-v1.png`             |  941 × 1672 | `e7786bbf289a1655cabc9a53199353913bc0a214c0563259c5dce2560f6ba44c` | `production-candidate` | Independent tall base-vault recomposition; selected for compact/mobile rather than cropped from desktop    |
 
 Exact prompts, iteration history and observed limitations are recorded in [`PROVENANCE.md`](../../apps/blacksite/art/concepts/m3/PROVENANCE.md). The first environment generation was rejected rather than retained because it invented a non-authoritative grid.
 
 ## Production group ledger
 
-| Group               | Current state                | Production deliverable before integration/approval                                                                                                                                                       |
-| ------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Title/brand         | `planned`                    | Original full/compact lockups, provider mark, monochrome variants and title/legal review                                                                                                                 |
-| Environment         | `base-desktop-portrait-integrated` | Base desktop and independently composed portrait/Popout plates are runtime-integrated; BLACKOUT state, separable foreground layers and human approval remain required                                  |
-| Board               | `planned`                    | Frame, cell plates, breach levels, masks and feature overlays aligned to the exact DOM/Pixi 7 × 7 geometry                                                                                               |
-| Symbols             | `concept-started`            | Six isolated alpha sprites with identical square bounds/pivots, idle/win/dim readability and a measured Pixi spritesheet                                                                                 |
-| Penguin Vaultkeeper | `static-fallback-integrated` | Original approved turnaround plus Spine **4.2.x** skeleton data, atlas/pages, root/bounds convention and all 13 semantic clips/events from `ANIMATION_BIBLE.md`; current fallback remains review-pending |
-| UI                  | `planned`                    | Production control icons, mode surfaces, modal/rules support art and visible mute control without replacing familiar interaction affordances                                                             |
-| FX                  | `planned`                    | Breach pulses, sparks, network traces and controlled particles/spritesheets with failure-safe completion                                                                                                 |
-| Audio               | `planned`                    | Ambience/music/SFX plus one global mute/resume lifecycle and Replay/turbo behavior                                                                                                                       |
-| Game tile           | `planned`                    | Current Stake BG, transparent FG/key art and provider mark with exact dimension/size/manual-preview proof                                                                                                |
+| Group               | Current state                      | Production deliverable before integration/approval                                                                                                                                                       |
+| ------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Title/brand         | `planned`                          | Original full/compact lockups, provider mark, monochrome variants and title/legal review                                                                                                                 |
+| Environment         | `base-desktop-portrait-integrated` | Base desktop and independently composed portrait/Popout plates are runtime-integrated; BLACKOUT state, separable foreground layers and human approval remain required                                    |
+| Board               | `planned`                          | Frame, cell plates, breach levels, masks and feature overlays aligned to the exact DOM/Pixi 7 × 7 geometry                                                                                               |
+| Symbols             | `concept-started`                  | Six isolated alpha sprites with identical square bounds/pivots, idle/win/dim readability and a measured Pixi spritesheet                                                                                 |
+| Penguin Vaultkeeper | `static-fallback-integrated`       | Original approved turnaround plus Spine **4.2.x** skeleton data, atlas/pages, root/bounds convention and all 14 semantic clips/events from `ANIMATION_BIBLE.md`; current fallback remains review-pending |
+| UI                  | `planned`                          | Production control icons, mode surfaces, modal/rules support art and visible mute control without replacing familiar interaction affordances                                                             |
+| FX                  | `planned`                          | Breach pulses, sparks, network traces and controlled particles/spritesheets with failure-safe completion                                                                                                 |
+| Audio               | `planned`                          | Ambience/music/SFX plus one global mute/resume lifecycle and Replay/turbo behavior                                                                                                                       |
+| Game tile           | `planned`                          | Current Stake BG, transparent FG/key art and provider mark with exact dimension/size/manual-preview proof                                                                                                |
 
 ## Runtime boundary
 
@@ -80,7 +80,7 @@ The locked penguin brief is the identity authority. A production character is no
 - Spine runtime/export compatibility with the repository's 4.2.x stack;
 - skeleton data, `.atlas` and texture pages;
 - stable root orientation, reference scale, bounds and mobile bust composition;
-- `idle_a`, `idle_b`, `spin_start`, `anticipation`, `win_small`, `win_medium`, `win_big`, `feature_tease`, `feature_trigger`, `bonus_idle`, `bonus_win`, `max_win` and `recover`;
+- all 14 machine-manifest states: `idle_a`, `idle_b`, `spin_start`, `anticipation`, `win_small`, `win_medium`, `win_big`, `loss_acknowledge`, `feature_tease`, `feature_trigger`, `bonus_idle`, `bonus_win`, `max_win` and `recover`;
 - documented loops, transitions, mixes, tracks, event markers, turbo behavior, Replay/restore behavior and timeouts;
 - static fallback pose and an asset-missing fixture proving gameplay cannot deadlock.
 

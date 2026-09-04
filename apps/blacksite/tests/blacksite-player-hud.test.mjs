@@ -54,3 +54,77 @@ test('browser QA reads semantic symbol state and rejects internal player copy', 
 	assert.match(source, /player HUD exposes no internal schema or greybox diagnostics/u);
 	assert.equal(source.includes("cell.includes('--')"), false);
 });
+
+test('authenticate jurisdiction flags guard optional presentation controls and the HUD RTP readout', async () => {
+	const pageSource = await readSource(pageUrl);
+	const browserSource = await readSource(browserQaUrl);
+
+	assert.match(
+		pageSource,
+		/turboDisabled =[\s\S]*?launch\.kind === 'booting'[\s\S]*?launch\.kind === 'error'[\s\S]*?launch\.kind === 'live'[\s\S]*?disabledTurbo !== false/u,
+	);
+	assert.match(
+		pageSource,
+		/slamstopDisabled = liveSnapshot\.config\?\.jurisdiction\?\.disabledSlamstop === true/u,
+	);
+	assert.match(
+		pageSource,
+		/displayRTP = liveSnapshot\.config\?\.jurisdiction\?\.displayRTP === true/u,
+	);
+	assert.match(pageSource, /reducedMotion[\s\S]*?turboDisabled[\s\S]*?'normal'[\s\S]*?motionMode/u);
+	assert.match(pageSource, /if \(introBlocking \|\| reducedMotion \|\| turboDisabled\) return;/u);
+	assert.match(pageSource, /if \(slamstopDisabled\) return;/u);
+	assert.match(
+		pageSource,
+		/if \(launch\.kind === 'live' && spacebarDisabled && event\.code === 'Space'\) \{[\s\S]*?event\.preventDefault\(\);[\s\S]*?return;/u,
+	);
+	assert.match(
+		pageSource,
+		/disabled=\{introBlocking \|\| reducedMotion \|\| turboDisabled \|\| presentationBusy\}/u,
+	);
+	assert.match(pageSource, /disabled=\{slamstopDisabled \|\| !presentationBusy\}/u);
+	assert.match(
+		pageSource,
+		/showHudRtp =[\s\S]*?launch\.kind === 'fixture'[\s\S]*?launch\.kind === 'replay'[\s\S]*?launch\.kind === 'live'[\s\S]*?liveSnapshot\.config !== null[\s\S]*?displayRTP/u,
+	);
+	assert.match(pageSource, /\{#if showHudRtp\}[\s\S]*?data-testid="hud-rtp"[\s\S]*?\{\/if\}/u);
+	assert.equal(pageSource.includes("{#if launch.kind !== 'live' || displayRTP}"), false);
+	assert.match(pageSource, /<th>RTP<\/th>[\s\S]*?\{\(mode\.targetRtp \* 100\)\.toFixed\(2\)\}%/u);
+	assert.match(browserSource, /jurisdiction-enforces-turbo-slamstop-and-optional-rtp-hud/u);
+	assert.match(
+		browserSource,
+		/disabledTurbo forces effective normal timing without erasing stored Turbo/u,
+	);
+	assert.match(
+		browserSource,
+		/disabledSlamstop rejects a synthetic Skip click instead of draining the presentation/u,
+	);
+	assert.match(
+		browserSource,
+		/Game Information retains mandatory RTP disclosure when the optional HUD readout is hidden/u,
+	);
+});
+
+test('Replay uses one exact total-play value for every HUD surface', async () => {
+	const pageSource = await readSource(pageUrl);
+	const browserSource = await readSource(browserQaUrl);
+
+	assert.match(
+		pageSource,
+		/visibleTotalAmountText =[\s\S]*?launch\.kind === 'replay'[\s\S]*?formatReplayQueryUnits\(replayTotalUnits, launch\.currency\)/u,
+	);
+	assert.equal((pageSource.match(/data-total-play-surface/gu) ?? []).length, 2);
+	assert.equal(
+		(pageSource.match(/<strong[^>]*>\{visibleTotalAmountText\}<\/strong>/gu) ?? []).length,
+		2,
+	);
+	assert.match(browserSource, /function exactReplayTotalPlaySurfaces/u);
+	assert.match(
+		browserSource,
+		/every visible desktop Replay TOTAL PLAY surface is exact in the ready state/u,
+	);
+	assert.match(
+		browserSource,
+		/every Social Replay TOTAL PLAY surface remains exact after completion/u,
+	);
+});

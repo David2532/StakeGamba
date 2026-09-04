@@ -3,14 +3,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import {
-	existsSync,
-	mkdirSync,
-	readFileSync,
-	readdirSync,
-	statSync,
-	writeFileSync,
-} from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import { dirname, extname, join, relative, resolve, sep } from 'node:path';
@@ -25,7 +18,10 @@ import {
 import { BASE_ZERO_FIXTURE } from '../apps/blacksite/src/lib/fixtures/base-zero.js';
 import { encodePresentationCursor } from '../apps/blacksite/src/lib/rgs/contracts.js';
 import { formatExactApi } from '../apps/blacksite/src/lib/runtime/display-money.js';
-import { INTRO_SEEN_KEY } from '../apps/blacksite/src/lib/runtime/intro-config.js';
+import {
+	BOOT_INTRO_PROFILES,
+	INTRO_SEEN_KEY,
+} from '../apps/blacksite/src/lib/runtime/intro-config.js';
 import { MOTION_STORAGE_KEY } from '../apps/blacksite/src/lib/runtime/motion-preference.js';
 import {
 	FIXTURE_IDS as GENERATED_FIXTURE_IDS,
@@ -79,6 +75,7 @@ const SELECTORS = Object.freeze({
 	baseAmount: '[data-testid="base-amount"]',
 	walletBalance: '[data-testid="wallet-balance"]',
 	totalPlay: '[data-testid="total-play"]',
+	totalPlaySurfaces: '[data-total-play-surface]',
 	finalWin: '[data-testid="final-win"]',
 	boardStatus: '[data-testid="board-status"]',
 	facilityKicker: '[data-testid="facility-kicker"]',
@@ -87,6 +84,7 @@ const SELECTORS = Object.freeze({
 	modePhaseChip: '[data-testid="mode-phase-chip"]',
 	sessionNetPosition: '[data-testid="session-net-position"]',
 	sessionTimer: '[data-testid="session-timer"]',
+	hudRtp: '[data-testid="hud-rtp"]',
 });
 
 const MIME_TYPES = Object.freeze({
@@ -214,6 +212,7 @@ const evidence = {
 	checks: [],
 	summary: null,
 };
+const checkOccurrences = new Map();
 
 class QaAssertionError extends Error {
 	constructor(message) {
@@ -238,7 +237,8 @@ function collectFiles(target, files = []) {
 	}
 	if (!targetStats.isDirectory()) return files;
 	for (const entry of readdirSync(target, { withFileTypes: true }).sort((a, b) =>
-		a.name.localeCompare(b.name, 'en'))) {
+		a.name.localeCompare(b.name, 'en'),
+	)) {
 		const child = join(target, entry.name);
 		if (entry.isDirectory()) collectFiles(child, files);
 		else if (entry.isFile()) files.push(child);
@@ -249,10 +249,9 @@ function collectFiles(target, files = []) {
 function createFileManifest(targets, baseDirectory) {
 	const absoluteFiles = [...new Set(targets.flatMap((target) => collectFiles(target)))].sort(
 		(left, right) =>
-			relative(baseDirectory, left).replaceAll('\\', '/').localeCompare(
-				relative(baseDirectory, right).replaceAll('\\', '/'),
-				'en',
-			),
+			relative(baseDirectory, left)
+				.replaceAll('\\', '/')
+				.localeCompare(relative(baseDirectory, right).replaceAll('\\', '/'), 'en'),
 	);
 	const treeHash = createHash('sha256');
 	const files = absoluteFiles.map((absolutePath) => {
@@ -279,7 +278,9 @@ function createFileManifest(targets, baseDirectory) {
 
 function scanProductionBuild(buildManifest) {
 	const textExtensions = new Set(['.css', '.html', '.js', '.json', '.mjs', '.svg', '.txt']);
-	const textFiles = buildManifest.files.filter((file) => textExtensions.has(extname(file.path).toLowerCase()));
+	const textFiles = buildManifest.files.filter((file) =>
+		textExtensions.has(extname(file.path).toLowerCase()),
+	);
 	const loaderPatterns = [
 		/stake[-_ ]engine[-_ ]loader/iu,
 		/stakeEngineLoader/iu,
@@ -336,19 +337,26 @@ function scanProductionBuild(buildManifest) {
 	};
 }
 
+function appendCheck(group, name, status, detail) {
+	const identity = JSON.stringify([group, name]);
+	const occurrence = (checkOccurrences.get(identity) ?? 0) + 1;
+	checkOccurrences.set(identity, occurrence);
+	evidence.checks.push({ group, name, occurrence, status, detail });
+}
+
 function check(group, name, condition, detail = '') {
 	const status = condition ? 'PASS' : 'FAIL';
-	evidence.checks.push({ group, name, status, detail });
+	appendCheck(group, name, status, detail);
 	if (!condition) throw new QaAssertionError(`${group}: ${name}${detail ? ` (${detail})` : ''}`);
 }
 
 function recordFailure(group, error) {
-	evidence.checks.push({
+	appendCheck(
 		group,
-		name: 'scenario completed without an uncaught error',
-		status: 'FAIL',
-		detail: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
-	});
+		'scenario completed without an uncaught error',
+		'FAIL',
+		error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+	);
 }
 
 function successStatus() {
@@ -512,14 +520,18 @@ function replayResponseFromFixture(fixture) {
 
 function expectedCentiMultiplierText(payoutCentiX) {
 	const whole = Math.floor(payoutCentiX / 100);
-	const fraction = String(payoutCentiX % 100).padStart(2, '0').replace(/0+$/, '');
+	const fraction = String(payoutCentiX % 100)
+		.padStart(2, '0')
+		.replace(/0+$/, '');
 	return `${whole}${fraction ? `.${fraction}` : ''}×`;
 }
 
 function exactReplayProductUnits(amountUnitsRaw, multiplier, multiplierScale = 0) {
 	const match = /^(0|[1-9]\d*)(?:\.(\d+))?$/.exec(amountUnitsRaw);
 	if (!match || !Number.isSafeInteger(multiplier) || multiplier < 0) {
-		throw new Error(`Invalid exact Replay product inputs: ${serialize({ amountUnitsRaw, multiplier, multiplierScale })}`);
+		throw new Error(
+			`Invalid exact Replay product inputs: ${serialize({ amountUnitsRaw, multiplier, multiplierScale })}`,
+		);
 	}
 	const fraction = match[2] ?? '';
 	const scale = fraction.length + multiplierScale;
@@ -642,7 +654,9 @@ function startStaticServer() {
 
 function resolvePlaywright() {
 	const attempts = [];
-	const candidates = [process.env.STAKE_QA_PLAYWRIGHT_DIR, repoRoot, scriptDirectory].filter(Boolean);
+	const candidates = [process.env.STAKE_QA_PLAYWRIGHT_DIR, repoRoot, scriptDirectory].filter(
+		Boolean,
+	);
 	for (const base of candidates) {
 		try {
 			const requireFrom = createRequire(join(base, 'blacksite-qa-loader.cjs'));
@@ -708,7 +722,8 @@ async function waitForEndpoint(network, endpoint, count, timeoutMs = 10_000) {
 
 async function runtimeState(page) {
 	return page.evaluate(
-		() => document.documentElement.dataset.runtimeState ?? document.body.dataset.runtimeState ?? null,
+		() =>
+			document.documentElement.dataset.runtimeState ?? document.body.dataset.runtimeState ?? null,
 	);
 }
 
@@ -813,6 +828,10 @@ async function waitForAssetPaint(page, timeoutMs = 10_000) {
 			document
 				.querySelector('[data-testid="vaultkeeper-presence"]')
 				?.getAttribute('data-asset-paint-state') ?? null,
+		characterDisplay: (() => {
+			const character = document.querySelector('[data-testid="vaultkeeper-presence"]');
+			return character ? getComputedStyle(character).display : null;
+		})(),
 		environment:
 			document
 				.querySelector('[data-testid="vault-environment"]')
@@ -827,6 +846,27 @@ async function waitForAssetPaint(page, timeoutMs = 10_000) {
 		states.environment,
 		'painted',
 		`Environment paint barrier failed: ${serialize(states)}`,
+	);
+	await page.evaluate(
+		() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+	);
+}
+
+async function waitForResponsiveEnvironment(page, expectedFilename, timeoutMs = 10_000) {
+	await page.waitForFunction(
+		(expected) => {
+			const environment = document.querySelector('[data-testid="vault-environment"]');
+			const image = environment?.querySelector('img');
+			return (
+				environment?.getAttribute('data-asset-paint-state') === 'painted' &&
+				image?.complete === true &&
+				(image?.naturalWidth ?? 0) > 0 &&
+				(image?.naturalHeight ?? 0) > 0 &&
+				image?.currentSrc.endsWith(expected)
+			);
+		},
+		expectedFilename,
+		{ timeout: timeoutMs },
 	);
 	await page.evaluate(
 		() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
@@ -885,12 +925,27 @@ function assertExactRequest(group, request, { method, path, body }) {
 	} catch {
 		exact = false;
 	}
-	check(group, `${path} body is exact`, exact, serialize({ actual: request?.body, expected: body }));
+	check(
+		group,
+		`${path} body is exact`,
+		exact,
+		serialize({ actual: request?.body, expected: body }),
+	);
 }
 
 function assertCleanNetwork(group, network) {
-	check(group, 'no unexpected RGS or external requests', network.unexpected.length === 0, serialize(network.unexpected));
-	check(group, 'no forbidden Replay writes', network.forbidden.length === 0, serialize(network.forbidden));
+	check(
+		group,
+		'no unexpected RGS or external requests',
+		network.unexpected.length === 0,
+		serialize(network.unexpected),
+	);
+	check(
+		group,
+		'no forbidden Replay writes',
+		network.forbidden.length === 0,
+		serialize(network.forbidden),
+	);
 }
 
 function rgsRequestCount(network) {
@@ -905,10 +960,33 @@ function walletWriteCount(network) {
 	);
 }
 
+function paidWriteCount(network) {
+	return (
+		network.byEndpoint.play.length +
+		network.byEndpoint.endRound.length +
+		network.byEndpoint.event.length
+	);
+}
+
 function assertCleanDiagnostics(group, diagnostics) {
-	check(group, 'browser has no console errors', diagnostics.consoleErrors.length === 0, serialize(diagnostics.consoleErrors));
-	check(group, 'browser has no uncaught page errors', diagnostics.pageErrors.length === 0, serialize(diagnostics.pageErrors));
-	check(group, 'browser has no failed requests', diagnostics.failedRequests.length === 0, serialize(diagnostics.failedRequests));
+	check(
+		group,
+		'browser has no console errors',
+		diagnostics.consoleErrors.length === 0,
+		serialize(diagnostics.consoleErrors),
+	);
+	check(
+		group,
+		'browser has no uncaught page errors',
+		diagnostics.pageErrors.length === 0,
+		serialize(diagnostics.pageErrors),
+	);
+	check(
+		group,
+		'browser has no failed requests',
+		diagnostics.failedRequests.length === 0,
+		serialize(diagnostics.failedRequests),
+	);
 }
 
 function assertOnlyExpectedHttpDiagnostic(group, diagnostics, statusCode) {
@@ -922,8 +1000,18 @@ function assertOnlyExpectedHttpDiagnostic(group, diagnostics, statusCode) {
 		diagnostics.consoleErrors.length === 1 && diagnostics.consoleErrors[0] === expectedMessage,
 		serialize(diagnostics.consoleErrors),
 	);
-	check(group, 'browser has no uncaught page errors', diagnostics.pageErrors.length === 0, serialize(diagnostics.pageErrors));
-	check(group, 'browser has no failed requests', diagnostics.failedRequests.length === 0, serialize(diagnostics.failedRequests));
+	check(
+		group,
+		'browser has no uncaught page errors',
+		diagnostics.pageErrors.length === 0,
+		serialize(diagnostics.pageErrors),
+	);
+	check(
+		group,
+		'browser has no failed requests',
+		diagnostics.failedRequests.length === 0,
+		serialize(diagnostics.failedRequests),
+	);
 }
 
 async function collectPlayerVisibleSurface(page) {
@@ -939,20 +1027,18 @@ async function collectPlayerVisibleSurface(page) {
 				bounds.height > 0
 			);
 		};
-		const attributes = [...document.querySelectorAll('*')]
-			.filter(isVisible)
-			.flatMap((element) =>
-				[...element.attributes].flatMap(({ name: attribute, value: rawValue }) => {
-					if (
-						!attribute.startsWith('aria-') &&
-						!['title', 'placeholder', 'alt'].includes(attribute)
-					) {
-						return [];
-					}
-					const value = rawValue.trim();
-					return value ? [{ tag: element.tagName.toLowerCase(), attribute, value }] : [];
-				}),
-			);
+		const attributes = [...document.querySelectorAll('*')].filter(isVisible).flatMap((element) =>
+			[...element.attributes].flatMap(({ name: attribute, value: rawValue }) => {
+				if (
+					!attribute.startsWith('aria-') &&
+					!['title', 'placeholder', 'alt'].includes(attribute)
+				) {
+					return [];
+				}
+				const value = rawValue.trim();
+				return value ? [{ tag: element.tagName.toLowerCase(), attribute, value }] : [];
+			}),
+		);
 		const visibleText = document.body.innerText;
 		return {
 			visibleText,
@@ -975,7 +1061,12 @@ async function modalAccessibilitySnapshot(dialog) {
 		const visible = (element) => {
 			const style = getComputedStyle(element);
 			const bounds = element.getBoundingClientRect();
-			return style.display !== 'none' && style.visibility !== 'hidden' && bounds.width > 0 && bounds.height > 0;
+			return (
+				style.display !== 'none' &&
+				style.visibility !== 'hidden' &&
+				bounds.width > 0 &&
+				bounds.height > 0
+			);
 		};
 		const describe = (element) => ({
 			tag: element?.tagName?.toLowerCase() ?? null,
@@ -991,8 +1082,9 @@ async function modalAccessibilitySnapshot(dialog) {
 			nativeModal = false;
 		}
 		const dialogFocusable = [...dialogElement.querySelectorAll(focusableSelector)].filter(visible);
-		const backgroundInteractive = [...document.querySelectorAll(focusableSelector)]
-			.filter((element) => !dialogElement.contains(element) && visible(element));
+		const backgroundInteractive = [...document.querySelectorAll(focusableSelector)].filter(
+			(element) => !dialogElement.contains(element) && visible(element),
+		);
 		const backgroundUnisolated = backgroundInteractive.filter(
 			(element) => !nativeModal && !element.closest('[inert]'),
 		);
@@ -1019,16 +1111,38 @@ async function modalAccessibilitySnapshot(dialog) {
 
 async function auditModalAccessibility(page, dialog, group) {
 	await page.waitForFunction(
-		() => [...document.querySelectorAll('[role="dialog"][aria-modal="true"]')]
-			.some((element) => element.contains(document.activeElement)),
+		() =>
+			[...document.querySelectorAll('[role="dialog"][aria-modal="true"]')].some((element) =>
+				element.contains(document.activeElement),
+			),
 		undefined,
 		{ timeout: 3_000 },
 	);
 	const initial = await modalAccessibilitySnapshot(dialog);
-	check(group, 'modal moves focus inside an aria-modal dialog', initial.ariaModal === 'true' && initial.activeInside, serialize(initial));
-	check(group, 'modal has at least one keyboard-focusable control', initial.dialogFocusableCount > 0, serialize(initial));
-	check(group, 'modal itself is outside every inert background subtree', !initial.dialogInsideInertSubtree, serialize(initial));
-	check(group, 'visible background controls are inert while modal is open', initial.backgroundInteractiveCount > 0 && initial.backgroundUnisolated.length === 0, serialize(initial));
+	check(
+		group,
+		'modal moves focus inside an aria-modal dialog',
+		initial.ariaModal === 'true' && initial.activeInside,
+		serialize(initial),
+	);
+	check(
+		group,
+		'modal has at least one keyboard-focusable control',
+		initial.dialogFocusableCount > 0,
+		serialize(initial),
+	);
+	check(
+		group,
+		'modal itself is outside every inert background subtree',
+		!initial.dialogInsideInertSubtree,
+		serialize(initial),
+	);
+	check(
+		group,
+		'visible background controls are inert while modal is open',
+		initial.backgroundInteractiveCount > 0 && initial.backgroundUnisolated.length === 0,
+		serialize(initial),
+	);
 
 	const steps = Math.min(12, Math.max(3, initial.dialogFocusableCount + 2));
 	const forward = [];
@@ -1036,15 +1150,38 @@ async function auditModalAccessibility(page, dialog, group) {
 		await page.keyboard.press('Tab');
 		forward.push(await dialog.evaluate((element) => element.contains(document.activeElement)));
 	}
-	check(group, 'forward Tab traversal is trapped inside the modal', forward.every(Boolean), serialize(forward));
+	check(
+		group,
+		'forward Tab traversal is trapped inside the modal',
+		forward.every(Boolean),
+		serialize(forward),
+	);
 
 	const reverse = [];
 	for (let index = 0; index < steps; index += 1) {
 		await page.keyboard.press('Shift+Tab');
 		reverse.push(await dialog.evaluate((element) => element.contains(document.activeElement)));
 	}
-	check(group, 'reverse Tab traversal is trapped inside the modal', reverse.every(Boolean), serialize(reverse));
+	check(
+		group,
+		'reverse Tab traversal is trapped inside the modal',
+		reverse.every(Boolean),
+		serialize(reverse),
+	);
 	return { initial, forward, reverse };
+}
+
+async function totalPlaySurfaceSnapshot(page) {
+	return page.locator(SELECTORS.totalPlaySurfaces).evaluateAll((elements) =>
+		elements.map((element) => {
+			const bounds = element.getBoundingClientRect();
+			return {
+				label: element.querySelector('span')?.textContent?.trim() ?? '',
+				value: element.querySelector('strong')?.textContent?.trim() ?? '',
+				visible: bounds.width > 0 && bounds.height > 0,
+			};
+		}),
+	);
 }
 
 async function replayPresentationSnapshot(page) {
@@ -1052,20 +1189,35 @@ async function replayPresentationSnapshot(page) {
 		runtimeState: await runtimeState(page),
 		finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
 		totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
+		totalPlaySurfaces: await totalPlaySurfaceSnapshot(page),
 		replayCard: (await page.locator('.replay-card').innerText()).trim(),
 		board: await page.locator(`${SELECTORS.board} [role="gridcell"]`).evaluateAll((cells) =>
 			cells.map((cell) => ({
 				text: cell.innerText,
 				ariaLabel: cell.getAttribute('aria-label'),
 				className: cell.className,
-			}))),
+			})),
+		),
 	};
 }
 
-async function boardSymbols(page) {
-	return page.locator(`${SELECTORS.board} [role="gridcell"]`).evaluateAll((cells) =>
-		cells.map((cell) => cell.getAttribute('data-symbol') ?? ''),
+function exactReplayTotalPlaySurfaces(presentation, expectedValue, expectedVisibleCount) {
+	const surfaces = presentation.totalPlaySurfaces ?? [];
+	const visible = surfaces.filter((surface) => surface.visible);
+	return (
+		surfaces.length === 2 &&
+		surfaces.every(
+			(surface) => surface.label === 'TOTAL PLAY' && surface.value === expectedValue,
+		) &&
+		visible.length === expectedVisibleCount &&
+		visible.every((surface) => surface.value === expectedValue)
 	);
+}
+
+async function boardSymbols(page) {
+	return page
+		.locator(`${SELECTORS.board} [role="gridcell"]`)
+		.evaluateAll((cells) => cells.map((cell) => cell.getAttribute('data-symbol') ?? ''));
 }
 
 async function runScenario(name, execute) {
@@ -1081,11 +1233,66 @@ async function runScenario(name, execute) {
 	}
 }
 
+async function installIntroTimeline(context) {
+	await context.addInitScript((skipSelector) => {
+		const timeline = { events: [], skipClickAtMs: null };
+		Object.defineProperty(window, '__blacksiteQaIntroTimeline', {
+			configurable: false,
+			value: timeline,
+		});
+		let lastKey = null;
+		const sample = () => {
+			const event = {
+				atMs: performance.now(),
+				status: document.body?.dataset.introStatus ?? null,
+				beat: document.body?.dataset.introBeat ?? null,
+				dismissReason: document.body?.dataset.introDismissReason ?? null,
+				runtimeState: document.body?.dataset.runtimeState ?? null,
+			};
+			const key = JSON.stringify([
+				event.status,
+				event.beat,
+				event.dismissReason,
+				event.runtimeState,
+			]);
+			if (key === lastKey) return;
+			lastKey = key;
+			timeline.events.push(event);
+		};
+		new MutationObserver(sample).observe(document, {
+			attributes: true,
+			attributeFilter: [
+				'data-intro-status',
+				'data-intro-beat',
+				'data-intro-dismiss-reason',
+				'data-runtime-state',
+			],
+			childList: true,
+			subtree: true,
+		});
+		document.addEventListener(
+			'click',
+			(event) => {
+				if (!(event.target instanceof Element) || !event.target.closest(skipSelector)) return;
+				timeline.skipClickAtMs = performance.now();
+				sample();
+			},
+			true,
+		);
+		sample();
+	}, SELECTORS.skipIntro);
+}
+
+async function readIntroTimeline(page) {
+	return page.evaluate(() => structuredClone(window.__blacksiteQaIntroTimeline));
+}
+
 async function runNetworkScenarios(browser, origin) {
 	await runScenario('boot-intro-full-fresh-live', async (record) => {
 		const group = 'boot-intro-full-fresh-live';
 		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
 		try {
+			await installIntroTimeline(context);
 			const network = await installMockRgs(context, {
 				pageOrigin: origin,
 				handlers: { authenticate: () => authenticateResponse() },
@@ -1093,19 +1300,10 @@ async function runNetworkScenarios(browser, origin) {
 			const { page, diagnostics } = await openPage(context, origin, liveQuery());
 			await waitForEndpoint(network, 'authenticate', 1);
 			await page.locator(SELECTORS.bootIntro).waitFor({ state: 'visible', timeout: 10_000 });
-			const startedAt = await page.evaluate(() => performance.now());
-			const beats = [];
-			for (const beat of ['wake', 'scan', 'title', 'breach', 'resolve']) {
-				await page.waitForFunction(
-					(expectedBeat) => document.body.dataset.introBeat === expectedBeat,
-					beat,
-					{ timeout: 4_250 },
-				);
-				beats.push({ beat, atMs: (await page.evaluate(() => performance.now())) - startedAt });
-				if (beat === 'breach') {
-					record.screenshot = await saveScreenshot(page, 'boot-intro-full-breach');
-				}
-			}
+			await page.waitForFunction(() => document.body.dataset.introBeat === 'breach', undefined, {
+				timeout: 4_250,
+			});
+			record.screenshot = await saveScreenshot(page, 'boot-intro-full-breach');
 			await page.waitForFunction(
 				() =>
 					document.body.dataset.introStatus === 'completed' &&
@@ -1113,7 +1311,25 @@ async function runNetworkScenarios(browser, origin) {
 				undefined,
 				{ timeout: 4_250 },
 			);
-			const completedAt = await page.evaluate(() => performance.now());
+			const timeline = await readIntroTimeline(page);
+			const started = timeline.events.find(
+				(event) => event.status === 'playing' && event.beat === 'wake',
+			);
+			const completed = timeline.events.find(
+				(event) => event.status === 'completed' && event.runtimeState === 'live-ready',
+			);
+			assert.ok(started, 'Intro timeline must record the initial wake beat in the page.');
+			assert.ok(completed, 'Intro timeline must record completed plus live-ready in the page.');
+			const beats = timeline.events
+				.filter(
+					(event) =>
+						event.status === 'playing' &&
+						['wake', 'scan', 'title', 'breach', 'resolve'].includes(event.beat),
+				)
+				.filter((event, index, events) => index === 0 || event.beat !== events[index - 1].beat)
+				.map((event) => ({ beat: event.beat, atMs: event.atMs - started.atMs }));
+			const durationMs = completed.atMs - started.atMs;
+			const canonicalBeats = BOOT_INTRO_PROFILES.normal.beats;
 			const introCount = await page.locator(SELECTORS.bootIntro).count();
 			const seen = await page.evaluate((key) => localStorage.getItem(key), INTRO_SEEN_KEY);
 			check(
@@ -1121,10 +1337,15 @@ async function runNetworkScenarios(browser, origin) {
 				'fresh live boot follows the complete ordered cinematic beat contract',
 				serialize(beats.map(({ beat }) => beat)) ===
 					serialize(['wake', 'scan', 'title', 'breach', 'resolve']) &&
-					beats.every(({ atMs }, index) => index === 0 || atMs >= beats[index - 1].atMs) &&
-					completedAt - startedAt >= 3_700 &&
-					completedAt - startedAt <= 4_250,
-				serialize({ beats, durationMs: completedAt - startedAt }),
+					beats.every(({ beat, atMs }) => {
+						const expected = canonicalBeats.find(({ id }) => id === beat)?.atMs;
+						return Number.isFinite(expected) && atMs >= expected - 50 && atMs <= expected + 300;
+					}) &&
+					completed.dismissReason === 'natural' &&
+					Number.isFinite(durationMs) &&
+					durationMs >= BOOT_INTRO_PROFILES.normal.durationMs - 50 &&
+					durationMs <= 4_250,
+				serialize({ beats, durationMs, timeline }),
 			);
 			check(
 				group,
@@ -1132,20 +1353,20 @@ async function runNetworkScenarios(browser, origin) {
 				introCount === 0 &&
 					seen === '1' &&
 					!(await page.locator(SELECTORS.primaryAction).isDisabled()) &&
-					(await page.locator(SELECTORS.primaryAction).evaluate((element) =>
-						document.activeElement === element,
-					)),
+					(await page
+						.locator(SELECTORS.primaryAction)
+						.evaluate((element) => document.activeElement === element)),
 				serialize({ introCount, seen, runtimeState: await runtimeState(page) }),
 			);
 			check(
 				group,
 				'boot intro never issues a wallet write',
-				network.byEndpoint.authenticate.length === 1 && walletWriteCount(network) === 0,
+				network.byEndpoint.authenticate.length === 1 && paidWriteCount(network) === 0,
 				serialize(network.order),
 			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
-			record.intro = { beats, durationMs: completedAt - startedAt, seen };
+			record.intro = { beats, durationMs, seen, timeline };
 			record.network = network;
 			record.diagnostics = diagnostics;
 		} finally {
@@ -1161,11 +1382,16 @@ async function runNetworkScenarios(browser, origin) {
 			hasTouch: true,
 		});
 		try {
+			await installIntroTimeline(context);
 			const network = await installMockRgs(context, {
 				pageOrigin: origin,
 				handlers: { authenticate: () => authenticateResponse() },
 			});
-			const { page, diagnostics } = await openPage(context, origin, liveQuery({ device: 'mobile' }));
+			const { page, diagnostics } = await openPage(
+				context,
+				origin,
+				liveQuery({ device: 'mobile' }),
+			);
 			await waitForEndpoint(network, 'authenticate', 1);
 			const skip = page.locator(SELECTORS.skipIntro);
 			await skip.waitFor({ state: 'visible', timeout: 10_000 });
@@ -1202,22 +1428,34 @@ async function runNetworkScenarios(browser, origin) {
 					blocking.skipFocused,
 				serialize(blocking),
 			);
-			const skipStartedAt = await page.evaluate(() => performance.now());
+			await page.waitForFunction(() => document.body.dataset.introBeat === 'breach', undefined, {
+				timeout: 4_250,
+			});
+			const activeScreenshot = await saveScreenshot(page, 'boot-intro-skip-mobile-active-breach');
 			await skip.click();
 			await page.waitForFunction(
 				() =>
 					document.body.dataset.introStatus === 'skipped' &&
 					(document.body.dataset.runtimeState ?? '') === 'live-ready',
 			);
-			const skipDurationMs = (await page.evaluate(() => performance.now())) - skipStartedAt;
+			const timeline = await readIntroTimeline(page);
+			const terminal = timeline.events.find(
+				(event) =>
+					timeline.skipClickAtMs !== null &&
+					event.atMs >= timeline.skipClickAtMs &&
+					event.status === 'skipped' &&
+					event.runtimeState === 'live-ready',
+			);
+			const skipDurationMs = terminal?.atMs - timeline.skipClickAtMs;
 			check(
 				group,
 				'mobile Skip reaches the exact playable state within 250ms and records the seen version',
-				skipDurationMs <= 250 &&
+				Number.isFinite(skipDurationMs) &&
+					skipDurationMs <= 250 &&
 					(await page.locator(SELECTORS.bootIntro).count()) === 0 &&
 					(await page.evaluate((key) => localStorage.getItem(key), INTRO_SEEN_KEY)) === '1' &&
 					!(await page.locator(SELECTORS.primaryAction).isDisabled()),
-				serialize({ skipDurationMs, state: await runtimeState(page) }),
+				serialize({ skipDurationMs, state: await runtimeState(page), timeline }),
 			);
 
 			await page.reload({ waitUntil: 'domcontentloaded' });
@@ -1233,13 +1471,14 @@ async function runNetworkScenarios(browser, origin) {
 			check(
 				group,
 				'boot intro never issues a wallet write after skip or seen-version bypass',
-				network.byEndpoint.authenticate.length === 2 && walletWriteCount(network) === 0,
+				network.byEndpoint.authenticate.length === 2 && paidWriteCount(network) === 0,
 				serialize(network.order),
 			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.screenshot = await saveScreenshot(page, 'boot-intro-skip-mobile-ready');
-			record.intro = { blocking, skipDurationMs };
+			record.activeScreenshot = activeScreenshot;
+			record.intro = { blocking, skipDurationMs, timeline };
 			record.network = network;
 			record.diagnostics = diagnostics;
 		} finally {
@@ -1260,16 +1499,23 @@ async function runNetworkScenarios(browser, origin) {
 				pageOrigin: origin,
 				handlers: { authenticate: () => authenticateResponse() },
 			});
-			const { page, diagnostics } = await openPage(context, origin, liveQuery({ device: 'mobile' }));
+			const { page, diagnostics } = await openPage(
+				context,
+				origin,
+				liveQuery({ device: 'mobile' }),
+			);
 			await waitForEndpoint(network, 'authenticate', 1);
 			await waitForStableAction(page);
-			const state = await page.evaluate((introSelector) => ({
-				introCount: document.querySelectorAll(introSelector).length,
-				introStatus: document.body.dataset.introStatus,
-				dismissReason: document.body.dataset.introDismissReason,
-				motionProfile: document.body.dataset.motionProfile,
-				seen: localStorage.getItem('blacksite.boot-intro.v1.seen'),
-			}), SELECTORS.bootIntro);
+			const state = await page.evaluate(
+				(introSelector) => ({
+					introCount: document.querySelectorAll(introSelector).length,
+					introStatus: document.body.dataset.introStatus,
+					dismissReason: document.body.dataset.introDismissReason,
+					motionProfile: document.body.dataset.motionProfile,
+					seen: localStorage.getItem('blacksite.boot-intro.v1.seen'),
+				}),
+				SELECTORS.bootIntro,
+			);
 			check(
 				group,
 				'initial reduced motion schedules no animated intro and does not persist a presentation history',
@@ -1283,7 +1529,7 @@ async function runNetworkScenarios(browser, origin) {
 			check(
 				group,
 				'reduced-motion intro bypass authenticates once and issues zero wallet writes',
-				network.byEndpoint.authenticate.length === 1 && walletWriteCount(network) === 0,
+				network.byEndpoint.authenticate.length === 1 && paidWriteCount(network) === 0,
 				serialize(network.order),
 			);
 			assertCleanNetwork(group, network);
@@ -1293,6 +1539,180 @@ async function runNetworkScenarios(browser, origin) {
 			record.network = network;
 			record.diagnostics = diagnostics;
 		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('slow-auth-status-visible-hidden-document-intro-bypass', async (record) => {
+		const group = 'slow-auth-status-visible-hidden-document-intro-bypass';
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		let releaseAuthentication = () => {};
+		const authenticationGate = new Promise((resolve) => {
+			releaseAuthentication = resolve;
+		});
+		let page = null;
+		let lifecycleSession = null;
+		let foregroundPage = null;
+		try {
+			foregroundPage = await context.newPage();
+			await context.addInitScript(
+				({ storageKey }) => {
+					try {
+						localStorage.setItem(storageKey, 'turbo');
+					} catch {
+						// Opaque helper pages have no storage; the live app origin does.
+					}
+				},
+				{ storageKey: MOTION_STORAGE_KEY },
+			);
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: async () => {
+						await authenticationGate;
+						return authenticateResponse();
+					},
+				},
+			});
+			const opened = await openPage(context, origin, liveQuery());
+			page = opened.page;
+			const { diagnostics } = opened;
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForRuntimeState(page, 'live-authenticating');
+			const pending = await page.evaluate(
+				({ actionSelector, introSelector, motionSelector, statusSelector, storageKey }) => {
+					const masthead = document.querySelector('.masthead');
+					const studio = document.querySelector('.studio');
+					const status = document.querySelector(statusSelector);
+					const motion = document.querySelector(motionSelector);
+					motion?.click();
+					return {
+						introCount: document.querySelectorAll(introSelector).length,
+						mastheadInert: masthead?.hasAttribute('inert') ?? null,
+						mastheadAriaHidden: masthead?.getAttribute('aria-hidden') ?? null,
+						studioInert: studio?.hasAttribute('inert') ?? null,
+						studioAriaHidden: studio?.getAttribute('aria-hidden') ?? null,
+						statusText: status?.textContent?.trim() ?? null,
+						statusRole: status?.getAttribute('role') ?? null,
+						statusLive: status?.getAttribute('aria-live') ?? null,
+						statusAtomic: status?.getAttribute('aria-atomic') ?? null,
+						primaryDisabled: document.querySelector(actionSelector)?.disabled ?? null,
+						motionDisabled: motion?.matches(':disabled') ?? null,
+						motionLabel: motion?.textContent?.trim() ?? null,
+						motionProfile: document.body.dataset.motionProfile ?? null,
+						storedMotion: localStorage.getItem(storageKey),
+						hudRtpCount: document.querySelectorAll('[data-testid="hud-rtp"]').length,
+					};
+				},
+				{
+					actionSelector: SELECTORS.primaryAction,
+					introSelector: SELECTORS.bootIntro,
+					motionSelector: SELECTORS.motionMode,
+					statusSelector: SELECTORS.launchStatus,
+					storageKey: MOTION_STORAGE_KEY,
+				},
+			);
+			check(
+				group,
+				'slow authentication keeps CONNECTING exposed to assistive technology before the intro exists',
+				pending.introCount === 0 &&
+					!pending.mastheadInert &&
+					pending.mastheadAriaHidden === null &&
+					pending.studioInert &&
+					pending.studioAriaHidden === 'true' &&
+					pending.statusText === 'CONNECTING' &&
+					pending.statusRole === 'status' &&
+					pending.statusLive === 'polite' &&
+					pending.statusAtomic === 'true' &&
+					pending.primaryDisabled &&
+					pending.motionDisabled &&
+					pending.motionLabel === 'NORMAL' &&
+					pending.motionProfile === 'normal' &&
+					pending.storedMotion === 'turbo' &&
+					pending.hudRtpCount === 0,
+				serialize(pending),
+			);
+
+			await page.evaluate(() => {
+				window.__blacksiteQaVisibility = [];
+				document.addEventListener('visibilitychange', () => {
+					window.__blacksiteQaVisibility.push({
+						hidden: document.hidden,
+						state: document.visibilityState,
+					});
+				});
+			});
+			lifecycleSession = await context.newCDPSession(page);
+			await lifecycleSession.send('Emulation.setFocusEmulationEnabled', { enabled: false });
+			await foregroundPage.bringToFront();
+			await page.waitForFunction(
+				() =>
+					document.hidden &&
+					document.visibilityState === 'hidden' &&
+					window.__blacksiteQaVisibility?.some((entry) => entry.hidden && entry.state === 'hidden'),
+				undefined,
+				{ polling: 100, timeout: 5_000 },
+			);
+			const bypassed = page.waitForFunction(
+				({ actionSelector, introSelector }) =>
+					document.body.dataset.introStatus === 'bypassed' &&
+					document.body.dataset.introDismissReason === 'document-hidden' &&
+					document.body.dataset.runtimeState === 'live-ready' &&
+					document.querySelectorAll(introSelector).length === 0 &&
+					!document.querySelector(actionSelector)?.disabled,
+				{ actionSelector: SELECTORS.primaryAction, introSelector: SELECTORS.bootIntro },
+				{ polling: 100, timeout: 10_000 },
+			);
+			releaseAuthentication();
+			await bypassed;
+			const resolved = await page.evaluate(
+				(seenKey) => ({
+					introStatus: document.body.dataset.introStatus,
+					dismissReason: document.body.dataset.introDismissReason,
+					seen: localStorage.getItem(seenKey),
+					runtimeState: document.body.dataset.runtimeState,
+					hidden: document.hidden,
+					visibilityState: document.visibilityState,
+					visibilityTransitions: window.__blacksiteQaVisibility,
+				}),
+				INTRO_SEEN_KEY,
+			);
+			check(
+				group,
+				'a document hidden before slow authentication resolves bypasses the intro without persisting it',
+				resolved.introStatus === 'bypassed' &&
+					resolved.dismissReason === 'document-hidden' &&
+					resolved.seen === null &&
+					resolved.runtimeState === 'live-ready' &&
+					resolved.hidden &&
+					resolved.visibilityState === 'hidden' &&
+					resolved.visibilityTransitions.some(
+						(entry) => entry.hidden && entry.state === 'hidden',
+					) &&
+					network.byEndpoint.authenticate.length === 1 &&
+					paidWriteCount(network) === 0,
+				serialize({ resolved, order: network.order }),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.pending = pending;
+			record.resolved = resolved;
+			record.network = network;
+			record.diagnostics = diagnostics;
+			await lifecycleSession.send('Page.bringToFront');
+			await page.waitForFunction(() => document.visibilityState === 'visible', undefined, {
+				polling: 100,
+				timeout: 5_000,
+			});
+			await lifecycleSession.detach();
+			lifecycleSession = null;
+		} finally {
+			releaseAuthentication();
+			if (lifecycleSession) {
+				await lifecycleSession.send('Page.bringToFront').catch(() => {});
+				await lifecycleSession.detach().catch(() => {});
+			}
+			await foregroundPage?.close().catch(() => {});
 			await context.close();
 		}
 	});
@@ -1309,9 +1729,24 @@ async function runNetworkScenarios(browser, origin) {
 			await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 10_000 });
 			const state = await runtimeState(page);
 			const errorText = await page.locator(SELECTORS.launchError).innerText();
-			check('invalid-rgs-url-fails-closed-before-network', 'invalid rgs_url is visibly rejected', /rgs_url/i.test(errorText), errorText);
-			check('invalid-rgs-url-fails-closed-before-network', 'invalid rgs_url enters a bounded error state', /error/i.test(state ?? ''), serialize(state));
-			check('invalid-rgs-url-fails-closed-before-network', 'invalid rgs_url produces zero RGS requests', rgsRequestCount(network) === 0 && network.preflights.length === 0, serialize(network));
+			check(
+				'invalid-rgs-url-fails-closed-before-network',
+				'invalid rgs_url is visibly rejected',
+				/rgs_url/i.test(errorText),
+				errorText,
+			);
+			check(
+				'invalid-rgs-url-fails-closed-before-network',
+				'invalid rgs_url enters a bounded error state',
+				/error/i.test(state ?? ''),
+				serialize(state),
+			);
+			check(
+				'invalid-rgs-url-fails-closed-before-network',
+				'invalid rgs_url produces zero RGS requests',
+				rgsRequestCount(network) === 0 && network.preflights.length === 0,
+				serialize(network),
+			);
 			assertCleanNetwork('invalid-rgs-url-fails-closed-before-network', network);
 			assertCleanDiagnostics('invalid-rgs-url-fails-closed-before-network', diagnostics);
 			record.screenshot = await saveScreenshot(page, 'invalid-rgs-url');
@@ -1342,8 +1777,18 @@ async function runNetworkScenarios(browser, origin) {
 			await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 10_000 });
 			const state = await runtimeState(page);
 			const errorText = await page.locator(SELECTORS.launchError).innerText();
-			check('invalid-session-auth-response-fails-closed', 'invalid session response is visibly reported', errorText.trim().length > 0, errorText);
-			check('invalid-session-auth-response-fails-closed', 'invalid session response enters an error state', /error/i.test(state ?? ''), serialize(state));
+			check(
+				'invalid-session-auth-response-fails-closed',
+				'invalid session response is visibly reported',
+				errorText.trim().length > 0,
+				errorText,
+			);
+			check(
+				'invalid-session-auth-response-fails-closed',
+				'invalid session response enters an error state',
+				/error/i.test(state ?? ''),
+				serialize(state),
+			);
 			check(
 				'invalid-session-auth-response-fails-closed',
 				'authentication error preempts the intro before any cinematic surface can hide recovery',
@@ -1352,10 +1797,26 @@ async function runNetworkScenarios(browser, origin) {
 						'authentication-error',
 				await page.evaluate(() => document.body.dataset.introStatus),
 			);
-			check('invalid-session-auth-response-fails-closed', 'invalid session authenticates exactly once', network.byEndpoint.authenticate.length === 1, serialize(network.order));
-			check('invalid-session-auth-response-fails-closed', 'invalid session sends zero play or settlement writes', network.byEndpoint.play.length === 0 && network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0, serialize(network.order));
+			check(
+				'invalid-session-auth-response-fails-closed',
+				'invalid session authenticates exactly once',
+				network.byEndpoint.authenticate.length === 1,
+				serialize(network.order),
+			);
+			check(
+				'invalid-session-auth-response-fails-closed',
+				'invalid session sends zero play or settlement writes',
+				network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
+				serialize(network.order),
+			);
 			assertCleanNetwork('invalid-session-auth-response-fails-closed', network);
-			assertOnlyExpectedHttpDiagnostic('invalid-session-auth-response-fails-closed', diagnostics, 401);
+			assertOnlyExpectedHttpDiagnostic(
+				'invalid-session-auth-response-fails-closed',
+				diagnostics,
+				401,
+			);
 			record.screenshot = await saveScreenshot(page, 'invalid-session-auth');
 			record.network = network;
 			record.diagnostics = diagnostics;
@@ -1371,9 +1832,10 @@ async function runNetworkScenarios(browser, origin) {
 			const network = await installMockRgs(context, {
 				pageOrigin: origin,
 				handlers: {
-					authenticate: () => authenticateResponse({
-						betConfig: { minStep: 200_000 },
-					}),
+					authenticate: () =>
+						authenticateResponse({
+							betConfig: { minStep: 200_000 },
+						}),
 				},
 			});
 			const { page, diagnostics } = await openPage(context, origin, liveQuery());
@@ -1381,19 +1843,28 @@ async function runNetworkScenarios(browser, origin) {
 			await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 10_000 });
 			await waitForRuntimeState(page, 'live-error');
 			const errorText = (await page.locator(SELECTORS.launchError).innerText()).trim();
-			check(group, 'conflicting step aliases expose the exact fail-closed contract error',
+			check(
+				group,
+				'conflicting step aliases expose the exact fail-closed contract error',
 				/STEP_BET_CONFLICT/.test(errorText) && /stepBet and minStep disagree/i.test(errorText),
 				errorText,
 			);
-			check(group, 'conflicting step aliases never expose an actionable paid-play control',
+			check(
+				group,
+				'conflicting step aliases never expose an actionable paid-play control',
 				await page.locator(SELECTORS.primaryAction).isDisabled(),
-				serialize({ state: await runtimeState(page), action: await page.locator(SELECTORS.primaryAction).innerText() }),
+				serialize({
+					state: await runtimeState(page),
+					action: await page.locator(SELECTORS.primaryAction).innerText(),
+				}),
 			);
-			check(group, 'conflicting step aliases authenticate once and send zero wallet or event writes',
-				network.byEndpoint.authenticate.length === 1
-					&& network.byEndpoint.play.length === 0
-					&& network.byEndpoint.endRound.length === 0
-					&& network.byEndpoint.event.length === 0,
+			check(
+				group,
+				'conflicting step aliases authenticate once and send zero wallet or event writes',
+				network.byEndpoint.authenticate.length === 1 &&
+					network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
 				serialize(network.order),
 			);
 			assertCleanNetwork(group, network);
@@ -1458,19 +1929,69 @@ async function runNetworkScenarios(browser, origin) {
 					mode: 'base',
 				},
 			});
-			check(group, 'ERR_IPB race is visibly reported after successful auth', /balance|authoritative|continue/i.test(errorText), errorText);
-			check(group, 'ERR_IPB race reaches a fail-closed insufficient/error state', /insufficient|error/i.test(state ?? ''), serialize(state));
-			check(group, 'ERR_IPB race sends exactly one play request', network.byEndpoint.play.length === 1, serialize(network.order));
-			check(group, 'ERR_IPB race sends no settlement/event request', network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0, serialize(network.order));
-			check(group, 'ERR_IPB race consumes no local result board', board.length === 49 && board.every((symbol) => symbol === ''), serialize(board));
+			check(
+				group,
+				'ERR_IPB race is visibly reported after successful auth',
+				/balance|authoritative|continue/i.test(errorText),
+				errorText,
+			);
+			check(
+				group,
+				'ERR_IPB race reaches a fail-closed insufficient/error state',
+				/insufficient|error/i.test(state ?? ''),
+				serialize(state),
+			);
+			check(
+				group,
+				'ERR_IPB race sends exactly one play request',
+				network.byEndpoint.play.length === 1,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'ERR_IPB race sends no settlement/event request',
+				network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'ERR_IPB race consumes no local result board',
+				board.length === 49 && board.every((symbol) => symbol === ''),
+				serialize(board),
+			);
 			check(group, 'ERR_IPB race exposes no invented final result', finalWin === '—', finalWin);
-			check(group, 'ERR_IPB leaves the result surface byte-for-byte unchanged from pre-play', serialize({ board, finalWin }) === serialize(beforeResultSurface), serialize({ beforeResultSurface, afterResultSurface: { board, finalWin } }));
-			check(group, 'ERR_IPB race disables further play until authoritative reauthentication', await page.locator(SELECTORS.primaryAction).isDisabled(), await page.locator(SELECTORS.primaryAction).innerText());
-			check(group, 'ERR_IPB network order is authenticate then one play', serialize(network.order) === serialize(['authenticate', 'play']), serialize(network.order));
+			check(
+				group,
+				'ERR_IPB leaves the result surface byte-for-byte unchanged from pre-play',
+				serialize({ board, finalWin }) === serialize(beforeResultSurface),
+				serialize({ beforeResultSurface, afterResultSurface: { board, finalWin } }),
+			);
+			check(
+				group,
+				'ERR_IPB race disables further play until authoritative reauthentication',
+				await page.locator(SELECTORS.primaryAction).isDisabled(),
+				await page.locator(SELECTORS.primaryAction).innerText(),
+			);
+			check(
+				group,
+				'ERR_IPB network order is authenticate then one play',
+				serialize(network.order) === serialize(['authenticate', 'play']),
+				serialize(network.order),
+			);
 			const recovery = page.locator('[data-testid="recovery-action"]');
-			check(group, 'ERR_IPB race exposes explicit authoritative reload/restore', await recovery.isVisible() && !(await recovery.isDisabled()), await recovery.innerText());
+			check(
+				group,
+				'ERR_IPB race exposes explicit authoritative reload/restore',
+				(await recovery.isVisible()) && !(await recovery.isDisabled()),
+				await recovery.innerText(),
+			);
 			await page.waitForTimeout(300);
-			check(group, 'ERR_IPB recovery never retries the rejected paid play automatically', network.byEndpoint.play.length === 1, serialize(network.order));
+			check(
+				group,
+				'ERR_IPB recovery never retries the rejected paid play automatically',
+				network.byEndpoint.play.length === 1,
+				serialize(network.order),
+			);
 			record.errorScreenshot = await saveScreenshot(page, 'rgs-err-ipb-race-error');
 
 			await recovery.click();
@@ -1491,19 +2012,28 @@ async function runNetworkScenarios(browser, origin) {
 				path: '/wallet/end-round',
 				body: { sessionID: SESSION_ID },
 			});
-			check(group, 'explicit ERR_IPB reload restores and completes the authoritative active round',
+			check(
+				group,
+				'explicit ERR_IPB reload restores and completes the authoritative active round',
 				network.byEndpoint.authenticate.length === 2 && network.byEndpoint.endRound.length === 1,
 				serialize(network.order),
 			);
-			check(group, 'ERR_IPB recovery never duplicates the rejected play or writes a checkpoint',
+			check(
+				group,
+				'ERR_IPB recovery never duplicates the rejected play or writes a checkpoint',
 				network.byEndpoint.play.length === 1 && network.byEndpoint.event.length === 0,
 				serialize(network.order),
 			);
-			check(group, 'ERR_IPB recovery request order is authoritative and exact',
-				serialize(network.order) === serialize(['authenticate', 'play', 'authenticate', 'endRound']),
+			check(
+				group,
+				'ERR_IPB recovery request order is authoritative and exact',
+				serialize(network.order) ===
+					serialize(['authenticate', 'play', 'authenticate', 'endRound']),
 				serialize(network.order),
 			);
-			check(group, 'ERR_IPB recovery adopts the exact restored balance and result',
+			check(
+				group,
+				'ERR_IPB recovery adopts the exact restored balance and result',
 				(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$999.00' &&
 					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00',
 				serialize({
@@ -1544,13 +2074,45 @@ async function runNetworkScenarios(browser, origin) {
 			await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 10_000 });
 			const state = await runtimeState(page);
 			const errorText = await page.locator(SELECTORS.launchError).innerText();
-			check(group, 'authenticate 503 is visible and bounded', errorText.trim().length > 0, errorText);
-			check(group, 'authenticate 503 exits boot/auth/loading states', /error/i.test(state ?? '') && !/boot|authenticating|loading/i.test(state ?? ''), serialize(state));
-			check(group, 'authenticate 503 performs exactly one auth request', network.byEndpoint.authenticate.length === 1, serialize(network.order));
-			check(group, 'authenticate 503 sends no wallet play/settlement writes', network.byEndpoint.play.length === 0 && network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0, serialize(network.order));
-			check(group, 'authenticate 503 leaves primary action fail-closed', await page.locator(SELECTORS.primaryAction).isDisabled(), await page.locator(SELECTORS.primaryAction).innerText());
+			check(
+				group,
+				'authenticate 503 is visible and bounded',
+				errorText.trim().length > 0,
+				errorText,
+			);
+			check(
+				group,
+				'authenticate 503 exits boot/auth/loading states',
+				/error/i.test(state ?? '') && !/boot|authenticating|loading/i.test(state ?? ''),
+				serialize(state),
+			);
+			check(
+				group,
+				'authenticate 503 performs exactly one auth request',
+				network.byEndpoint.authenticate.length === 1,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'authenticate 503 sends no wallet play/settlement writes',
+				network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'authenticate 503 leaves primary action fail-closed',
+				await page.locator(SELECTORS.primaryAction).isDisabled(),
+				await page.locator(SELECTORS.primaryAction).innerText(),
+			);
 			const recovery = page.locator('[data-testid="recovery-action"]');
-			check(group, 'authenticate 503 exposes an enabled reload/restore control', await recovery.isVisible() && !(await recovery.isDisabled()), await page.locator(SELECTORS.launchError).innerText());
+			check(
+				group,
+				'authenticate 503 exposes an enabled reload/restore control',
+				(await recovery.isVisible()) && !(await recovery.isDisabled()),
+				await page.locator(SELECTORS.launchError).innerText(),
+			);
 			await recovery.click();
 			await waitForEndpoint(network, 'authenticate', 2);
 			await waitForStableAction(page);
@@ -1561,10 +2123,37 @@ async function runNetworkScenarios(browser, origin) {
 					body: { sessionID: SESSION_ID, language: 'en' },
 				});
 			}
-			check(group, 'reload recovers to authoritative ready without local fallback', await runtimeState(page) === 'live-ready' && !(await page.locator(SELECTORS.primaryAction).isDisabled()), serialize({ state: await runtimeState(page), launchKind: await page.locator(SELECTORS.playerHud).getAttribute('data-launch-kind') }));
-			check(group, 'recovered session exposes the authenticated wallet balance', (await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1000.00', await page.locator(SELECTORS.walletBalance).innerText());
-			check(group, 'recovery performs exactly one additional authenticate and zero wallet writes', network.byEndpoint.authenticate.length === 2 && network.byEndpoint.play.length === 0 && network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0, serialize(network.order));
-			check(group, 'recovery order is authenticate then authenticate', serialize(network.order) === serialize(['authenticate', 'authenticate']), serialize(network.order));
+			check(
+				group,
+				'reload recovers to authoritative ready without local fallback',
+				(await runtimeState(page)) === 'live-ready' &&
+					!(await page.locator(SELECTORS.primaryAction).isDisabled()),
+				serialize({
+					state: await runtimeState(page),
+					launchKind: await page.locator(SELECTORS.playerHud).getAttribute('data-launch-kind'),
+				}),
+			);
+			check(
+				group,
+				'recovered session exposes the authenticated wallet balance',
+				(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1000.00',
+				await page.locator(SELECTORS.walletBalance).innerText(),
+			);
+			check(
+				group,
+				'recovery performs exactly one additional authenticate and zero wallet writes',
+				network.byEndpoint.authenticate.length === 2 &&
+					network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'recovery order is authenticate then authenticate',
+				serialize(network.order) === serialize(['authenticate', 'authenticate']),
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertOnlyExpectedHttpDiagnostic(group, diagnostics, 503);
 			record.screenshot = await saveScreenshot(page, group);
@@ -1585,11 +2174,13 @@ async function runNetworkScenarios(browser, origin) {
 					const nativeFetch = window.fetch.bind(window);
 					const readAudit = () => {
 						try {
-							return JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
-								attempts: 0,
-								aborts: 0,
-								consumed: false,
-							};
+							return (
+								JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
+									attempts: 0,
+									aborts: 0,
+									consumed: false,
+								}
+							);
 						} catch {
 							return { attempts: 0, aborts: 0, consumed: false };
 						}
@@ -1643,7 +2234,12 @@ async function runNetworkScenarios(browser, origin) {
 				timeoutAudit?.attempts === 1 && timeoutAudit?.aborts === 1,
 				serialize(timeoutAudit),
 			);
-			check(group, 'authenticate timeout is visible and bounded', /timed out/i.test(errorText), errorText);
+			check(
+				group,
+				'authenticate timeout is visible and bounded',
+				/timed out/i.test(errorText),
+				errorText,
+			);
 			check(
 				group,
 				'authenticate timeout exits boot/auth/loading states',
@@ -1669,7 +2265,7 @@ async function runNetworkScenarios(browser, origin) {
 			check(
 				group,
 				'authenticate timeout exposes an enabled reload control',
-				await recovery.isVisible() && !(await recovery.isDisabled()),
+				(await recovery.isVisible()) && !(await recovery.isDisabled()),
 				errorText,
 			);
 			record.screenshot = await saveScreenshot(page, `${group}-error`);
@@ -1736,11 +2332,13 @@ async function runNetworkScenarios(browser, origin) {
 					const nativeFetch = window.fetch.bind(window);
 					const readAudit = () => {
 						try {
-							return JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
-								attempts: 0,
-								aborts: 0,
-								consumed: false,
-							};
+							return (
+								JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
+									attempts: 0,
+									aborts: 0,
+									consumed: false,
+								}
+							);
 						} catch {
 							return { attempts: 0, aborts: 0, consumed: false };
 						}
@@ -1842,11 +2440,13 @@ async function runNetworkScenarios(browser, origin) {
 					const nativeFetch = window.fetch.bind(window);
 					const readAudit = () => {
 						try {
-							return JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
-								attempts: 0,
-								aborts: 0,
-								consumed: false,
-							};
+							return (
+								JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
+									attempts: 0,
+									aborts: 0,
+									consumed: false,
+								}
+							);
 						} catch {
 							return { attempts: 0, aborts: 0, consumed: false };
 						}
@@ -1874,7 +2474,9 @@ async function runNetworkScenarios(browser, origin) {
 								const nextAudit = readAudit();
 								nextAudit.aborts += 1;
 								writeAudit(nextAudit);
-								reject(new DOMException('BlackSite QA Replay teardown aborted transport.', 'AbortError'));
+								reject(
+									new DOMException('BlackSite QA Replay teardown aborted transport.', 'AbortError'),
+								);
 							};
 							if (signal?.aborted) abort();
 							else signal?.addEventListener('abort', abort, { once: true });
@@ -1961,12 +2563,12 @@ async function runNetworkScenarios(browser, origin) {
 						networkEvidence.byEndpoint.authenticate.length === 1
 							? authenticateResponse()
 							: authenticateResponse({
-								round: authoritativeZeroRound({
-									active: true,
-									id: 'blacksite-qa-uncertain-play-restore',
-									event: encodePresentationCursor(2),
+									round: authoritativeZeroRound({
+										active: true,
+										id: 'blacksite-qa-uncertain-play-restore',
+										event: encodePresentationCursor(2),
+									}),
 								}),
-							}),
 					play: () =>
 						mockHttpResponse(503, {
 							error: {
@@ -1984,15 +2586,41 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForEndpoint(network, 'play', 1);
 			await page.locator(SELECTORS.launchError).waitFor({ state: 'visible' });
 			const recovery = page.locator('[data-testid="recovery-action"]');
-			check(group, 'uncertain Live play exposes explicit reload/restore without enabling Play', await recovery.isVisible() && await page.locator(SELECTORS.primaryAction).isDisabled(), serialize({ state: await runtimeState(page), order: network.order }));
+			check(
+				group,
+				'uncertain Live play exposes explicit reload/restore without enabling Play',
+				(await recovery.isVisible()) && (await page.locator(SELECTORS.primaryAction).isDisabled()),
+				serialize({ state: await runtimeState(page), order: network.order }),
+			);
 			await recovery.click();
 			await waitForEndpoint(network, 'authenticate', 2);
 			await waitForEndpoint(network, 'endRound', 1);
 			await waitForRuntimeState(page, 'live-ready');
-			check(group, 'reload authenticates and restores the authoritative active round', network.byEndpoint.authenticate.length === 2 && network.byEndpoint.endRound.length === 1, serialize(network.order));
-			check(group, 'recovery never retries the uncertain paid play', network.byEndpoint.play.length === 1, serialize(network.order));
-			check(group, 'recovered round exposes its exact authoritative result', (await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00', await page.locator(SELECTORS.finalWin).innerText());
-			check(group, 'uncertain play recovery order is authenticate, play, authenticate, end-round', serialize(network.order) === serialize(['authenticate', 'play', 'authenticate', 'endRound']), serialize(network.order));
+			check(
+				group,
+				'reload authenticates and restores the authoritative active round',
+				network.byEndpoint.authenticate.length === 2 && network.byEndpoint.endRound.length === 1,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'recovery never retries the uncertain paid play',
+				network.byEndpoint.play.length === 1,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'recovered round exposes its exact authoritative result',
+				(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00',
+				await page.locator(SELECTORS.finalWin).innerText(),
+			);
+			check(
+				group,
+				'uncertain play recovery order is authenticate, play, authenticate, end-round',
+				serialize(network.order) ===
+					serialize(['authenticate', 'play', 'authenticate', 'endRound']),
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertOnlyExpectedHttpDiagnostic(group, diagnostics, 503);
 			record.screenshot = await saveScreenshot(page, group);
@@ -2003,779 +2631,836 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
-	await runScenario('accepted-winning-play-response-loss-restores-and-pays-exactly-once', async (record) => {
-		const group = 'accepted-winning-play-response-loss-restores-and-pays-exactly-once';
-		const fixture = getGeneratedFixture('base_big');
-		const round = authoritativeFixtureRound({
-			fixture,
-			active: true,
-			id: 'blacksite-qa-accepted-winning-play-response-loss',
-		});
-		const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
-		const settledBalance = debitedBalance + round.payout;
-		const checkpointEventTypes = new Set([
-			'board_set',
-			'breach_state',
-			'feature_start',
-			'feature_cycle',
-			'feature_end',
-			'cap_reached',
-		]);
-		const expectedCheckpointCursors = fixture.book.events
-			.filter(({ type }) => checkpointEventTypes.has(type))
-			.map(({ index }) => encodePresentationCursor(index + 1));
-		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-		try {
-			await context.addInitScript(
-				({ rgsOrigin }) => {
-					const auditKey = 'blacksite-qa-accepted-winning-play-response-loss-audit';
-					const nativeFetch = window.fetch.bind(window);
-					const readAudit = () => {
-						try {
-							return JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
-								attempts: 0,
-								acceptedResponses: 0,
-								aborts: 0,
-								consumed: false,
-							};
-						} catch {
-							return { attempts: 0, acceptedResponses: 0, aborts: 0, consumed: false };
-						}
-					};
-					const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
-					window.fetch = async (input, init = {}) => {
-						const url = new URL(
-							typeof input === 'string' || input instanceof URL ? input : input.url,
-							window.location.href,
-						);
-						if (url.origin !== rgsOrigin || url.pathname !== '/wallet/play') {
-							return nativeFetch(input, init);
-						}
-						const audit = readAudit();
-						if (audit.consumed) return nativeFetch(input, init);
-						audit.consumed = true;
-						audit.attempts += 1;
-						writeAudit(audit);
-						await nativeFetch(input, init);
-						const accepted = readAudit();
-						accepted.acceptedResponses += 1;
-						writeAudit(accepted);
-						return new Promise((_resolve, reject) => {
-							const abort = () => {
-								const aborted = readAudit();
-								aborted.aborts += 1;
-								writeAudit(aborted);
-								reject(new DOMException('BLACKSITE QA discarded the accepted winning play response.', 'AbortError'));
-							};
-							if (init.signal?.aborted) abort();
-							else init.signal?.addEventListener('abort', abort, { once: true });
-						});
-					};
-				},
-				{ rgsOrigin: BLACKSITE_QA_RGS_ORIGIN },
-			);
-			const network = await installMockRgs(context, {
-				pageOrigin: origin,
-				handlers: {
-					authenticate: (_request, networkEvidence) =>
-						networkEvidence.byEndpoint.authenticate.length === 1
-							? authenticateResponse({
-									jurisdictionOverrides: { displayNetPosition: true },
-								})
-							: authenticateResponse({
-									balance: debitedBalance,
-									round,
-									jurisdictionOverrides: { displayNetPosition: true },
-								}),
-					play: () => ({
-						status: successStatus(),
-						balance: { amount: debitedBalance, currency: 'USD' },
-						round,
-					}),
-					event: (request) => ({ event: request.body.event }),
-					endRound: () => endRoundResponse({ balance: settledBalance }),
-				},
+	await runScenario(
+		'accepted-winning-play-response-loss-restores-and-pays-exactly-once',
+		async (record) => {
+			const group = 'accepted-winning-play-response-loss-restores-and-pays-exactly-once';
+			const fixture = getGeneratedFixture('base_big');
+			const round = authoritativeFixtureRound({
+				fixture,
+				active: true,
+				id: 'blacksite-qa-accepted-winning-play-response-loss',
 			});
-			const { page, diagnostics } = await openPage(context, origin, liveQuery());
-			await waitForEndpoint(network, 'authenticate', 1);
-			await waitForStableAction(page);
-			await page.locator(SELECTORS.primaryAction).click();
-			await waitForEndpoint(network, 'play', 1);
-			await page.waitForFunction(() => {
-				const audit = JSON.parse(
-					sessionStorage.getItem('blacksite-qa-accepted-winning-play-response-loss-audit') ?? 'null',
+			const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
+			const settledBalance = debitedBalance + round.payout;
+			const checkpointEventTypes = new Set([
+				'board_set',
+				'breach_state',
+				'feature_start',
+				'feature_cycle',
+				'feature_end',
+				'cap_reached',
+			]);
+			const expectedCheckpointCursors = fixture.book.events
+				.filter(({ type }) => checkpointEventTypes.has(type))
+				.map(({ index }) => encodePresentationCursor(index + 1));
+			const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+			try {
+				await context.addInitScript(
+					({ rgsOrigin }) => {
+						const auditKey = 'blacksite-qa-accepted-winning-play-response-loss-audit';
+						const nativeFetch = window.fetch.bind(window);
+						const readAudit = () => {
+							try {
+								return (
+									JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
+										attempts: 0,
+										acceptedResponses: 0,
+										aborts: 0,
+										consumed: false,
+									}
+								);
+							} catch {
+								return { attempts: 0, acceptedResponses: 0, aborts: 0, consumed: false };
+							}
+						};
+						const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
+						window.fetch = async (input, init = {}) => {
+							const url = new URL(
+								typeof input === 'string' || input instanceof URL ? input : input.url,
+								window.location.href,
+							);
+							if (url.origin !== rgsOrigin || url.pathname !== '/wallet/play') {
+								return nativeFetch(input, init);
+							}
+							const audit = readAudit();
+							if (audit.consumed) return nativeFetch(input, init);
+							audit.consumed = true;
+							audit.attempts += 1;
+							writeAudit(audit);
+							await nativeFetch(input, init);
+							const accepted = readAudit();
+							accepted.acceptedResponses += 1;
+							writeAudit(accepted);
+							return new Promise((_resolve, reject) => {
+								const abort = () => {
+									const aborted = readAudit();
+									aborted.aborts += 1;
+									writeAudit(aborted);
+									reject(
+										new DOMException(
+											'BLACKSITE QA discarded the accepted winning play response.',
+											'AbortError',
+										),
+									);
+								};
+								if (init.signal?.aborted) abort();
+								else init.signal?.addEventListener('abort', abort, { once: true });
+							});
+						};
+					},
+					{ rgsOrigin: BLACKSITE_QA_RGS_ORIGIN },
 				);
-				return audit?.acceptedResponses === 1;
-			});
-			assertExactRequest(group, network.byEndpoint.play[0], {
-				method: 'POST',
-				path: '/wallet/play',
-				body: {
-					sessionID: SESSION_ID,
-					currency: 'USD',
-					amount: DEFAULT_BASE_AMOUNT,
-					mode: 'base',
-				},
-			});
-			record.acceptedScreenshot = await saveScreenshot(page, `${group}-pending-client-response`);
-
-			await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
-			await waitForEndpoint(network, 'authenticate', 2);
-			await waitForEndpoint(network, 'endRound', 1, 30_000);
-			await waitForRuntimeState(page, 'live-ready');
-			await page.waitForTimeout(200);
-
-			const responseLossAudit = await page.evaluate(() =>
-				JSON.parse(
-					sessionStorage.getItem('blacksite-qa-accepted-winning-play-response-loss-audit') ?? 'null',
-				),
-			);
-			for (const request of network.byEndpoint.authenticate) {
-				assertExactRequest(group, request, {
-					method: 'POST',
-					path: '/wallet/authenticate',
-					body: { sessionID: SESSION_ID, language: 'en' },
+				const network = await installMockRgs(context, {
+					pageOrigin: origin,
+					handlers: {
+						authenticate: (_request, networkEvidence) =>
+							networkEvidence.byEndpoint.authenticate.length === 1
+								? authenticateResponse({
+										jurisdictionOverrides: { displayNetPosition: true },
+									})
+								: authenticateResponse({
+										balance: debitedBalance,
+										round,
+										jurisdictionOverrides: { displayNetPosition: true },
+									}),
+						play: () => ({
+							status: successStatus(),
+							balance: { amount: debitedBalance, currency: 'USD' },
+							round,
+						}),
+						event: (request) => ({ event: request.body.event }),
+						endRound: () => endRoundResponse({ balance: settledBalance }),
+					},
 				});
-			}
-			assertExactRequest(group, network.byEndpoint.endRound[0], {
-				method: 'POST',
-				path: '/wallet/end-round',
-				body: { sessionID: SESSION_ID },
-			});
-			for (const request of network.byEndpoint.event) {
-				assertExactRequest(group, request, {
-					method: 'POST',
-					path: '/bet/event',
-					body: { sessionID: SESSION_ID, event: request.body.event },
+				const { page, diagnostics } = await openPage(context, origin, liveQuery());
+				await waitForEndpoint(network, 'authenticate', 1);
+				await waitForStableAction(page);
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForEndpoint(network, 'play', 1);
+				await page.waitForFunction(() => {
+					const audit = JSON.parse(
+						sessionStorage.getItem('blacksite-qa-accepted-winning-play-response-loss-audit') ??
+							'null',
+					);
+					return audit?.acceptedResponses === 1;
 				});
-			}
-			check(
-				group,
-				'accepted winning play response loss aborts the pending client transport on reload',
-				responseLossAudit?.attempts === 1 &&
-					responseLossAudit?.acceptedResponses === 1 &&
-					responseLossAudit?.aborts === 1,
-				serialize(responseLossAudit),
-			);
-			check(
-				group,
-				'accepted winning play response loss never sends a duplicate paid play',
-				network.byEndpoint.play.length === 1,
-				serialize(network.order),
-			);
-			check(
-				group,
-				'accepted winning play recovery persists each checkpoint exactly once in order',
-				serialize(network.byEndpoint.event.map(({ body }) => body.event)) ===
-					serialize(expectedCheckpointCursors) &&
-					new Set(network.byEndpoint.event.map(({ body }) => body.event)).size ===
-						expectedCheckpointCursors.length,
-				serialize({
+				assertExactRequest(group, network.byEndpoint.play[0], {
+					method: 'POST',
+					path: '/wallet/play',
+					body: {
+						sessionID: SESSION_ID,
+						currency: 'USD',
+						amount: DEFAULT_BASE_AMOUNT,
+						mode: 'base',
+					},
+				});
+				record.acceptedScreenshot = await saveScreenshot(page, `${group}-pending-client-response`);
+
+				await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
+				await waitForEndpoint(network, 'authenticate', 2);
+				await waitForEndpoint(network, 'endRound', 1, 30_000);
+				await waitForRuntimeState(page, 'live-ready');
+				await page.waitForTimeout(200);
+
+				const responseLossAudit = await page.evaluate(() =>
+					JSON.parse(
+						sessionStorage.getItem('blacksite-qa-accepted-winning-play-response-loss-audit') ??
+							'null',
+					),
+				);
+				for (const request of network.byEndpoint.authenticate) {
+					assertExactRequest(group, request, {
+						method: 'POST',
+						path: '/wallet/authenticate',
+						body: { sessionID: SESSION_ID, language: 'en' },
+					});
+				}
+				assertExactRequest(group, network.byEndpoint.endRound[0], {
+					method: 'POST',
+					path: '/wallet/end-round',
+					body: { sessionID: SESSION_ID },
+				});
+				for (const request of network.byEndpoint.event) {
+					assertExactRequest(group, request, {
+						method: 'POST',
+						path: '/bet/event',
+						body: { sessionID: SESSION_ID, event: request.body.event },
+					});
+				}
+				check(
+					group,
+					'accepted winning play response loss aborts the pending client transport on reload',
+					responseLossAudit?.attempts === 1 &&
+						responseLossAudit?.acceptedResponses === 1 &&
+						responseLossAudit?.aborts === 1,
+					serialize(responseLossAudit),
+				);
+				check(
+					group,
+					'accepted winning play response loss never sends a duplicate paid play',
+					network.byEndpoint.play.length === 1,
+					serialize(network.order),
+				);
+				check(
+					group,
+					'accepted winning play recovery persists each checkpoint exactly once in order',
+					serialize(network.byEndpoint.event.map(({ body }) => body.event)) ===
+						serialize(expectedCheckpointCursors) &&
+						new Set(network.byEndpoint.event.map(({ body }) => body.event)).size ===
+							expectedCheckpointCursors.length,
+					serialize({
+						expectedCheckpointCursors,
+						actual: network.byEndpoint.event.map(({ body }) => body.event),
+					}),
+				);
+				check(
+					group,
+					'accepted winning play response loss restores and pays exactly once',
+					network.byEndpoint.authenticate.length === 2 &&
+						network.byEndpoint.endRound.length === 1 &&
+						serialize(network.order) ===
+							serialize([
+								'authenticate',
+								'play',
+								'authenticate',
+								...expectedCheckpointCursors.map(() => 'event'),
+								'endRound',
+							]),
+					serialize(network.order),
+				);
+				check(
+					group,
+					'restored accepted winning play exposes the exact one-time payout, balance and session position',
+					round.payout === 200 * API_UNIT &&
+						settledBalance === 1_199 * API_UNIT &&
+						(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1199.00' &&
+						(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$200.00' &&
+						(await page.locator(SELECTORS.sessionNetPosition).innerText()).trim() === '−$200.00' &&
+						(await runtimeState(page)) === 'live-ready',
+					serialize({
+						balance: await page.locator(SELECTORS.walletBalance).innerText(),
+						win: await page.locator(SELECTORS.finalWin).innerText(),
+						netPosition: await page.locator(SELECTORS.sessionNetPosition).innerText(),
+						payoutApi: round.payout,
+						settledBalance,
+					}),
+				);
+				const expectedAbortedRequests = diagnostics.failedRequests.splice(0);
+				check(
+					group,
+					'accepted winning play response loss reports exactly the intentionally aborted paid transport',
+					expectedAbortedRequests.length === 1 &&
+						expectedAbortedRequests[0]?.method === 'POST' &&
+						expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/wallet/play` &&
+						expectedAbortedRequests[0]?.error === 'net::ERR_ABORTED',
+					serialize(expectedAbortedRequests),
+				);
+				assertCleanNetwork(group, network);
+				assertCleanDiagnostics(group, diagnostics);
+				record.screenshot = await saveScreenshot(page, group);
+				record.restore = {
+					fixture: fixture.id,
+					payoutApi: round.payout,
+					debitedBalance,
+					settledBalance,
 					expectedCheckpointCursors,
-					actual: network.byEndpoint.event.map(({ body }) => body.event),
-				}),
-			);
-			check(
-				group,
-				'accepted winning play response loss restores and pays exactly once',
-				network.byEndpoint.authenticate.length === 2 &&
-					network.byEndpoint.endRound.length === 1 &&
-					serialize(network.order) ===
-						serialize([
-							'authenticate',
-							'play',
-							'authenticate',
-							...expectedCheckpointCursors.map(() => 'event'),
-							'endRound',
-						]),
-				serialize(network.order),
-			);
-			check(
-				group,
-				'restored accepted winning play exposes the exact one-time payout, balance and session position',
-				round.payout === 200 * API_UNIT &&
-					settledBalance === 1_199 * API_UNIT &&
-					(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1199.00' &&
-					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$200.00' &&
-					(await page.locator(SELECTORS.sessionNetPosition).innerText()).trim() === '−$200.00' &&
-					await runtimeState(page) === 'live-ready',
-				serialize({
-					balance: await page.locator(SELECTORS.walletBalance).innerText(),
-					win: await page.locator(SELECTORS.finalWin).innerText(),
-					netPosition: await page.locator(SELECTORS.sessionNetPosition).innerText(),
-					payoutApi: round.payout,
-					settledBalance,
-				}),
-			);
-			const expectedAbortedRequests = diagnostics.failedRequests.splice(0);
-			check(
-				group,
-				'accepted winning play response loss reports exactly the intentionally aborted paid transport',
-				expectedAbortedRequests.length === 1 &&
-					expectedAbortedRequests[0]?.method === 'POST' &&
-					expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/wallet/play` &&
-					expectedAbortedRequests[0]?.error === 'net::ERR_ABORTED',
-				serialize(expectedAbortedRequests),
-			);
-			assertCleanNetwork(group, network);
-			assertCleanDiagnostics(group, diagnostics);
-			record.screenshot = await saveScreenshot(page, group);
-			record.restore = {
-				fixture: fixture.id,
-				payoutApi: round.payout,
-				debitedBalance,
-				settledBalance,
-				expectedCheckpointCursors,
-			};
-			record.expectedAbortedRequests = expectedAbortedRequests;
-			record.network = network;
-			record.diagnostics = diagnostics;
-		} finally {
-			await context.close();
-		}
-	});
-
-	await runScenario('accepted-checkpoint-response-loss-restores-without-rewrite', async (record) => {
-		const group = 'accepted-checkpoint-response-loss-restores-without-rewrite';
-		const restoredBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
-		const acceptedCursor = encodePresentationCursor(2);
-		const restoredRound = authoritativeZeroRound({
-			active: true,
-			id: 'blacksite-qa-accepted-checkpoint-response-loss',
-			event: acceptedCursor,
-		});
-		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-		try {
-			await context.addInitScript(
-				({ rgsOrigin }) => {
-					const auditKey = 'blacksite-qa-accepted-checkpoint-response-loss-audit';
-					const nativeFetch = window.fetch.bind(window);
-					const readAudit = () => {
-						try {
-							return JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
-								attempts: 0,
-								acceptedResponses: 0,
-								aborts: 0,
-								consumed: false,
-							};
-						} catch {
-							return { attempts: 0, acceptedResponses: 0, aborts: 0, consumed: false };
-						}
-					};
-					const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
-					window.fetch = async (input, init = {}) => {
-						const url = new URL(
-							typeof input === 'string' || input instanceof URL ? input : input.url,
-							window.location.href,
-						);
-						if (url.origin !== rgsOrigin || url.pathname !== '/bet/event') {
-							return nativeFetch(input, init);
-						}
-						const audit = readAudit();
-						if (audit.consumed) return nativeFetch(input, init);
-						audit.consumed = true;
-						audit.attempts += 1;
-						writeAudit(audit);
-						await nativeFetch(input, init);
-						const accepted = readAudit();
-						accepted.acceptedResponses += 1;
-						writeAudit(accepted);
-						return new Promise((_resolve, reject) => {
-							const abort = () => {
-								const aborted = readAudit();
-								aborted.aborts += 1;
-								writeAudit(aborted);
-								reject(new DOMException('BLACKSITE QA discarded the accepted checkpoint response.', 'AbortError'));
-							};
-							if (init.signal?.aborted) abort();
-							else init.signal?.addEventListener('abort', abort, { once: true });
-						});
-					};
-				},
-				{ rgsOrigin: BLACKSITE_QA_RGS_ORIGIN },
-			);
-			const network = await installMockRgs(context, {
-				pageOrigin: origin,
-				handlers: {
-					authenticate: (_request, networkEvidence) =>
-						networkEvidence.byEndpoint.authenticate.length === 1
-							? authenticateResponse()
-							: authenticateResponse({
-									balance: restoredBalance,
-									round: restoredRound,
-								}),
-					play: () => playResponse({ active: true }),
-					event: (request) => ({ event: request.body.event }),
-					endRound: () => endRoundResponse({ balance: restoredBalance }),
-				},
-			});
-			const { page, diagnostics } = await openPage(context, origin, liveQuery());
-			await waitForEndpoint(network, 'authenticate', 1);
-			await waitForStableAction(page);
-			await page.locator(SELECTORS.primaryAction).click();
-			await waitForEndpoint(network, 'event', 1);
-			await page.waitForFunction(() => {
-				const audit = JSON.parse(
-					sessionStorage.getItem('blacksite-qa-accepted-checkpoint-response-loss-audit') ?? 'null',
-				);
-				return audit?.acceptedResponses === 1;
-			});
-			assertExactRequest(group, network.byEndpoint.event[0], {
-				method: 'POST',
-				path: '/bet/event',
-				body: { sessionID: SESSION_ID, event: acceptedCursor },
-			});
-			record.acceptedScreenshot = await saveScreenshot(page, `${group}-pending-client-response`);
-
-			await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
-			await waitForEndpoint(network, 'authenticate', 2);
-			await waitForEndpoint(network, 'endRound', 1);
-			await waitForRuntimeState(page, 'live-ready');
-			await page.waitForTimeout(300);
-
-			const responseLossAudit = await page.evaluate(() =>
-				JSON.parse(
-					sessionStorage.getItem('blacksite-qa-accepted-checkpoint-response-loss-audit') ?? 'null',
-				),
-			);
-			for (const request of network.byEndpoint.authenticate) {
-				assertExactRequest(group, request, {
-					method: 'POST',
-					path: '/wallet/authenticate',
-					body: { sessionID: SESSION_ID, language: 'en' },
-				});
+				};
+				record.expectedAbortedRequests = expectedAbortedRequests;
+				record.network = network;
+				record.diagnostics = diagnostics;
+			} finally {
+				await context.close();
 			}
-			assertExactRequest(group, network.byEndpoint.endRound[0], {
-				method: 'POST',
-				path: '/wallet/end-round',
-				body: { sessionID: SESSION_ID },
-			});
-			check(
-				group,
-				'accepted checkpoint response loss aborts only the pending client transport',
-				responseLossAudit?.attempts === 1 &&
-					responseLossAudit?.acceptedResponses === 1 &&
-					responseLossAudit?.aborts === 1,
-				serialize(responseLossAudit),
-			);
-			check(
-				group,
-				'accepted checkpoint is not rewritten after authoritative restore',
-				network.byEndpoint.event.length === 1 &&
-					network.byEndpoint.event[0]?.body.event === acceptedCursor,
-				serialize(network.order),
-			);
-			check(
-				group,
-				'accepted checkpoint recovery order is authoritative and exact',
-				network.byEndpoint.authenticate.length === 2 &&
-					network.byEndpoint.play.length === 1 &&
-					network.byEndpoint.endRound.length === 1 &&
-					serialize(network.order) === serialize(['authenticate', 'play', 'event', 'authenticate', 'endRound']),
-				serialize(network.order),
-			);
-			check(
-				group,
-				'accepted checkpoint recovery settles once with the exact authoritative balance and result',
-				(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$999.00' &&
-					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00' &&
-					await runtimeState(page) === 'live-ready',
-				serialize({
-					balance: await page.locator(SELECTORS.walletBalance).innerText(),
-					win: await page.locator(SELECTORS.finalWin).innerText(),
-					state: await runtimeState(page),
-				}),
-			);
-			const expectedAbortedRequests = diagnostics.failedRequests.splice(0);
-			check(
-				group,
-				'accepted checkpoint response loss reports exactly the intentionally aborted event transport',
-				expectedAbortedRequests.length === 1 &&
-					expectedAbortedRequests[0]?.method === 'POST' &&
-					expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/bet/event` &&
-					expectedAbortedRequests[0]?.error === 'net::ERR_ABORTED',
-				serialize(expectedAbortedRequests),
-			);
-			assertCleanNetwork(group, network);
-			assertCleanDiagnostics(group, diagnostics);
-			record.screenshot = await saveScreenshot(page, group);
-			record.expectedAbortedRequests = expectedAbortedRequests;
-			record.network = network;
-			record.diagnostics = diagnostics;
-		} finally {
-			await context.close();
-		}
-	});
+		},
+	);
 
-	await runScenario('accepted-winning-checkpoint-response-loss-restores-and-pays-exactly-once', async (record) => {
-		const group = 'accepted-winning-checkpoint-response-loss-restores-and-pays-exactly-once';
-		const fixture = getGeneratedFixture('base_big');
-		const checkpointEventTypes = new Set([
-			'board_set',
-			'breach_state',
-			'feature_start',
-			'feature_cycle',
-			'feature_end',
-			'cap_reached',
-		]);
-		const expectedCheckpointCursors = fixture.book.events
-			.filter(({ type }) => checkpointEventTypes.has(type))
-			.map(({ index }) => encodePresentationCursor(index + 1));
-		const acceptedCursor = expectedCheckpointCursors[0];
-		const expectedRemainingCursors = expectedCheckpointCursors.slice(1);
-		const playRound = authoritativeFixtureRound({
-			fixture,
-			active: true,
-			id: 'blacksite-qa-accepted-winning-checkpoint-response-loss',
-		});
-		const round = authoritativeFixtureRound({
-			fixture,
-			active: true,
-			id: 'blacksite-qa-accepted-winning-checkpoint-response-loss',
-			event: acceptedCursor,
-		});
-		const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
-		const settledBalance = debitedBalance + round.payout;
-		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-		try {
-			await context.addInitScript(
-				({ rgsOrigin }) => {
-					const auditKey = 'blacksite-qa-accepted-winning-checkpoint-response-loss-audit';
-					const nativeFetch = window.fetch.bind(window);
-					const readAudit = () => {
-						try {
-							return JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
-								attempts: 0,
-								acceptedResponses: 0,
-								aborts: 0,
-								consumed: false,
-							};
-						} catch {
-							return { attempts: 0, acceptedResponses: 0, aborts: 0, consumed: false };
-						}
-					};
-					const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
-					window.fetch = async (input, init = {}) => {
-						const url = new URL(
-							typeof input === 'string' || input instanceof URL ? input : input.url,
-							window.location.href,
-						);
-						if (url.origin !== rgsOrigin || url.pathname !== '/bet/event') {
-							return nativeFetch(input, init);
-						}
-						const audit = readAudit();
-						if (audit.consumed) return nativeFetch(input, init);
-						audit.consumed = true;
-						audit.attempts += 1;
-						writeAudit(audit);
-						await nativeFetch(input, init);
-						const accepted = readAudit();
-						accepted.acceptedResponses += 1;
-						writeAudit(accepted);
-						return new Promise((_resolve, reject) => {
-							const abort = () => {
-								const aborted = readAudit();
-								aborted.aborts += 1;
-								writeAudit(aborted);
-								reject(new DOMException('BLACKSITE QA discarded the accepted winning checkpoint response.', 'AbortError'));
-							};
-							if (init.signal?.aborted) abort();
-							else init.signal?.addEventListener('abort', abort, { once: true });
-						});
-					};
-				},
-				{ rgsOrigin: BLACKSITE_QA_RGS_ORIGIN },
-			);
-			const network = await installMockRgs(context, {
-				pageOrigin: origin,
-				handlers: {
-					authenticate: (_request, networkEvidence) =>
-						networkEvidence.byEndpoint.authenticate.length === 1
-							? authenticateResponse({ jurisdictionOverrides: { displayNetPosition: true } })
-							: authenticateResponse({
-									balance: debitedBalance,
-									round,
-									jurisdictionOverrides: { displayNetPosition: true },
-								}),
-					play: () => ({
-						status: successStatus(),
-						balance: { amount: debitedBalance, currency: 'USD' },
-						round: playRound,
-					}),
-					event: (request) => ({ event: request.body.event }),
-					endRound: () => endRoundResponse({ balance: settledBalance }),
-				},
+	await runScenario(
+		'accepted-checkpoint-response-loss-restores-without-rewrite',
+		async (record) => {
+			const group = 'accepted-checkpoint-response-loss-restores-without-rewrite';
+			const restoredBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
+			const acceptedCursor = encodePresentationCursor(2);
+			const restoredRound = authoritativeZeroRound({
+				active: true,
+				id: 'blacksite-qa-accepted-checkpoint-response-loss',
+				event: acceptedCursor,
 			});
-			const { page, diagnostics } = await openPage(context, origin, liveQuery());
-			await waitForEndpoint(network, 'authenticate', 1);
-			await waitForStableAction(page);
-			await page.locator(SELECTORS.primaryAction).click();
-			await waitForEndpoint(network, 'event', 1);
-			await page.waitForFunction(() => {
-				const audit = JSON.parse(
-					sessionStorage.getItem('blacksite-qa-accepted-winning-checkpoint-response-loss-audit') ?? 'null',
+			const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+			try {
+				await context.addInitScript(
+					({ rgsOrigin }) => {
+						const auditKey = 'blacksite-qa-accepted-checkpoint-response-loss-audit';
+						const nativeFetch = window.fetch.bind(window);
+						const readAudit = () => {
+							try {
+								return (
+									JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
+										attempts: 0,
+										acceptedResponses: 0,
+										aborts: 0,
+										consumed: false,
+									}
+								);
+							} catch {
+								return { attempts: 0, acceptedResponses: 0, aborts: 0, consumed: false };
+							}
+						};
+						const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
+						window.fetch = async (input, init = {}) => {
+							const url = new URL(
+								typeof input === 'string' || input instanceof URL ? input : input.url,
+								window.location.href,
+							);
+							if (url.origin !== rgsOrigin || url.pathname !== '/bet/event') {
+								return nativeFetch(input, init);
+							}
+							const audit = readAudit();
+							if (audit.consumed) return nativeFetch(input, init);
+							audit.consumed = true;
+							audit.attempts += 1;
+							writeAudit(audit);
+							await nativeFetch(input, init);
+							const accepted = readAudit();
+							accepted.acceptedResponses += 1;
+							writeAudit(accepted);
+							return new Promise((_resolve, reject) => {
+								const abort = () => {
+									const aborted = readAudit();
+									aborted.aborts += 1;
+									writeAudit(aborted);
+									reject(
+										new DOMException(
+											'BLACKSITE QA discarded the accepted checkpoint response.',
+											'AbortError',
+										),
+									);
+								};
+								if (init.signal?.aborted) abort();
+								else init.signal?.addEventListener('abort', abort, { once: true });
+							});
+						};
+					},
+					{ rgsOrigin: BLACKSITE_QA_RGS_ORIGIN },
 				);
-				return audit?.acceptedResponses === 1;
-			});
-			assertExactRequest(group, network.byEndpoint.play[0], {
-				method: 'POST',
-				path: '/wallet/play',
-				body: {
-					sessionID: SESSION_ID,
-					currency: 'USD',
-					amount: DEFAULT_BASE_AMOUNT,
-					mode: 'base',
-				},
-			});
-			assertExactRequest(group, network.byEndpoint.event[0], {
-				method: 'POST',
-				path: '/bet/event',
-				body: { sessionID: SESSION_ID, event: acceptedCursor },
-			});
-			record.acceptedScreenshot = await saveScreenshot(page, `${group}-pending-client-response`);
-
-			await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
-			await waitForEndpoint(network, 'authenticate', 2);
-			await waitForEndpoint(network, 'endRound', 1, 30_000);
-			await waitForRuntimeState(page, 'live-ready');
-			await page.waitForTimeout(200);
-
-			const responseLossAudit = await page.evaluate(() =>
-				JSON.parse(
-					sessionStorage.getItem('blacksite-qa-accepted-winning-checkpoint-response-loss-audit') ?? 'null',
-				),
-			);
-			for (const request of network.byEndpoint.authenticate) {
-				assertExactRequest(group, request, {
-					method: 'POST',
-					path: '/wallet/authenticate',
-					body: { sessionID: SESSION_ID, language: 'en' },
+				const network = await installMockRgs(context, {
+					pageOrigin: origin,
+					handlers: {
+						authenticate: (_request, networkEvidence) =>
+							networkEvidence.byEndpoint.authenticate.length === 1
+								? authenticateResponse()
+								: authenticateResponse({
+										balance: restoredBalance,
+										round: restoredRound,
+									}),
+						play: () => playResponse({ active: true }),
+						event: (request) => ({ event: request.body.event }),
+						endRound: () => endRoundResponse({ balance: restoredBalance }),
+					},
 				});
-			}
-			for (const request of network.byEndpoint.event) {
-				assertExactRequest(group, request, {
+				const { page, diagnostics } = await openPage(context, origin, liveQuery());
+				await waitForEndpoint(network, 'authenticate', 1);
+				await waitForStableAction(page);
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForEndpoint(network, 'event', 1);
+				await page.waitForFunction(() => {
+					const audit = JSON.parse(
+						sessionStorage.getItem('blacksite-qa-accepted-checkpoint-response-loss-audit') ??
+							'null',
+					);
+					return audit?.acceptedResponses === 1;
+				});
+				assertExactRequest(group, network.byEndpoint.event[0], {
 					method: 'POST',
 					path: '/bet/event',
-					body: { sessionID: SESSION_ID, event: request.body.event },
+					body: { sessionID: SESSION_ID, event: acceptedCursor },
 				});
-			}
-			assertExactRequest(group, network.byEndpoint.endRound[0], {
-				method: 'POST',
-				path: '/wallet/end-round',
-				body: { sessionID: SESSION_ID },
-			});
-			check(
-				group,
-				'accepted winning checkpoint response loss aborts only the pending client transport',
-				responseLossAudit?.attempts === 1 &&
-					responseLossAudit?.acceptedResponses === 1 &&
-					responseLossAudit?.aborts === 1,
-				serialize(responseLossAudit),
-			);
-			const actualCheckpointCursors = network.byEndpoint.event.map(({ body }) => body.event);
-			check(
-				group,
-				'accepted winning checkpoint is never rewritten after authoritative restore',
-				actualCheckpointCursors[0] === acceptedCursor &&
-					actualCheckpointCursors.filter((cursor) => cursor === acceptedCursor).length === 1,
-				serialize(actualCheckpointCursors),
-			);
-			check(
-				group,
-				'accepted winning checkpoint recovery persists every remaining cursor exactly once',
-				serialize(actualCheckpointCursors.slice(1)) === serialize(expectedRemainingCursors) &&
-					serialize(actualCheckpointCursors) === serialize(expectedCheckpointCursors) &&
-					new Set(actualCheckpointCursors).size === expectedCheckpointCursors.length,
-				serialize({ expectedCheckpointCursors, actualCheckpointCursors }),
-			);
-			check(
-				group,
-				'accepted winning checkpoint recovery order is authoritative and exact',
-				network.byEndpoint.authenticate.length === 2 &&
-					network.byEndpoint.play.length === 1 &&
-					network.byEndpoint.endRound.length === 1 &&
-					serialize(network.order) === serialize([
-						'authenticate',
-						'play',
-						'event',
-						'authenticate',
-						...expectedRemainingCursors.map(() => 'event'),
-						'endRound',
-					]),
-				serialize(network.order),
-			);
-			check(
-				group,
-				'accepted winning checkpoint recovery pays the authoritative result exactly once',
-				round.payout === 200 * API_UNIT &&
-					settledBalance === 1_199 * API_UNIT &&
-					(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1199.00' &&
-					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$200.00' &&
-					(await page.locator(SELECTORS.sessionNetPosition).innerText()).trim() === '−$200.00' &&
-					await runtimeState(page) === 'live-ready',
-				serialize({
-					balance: await page.locator(SELECTORS.walletBalance).innerText(),
-					win: await page.locator(SELECTORS.finalWin).innerText(),
-					netPosition: await page.locator(SELECTORS.sessionNetPosition).innerText(),
-					payoutApi: round.payout,
-					settledBalance,
-				}),
-			);
-			const expectedAbortedRequests = diagnostics.failedRequests.splice(0);
-			check(
-				group,
-				'accepted winning checkpoint response loss reports exactly the intentionally aborted event transport',
-				expectedAbortedRequests.length === 1 &&
-					expectedAbortedRequests[0]?.method === 'POST' &&
-					expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/bet/event` &&
-					expectedAbortedRequests[0]?.error === 'net::ERR_ABORTED',
-				serialize(expectedAbortedRequests),
-			);
-			assertCleanNetwork(group, network);
-			assertCleanDiagnostics(group, diagnostics);
-			record.screenshot = await saveScreenshot(page, group);
-			record.restore = {
-				fixture: fixture.id,
-				payoutApi: round.payout,
-				acceptedCursor,
-				expectedCheckpointCursors,
-				debitedBalance,
-				settledBalance,
-			};
-			record.expectedAbortedRequests = expectedAbortedRequests;
-			record.network = network;
-			record.diagnostics = diagnostics;
-		} finally {
-			await context.close();
-		}
-	});
+				record.acceptedScreenshot = await saveScreenshot(page, `${group}-pending-client-response`);
 
-	await runScenario('expired-session-on-play-reauthenticates-without-automatic-retry', async (record) => {
-		const group = 'expired-session-on-play-reauthenticates-without-automatic-retry';
-		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-		try {
-			const network = await installMockRgs(context, {
-				pageOrigin: origin,
-				handlers: {
-					authenticate: () => authenticateResponse(),
-					play: (_request, networkEvidence) =>
-						networkEvidence.byEndpoint.play.length === 1
-							? {
-									status: {
-										statusCode: 'ERR_SESSION',
-										statusMessage: 'The paid session expired before the play was accepted.',
-									},
-								}
-							: playResponse(),
-				},
-			});
-			const { page, diagnostics } = await openPage(context, origin, liveQuery());
-			await waitForEndpoint(network, 'authenticate', 1);
-			await waitForStableAction(page);
-			await page.locator(SELECTORS.primaryAction).click();
-			await waitForEndpoint(network, 'play', 1);
-			await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 10_000 });
-			await waitForRuntimeState(page, 'live-error');
+				await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
+				await waitForEndpoint(network, 'authenticate', 2);
+				await waitForEndpoint(network, 'endRound', 1);
+				await waitForRuntimeState(page, 'live-ready');
+				await page.waitForTimeout(300);
 
-			assertExactRequest(group, network.byEndpoint.play[0], {
-				method: 'POST',
-				path: '/wallet/play',
-				body: {
-					sessionID: SESSION_ID,
-					currency: 'USD',
-					amount: DEFAULT_BASE_AMOUNT,
-					mode: 'base',
-				},
-			});
-			const recovery = page.locator('[data-testid="recovery-action"]');
-			check(group, 'expired play session is visible, fail-closed and explicitly recoverable',
-				await recovery.isVisible() &&
-					!(await recovery.isDisabled()) &&
-					await page.locator(SELECTORS.primaryAction).isDisabled(),
-				serialize({
-					state: await runtimeState(page),
-					error: await page.locator(SELECTORS.launchError).innerText(),
-				}),
-			);
-			check(group, 'expired session exposes no invented result',
-				(await page.locator(SELECTORS.finalWin).innerText()).trim() === '—' &&
-					(await boardSymbols(page)).every((symbol) => symbol === ''),
-				serialize({
-					win: await page.locator(SELECTORS.finalWin).innerText(),
-					board: await boardSymbols(page),
-				}),
-			);
-			await page.waitForTimeout(300);
-			check(group, 'expired session never retries the rejected play automatically',
-				network.byEndpoint.play.length === 1 &&
-					network.byEndpoint.authenticate.length === 1,
-				serialize(network.order),
-			);
-			record.errorScreenshot = await saveScreenshot(page, 'expired-session-on-play-error');
-
-			await recovery.click();
-			await waitForEndpoint(network, 'authenticate', 2);
-			await waitForStableAction(page);
-			check(group, 'explicit reload performs one reauthentication and restores ready controls',
-				network.byEndpoint.authenticate.length === 2 &&
-					network.byEndpoint.play.length === 1 &&
-					await runtimeState(page) === 'live-ready' &&
-					!(await page.locator(SELECTORS.primaryAction).isDisabled()),
-				serialize({ state: await runtimeState(page), order: network.order }),
-			);
-			await page.waitForTimeout(300);
-			check(group, 'reauthentication alone never resubmits the rejected paid action',
-				network.byEndpoint.play.length === 1,
-				serialize(network.order),
-			);
-
-			await page.locator(SELECTORS.primaryAction).click();
-			await waitForEndpoint(network, 'play', 2);
-			await waitForStableAction(page);
-			await page.waitForTimeout(200);
-
-			for (const request of network.byEndpoint.authenticate) {
-				assertExactRequest(group, request, {
+				const responseLossAudit = await page.evaluate(() =>
+					JSON.parse(
+						sessionStorage.getItem('blacksite-qa-accepted-checkpoint-response-loss-audit') ??
+							'null',
+					),
+				);
+				for (const request of network.byEndpoint.authenticate) {
+					assertExactRequest(group, request, {
+						method: 'POST',
+						path: '/wallet/authenticate',
+						body: { sessionID: SESSION_ID, language: 'en' },
+					});
+				}
+				assertExactRequest(group, network.byEndpoint.endRound[0], {
 					method: 'POST',
-					path: '/wallet/authenticate',
-					body: { sessionID: SESSION_ID, language: 'en' },
+					path: '/wallet/end-round',
+					body: { sessionID: SESSION_ID },
 				});
-			}
-			assertExactRequest(group, network.byEndpoint.play[1], {
-				method: 'POST',
-				path: '/wallet/play',
-				body: {
-					sessionID: SESSION_ID,
-					currency: 'USD',
-					amount: DEFAULT_BASE_AMOUNT,
-					mode: 'base',
-				},
-			});
-			check(group, 'a new deliberate action succeeds once after reauthentication',
-				network.byEndpoint.play.length === 2 &&
+				check(
+					group,
+					'accepted checkpoint response loss aborts only the pending client transport',
+					responseLossAudit?.attempts === 1 &&
+						responseLossAudit?.acceptedResponses === 1 &&
+						responseLossAudit?.aborts === 1,
+					serialize(responseLossAudit),
+				);
+				check(
+					group,
+					'accepted checkpoint is not rewritten after authoritative restore',
+					network.byEndpoint.event.length === 1 &&
+						network.byEndpoint.event[0]?.body.event === acceptedCursor,
+					serialize(network.order),
+				);
+				check(
+					group,
+					'accepted checkpoint recovery order is authoritative and exact',
+					network.byEndpoint.authenticate.length === 2 &&
+						network.byEndpoint.play.length === 1 &&
+						network.byEndpoint.endRound.length === 1 &&
+						serialize(network.order) ===
+							serialize(['authenticate', 'play', 'event', 'authenticate', 'endRound']),
+					serialize(network.order),
+				);
+				check(
+					group,
+					'accepted checkpoint recovery settles once with the exact authoritative balance and result',
 					(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$999.00' &&
-					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00',
-				serialize({
-					balance: await page.locator(SELECTORS.walletBalance).innerText(),
-					win: await page.locator(SELECTORS.finalWin).innerText(),
-					order: network.order,
-				}),
-			);
-			check(group, 'session recovery request order is exact and has no settlement/checkpoint writes',
-				serialize(network.order) === serialize(['authenticate', 'play', 'authenticate', 'play']) &&
-					network.byEndpoint.endRound.length === 0 &&
-					network.byEndpoint.event.length === 0,
-				serialize(network.order),
-			);
-			assertCleanNetwork(group, network);
-			assertCleanDiagnostics(group, diagnostics);
-			record.screenshot = await saveScreenshot(page, group);
-			record.network = network;
-			record.diagnostics = diagnostics;
-		} finally {
-			await context.close();
-		}
-	});
+						(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00' &&
+						(await runtimeState(page)) === 'live-ready',
+					serialize({
+						balance: await page.locator(SELECTORS.walletBalance).innerText(),
+						win: await page.locator(SELECTORS.finalWin).innerText(),
+						state: await runtimeState(page),
+					}),
+				);
+				const expectedAbortedRequests = diagnostics.failedRequests.splice(0);
+				check(
+					group,
+					'accepted checkpoint response loss reports exactly the intentionally aborted event transport',
+					expectedAbortedRequests.length === 1 &&
+						expectedAbortedRequests[0]?.method === 'POST' &&
+						expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/bet/event` &&
+						expectedAbortedRequests[0]?.error === 'net::ERR_ABORTED',
+					serialize(expectedAbortedRequests),
+				);
+				assertCleanNetwork(group, network);
+				assertCleanDiagnostics(group, diagnostics);
+				record.screenshot = await saveScreenshot(page, group);
+				record.expectedAbortedRequests = expectedAbortedRequests;
+				record.network = network;
+				record.diagnostics = diagnostics;
+			} finally {
+				await context.close();
+			}
+		},
+	);
+
+	await runScenario(
+		'accepted-winning-checkpoint-response-loss-restores-and-pays-exactly-once',
+		async (record) => {
+			const group = 'accepted-winning-checkpoint-response-loss-restores-and-pays-exactly-once';
+			const fixture = getGeneratedFixture('base_big');
+			const checkpointEventTypes = new Set([
+				'board_set',
+				'breach_state',
+				'feature_start',
+				'feature_cycle',
+				'feature_end',
+				'cap_reached',
+			]);
+			const expectedCheckpointCursors = fixture.book.events
+				.filter(({ type }) => checkpointEventTypes.has(type))
+				.map(({ index }) => encodePresentationCursor(index + 1));
+			const acceptedCursor = expectedCheckpointCursors[0];
+			const expectedRemainingCursors = expectedCheckpointCursors.slice(1);
+			const playRound = authoritativeFixtureRound({
+				fixture,
+				active: true,
+				id: 'blacksite-qa-accepted-winning-checkpoint-response-loss',
+			});
+			const round = authoritativeFixtureRound({
+				fixture,
+				active: true,
+				id: 'blacksite-qa-accepted-winning-checkpoint-response-loss',
+				event: acceptedCursor,
+			});
+			const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
+			const settledBalance = debitedBalance + round.payout;
+			const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+			try {
+				await context.addInitScript(
+					({ rgsOrigin }) => {
+						const auditKey = 'blacksite-qa-accepted-winning-checkpoint-response-loss-audit';
+						const nativeFetch = window.fetch.bind(window);
+						const readAudit = () => {
+							try {
+								return (
+									JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
+										attempts: 0,
+										acceptedResponses: 0,
+										aborts: 0,
+										consumed: false,
+									}
+								);
+							} catch {
+								return { attempts: 0, acceptedResponses: 0, aborts: 0, consumed: false };
+							}
+						};
+						const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
+						window.fetch = async (input, init = {}) => {
+							const url = new URL(
+								typeof input === 'string' || input instanceof URL ? input : input.url,
+								window.location.href,
+							);
+							if (url.origin !== rgsOrigin || url.pathname !== '/bet/event') {
+								return nativeFetch(input, init);
+							}
+							const audit = readAudit();
+							if (audit.consumed) return nativeFetch(input, init);
+							audit.consumed = true;
+							audit.attempts += 1;
+							writeAudit(audit);
+							await nativeFetch(input, init);
+							const accepted = readAudit();
+							accepted.acceptedResponses += 1;
+							writeAudit(accepted);
+							return new Promise((_resolve, reject) => {
+								const abort = () => {
+									const aborted = readAudit();
+									aborted.aborts += 1;
+									writeAudit(aborted);
+									reject(
+										new DOMException(
+											'BLACKSITE QA discarded the accepted winning checkpoint response.',
+											'AbortError',
+										),
+									);
+								};
+								if (init.signal?.aborted) abort();
+								else init.signal?.addEventListener('abort', abort, { once: true });
+							});
+						};
+					},
+					{ rgsOrigin: BLACKSITE_QA_RGS_ORIGIN },
+				);
+				const network = await installMockRgs(context, {
+					pageOrigin: origin,
+					handlers: {
+						authenticate: (_request, networkEvidence) =>
+							networkEvidence.byEndpoint.authenticate.length === 1
+								? authenticateResponse({ jurisdictionOverrides: { displayNetPosition: true } })
+								: authenticateResponse({
+										balance: debitedBalance,
+										round,
+										jurisdictionOverrides: { displayNetPosition: true },
+									}),
+						play: () => ({
+							status: successStatus(),
+							balance: { amount: debitedBalance, currency: 'USD' },
+							round: playRound,
+						}),
+						event: (request) => ({ event: request.body.event }),
+						endRound: () => endRoundResponse({ balance: settledBalance }),
+					},
+				});
+				const { page, diagnostics } = await openPage(context, origin, liveQuery());
+				await waitForEndpoint(network, 'authenticate', 1);
+				await waitForStableAction(page);
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForEndpoint(network, 'event', 1);
+				await page.waitForFunction(() => {
+					const audit = JSON.parse(
+						sessionStorage.getItem(
+							'blacksite-qa-accepted-winning-checkpoint-response-loss-audit',
+						) ?? 'null',
+					);
+					return audit?.acceptedResponses === 1;
+				});
+				assertExactRequest(group, network.byEndpoint.play[0], {
+					method: 'POST',
+					path: '/wallet/play',
+					body: {
+						sessionID: SESSION_ID,
+						currency: 'USD',
+						amount: DEFAULT_BASE_AMOUNT,
+						mode: 'base',
+					},
+				});
+				assertExactRequest(group, network.byEndpoint.event[0], {
+					method: 'POST',
+					path: '/bet/event',
+					body: { sessionID: SESSION_ID, event: acceptedCursor },
+				});
+				record.acceptedScreenshot = await saveScreenshot(page, `${group}-pending-client-response`);
+
+				await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
+				await waitForEndpoint(network, 'authenticate', 2);
+				await waitForEndpoint(network, 'endRound', 1, 30_000);
+				await waitForRuntimeState(page, 'live-ready');
+				await page.waitForTimeout(200);
+
+				const responseLossAudit = await page.evaluate(() =>
+					JSON.parse(
+						sessionStorage.getItem(
+							'blacksite-qa-accepted-winning-checkpoint-response-loss-audit',
+						) ?? 'null',
+					),
+				);
+				for (const request of network.byEndpoint.authenticate) {
+					assertExactRequest(group, request, {
+						method: 'POST',
+						path: '/wallet/authenticate',
+						body: { sessionID: SESSION_ID, language: 'en' },
+					});
+				}
+				for (const request of network.byEndpoint.event) {
+					assertExactRequest(group, request, {
+						method: 'POST',
+						path: '/bet/event',
+						body: { sessionID: SESSION_ID, event: request.body.event },
+					});
+				}
+				assertExactRequest(group, network.byEndpoint.endRound[0], {
+					method: 'POST',
+					path: '/wallet/end-round',
+					body: { sessionID: SESSION_ID },
+				});
+				check(
+					group,
+					'accepted winning checkpoint response loss aborts only the pending client transport',
+					responseLossAudit?.attempts === 1 &&
+						responseLossAudit?.acceptedResponses === 1 &&
+						responseLossAudit?.aborts === 1,
+					serialize(responseLossAudit),
+				);
+				const actualCheckpointCursors = network.byEndpoint.event.map(({ body }) => body.event);
+				check(
+					group,
+					'accepted winning checkpoint is never rewritten after authoritative restore',
+					actualCheckpointCursors[0] === acceptedCursor &&
+						actualCheckpointCursors.filter((cursor) => cursor === acceptedCursor).length === 1,
+					serialize(actualCheckpointCursors),
+				);
+				check(
+					group,
+					'accepted winning checkpoint recovery persists every remaining cursor exactly once',
+					serialize(actualCheckpointCursors.slice(1)) === serialize(expectedRemainingCursors) &&
+						serialize(actualCheckpointCursors) === serialize(expectedCheckpointCursors) &&
+						new Set(actualCheckpointCursors).size === expectedCheckpointCursors.length,
+					serialize({ expectedCheckpointCursors, actualCheckpointCursors }),
+				);
+				check(
+					group,
+					'accepted winning checkpoint recovery order is authoritative and exact',
+					network.byEndpoint.authenticate.length === 2 &&
+						network.byEndpoint.play.length === 1 &&
+						network.byEndpoint.endRound.length === 1 &&
+						serialize(network.order) ===
+							serialize([
+								'authenticate',
+								'play',
+								'event',
+								'authenticate',
+								...expectedRemainingCursors.map(() => 'event'),
+								'endRound',
+							]),
+					serialize(network.order),
+				);
+				check(
+					group,
+					'accepted winning checkpoint recovery pays the authoritative result exactly once',
+					round.payout === 200 * API_UNIT &&
+						settledBalance === 1_199 * API_UNIT &&
+						(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1199.00' &&
+						(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$200.00' &&
+						(await page.locator(SELECTORS.sessionNetPosition).innerText()).trim() === '−$200.00' &&
+						(await runtimeState(page)) === 'live-ready',
+					serialize({
+						balance: await page.locator(SELECTORS.walletBalance).innerText(),
+						win: await page.locator(SELECTORS.finalWin).innerText(),
+						netPosition: await page.locator(SELECTORS.sessionNetPosition).innerText(),
+						payoutApi: round.payout,
+						settledBalance,
+					}),
+				);
+				const expectedAbortedRequests = diagnostics.failedRequests.splice(0);
+				check(
+					group,
+					'accepted winning checkpoint response loss reports exactly the intentionally aborted event transport',
+					expectedAbortedRequests.length === 1 &&
+						expectedAbortedRequests[0]?.method === 'POST' &&
+						expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/bet/event` &&
+						expectedAbortedRequests[0]?.error === 'net::ERR_ABORTED',
+					serialize(expectedAbortedRequests),
+				);
+				assertCleanNetwork(group, network);
+				assertCleanDiagnostics(group, diagnostics);
+				record.screenshot = await saveScreenshot(page, group);
+				record.restore = {
+					fixture: fixture.id,
+					payoutApi: round.payout,
+					acceptedCursor,
+					expectedCheckpointCursors,
+					debitedBalance,
+					settledBalance,
+				};
+				record.expectedAbortedRequests = expectedAbortedRequests;
+				record.network = network;
+				record.diagnostics = diagnostics;
+			} finally {
+				await context.close();
+			}
+		},
+	);
+
+	await runScenario(
+		'expired-session-on-play-reauthenticates-without-automatic-retry',
+		async (record) => {
+			const group = 'expired-session-on-play-reauthenticates-without-automatic-retry';
+			const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+			try {
+				const network = await installMockRgs(context, {
+					pageOrigin: origin,
+					handlers: {
+						authenticate: () => authenticateResponse(),
+						play: (_request, networkEvidence) =>
+							networkEvidence.byEndpoint.play.length === 1
+								? {
+										status: {
+											statusCode: 'ERR_SESSION',
+											statusMessage: 'The paid session expired before the play was accepted.',
+										},
+									}
+								: playResponse(),
+					},
+				});
+				const { page, diagnostics } = await openPage(context, origin, liveQuery());
+				await waitForEndpoint(network, 'authenticate', 1);
+				await waitForStableAction(page);
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForEndpoint(network, 'play', 1);
+				await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 10_000 });
+				await waitForRuntimeState(page, 'live-error');
+
+				assertExactRequest(group, network.byEndpoint.play[0], {
+					method: 'POST',
+					path: '/wallet/play',
+					body: {
+						sessionID: SESSION_ID,
+						currency: 'USD',
+						amount: DEFAULT_BASE_AMOUNT,
+						mode: 'base',
+					},
+				});
+				const recovery = page.locator('[data-testid="recovery-action"]');
+				check(
+					group,
+					'expired play session is visible, fail-closed and explicitly recoverable',
+					(await recovery.isVisible()) &&
+						!(await recovery.isDisabled()) &&
+						(await page.locator(SELECTORS.primaryAction).isDisabled()),
+					serialize({
+						state: await runtimeState(page),
+						error: await page.locator(SELECTORS.launchError).innerText(),
+					}),
+				);
+				check(
+					group,
+					'expired session exposes no invented result',
+					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '—' &&
+						(await boardSymbols(page)).every((symbol) => symbol === ''),
+					serialize({
+						win: await page.locator(SELECTORS.finalWin).innerText(),
+						board: await boardSymbols(page),
+					}),
+				);
+				await page.waitForTimeout(300);
+				check(
+					group,
+					'expired session never retries the rejected play automatically',
+					network.byEndpoint.play.length === 1 && network.byEndpoint.authenticate.length === 1,
+					serialize(network.order),
+				);
+				record.errorScreenshot = await saveScreenshot(page, 'expired-session-on-play-error');
+
+				await recovery.click();
+				await waitForEndpoint(network, 'authenticate', 2);
+				await waitForStableAction(page);
+				check(
+					group,
+					'explicit reload performs one reauthentication and restores ready controls',
+					network.byEndpoint.authenticate.length === 2 &&
+						network.byEndpoint.play.length === 1 &&
+						(await runtimeState(page)) === 'live-ready' &&
+						!(await page.locator(SELECTORS.primaryAction).isDisabled()),
+					serialize({ state: await runtimeState(page), order: network.order }),
+				);
+				await page.waitForTimeout(300);
+				check(
+					group,
+					'reauthentication alone never resubmits the rejected paid action',
+					network.byEndpoint.play.length === 1,
+					serialize(network.order),
+				);
+
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForEndpoint(network, 'play', 2);
+				await waitForStableAction(page);
+				await page.waitForTimeout(200);
+
+				for (const request of network.byEndpoint.authenticate) {
+					assertExactRequest(group, request, {
+						method: 'POST',
+						path: '/wallet/authenticate',
+						body: { sessionID: SESSION_ID, language: 'en' },
+					});
+				}
+				assertExactRequest(group, network.byEndpoint.play[1], {
+					method: 'POST',
+					path: '/wallet/play',
+					body: {
+						sessionID: SESSION_ID,
+						currency: 'USD',
+						amount: DEFAULT_BASE_AMOUNT,
+						mode: 'base',
+					},
+				});
+				check(
+					group,
+					'a new deliberate action succeeds once after reauthentication',
+					network.byEndpoint.play.length === 2 &&
+						(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$999.00' &&
+						(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00',
+					serialize({
+						balance: await page.locator(SELECTORS.walletBalance).innerText(),
+						win: await page.locator(SELECTORS.finalWin).innerText(),
+						order: network.order,
+					}),
+				);
+				check(
+					group,
+					'session recovery request order is exact and has no settlement/checkpoint writes',
+					serialize(network.order) ===
+						serialize(['authenticate', 'play', 'authenticate', 'play']) &&
+						network.byEndpoint.endRound.length === 0 &&
+						network.byEndpoint.event.length === 0,
+					serialize(network.order),
+				);
+				assertCleanNetwork(group, network);
+				assertCleanDiagnostics(group, diagnostics);
+				record.screenshot = await saveScreenshot(page, group);
+				record.network = network;
+				record.diagnostics = diagnostics;
+			} finally {
+				await context.close();
+			}
+		},
+	);
 
 	await runScenario('recoverable-replay-http-503-visible-read-only', async (record) => {
 		const group = 'recoverable-replay-http-503-visible-read-only';
@@ -2788,11 +3473,11 @@ async function runNetworkScenarios(browser, origin) {
 					replay: (_request, networkEvidence) =>
 						networkEvidence.byEndpoint.replay.length === 1
 							? mockHttpResponse(503, {
-								error: {
-									code: 'SERVICE_UNAVAILABLE',
-									message: 'Replay service temporarily unavailable.',
-								},
-							})
+									error: {
+										code: 'SERVICE_UNAVAILABLE',
+										message: 'Replay service temporarily unavailable.',
+									},
+								})
 							: replayResponse(),
 				},
 			});
@@ -2804,19 +3489,66 @@ async function runNetworkScenarios(browser, origin) {
 			const errorText = await page.locator(SELECTORS.launchError).innerText();
 			const replayRequest = network.byEndpoint.replay[0];
 			check(group, 'Replay 503 is visible and bounded', errorText.trim().length > 0, errorText);
-			check(group, 'Replay 503 exits loading into an error state', /error/i.test(state ?? '') && !/loading/i.test(state ?? ''), serialize(state));
-			check(group, 'Replay 503 GET path is exact', replayRequest.path === `/bet/replay/blacksite_breach/${REPLAY_VERSION}/base/recoverable-503`, replayRequest.path);
-			check(group, 'Replay 503 GET remains queryless', Object.keys(replayRequest.search).length === 0, serialize(replayRequest.search));
-			check(group, 'Replay 503 sends zero wallet/event writes', walletWriteCount(network) === 0, serialize(network.order));
-			check(group, 'Replay 503 performs exactly one Replay request', network.byEndpoint.replay.length === 1, serialize(network.order));
-			check(group, 'Replay 503 leaves primary action fail-closed', await page.locator(SELECTORS.primaryAction).isDisabled(), await page.locator(SELECTORS.primaryAction).innerText());
+			check(
+				group,
+				'Replay 503 exits loading into an error state',
+				/error/i.test(state ?? '') && !/loading/i.test(state ?? ''),
+				serialize(state),
+			);
+			check(
+				group,
+				'Replay 503 GET path is exact',
+				replayRequest.path ===
+					`/bet/replay/blacksite_breach/${REPLAY_VERSION}/base/recoverable-503`,
+				replayRequest.path,
+			);
+			check(
+				group,
+				'Replay 503 GET remains queryless',
+				Object.keys(replayRequest.search).length === 0,
+				serialize(replayRequest.search),
+			);
+			check(
+				group,
+				'Replay 503 sends zero wallet/event writes',
+				walletWriteCount(network) === 0,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'Replay 503 performs exactly one Replay request',
+				network.byEndpoint.replay.length === 1,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'Replay 503 leaves primary action fail-closed',
+				await page.locator(SELECTORS.primaryAction).isDisabled(),
+				await page.locator(SELECTORS.primaryAction).innerText(),
+			);
 			const recovery = page.locator('[data-testid="recovery-action"]');
-			check(group, 'Replay 503 exposes an explicit reload/restore control', await recovery.isVisible() && !(await recovery.isDisabled()), await recovery.innerText());
+			check(
+				group,
+				'Replay 503 exposes an explicit reload/restore control',
+				(await recovery.isVisible()) && !(await recovery.isDisabled()),
+				await recovery.innerText(),
+			);
 			await recovery.click();
 			await waitForEndpoint(network, 'replay', 2);
 			await waitForStableAction(page);
-			check(group, 'Replay reload recovers to a playable read-only state', await runtimeState(page) === 'replay-ready' && !(await page.locator(SELECTORS.primaryAction).isDisabled()), await runtimeState(page));
-			check(group, 'Replay recovery performs exactly one additional GET and zero writes', network.byEndpoint.replay.length === 2 && walletWriteCount(network) === 0, serialize(network.order));
+			check(
+				group,
+				'Replay reload recovers to a playable read-only state',
+				(await runtimeState(page)) === 'replay-ready' &&
+					!(await page.locator(SELECTORS.primaryAction).isDisabled()),
+				await runtimeState(page),
+			);
+			check(
+				group,
+				'Replay recovery performs exactly one additional GET and zero writes',
+				network.byEndpoint.replay.length === 2 && walletWriteCount(network) === 0,
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertOnlyExpectedHttpDiagnostic(group, diagnostics, 503);
 			record.screenshot = await saveScreenshot(page, 'recoverable-replay-503');
@@ -2845,8 +3577,7 @@ async function runNetworkScenarios(browser, origin) {
 								betLevels: returnedLevels,
 							},
 						}),
-					play: (request) =>
-						playResponse({ amount: request.body.amount, mode: request.body.mode }),
+					play: (request) => playResponse({ amount: request.body.amount, mode: request.body.mode }),
 				},
 			});
 			const { page, diagnostics } = await openPage(context, origin, liveQuery());
@@ -2856,15 +3587,37 @@ async function runNetworkScenarios(browser, origin) {
 				value: element.value,
 				options: [...element.options].map((option) => option.value),
 			}));
-			check(group, 'select contains exactly the authenticate betLevels in returned order', serialize(selectSnapshot.options) === serialize(returnedLevels.map(String)), serialize(selectSnapshot));
-			check(group, 'select uses authenticate defaultBetLevel', selectSnapshot.value === '700000', serialize(selectSnapshot));
+			check(
+				group,
+				'select contains exactly the authenticate betLevels in returned order',
+				serialize(selectSnapshot.options) === serialize(returnedLevels.map(String)),
+				serialize(selectSnapshot),
+			);
+			check(
+				group,
+				'select uses authenticate defaultBetLevel',
+				selectSnapshot.value === '700000',
+				serialize(selectSnapshot),
+			);
 			const modeSurfaces = {
 				base: await page.locator(SELECTORS.modeBase).innerText(),
 				deep_access: await page.locator(SELECTORS.modeDeepAccess).innerText(),
 				blackout: await page.locator(SELECTORS.modeBlackout).innerText(),
 			};
 			for (const [modeId, cost] of Object.entries(MODE_COSTS)) {
-				check(group, `${modeId} authenticate mode is selectable with ${cost}x cost`, modeSurfaces[modeId].includes(`${cost}×`) && !(await page.locator(SELECTORS[`mode${modeId === 'base' ? 'Base' : modeId === 'deep_access' ? 'DeepAccess' : 'Blackout'}`]).isDisabled()), modeSurfaces[modeId]);
+				check(
+					group,
+					`${modeId} authenticate mode is selectable with ${cost}x cost`,
+					modeSurfaces[modeId].includes(`${cost}×`) &&
+						!(await page
+							.locator(
+								SELECTORS[
+									`mode${modeId === 'base' ? 'Base' : modeId === 'deep_access' ? 'DeepAccess' : 'Blackout'}`
+								],
+							)
+							.isDisabled()),
+					modeSurfaces[modeId],
+				);
 			}
 			await page.locator(SELECTORS.baseAmount).selectOption('3000000');
 			await page.locator(SELECTORS.primaryAction).click();
@@ -2880,7 +3633,12 @@ async function runNetworkScenarios(browser, origin) {
 					mode: 'base',
 				},
 			});
-			check(group, 'changed returned level produces exactly one play', network.byEndpoint.play.length === 1, serialize(network.order));
+			check(
+				group,
+				'changed returned level produces exactly one play',
+				network.byEndpoint.play.length === 1,
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.screenshot = await saveScreenshot(page, 'authenticate-dynamic-controls');
@@ -2908,8 +3666,7 @@ async function runNetworkScenarios(browser, origin) {
 								betLevels: [],
 							},
 						}),
-					play: (request) =>
-						playResponse({ amount: request.body.amount, mode: request.body.mode }),
+					play: (request) => playResponse({ amount: request.body.amount, mode: request.body.mode }),
 				},
 			});
 			const { page, diagnostics } = await openPage(context, origin, liveQuery());
@@ -2945,8 +3702,12 @@ async function runNetworkScenarios(browser, origin) {
 			check(
 				group,
 				'keyboard-selected legal intermediate range value is displayed and announced exactly',
-				(await amountOutput.innerText()).trim() === '$0.50' && await amountControl.getAttribute('aria-valuetext') === '$0.50',
-				serialize({ output: await amountOutput.innerText(), ariaValueText: await amountControl.getAttribute('aria-valuetext') }),
+				(await amountOutput.innerText()).trim() === '$0.50' &&
+					(await amountControl.getAttribute('aria-valuetext')) === '$0.50',
+				serialize({
+					output: await amountOutput.innerText(),
+					ariaValueText: await amountControl.getAttribute('aria-valuetext'),
+				}),
 			);
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 1);
@@ -2961,7 +3722,12 @@ async function runNetworkScenarios(browser, origin) {
 					mode: 'base',
 				},
 			});
-			check(group, 'range value produces exactly one play', network.byEndpoint.play.length === 1, serialize(network.order));
+			check(
+				group,
+				'range value produces exactly one play',
+				network.byEndpoint.play.length === 1,
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.screenshot = await saveScreenshot(page, 'authenticate-empty-levels-range');
@@ -3004,9 +3770,24 @@ async function runNetworkScenarios(browser, origin) {
 			});
 			const bodyText = await page.locator('body').innerText();
 			const state = await runtimeState(page);
-			check(group, 'invalid language resolves to ready English UI', state === 'live-ready' && /INITIATE BREACH/i.test(bodyText), serialize({ state, bodyText }));
-			check(group, 'invalid language input is never reflected into visible UI', !bodyText.includes('invalid-language'), bodyText);
-			check(group, 'invalid language fallback sends no play request', network.byEndpoint.play.length === 0, serialize(network.order));
+			check(
+				group,
+				'invalid language resolves to ready English UI',
+				state === 'live-ready' && /INITIATE BREACH/i.test(bodyText),
+				serialize({ state, bodyText }),
+			);
+			check(
+				group,
+				'invalid language input is never reflected into visible UI',
+				!bodyText.includes('invalid-language'),
+				bodyText,
+			);
+			check(
+				group,
+				'invalid language fallback sends no play request',
+				network.byEndpoint.play.length === 0,
+				serialize(network.order),
+			);
 			const audit = await geometryAudit(page);
 			audit.name = viewport.name;
 			audit.surface = 'live-invalid-language-fallback';
@@ -3043,15 +3824,42 @@ async function runNetworkScenarios(browser, origin) {
 			const { page, diagnostics } = await openPage(context, origin, liveQuery());
 			await waitForEndpoint(network, 'authenticate', 1);
 			await waitForStableAction(page);
-			check(group, 'Base mode remains enabled by jurisdiction', !(await page.locator(SELECTORS.modeBase).isDisabled()), await page.locator(SELECTORS.modeBase).innerText());
-			check(group, 'DEEP ACCESS is hidden when feature actions are disabled', await page.locator(SELECTORS.modeDeepAccess).count() === 0, String(await page.locator(SELECTORS.modeDeepAccess).count()));
-			check(group, 'BLACKOUT is hidden when feature actions are disabled', await page.locator(SELECTORS.modeBlackout).count() === 0, String(await page.locator(SELECTORS.modeBlackout).count()));
-			await page.evaluate(() => document.activeElement?.blur());
+			check(
+				group,
+				'Base mode remains enabled by jurisdiction',
+				!(await page.locator(SELECTORS.modeBase).isDisabled()),
+				await page.locator(SELECTORS.modeBase).innerText(),
+			);
+			check(
+				group,
+				'DEEP ACCESS is hidden when feature actions are disabled',
+				(await page.locator(SELECTORS.modeDeepAccess).count()) === 0,
+				String(await page.locator(SELECTORS.modeDeepAccess).count()),
+			);
+			check(
+				group,
+				'BLACKOUT is hidden when feature actions are disabled',
+				(await page.locator(SELECTORS.modeBlackout).count()) === 0,
+				String(await page.locator(SELECTORS.modeBlackout).count()),
+			);
+			const primaryFocused = await page
+				.locator(SELECTORS.primaryAction)
+				.evaluate((element) => document.activeElement === element);
+			check(
+				group,
+				'intro focus restoration targets the primary action before jurisdiction key guards run',
+				primaryFocused,
+				String(primaryFocused),
+			);
 			await page.keyboard.press('Space');
 			await page.waitForTimeout(200);
-			check(group, 'disabledSpacebar produces zero play requests', network.byEndpoint.play.length === 0, serialize(network.order));
-			await page.locator(SELECTORS.modeBase).click();
-			await page.locator(SELECTORS.primaryAction).click();
+			check(
+				group,
+				'disabledSpacebar produces zero play requests',
+				network.byEndpoint.play.length === 0,
+				serialize(network.order),
+			);
+			await page.keyboard.press('Enter');
 			await waitForEndpoint(network, 'play', 1);
 			await waitForStableAction(page);
 			assertExactRequest(group, network.byEndpoint.play[0], {
@@ -3064,10 +3872,244 @@ async function runNetworkScenarios(browser, origin) {
 					mode: 'base',
 				},
 			});
-			check(group, 'explicit Base click remains one legal play', network.byEndpoint.play.length === 1, serialize(network.order));
+			check(
+				group,
+				'explicit Enter activation remains one legal Base play',
+				network.byEndpoint.play.length === 1,
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.screenshot = await saveScreenshot(page, 'jurisdiction-space-feature-disabled');
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('jurisdiction-enforces-turbo-slamstop-and-optional-rtp-hud', async (record) => {
+		const group = 'jurisdiction-enforces-turbo-slamstop-and-optional-rtp-hud';
+		const fixture = getGeneratedFixture('base_small');
+		const round = authoritativeFixtureRound({
+			fixture,
+			active: false,
+			id: 'blacksite-qa-jurisdiction-presentation-guards',
+		});
+		let restrictionsEnabled = true;
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			await context.addInitScript(({ storageKey }) => localStorage.setItem(storageKey, 'turbo'), {
+				storageKey: MOTION_STORAGE_KEY,
+			});
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () =>
+						authenticateResponse({
+							jurisdictionOverrides: restrictionsEnabled
+								? {
+										disabledTurbo: true,
+										disabledSlamstop: true,
+										displayRTP: false,
+									}
+								: {
+										disabledTurbo: false,
+										disabledSlamstop: false,
+										displayRTP: true,
+									},
+						}),
+					play: () => ({
+						status: successStatus(),
+						balance: {
+							amount: DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT,
+							currency: 'USD',
+						},
+						round,
+					}),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await page.locator(SELECTORS.bootIntro).waitFor({ state: 'visible', timeout: 10_000 });
+			const restrictedIntroProfile = await page
+				.locator(SELECTORS.bootIntro)
+				.getAttribute('data-intro-profile');
+			const restrictedIntroSkipDisabled = await page.locator(SELECTORS.skipIntro).isDisabled();
+			const writesBeforeRestrictedIntroSkip = paidWriteCount(network);
+			await waitForStableAction(page);
+			const writesAfterRestrictedIntroSkip = paidWriteCount(network);
+			const restrictedIntroDismissReason = await page.evaluate(
+				() => document.body.dataset.introDismissReason,
+			);
+			const motion = page.locator(SELECTORS.motionMode);
+			const restrictedMotion = await motion.evaluate(
+				(element, storageKey) => ({
+					label: element.textContent?.trim(),
+					pressed: element.getAttribute('aria-pressed'),
+					disabled: element.matches(':disabled'),
+					profile: document.body.dataset.motionProfile,
+					stored: localStorage.getItem(storageKey),
+				}),
+				MOTION_STORAGE_KEY,
+			);
+			check(
+				group,
+				'disabledTurbo forces effective normal timing without erasing stored Turbo',
+				restrictedIntroProfile === 'normal' &&
+					!restrictedIntroSkipDisabled &&
+					writesBeforeRestrictedIntroSkip === 0 &&
+					writesAfterRestrictedIntroSkip === 0 &&
+					restrictedIntroDismissReason === 'player' &&
+					restrictedMotion.label === 'NORMAL' &&
+					restrictedMotion.pressed === 'false' &&
+					restrictedMotion.disabled &&
+					restrictedMotion.profile === 'normal' &&
+					restrictedMotion.stored === 'turbo',
+				serialize({
+					restrictedIntroProfile,
+					restrictedIntroSkipDisabled,
+					writesBeforeRestrictedIntroSkip,
+					writesAfterRestrictedIntroSkip,
+					restrictedIntroDismissReason,
+					restrictedMotion,
+				}),
+			);
+			await motion.dispatchEvent('click');
+			const guardedMotion = await motion.evaluate(
+				(element, storageKey) => ({
+					label: element.textContent?.trim(),
+					profile: document.body.dataset.motionProfile,
+					stored: localStorage.getItem(storageKey),
+				}),
+				MOTION_STORAGE_KEY,
+			);
+			check(
+				group,
+				'disabledTurbo rejects a synthetic click without mutating the stored preference',
+				guardedMotion.label === 'NORMAL' &&
+					guardedMotion.profile === 'normal' &&
+					guardedMotion.stored === 'turbo',
+				serialize(guardedMotion),
+			);
+			check(
+				group,
+				'displayRTP false removes only the optional HUD readout',
+				(await page.locator(SELECTORS.hudRtp).count()) === 0,
+				String(await page.locator(SELECTORS.hudRtp).count()),
+			);
+			await page.locator('[data-testid="info-action"]').click();
+			const rules = page.getByRole('dialog', { name: /BLACKSITE/i });
+			await rules.waitFor({ state: 'visible' });
+			const rulesText = await rules.innerText();
+			check(
+				group,
+				'Game Information retains mandatory RTP disclosure when the optional HUD readout is hidden',
+				rulesText.includes('96.20%'),
+				rulesText,
+			);
+			await page.getByRole('button', { name: 'Close game information' }).click();
+			await rules.waitFor({ state: 'detached' });
+
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 1);
+			await page.waitForFunction(
+				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'hit',
+				SELECTORS.board,
+				{ timeout: 15_000 },
+			);
+			const restrictedSkip = {
+				disabled: await page.locator(SELECTORS.skipPresentation).isDisabled(),
+				state: await runtimeState(page),
+				phase: await page.locator(SELECTORS.board).getAttribute('data-motion-phase'),
+			};
+			check(
+				group,
+				'disabledSlamstop keeps Skip disabled during an active authoritative presentation',
+				restrictedSkip.disabled &&
+					restrictedSkip.state === 'live-presenting' &&
+					restrictedSkip.phase === 'hit',
+				serialize(restrictedSkip),
+			);
+			await page.locator(SELECTORS.skipPresentation).dispatchEvent('click');
+			await page.waitForTimeout(100);
+			const guardedSkip = {
+				state: await runtimeState(page),
+				phase: await page.locator(SELECTORS.board).getAttribute('data-motion-phase'),
+			};
+			check(
+				group,
+				'disabledSlamstop rejects a synthetic Skip click instead of draining the presentation',
+				guardedSkip.state === 'live-presenting' && guardedSkip.phase === 'hit',
+				serialize(guardedSkip),
+			);
+			await waitForStableAction(page, 30_000);
+
+			restrictionsEnabled = false;
+			await page.evaluate((key) => localStorage.removeItem(key), INTRO_SEEN_KEY);
+			await page.reload({ waitUntil: 'domcontentloaded' });
+			await waitForEndpoint(network, 'authenticate', 2);
+			await page.locator(SELECTORS.bootIntro).waitFor({ state: 'visible', timeout: 10_000 });
+			const unrestrictedIntroProfile = await page
+				.locator(SELECTORS.bootIntro)
+				.getAttribute('data-intro-profile');
+			const unrestrictedIntroSkipDisabled = await page.locator(SELECTORS.skipIntro).isDisabled();
+			const writesBeforeUnrestrictedIntroSkip = paidWriteCount(network);
+			await waitForStableAction(page);
+			const writesAfterUnrestrictedIntroSkip = paidWriteCount(network);
+			const unrestricted = await motion.evaluate(
+				(element, storageKey) => ({
+					label: element.textContent?.trim(),
+					pressed: element.getAttribute('aria-pressed'),
+					disabled: element.matches(':disabled'),
+					profile: document.body.dataset.motionProfile,
+					stored: localStorage.getItem(storageKey),
+					hudRtp: document.querySelector('[data-testid="hud-rtp"]')?.textContent?.trim() ?? null,
+				}),
+				MOTION_STORAGE_KEY,
+			);
+			check(
+				group,
+				'lifting jurisdiction restrictions resumes stored Turbo and restores the optional RTP HUD',
+				unrestrictedIntroProfile === 'turbo' &&
+					!unrestrictedIntroSkipDisabled &&
+					writesBeforeUnrestrictedIntroSkip === writesAfterUnrestrictedIntroSkip &&
+					unrestricted.label === 'TURBO' &&
+					unrestricted.pressed === 'true' &&
+					!unrestricted.disabled &&
+					unrestricted.profile === 'turbo' &&
+					unrestricted.stored === 'turbo' &&
+					unrestricted.hudRtp?.includes('96.20%'),
+				serialize({
+					unrestrictedIntroProfile,
+					unrestrictedIntroSkipDisabled,
+					writesBeforeUnrestrictedIntroSkip,
+					writesAfterUnrestrictedIntroSkip,
+					unrestricted,
+				}),
+			);
+			check(
+				group,
+				'jurisdiction presentation guards preserve one legal play and make no settlement or event writes',
+				network.byEndpoint.authenticate.length === 2 &&
+					network.byEndpoint.play.length === 1 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.jurisdiction = {
+				restrictedIntroProfile,
+				restrictedIntroDismissReason,
+				restrictedMotion,
+				guardedMotion,
+				restrictedSkip,
+				guardedSkip,
+				unrestrictedIntroProfile,
+				unrestricted,
+			};
+			record.screenshot = await saveScreenshot(page, group);
 			record.network = network;
 			record.diagnostics = diagnostics;
 		} finally {
@@ -3094,7 +4136,12 @@ async function runNetworkScenarios(browser, origin) {
 			await page.evaluate(() => document.activeElement?.blur());
 			await page.keyboard.press('Space');
 			await page.waitForTimeout(200);
-			check(group, 'Space is blocked while Game Information is open', network.byEndpoint.play.length === 0, serialize(network.order));
+			check(
+				group,
+				'Space is blocked while Game Information is open',
+				network.byEndpoint.play.length === 0,
+				serialize(network.order),
+			);
 			await page.getByRole('button', { name: /CLOSE/i }).click();
 			await page.evaluate(() => document.activeElement?.blur());
 			await waitForStableAction(page);
@@ -3141,7 +4188,12 @@ async function runNetworkScenarios(browser, origin) {
 				network.byEndpoint.play.length === 1 && (await runtimeState(page)) === 'live-ready',
 				serialize({ state: await runtimeState(page), order: network.order }),
 			);
-			check(group, 'one legal Space press produces exactly one Base play', network.byEndpoint.play.length === 1, serialize(network.order));
+			check(
+				group,
+				'one legal Space press produces exactly one Base play',
+				network.byEndpoint.play.length === 1,
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.screenshot = await saveScreenshot(page, 'spacebar-base-play');
@@ -3249,12 +4301,14 @@ async function runNetworkScenarios(browser, origin) {
 				}
 				primary.click();
 				primary.click();
-				window.dispatchEvent(new KeyboardEvent('keydown', {
-					key: ' ',
-					code: 'Space',
-					bubbles: true,
-					cancelable: true,
-				}));
+				window.dispatchEvent(
+					new KeyboardEvent('keydown', {
+						key: ' ',
+						code: 'Space',
+						bubbles: true,
+						cancelable: true,
+					}),
+				);
 				return { clickCount: 2, spaceCount: 1 };
 			}, SELECTORS.primaryAction);
 
@@ -3292,7 +4346,7 @@ async function runNetworkScenarios(browser, origin) {
 			check(
 				group,
 				'deduplicated round returns to one ready authoritative state',
-				await runtimeState(page) === 'live-ready' && network.byEndpoint.play.length === 1,
+				(await runtimeState(page)) === 'live-ready' && network.byEndpoint.play.length === 1,
 				serialize({ state: await runtimeState(page), order: network.order }),
 			);
 			assertCleanNetwork(group, network);
@@ -3341,17 +4395,49 @@ async function runNetworkScenarios(browser, origin) {
 					serialize(modalAccessibility.initial),
 				);
 				const firstDialogText = await dialog.innerText();
-				check(group, 'first action opens confirmation before any play', network.byEndpoint.play.length === 0, serialize(network.order));
-				check(group, 'confirmation shows the exact complete play amount', exactTotal.length > 0 && firstDialogText.includes(exactTotal), serialize({ exactTotal, firstDialogText }));
-				check(group, `confirmation shows ${cost}x mode factor`, firstDialogText.includes(`${cost}×`), firstDialogText);
+				check(
+					group,
+					'first action opens confirmation before any play',
+					network.byEndpoint.play.length === 0,
+					serialize(network.order),
+				);
+				check(
+					group,
+					'confirmation shows the exact complete play amount',
+					exactTotal.length > 0 && firstDialogText.includes(exactTotal),
+					serialize({ exactTotal, firstDialogText }),
+				);
+				check(
+					group,
+					`confirmation shows ${cost}x mode factor`,
+					firstDialogText.includes(`${cost}×`),
+					firstDialogText,
+				);
 				await page.evaluate(() => document.activeElement?.blur());
 				await page.keyboard.press('Space');
 				await page.waitForTimeout(150);
-				check(group, 'Space is blocked while confirmation is open', network.byEndpoint.play.length === 0, serialize(network.order));
+				check(
+					group,
+					'Space is blocked while confirmation is open',
+					network.byEndpoint.play.length === 0,
+					serialize(network.order),
+				);
 				await dialog.getByRole('button', { name: /^CANCEL$/i }).click();
 				await dialog.waitFor({ state: 'detached' });
-				check(group, 'Cancel sends zero play requests', network.byEndpoint.play.length === 0, serialize(network.order));
-				check(group, 'Cancel restores focus to the confirmation trigger', await page.locator(SELECTORS.primaryAction).evaluate((element) => document.activeElement === element), await page.evaluate(() => document.activeElement?.outerHTML));
+				check(
+					group,
+					'Cancel sends zero play requests',
+					network.byEndpoint.play.length === 0,
+					serialize(network.order),
+				);
+				check(
+					group,
+					'Cancel restores focus to the confirmation trigger',
+					await page
+						.locator(SELECTORS.primaryAction)
+						.evaluate((element) => document.activeElement === element),
+					await page.evaluate(() => document.activeElement?.outerHTML),
+				);
 
 				await waitForStableAction(page);
 				await page.locator(SELECTORS.primaryAction).click();
@@ -3359,8 +4445,20 @@ async function runNetworkScenarios(browser, origin) {
 				await dialog.waitFor({ state: 'visible' });
 				await page.keyboard.press('Escape');
 				await dialog.waitFor({ state: 'detached' });
-				check(group, 'Escape sends zero play requests', network.byEndpoint.play.length === 0, serialize(network.order));
-				check(group, 'Escape restores focus to the confirmation trigger', await page.locator(SELECTORS.primaryAction).evaluate((element) => document.activeElement === element), await page.evaluate(() => document.activeElement?.outerHTML));
+				check(
+					group,
+					'Escape sends zero play requests',
+					network.byEndpoint.play.length === 0,
+					serialize(network.order),
+				);
+				check(
+					group,
+					'Escape restores focus to the confirmation trigger',
+					await page
+						.locator(SELECTORS.primaryAction)
+						.evaluate((element) => document.activeElement === element),
+					await page.evaluate(() => document.activeElement?.outerHTML),
+				);
 
 				await waitForStableAction(page);
 				await page.locator(SELECTORS.primaryAction).click();
@@ -3379,7 +4477,12 @@ async function runNetworkScenarios(browser, origin) {
 						mode: modeId,
 					},
 				});
-				check(group, 'Confirm sends exactly one correctly-modeled Base-amount play', network.byEndpoint.play.length === 1, serialize(network.order));
+				check(
+					group,
+					'Confirm sends exactly one correctly-modeled Base-amount play',
+					network.byEndpoint.play.length === 1,
+					serialize(network.order),
+				);
 				assertCleanNetwork(group, network);
 				assertCleanDiagnostics(group, diagnostics);
 				record.modalAccessibility = modalAccessibility;
@@ -3425,12 +4528,39 @@ async function runNetworkScenarios(browser, origin) {
 			});
 			const balanceText = (await page.locator(SELECTORS.walletBalance).innerText()).trim();
 			const totalText = (await page.locator(SELECTORS.totalPlay).innerText()).trim();
-			const socialRangeValueText = await page.locator(SELECTORS.baseAmount).getAttribute('aria-valuetext');
-			check(group, 'XSC Balance is displayed as SC without a dollar prefix', balanceText.endsWith(' SC') && !balanceText.includes('$'), balanceText);
-			check(group, 'XSC complete play amount is displayed as SC without a dollar prefix', totalText.endsWith(' SC') && !totalText.includes('$'), totalText);
-			check(group, 'Social XSC range announces the exact SC value without a dollar prefix', socialRangeValueText === '1.00 SC' && !socialRangeValueText.includes('$'), socialRangeValueText);
-			check(group, 'Social Base mode uses STANDARD RUN label', /STANDARD RUN/i.test(await page.locator(SELECTORS.modeBase).innerText()), await page.locator(SELECTORS.modeBase).innerText());
-			check(group, 'Social Blackout mode uses BLACKOUT ENTRY label', /BLACKOUT ENTRY/i.test(await page.locator(SELECTORS.modeBlackout).innerText()), await page.locator(SELECTORS.modeBlackout).innerText());
+			const socialRangeValueText = await page
+				.locator(SELECTORS.baseAmount)
+				.getAttribute('aria-valuetext');
+			check(
+				group,
+				'XSC Balance is displayed as SC without a dollar prefix',
+				balanceText.endsWith(' SC') && !balanceText.includes('$'),
+				balanceText,
+			);
+			check(
+				group,
+				'XSC complete play amount is displayed as SC without a dollar prefix',
+				totalText.endsWith(' SC') && !totalText.includes('$'),
+				totalText,
+			);
+			check(
+				group,
+				'Social XSC range announces the exact SC value without a dollar prefix',
+				socialRangeValueText === '1.00 SC' && !socialRangeValueText.includes('$'),
+				socialRangeValueText,
+			);
+			check(
+				group,
+				'Social Base mode uses STANDARD RUN label',
+				/STANDARD RUN/i.test(await page.locator(SELECTORS.modeBase).innerText()),
+				await page.locator(SELECTORS.modeBase).innerText(),
+			);
+			check(
+				group,
+				'Social Blackout mode uses BLACKOUT ENTRY label',
+				/BLACKOUT ENTRY/i.test(await page.locator(SELECTORS.modeBlackout).innerText()),
+				await page.locator(SELECTORS.modeBlackout).innerText(),
+			);
 
 			const infoAction = page.getByRole('button', { name: /INFO \/ RULES/i });
 			await infoAction.click();
@@ -3439,32 +4569,87 @@ async function runNetworkScenarios(browser, origin) {
 			const modalAccessibility = await auditModalAccessibility(page, dialog, group);
 			await page.keyboard.press('Escape');
 			await dialog.waitFor({ state: 'detached' });
-			check(group, 'Rules Escape restores focus to INFO / RULES', await infoAction.evaluate((element) => document.activeElement === element), await page.evaluate(() => document.activeElement?.outerHTML));
+			check(
+				group,
+				'Rules Escape restores focus to INFO / RULES',
+				await infoAction.evaluate((element) => document.activeElement === element),
+				await page.evaluate(() => document.activeElement?.outerHTML),
+			);
 			await infoAction.click();
 			await dialog.waitFor({ state: 'visible' });
 			const rulesText = await dialog.innerText();
 			const normalizedRulesText = rulesText.replaceAll(',', '').replaceAll('×', 'x');
 			const tables = dialog.locator('table');
-			check(group, 'Rules show exact 96.20% RTP', rulesText.includes(`${(RULES_CONTRACT.targetRtp * 100).toFixed(2)}%`), rulesText);
-			check(group, 'Rules show the 10,000x-equivalent maximum', normalizedRulesText.includes(`${RULES_CONTRACT.maxWinRaw / 100}x`), normalizedRulesText);
-			check(group, 'Rules contain one mode table and one result matrix', (await tables.count()) === 2, String(await tables.count()));
-			check(group, 'Result matrix contains exactly six symbol rows', (await tables.nth(1).locator('tbody tr').count()) === Object.keys(SYMBOL_PAYOUTS).length, String(await tables.nth(1).locator('tbody tr').count()));
-			check(group, 'Result matrix contains exactly eight cluster bands', (await tables.nth(1).locator('thead th').count()) - 1 === CLUSTER_BANDS.length, String((await tables.nth(1).locator('thead th').count()) - 1));
+			check(
+				group,
+				'Rules show exact 96.20% RTP',
+				rulesText.includes(`${(RULES_CONTRACT.targetRtp * 100).toFixed(2)}%`),
+				rulesText,
+			);
+			check(
+				group,
+				'Rules show the 10,000x-equivalent maximum',
+				normalizedRulesText.includes(`${RULES_CONTRACT.maxWinRaw / 100}x`),
+				normalizedRulesText,
+			);
+			check(
+				group,
+				'Rules contain one mode table and one result matrix',
+				(await tables.count()) === 2,
+				String(await tables.count()),
+			);
+			check(
+				group,
+				'Result matrix contains exactly six symbol rows',
+				(await tables.nth(1).locator('tbody tr').count()) === Object.keys(SYMBOL_PAYOUTS).length,
+				String(await tables.nth(1).locator('tbody tr').count()),
+			);
+			check(
+				group,
+				'Result matrix contains exactly eight cluster bands',
+				(await tables.nth(1).locator('thead th').count()) - 1 === CLUSTER_BANDS.length,
+				String((await tables.nth(1).locator('thead th').count()) - 1),
+			);
 			for (const band of CLUSTER_BANDS) {
-				check(group, `Result matrix exposes cluster band ${band.label}`, rulesText.includes(band.label), rulesText);
+				check(
+					group,
+					`Result matrix exposes cluster band ${band.label}`,
+					rulesText.includes(band.label),
+					rulesText,
+				);
 			}
 			for (const symbol of Object.keys(SYMBOL_PAYOUTS)) {
-				check(group, `Result matrix exposes ${symbol}`, new RegExp(`\\b${symbol}\\b`, 'i').test(rulesText), rulesText);
+				check(
+					group,
+					`Result matrix exposes ${symbol}`,
+					new RegExp(`\\b${symbol}\\b`, 'i').test(rulesText),
+					rulesText,
+				);
 			}
-			check(group, 'Social Rules use social mode labels in the table', /STANDARD RUN/i.test(rulesText) && /BLACKOUT ENTRY/i.test(rulesText), rulesText);
-			check(group, 'Rules include the complete Social disclaimer', rulesText.includes(getRulesDisclaimer(true)), rulesText);
+			check(
+				group,
+				'Social Rules use social mode labels in the table',
+				/STANDARD RUN/i.test(rulesText) && /BLACKOUT ENTRY/i.test(rulesText),
+				rulesText,
+			);
+			check(
+				group,
+				'Rules include the complete Social disclaimer',
+				rulesText.includes(getRulesDisclaimer(true)),
+				rulesText,
+			);
 
 			const interactionGuide = await page.evaluate(
 				({ controlMap, requiredGuideKeys }) => {
 					const visible = (element) => {
 						const style = getComputedStyle(element);
 						const bounds = element.getBoundingClientRect();
-						return style.display !== 'none' && style.visibility !== 'hidden' && bounds.width > 0 && bounds.height > 0;
+						return (
+							style.display !== 'none' &&
+							style.visibility !== 'hidden' &&
+							bounds.width > 0 &&
+							bounds.height > 0
+						);
 					};
 					const guideKeys = [...document.querySelectorAll('[data-control-key]')]
 						.map((element) => element.getAttribute('data-control-key'))
@@ -3493,9 +4678,28 @@ async function runNetworkScenarios(browser, origin) {
 					requiredGuideKeys: CONTROL_GUIDE.map(({ key }) => key),
 				},
 			);
-			check(group, 'every visible game control maps to a Game Information guide entry', interactionGuide.missingVisibleControls.length === 0, serialize(interactionGuide));
-			check(group, 'interaction guide contains every versioned control contract entry', interactionGuide.missingRequiredKeys.length === 0 && interactionGuide.guideKeys.length === CONTROL_GUIDE.length, serialize(interactionGuide));
-			check(group, 'interaction guide documents touch, keyboard, Space and Escape behaviour', /pointer or touch/i.test(rulesText) && /keyboard focus/i.test(rulesText) && /\bSpace\b/i.test(rulesText) && /\bEscape\b/i.test(rulesText), rulesText);
+			check(
+				group,
+				'every visible game control maps to a Game Information guide entry',
+				interactionGuide.missingVisibleControls.length === 0,
+				serialize(interactionGuide),
+			);
+			check(
+				group,
+				'interaction guide contains every versioned control contract entry',
+				interactionGuide.missingRequiredKeys.length === 0 &&
+					interactionGuide.guideKeys.length === CONTROL_GUIDE.length,
+				serialize(interactionGuide),
+			);
+			check(
+				group,
+				'interaction guide documents touch, keyboard, Space and Escape behaviour',
+				/pointer or touch/i.test(rulesText) &&
+					/keyboard focus/i.test(rulesText) &&
+					/\bSpace\b/i.test(rulesText) &&
+					/\bEscape\b/i.test(rulesText),
+				rulesText,
+			);
 
 			const rulesGeometry = await page.evaluate(() => {
 				const dialogElement = document.querySelector('[role="dialog"]');
@@ -3504,7 +4708,14 @@ async function runNetworkScenarios(browser, origin) {
 				const rect = (element) => {
 					const bounds = element?.getBoundingClientRect();
 					return bounds
-						? { left: bounds.left, top: bounds.top, right: bounds.right, bottom: bounds.bottom, width: bounds.width, height: bounds.height }
+						? {
+								left: bounds.left,
+								top: bounds.top,
+								right: bounds.right,
+								bottom: bounds.bottom,
+								width: bounds.width,
+								height: bounds.height,
+							}
 						: null;
 				};
 				return {
@@ -3514,13 +4725,43 @@ async function runNetworkScenarios(browser, origin) {
 					documentHasVerticalScroll: documentElement.scrollHeight > innerHeight + 1,
 				};
 			});
-			check(group, 'mobile Rules dialog remains fully inside the viewport', Boolean(rulesGeometry.dialog && rulesGeometry.dialog.left >= -0.5 && rulesGeometry.dialog.top >= -0.5 && rulesGeometry.dialog.right <= 360.5 && rulesGeometry.dialog.bottom <= 740.5), serialize(rulesGeometry));
-			check(group, 'mobile Rules close control is at least 44x44 CSS pixels', Boolean(rulesGeometry.close && rulesGeometry.close.width >= 44 && rulesGeometry.close.height >= 44), serialize(rulesGeometry.close));
-			check(group, 'mobile Rules do not make the document scroll', !rulesGeometry.documentHasHorizontalScroll && !rulesGeometry.documentHasVerticalScroll, serialize(rulesGeometry));
+			check(
+				group,
+				'mobile Rules dialog remains fully inside the viewport',
+				Boolean(
+					rulesGeometry.dialog &&
+						rulesGeometry.dialog.left >= -0.5 &&
+						rulesGeometry.dialog.top >= -0.5 &&
+						rulesGeometry.dialog.right <= 360.5 &&
+						rulesGeometry.dialog.bottom <= 740.5,
+				),
+				serialize(rulesGeometry),
+			);
+			check(
+				group,
+				'mobile Rules close control is at least 44x44 CSS pixels',
+				Boolean(
+					rulesGeometry.close &&
+						rulesGeometry.close.width >= 44 &&
+						rulesGeometry.close.height >= 44,
+				),
+				serialize(rulesGeometry.close),
+			);
+			check(
+				group,
+				'mobile Rules do not make the document scroll',
+				!rulesGeometry.documentHasHorizontalScroll && !rulesGeometry.documentHasVerticalScroll,
+				serialize(rulesGeometry),
+			);
 
 			const surface = await collectPlayerVisibleSurface(page);
 			const restrictedHits = playerVisibleRestrictedHits(surface.combined);
-			check(group, 'complete visible DOM and visible ARIA surface has zero official Social restricted hits', restrictedHits.length === 0, serialize({ hits: restrictedHits, attributes: surface.attributes }));
+			check(
+				group,
+				'complete visible DOM and visible ARIA surface has zero official Social restricted hits',
+				restrictedHits.length === 0,
+				serialize({ hits: restrictedHits, attributes: surface.attributes }),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.surface = surface;
@@ -3573,8 +4814,18 @@ async function runNetworkScenarios(browser, origin) {
 				totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
 				baseAmount: await page.locator(SELECTORS.baseAmount).inputValue(),
 			};
-			check(group, 'JPY wallet balance uses native zero-decimal rounding', ready.balance === '¥2', serialize(ready));
-			check(group, 'JPY complete play decorates the canonical micro-unit Base amount', ready.totalPlay === '¥1' && ready.baseAmount === String(DEFAULT_BASE_AMOUNT), serialize(ready));
+			check(
+				group,
+				'JPY wallet balance uses native zero-decimal rounding',
+				ready.balance === '¥2',
+				serialize(ready),
+			);
+			check(
+				group,
+				'JPY complete play decorates the canonical micro-unit Base amount',
+				ready.totalPlay === '¥1' && ready.baseAmount === String(DEFAULT_BASE_AMOUNT),
+				serialize(ready),
+			);
 
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 1);
@@ -3585,8 +4836,18 @@ async function runNetworkScenarios(browser, origin) {
 				totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
 				actionDisabled: await page.locator(SELECTORS.primaryAction).isDisabled(),
 			};
-			check(group, 'JPY exact result preserves the authoritative sub-yen payout', completed.finalWin === '¥0.38', serialize(completed));
-			check(group, 'JPY wallet returns to native precision and blocks the now-unaffordable play', completed.balance === '¥1' && completed.totalPlay === '¥1' && completed.actionDisabled, serialize(completed));
+			check(
+				group,
+				'JPY exact result preserves the authoritative sub-yen payout',
+				completed.finalWin === '¥0.38',
+				serialize(completed),
+			);
+			check(
+				group,
+				'JPY wallet returns to native precision and blocks the now-unaffordable play',
+				completed.balance === '¥1' && completed.totalPlay === '¥1' && completed.actionDisabled,
+				serialize(completed),
+			);
 			assertExactRequest(group, network.byEndpoint.play[0], {
 				method: 'POST',
 				path: '/wallet/play',
@@ -3597,7 +4858,12 @@ async function runNetworkScenarios(browser, origin) {
 					mode: 'base',
 				},
 			});
-			check(group, 'JPY scenario sends exactly one paid play and no settlement write', network.byEndpoint.play.length === 1 && network.byEndpoint.endRound.length === 0, serialize(network.order));
+			check(
+				group,
+				'JPY scenario sends exactly one paid play and no settlement write',
+				network.byEndpoint.play.length === 1 && network.byEndpoint.endRound.length === 0,
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.currencyUi = { ready, completed, fixture: fixture.id };
@@ -3638,8 +4904,18 @@ async function runNetworkScenarios(browser, origin) {
 				totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
 				baseAmount: await page.locator(SELECTORS.baseAmount).inputValue(),
 			};
-			check(group, 'unknown currency wallet falls back to the normalized code', ready.balance === '1.23 ZZZ', serialize(ready));
-			check(group, 'unknown currency complete play decorates the canonical micro-unit Base amount', ready.totalPlay === '1.00 ZZZ' && ready.baseAmount === String(DEFAULT_BASE_AMOUNT), serialize(ready));
+			check(
+				group,
+				'unknown currency wallet falls back to the normalized code',
+				ready.balance === '1.23 ZZZ',
+				serialize(ready),
+			);
+			check(
+				group,
+				'unknown currency complete play decorates the canonical micro-unit Base amount',
+				ready.totalPlay === '1.00 ZZZ' && ready.baseAmount === String(DEFAULT_BASE_AMOUNT),
+				serialize(ready),
+			);
 
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 1);
@@ -3649,7 +4925,14 @@ async function runNetworkScenarios(browser, origin) {
 				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
 				actionDisabled: await page.locator(SELECTORS.primaryAction).isDisabled(),
 			};
-			check(group, 'unknown currency fallback remains stable and blocks the now-unaffordable play', completed.balance === '0.23 ZZZ' && completed.finalWin === '0.00 ZZZ' && completed.actionDisabled, serialize(completed));
+			check(
+				group,
+				'unknown currency fallback remains stable and blocks the now-unaffordable play',
+				completed.balance === '0.23 ZZZ' &&
+					completed.finalWin === '0.00 ZZZ' &&
+					completed.actionDisabled,
+				serialize(completed),
+			);
 			assertExactRequest(group, network.byEndpoint.play[0], {
 				method: 'POST',
 				path: '/wallet/play',
@@ -3660,7 +4943,12 @@ async function runNetworkScenarios(browser, origin) {
 					mode: 'base',
 				},
 			});
-			check(group, 'unknown currency scenario sends exactly one paid play and no settlement write', network.byEndpoint.play.length === 1 && network.byEndpoint.endRound.length === 0, serialize(network.order));
+			check(
+				group,
+				'unknown currency scenario sends exactly one paid play and no settlement write',
+				network.byEndpoint.play.length === 1 && network.byEndpoint.endRound.length === 0,
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.currencyUi = { ready, completed };
@@ -3688,9 +4976,24 @@ async function runNetworkScenarios(browser, origin) {
 				path: '/wallet/authenticate',
 				body: expectedAuth,
 			});
-			check('live-auth-exact', 'authenticate happens exactly once', network.byEndpoint.authenticate.length === 1, serialize(network.order));
-			check('live-auth-exact', 'no play occurs before user action', network.byEndpoint.play.length === 0, serialize(network.order));
-			check('live-auth-exact', 'request order is authenticate only', serialize(network.order) === serialize(['authenticate']), serialize(network.order));
+			check(
+				'live-auth-exact',
+				'authenticate happens exactly once',
+				network.byEndpoint.authenticate.length === 1,
+				serialize(network.order),
+			);
+			check(
+				'live-auth-exact',
+				'no play occurs before user action',
+				network.byEndpoint.play.length === 0,
+				serialize(network.order),
+			);
+			check(
+				'live-auth-exact',
+				'request order is authenticate only',
+				serialize(network.order) === serialize(['authenticate']),
+				serialize(network.order),
+			);
 			assertCleanNetwork('live-auth-exact', network);
 			record.screenshot = await saveScreenshot(page, 'live-auth-exact');
 			record.network = network;
@@ -3792,14 +5095,17 @@ async function runNetworkScenarios(browser, origin) {
 				cues: Number(element.getAttribute('data-audio-cues')),
 				ambience: Number(element.getAttribute('data-ambience-instances')),
 			}));
-			check(group, 'audio creates no graph or cue before a user gesture',
+			check(
+				group,
+				'audio creates no graph or cue before a user gesture',
 				locked.status === 'locked' && locked.cues === 0 && locked.ambience === 0,
 				serialize(locked),
 			);
 
 			await sound.click();
 			await page.waitForFunction(
-				(selector) => document.querySelector(selector)?.getAttribute('data-audio-status') === 'running',
+				(selector) =>
+					document.querySelector(selector)?.getAttribute('data-audio-status') === 'running',
 				SELECTORS.soundAction,
 			);
 			const enabled = await sound.evaluate((element) => ({
@@ -3808,8 +5114,13 @@ async function runNetworkScenarios(browser, origin) {
 				cues: Number(element.getAttribute('data-audio-cues')),
 				ambience: Number(element.getAttribute('data-ambience-instances')),
 			}));
-			check(group, 'one gesture unlocks one ambience graph and an audible UI cue',
-				enabled.status === 'running' && enabled.level === 'FULL' && enabled.cues === 1 && enabled.ambience === 1,
+			check(
+				group,
+				'one gesture unlocks one ambience graph and an audible UI cue',
+				enabled.status === 'running' &&
+					enabled.level === 'FULL' &&
+					enabled.cues === 1 &&
+					enabled.ambience === 1,
 				serialize(enabled),
 			);
 
@@ -3825,16 +5136,24 @@ async function runNetworkScenarios(browser, origin) {
 				priorityCues: Number(element.getAttribute('data-audio-priority-cues')),
 				ducks: Number(element.getAttribute('data-audio-ducks')),
 			}));
-			check(group, 'authoritative round cues use the same bounded graph',
+			check(
+				group,
+				'authoritative round cues use the same bounded graph',
 				completed.cues >= 4 && completed.voices <= 8 && completed.ambience === 1,
 				serialize(completed),
 			);
-			check(group, 'normal board reveal schedules one seven-stop mechanical reel cadence',
+			check(
+				group,
+				'normal board reveal schedules one seven-stop mechanical reel cadence',
 				completed.reelPulses === 7,
 				serialize(completed),
 			);
-			check(group, 'foreground cues apply explicit ambience ducking without another graph',
-				completed.priorityCues >= 1 && completed.ducks === completed.priorityCues && completed.ambience === 1,
+			check(
+				group,
+				'foreground cues apply explicit ambience ducking without another graph',
+				completed.priorityCues >= 1 &&
+					completed.ducks === completed.priorityCues &&
+					completed.ambience === 1,
 				serialize(completed),
 			);
 
@@ -3855,11 +5174,20 @@ async function runNetworkScenarios(browser, origin) {
 				stored: localStorage.getItem('blacksite.audio.volume.v1'),
 				graph: { ...window.__blacksiteAudioGraph },
 			}));
-			check(group, 'mute tears down every active game-owned source and persists exact zero volume',
-				muted.status === 'muted' && muted.level === 'MUTED' && muted.pressed === 'true' && muted.voices === 0 && muted.ambience === 0 && muted.stored === '0',
+			check(
+				group,
+				'mute tears down every active game-owned source and persists exact zero volume',
+				muted.status === 'muted' &&
+					muted.level === 'MUTED' &&
+					muted.pressed === 'true' &&
+					muted.voices === 0 &&
+					muted.ambience === 0 &&
+					muted.stored === '0',
 				serialize(muted),
 			);
-			check(group, 'mute disconnects the active voice gain and ambience gain without orphan graph edges',
+			check(
+				group,
+				'mute disconnects the active voice gain and ambience gain without orphan graph edges',
 				muted.graph.gainDisconnects - beforeMuteGraph.gainDisconnects >= 2 &&
 					muted.graph.activeConnections === 1,
 				serialize({ beforeMuteGraph, afterMuteGraph: muted.graph }),
@@ -3875,8 +5203,7 @@ async function runNetworkScenarios(browser, origin) {
 			await page.waitForFunction(
 				({ selector, resumeCallsBeforeVisibility }) =>
 					window.__blacksiteAudioLifecycle?.suspendCompleted === 1 &&
-					window.__blacksiteAudioLifecycle?.resumeCalls ===
-						resumeCallsBeforeVisibility + 1 &&
+					window.__blacksiteAudioLifecycle?.resumeCalls === resumeCallsBeforeVisibility + 1 &&
 					document.querySelector(selector)?.getAttribute('data-audio-status') === 'muted',
 				{ selector: SELECTORS.soundAction, resumeCallsBeforeVisibility },
 			);
@@ -3888,14 +5215,22 @@ async function runNetworkScenarios(browser, origin) {
 				stored: localStorage.getItem('blacksite.audio.volume.v1'),
 				lifecycle: window.__blacksiteAudioLifecycle,
 			}));
-			check(group, 'rapid hidden-visible audio transitions serialize to the final visible state',
+			check(
+				group,
+				'rapid hidden-visible audio transitions serialize to the final visible state',
 				resumedMuted.lifecycle.suspendStarted === 1 &&
 					resumedMuted.lifecycle.suspendCompleted === 1 &&
 					resumedMuted.lifecycle.resumeCalls === resumeCallsBeforeVisibility + 1,
 				serialize(resumedMuted),
 			);
-			check(group, 'visibility resume keeps persisted mute source-free until explicit unmute',
-				resumedMuted.status === 'muted' && resumedMuted.level === 'MUTED' && resumedMuted.voices === 0 && resumedMuted.ambience === 0 && resumedMuted.stored === '0',
+			check(
+				group,
+				'visibility resume keeps persisted mute source-free until explicit unmute',
+				resumedMuted.status === 'muted' &&
+					resumedMuted.level === 'MUTED' &&
+					resumedMuted.voices === 0 &&
+					resumedMuted.ambience === 0 &&
+					resumedMuted.stored === '0',
 				serialize(resumedMuted),
 			);
 
@@ -3907,8 +5242,14 @@ async function runNetworkScenarios(browser, origin) {
 				ambience: Number(element.getAttribute('data-ambience-instances')),
 				stored: localStorage.getItem('blacksite.audio.volume.v1'),
 			}));
-			check(group, 'unmute restores exactly one ambience graph at the persisted low level',
-				unmuted.status === 'running' && unmuted.level === 'LOW' && unmuted.pressed === 'false' && unmuted.ambience === 1 && unmuted.stored === '0.28',
+			check(
+				group,
+				'unmute restores exactly one ambience graph at the persisted low level',
+				unmuted.status === 'running' &&
+					unmuted.level === 'LOW' &&
+					unmuted.pressed === 'false' &&
+					unmuted.ambience === 1 &&
+					unmuted.stored === '0.28',
 				serialize(unmuted),
 			);
 			await page.waitForTimeout(30);
@@ -3922,8 +5263,14 @@ async function runNetworkScenarios(browser, origin) {
 				ambience: Number(element.getAttribute('data-ambience-instances')),
 				stored: localStorage.getItem('blacksite.audio.volume.v1'),
 			}));
-			check(group, 'a second mute cycle remains source-free without stacking ambience',
-				remuted.status === 'muted' && remuted.level === 'MUTED' && remuted.voices === 0 && remuted.ambience === 0 && remuted.stored === '0',
+			check(
+				group,
+				'a second mute cycle remains source-free without stacking ambience',
+				remuted.status === 'muted' &&
+					remuted.level === 'MUTED' &&
+					remuted.voices === 0 &&
+					remuted.ambience === 0 &&
+					remuted.stored === '0',
 				serialize(remuted),
 			);
 
@@ -3936,13 +5283,28 @@ async function runNetworkScenarios(browser, origin) {
 				pressed: element.getAttribute('aria-pressed'),
 				ambience: Number(element.getAttribute('data-ambience-instances')),
 			}));
-			check(group, 'reload restores mute without autoplay or a duplicate ambience graph',
-				restored.status === 'locked' && restored.level === 'MUTED' && restored.pressed === 'true' && restored.ambience === 0,
+			check(
+				group,
+				'reload restores mute without autoplay or a duplicate ambience graph',
+				restored.status === 'locked' &&
+					restored.level === 'MUTED' &&
+					restored.pressed === 'true' &&
+					restored.ambience === 0,
 				serialize(restored),
 			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
-			record.audio = { locked, enabled, completed, beforeMuteGraph, muted, resumedMuted, unmuted, remuted, restored };
+			record.audio = {
+				locked,
+				enabled,
+				completed,
+				beforeMuteGraph,
+				muted,
+				resumedMuted,
+				unmuted,
+				remuted,
+				restored,
+			};
 			record.screenshot = await saveScreenshot(page, group);
 			record.network = network;
 			record.diagnostics = diagnostics;
@@ -3973,13 +5335,16 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForStableAction(page);
 			const motion = page.locator(SELECTORS.motionMode);
 			await motion.click();
-			const selected = await motion.evaluate((element, storageKey) => ({
-				label: element.textContent?.trim(),
-				pressed: element.getAttribute('aria-pressed'),
-				disabled: element.matches(':disabled'),
-				profile: document.body.dataset.motionProfile,
-				stored: localStorage.getItem(storageKey),
-			}), MOTION_STORAGE_KEY);
+			const selected = await motion.evaluate(
+				(element, storageKey) => ({
+					label: element.textContent?.trim(),
+					pressed: element.getAttribute('aria-pressed'),
+					disabled: element.matches(':disabled'),
+					profile: document.body.dataset.motionProfile,
+					stored: localStorage.getItem(storageKey),
+				}),
+				MOTION_STORAGE_KEY,
+			);
 			check(
 				group,
 				'Turbo selection updates semantics, presentation profile and versioned storage',
@@ -3994,12 +5359,15 @@ async function runNetworkScenarios(browser, origin) {
 			await page.reload({ waitUntil: 'domcontentloaded' });
 			await waitForEndpoint(network, 'authenticate', 2);
 			await waitForStableAction(page);
-			const restored = await motion.evaluate((element, storageKey) => ({
-				label: element.textContent?.trim(),
-				pressed: element.getAttribute('aria-pressed'),
-				profile: document.body.dataset.motionProfile,
-				stored: localStorage.getItem(storageKey),
-			}), MOTION_STORAGE_KEY);
+			const restored = await motion.evaluate(
+				(element, storageKey) => ({
+					label: element.textContent?.trim(),
+					pressed: element.getAttribute('aria-pressed'),
+					profile: document.body.dataset.motionProfile,
+					stored: localStorage.getItem(storageKey),
+				}),
+				MOTION_STORAGE_KEY,
+			);
 			check(
 				group,
 				'reload restores the chosen Turbo presentation profile',
@@ -4016,19 +5384,22 @@ async function runNetworkScenarios(browser, origin) {
 				SELECTORS.motionMode,
 			);
 			await page.setViewportSize({ width: 1366, height: 768 });
+			await waitForResponsiveEnvironment(page, 'mechanical-vault-desktop-v1.webp');
 			await page.waitForFunction(
 				(selector) =>
-					document.querySelector(selector)?.getAttribute('data-asset-paint-state') ===
-					'painted',
+					document.querySelector(selector)?.getAttribute('data-asset-paint-state') === 'painted',
 				SELECTORS.vaultkeeper,
 			);
-			const reduced = await motion.evaluate((element, storageKey) => ({
-				label: element.textContent?.trim(),
-				pressed: element.getAttribute('aria-pressed'),
-				disabled: element.matches(':disabled'),
-				profile: document.body.dataset.motionProfile,
-				stored: localStorage.getItem(storageKey),
-			}), MOTION_STORAGE_KEY);
+			const reduced = await motion.evaluate(
+				(element, storageKey) => ({
+					label: element.textContent?.trim(),
+					pressed: element.getAttribute('aria-pressed'),
+					disabled: element.matches(':disabled'),
+					profile: document.body.dataset.motionProfile,
+					stored: localStorage.getItem(storageKey),
+				}),
+				MOTION_STORAGE_KEY,
+			);
 			const reducedVaultkeeper = await page.locator(SELECTORS.vaultkeeper).evaluate((element) => {
 				const previousState = element.getAttribute('data-character-state');
 				element.setAttribute('data-character-state', 'feature_trigger');
@@ -4088,13 +5459,16 @@ async function runNetworkScenarios(browser, origin) {
 			await page.reload({ waitUntil: 'domcontentloaded' });
 			await waitForEndpoint(network, 'authenticate', 4);
 			await waitForStableAction(page);
-			const resumed = await motion.evaluate((element, storageKey) => ({
-				label: element.textContent?.trim(),
-				pressed: element.getAttribute('aria-pressed'),
-				disabled: element.matches(':disabled'),
-				profile: document.body.dataset.motionProfile,
-				stored: localStorage.getItem(storageKey),
-			}), MOTION_STORAGE_KEY);
+			const resumed = await motion.evaluate(
+				(element, storageKey) => ({
+					label: element.textContent?.trim(),
+					pressed: element.getAttribute('aria-pressed'),
+					disabled: element.matches(':disabled'),
+					profile: document.body.dataset.motionProfile,
+					stored: localStorage.getItem(storageKey),
+				}),
+				MOTION_STORAGE_KEY,
+			);
 			check(
 				group,
 				'removing the system override resumes the persisted Turbo preference',
@@ -4155,7 +5529,12 @@ async function runNetworkScenarios(browser, origin) {
 				runtimeState: await runtimeState(page),
 				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
 			};
-			check(group, 'live ready surface has no result before a completed round', readyBeforePlay.runtimeState === 'live-ready' && readyBeforePlay.finalWin === '—', serialize(readyBeforePlay));
+			check(
+				group,
+				'live ready surface has no result before a completed round',
+				readyBeforePlay.runtimeState === 'live-ready' && readyBeforePlay.finalWin === '—',
+				serialize(readyBeforePlay),
+			);
 
 			const startedAtMs = Date.now();
 			await page.locator(SELECTORS.primaryAction).click();
@@ -4166,8 +5545,18 @@ async function runNetworkScenarios(browser, origin) {
 				board: await boardSymbols(page),
 				actionDisabled: await page.locator(SELECTORS.primaryAction).isDisabled(),
 			};
-			check(group, 'immediately after Play the result and outcome board remain hidden', immediate.finalWin === '—' && immediate.board.every((symbol) => symbol === ''), serialize(immediate));
-			check(group, 'immediately after Play the round is not ready and cannot be replayed', immediate.runtimeState !== 'live-ready' && immediate.actionDisabled, serialize(immediate));
+			check(
+				group,
+				'immediately after Play the result and outcome board remain hidden',
+				immediate.finalWin === '—' && immediate.board.every((symbol) => symbol === ''),
+				serialize(immediate),
+			);
+			check(
+				group,
+				'immediately after Play the round is not ready and cannot be replayed',
+				immediate.runtimeState !== 'live-ready' && immediate.actionDisabled,
+				serialize(immediate),
+			);
 
 			await waitForEndpoint(network, 'play', 1);
 			await waitForRuntimeState(page, 'live-minimum-duration');
@@ -4178,7 +5567,15 @@ async function runNetworkScenarios(browser, origin) {
 				board: await boardSymbols(page),
 				actionDisabled: await page.locator(SELECTORS.primaryAction).isDisabled(),
 			};
-			check(group, 'minimum-duration hold exposes neither result, outcome board, nor a ready action', held.runtimeState === 'live-minimum-duration' && held.finalWin === '—' && held.board.every((symbol) => symbol === '') && held.actionDisabled, serialize(held));
+			check(
+				group,
+				'minimum-duration hold exposes neither result, outcome board, nor a ready action',
+				held.runtimeState === 'live-minimum-duration' &&
+					held.finalWin === '—' &&
+					held.board.every((symbol) => symbol === '') &&
+					held.actionDisabled,
+				serialize(held),
+			);
 
 			await waitForStableAction(page);
 			const completed = {
@@ -4188,12 +5585,37 @@ async function runNetworkScenarios(browser, origin) {
 				board: await boardSymbols(page),
 				actionDisabled: await page.locator(SELECTORS.primaryAction).isDisabled(),
 			};
-			check(group, 'round cannot become ready before the configured minimum duration', completed.elapsedMs >= minimumRoundDurationMs - lowerBoundToleranceMs, serialize({ minimumRoundDurationMs, lowerBoundToleranceMs, completed }));
-			check(group, 'completed live round exposes the exact authoritative result, board, and ready action', completed.runtimeState === 'live-ready' && completed.finalWin === '$0.00' && completed.board.some((symbol) => symbol !== '') && !completed.actionDisabled, serialize(completed));
-			check(group, 'minimum-duration round sends exactly one play and no end-round write', network.byEndpoint.play.length === 1 && network.byEndpoint.endRound.length === 0, serialize(network.order));
+			check(
+				group,
+				'round cannot become ready before the configured minimum duration',
+				completed.elapsedMs >= minimumRoundDurationMs - lowerBoundToleranceMs,
+				serialize({ minimumRoundDurationMs, lowerBoundToleranceMs, completed }),
+			);
+			check(
+				group,
+				'completed live round exposes the exact authoritative result, board, and ready action',
+				completed.runtimeState === 'live-ready' &&
+					completed.finalWin === '$0.00' &&
+					completed.board.some((symbol) => symbol !== '') &&
+					!completed.actionDisabled,
+				serialize(completed),
+			);
+			check(
+				group,
+				'minimum-duration round sends exactly one play and no end-round write',
+				network.byEndpoint.play.length === 1 && network.byEndpoint.endRound.length === 0,
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
-			record.timing = { minimumRoundDurationMs, lowerBoundToleranceMs, readyBeforePlay, immediate, held, completed };
+			record.timing = {
+				minimumRoundDurationMs,
+				lowerBoundToleranceMs,
+				readyBeforePlay,
+				immediate,
+				held,
+				completed,
+			};
 			record.screenshot = await saveScreenshot(page, group);
 			record.network = network;
 			record.diagnostics = diagnostics;
@@ -4226,52 +5648,57 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForEndpoint(network, 'authenticate', 1);
 			await waitForStableAction(page);
 			await startFrameSampler(page, 'turbo-cascade');
-			await page.evaluate(({ boardSelector, characterSelector }) => {
-				const board = document.querySelector(boardSelector);
-				const character = document.querySelector(characterSelector);
-				window.__blacksiteMotionPhases = [];
-				window.__blacksiteCharacterStates = [];
-				const captureBoard = () => {
-					const phase = board?.getAttribute('data-motion-phase');
-					const activeCell = phase ? board?.querySelector(`.cell.motion-${phase}`) : null;
-					const style = activeCell ? getComputedStyle(activeCell) : null;
-					window.__blacksiteMotionPhases.push({
-						phase,
-						profile: board?.getAttribute('data-motion-profile'),
-						animation: style?.animationName ?? 'none',
-						animationDurationMs: style ? Number.parseFloat(style.animationDuration) * 1_000 : 0,
-						at: performance.now(),
+			await page.evaluate(
+				({ boardSelector, characterSelector }) => {
+					const board = document.querySelector(boardSelector);
+					const character = document.querySelector(characterSelector);
+					window.__blacksiteMotionPhases = [];
+					window.__blacksiteCharacterStates = [];
+					const captureBoard = () => {
+						const phase = board?.getAttribute('data-motion-phase');
+						const activeCell = phase ? board?.querySelector(`.cell.motion-${phase}`) : null;
+						const style = activeCell ? getComputedStyle(activeCell) : null;
+						window.__blacksiteMotionPhases.push({
+							phase,
+							profile: board?.getAttribute('data-motion-profile'),
+							animation: style?.animationName ?? 'none',
+							animationDurationMs: style ? Number.parseFloat(style.animationDuration) * 1_000 : 0,
+							at: performance.now(),
+						});
+					};
+					const captureCharacter = () => {
+						const image = character?.querySelector('img');
+						window.__blacksiteCharacterStates.push({
+							state: character?.getAttribute('data-character-state'),
+							profile: character?.getAttribute('data-motion-profile'),
+							animation: image ? getComputedStyle(image).animationName : 'none',
+							animationDurationMs: image
+								? Number.parseFloat(getComputedStyle(image).animationDuration) * 1_000
+								: 0,
+							willChange: image ? getComputedStyle(image).willChange : 'auto',
+							at: performance.now(),
+						});
+					};
+					captureBoard();
+					captureCharacter();
+					window.__blacksiteMotionObserver = new MutationObserver(captureBoard);
+					window.__blacksiteMotionObserver.observe(board, {
+						attributes: true,
+						attributeFilter: ['data-motion-phase', 'data-motion-profile'],
 					});
-				};
-				const captureCharacter = () => {
-					const image = character?.querySelector('img');
-					window.__blacksiteCharacterStates.push({
-						state: character?.getAttribute('data-character-state'),
-						profile: character?.getAttribute('data-motion-profile'),
-						animation: image ? getComputedStyle(image).animationName : 'none',
-						animationDurationMs: image
-							? Number.parseFloat(getComputedStyle(image).animationDuration) * 1_000
-							: 0,
-						willChange: image ? getComputedStyle(image).willChange : 'auto',
-						at: performance.now(),
+					window.__blacksiteCharacterObserver = new MutationObserver(captureCharacter);
+					window.__blacksiteCharacterObserver.observe(character, {
+						attributes: true,
+						attributeFilter: ['data-character-state', 'data-motion-profile'],
 					});
-				};
-				captureBoard();
-				captureCharacter();
-				window.__blacksiteMotionObserver = new MutationObserver(captureBoard);
-				window.__blacksiteMotionObserver.observe(board, {
-					attributes: true,
-					attributeFilter: ['data-motion-phase', 'data-motion-profile'],
-				});
-				window.__blacksiteCharacterObserver = new MutationObserver(captureCharacter);
-				window.__blacksiteCharacterObserver.observe(character, {
-					attributes: true,
-					attributeFilter: ['data-character-state', 'data-motion-profile'],
-				});
-			}, { boardSelector: SELECTORS.board, characterSelector: SELECTORS.vaultkeeper });
+				},
+				{ boardSelector: SELECTORS.board, characterSelector: SELECTORS.vaultkeeper },
+			);
 
 			await page.locator(SELECTORS.motionMode).click();
-			check(group, 'Turbo control selects the bounded turbo presentation profile',
+			check(
+				group,
+				'Turbo control selects the bounded turbo presentation profile',
 				(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) === 'turbo' &&
 					(await page.locator(SELECTORS.motionMode).getAttribute('aria-pressed')) === 'true',
 				serialize({
@@ -4282,7 +5709,8 @@ async function runNetworkScenarios(browser, origin) {
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 1);
 			await page.waitForFunction(
-				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'reveal',
+				(selector) =>
+					document.querySelector(selector)?.getAttribute('data-motion-phase') === 'reveal',
 				SELECTORS.board,
 			);
 			const reelStopCadence = await page.locator(SELECTORS.board).evaluate((board) => {
@@ -4299,41 +5727,45 @@ async function runNetworkScenarios(browser, origin) {
 				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'hit',
 				SELECTORS.board,
 			);
-			const turboWinMediumScreenshot = await saveScreenshot(
-				page,
-				`${group}-turbo-win-medium`,
-			);
+			const turboWinMediumScreenshot = await saveScreenshot(page, `${group}-turbo-win-medium`);
 			await waitForStableAction(page);
 			const framePacing = await stopFrameSampler(page, 'turbo-cascade');
 			const turboPhases = await page.evaluate(() => window.__blacksiteMotionPhases);
 			const turboCharacterStates = await page.evaluate(() => window.__blacksiteCharacterStates);
 			const cascadePhaseWindows = (timeline) => {
-				const transitions = timeline.filter((entry, index) =>
-					index === 0 || entry.phase !== timeline[index - 1].phase || entry.profile !== timeline[index - 1].profile);
-				return Object.fromEntries(['hit', 'remove', 'drop', 'settle'].map((phase) => {
-					const index = transitions.findIndex((entry) => entry.phase === phase);
-					const start = transitions[index];
-					const end = index >= 0
-						? transitions.slice(index + 1).find((entry) => entry.phase !== phase)
-						: null;
-					return [phase, { start, end, elapsedMs: start && end ? end.at - start.at : -1 }];
-				}));
+				const transitions = timeline.filter(
+					(entry, index) =>
+						index === 0 ||
+						entry.phase !== timeline[index - 1].phase ||
+						entry.profile !== timeline[index - 1].profile,
+				);
+				return Object.fromEntries(
+					['hit', 'remove', 'drop', 'settle'].map((phase) => {
+						const index = transitions.findIndex((entry) => entry.phase === phase);
+						const start = transitions[index];
+						const end =
+							index >= 0
+								? transitions.slice(index + 1).find((entry) => entry.phase !== phase)
+								: null;
+						return [phase, { start, end, elapsedMs: start && end ? end.at - start.at : -1 }];
+					}),
+				);
 			};
 			const characterStateWindows = (timeline, state) => {
-				const transitions = timeline.filter((entry, index) =>
-					index === 0 || entry.state !== timeline[index - 1].state || entry.profile !== timeline[index - 1].profile);
+				const transitions = timeline.filter(
+					(entry, index) =>
+						index === 0 ||
+						entry.state !== timeline[index - 1].state ||
+						entry.profile !== timeline[index - 1].profile,
+				);
 				const index = transitions.findIndex((entry) => entry.state === state);
 				const start = transitions[index];
-				const end = index >= 0
-					? transitions.slice(index + 1).find((entry) => entry.state !== state)
-					: null;
+				const end =
+					index >= 0 ? transitions.slice(index + 1).find((entry) => entry.state !== state) : null;
 				return { start, end, elapsedMs: start && end ? end.at - start.at : -1 };
 			};
 			const turboPhaseWindows = cascadePhaseWindows(turboPhases);
-			const turboWinMediumWindow = characterStateWindows(
-				turboCharacterStates,
-				'win_medium',
-			);
+			const turboWinMediumWindow = characterStateWindows(turboCharacterStates, 'win_medium');
 			const turboNames = turboPhases.map(({ phase }) => phase);
 			let previousIndex = -1;
 			const orderedTurbo = ['hit', 'remove', 'drop', 'settle'].every((phase) => {
@@ -4341,43 +5773,82 @@ async function runNetworkScenarios(browser, origin) {
 				previousIndex = index;
 				return index >= 0;
 			});
-			check(group, 'authoritative turbo cascade visibly traverses hit, remove, drop and settle', orderedTurbo, serialize(turboPhases));
-			check(group, 'turbo cascade hit, remove, drop and settle clips complete their authored windows',
+			check(
+				group,
+				'authoritative turbo cascade visibly traverses hit, remove, drop and settle',
+				orderedTurbo,
+				serialize(turboPhases),
+			);
+			check(
+				group,
+				'turbo cascade hit, remove, drop and settle clips complete their authored windows',
 				turboPhaseWindows.hit.start?.profile === 'turbo' &&
 					turboPhaseWindows.hit.start.animation.endsWith('cluster-hit') &&
 					turboPhaseWindows.hit.start.animationDurationMs === 110 &&
-					turboPhaseWindows.hit.elapsedMs >= 95 && turboPhaseWindows.hit.elapsedMs <= 300 &&
+					turboPhaseWindows.hit.elapsedMs >= 95 &&
+					turboPhaseWindows.hit.elapsedMs <= 300 &&
 					turboPhaseWindows.remove.start?.animation.endsWith('cluster-remove') &&
 					turboPhaseWindows.remove.start.animationDurationMs === 55 &&
-					turboPhaseWindows.remove.elapsedMs >= 45 && turboPhaseWindows.remove.elapsedMs <= 200 &&
+					turboPhaseWindows.remove.elapsedMs >= 45 &&
+					turboPhaseWindows.remove.elapsedMs <= 200 &&
 					turboPhaseWindows.drop.start?.animation.endsWith('symbol-drop') &&
 					turboPhaseWindows.drop.start.animationDurationMs === 105 &&
-					turboPhaseWindows.drop.elapsedMs >= 90 && turboPhaseWindows.drop.elapsedMs <= 250 &&
+					turboPhaseWindows.drop.elapsedMs >= 90 &&
+					turboPhaseWindows.drop.elapsedMs <= 250 &&
 					turboPhaseWindows.settle.start?.animation.endsWith('symbol-settle') &&
 					turboPhaseWindows.settle.start.animationDurationMs === 35 &&
-					turboPhaseWindows.settle.elapsedMs >= 25 && turboPhaseWindows.settle.elapsedMs <= 160,
+					turboPhaseWindows.settle.elapsedMs >= 25 &&
+					turboPhaseWindows.settle.elapsedMs <= 160,
 				serialize({ turboPhaseWindows, turboPhases }),
 			);
-			check(group, 'seven reel columns stop in a strictly staggered turbo cadence',
-				reelStopCadence.length === 7 && reelStopCadence.every(({ column, durationMs, animation }, index) =>
-					column === index && durationMs === 70 && animation.endsWith('board-reveal')) &&
-					reelStopCadence.every(({ delayMs }, index) => index === 0 || delayMs > reelStopCadence[index - 1].delayMs),
+			check(
+				group,
+				'seven reel columns stop in a strictly staggered turbo cadence',
+				reelStopCadence.length === 7 &&
+					reelStopCadence.every(
+						({ column, durationMs, animation }, index) =>
+							column === index && durationMs === 70 && animation.endsWith('board-reveal'),
+					) &&
+					reelStopCadence.every(
+						({ delayMs }, index) => index === 0 || delayMs > reelStopCadence[index - 1].delayMs,
+					),
 				serialize(reelStopCadence),
 			);
-			check(group, 'turbo cascade has no sustained frame-pacing stalls',
-				framePacing.samples >= 20 && framePacing.percentile95Ms <= 50 && framePacing.over50Ms <= Math.max(2, Math.ceil(framePacing.samples * 0.05)),
+			check(
+				group,
+				'turbo cascade has no sustained frame-pacing stalls',
+				framePacing.samples >= 20 &&
+					framePacing.percentile95Ms <= 50 &&
+					framePacing.over50Ms <= Math.max(2, Math.ceil(framePacing.samples * 0.05)),
 				serialize(framePacing),
 			);
 			const characterNames = turboCharacterStates.map(({ state }) => state);
 			let previousCharacterIndex = -1;
-			const orderedCharacterFallback = ['spin_start', 'monitoring', 'win_medium', 'idle_a'].every((state) => {
-				const index = characterNames.indexOf(state, previousCharacterIndex + 1);
-				previousCharacterIndex = index;
-				return index >= 0;
-			});
-			check(group, 'static Vaultkeeper fallback follows authoritative spin, board, win and recovery states', orderedCharacterFallback, serialize(turboCharacterStates));
-			check(group, 'Vaultkeeper fallback uses bounded CSS motion only while its semantic state is active', turboCharacterStates.some(({ state, animation }) => state === 'win_medium' && animation.endsWith('vaultkeeper-win-medium')), serialize(turboCharacterStates));
-			check(group, 'turbo Vaultkeeper Medium Win reaction remains visible for its complete authored window',
+			const orderedCharacterFallback = ['spin_start', 'monitoring', 'win_medium', 'idle_a'].every(
+				(state) => {
+					const index = characterNames.indexOf(state, previousCharacterIndex + 1);
+					previousCharacterIndex = index;
+					return index >= 0;
+				},
+			);
+			check(
+				group,
+				'static Vaultkeeper fallback follows authoritative spin, board, win and recovery states',
+				orderedCharacterFallback,
+				serialize(turboCharacterStates),
+			);
+			check(
+				group,
+				'Vaultkeeper fallback uses bounded CSS motion only while its semantic state is active',
+				turboCharacterStates.some(
+					({ state, animation }) =>
+						state === 'win_medium' && animation.endsWith('vaultkeeper-win-medium'),
+				),
+				serialize(turboCharacterStates),
+			);
+			check(
+				group,
+				'turbo Vaultkeeper Medium Win reaction remains visible for its complete authored window',
 				turboWinMediumWindow.start?.profile === 'turbo' &&
 					turboWinMediumWindow.start.animation.endsWith('vaultkeeper-win-medium') &&
 					turboWinMediumWindow.start.animationDurationMs === 260 &&
@@ -4385,9 +5856,18 @@ async function runNetworkScenarios(browser, origin) {
 					turboWinMediumWindow.elapsedMs <= 450,
 				serialize({ turboWinMediumWindow, turboCharacterStates }),
 			);
-			check(group, 'Vaultkeeper promotes transform/filter only for active authored reactions',
-				turboCharacterStates.some(({ state, willChange }) => state === 'win_medium' && willChange.includes('transform') && willChange.includes('filter')) &&
-					turboCharacterStates.some(({ state, willChange }) => state === 'idle_a' && willChange === 'auto'),
+			check(
+				group,
+				'Vaultkeeper promotes transform/filter only for active authored reactions',
+				turboCharacterStates.some(
+					({ state, willChange }) =>
+						state === 'win_medium' &&
+						willChange.includes('transform') &&
+						willChange.includes('filter'),
+				) &&
+					turboCharacterStates.some(
+						({ state, willChange }) => state === 'idle_a' && willChange === 'auto',
+					),
 				serialize(turboCharacterStates),
 			);
 
@@ -4400,7 +5880,8 @@ async function runNetworkScenarios(browser, origin) {
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 2);
 			await page.waitForFunction(
-				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'reveal',
+				(selector) =>
+					document.querySelector(selector)?.getAttribute('data-motion-phase') === 'reveal',
 				SELECTORS.board,
 			);
 			const normalReelStopCadence = await page.locator(SELECTORS.board).evaluate((board) => {
@@ -4412,50 +5893,67 @@ async function runNetworkScenarios(browser, origin) {
 					animation: getComputedStyle(cell).animationName,
 				}));
 			});
-			const normalReelStopScreenshot = await saveScreenshot(page, `${group}-normal-reel-stop-cadence`);
+			const normalReelStopScreenshot = await saveScreenshot(
+				page,
+				`${group}-normal-reel-stop-cadence`,
+			);
 			await page.waitForFunction(
 				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'hit',
 				SELECTORS.board,
 			);
-			const normalWinMediumScreenshot = await saveScreenshot(
-				page,
-				`${group}-normal-win-medium`,
-			);
+			const normalWinMediumScreenshot = await saveScreenshot(page, `${group}-normal-win-medium`);
 			await waitForStableAction(page);
 			const normalFramePacing = await stopFrameSampler(page, 'normal-cascade');
 			const normalPhases = await page.evaluate(() => window.__blacksiteMotionPhases);
 			const normalCharacterStates = await page.evaluate(() => window.__blacksiteCharacterStates);
 			const normalPhaseWindows = cascadePhaseWindows(normalPhases);
-			const normalWinMediumWindow = characterStateWindows(
-				normalCharacterStates,
-				'win_medium',
-			);
-			check(group, 'seven reel columns stop in the authored normal cadence',
-				normalReelStopCadence.length === 7 && normalReelStopCadence.every(({ column, delayMs, durationMs, animation }, index) =>
-					column === index && delayMs === index * 24 && durationMs === 180 && animation.endsWith('board-reveal')),
+			const normalWinMediumWindow = characterStateWindows(normalCharacterStates, 'win_medium');
+			check(
+				group,
+				'seven reel columns stop in the authored normal cadence',
+				normalReelStopCadence.length === 7 &&
+					normalReelStopCadence.every(
+						({ column, delayMs, durationMs, animation }, index) =>
+							column === index &&
+							delayMs === index * 24 &&
+							durationMs === 180 &&
+							animation.endsWith('board-reveal'),
+					),
 				serialize(normalReelStopCadence),
 			);
-			check(group, 'normal cascade has no sustained frame-pacing stalls',
-				normalFramePacing.samples >= 20 && normalFramePacing.percentile95Ms <= 50 && normalFramePacing.over50Ms <= Math.max(2, Math.ceil(normalFramePacing.samples * 0.05)),
+			check(
+				group,
+				'normal cascade has no sustained frame-pacing stalls',
+				normalFramePacing.samples >= 20 &&
+					normalFramePacing.percentile95Ms <= 50 &&
+					normalFramePacing.over50Ms <= Math.max(2, Math.ceil(normalFramePacing.samples * 0.05)),
 				serialize(normalFramePacing),
 			);
-			check(group, 'normal cascade hit, remove, drop and settle clips complete their authored windows',
+			check(
+				group,
+				'normal cascade hit, remove, drop and settle clips complete their authored windows',
 				normalPhaseWindows.hit.start?.profile === 'normal' &&
 					normalPhaseWindows.hit.start.animation.endsWith('cluster-hit') &&
 					normalPhaseWindows.hit.start.animationDurationMs === 280 &&
-					normalPhaseWindows.hit.elapsedMs >= 740 && normalPhaseWindows.hit.elapsedMs <= 1_050 &&
+					normalPhaseWindows.hit.elapsedMs >= 740 &&
+					normalPhaseWindows.hit.elapsedMs <= 1_050 &&
 					normalPhaseWindows.remove.start?.animation.endsWith('cluster-remove') &&
 					normalPhaseWindows.remove.start.animationDurationMs === 150 &&
-					normalPhaseWindows.remove.elapsedMs >= 130 && normalPhaseWindows.remove.elapsedMs <= 350 &&
+					normalPhaseWindows.remove.elapsedMs >= 130 &&
+					normalPhaseWindows.remove.elapsedMs <= 350 &&
 					normalPhaseWindows.drop.start?.animation.endsWith('symbol-drop') &&
 					normalPhaseWindows.drop.start.animationDurationMs === 250 &&
-					normalPhaseWindows.drop.elapsedMs >= 220 && normalPhaseWindows.drop.elapsedMs <= 450 &&
+					normalPhaseWindows.drop.elapsedMs >= 220 &&
+					normalPhaseWindows.drop.elapsedMs <= 450 &&
 					normalPhaseWindows.settle.start?.animation.endsWith('symbol-settle') &&
 					normalPhaseWindows.settle.start.animationDurationMs === 90 &&
-					normalPhaseWindows.settle.elapsedMs >= 70 && normalPhaseWindows.settle.elapsedMs <= 260,
+					normalPhaseWindows.settle.elapsedMs >= 70 &&
+					normalPhaseWindows.settle.elapsedMs <= 260,
 				serialize({ normalPhaseWindows, normalPhases }),
 			);
-			check(group, 'normal Vaultkeeper Medium Win reaction remains visible for its complete authored window',
+			check(
+				group,
+				'normal Vaultkeeper Medium Win reaction remains visible for its complete authored window',
 				normalWinMediumWindow.start?.profile === 'normal' &&
 					normalWinMediumWindow.start.animation.endsWith('vaultkeeper-win-medium') &&
 					normalWinMediumWindow.start.animationDurationMs === 800 &&
@@ -4472,7 +5970,9 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			const hitScreenshot = await saveScreenshot(page, `${group}-hit-before-skip`);
 			const skippedAt = Date.now();
-			check(group, 'Skip becomes available only while authoritative presentation is active',
+			check(
+				group,
+				'Skip becomes available only while authoritative presentation is active',
 				!(await page.locator(SELECTORS.skipPresentation).isDisabled()),
 				String(await page.locator(SELECTORS.skipPresentation).isDisabled()),
 			);
@@ -4481,21 +5981,38 @@ async function runNetworkScenarios(browser, origin) {
 			const completed = {
 				state: await runtimeState(page),
 				phase: await page.locator(SELECTORS.board).getAttribute('data-motion-phase'),
-				characterState: await page.locator(SELECTORS.vaultkeeper).getAttribute('data-character-state'),
-				characterWillChange: await page.locator(`${SELECTORS.vaultkeeper} img`).evaluate((image) => getComputedStyle(image).willChange),
+				characterState: await page
+					.locator(SELECTORS.vaultkeeper)
+					.getAttribute('data-character-state'),
+				characterWillChange: await page
+					.locator(`${SELECTORS.vaultkeeper} img`)
+					.evaluate((image) => getComputedStyle(image).willChange),
 				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
 				skipElapsedMs: Date.now() - skippedAt,
 			};
-			check(group, 'Skip drains remaining cues and returns to an idle ready state without deadlock',
-				completed.state === 'live-ready' && completed.phase === 'idle' && completed.characterState === 'idle_a' && completed.characterWillChange === 'auto' && completed.skipElapsedMs < 1_000,
+			check(
+				group,
+				'Skip drains remaining cues and returns to an idle ready state without deadlock',
+				completed.state === 'live-ready' &&
+					completed.phase === 'idle' &&
+					completed.characterState === 'idle_a' &&
+					completed.characterWillChange === 'auto' &&
+					completed.skipElapsedMs < 1_000,
 				serialize(completed),
 			);
-			check(group, 'Turbo and skipped plays preserve the exact authoritative final payout',
-				completed.finalWin === formatExactApi(DEFAULT_BASE_AMOUNT * fixture.book.payoutMultiplier / 100, 'USD'),
+			check(
+				group,
+				'Turbo and skipped plays preserve the exact authoritative final payout',
+				completed.finalWin ===
+					formatExactApi((DEFAULT_BASE_AMOUNT * fixture.book.payoutMultiplier) / 100, 'USD'),
 				serialize({ completed, payoutCentiX: fixture.book.payoutMultiplier }),
 			);
-			check(group, 'motion controls never add settlement or event-write calls for inactive rounds',
-				network.byEndpoint.play.length === 3 && network.byEndpoint.endRound.length === 0 && network.byEndpoint.event.length === 0,
+			check(
+				group,
+				'motion controls never add settlement or event-write calls for inactive rounds',
+				network.byEndpoint.play.length === 3 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
 				serialize(network.order),
 			);
 			assertCleanNetwork(group, network);
@@ -4505,20 +6022,35 @@ async function runNetworkScenarios(browser, origin) {
 				image.dispatchEvent(new Event('error'));
 			});
 			await page.waitForFunction(
-				(selector) => document.querySelector(selector)?.getAttribute('data-asset-state') === 'fallback',
+				(selector) =>
+					document.querySelector(selector)?.getAttribute('data-asset-state') === 'fallback',
 				SELECTORS.vaultkeeper,
 			);
-			const assetFallback = await page.evaluate(({ characterSelector, fallbackSelector }) => {
-				const character = document.querySelector(characterSelector);
-				const image = character?.querySelector('img');
-				const fallback = document.querySelector(fallbackSelector);
-				return {
-					assetState: character?.getAttribute('data-asset-state'),
-					imageDisplay: image ? getComputedStyle(image).display : null,
-					fallbackDisplay: fallback ? getComputedStyle(fallback).display : null,
-				};
-			}, { characterSelector: SELECTORS.vaultkeeper, fallbackSelector: SELECTORS.vaultkeeperFallback });
-			check(group, 'missing Vaultkeeper image switches to the deterministic mechanical silhouette without blocking play', assetFallback.assetState === 'fallback' && assetFallback.imageDisplay === 'none' && assetFallback.fallbackDisplay === 'block' && (await runtimeState(page)) === 'live-ready', serialize(assetFallback));
+			const assetFallback = await page.evaluate(
+				({ characterSelector, fallbackSelector }) => {
+					const character = document.querySelector(characterSelector);
+					const image = character?.querySelector('img');
+					const fallback = document.querySelector(fallbackSelector);
+					return {
+						assetState: character?.getAttribute('data-asset-state'),
+						imageDisplay: image ? getComputedStyle(image).display : null,
+						fallbackDisplay: fallback ? getComputedStyle(fallback).display : null,
+					};
+				},
+				{
+					characterSelector: SELECTORS.vaultkeeper,
+					fallbackSelector: SELECTORS.vaultkeeperFallback,
+				},
+			);
+			check(
+				group,
+				'missing Vaultkeeper image switches to the deterministic mechanical silhouette without blocking play',
+				assetFallback.assetState === 'fallback' &&
+					assetFallback.imageDisplay === 'none' &&
+					assetFallback.fallbackDisplay === 'block' &&
+					(await runtimeState(page)) === 'live-ready',
+				serialize(assetFallback),
+			);
 			record.motion = {
 				fixture: fixture.id,
 				reelStopCadence,
@@ -4558,16 +6090,31 @@ async function runNetworkScenarios(browser, origin) {
 		const group = 'base-win-tier-reactions-turbo';
 		const reactions = [
 			{
-				fixture: getGeneratedFixture('base_small'), profile: 'turbo', state: 'win_small',
-				animation: 'vaultkeeper-win-small', durationMs: 140, minimumMs: 120, maximumMs: 300,
+				fixture: getGeneratedFixture('base_small'),
+				profile: 'turbo',
+				state: 'win_small',
+				animation: 'vaultkeeper-win-small',
+				durationMs: 140,
+				minimumMs: 120,
+				maximumMs: 300,
 			},
 			{
-				fixture: getGeneratedFixture('base_win_02'), profile: 'turbo', state: 'win_big',
-				animation: 'vaultkeeper-win-big', durationMs: 420, minimumMs: 380, maximumMs: 650,
+				fixture: getGeneratedFixture('base_win_02'),
+				profile: 'turbo',
+				state: 'win_big',
+				animation: 'vaultkeeper-win-big',
+				durationMs: 420,
+				minimumMs: 380,
+				maximumMs: 650,
 			},
 			{
-				fixture: getGeneratedFixture('base_win_02'), profile: 'normal', state: 'win_big',
-				animation: 'vaultkeeper-win-big', durationMs: 1_400, minimumMs: 1_250, maximumMs: 1_800,
+				fixture: getGeneratedFixture('base_win_02'),
+				profile: 'normal',
+				state: 'win_big',
+				animation: 'vaultkeeper-win-big',
+				durationMs: 1_400,
+				minimumMs: 1_250,
+				maximumMs: 1_800,
 			},
 		];
 		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
@@ -4578,13 +6125,20 @@ async function runNetworkScenarios(browser, origin) {
 					authenticate: () => authenticateResponse(),
 					play: (request, audit) => {
 						const reaction = reactions[audit.byEndpoint.play.length - 1] ?? reactions.at(-1);
-						const expectedPayout = request.body.amount * reaction.fixture.book.payoutMultiplier / 100;
+						const expectedPayout =
+							(request.body.amount * reaction.fixture.book.payoutMultiplier) / 100;
 						return {
 							status: successStatus(),
-							balance: { amount: DEFAULT_BALANCE - request.body.amount + expectedPayout, currency: request.body.currency },
+							balance: {
+								amount: DEFAULT_BALANCE - request.body.amount + expectedPayout,
+								currency: request.body.currency,
+							},
 							round: authoritativeFixtureRound({
-								fixture: reaction.fixture, active: false, amount: request.body.amount,
-								currency: request.body.currency, id: `blacksite-qa-win-tier-${audit.byEndpoint.play.length}`,
+								fixture: reaction.fixture,
+								active: false,
+								amount: request.body.amount,
+								currency: request.body.currency,
+								id: `blacksite-qa-win-tier-${audit.byEndpoint.play.length}`,
 							}),
 						};
 					},
@@ -4594,18 +6148,26 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForEndpoint(network, 'authenticate', 1);
 			await waitForStableAction(page);
 			await page.locator(SELECTORS.motionMode).click();
-			check(group, 'tier evidence runs in the bounded Turbo profile',
+			check(
+				group,
+				'tier evidence runs in the bounded Turbo profile',
 				(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) === 'turbo',
 				String(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')),
 			);
 
 			const evidence = [];
 			for (const [index, reaction] of reactions.entries()) {
-				if ((await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) !== reaction.profile) {
+				if (
+					(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) !==
+					reaction.profile
+				) {
 					await page.locator(SELECTORS.motionMode).click();
 				}
-				check(group, `${reaction.profile} ${reaction.state} runs in its selected presentation profile`,
-					(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) === reaction.profile,
+				check(
+					group,
+					`${reaction.profile} ${reaction.state} runs in its selected presentation profile`,
+					(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) ===
+						reaction.profile,
 					String(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')),
 				);
 				await page.evaluate((selector) => {
@@ -4620,63 +6182,100 @@ async function runNetworkScenarios(browser, origin) {
 							profile: character?.getAttribute('data-motion-profile'),
 							animation: style?.animationName ?? 'none',
 							animationDurationMs: style ? Number.parseFloat(style.animationDuration) * 1_000 : 0,
-							willChange: style?.willChange ?? 'auto', at: performance.now(),
+							willChange: style?.willChange ?? 'auto',
+							at: performance.now(),
 						});
 					};
 					capture();
 					window.__blacksiteWinTierObserver = new MutationObserver(capture);
 					window.__blacksiteWinTierObserver.observe(character, {
-						attributes: true, attributeFilter: ['data-character-state', 'data-motion-profile'],
+						attributes: true,
+						attributeFilter: ['data-character-state', 'data-motion-profile'],
 					});
 				}, SELECTORS.vaultkeeper);
 				await page.locator(SELECTORS.primaryAction).click();
 				await waitForEndpoint(network, 'play', index + 1);
 				await page.waitForFunction(
-					({ selector, state }) => document.querySelector(selector)?.getAttribute('data-character-state') === state,
+					({ selector, state }) =>
+						document.querySelector(selector)?.getAttribute('data-character-state') === state,
 					{ selector: SELECTORS.vaultkeeper, state: reaction.state },
 				);
-				const screenshot = await saveScreenshot(page, `${group}-${reaction.profile}-${reaction.state}`);
+				const screenshot = await saveScreenshot(
+					page,
+					`${group}-${reaction.profile}-${reaction.state}`,
+				);
 				await waitForStableAction(page);
 				const timeline = await page.evaluate(() => window.__blacksiteWinTierCharacters);
-				const transitions = timeline.filter((entry, transitionIndex) =>
-					transitionIndex === 0 || entry.state !== timeline[transitionIndex - 1].state);
+				const transitions = timeline.filter(
+					(entry, transitionIndex) =>
+						transitionIndex === 0 || entry.state !== timeline[transitionIndex - 1].state,
+				);
 				const startIndex = transitions.findIndex(({ state }) => state === reaction.state);
 				const start = transitions[startIndex];
-				const end = startIndex >= 0
-					? transitions.slice(startIndex + 1).find(({ state }) => state !== reaction.state)
-					: null;
+				const end =
+					startIndex >= 0
+						? transitions.slice(startIndex + 1).find(({ state }) => state !== reaction.state)
+						: null;
 				const elapsedMs = start && end ? end.at - start.at : -1;
 				const finalWin = (await page.locator(SELECTORS.finalWin).innerText()).trim();
 				const expectedFinalWin = formatExactApi(
-					DEFAULT_BASE_AMOUNT * reaction.fixture.book.payoutMultiplier / 100, 'USD');
-				check(group, `${reaction.state} uses its authored semantic state and CSS clip`,
-					start?.profile === reaction.profile && start.animation.endsWith(reaction.animation) &&
+					(DEFAULT_BASE_AMOUNT * reaction.fixture.book.payoutMultiplier) / 100,
+					'USD',
+				);
+				check(
+					group,
+					`${reaction.state} uses its authored semantic state and CSS clip`,
+					start?.profile === reaction.profile &&
+						start.animation.endsWith(reaction.animation) &&
 						start.animationDurationMs === reaction.durationMs,
 					serialize({ reaction, start, timeline }),
 				);
-				check(group, `${reaction.state} remains visible through its bounded authored window`,
+				check(
+					group,
+					`${reaction.state} remains visible through its bounded authored window`,
 					elapsedMs >= reaction.minimumMs && elapsedMs <= reaction.maximumMs,
 					serialize({ reaction, elapsedMs, timeline }),
 				);
-				check(group, `${reaction.state} preserves the exact authoritative payout`,
+				check(
+					group,
+					`${reaction.state} preserves the exact authoritative payout`,
 					finalWin === expectedFinalWin,
 					serialize({ fixture: reaction.fixture.id, finalWin, expectedFinalWin }),
 				);
 				evidence.push({
-					fixture: reaction.fixture.id, profile: reaction.profile, state: reaction.state,
-					start, elapsedMs, finalWin, screenshot,
+					fixture: reaction.fixture.id,
+					profile: reaction.profile,
+					state: reaction.state,
+					start,
+					elapsedMs,
+					finalWin,
+					screenshot,
 				});
 			}
 			const turboEvidence = evidence.filter(({ profile }) => profile === 'turbo');
-			const normalBigEvidence = evidence.find(({ profile, state }) => profile === 'normal' && state === 'win_big');
-			check(group, 'Small and Big Win reactions retain their authored turbo windows',
-				turboEvidence.length === 2 && turboEvidence.every(({ elapsedMs }) => elapsedMs > 0), serialize(evidence));
-			check(group, 'normal win_big remains visible through its bounded authored window',
+			const normalBigEvidence = evidence.find(
+				({ profile, state }) => profile === 'normal' && state === 'win_big',
+			);
+			check(
+				group,
+				'Small and Big Win reactions retain their authored turbo windows',
+				turboEvidence.length === 2 && turboEvidence.every(({ elapsedMs }) => elapsedMs > 0),
+				serialize(evidence),
+			);
+			check(
+				group,
+				'normal win_big remains visible through its bounded authored window',
 				normalBigEvidence?.elapsedMs >= 1_250 && normalBigEvidence.elapsedMs <= 1_800,
-				serialize(normalBigEvidence));
-			check(group, 'tier reactions add no event or settlement writes for inactive rounds',
-				network.byEndpoint.play.length === 3 && network.byEndpoint.endRound.length === 0 &&
-					network.byEndpoint.event.length === 0, serialize(network.order));
+				serialize(normalBigEvidence),
+			);
+			check(
+				group,
+				'tier reactions add no event or settlement writes for inactive rounds',
+				network.byEndpoint.play.length === 3 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.evidence = evidence;
@@ -4691,7 +6290,7 @@ async function runNetworkScenarios(browser, origin) {
 	await runScenario('max-win-hero-timing-normal-and-turbo', async (record) => {
 		const group = 'max-win-hero-timing-normal-and-turbo';
 		const fixture = getGeneratedFixture('base_max_win');
-		const expectedPayout = DEFAULT_BASE_AMOUNT * fixture.book.payoutMultiplier / 100;
+		const expectedPayout = (DEFAULT_BASE_AMOUNT * fixture.book.payoutMultiplier) / 100;
 		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
 		try {
 			const network = await installMockRgs(context, {
@@ -4767,13 +6366,15 @@ async function runNetworkScenarios(browser, origin) {
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 1);
 			await page.waitForFunction(
-				(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'max_win',
+				(selector) =>
+					document.querySelector(selector)?.getAttribute('data-character-state') === 'max_win',
 				SELECTORS.vaultkeeper,
 				{ timeout: 15_000 },
 			);
 			const normalScreenshot = await saveScreenshot(page, `${group}-normal`);
 			await page.waitForFunction(
-				(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'recover',
+				(selector) =>
+					document.querySelector(selector)?.getAttribute('data-character-state') === 'recover',
 				SELECTORS.vaultkeeper,
 				{ timeout: 15_000 },
 			);
@@ -4783,25 +6384,34 @@ async function runNetworkScenarios(browser, origin) {
 			const normalSpinStartWindow = spinStartWindow(normalTimeline);
 			const normalWindow = heroWindow(normalTimeline);
 			const normalRecoverWindow = recoverWindow(normalTimeline);
-			check(group, 'normal max-win hero clip remains visible for its complete authored window',
+			check(
+				group,
+				'normal max-win hero clip remains visible for its complete authored window',
 				normalWindow.hero?.profile === 'normal' &&
 					normalWindow.hero.animation.endsWith('vaultkeeper-max-win') &&
 					normalWindow.hero.animationDurationMs === 1_000 &&
-					normalWindow.elapsedMs >= 900 && normalWindow.elapsedMs <= 1_400,
+					normalWindow.elapsedMs >= 900 &&
+					normalWindow.elapsedMs <= 1_400,
 				serialize({ normalWindow, normalTimeline }),
 			);
-			check(group, 'normal recovery clip remains visible for its complete authored window',
+			check(
+				group,
+				'normal recovery clip remains visible for its complete authored window',
 				normalRecoverWindow.recover?.profile === 'normal' &&
 					normalRecoverWindow.recover.animation.endsWith('vaultkeeper-feature-shift') &&
 					normalRecoverWindow.recover.animationDurationMs === 1_000 &&
-					normalRecoverWindow.elapsedMs >= 900 && normalRecoverWindow.elapsedMs <= 1_400,
+					normalRecoverWindow.elapsedMs >= 900 &&
+					normalRecoverWindow.elapsedMs <= 1_400,
 				serialize({ normalRecoverWindow, normalTimeline }),
 			);
-			check(group, 'normal spin-start reaction remains visible for its complete authored window',
+			check(
+				group,
+				'normal spin-start reaction remains visible for its complete authored window',
 				normalSpinStartWindow.spinStart?.profile === 'normal' &&
 					normalSpinStartWindow.spinStart.animation.endsWith('vaultkeeper-spin-start') &&
 					normalSpinStartWindow.spinStart.animationDurationMs === 160 &&
-					normalSpinStartWindow.elapsedMs >= 140 && normalSpinStartWindow.elapsedMs <= 400,
+					normalSpinStartWindow.elapsedMs >= 140 &&
+					normalSpinStartWindow.elapsedMs <= 400,
 				serialize({ normalSpinStartWindow, normalTimeline }),
 			);
 
@@ -4810,13 +6420,15 @@ async function runNetworkScenarios(browser, origin) {
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForEndpoint(network, 'play', 2);
 			await page.waitForFunction(
-				(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'max_win',
+				(selector) =>
+					document.querySelector(selector)?.getAttribute('data-character-state') === 'max_win',
 				SELECTORS.vaultkeeper,
 				{ timeout: 15_000 },
 			);
 			const turboScreenshot = await saveScreenshot(page, `${group}-turbo`);
 			await page.waitForFunction(
-				(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'recover',
+				(selector) =>
+					document.querySelector(selector)?.getAttribute('data-character-state') === 'recover',
 				SELECTORS.vaultkeeper,
 				{ timeout: 15_000 },
 			);
@@ -4826,34 +6438,49 @@ async function runNetworkScenarios(browser, origin) {
 			const turboSpinStartWindow = spinStartWindow(turboTimeline);
 			const turboWindow = heroWindow(turboTimeline);
 			const turboRecoverWindow = recoverWindow(turboTimeline);
-			check(group, 'turbo max-win hero clip remains visible for its complete authored window',
+			check(
+				group,
+				'turbo max-win hero clip remains visible for its complete authored window',
 				turboWindow.hero?.profile === 'turbo' &&
 					turboWindow.hero.animation.endsWith('vaultkeeper-max-win') &&
 					turboWindow.hero.animationDurationMs === 360 &&
-					turboWindow.elapsedMs >= 320 && turboWindow.elapsedMs <= 650,
+					turboWindow.elapsedMs >= 320 &&
+					turboWindow.elapsedMs <= 650,
 				serialize({ turboWindow, turboTimeline }),
 			);
-			check(group, 'turbo recovery clip remains visible for its complete authored window',
+			check(
+				group,
+				'turbo recovery clip remains visible for its complete authored window',
 				turboRecoverWindow.recover?.profile === 'turbo' &&
 					turboRecoverWindow.recover.animation.endsWith('vaultkeeper-feature-shift') &&
 					turboRecoverWindow.recover.animationDurationMs === 360 &&
-					turboRecoverWindow.elapsedMs >= 320 && turboRecoverWindow.elapsedMs <= 650,
+					turboRecoverWindow.elapsedMs >= 320 &&
+					turboRecoverWindow.elapsedMs <= 650,
 				serialize({ turboRecoverWindow, turboTimeline }),
 			);
-			check(group, 'turbo spin-start reaction remains visible for its complete authored window',
+			check(
+				group,
+				'turbo spin-start reaction remains visible for its complete authored window',
 				turboSpinStartWindow.spinStart?.profile === 'turbo' &&
 					turboSpinStartWindow.spinStart.animation.endsWith('vaultkeeper-spin-start') &&
 					turboSpinStartWindow.spinStart.animationDurationMs === 110 &&
-					turboSpinStartWindow.elapsedMs >= 95 && turboSpinStartWindow.elapsedMs <= 300,
+					turboSpinStartWindow.elapsedMs >= 95 &&
+					turboSpinStartWindow.elapsedMs <= 300,
 				serialize({ turboSpinStartWindow, turboTimeline }),
 			);
-			check(group, 'both max-win paths preserve exact payout authority and clean readiness',
-				(await page.locator(SELECTORS.finalWin).innerText()).trim() === formatExactApi(expectedPayout, 'USD') &&
+			check(
+				group,
+				'both max-win paths preserve exact payout authority and clean readiness',
+				(await page.locator(SELECTORS.finalWin).innerText()).trim() ===
+					formatExactApi(expectedPayout, 'USD') &&
 					(await runtimeState(page)) === 'live-ready' &&
 					network.byEndpoint.play.length === 2 &&
 					network.byEndpoint.endRound.length === 0 &&
 					network.byEndpoint.event.length === 0,
-				serialize({ finalWin: await page.locator(SELECTORS.finalWin).innerText(), order: network.order }),
+				serialize({
+					finalWin: await page.locator(SELECTORS.finalWin).innerText(),
+					order: network.order,
+				}),
 			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
@@ -4885,7 +6512,7 @@ async function runNetworkScenarios(browser, origin) {
 	await runScenario('feature-tease-timing-normal-and-turbo', async (record) => {
 		const group = 'feature-tease-timing-normal-and-turbo';
 		const fixture = getGeneratedFixture('base_natural_blackout');
-		const expectedPayout = DEFAULT_BASE_AMOUNT * fixture.book.payoutMultiplier / 100;
+		const expectedPayout = (DEFAULT_BASE_AMOUNT * fixture.book.payoutMultiplier) / 100;
 		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
 		try {
 			const network = await installMockRgs(context, {
@@ -4895,7 +6522,9 @@ async function runNetworkScenarios(browser, origin) {
 					play: (request, audit) => ({
 						status: successStatus(),
 						balance: {
-							amount: DEFAULT_BALANCE + audit.byEndpoint.play.length * (expectedPayout - DEFAULT_BASE_AMOUNT),
+							amount:
+								DEFAULT_BALANCE +
+								audit.byEndpoint.play.length * (expectedPayout - DEFAULT_BASE_AMOUNT),
 							currency: 'USD',
 						},
 						round: authoritativeFixtureRound({
@@ -4913,34 +6542,41 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForStableAction(page);
 
 			const installTimeline = async () => {
-				await page.evaluate(({ boardSelector, characterSelector }) => {
-					window.__blacksiteFeatureTeaseTimeline = [];
-					window.__blacksiteFeatureTeaseObserver?.disconnect();
-					const board = document.querySelector(boardSelector);
-					const boardFrame = board?.closest('.board-frame');
-					const character = document.querySelector(characterSelector);
-					const capture = () => {
-						const image = character?.querySelector('img');
-						const characterStyle = image ? getComputedStyle(image) : null;
-						const lockStyle = boardFrame ? getComputedStyle(boardFrame, '::before') : null;
-						window.__blacksiteFeatureTeaseTimeline.push({
-							state: character?.getAttribute('data-character-state'),
-							profile: character?.getAttribute('data-motion-profile'),
-							animation: characterStyle?.animationName ?? 'none',
-							animationDurationMs: characterStyle ? Number.parseFloat(characterStyle.animationDuration) * 1_000 : 0,
-							boardPhase: board?.getAttribute('data-motion-phase'),
-							lockAnimation: lockStyle?.animationName ?? 'none',
-							lockAnimationDurationMs: lockStyle ? Number.parseFloat(lockStyle.animationDuration) * 1_000 : 0,
-							at: performance.now(),
+				await page.evaluate(
+					({ boardSelector, characterSelector }) => {
+						window.__blacksiteFeatureTeaseTimeline = [];
+						window.__blacksiteFeatureTeaseObserver?.disconnect();
+						const board = document.querySelector(boardSelector);
+						const boardFrame = board?.closest('.board-frame');
+						const character = document.querySelector(characterSelector);
+						const capture = () => {
+							const image = character?.querySelector('img');
+							const characterStyle = image ? getComputedStyle(image) : null;
+							const lockStyle = boardFrame ? getComputedStyle(boardFrame, '::before') : null;
+							window.__blacksiteFeatureTeaseTimeline.push({
+								state: character?.getAttribute('data-character-state'),
+								profile: character?.getAttribute('data-motion-profile'),
+								animation: characterStyle?.animationName ?? 'none',
+								animationDurationMs: characterStyle
+									? Number.parseFloat(characterStyle.animationDuration) * 1_000
+									: 0,
+								boardPhase: board?.getAttribute('data-motion-phase'),
+								lockAnimation: lockStyle?.animationName ?? 'none',
+								lockAnimationDurationMs: lockStyle
+									? Number.parseFloat(lockStyle.animationDuration) * 1_000
+									: 0,
+								at: performance.now(),
+							});
+						};
+						capture();
+						window.__blacksiteFeatureTeaseObserver = new MutationObserver(capture);
+						window.__blacksiteFeatureTeaseObserver.observe(character, {
+							attributes: true,
+							attributeFilter: ['data-character-state', 'data-motion-profile'],
 						});
-					};
-					capture();
-					window.__blacksiteFeatureTeaseObserver = new MutationObserver(capture);
-					window.__blacksiteFeatureTeaseObserver.observe(character, {
-						attributes: true,
-						attributeFilter: ['data-character-state', 'data-motion-profile'],
-					});
-				}, { boardSelector: SELECTORS.board, characterSelector: SELECTORS.vaultkeeper });
+					},
+					{ boardSelector: SELECTORS.board, characterSelector: SELECTORS.vaultkeeper },
+				);
 			};
 			const readTimeline = () => page.evaluate(() => window.__blacksiteFeatureTeaseTimeline);
 			const teaseWindow = (timeline) => {
@@ -4954,13 +6590,17 @@ async function runNetworkScenarios(browser, origin) {
 				await page.locator(SELECTORS.primaryAction).click();
 				await waitForEndpoint(network, 'play', profile === 'normal' ? 1 : 2);
 				await page.waitForFunction(
-					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'feature_tease',
+					(selector) =>
+						document.querySelector(selector)?.getAttribute('data-character-state') ===
+						'feature_tease',
 					SELECTORS.vaultkeeper,
 					{ timeout: 15_000 },
 				);
 				const screenshot = await saveScreenshot(page, `${group}-${profile}`);
 				await page.waitForFunction(
-					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'feature_trigger',
+					(selector) =>
+						document.querySelector(selector)?.getAttribute('data-character-state') ===
+						'feature_trigger',
 					SELECTORS.vaultkeeper,
 					{ timeout: 15_000 },
 				);
@@ -4971,27 +6611,33 @@ async function runNetworkScenarios(browser, origin) {
 			};
 
 			const normal = await playFeatureTease('normal');
-			check(group, 'normal feature tease remains visible for its complete authored window',
+			check(
+				group,
+				'normal feature tease remains visible for its complete authored window',
 				normal.window.tease?.profile === 'normal' &&
 					normal.window.tease.animation.endsWith('vaultkeeper-feature-tease') &&
 					normal.window.tease.animationDurationMs === 600 &&
 					normal.window.tease.boardPhase === 'anticipation' &&
 					normal.window.tease.lockAnimation.endsWith('lock-anticipation') &&
 					normal.window.tease.lockAnimationDurationMs === 600 &&
-					normal.window.elapsedMs >= 540 && normal.window.elapsedMs <= 900,
+					normal.window.elapsedMs >= 540 &&
+					normal.window.elapsedMs <= 900,
 				serialize(normal),
 			);
 
 			await page.locator(SELECTORS.motionMode).click();
 			const turbo = await playFeatureTease('turbo');
-			check(group, 'turbo feature tease remains visible for its complete authored window',
+			check(
+				group,
+				'turbo feature tease remains visible for its complete authored window',
 				turbo.window.tease?.profile === 'turbo' &&
 					turbo.window.tease.animation.endsWith('vaultkeeper-feature-tease') &&
 					turbo.window.tease.animationDurationMs === 180 &&
 					turbo.window.tease.boardPhase === 'anticipation' &&
 					turbo.window.tease.lockAnimation.endsWith('lock-anticipation') &&
 					turbo.window.tease.lockAnimationDurationMs === 180 &&
-					turbo.window.elapsedMs >= 155 && turbo.window.elapsedMs <= 400,
+					turbo.window.elapsedMs >= 155 &&
+					turbo.window.elapsedMs <= 400,
 				serialize(turbo),
 			);
 			for (const request of network.byEndpoint.play) {
@@ -5006,13 +6652,19 @@ async function runNetworkScenarios(browser, origin) {
 					},
 				});
 			}
-			check(group, 'both feature-tease paths preserve payout authority and clean readiness',
-				(await page.locator(SELECTORS.finalWin).innerText()).trim() === formatExactApi(expectedPayout, 'USD') &&
+			check(
+				group,
+				'both feature-tease paths preserve payout authority and clean readiness',
+				(await page.locator(SELECTORS.finalWin).innerText()).trim() ===
+					formatExactApi(expectedPayout, 'USD') &&
 					(await runtimeState(page)) === 'live-ready' &&
 					network.byEndpoint.play.length === 2 &&
 					network.byEndpoint.endRound.length === 0 &&
 					network.byEndpoint.event.length === 0,
-				serialize({ finalWin: await page.locator(SELECTORS.finalWin).innerText(), order: network.order }),
+				serialize({
+					finalWin: await page.locator(SELECTORS.finalWin).innerText(),
+					order: network.order,
+				}),
 			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
@@ -5057,56 +6709,59 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForStableAction(page);
 
 			const installTimeline = async () => {
-				await page.evaluate(({ boardSelector, characterSelector }) => {
-					window.__blacksiteRevealTimeline = [];
-					window.__blacksiteLossTimeline = [];
-					window.__blacksiteRevealObserver?.disconnect();
-					window.__blacksiteLossObserver?.disconnect();
-					const board = document.querySelector(boardSelector);
-					const character = document.querySelector(characterSelector);
-					const readMilliseconds = (value) => Number.parseFloat(value) * 1_000;
-					const captureReveal = () => {
-						const cells = [...(board?.querySelectorAll('.cell') ?? [])];
-						const firstStyle = cells[0] ? getComputedStyle(cells[0]) : null;
-						const lastStyle = cells.at(-1) ? getComputedStyle(cells.at(-1)) : null;
-						window.__blacksiteRevealTimeline.push({
-							phase: board?.getAttribute('data-motion-phase'),
-							profile: board?.getAttribute('data-motion-profile'),
-							cellCount: cells.length,
-							firstAnimation: firstStyle?.animationName ?? 'none',
-							firstDurationMs: firstStyle ? readMilliseconds(firstStyle.animationDuration) : 0,
-							firstDelayMs: firstStyle ? readMilliseconds(firstStyle.animationDelay) : 0,
-							lastAnimation: lastStyle?.animationName ?? 'none',
-							lastDurationMs: lastStyle ? readMilliseconds(lastStyle.animationDuration) : 0,
-							lastDelayMs: lastStyle ? readMilliseconds(lastStyle.animationDelay) : 0,
-							at: performance.now(),
+				await page.evaluate(
+					({ boardSelector, characterSelector }) => {
+						window.__blacksiteRevealTimeline = [];
+						window.__blacksiteLossTimeline = [];
+						window.__blacksiteRevealObserver?.disconnect();
+						window.__blacksiteLossObserver?.disconnect();
+						const board = document.querySelector(boardSelector);
+						const character = document.querySelector(characterSelector);
+						const readMilliseconds = (value) => Number.parseFloat(value) * 1_000;
+						const captureReveal = () => {
+							const cells = [...(board?.querySelectorAll('.cell') ?? [])];
+							const firstStyle = cells[0] ? getComputedStyle(cells[0]) : null;
+							const lastStyle = cells.at(-1) ? getComputedStyle(cells.at(-1)) : null;
+							window.__blacksiteRevealTimeline.push({
+								phase: board?.getAttribute('data-motion-phase'),
+								profile: board?.getAttribute('data-motion-profile'),
+								cellCount: cells.length,
+								firstAnimation: firstStyle?.animationName ?? 'none',
+								firstDurationMs: firstStyle ? readMilliseconds(firstStyle.animationDuration) : 0,
+								firstDelayMs: firstStyle ? readMilliseconds(firstStyle.animationDelay) : 0,
+								lastAnimation: lastStyle?.animationName ?? 'none',
+								lastDurationMs: lastStyle ? readMilliseconds(lastStyle.animationDuration) : 0,
+								lastDelayMs: lastStyle ? readMilliseconds(lastStyle.animationDelay) : 0,
+								at: performance.now(),
+							});
+						};
+						const captureLoss = () => {
+							const image = character?.querySelector('img');
+							const style = image ? getComputedStyle(image) : null;
+							window.__blacksiteLossTimeline.push({
+								state: character?.getAttribute('data-character-state'),
+								profile: character?.getAttribute('data-motion-profile'),
+								animation: style?.animationName ?? 'none',
+								animationDurationMs: style ? readMilliseconds(style.animationDuration) : 0,
+								willChange: style?.willChange ?? 'auto',
+								at: performance.now(),
+							});
+						};
+						captureReveal();
+						captureLoss();
+						window.__blacksiteRevealObserver = new MutationObserver(captureReveal);
+						window.__blacksiteRevealObserver.observe(board, {
+							attributes: true,
+							attributeFilter: ['data-motion-phase', 'data-motion-profile'],
 						});
-					};
-					const captureLoss = () => {
-						const image = character?.querySelector('img');
-						const style = image ? getComputedStyle(image) : null;
-						window.__blacksiteLossTimeline.push({
-							state: character?.getAttribute('data-character-state'),
-							profile: character?.getAttribute('data-motion-profile'),
-							animation: style?.animationName ?? 'none',
-							animationDurationMs: style ? readMilliseconds(style.animationDuration) : 0,
-							willChange: style?.willChange ?? 'auto',
-							at: performance.now(),
+						window.__blacksiteLossObserver = new MutationObserver(captureLoss);
+						window.__blacksiteLossObserver.observe(character, {
+							attributes: true,
+							attributeFilter: ['data-character-state', 'data-motion-profile'],
 						});
-					};
-					captureReveal();
-					captureLoss();
-					window.__blacksiteRevealObserver = new MutationObserver(captureReveal);
-					window.__blacksiteRevealObserver.observe(board, {
-						attributes: true,
-						attributeFilter: ['data-motion-phase', 'data-motion-profile'],
-					});
-					window.__blacksiteLossObserver = new MutationObserver(captureLoss);
-					window.__blacksiteLossObserver.observe(character, {
-						attributes: true,
-						attributeFilter: ['data-character-state', 'data-motion-profile'],
-					});
-				}, { boardSelector: SELECTORS.board, characterSelector: SELECTORS.vaultkeeper });
+					},
+					{ boardSelector: SELECTORS.board, characterSelector: SELECTORS.vaultkeeper },
+				);
 			};
 			const revealWindow = (timeline) => {
 				const revealIndex = timeline.findIndex(({ phase }) => phase === 'reveal');
@@ -5122,7 +6777,9 @@ async function runNetworkScenarios(browser, origin) {
 			const lossWindow = (timeline) => {
 				const lossIndex = timeline.findIndex(({ state }) => state === 'loss_acknowledge');
 				const loss = timeline[lossIndex];
-				const exit = timeline.slice(lossIndex + 1).find(({ state }) => state !== 'loss_acknowledge');
+				const exit = timeline
+					.slice(lossIndex + 1)
+					.find(({ state }) => state !== 'loss_acknowledge');
 				return { loss, exit, elapsedMs: loss && exit ? exit.at - loss.at : -1 };
 			};
 			const playReveal = async (profile) => {
@@ -5130,12 +6787,15 @@ async function runNetworkScenarios(browser, origin) {
 				await page.locator(SELECTORS.primaryAction).click();
 				await waitForEndpoint(network, 'play', profile === 'normal' ? 1 : 2);
 				await page.waitForFunction(
-					(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'reveal',
+					(selector) =>
+						document.querySelector(selector)?.getAttribute('data-motion-phase') === 'reveal',
 					SELECTORS.board,
 					{ timeout: 10_000 },
 				);
 				await page.waitForFunction(
-					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'loss_acknowledge',
+					(selector) =>
+						document.querySelector(selector)?.getAttribute('data-character-state') ===
+						'loss_acknowledge',
 					SELECTORS.vaultkeeper,
 					{ timeout: 10_000 },
 				);
@@ -5157,7 +6817,9 @@ async function runNetworkScenarios(browser, origin) {
 			};
 
 			const normal = await playReveal('normal');
-			check(group, 'normal board reveal retains every staggered cell through its authored window',
+			check(
+				group,
+				'normal board reveal retains every staggered cell through its authored window',
 				normal.window.reveal?.profile === 'normal' &&
 					normal.window.reveal.cellCount === 49 &&
 					normal.window.reveal.firstAnimation.endsWith('board-reveal') &&
@@ -5167,16 +6829,20 @@ async function runNetworkScenarios(browser, origin) {
 					normal.window.reveal.lastDurationMs === 180 &&
 					normal.window.reveal.lastDelayMs === 156 &&
 					normal.window.elapsedMs + 8 >= normal.window.lastCellEndMs &&
-					normal.window.elapsedMs >= 330 && normal.window.elapsedMs <= 520,
+					normal.window.elapsedMs >= 330 &&
+					normal.window.elapsedMs <= 520,
 				serialize(normal),
 			);
-			check(group, 'normal zero-win Vaultkeeper loss acknowledgement completes its authored window',
+			check(
+				group,
+				'normal zero-win Vaultkeeper loss acknowledgement completes its authored window',
 				normal.lossWindow.loss?.profile === 'normal' &&
 					normal.lossWindow.loss.animation.endsWith('vaultkeeper-loss-acknowledge') &&
 					normal.lossWindow.loss.animationDurationMs === 320 &&
 					normal.lossWindow.loss.willChange.includes('transform') &&
 					normal.lossWindow.loss.willChange.includes('filter') &&
-					normal.lossWindow.elapsedMs >= 290 && normal.lossWindow.elapsedMs <= 550 &&
+					normal.lossWindow.elapsedMs >= 290 &&
+					normal.lossWindow.elapsedMs <= 550 &&
 					normal.lossWindow.exit?.state === 'idle_a' &&
 					normal.lossWindow.exit.willChange === 'auto',
 				serialize(normal.lossWindow),
@@ -5184,7 +6850,9 @@ async function runNetworkScenarios(browser, origin) {
 
 			await page.locator(SELECTORS.motionMode).click();
 			const turbo = await playReveal('turbo');
-			check(group, 'turbo board reveal retains every staggered cell through its authored window',
+			check(
+				group,
+				'turbo board reveal retains every staggered cell through its authored window',
 				turbo.window.reveal?.profile === 'turbo' &&
 					turbo.window.reveal.cellCount === 49 &&
 					turbo.window.reveal.firstAnimation.endsWith('board-reveal') &&
@@ -5194,16 +6862,20 @@ async function runNetworkScenarios(browser, origin) {
 					turbo.window.reveal.lastDurationMs === 70 &&
 					turbo.window.reveal.lastDelayMs === 54 &&
 					turbo.window.elapsedMs + 8 >= turbo.window.lastCellEndMs &&
-					turbo.window.elapsedMs >= 118 && turbo.window.elapsedMs <= 260,
+					turbo.window.elapsedMs >= 118 &&
+					turbo.window.elapsedMs <= 260,
 				serialize(turbo),
 			);
-			check(group, 'turbo zero-win Vaultkeeper loss acknowledgement completes its authored window',
+			check(
+				group,
+				'turbo zero-win Vaultkeeper loss acknowledgement completes its authored window',
 				turbo.lossWindow.loss?.profile === 'turbo' &&
 					turbo.lossWindow.loss.animation.endsWith('vaultkeeper-loss-acknowledge') &&
 					turbo.lossWindow.loss.animationDurationMs === 130 &&
 					turbo.lossWindow.loss.willChange.includes('transform') &&
 					turbo.lossWindow.loss.willChange.includes('filter') &&
-					turbo.lossWindow.elapsedMs >= 115 && turbo.lossWindow.elapsedMs <= 320 &&
+					turbo.lossWindow.elapsedMs >= 115 &&
+					turbo.lossWindow.elapsedMs <= 320 &&
 					turbo.lossWindow.exit?.state === 'idle_a' &&
 					turbo.lossWindow.exit.willChange === 'auto',
 				serialize(turbo.lossWindow),
@@ -5220,7 +6892,9 @@ async function runNetworkScenarios(browser, origin) {
 					},
 				});
 			}
-			check(group, 'both reveal paths preserve zero-win authority and clean readiness',
+			check(
+				group,
+				'both reveal paths preserve zero-win authority and clean readiness',
 				(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00' &&
 					(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$998.00' &&
 					(await runtimeState(page)) === 'live-ready' &&
@@ -5319,13 +6993,16 @@ async function runNetworkScenarios(browser, origin) {
 				await dialog.getByRole('button', { name: /^CONFIRM$/i }).click();
 				await waitForEndpoint(network, 'play', profile === 'normal' ? 1 : 2);
 				await page.waitForFunction(
-					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'feature_trigger',
+					(selector) =>
+						document.querySelector(selector)?.getAttribute('data-character-state') ===
+						'feature_trigger',
 					SELECTORS.vaultkeeper,
 					{ timeout: 15_000 },
 				);
 				const triggerScreenshot = await saveScreenshot(page, `${group}-${profile}-trigger`);
 				await page.waitForFunction(
-					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'recover',
+					(selector) =>
+						document.querySelector(selector)?.getAttribute('data-character-state') === 'recover',
 					SELECTORS.vaultkeeper,
 					{ timeout: 15_000 },
 				);
@@ -5342,35 +7019,47 @@ async function runNetworkScenarios(browser, origin) {
 			};
 
 			const normal = await playBlackout('normal');
-			check(group, 'normal BLACKOUT trigger remains visible for its complete authored window',
+			check(
+				group,
+				'normal BLACKOUT trigger remains visible for its complete authored window',
 				normal.triggerWindow.active?.profile === 'normal' &&
 					normal.triggerWindow.active.animation.endsWith('vaultkeeper-feature-shift') &&
 					normal.triggerWindow.active.animationDurationMs === 1_000 &&
-					normal.triggerWindow.elapsedMs >= 900 && normal.triggerWindow.elapsedMs <= 1_400,
+					normal.triggerWindow.elapsedMs >= 900 &&
+					normal.triggerWindow.elapsedMs <= 1_400,
 				serialize(normal),
 			);
-			check(group, 'normal BLACKOUT recovery remains visible for its complete authored window',
+			check(
+				group,
+				'normal BLACKOUT recovery remains visible for its complete authored window',
 				normal.recoverWindow.active?.profile === 'normal' &&
 					normal.recoverWindow.active.animation.endsWith('vaultkeeper-feature-shift') &&
 					normal.recoverWindow.active.animationDurationMs === 1_000 &&
-					normal.recoverWindow.elapsedMs >= 900 && normal.recoverWindow.elapsedMs <= 1_400,
+					normal.recoverWindow.elapsedMs >= 900 &&
+					normal.recoverWindow.elapsedMs <= 1_400,
 				serialize(normal),
 			);
 
 			await page.locator(SELECTORS.motionMode).click();
 			const turbo = await playBlackout('turbo');
-			check(group, 'turbo BLACKOUT trigger remains visible for its complete authored window',
+			check(
+				group,
+				'turbo BLACKOUT trigger remains visible for its complete authored window',
 				turbo.triggerWindow.active?.profile === 'turbo' &&
 					turbo.triggerWindow.active.animation.endsWith('vaultkeeper-feature-shift') &&
 					turbo.triggerWindow.active.animationDurationMs === 360 &&
-					turbo.triggerWindow.elapsedMs >= 320 && turbo.triggerWindow.elapsedMs <= 650,
+					turbo.triggerWindow.elapsedMs >= 320 &&
+					turbo.triggerWindow.elapsedMs <= 650,
 				serialize(turbo),
 			);
-			check(group, 'turbo BLACKOUT recovery remains visible for its complete authored window',
+			check(
+				group,
+				'turbo BLACKOUT recovery remains visible for its complete authored window',
 				turbo.recoverWindow.active?.profile === 'turbo' &&
 					turbo.recoverWindow.active.animation.endsWith('vaultkeeper-feature-shift') &&
 					turbo.recoverWindow.active.animationDurationMs === 360 &&
-					turbo.recoverWindow.elapsedMs >= 320 && turbo.recoverWindow.elapsedMs <= 650,
+					turbo.recoverWindow.elapsedMs >= 320 &&
+					turbo.recoverWindow.elapsedMs <= 650,
 				serialize(turbo),
 			);
 			for (const request of network.byEndpoint.play) {
@@ -5385,13 +7074,18 @@ async function runNetworkScenarios(browser, origin) {
 					},
 				});
 			}
-			check(group, 'both BLACKOUT timing paths preserve exact authority and clean readiness',
+			check(
+				group,
+				'both BLACKOUT timing paths preserve exact authority and clean readiness',
 				(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00' &&
 					(await runtimeState(page)) === 'live-ready' &&
 					network.byEndpoint.play.length === 2 &&
 					network.byEndpoint.endRound.length === 0 &&
 					network.byEndpoint.event.length === 0,
-				serialize({ finalWin: await page.locator(SELECTORS.finalWin).innerText(), order: network.order }),
+				serialize({
+					finalWin: await page.locator(SELECTORS.finalWin).innerText(),
+					order: network.order,
+				}),
 			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
@@ -5436,10 +7130,11 @@ async function runNetworkScenarios(browser, origin) {
 			await page.evaluate((selector) => {
 				const board = document.querySelector(selector);
 				window.__blacksiteFeaturePhases = [];
-				const capture = () => window.__blacksiteFeaturePhases.push({
-					phase: board?.getAttribute('data-motion-phase'),
-					at: performance.now(),
-				});
+				const capture = () =>
+					window.__blacksiteFeaturePhases.push({
+						phase: board?.getAttribute('data-motion-phase'),
+						at: performance.now(),
+					});
 				capture();
 				window.__blacksiteFeatureObserver = new MutationObserver(capture);
 				window.__blacksiteFeatureObserver.observe(board, {
@@ -5455,7 +7150,8 @@ async function runNetworkScenarios(browser, origin) {
 			await dialog.getByRole('button', { name: /^CONFIRM$/i }).click();
 			await waitForEndpoint(network, 'play', 1);
 			await page.waitForFunction(
-				(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'blackout-enter',
+				(selector) =>
+					document.querySelector(selector)?.getAttribute('data-motion-phase') === 'blackout-enter',
 				SELECTORS.board,
 			);
 			const activeTransition = await page.evaluate(() => {
@@ -5470,12 +7166,17 @@ async function runNetworkScenarios(browser, origin) {
 					environmentWillChange: environmentStyle.willChange,
 				};
 			});
-			check(group, 'authoritative feature_started visibly engages the mechanical vault transition',
+			check(
+				group,
+				'authoritative feature_started visibly engages the mechanical vault transition',
 				activeTransition.phase === 'blackout-enter' &&
-				activeTransition.lockAnimation.endsWith('lock-engage') &&
-				activeTransition.shutterAnimation.endsWith('blackout-shutter') &&
-				activeTransition.environmentAnimation.endsWith('environment-lock-pulse') &&
-				activeTransition.environmentWillChange.split(',').map((value) => value.trim()).includes('opacity'),
+					activeTransition.lockAnimation.endsWith('lock-engage') &&
+					activeTransition.shutterAnimation.endsWith('blackout-shutter') &&
+					activeTransition.environmentAnimation.endsWith('environment-lock-pulse') &&
+					activeTransition.environmentWillChange
+						.split(',')
+						.map((value) => value.trim())
+						.includes('opacity'),
 				serialize(activeTransition),
 			);
 			record.transitionScreenshot = await saveScreenshot(page, group);
@@ -5483,20 +7184,31 @@ async function runNetworkScenarios(browser, origin) {
 			const framePacing = await stopFrameSampler(page, 'blackout-transition');
 			const phases = await page.evaluate(() => window.__blacksiteFeaturePhases);
 			const phaseNames = phases.map(({ phase }) => phase);
-			check(group, 'the feature lifecycle traverses authoritative entry, reveal and exit phases',
+			check(
+				group,
+				'the feature lifecycle traverses authoritative entry, reveal and exit phases',
 				['blackout-enter', 'reveal', 'blackout-exit'].every((phase) => phaseNames.includes(phase)),
 				serialize(phases),
 			);
-			check(group, 'normal BLACKOUT transition has no sustained frame-pacing stalls',
-				framePacing.samples >= 20 && framePacing.percentile95Ms <= 50 && framePacing.over50Ms <= Math.max(2, Math.ceil(framePacing.samples * 0.05)),
+			check(
+				group,
+				'normal BLACKOUT transition has no sustained frame-pacing stalls',
+				framePacing.samples >= 20 &&
+					framePacing.percentile95Ms <= 50 &&
+					framePacing.over50Ms <= Math.max(2, Math.ceil(framePacing.samples * 0.05)),
 				serialize(framePacing),
 			);
-			check(group, 'vault transition preserves the exact zero payout and one paid request',
+			check(
+				group,
+				'vault transition preserves the exact zero payout and one paid request',
 				(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00' &&
-				network.byEndpoint.play.length === 1 &&
-				network.byEndpoint.endRound.length === 0 &&
-				network.byEndpoint.event.length === 0,
-				serialize({ finalWin: await page.locator(SELECTORS.finalWin).innerText(), order: network.order }),
+					network.byEndpoint.play.length === 1 &&
+					network.byEndpoint.endRound.length === 0 &&
+					network.byEndpoint.event.length === 0,
+				serialize({
+					finalWin: await page.locator(SELECTORS.finalWin).innerText(),
+					order: network.order,
+				}),
 			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
@@ -5540,9 +7252,16 @@ async function runNetworkScenarios(browser, origin) {
 		await runScenario(featureCase.scenario, async (record) => {
 			const group = featureCase.scenario;
 			const fixture = getGeneratedFixture(featureCase.fixtureId);
-			const expectedPayout = DEFAULT_BASE_AMOUNT * fixture.book.payoutMultiplier / 100;
-			const expectedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT * featureCase.cost + expectedPayout;
-			const expectedEventTypes = ['feature_armed', 'feature_start', 'feature_cycle', 'feature_end', 'round_end'];
+			const expectedPayout = (DEFAULT_BASE_AMOUNT * fixture.book.payoutMultiplier) / 100;
+			const expectedBalance =
+				DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT * featureCase.cost + expectedPayout;
+			const expectedEventTypes = [
+				'feature_armed',
+				'feature_start',
+				'feature_cycle',
+				'feature_end',
+				'round_end',
+			];
 			const eventTypes = fixture.book.events.map(({ type }) => type);
 			let previousEventIndex = -1;
 			const exactFixtureLifecycle = expectedEventTypes.every((type) => {
@@ -5550,7 +7269,9 @@ async function runNetworkScenarios(browser, origin) {
 				previousEventIndex = index;
 				return index >= 0;
 			});
-			check(group, 'math-backed fixture contains the ordered feature lifecycle through round_end',
+			check(
+				group,
+				'math-backed fixture contains the ordered feature lifecycle through round_end',
 				exactFixtureLifecycle && fixture.mode === featureCase.mode,
 				serialize({ fixture: fixture.id, mode: fixture.mode, eventTypes }),
 			);
@@ -5584,61 +7305,75 @@ async function runNetworkScenarios(browser, origin) {
 					await page.locator(SELECTORS.motionMode).click();
 				}
 				const expectedMotionPressed = String(featureCase.timingProfile === 'turbo');
-				check(group, `live feature proof uses the bounded ${featureCase.timingProfile} presentation profile`,
-					(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) === featureCase.timingProfile &&
-						(await page.locator(SELECTORS.motionMode).getAttribute('aria-pressed')) === expectedMotionPressed,
+				check(
+					group,
+					`live feature proof uses the bounded ${featureCase.timingProfile} presentation profile`,
+					(await page.locator(SELECTORS.board).getAttribute('data-motion-profile')) ===
+						featureCase.timingProfile &&
+						(await page.locator(SELECTORS.motionMode).getAttribute('aria-pressed')) ===
+							expectedMotionPressed,
 					serialize({
 						profile: await page.locator(SELECTORS.board).getAttribute('data-motion-profile'),
 						pressed: await page.locator(SELECTORS.motionMode).getAttribute('aria-pressed'),
 					}),
 				);
-				await page.evaluate(({ boardSelector, characterSelector }) => {
-					const board = document.querySelector(boardSelector);
-					const character = document.querySelector(characterSelector);
-					window.__blacksiteLiveFeaturePhases = [];
-					window.__blacksiteLiveFeatureCharacters = [];
-					const captureBoard = () => window.__blacksiteLiveFeaturePhases.push({
-						phase: board?.getAttribute('data-motion-phase'),
-						at: performance.now(),
-					});
-					const captureCharacter = () => window.__blacksiteLiveFeatureCharacters.push({
-						state: character?.getAttribute('data-character-state'),
-						profile: character?.getAttribute('data-motion-profile'),
-						animation: character?.querySelector('img')
-							? getComputedStyle(character.querySelector('img')).animationName
-							: 'none',
-						animationDurationMs: character?.querySelector('img')
-							? Number.parseFloat(getComputedStyle(character.querySelector('img')).animationDuration) * 1_000
-							: 0,
-						willChange: character?.querySelector('img')
-							? getComputedStyle(character.querySelector('img')).willChange
-							: 'auto',
-						transform: character?.querySelector('img')
-							? getComputedStyle(character.querySelector('img')).transform
-							: 'none',
-						filter: character?.querySelector('img')
-							? getComputedStyle(character.querySelector('img')).filter
-							: 'none',
-						at: performance.now(),
-					});
-					captureBoard();
-					captureCharacter();
-					window.__blacksiteLiveFeatureBoardObserver = new MutationObserver(captureBoard);
-					window.__blacksiteLiveFeatureCharacterObserver = new MutationObserver(captureCharacter);
-					window.__blacksiteLiveFeatureBoardObserver.observe(board, {
-						attributes: true,
-						attributeFilter: ['data-motion-phase'],
-					});
-					window.__blacksiteLiveFeatureCharacterObserver.observe(character, {
-						attributes: true,
-						attributeFilter: ['data-character-state'],
-					});
-				}, { boardSelector: SELECTORS.board, characterSelector: SELECTORS.vaultkeeper });
+				await page.evaluate(
+					({ boardSelector, characterSelector }) => {
+						const board = document.querySelector(boardSelector);
+						const character = document.querySelector(characterSelector);
+						window.__blacksiteLiveFeaturePhases = [];
+						window.__blacksiteLiveFeatureCharacters = [];
+						const captureBoard = () =>
+							window.__blacksiteLiveFeaturePhases.push({
+								phase: board?.getAttribute('data-motion-phase'),
+								at: performance.now(),
+							});
+						const captureCharacter = () =>
+							window.__blacksiteLiveFeatureCharacters.push({
+								state: character?.getAttribute('data-character-state'),
+								profile: character?.getAttribute('data-motion-profile'),
+								animation: character?.querySelector('img')
+									? getComputedStyle(character.querySelector('img')).animationName
+									: 'none',
+								animationDurationMs: character?.querySelector('img')
+									? Number.parseFloat(
+											getComputedStyle(character.querySelector('img')).animationDuration,
+										) * 1_000
+									: 0,
+								willChange: character?.querySelector('img')
+									? getComputedStyle(character.querySelector('img')).willChange
+									: 'auto',
+								transform: character?.querySelector('img')
+									? getComputedStyle(character.querySelector('img')).transform
+									: 'none',
+								filter: character?.querySelector('img')
+									? getComputedStyle(character.querySelector('img')).filter
+									: 'none',
+								at: performance.now(),
+							});
+						captureBoard();
+						captureCharacter();
+						window.__blacksiteLiveFeatureBoardObserver = new MutationObserver(captureBoard);
+						window.__blacksiteLiveFeatureCharacterObserver = new MutationObserver(captureCharacter);
+						window.__blacksiteLiveFeatureBoardObserver.observe(board, {
+							attributes: true,
+							attributeFilter: ['data-motion-phase'],
+						});
+						window.__blacksiteLiveFeatureCharacterObserver.observe(character, {
+							attributes: true,
+							attributeFilter: ['data-character-state'],
+						});
+					},
+					{ boardSelector: SELECTORS.board, characterSelector: SELECTORS.vaultkeeper },
+				);
 
 				await page.locator(featureCase.modeSelector).click();
-				check(group, 'selected mode exposes its exact complete-play amount before request',
+				check(
+					group,
+					'selected mode exposes its exact complete-play amount before request',
 					(await page.locator(featureCase.modeSelector).getAttribute('aria-pressed')) === 'true' &&
-						(await page.locator(SELECTORS.totalPlay).innerText()).trim() === featureCase.expectedTotal,
+						(await page.locator(SELECTORS.totalPlay).innerText()).trim() ===
+							featureCase.expectedTotal,
 					serialize({
 						pressed: await page.locator(featureCase.modeSelector).getAttribute('aria-pressed'),
 						totalPlay: await page.locator(SELECTORS.totalPlay).innerText(),
@@ -5649,7 +7384,9 @@ async function runNetworkScenarios(browser, origin) {
 					const dialog = page.getByRole('dialog', { name: /Confirm complete play amount/i });
 					await dialog.waitFor({ state: 'visible' });
 					const dialogText = await dialog.innerText();
-					check(group, 'Deep Access remains request-free until exact high-cost confirmation',
+					check(
+						group,
+						'Deep Access remains request-free until exact high-cost confirmation',
 						network.byEndpoint.play.length === 0 &&
 							dialogText.includes(featureCase.expectedTotal) &&
 							dialogText.includes(`${featureCase.cost}×`),
@@ -5669,19 +7406,23 @@ async function runNetworkScenarios(browser, origin) {
 					},
 				});
 				await page.waitForFunction(
-					(selector) => document.querySelector(selector)?.getAttribute('data-motion-phase') === 'blackout-enter',
+					(selector) =>
+						document.querySelector(selector)?.getAttribute('data-motion-phase') ===
+						'blackout-enter',
 					SELECTORS.board,
 					{ timeout: 10_000 },
 				);
 				record.featureEntryScreenshot = await saveScreenshot(page, `${group}-feature-entry`);
 				await page.waitForFunction(
-					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'bonus_idle',
+					(selector) =>
+						document.querySelector(selector)?.getAttribute('data-character-state') === 'bonus_idle',
 					SELECTORS.vaultkeeper,
 					{ timeout: 10_000 },
 				);
 				record.bonusIdleScreenshot = await saveScreenshot(page, `${group}-bonus-idle`);
 				await page.waitForFunction(
-					(selector) => document.querySelector(selector)?.getAttribute('data-character-state') === 'bonus_win',
+					(selector) =>
+						document.querySelector(selector)?.getAttribute('data-character-state') === 'bonus_win',
 					SELECTORS.vaultkeeper,
 					{ timeout: 10_000 },
 				);
@@ -5700,52 +7441,77 @@ async function runNetworkScenarios(browser, origin) {
 					return index >= 0;
 				});
 				let previousCharacterIndex = -1;
-				const orderedCharacters = ['feature_trigger', 'bonus_idle', 'bonus_win', 'recover', 'idle_a'].every((state) => {
+				const orderedCharacters = [
+					'feature_trigger',
+					'bonus_idle',
+					'bonus_win',
+					'recover',
+					'idle_a',
+				].every((state) => {
 					const index = characterNames.indexOf(state, previousCharacterIndex + 1);
 					previousCharacterIndex = index;
 					return index >= 0;
 				});
-				const characterTransitions = observed.characters.filter((entry, index, timeline) =>
-					index === 0 || entry.state !== timeline[index - 1].state);
+				const characterTransitions = observed.characters.filter(
+					(entry, index, timeline) => index === 0 || entry.state !== timeline[index - 1].state,
+				);
 				const bonusWinIndex = characterTransitions.findIndex(({ state }) => state === 'bonus_win');
 				const bonusWinStart = characterTransitions[bonusWinIndex];
-				const bonusWinEnd = bonusWinIndex >= 0
-					? characterTransitions.slice(bonusWinIndex + 1).find(({ state }) => state !== 'bonus_win')
-					: null;
-				const bonusWinElapsedMs = bonusWinStart && bonusWinEnd
-					? bonusWinEnd.at - bonusWinStart.at
-					: -1;
-				const featureTriggerIndex = characterTransitions.findIndex(({ state }) => state === 'feature_trigger');
+				const bonusWinEnd =
+					bonusWinIndex >= 0
+						? characterTransitions
+								.slice(bonusWinIndex + 1)
+								.find(({ state }) => state !== 'bonus_win')
+						: null;
+				const bonusWinElapsedMs =
+					bonusWinStart && bonusWinEnd ? bonusWinEnd.at - bonusWinStart.at : -1;
+				const featureTriggerIndex = characterTransitions.findIndex(
+					({ state }) => state === 'feature_trigger',
+				);
 				const featureRecoverIndex = characterTransitions.findIndex(
 					({ state }, index) => index > featureTriggerIndex && state === 'recover',
 				);
-				const featureCharacterStates = featureTriggerIndex >= 0 && featureRecoverIndex > featureTriggerIndex
-					? characterTransitions.slice(featureTriggerIndex, featureRecoverIndex + 1)
-					: [];
-				const bonusIdleStates = featureCharacterStates.filter(({ state }) => state === 'bonus_idle');
-				check(group, 'live presentation visibly enters and exits BLACKOUT before returning idle',
+				const featureCharacterStates =
+					featureTriggerIndex >= 0 && featureRecoverIndex > featureTriggerIndex
+						? characterTransitions.slice(featureTriggerIndex, featureRecoverIndex + 1)
+						: [];
+				const bonusIdleStates = featureCharacterStates.filter(
+					({ state }) => state === 'bonus_idle',
+				);
+				check(
+					group,
+					'live presentation visibly enters and exits BLACKOUT before returning idle',
 					orderedPhases,
 					serialize(observed.phases),
 				);
-				check(group, 'Vaultkeeper follows trigger, feature cycle, bonus win, recovery and idle states in order',
+				check(
+					group,
+					'Vaultkeeper follows trigger, feature cycle, bonus win, recovery and idle states in order',
 					orderedCharacters,
 					serialize(observed.characters),
 				);
-				check(group, 'feature board snapshots preserve the Vaultkeeper bonus idle stance',
+				check(
+					group,
+					'feature board snapshots preserve the Vaultkeeper bonus idle stance',
 					bonusIdleStates.length > 0 &&
 						featureCharacterStates.every(({ state }) => state !== 'monitoring') &&
-						bonusIdleStates.every((state) =>
-							state.profile === featureCase.timingProfile &&
-							state.animation === 'none' &&
-							state.willChange === 'auto' &&
-							state.transform !== 'none' &&
-							state.filter !== 'none'),
+						bonusIdleStates.every(
+							(state) =>
+								state.profile === featureCase.timingProfile &&
+								state.animation === 'none' &&
+								state.willChange === 'auto' &&
+								state.transform !== 'none' &&
+								state.filter !== 'none',
+						),
 					serialize({ featureCharacterStates, bonusIdleStates }),
 				);
-				const bonusWinCheck = featureCase.timingProfile === 'normal'
-					? 'normal feature win uses its complete bounded bonus-specific reaction'
-					: 'turbo feature win uses its complete bounded bonus-specific reaction';
-				check(group, bonusWinCheck,
+				const bonusWinCheck =
+					featureCase.timingProfile === 'normal'
+						? 'normal feature win uses its complete bounded bonus-specific reaction'
+						: 'turbo feature win uses its complete bounded bonus-specific reaction';
+				check(
+					group,
+					bonusWinCheck,
 					bonusWinStart?.profile === featureCase.timingProfile &&
 						bonusWinStart.animation.endsWith('vaultkeeper-bonus-win') &&
 						bonusWinStart.animationDurationMs === featureCase.expectedBonusWinAnimationMs &&
@@ -5765,7 +7531,9 @@ async function runNetworkScenarios(browser, origin) {
 					balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
 					totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
 				};
-				check(group, 'authoritative feature completes once and returns to the live ready shell',
+				check(
+					group,
+					'authoritative feature completes once and returns to the live ready shell',
 					completed.state === 'live-ready' &&
 						completed.phase === 'idle' &&
 						completed.character === 'idle_a' &&
@@ -5773,13 +7541,17 @@ async function runNetworkScenarios(browser, origin) {
 						completed.boardCells === 49,
 					serialize(completed),
 				);
-				check(group, 'terminal payout and authoritative wallet balance remain exact',
+				check(
+					group,
+					'terminal payout and authoritative wallet balance remain exact',
 					completed.finalWin === formatExactApi(expectedPayout, 'USD') &&
 						completed.balance === formatExactApi(expectedBalance, 'USD') &&
 						completed.totalPlay === featureCase.expectedTotal,
 					serialize({ completed, expectedPayout, expectedBalance }),
 				);
-				check(group, 'inactive authoritative feature sends one play and no settlement or event writes',
+				check(
+					group,
+					'inactive authoritative feature sends one play and no settlement or event writes',
 					network.byEndpoint.play.length === 1 &&
 						network.byEndpoint.endRound.length === 0 &&
 						network.byEndpoint.event.length === 0,
@@ -5829,9 +7601,9 @@ async function runNetworkScenarios(browser, origin) {
 					const auditedHandler =
 						typeof handler === 'function'
 							? (...callbackArgs) => {
-								record.calls += 1;
-								return handler(...callbackArgs);
-							}
+									record.calls += 1;
+									return handler(...callbackArgs);
+								}
 							: handler;
 					return nativeSetInterval(auditedHandler, delay, ...args);
 				};
@@ -5853,7 +7625,11 @@ async function runNetworkScenarios(browser, origin) {
 						}),
 				},
 			});
-			const { page, diagnostics } = await openPage(context, origin, liveQuery({ device: 'mobile' }));
+			const { page, diagnostics } = await openPage(
+				context,
+				origin,
+				liveQuery({ device: 'mobile' }),
+			);
 			await waitForEndpoint(network, 'authenticate', 1);
 			await waitForStableAction(page);
 			await page.locator(SELECTORS.sessionNetPosition).waitFor({ state: 'visible' });
@@ -5862,12 +7638,14 @@ async function runNetworkScenarios(browser, origin) {
 				netPosition: (await page.locator(SELECTORS.sessionNetPosition).innerText()).trim(),
 				sessionTimer: (await page.locator(SELECTORS.sessionTimer).innerText()).trim(),
 				walletBalance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
-				netPositionSemantics: await page.locator(SELECTORS.sessionNetPosition).evaluate((element) => ({
-					role: element.getAttribute('role'),
-					live: element.getAttribute('aria-live'),
-					atomic: element.getAttribute('aria-atomic'),
-					labelledBy: element.getAttribute('aria-labelledby'),
-				})),
+				netPositionSemantics: await page
+					.locator(SELECTORS.sessionNetPosition)
+					.evaluate((element) => ({
+						role: element.getAttribute('role'),
+						live: element.getAttribute('aria-live'),
+						atomic: element.getAttribute('aria-atomic'),
+						labelledBy: element.getAttribute('aria-labelledby'),
+					})),
 				timerSemantics: await page.locator(SELECTORS.sessionTimer).evaluate((element) => ({
 					role: element.getAttribute('role'),
 					live: element.getAttribute('aria-live'),
@@ -5875,9 +7653,25 @@ async function runNetworkScenarios(browser, origin) {
 					labelledBy: element.getAttribute('aria-labelledby'),
 				})),
 			};
-			check(group, 'enabled session position and timer are both visible at 390×844 mobile', await page.locator(SELECTORS.sessionNetPosition).isVisible() && await page.locator(SELECTORS.sessionTimer).isVisible(), serialize(initialUi));
-			check(group, 'session position opens at exact zero from authenticated balance', initialUi.netPosition === '$0.00', serialize(initialUi));
-			check(group, 'session timer uses a bounded minutes-and-seconds display', /^\d{2}:\d{2}$/.test(initialUi.sessionTimer), serialize(initialUi));
+			check(
+				group,
+				'enabled session position and timer are both visible at 390×844 mobile',
+				(await page.locator(SELECTORS.sessionNetPosition).isVisible()) &&
+					(await page.locator(SELECTORS.sessionTimer).isVisible()),
+				serialize(initialUi),
+			);
+			check(
+				group,
+				'session position opens at exact zero from authenticated balance',
+				initialUi.netPosition === '$0.00',
+				serialize(initialUi),
+			);
+			check(
+				group,
+				'session timer uses a bounded minutes-and-seconds display',
+				/^\d{2}:\d{2}$/.test(initialUi.sessionTimer),
+				serialize(initialUi),
+			);
 			check(
 				group,
 				'session position is polite while the ticking timer remains non-live',
@@ -5892,12 +7686,18 @@ async function runNetworkScenarios(browser, origin) {
 				serialize(initialUi),
 			);
 			await page.waitForFunction(
-				({ selector, initial }) => document.querySelector(selector)?.textContent?.trim() !== initial,
+				({ selector, initial }) =>
+					document.querySelector(selector)?.textContent?.trim() !== initial,
 				{ selector: SELECTORS.sessionTimer, initial: initialUi.sessionTimer },
 				{ timeout: 2500 },
 			);
 			const progressedTimer = (await page.locator(SELECTORS.sessionTimer).innerText()).trim();
-			check(group, 'non-live session timer still advances visibly once per second', progressedTimer !== initialUi.sessionTimer && /^\d{2}:\d{2}$/.test(progressedTimer), serialize({ initial: initialUi.sessionTimer, progressed: progressedTimer }));
+			check(
+				group,
+				'non-live session timer still advances visibly once per second',
+				progressedTimer !== initialUi.sessionTimer && /^\d{2}:\d{2}$/.test(progressedTimer),
+				serialize({ initial: initialUi.sessionTimer, progressed: progressedTimer }),
+			);
 			const cadenceBefore = await page.evaluate(() =>
 				window.__blacksiteIntervalAudit.map((record) => ({ ...record })),
 			);
@@ -5931,8 +7731,19 @@ async function runNetworkScenarios(browser, origin) {
 				sessionTimer: (await page.locator(SELECTORS.sessionTimer).innerText()).trim(),
 				walletBalance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
 			};
-			check(group, 'session position reports authoritative total wagered minus total won', updatedUi.netPosition === '+$7.00' && updatedUi.walletBalance === '$993.00', serialize({ authoritativePostPlayBalance, initialUi, updatedUi }));
-			check(group, 'session timer remains visible and well-formed after play', await page.locator(SELECTORS.sessionTimer).isVisible() && /^\d{2}:\d{2}$/.test(updatedUi.sessionTimer), serialize(updatedUi));
+			check(
+				group,
+				'session position reports authoritative total wagered minus total won',
+				updatedUi.netPosition === '+$7.00' && updatedUi.walletBalance === '$993.00',
+				serialize({ authoritativePostPlayBalance, initialUi, updatedUi }),
+			);
+			check(
+				group,
+				'session timer remains visible and well-formed after play',
+				(await page.locator(SELECTORS.sessionTimer).isVisible()) &&
+					/^\d{2}:\d{2}$/.test(updatedUi.sessionTimer),
+				serialize(updatedUi),
+			);
 			assertExactRequest(group, network.byEndpoint.play[0], {
 				method: 'POST',
 				path: '/wallet/play',
@@ -5943,7 +7754,12 @@ async function runNetworkScenarios(browser, origin) {
 					mode: 'base',
 				},
 			});
-			check(group, 'session UI scenario sends exactly one play and no end-round write', network.byEndpoint.play.length === 1 && network.byEndpoint.endRound.length === 0, serialize(network.order));
+			check(
+				group,
+				'session UI scenario sends exactly one play and no end-round write',
+				network.byEndpoint.play.length === 1 && network.byEndpoint.endRound.length === 0,
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.sessionUi = { authoritativePostPlayBalance, initialUi, progressedTimer, updatedUi };
@@ -5982,9 +7798,24 @@ async function runNetworkScenarios(browser, origin) {
 					mode: 'base',
 				},
 			});
-			check('inactive-zero-play', 'one play request is sent', network.byEndpoint.play.length === 1, serialize(network.order));
-			check('inactive-zero-play', 'inactive zero round sends no end-round', network.byEndpoint.endRound.length === 0, serialize(network.order));
-			check('inactive-zero-play', 'order is authenticate then play', serialize(network.order) === serialize(['authenticate', 'play']), serialize(network.order));
+			check(
+				'inactive-zero-play',
+				'one play request is sent',
+				network.byEndpoint.play.length === 1,
+				serialize(network.order),
+			);
+			check(
+				'inactive-zero-play',
+				'inactive zero round sends no end-round',
+				network.byEndpoint.endRound.length === 0,
+				serialize(network.order),
+			);
+			check(
+				'inactive-zero-play',
+				'order is authenticate then play',
+				serialize(network.order) === serialize(['authenticate', 'play']),
+				serialize(network.order),
+			);
 			assertCleanNetwork('inactive-zero-play', network);
 			record.screenshot = await saveScreenshot(page, 'inactive-zero-play');
 			record.network = network;
@@ -6027,10 +7858,30 @@ async function runNetworkScenarios(browser, origin) {
 					event: encodePresentationCursor(2),
 				},
 			});
-			check('active-play-settles-once', 'play occurs once', network.byEndpoint.play.length === 1, serialize(network.order));
-			check('active-play-settles-once', 'durable board checkpoint is persisted exactly once', network.byEndpoint.event.length === 1, serialize(network.order));
-			check('active-play-settles-once', 'end-round occurs exactly once', network.byEndpoint.endRound.length === 1, serialize(network.order));
-			check('active-play-settles-once', 'order is authenticate, play, checkpoint, end-round', serialize(network.order) === serialize(['authenticate', 'play', 'event', 'endRound']), serialize(network.order));
+			check(
+				'active-play-settles-once',
+				'play occurs once',
+				network.byEndpoint.play.length === 1,
+				serialize(network.order),
+			);
+			check(
+				'active-play-settles-once',
+				'durable board checkpoint is persisted exactly once',
+				network.byEndpoint.event.length === 1,
+				serialize(network.order),
+			);
+			check(
+				'active-play-settles-once',
+				'end-round occurs exactly once',
+				network.byEndpoint.endRound.length === 1,
+				serialize(network.order),
+			);
+			check(
+				'active-play-settles-once',
+				'order is authenticate, play, checkpoint, end-round',
+				serialize(network.order) === serialize(['authenticate', 'play', 'event', 'endRound']),
+				serialize(network.order),
+			);
 			assertCleanNetwork('active-play-settles-once', network);
 			record.screenshot = await saveScreenshot(page, 'active-play-settles-once');
 			record.network = network;
@@ -6177,11 +8028,12 @@ async function runNetworkScenarios(browser, origin) {
 			check(
 				group,
 				'settled active feature remains write-stable after Skip completion',
-				serialize(settledCounts) === serialize({
-					play: network.byEndpoint.play.length,
-					event: network.byEndpoint.event.length,
-					endRound: network.byEndpoint.endRound.length,
-				}),
+				serialize(settledCounts) ===
+					serialize({
+						play: network.byEndpoint.play.length,
+						event: network.byEndpoint.event.length,
+						endRound: network.byEndpoint.endRound.length,
+					}),
 				serialize({ settledCounts, order: network.order }),
 			);
 			assertCleanNetwork(group, network);
@@ -6244,12 +8096,42 @@ async function runNetworkScenarios(browser, origin) {
 				netPosition: (await page.locator(SELECTORS.sessionNetPosition).innerText()).trim(),
 				error: (await page.locator(SELECTORS.launchError).innerText()).trim(),
 			};
-			check(group, 'checkpoint failure remains visibly reported after fallback settlement', result.error.length > 0, serialize(result));
-			check(group, 'fallback settlement exposes the exact already-authoritative paid win', result.finalWin === '$200.00', serialize({ payoutApi: round.payout, result }));
-			check(group, 'fallback settlement adopts the exact authoritative settled balance', result.walletBalance === '$1199.00', serialize({ settledBalance, result }));
-			check(group, 'settled winning balance reports total wagered minus total won with the correct sign', result.netPosition === '−$199.00', serialize(result));
-			check(group, 'checkpoint failure settles exactly once', network.byEndpoint.event.length === 1 && network.byEndpoint.endRound.length === 1, serialize(network.order));
-			check(group, 'checkpoint failure order is authenticate, play, event, end-round', serialize(network.order) === serialize(['authenticate', 'play', 'event', 'endRound']), serialize(network.order));
+			check(
+				group,
+				'checkpoint failure remains visibly reported after fallback settlement',
+				result.error.length > 0,
+				serialize(result),
+			);
+			check(
+				group,
+				'fallback settlement exposes the exact already-authoritative paid win',
+				result.finalWin === '$200.00',
+				serialize({ payoutApi: round.payout, result }),
+			);
+			check(
+				group,
+				'fallback settlement adopts the exact authoritative settled balance',
+				result.walletBalance === '$1199.00',
+				serialize({ settledBalance, result }),
+			);
+			check(
+				group,
+				'settled winning balance reports total wagered minus total won with the correct sign',
+				result.netPosition === '−$199.00',
+				serialize(result),
+			);
+			check(
+				group,
+				'checkpoint failure settles exactly once',
+				network.byEndpoint.event.length === 1 && network.byEndpoint.endRound.length === 1,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'checkpoint failure order is authenticate, play, event, end-round',
+				serialize(network.order) === serialize(['authenticate', 'play', 'event', 'endRound']),
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertOnlyExpectedHttpDiagnostic(group, diagnostics, 503);
 			record.result = { ...result, payoutApi: round.payout, settledBalance };
@@ -6307,17 +8189,23 @@ async function runNetworkScenarios(browser, origin) {
 				path: '/wallet/end-round',
 				body: { sessionID: SESSION_ID },
 			});
-			check(group, 'failed settlement keeps Play disabled and exposes explicit restore',
-				await page.locator(SELECTORS.primaryAction).isDisabled() &&
-					await page.locator('[data-testid="recovery-action"]').isVisible(),
+			check(
+				group,
+				'failed settlement keeps Play disabled and exposes explicit restore',
+				(await page.locator(SELECTORS.primaryAction).isDisabled()) &&
+					(await page.locator('[data-testid="recovery-action"]').isVisible()),
 				serialize({ state: await runtimeState(page), order: network.order }),
 			);
-			check(group, 'failed settlement preserves the exact authoritative zero result',
+			check(
+				group,
+				'failed settlement preserves the exact authoritative zero result',
 				(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00',
 				await page.locator(SELECTORS.finalWin).innerText(),
 			);
 			await page.waitForTimeout(300);
-			check(group, 'failed settlement is never retried automatically',
+			check(
+				group,
+				'failed settlement is never retried automatically',
 				network.byEndpoint.endRound.length === 1,
 				serialize(network.order),
 			);
@@ -6343,19 +8231,28 @@ async function runNetworkScenarios(browser, origin) {
 					body: { sessionID: SESSION_ID },
 				});
 			}
-			check(group, 'explicit reload restores the active round without duplicate play or checkpoint writes',
+			check(
+				group,
+				'explicit reload restores the active round without duplicate play or checkpoint writes',
 				network.byEndpoint.play.length === 1 && network.byEndpoint.event.length === 1,
 				serialize(network.order),
 			);
-			check(group, 'explicit reload performs exactly one new settlement attempt',
+			check(
+				group,
+				'explicit reload performs exactly one new settlement attempt',
 				network.byEndpoint.endRound.length === 2,
 				serialize(network.order),
 			);
-			check(group, 'settlement recovery order is authoritative and exact',
-				serialize(network.order) === serialize(['authenticate', 'play', 'event', 'endRound', 'authenticate', 'endRound']),
+			check(
+				group,
+				'settlement recovery order is authoritative and exact',
+				serialize(network.order) ===
+					serialize(['authenticate', 'play', 'event', 'endRound', 'authenticate', 'endRound']),
 				serialize(network.order),
 			);
-			check(group, 'recovered settlement adopts the exact authoritative balance and remains stable',
+			check(
+				group,
+				'recovered settlement adopts the exact authoritative balance and remains stable',
 				(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$999.00' &&
 					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00' &&
 					network.byEndpoint.endRound.length === 2,
@@ -6375,473 +8272,517 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
-	await runScenario('accepted-settlement-response-loss-reauthenticates-without-retry', async (record) => {
-		const group = 'accepted-settlement-response-loss-reauthenticates-without-retry';
-		const settledBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
-		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-		try {
-			await context.addInitScript(
-				({ rgsOrigin }) => {
-					const auditKey = 'blacksite-qa-accepted-settlement-response-loss-audit';
-					const nativeFetch = window.fetch.bind(window);
-					const readAudit = () => {
-						try {
-							return JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
-								attempts: 0,
-								acceptedResponses: 0,
-								aborts: 0,
-								consumed: false,
-							};
-						} catch {
-							return { attempts: 0, acceptedResponses: 0, aborts: 0, consumed: false };
-						}
-					};
-					const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
-					window.fetch = async (input, init = {}) => {
-						const url = new URL(
-							typeof input === 'string' || input instanceof URL ? input : input.url,
-							window.location.href,
-						);
-						if (url.origin !== rgsOrigin || url.pathname !== '/wallet/end-round') {
-							return nativeFetch(input, init);
-						}
-						const audit = readAudit();
-						if (audit.consumed) return nativeFetch(input, init);
-						audit.consumed = true;
-						audit.attempts += 1;
-						writeAudit(audit);
-						await nativeFetch(input, init);
-						const accepted = readAudit();
-						accepted.acceptedResponses += 1;
-						writeAudit(accepted);
-						return new Promise((_resolve, reject) => {
-							const abort = () => {
-								const aborted = readAudit();
-								aborted.aborts += 1;
-								writeAudit(aborted);
-								reject(new DOMException('BLACKSITE QA discarded the accepted settlement response.', 'AbortError'));
-							};
-							if (init.signal?.aborted) abort();
-							else init.signal?.addEventListener('abort', abort, { once: true });
-						});
-					};
-				},
-				{ rgsOrigin: BLACKSITE_QA_RGS_ORIGIN },
-			);
-			const network = await installMockRgs(context, {
-				pageOrigin: origin,
-				handlers: {
-					authenticate: (_request, networkEvidence) =>
-						networkEvidence.byEndpoint.authenticate.length === 1
-							? authenticateResponse()
-							: authenticateResponse({ balance: settledBalance }),
-					play: () => playResponse({ active: true }),
-					event: (request) => ({ event: request.body.event }),
-					endRound: () => endRoundResponse({ balance: settledBalance }),
-				},
-			});
-			const { page, diagnostics } = await openPage(context, origin, liveQuery());
-			await waitForEndpoint(network, 'authenticate', 1);
-			await waitForStableAction(page);
-			await page.locator(SELECTORS.primaryAction).click();
-			await waitForEndpoint(network, 'endRound', 1);
-			await page.waitForFunction(() => {
-				const audit = JSON.parse(
-					sessionStorage.getItem('blacksite-qa-accepted-settlement-response-loss-audit') ?? 'null',
+	await runScenario(
+		'accepted-settlement-response-loss-reauthenticates-without-retry',
+		async (record) => {
+			const group = 'accepted-settlement-response-loss-reauthenticates-without-retry';
+			const settledBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
+			const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+			try {
+				await context.addInitScript(
+					({ rgsOrigin }) => {
+						const auditKey = 'blacksite-qa-accepted-settlement-response-loss-audit';
+						const nativeFetch = window.fetch.bind(window);
+						const readAudit = () => {
+							try {
+								return (
+									JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
+										attempts: 0,
+										acceptedResponses: 0,
+										aborts: 0,
+										consumed: false,
+									}
+								);
+							} catch {
+								return { attempts: 0, acceptedResponses: 0, aborts: 0, consumed: false };
+							}
+						};
+						const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
+						window.fetch = async (input, init = {}) => {
+							const url = new URL(
+								typeof input === 'string' || input instanceof URL ? input : input.url,
+								window.location.href,
+							);
+							if (url.origin !== rgsOrigin || url.pathname !== '/wallet/end-round') {
+								return nativeFetch(input, init);
+							}
+							const audit = readAudit();
+							if (audit.consumed) return nativeFetch(input, init);
+							audit.consumed = true;
+							audit.attempts += 1;
+							writeAudit(audit);
+							await nativeFetch(input, init);
+							const accepted = readAudit();
+							accepted.acceptedResponses += 1;
+							writeAudit(accepted);
+							return new Promise((_resolve, reject) => {
+								const abort = () => {
+									const aborted = readAudit();
+									aborted.aborts += 1;
+									writeAudit(aborted);
+									reject(
+										new DOMException(
+											'BLACKSITE QA discarded the accepted settlement response.',
+											'AbortError',
+										),
+									);
+								};
+								if (init.signal?.aborted) abort();
+								else init.signal?.addEventListener('abort', abort, { once: true });
+							});
+						};
+					},
+					{ rgsOrigin: BLACKSITE_QA_RGS_ORIGIN },
 				);
-				return audit?.acceptedResponses === 1;
-			});
-			assertExactRequest(group, network.byEndpoint.endRound[0], {
-				method: 'POST',
-				path: '/wallet/end-round',
-				body: { sessionID: SESSION_ID },
-			});
-			record.acceptedScreenshot = await saveScreenshot(page, `${group}-pending-client-response`);
-
-			await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
-			await waitForEndpoint(network, 'authenticate', 2);
-			await waitForRuntimeState(page, 'live-ready');
-			await waitForStableAction(page);
-			await page.waitForTimeout(300);
-
-			const responseLossAudit = await page.evaluate(() =>
-				JSON.parse(
-					sessionStorage.getItem('blacksite-qa-accepted-settlement-response-loss-audit') ?? 'null',
-				),
-			);
-			for (const request of network.byEndpoint.authenticate) {
-				assertExactRequest(group, request, {
-					method: 'POST',
-					path: '/wallet/authenticate',
-					body: { sessionID: SESSION_ID, language: 'en' },
+				const network = await installMockRgs(context, {
+					pageOrigin: origin,
+					handlers: {
+						authenticate: (_request, networkEvidence) =>
+							networkEvidence.byEndpoint.authenticate.length === 1
+								? authenticateResponse()
+								: authenticateResponse({ balance: settledBalance }),
+						play: () => playResponse({ active: true }),
+						event: (request) => ({ event: request.body.event }),
+						endRound: () => endRoundResponse({ balance: settledBalance }),
+					},
 				});
-			}
-			check(
-				group,
-				'accepted settlement response loss aborts only the pending client transport',
-				responseLossAudit?.attempts === 1 &&
-					responseLossAudit?.acceptedResponses === 1 &&
-					responseLossAudit?.aborts === 1,
-				serialize(responseLossAudit),
-			);
-			check(
-				group,
-				'accepted settlement response loss never sends a duplicate end-round',
-				network.byEndpoint.endRound.length === 1 &&
-					network.byEndpoint.play.length === 1 &&
-					network.byEndpoint.event.length === 1,
-				serialize(network.order),
-			);
-			check(
-				group,
-				'accepted settlement recovery order is authoritative and exact',
-				network.byEndpoint.authenticate.length === 2 &&
-					serialize(network.order) === serialize(['authenticate', 'play', 'event', 'endRound', 'authenticate']),
-				serialize(network.order),
-			);
-			check(
-				group,
-				'accepted settlement recovery adopts the authoritative inactive round and exact balance',
-				(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$999.00' &&
-					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '—' &&
-					await runtimeState(page) === 'live-ready',
-				serialize({
-					balance: await page.locator(SELECTORS.walletBalance).innerText(),
-					win: await page.locator(SELECTORS.finalWin).innerText(),
-					state: await runtimeState(page),
-				}),
-			);
-			const expectedAbortedRequests = diagnostics.failedRequests.splice(0);
-			check(
-				group,
-				'accepted settlement response loss reports exactly the intentionally aborted settlement transport',
-				expectedAbortedRequests.length === 1 &&
-					expectedAbortedRequests[0]?.method === 'POST' &&
-					expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/wallet/end-round` &&
-					expectedAbortedRequests[0]?.error === 'net::ERR_ABORTED',
-				serialize(expectedAbortedRequests),
-			);
-			assertCleanNetwork(group, network);
-			assertCleanDiagnostics(group, diagnostics);
-			record.screenshot = await saveScreenshot(page, group);
-			record.expectedAbortedRequests = expectedAbortedRequests;
-			record.network = network;
-			record.diagnostics = diagnostics;
-		} finally {
-			await context.close();
-		}
-	});
-
-	await runScenario('accepted-winning-settlement-response-loss-prevents-double-payout', async (record) => {
-		const group = 'accepted-winning-settlement-response-loss-prevents-double-payout';
-		const fixture = getGeneratedFixture('base_big');
-		const round = authoritativeFixtureRound({
-			fixture,
-			active: true,
-			id: 'blacksite-qa-accepted-winning-settlement-response-loss',
-		});
-		const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
-		const settledBalance = debitedBalance + round.payout;
-		const checkpointEventTypes = new Set([
-			'board_set',
-			'breach_state',
-			'feature_start',
-			'feature_cycle',
-			'feature_end',
-			'cap_reached',
-		]);
-		const expectedCheckpointCursors = fixture.book.events
-			.filter(({ type }) => checkpointEventTypes.has(type))
-			.map(({ index }) => encodePresentationCursor(index + 1));
-		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-		try {
-			await context.addInitScript(
-				({ rgsOrigin }) => {
-					const auditKey = 'blacksite-qa-accepted-winning-settlement-response-loss-audit';
-					const nativeFetch = window.fetch.bind(window);
-					const readAudit = () => {
-						try {
-							return JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
-								attempts: 0,
-								acceptedResponses: 0,
-								aborts: 0,
-								consumed: false,
-							};
-						} catch {
-							return { attempts: 0, acceptedResponses: 0, aborts: 0, consumed: false };
-						}
-					};
-					const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
-					window.fetch = async (input, init = {}) => {
-						const url = new URL(
-							typeof input === 'string' || input instanceof URL ? input : input.url,
-							window.location.href,
-						);
-						if (url.origin !== rgsOrigin || url.pathname !== '/wallet/end-round') {
-							return nativeFetch(input, init);
-						}
-						const audit = readAudit();
-						if (audit.consumed) return nativeFetch(input, init);
-						audit.consumed = true;
-						audit.attempts += 1;
-						writeAudit(audit);
-						await nativeFetch(input, init);
-						const accepted = readAudit();
-						accepted.acceptedResponses += 1;
-						writeAudit(accepted);
-						return new Promise((_resolve, reject) => {
-							const abort = () => {
-								const aborted = readAudit();
-								aborted.aborts += 1;
-								writeAudit(aborted);
-								reject(new DOMException('BLACKSITE QA discarded the accepted winning settlement response.', 'AbortError'));
-							};
-							if (init.signal?.aborted) abort();
-							else init.signal?.addEventListener('abort', abort, { once: true });
-						});
-					};
-				},
-				{ rgsOrigin: BLACKSITE_QA_RGS_ORIGIN },
-			);
-			const network = await installMockRgs(context, {
-				pageOrigin: origin,
-				handlers: {
-					authenticate: (_request, networkEvidence) =>
-						networkEvidence.byEndpoint.authenticate.length === 1
-							? authenticateResponse()
-							: authenticateResponse({ balance: settledBalance }),
-					play: () => ({
-						status: successStatus(),
-						balance: { amount: debitedBalance, currency: 'USD' },
-						round,
-					}),
-					event: (request) => ({ event: request.body.event }),
-					endRound: () => endRoundResponse({ balance: settledBalance }),
-				},
-			});
-			const { page, diagnostics } = await openPage(context, origin, liveQuery());
-			await waitForEndpoint(network, 'authenticate', 1);
-			await waitForStableAction(page);
-			await page.locator(SELECTORS.primaryAction).click();
-			await waitForEndpoint(network, 'endRound', 1, 30_000);
-			await page.waitForFunction(() => {
-				const audit = JSON.parse(
-					sessionStorage.getItem('blacksite-qa-accepted-winning-settlement-response-loss-audit') ?? 'null',
-				);
-				return audit?.acceptedResponses === 1;
-			});
-			assertExactRequest(group, network.byEndpoint.endRound[0], {
-				method: 'POST',
-				path: '/wallet/end-round',
-				body: { sessionID: SESSION_ID },
-			});
-			record.acceptedScreenshot = await saveScreenshot(page, `${group}-pending-client-response`);
-
-			await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
-			await waitForEndpoint(network, 'authenticate', 2);
-			await waitForRuntimeState(page, 'live-ready');
-			await waitForStableAction(page);
-			await page.waitForTimeout(300);
-
-			const responseLossAudit = await page.evaluate(() =>
-				JSON.parse(
-					sessionStorage.getItem('blacksite-qa-accepted-winning-settlement-response-loss-audit') ?? 'null',
-				),
-			);
-			for (const request of network.byEndpoint.authenticate) {
-				assertExactRequest(group, request, {
-					method: 'POST',
-					path: '/wallet/authenticate',
-					body: { sessionID: SESSION_ID, language: 'en' },
+				const { page, diagnostics } = await openPage(context, origin, liveQuery());
+				await waitForEndpoint(network, 'authenticate', 1);
+				await waitForStableAction(page);
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForEndpoint(network, 'endRound', 1);
+				await page.waitForFunction(() => {
+					const audit = JSON.parse(
+						sessionStorage.getItem('blacksite-qa-accepted-settlement-response-loss-audit') ??
+							'null',
+					);
+					return audit?.acceptedResponses === 1;
 				});
-			}
-			check(
-				group,
-				'accepted winning settlement response loss aborts only the pending client transport',
-				responseLossAudit?.attempts === 1 &&
-					responseLossAudit?.acceptedResponses === 1 &&
-					responseLossAudit?.aborts === 1,
-				serialize(responseLossAudit),
-			);
-			check(
-				group,
-				'accepted winning settlement response loss never retries payout settlement',
-				network.byEndpoint.endRound.length === 1 &&
-					network.byEndpoint.play.length === 1 &&
-					serialize(network.byEndpoint.event.map(({ body }) => body.event)) ===
-						serialize(expectedCheckpointCursors),
-				serialize(network.order),
-			);
-			check(
-				group,
-				'accepted winning settlement recovery order is authoritative and exact',
-				network.byEndpoint.authenticate.length === 2 &&
-					serialize(network.order) ===
-						serialize([
-							'authenticate',
-							'play',
-							...expectedCheckpointCursors.map(() => 'event'),
-							'endRound',
-							'authenticate',
-						]),
-				serialize(network.order),
-			);
-			check(
-				group,
-				'accepted winning settlement recovery adopts the one-time authoritative payout balance',
-				round.payout === 200 * API_UNIT &&
-					settledBalance === 1_199 * API_UNIT &&
-					(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1199.00' &&
-					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '—' &&
-					await runtimeState(page) === 'live-ready',
-				serialize({
-					payout: round.payout,
-					settledBalance,
-					balance: await page.locator(SELECTORS.walletBalance).innerText(),
-					win: await page.locator(SELECTORS.finalWin).innerText(),
-					state: await runtimeState(page),
-				}),
-			);
-			const expectedAbortedRequests = diagnostics.failedRequests.splice(0);
-			check(
-				group,
-				'accepted winning settlement response loss reports the exact aborted settlement transport',
-				expectedAbortedRequests.length === 1 &&
-					expectedAbortedRequests[0]?.method === 'POST' &&
-					expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/wallet/end-round` &&
-					expectedAbortedRequests[0]?.error === 'net::ERR_ABORTED',
-				serialize(expectedAbortedRequests),
-			);
-			assertCleanNetwork(group, network);
-			assertCleanDiagnostics(group, diagnostics);
-			record.screenshot = await saveScreenshot(page, group);
-			record.expectedAbortedRequests = expectedAbortedRequests;
-			record.network = network;
-			record.diagnostics = diagnostics;
-		} finally {
-			await context.close();
-		}
-	});
-
-	await runScenario('settlement-session-expiry-reauthenticates-and-settles-once', async (record) => {
-		const group = 'settlement-session-expiry-reauthenticates-and-settles-once';
-		const restoredBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
-		const restoredRound = authoritativeZeroRound({
-			active: true,
-			id: 'blacksite-qa-expired-settlement-session',
-			event: encodePresentationCursor(2),
-		});
-		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-		try {
-			const network = await installMockRgs(context, {
-				pageOrigin: origin,
-				handlers: {
-					authenticate: (_request, networkEvidence) =>
-						networkEvidence.byEndpoint.authenticate.length === 1
-							? authenticateResponse()
-							: authenticateResponse({
-									balance: restoredBalance,
-									round: restoredRound,
-								}),
-					play: () => playResponse({ active: true }),
-					event: (request) => ({ event: request.body.event }),
-					endRound: (_request, networkEvidence) =>
-						networkEvidence.byEndpoint.endRound.length === 1
-							? {
-									status: {
-										statusCode: 'ERR_SESSION',
-										statusMessage: 'The session expired before the active round was settled.',
-									},
-								}
-							: endRoundResponse({ balance: restoredBalance }),
-				},
-			});
-			const { page, diagnostics } = await openPage(context, origin, liveQuery());
-			await waitForEndpoint(network, 'authenticate', 1);
-			await waitForStableAction(page);
-			await page.locator(SELECTORS.primaryAction).click();
-			await waitForEndpoint(network, 'endRound', 1);
-			await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 10_000 });
-			await waitForRuntimeState(page, 'live-error');
-
-			assertExactRequest(group, network.byEndpoint.endRound[0], {
-				method: 'POST',
-				path: '/wallet/end-round',
-				body: { sessionID: SESSION_ID },
-			});
-			const recovery = page.locator('[data-testid="recovery-action"]');
-			check(group, 'expired settlement session remains fail-closed and explicitly recoverable',
-				await page.locator(SELECTORS.primaryAction).isDisabled() &&
-					await recovery.isVisible() &&
-					!(await recovery.isDisabled()),
-				serialize({ state: await runtimeState(page), order: network.order }),
-			);
-			check(group, 'expired settlement preserves the exact authoritative result',
-				(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00',
-				await page.locator(SELECTORS.finalWin).innerText(),
-			);
-			await page.waitForTimeout(300);
-			check(group, 'expired settlement session never retries authentication or settlement automatically',
-				network.byEndpoint.authenticate.length === 1 &&
-					network.byEndpoint.endRound.length === 1,
-				serialize(network.order),
-			);
-			record.errorScreenshot = await saveScreenshot(page, 'settlement-session-expiry-error');
-
-			await recovery.click();
-			await waitForEndpoint(network, 'authenticate', 2);
-			await waitForEndpoint(network, 'endRound', 2);
-			await waitForRuntimeState(page, 'live-ready');
-			await page.waitForTimeout(300);
-
-			for (const request of network.byEndpoint.authenticate) {
-				assertExactRequest(group, request, {
-					method: 'POST',
-					path: '/wallet/authenticate',
-					body: { sessionID: SESSION_ID, language: 'en' },
-				});
-			}
-			for (const request of network.byEndpoint.endRound) {
-				assertExactRequest(group, request, {
+				assertExactRequest(group, network.byEndpoint.endRound[0], {
 					method: 'POST',
 					path: '/wallet/end-round',
 					body: { sessionID: SESSION_ID },
 				});
+				record.acceptedScreenshot = await saveScreenshot(page, `${group}-pending-client-response`);
+
+				await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
+				await waitForEndpoint(network, 'authenticate', 2);
+				await waitForRuntimeState(page, 'live-ready');
+				await waitForStableAction(page);
+				await page.waitForTimeout(300);
+
+				const responseLossAudit = await page.evaluate(() =>
+					JSON.parse(
+						sessionStorage.getItem('blacksite-qa-accepted-settlement-response-loss-audit') ??
+							'null',
+					),
+				);
+				for (const request of network.byEndpoint.authenticate) {
+					assertExactRequest(group, request, {
+						method: 'POST',
+						path: '/wallet/authenticate',
+						body: { sessionID: SESSION_ID, language: 'en' },
+					});
+				}
+				check(
+					group,
+					'accepted settlement response loss aborts only the pending client transport',
+					responseLossAudit?.attempts === 1 &&
+						responseLossAudit?.acceptedResponses === 1 &&
+						responseLossAudit?.aborts === 1,
+					serialize(responseLossAudit),
+				);
+				check(
+					group,
+					'accepted settlement response loss never sends a duplicate end-round',
+					network.byEndpoint.endRound.length === 1 &&
+						network.byEndpoint.play.length === 1 &&
+						network.byEndpoint.event.length === 1,
+					serialize(network.order),
+				);
+				check(
+					group,
+					'accepted settlement recovery order is authoritative and exact',
+					network.byEndpoint.authenticate.length === 2 &&
+						serialize(network.order) ===
+							serialize(['authenticate', 'play', 'event', 'endRound', 'authenticate']),
+					serialize(network.order),
+				);
+				check(
+					group,
+					'accepted settlement recovery adopts the authoritative inactive round and exact balance',
+					(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$999.00' &&
+						(await page.locator(SELECTORS.finalWin).innerText()).trim() === '—' &&
+						(await runtimeState(page)) === 'live-ready',
+					serialize({
+						balance: await page.locator(SELECTORS.walletBalance).innerText(),
+						win: await page.locator(SELECTORS.finalWin).innerText(),
+						state: await runtimeState(page),
+					}),
+				);
+				const expectedAbortedRequests = diagnostics.failedRequests.splice(0);
+				check(
+					group,
+					'accepted settlement response loss reports exactly the intentionally aborted settlement transport',
+					expectedAbortedRequests.length === 1 &&
+						expectedAbortedRequests[0]?.method === 'POST' &&
+						expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/wallet/end-round` &&
+						expectedAbortedRequests[0]?.error === 'net::ERR_ABORTED',
+					serialize(expectedAbortedRequests),
+				);
+				assertCleanNetwork(group, network);
+				assertCleanDiagnostics(group, diagnostics);
+				record.screenshot = await saveScreenshot(page, group);
+				record.expectedAbortedRequests = expectedAbortedRequests;
+				record.network = network;
+				record.diagnostics = diagnostics;
+			} finally {
+				await context.close();
 			}
-			check(group, 'explicit settlement recovery reauthenticates once without duplicate play or checkpoint writes',
-				network.byEndpoint.authenticate.length === 2 &&
-					network.byEndpoint.play.length === 1 &&
-					network.byEndpoint.event.length === 1,
-				serialize(network.order),
-			);
-			check(group, 'reauthenticated settlement performs exactly one new completion attempt',
-				network.byEndpoint.endRound.length === 2,
-				serialize(network.order),
-			);
-			check(group, 'expired settlement recovery order is authoritative and exact',
-				serialize(network.order) === serialize(['authenticate', 'play', 'event', 'endRound', 'authenticate', 'endRound']),
-				serialize(network.order),
-			);
-			check(group, 'reauthenticated settlement adopts the exact authoritative balance and remains stable',
-				(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$999.00' &&
-					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00' &&
-					await runtimeState(page) === 'live-ready',
-				serialize({
-					balance: await page.locator(SELECTORS.walletBalance).innerText(),
-					win: await page.locator(SELECTORS.finalWin).innerText(),
-					state: await runtimeState(page),
-					order: network.order,
-				}),
-			);
-			assertCleanNetwork(group, network);
-			assertCleanDiagnostics(group, diagnostics);
-			record.screenshot = await saveScreenshot(page, group);
-			record.network = network;
-			record.diagnostics = diagnostics;
-		} finally {
-			await context.close();
-		}
-	});
+		},
+	);
+
+	await runScenario(
+		'accepted-winning-settlement-response-loss-prevents-double-payout',
+		async (record) => {
+			const group = 'accepted-winning-settlement-response-loss-prevents-double-payout';
+			const fixture = getGeneratedFixture('base_big');
+			const round = authoritativeFixtureRound({
+				fixture,
+				active: true,
+				id: 'blacksite-qa-accepted-winning-settlement-response-loss',
+			});
+			const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
+			const settledBalance = debitedBalance + round.payout;
+			const checkpointEventTypes = new Set([
+				'board_set',
+				'breach_state',
+				'feature_start',
+				'feature_cycle',
+				'feature_end',
+				'cap_reached',
+			]);
+			const expectedCheckpointCursors = fixture.book.events
+				.filter(({ type }) => checkpointEventTypes.has(type))
+				.map(({ index }) => encodePresentationCursor(index + 1));
+			const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+			try {
+				await context.addInitScript(
+					({ rgsOrigin }) => {
+						const auditKey = 'blacksite-qa-accepted-winning-settlement-response-loss-audit';
+						const nativeFetch = window.fetch.bind(window);
+						const readAudit = () => {
+							try {
+								return (
+									JSON.parse(sessionStorage.getItem(auditKey) ?? 'null') ?? {
+										attempts: 0,
+										acceptedResponses: 0,
+										aborts: 0,
+										consumed: false,
+									}
+								);
+							} catch {
+								return { attempts: 0, acceptedResponses: 0, aborts: 0, consumed: false };
+							}
+						};
+						const writeAudit = (audit) => sessionStorage.setItem(auditKey, JSON.stringify(audit));
+						window.fetch = async (input, init = {}) => {
+							const url = new URL(
+								typeof input === 'string' || input instanceof URL ? input : input.url,
+								window.location.href,
+							);
+							if (url.origin !== rgsOrigin || url.pathname !== '/wallet/end-round') {
+								return nativeFetch(input, init);
+							}
+							const audit = readAudit();
+							if (audit.consumed) return nativeFetch(input, init);
+							audit.consumed = true;
+							audit.attempts += 1;
+							writeAudit(audit);
+							await nativeFetch(input, init);
+							const accepted = readAudit();
+							accepted.acceptedResponses += 1;
+							writeAudit(accepted);
+							return new Promise((_resolve, reject) => {
+								const abort = () => {
+									const aborted = readAudit();
+									aborted.aborts += 1;
+									writeAudit(aborted);
+									reject(
+										new DOMException(
+											'BLACKSITE QA discarded the accepted winning settlement response.',
+											'AbortError',
+										),
+									);
+								};
+								if (init.signal?.aborted) abort();
+								else init.signal?.addEventListener('abort', abort, { once: true });
+							});
+						};
+					},
+					{ rgsOrigin: BLACKSITE_QA_RGS_ORIGIN },
+				);
+				const network = await installMockRgs(context, {
+					pageOrigin: origin,
+					handlers: {
+						authenticate: (_request, networkEvidence) =>
+							networkEvidence.byEndpoint.authenticate.length === 1
+								? authenticateResponse()
+								: authenticateResponse({ balance: settledBalance }),
+						play: () => ({
+							status: successStatus(),
+							balance: { amount: debitedBalance, currency: 'USD' },
+							round,
+						}),
+						event: (request) => ({ event: request.body.event }),
+						endRound: () => endRoundResponse({ balance: settledBalance }),
+					},
+				});
+				const { page, diagnostics } = await openPage(context, origin, liveQuery());
+				await waitForEndpoint(network, 'authenticate', 1);
+				await waitForStableAction(page);
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForEndpoint(network, 'endRound', 1, 30_000);
+				await page.waitForFunction(() => {
+					const audit = JSON.parse(
+						sessionStorage.getItem(
+							'blacksite-qa-accepted-winning-settlement-response-loss-audit',
+						) ?? 'null',
+					);
+					return audit?.acceptedResponses === 1;
+				});
+				assertExactRequest(group, network.byEndpoint.endRound[0], {
+					method: 'POST',
+					path: '/wallet/end-round',
+					body: { sessionID: SESSION_ID },
+				});
+				record.acceptedScreenshot = await saveScreenshot(page, `${group}-pending-client-response`);
+
+				await page.reload({ waitUntil: 'domcontentloaded', timeout: 15_000 });
+				await waitForEndpoint(network, 'authenticate', 2);
+				await waitForRuntimeState(page, 'live-ready');
+				await waitForStableAction(page);
+				await page.waitForTimeout(300);
+
+				const responseLossAudit = await page.evaluate(() =>
+					JSON.parse(
+						sessionStorage.getItem(
+							'blacksite-qa-accepted-winning-settlement-response-loss-audit',
+						) ?? 'null',
+					),
+				);
+				for (const request of network.byEndpoint.authenticate) {
+					assertExactRequest(group, request, {
+						method: 'POST',
+						path: '/wallet/authenticate',
+						body: { sessionID: SESSION_ID, language: 'en' },
+					});
+				}
+				check(
+					group,
+					'accepted winning settlement response loss aborts only the pending client transport',
+					responseLossAudit?.attempts === 1 &&
+						responseLossAudit?.acceptedResponses === 1 &&
+						responseLossAudit?.aborts === 1,
+					serialize(responseLossAudit),
+				);
+				check(
+					group,
+					'accepted winning settlement response loss never retries payout settlement',
+					network.byEndpoint.endRound.length === 1 &&
+						network.byEndpoint.play.length === 1 &&
+						serialize(network.byEndpoint.event.map(({ body }) => body.event)) ===
+							serialize(expectedCheckpointCursors),
+					serialize(network.order),
+				);
+				check(
+					group,
+					'accepted winning settlement recovery order is authoritative and exact',
+					network.byEndpoint.authenticate.length === 2 &&
+						serialize(network.order) ===
+							serialize([
+								'authenticate',
+								'play',
+								...expectedCheckpointCursors.map(() => 'event'),
+								'endRound',
+								'authenticate',
+							]),
+					serialize(network.order),
+				);
+				check(
+					group,
+					'accepted winning settlement recovery adopts the one-time authoritative payout balance',
+					round.payout === 200 * API_UNIT &&
+						settledBalance === 1_199 * API_UNIT &&
+						(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$1199.00' &&
+						(await page.locator(SELECTORS.finalWin).innerText()).trim() === '—' &&
+						(await runtimeState(page)) === 'live-ready',
+					serialize({
+						payout: round.payout,
+						settledBalance,
+						balance: await page.locator(SELECTORS.walletBalance).innerText(),
+						win: await page.locator(SELECTORS.finalWin).innerText(),
+						state: await runtimeState(page),
+					}),
+				);
+				const expectedAbortedRequests = diagnostics.failedRequests.splice(0);
+				check(
+					group,
+					'accepted winning settlement response loss reports the exact aborted settlement transport',
+					expectedAbortedRequests.length === 1 &&
+						expectedAbortedRequests[0]?.method === 'POST' &&
+						expectedAbortedRequests[0]?.url === `${BLACKSITE_QA_RGS_ORIGIN}/wallet/end-round` &&
+						expectedAbortedRequests[0]?.error === 'net::ERR_ABORTED',
+					serialize(expectedAbortedRequests),
+				);
+				assertCleanNetwork(group, network);
+				assertCleanDiagnostics(group, diagnostics);
+				record.screenshot = await saveScreenshot(page, group);
+				record.expectedAbortedRequests = expectedAbortedRequests;
+				record.network = network;
+				record.diagnostics = diagnostics;
+			} finally {
+				await context.close();
+			}
+		},
+	);
+
+	await runScenario(
+		'settlement-session-expiry-reauthenticates-and-settles-once',
+		async (record) => {
+			const group = 'settlement-session-expiry-reauthenticates-and-settles-once';
+			const restoredBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
+			const restoredRound = authoritativeZeroRound({
+				active: true,
+				id: 'blacksite-qa-expired-settlement-session',
+				event: encodePresentationCursor(2),
+			});
+			const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+			try {
+				const network = await installMockRgs(context, {
+					pageOrigin: origin,
+					handlers: {
+						authenticate: (_request, networkEvidence) =>
+							networkEvidence.byEndpoint.authenticate.length === 1
+								? authenticateResponse()
+								: authenticateResponse({
+										balance: restoredBalance,
+										round: restoredRound,
+									}),
+						play: () => playResponse({ active: true }),
+						event: (request) => ({ event: request.body.event }),
+						endRound: (_request, networkEvidence) =>
+							networkEvidence.byEndpoint.endRound.length === 1
+								? {
+										status: {
+											statusCode: 'ERR_SESSION',
+											statusMessage: 'The session expired before the active round was settled.',
+										},
+									}
+								: endRoundResponse({ balance: restoredBalance }),
+					},
+				});
+				const { page, diagnostics } = await openPage(context, origin, liveQuery());
+				await waitForEndpoint(network, 'authenticate', 1);
+				await waitForStableAction(page);
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForEndpoint(network, 'endRound', 1);
+				await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 10_000 });
+				await waitForRuntimeState(page, 'live-error');
+
+				assertExactRequest(group, network.byEndpoint.endRound[0], {
+					method: 'POST',
+					path: '/wallet/end-round',
+					body: { sessionID: SESSION_ID },
+				});
+				const recovery = page.locator('[data-testid="recovery-action"]');
+				check(
+					group,
+					'expired settlement session remains fail-closed and explicitly recoverable',
+					(await page.locator(SELECTORS.primaryAction).isDisabled()) &&
+						(await recovery.isVisible()) &&
+						!(await recovery.isDisabled()),
+					serialize({ state: await runtimeState(page), order: network.order }),
+				);
+				check(
+					group,
+					'expired settlement preserves the exact authoritative result',
+					(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00',
+					await page.locator(SELECTORS.finalWin).innerText(),
+				);
+				await page.waitForTimeout(300);
+				check(
+					group,
+					'expired settlement session never retries authentication or settlement automatically',
+					network.byEndpoint.authenticate.length === 1 && network.byEndpoint.endRound.length === 1,
+					serialize(network.order),
+				);
+				record.errorScreenshot = await saveScreenshot(page, 'settlement-session-expiry-error');
+
+				await recovery.click();
+				await waitForEndpoint(network, 'authenticate', 2);
+				await waitForEndpoint(network, 'endRound', 2);
+				await waitForRuntimeState(page, 'live-ready');
+				await page.waitForTimeout(300);
+
+				for (const request of network.byEndpoint.authenticate) {
+					assertExactRequest(group, request, {
+						method: 'POST',
+						path: '/wallet/authenticate',
+						body: { sessionID: SESSION_ID, language: 'en' },
+					});
+				}
+				for (const request of network.byEndpoint.endRound) {
+					assertExactRequest(group, request, {
+						method: 'POST',
+						path: '/wallet/end-round',
+						body: { sessionID: SESSION_ID },
+					});
+				}
+				check(
+					group,
+					'explicit settlement recovery reauthenticates once without duplicate play or checkpoint writes',
+					network.byEndpoint.authenticate.length === 2 &&
+						network.byEndpoint.play.length === 1 &&
+						network.byEndpoint.event.length === 1,
+					serialize(network.order),
+				);
+				check(
+					group,
+					'reauthenticated settlement performs exactly one new completion attempt',
+					network.byEndpoint.endRound.length === 2,
+					serialize(network.order),
+				);
+				check(
+					group,
+					'expired settlement recovery order is authoritative and exact',
+					serialize(network.order) ===
+						serialize(['authenticate', 'play', 'event', 'endRound', 'authenticate', 'endRound']),
+					serialize(network.order),
+				);
+				check(
+					group,
+					'reauthenticated settlement adopts the exact authoritative balance and remains stable',
+					(await page.locator(SELECTORS.walletBalance).innerText()).trim() === '$999.00' &&
+						(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00' &&
+						(await runtimeState(page)) === 'live-ready',
+					serialize({
+						balance: await page.locator(SELECTORS.walletBalance).innerText(),
+						win: await page.locator(SELECTORS.finalWin).innerText(),
+						state: await runtimeState(page),
+						order: network.order,
+					}),
+				);
+				assertCleanNetwork(group, network);
+				assertCleanDiagnostics(group, diagnostics);
+				record.screenshot = await saveScreenshot(page, group);
+				record.network = network;
+				record.diagnostics = diagnostics;
+			} finally {
+				await context.close();
+			}
+		},
+	);
 
 	await runScenario('active-restore-no-duplicate-play', async (record) => {
 		const group = 'active-restore-no-duplicate-play';
@@ -6858,8 +8799,8 @@ async function runNetworkScenarios(browser, origin) {
 								amount: 500_000,
 								mode: 'deep_access',
 								event: encodePresentationCursor(4),
-								}),
-								jurisdictionOverrides: { disabledBuyFeature: true },
+							}),
+							jurisdictionOverrides: { disabledBuyFeature: true },
 						}),
 					event: (request) => ({ event: request.body.event }),
 					endRound: () => endRoundResponse(),
@@ -6879,22 +8820,104 @@ async function runNetworkScenarios(browser, origin) {
 				await page.evaluate(() => document.body.dataset.introStatus),
 			);
 			const restoredBoard = await boardSymbols(page);
-			check(group, 'disabled Buy Feature does not block presentation of an already-active feature round', restoredBoard.length === 49 && restoredBoard.some((symbol) => symbol !== ''), serialize(restoredBoard));
-			check(group, 'restored feature round exposes its exact result only after completion', (await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00', await page.locator(SELECTORS.finalWin).innerText());
-			check(group, 'restore sends zero play requests', network.byEndpoint.play.length === 0, serialize(network.order));
-			check(group, 'restore does not rewrite already-persisted checkpoints', network.byEndpoint.event.length === 0, serialize(network.order));
-			check(group, 'restore settles exactly once', network.byEndpoint.endRound.length === 1, serialize(network.order));
-			check(group, 'restore order is authenticate then end-round', serialize(network.order) === serialize(['authenticate', 'endRound']), serialize(network.order));
-			check(group, 'restored non-default Base amount remains selected after settlement', await page.locator(SELECTORS.baseAmount).inputValue() === '500000', await page.locator(SELECTORS.baseAmount).inputValue());
-			check(group, 'restored DEEP ACCESS identity remains visible in the readout after settlement', /DEEP ACCESS/i.test(await page.locator('.mode-readout').innerText()), await page.locator('.mode-readout').innerText());
-			check(group, 'restored mode and Base amount produce exact complete play display', (await page.locator(SELECTORS.totalPlay).innerText()).trim() === '$2.00', await page.locator(SELECTORS.totalPlay).innerText());
-			check(group, 'feature modes are hidden for new actions after restored settlement', await page.locator(SELECTORS.modeDeepAccess).count() === 0 && await page.locator(SELECTORS.modeBlackout).count() === 0, serialize({ deepAccessCount: await page.locator(SELECTORS.modeDeepAccess).count(), blackoutCount: await page.locator(SELECTORS.modeBlackout).count() }));
-			check(group, 'restored blocked feature selection cannot start a new play', await page.locator(SELECTORS.primaryAction).isDisabled(), await page.locator(SELECTORS.primaryAction).innerText());
-			check(group, 'Base mode remains legal after restored feature settlement', !(await page.locator(SELECTORS.modeBase).isDisabled()), await page.locator(SELECTORS.modeBase).innerText());
+			check(
+				group,
+				'disabled Buy Feature does not block presentation of an already-active feature round',
+				restoredBoard.length === 49 && restoredBoard.some((symbol) => symbol !== ''),
+				serialize(restoredBoard),
+			);
+			check(
+				group,
+				'restored feature round exposes its exact result only after completion',
+				(await page.locator(SELECTORS.finalWin).innerText()).trim() === '$0.00',
+				await page.locator(SELECTORS.finalWin).innerText(),
+			);
+			check(
+				group,
+				'restore sends zero play requests',
+				network.byEndpoint.play.length === 0,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'restore does not rewrite already-persisted checkpoints',
+				network.byEndpoint.event.length === 0,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'restore settles exactly once',
+				network.byEndpoint.endRound.length === 1,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'restore order is authenticate then end-round',
+				serialize(network.order) === serialize(['authenticate', 'endRound']),
+				serialize(network.order),
+			);
+			check(
+				group,
+				'restored non-default Base amount remains selected after settlement',
+				(await page.locator(SELECTORS.baseAmount).inputValue()) === '500000',
+				await page.locator(SELECTORS.baseAmount).inputValue(),
+			);
+			check(
+				group,
+				'restored DEEP ACCESS identity remains visible in the readout after settlement',
+				/DEEP ACCESS/i.test(await page.locator('.mode-readout').innerText()),
+				await page.locator('.mode-readout').innerText(),
+			);
+			check(
+				group,
+				'restored mode and Base amount produce exact complete play display',
+				(await page.locator(SELECTORS.totalPlay).innerText()).trim() === '$2.00',
+				await page.locator(SELECTORS.totalPlay).innerText(),
+			);
+			check(
+				group,
+				'feature modes are hidden for new actions after restored settlement',
+				(await page.locator(SELECTORS.modeDeepAccess).count()) === 0 &&
+					(await page.locator(SELECTORS.modeBlackout).count()) === 0,
+				serialize({
+					deepAccessCount: await page.locator(SELECTORS.modeDeepAccess).count(),
+					blackoutCount: await page.locator(SELECTORS.modeBlackout).count(),
+				}),
+			);
+			check(
+				group,
+				'restored blocked feature selection cannot start a new play',
+				await page.locator(SELECTORS.primaryAction).isDisabled(),
+				await page.locator(SELECTORS.primaryAction).innerText(),
+			);
+			check(
+				group,
+				'Base mode remains legal after restored feature settlement',
+				!(await page.locator(SELECTORS.modeBase).isDisabled()),
+				await page.locator(SELECTORS.modeBase).innerText(),
+			);
 			await page.locator(SELECTORS.modeBase).click();
 			await waitForStableAction(page);
-			check(group, 'switching to Base restores a legal ready action without sending play', await page.locator(SELECTORS.modeBase).getAttribute('aria-pressed') === 'true' && network.byEndpoint.play.length === 0, serialize({ basePressed: await page.locator(SELECTORS.modeBase).getAttribute('aria-pressed'), order: network.order }));
-			check(group, 'Base keeps the restored amount and exact legal complete-play display', await page.locator(SELECTORS.baseAmount).inputValue() === '500000' && (await page.locator(SELECTORS.totalPlay).innerText()).trim() === '$0.50', serialize({ baseAmount: await page.locator(SELECTORS.baseAmount).inputValue(), totalPlay: await page.locator(SELECTORS.totalPlay).innerText() }));
+			check(
+				group,
+				'switching to Base restores a legal ready action without sending play',
+				(await page.locator(SELECTORS.modeBase).getAttribute('aria-pressed')) === 'true' &&
+					network.byEndpoint.play.length === 0,
+				serialize({
+					basePressed: await page.locator(SELECTORS.modeBase).getAttribute('aria-pressed'),
+					order: network.order,
+				}),
+			);
+			check(
+				group,
+				'Base keeps the restored amount and exact legal complete-play display',
+				(await page.locator(SELECTORS.baseAmount).inputValue()) === '500000' &&
+					(await page.locator(SELECTORS.totalPlay).innerText()).trim() === '$0.50',
+				serialize({
+					baseAmount: await page.locator(SELECTORS.baseAmount).inputValue(),
+					totalPlay: await page.locator(SELECTORS.totalPlay).innerText(),
+				}),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.screenshot = await saveScreenshot(page, 'active-restore-no-duplicate-play');
@@ -6939,8 +8962,9 @@ async function runNetworkScenarios(browser, origin) {
 						document.body?.dataset.runtimeState ??
 						null;
 					if (!state) return;
-					const board = [...document.querySelectorAll('[data-testid="board"] [role="gridcell"]')]
-						.map((cell) => cell.getAttribute('data-symbol') ?? '');
+					const board = [
+						...document.querySelectorAll('[data-testid="board"] [role="gridcell"]'),
+					].map((cell) => cell.getAttribute('data-symbol') ?? '');
 					const snapshot = {
 						state,
 						board,
@@ -7005,7 +9029,10 @@ async function runNetworkScenarios(browser, origin) {
 				group,
 				'event-driven trace observes the primed feature checkpoint without polling a transient state',
 				Boolean(restoring),
-				serialize({ traceLength: restoreTrace.length, states: restoreTrace.map(({ state }) => state) }),
+				serialize({
+					traceLength: restoreTrace.length,
+					states: restoreTrace.map(({ state }) => state),
+				}),
 			);
 
 			const actualCheckpointCursors = network.byEndpoint.event.map(({ body }) => body.event);
@@ -7077,11 +9104,7 @@ async function runNetworkScenarios(browser, origin) {
 				group,
 				'network order remains authenticate, ordered checkpoints, then one settlement',
 				serialize(network.order) ===
-					serialize([
-						'authenticate',
-						...expectedCheckpointCursors.map(() => 'event'),
-						'endRound',
-					]),
+					serialize(['authenticate', ...expectedCheckpointCursors.map(() => 'event'), 'endRound']),
 				serialize(network.order),
 			);
 			assertCleanNetwork(group, network);
@@ -7123,8 +9146,18 @@ async function runNetworkScenarios(browser, origin) {
 			}
 			const state = await runtimeState(page);
 			const visibleText = await page.locator('body').innerText();
-			check('known-insufficient-balance-blocks-play', 'known insufficient balance sends zero play requests', network.byEndpoint.play.length === 0, serialize(network.order));
-			check('known-insufficient-balance-blocks-play', 'insufficient guard is disabled or visibly reported', disabled || /insufficient/i.test(`${state ?? ''} ${visibleText}`), serialize({ disabled, state }));
+			check(
+				'known-insufficient-balance-blocks-play',
+				'known insufficient balance sends zero play requests',
+				network.byEndpoint.play.length === 0,
+				serialize(network.order),
+			);
+			check(
+				'known-insufficient-balance-blocks-play',
+				'insufficient guard is disabled or visibly reported',
+				disabled || /insufficient/i.test(`${state ?? ''} ${visibleText}`),
+				serialize({ disabled, state }),
+			);
 			assertCleanNetwork('known-insufficient-balance-blocks-play', network);
 			record.screenshot = await saveScreenshot(page, 'known-insufficient-balance');
 			record.network = network;
@@ -7216,20 +9249,93 @@ async function runNetworkScenarios(browser, origin) {
 				);
 				const request = network.byEndpoint.replay[0];
 				const expectedPath = `/bet/replay/blacksite_breach/${REPLAY_VERSION}/${fixture.mode}/${event}`;
-				check(group, 'fixture is math-backed', fixture.mathBacked === true, serialize({ fixtureId: fixture.id, mathBacked: fixture.mathBacked }));
-				check(group, 'Replay payload converts exact book centi-x to multiplier-x', payload.payoutMultiplier === fixture.book.payoutMultiplier / 100, serialize({ responseMultiplierX: payload.payoutMultiplier, bookPayoutCentiX: fixture.book.payoutMultiplier }));
-				check(group, 'Replay payload uses canonical mode cost', payload.costMultiplier === MODE_COSTS[fixture.mode], serialize({ actual: payload.costMultiplier, expected: MODE_COSTS[fixture.mode] }));
+				check(
+					group,
+					'fixture is math-backed',
+					fixture.mathBacked === true,
+					serialize({ fixtureId: fixture.id, mathBacked: fixture.mathBacked }),
+				);
+				check(
+					group,
+					'Replay payload converts exact book centi-x to multiplier-x',
+					payload.payoutMultiplier === fixture.book.payoutMultiplier / 100,
+					serialize({
+						responseMultiplierX: payload.payoutMultiplier,
+						bookPayoutCentiX: fixture.book.payoutMultiplier,
+					}),
+				);
+				check(
+					group,
+					'Replay payload uses canonical mode cost',
+					payload.costMultiplier === MODE_COSTS[fixture.mode],
+					serialize({ actual: payload.costMultiplier, expected: MODE_COSTS[fixture.mode] }),
+				);
 				check(group, 'Replay matrix uses GET', request.method === 'GET', serialize(request));
-				check(group, 'Replay matrix path is exact', request.path === expectedPath, serialize({ actual: request.path, expected: expectedPath }));
-				check(group, 'Replay matrix GET is queryless', Object.keys(request.search).length === 0, serialize(request.search));
-				check(group, 'Replay matrix GET has no body', request.body === null, serialize(request.body));
-				const expectedTotalPlay = expectedReplayTotalPlay(amountUnitsRaw, MODE_COSTS[fixture.mode], currency);
-				const expectedFinalWin = expectedReplayFinalWin(amountUnitsRaw, fixture.book.payoutMultiplier, currency);
+				check(
+					group,
+					'Replay matrix path is exact',
+					request.path === expectedPath,
+					serialize({ actual: request.path, expected: expectedPath }),
+				);
+				check(
+					group,
+					'Replay matrix GET is queryless',
+					Object.keys(request.search).length === 0,
+					serialize(request.search),
+				);
+				check(
+					group,
+					'Replay matrix GET has no body',
+					request.body === null,
+					serialize(request.body),
+				);
+				const expectedTotalPlay = expectedReplayTotalPlay(
+					amountUnitsRaw,
+					MODE_COSTS[fixture.mode],
+					currency,
+				);
+				const expectedFinalWin = expectedReplayFinalWin(
+					amountUnitsRaw,
+					fixture.book.payoutMultiplier,
+					currency,
+				);
 				const expectedResultMultiplier = expectedCentiMultiplierText(fixture.book.payoutMultiplier);
 				const readyPresentation = await replayPresentationSnapshot(page);
-				check(group, 'Replay ready state keeps FINAL WIN hidden', readyPresentation.runtimeState === 'replay-ready' && readyPresentation.finalWin === '—', serialize(readyPresentation));
-				check(group, 'Replay TOTAL PLAY is exact query amount times canonical cost', readyPresentation.totalPlay === expectedTotalPlay, serialize({ actual: readyPresentation.totalPlay, expected: expectedTotalPlay, amountUnitsRaw, costMultiplier: MODE_COSTS[fixture.mode] }));
-				check(group, 'Replay ready card shows canonical cost while keeping result multiplier hidden', readyPresentation.replayCard.includes(`${MODE_COSTS[fixture.mode]}× play factor`) && readyPresentation.replayCard.includes('— result') && !readyPresentation.replayCard.includes(`${expectedResultMultiplier} result`), serialize({ replayCard: readyPresentation.replayCard, expectedResultMultiplier, expectedCostMultiplier: MODE_COSTS[fixture.mode] }));
+				check(
+					group,
+					'Replay ready state keeps FINAL WIN hidden',
+					readyPresentation.runtimeState === 'replay-ready' && readyPresentation.finalWin === '—',
+					serialize(readyPresentation),
+				);
+				check(
+					group,
+					'Replay TOTAL PLAY is exact query amount times canonical cost',
+					readyPresentation.totalPlay === expectedTotalPlay,
+					serialize({
+						actual: readyPresentation.totalPlay,
+						expected: expectedTotalPlay,
+						amountUnitsRaw,
+						costMultiplier: MODE_COSTS[fixture.mode],
+					}),
+				);
+				check(
+					group,
+					'every visible desktop Replay TOTAL PLAY surface is exact in the ready state',
+					exactReplayTotalPlaySurfaces(readyPresentation, expectedTotalPlay, 2),
+					serialize({ expectedTotalPlay, surfaces: readyPresentation.totalPlaySurfaces }),
+				);
+				check(
+					group,
+					'Replay ready card shows canonical cost while keeping result multiplier hidden',
+					readyPresentation.replayCard.includes(`${MODE_COSTS[fixture.mode]}× play factor`) &&
+						readyPresentation.replayCard.includes('— result') &&
+						!readyPresentation.replayCard.includes(`${expectedResultMultiplier} result`),
+					serialize({
+						replayCard: readyPresentation.replayCard,
+						expectedResultMultiplier,
+						expectedCostMultiplier: MODE_COSTS[fixture.mode],
+					}),
+				);
 
 				if (ruleAudit) {
 					await page.locator(SELECTORS.motionMode).click();
@@ -7243,24 +9349,100 @@ async function runNetworkScenarios(browser, origin) {
 				await page.locator(SELECTORS.primaryAction).click();
 				await waitForReplayComplete(page, ruleAudit ? 60_000 : 20_000);
 				const firstPresentation = await replayPresentationSnapshot(page);
-				check(group, 'Replay completes rather than remaining loading/playing', firstPresentation.runtimeState === 'replay-completed', serialize(firstPresentation.runtimeState));
-				check(group, 'Replay FINAL WIN is exact query amount times authoritative package payout', firstPresentation.finalWin === expectedFinalWin, serialize({ actual: firstPresentation.finalWin, expected: expectedFinalWin, amountUnitsRaw, packagePayoutCentiX: fixture.book.payoutMultiplier }));
-				check(group, 'Replay TOTAL PLAY remains exact query amount times canonical cost', firstPresentation.totalPlay === expectedTotalPlay, serialize({ actual: firstPresentation.totalPlay, expected: expectedTotalPlay }));
-				check(group, 'completed Replay card shows canonical cost factor and authoritative result multiplier', firstPresentation.replayCard.includes(`${MODE_COSTS[fixture.mode]}× play factor`) && firstPresentation.replayCard.includes(`${expectedResultMultiplier} result`), serialize({ replayCard: firstPresentation.replayCard, expectedResultMultiplier, expectedCostMultiplier: MODE_COSTS[fixture.mode] }));
-				check(group, 'Replay presents all 49 authoritative board cells', firstPresentation.board.length === 49, String(firstPresentation.board.length));
+				check(
+					group,
+					'Replay completes rather than remaining loading/playing',
+					firstPresentation.runtimeState === 'replay-completed',
+					serialize(firstPresentation.runtimeState),
+				);
+				check(
+					group,
+					'Replay FINAL WIN is exact query amount times authoritative package payout',
+					firstPresentation.finalWin === expectedFinalWin,
+					serialize({
+						actual: firstPresentation.finalWin,
+						expected: expectedFinalWin,
+						amountUnitsRaw,
+						packagePayoutCentiX: fixture.book.payoutMultiplier,
+					}),
+				);
+				check(
+					group,
+					'Replay TOTAL PLAY remains exact query amount times canonical cost',
+					firstPresentation.totalPlay === expectedTotalPlay,
+					serialize({ actual: firstPresentation.totalPlay, expected: expectedTotalPlay }),
+				);
+				check(
+					group,
+					'every visible desktop Replay TOTAL PLAY surface remains exact after completion',
+					exactReplayTotalPlaySurfaces(firstPresentation, expectedTotalPlay, 2),
+					serialize({ expectedTotalPlay, surfaces: firstPresentation.totalPlaySurfaces }),
+				);
+				check(
+					group,
+					'completed Replay card shows canonical cost factor and authoritative result multiplier',
+					firstPresentation.replayCard.includes(`${MODE_COSTS[fixture.mode]}× play factor`) &&
+						firstPresentation.replayCard.includes(`${expectedResultMultiplier} result`),
+					serialize({
+						replayCard: firstPresentation.replayCard,
+						expectedResultMultiplier,
+						expectedCostMultiplier: MODE_COSTS[fixture.mode],
+					}),
+				);
+				check(
+					group,
+					'Replay presents all 49 authoritative board cells',
+					firstPresentation.board.length === 49,
+					String(firstPresentation.board.length),
+				);
 				if (expectedClass === 'zero') {
-					check(group, 'zero/loss case has exact zero book result', fixture.book.payoutMultiplier === 0, String(fixture.book.payoutMultiplier));
+					check(
+						group,
+						'zero/loss case has exact zero book result',
+						fixture.book.payoutMultiplier === 0,
+						String(fixture.book.payoutMultiplier),
+					);
 				} else {
-					check(group, `${expectedClass} case has a positive book result`, fixture.book.payoutMultiplier > 0, String(fixture.book.payoutMultiplier));
+					check(
+						group,
+						`${expectedClass} case has a positive book result`,
+						fixture.book.payoutMultiplier > 0,
+						String(fixture.book.payoutMultiplier),
+					);
 				}
 				if (expectedClass === 'feature-mode-win') {
-					check(group, 'feature-mode case is a non-base canonical mode', fixture.mode !== 'base' && MODE_COSTS[fixture.mode] > 1, serialize({ mode: fixture.mode, cost: MODE_COSTS[fixture.mode] }));
+					check(
+						group,
+						'feature-mode case is a non-base canonical mode',
+						fixture.mode !== 'base' && MODE_COSTS[fixture.mode] > 1,
+						serialize({ mode: fixture.mode, cost: MODE_COSTS[fixture.mode] }),
+					);
 				}
 				if (expectedClass === 'max-win') {
-					check(group, 'max-win case applies the exact 10,000x package cap to opaque query units', fixture.book.payoutMultiplier === 1_000_000 && firstPresentation.finalWin === expectedReplayFinalWin(amountUnitsRaw, 1_000_000, currency), serialize(firstPresentation));
+					check(
+						group,
+						'max-win case applies the exact 10,000x package cap to opaque query units',
+						fixture.book.payoutMultiplier === 1_000_000 &&
+							firstPresentation.finalWin ===
+								expectedReplayFinalWin(amountUnitsRaw, 1_000_000, currency),
+						serialize(firstPresentation),
+					);
 				}
 				if (expectedClass === 'fractional') {
-					check(group, 'fractional BLACKOUT arithmetic remains exact and lossless', fixture.mode === 'blackout' && fixture.book.payoutMultiplier === 1423 && firstPresentation.totalPlay === '$3.968 units' && firstPresentation.finalWin === '$0.705808 units', serialize({ fixture: fixture.id, mode: fixture.mode, payoutCentiX: fixture.book.payoutMultiplier, firstPresentation }));
+					check(
+						group,
+						'fractional BLACKOUT arithmetic remains exact and lossless',
+						fixture.mode === 'blackout' &&
+							fixture.book.payoutMultiplier === 1423 &&
+							firstPresentation.totalPlay === '$3.968 units' &&
+							firstPresentation.finalWin === '$0.705808 units',
+						serialize({
+							fixture: fixture.id,
+							mode: fixture.mode,
+							payoutCentiX: fixture.book.payoutMultiplier,
+							firstPresentation,
+						}),
+					);
 				}
 
 				let ruleWinAudit = null;
@@ -7336,10 +9518,25 @@ async function runNetworkScenarios(browser, origin) {
 					await page.waitForTimeout(50);
 					await waitForReplayComplete(page);
 					secondPresentation = await replayPresentationSnapshot(page);
-					check(group, 'Play Again reproduces the exact result and board presentation', serialize(secondPresentation) === serialize(firstPresentation), serialize({ firstPresentation, secondPresentation }));
-					check(group, 'Play Again does not refetch Replay', network.byEndpoint.replay.length === 1, serialize(network.order));
+					check(
+						group,
+						'Play Again reproduces the exact result and board presentation',
+						serialize(secondPresentation) === serialize(firstPresentation),
+						serialize({ firstPresentation, secondPresentation }),
+					);
+					check(
+						group,
+						'Play Again does not refetch Replay',
+						network.byEndpoint.replay.length === 1,
+						serialize(network.order),
+					);
 				}
-				check(group, 'Replay matrix sends zero wallet/event writes', walletWriteCount(network) === 0, serialize(network.order));
+				check(
+					group,
+					'Replay matrix sends zero wallet/event writes',
+					walletWriteCount(network) === 0,
+					serialize(network.order),
+				);
 				assertCleanNetwork(group, network);
 				assertCleanDiagnostics(group, diagnostics);
 				record.fixture = {
@@ -7370,7 +9567,11 @@ async function runNetworkScenarios(browser, origin) {
 	const socialReplayOutcomeCases = [
 		{ caseId: 'loss', fixture: BASE_ZERO_FIXTURE, expectedClass: 'loss' },
 		{ caseId: 'win', fixture: getGeneratedFixture('base_small'), expectedClass: 'win' },
-		{ caseId: 'feature', fixture: getGeneratedFixture('deep_access_small'), expectedClass: 'feature' },
+		{
+			caseId: 'feature',
+			fixture: getGeneratedFixture('deep_access_small'),
+			expectedClass: 'feature',
+		},
 		{ caseId: 'max-win', fixture: getGeneratedFixture('base_max_win'), expectedClass: 'max-win' },
 	];
 
@@ -7380,7 +9581,11 @@ async function runNetworkScenarios(browser, origin) {
 			const { fixture, expectedClass } = outcomeCase;
 			const amountUnitsRaw = '0.0496';
 			const currency = 'XSC';
-			const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+			const context = await browser.newContext({
+				viewport: { width: 390, height: 844 },
+				isMobile: true,
+				hasTouch: true,
+			});
 			try {
 				const payload = replayResponseFromFixture(fixture);
 				const event = String(fixture.bookId);
@@ -7392,46 +9597,174 @@ async function runNetworkScenarios(browser, origin) {
 				const { page, diagnostics } = await openPage(
 					context,
 					origin,
-					replayQuery({ mode: fixture.mode, event, amount: amountUnitsRaw, currency, lang: 'de', social: 'true', device: 'mobile' }),
+					replayQuery({
+						mode: fixture.mode,
+						event,
+						amount: amountUnitsRaw,
+						currency,
+						lang: 'de',
+						social: 'true',
+						device: 'mobile',
+					}),
 				);
 				await waitForEndpoint(network, 'replay', 1);
 				await waitForStableAction(page);
 				const request = network.byEndpoint.replay[0];
 				const expectedPath = `/bet/replay/blacksite_breach/${REPLAY_VERSION}/${fixture.mode}/${event}`;
-				const expectedTotalPlay = expectedReplayTotalPlay(amountUnitsRaw, MODE_COSTS[fixture.mode], currency);
-				const expectedFinalWin = expectedReplayFinalWin(amountUnitsRaw, fixture.book.payoutMultiplier, currency);
+				const expectedTotalPlay = expectedReplayTotalPlay(
+					amountUnitsRaw,
+					MODE_COSTS[fixture.mode],
+					currency,
+				);
+				const expectedFinalWin = expectedReplayFinalWin(
+					amountUnitsRaw,
+					fixture.book.payoutMultiplier,
+					currency,
+				);
 				const readyPresentation = await replayPresentationSnapshot(page);
 				const readySurface = await collectPlayerVisibleSurface(page);
-				check(group, 'Social Replay outcome fixture is math-backed', fixture.mathBacked === true, serialize({ fixtureId: fixture.id, mathBacked: fixture.mathBacked }));
-				check(group, 'Social Replay outcome GET path is exact', request.method === 'GET' && request.path === expectedPath, serialize(request));
-				check(group, 'Social Replay outcome GET remains queryless and bodyless', Object.keys(request.search).length === 0 && request.body === null, serialize(request));
-				check(group, 'Social Replay outcome ready state hides FINAL WIN', readyPresentation.runtimeState === 'replay-ready' && readyPresentation.finalWin === '—', serialize(readyPresentation));
-				check(group, 'Social Replay outcome ready state shows exact SC cost', readyPresentation.totalPlay === expectedTotalPlay && readyPresentation.totalPlay.endsWith(' SC units'), serialize({ actual: readyPresentation.totalPlay, expected: expectedTotalPlay }));
-				check(group, 'Social Replay outcome ready surface has zero restricted hits', playerVisibleRestrictedHits(readySurface.combined).length === 0, serialize(readySurface));
-				check(group, 'Social Replay outcome ready surface has no dollar-prefixed display', !readySurface.combined.includes('$'), readySurface.combined);
+				check(
+					group,
+					'Social Replay outcome fixture is math-backed',
+					fixture.mathBacked === true,
+					serialize({ fixtureId: fixture.id, mathBacked: fixture.mathBacked }),
+				);
+				check(
+					group,
+					'Social Replay outcome GET path is exact',
+					request.method === 'GET' && request.path === expectedPath,
+					serialize(request),
+				);
+				check(
+					group,
+					'Social Replay outcome GET remains queryless and bodyless',
+					Object.keys(request.search).length === 0 && request.body === null,
+					serialize(request),
+				);
+				check(
+					group,
+					'Social Replay outcome ready state hides FINAL WIN',
+					readyPresentation.runtimeState === 'replay-ready' && readyPresentation.finalWin === '—',
+					serialize(readyPresentation),
+				);
+				check(
+					group,
+					'Social Replay outcome ready state shows exact SC cost',
+					readyPresentation.totalPlay === expectedTotalPlay &&
+						readyPresentation.totalPlay.endsWith(' SC units'),
+					serialize({ actual: readyPresentation.totalPlay, expected: expectedTotalPlay }),
+				);
+				check(
+					group,
+					'every Social Replay TOTAL PLAY surface is exact and the mobile-visible surface uses SC units',
+					exactReplayTotalPlaySurfaces(readyPresentation, expectedTotalPlay, 1),
+					serialize({ expectedTotalPlay, surfaces: readyPresentation.totalPlaySurfaces }),
+				);
+				check(
+					group,
+					'Social Replay outcome ready surface has zero restricted hits',
+					playerVisibleRestrictedHits(readySurface.combined).length === 0,
+					serialize(readySurface),
+				);
+				check(
+					group,
+					'Social Replay outcome ready surface has no dollar-prefixed display',
+					!readySurface.combined.includes('$'),
+					readySurface.combined,
+				);
 
 				await page.locator(SELECTORS.primaryAction).click();
 				await waitForReplayComplete(page);
 				const completedPresentation = await replayPresentationSnapshot(page);
 				const completedSurface = await collectPlayerVisibleSurface(page);
-				check(group, 'Social Replay outcome completes with exact authoritative result', completedPresentation.runtimeState === 'replay-completed' && completedPresentation.finalWin === expectedFinalWin, serialize({ actual: completedPresentation, expectedFinalWin }));
-				check(group, 'Social Replay outcome retains exact SC cost', completedPresentation.totalPlay === expectedTotalPlay, serialize({ actual: completedPresentation.totalPlay, expected: expectedTotalPlay }));
-				check(group, 'Social Replay outcome presents all 49 authoritative board cells', completedPresentation.board.length === 49, String(completedPresentation.board.length));
-				check(group, 'Social Replay outcome class matches its authoritative fixture', expectedClass === 'loss' ? fixture.book.payoutMultiplier === 0 : fixture.book.payoutMultiplier > 0, serialize({ expectedClass, payoutCentiX: fixture.book.payoutMultiplier }));
+				check(
+					group,
+					'Social Replay outcome completes with exact authoritative result',
+					completedPresentation.runtimeState === 'replay-completed' &&
+						completedPresentation.finalWin === expectedFinalWin,
+					serialize({ actual: completedPresentation, expectedFinalWin }),
+				);
+				check(
+					group,
+					'Social Replay outcome retains exact SC cost',
+					completedPresentation.totalPlay === expectedTotalPlay,
+					serialize({ actual: completedPresentation.totalPlay, expected: expectedTotalPlay }),
+				);
+				check(
+					group,
+					'every Social Replay TOTAL PLAY surface remains exact after completion',
+					exactReplayTotalPlaySurfaces(completedPresentation, expectedTotalPlay, 1),
+					serialize({ expectedTotalPlay, surfaces: completedPresentation.totalPlaySurfaces }),
+				);
+				check(
+					group,
+					'Social Replay outcome presents all 49 authoritative board cells',
+					completedPresentation.board.length === 49,
+					String(completedPresentation.board.length),
+				);
+				check(
+					group,
+					'Social Replay outcome class matches its authoritative fixture',
+					expectedClass === 'loss'
+						? fixture.book.payoutMultiplier === 0
+						: fixture.book.payoutMultiplier > 0,
+					serialize({ expectedClass, payoutCentiX: fixture.book.payoutMultiplier }),
+				);
 				if (expectedClass === 'feature') {
 					const eventTypes = fixture.book.events.map((eventValue) => eventValue.type);
-					check(group, 'Social Replay feature case uses a complete canonical feature lifecycle', fixture.mode === 'deep_access' && MODE_COSTS[fixture.mode] === 4 && eventTypes.includes('feature_start') && eventTypes.includes('feature_end'), serialize({ mode: fixture.mode, cost: MODE_COSTS[fixture.mode], eventTypes }));
+					check(
+						group,
+						'Social Replay feature case uses a complete canonical feature lifecycle',
+						fixture.mode === 'deep_access' &&
+							MODE_COSTS[fixture.mode] === 4 &&
+							eventTypes.includes('feature_start') &&
+							eventTypes.includes('feature_end'),
+						serialize({ mode: fixture.mode, cost: MODE_COSTS[fixture.mode], eventTypes }),
+					);
 				}
 				if (expectedClass === 'max-win') {
-					check(group, 'Social Replay max-win case preserves the exact 10,000x package cap', fixture.book.payoutMultiplier === 1_000_000, String(fixture.book.payoutMultiplier));
+					check(
+						group,
+						'Social Replay max-win case preserves the exact 10,000x package cap',
+						fixture.book.payoutMultiplier === 1_000_000,
+						String(fixture.book.payoutMultiplier),
+					);
 				}
-				check(group, 'Social Replay outcome completed surface has zero restricted hits', playerVisibleRestrictedHits(completedSurface.combined).length === 0, serialize(completedSurface));
-				check(group, 'Social Replay outcome completed surface has no dollar-prefixed display', !completedSurface.combined.includes('$'), completedSurface.combined);
-				check(group, 'Social Replay outcome sends zero wallet/event writes', walletWriteCount(network) === 0, serialize(network.order));
-				check(group, 'Social Replay outcome fetches exactly once', network.byEndpoint.replay.length === 1, serialize(network.order));
+				check(
+					group,
+					'Social Replay outcome completed surface has zero restricted hits',
+					playerVisibleRestrictedHits(completedSurface.combined).length === 0,
+					serialize(completedSurface),
+				);
+				check(
+					group,
+					'Social Replay outcome completed surface has no dollar-prefixed display',
+					!completedSurface.combined.includes('$'),
+					completedSurface.combined,
+				);
+				check(
+					group,
+					'Social Replay outcome sends zero wallet/event writes',
+					walletWriteCount(network) === 0,
+					serialize(network.order),
+				);
+				check(
+					group,
+					'Social Replay outcome fetches exactly once',
+					network.byEndpoint.replay.length === 1,
+					serialize(network.order),
+				);
 				assertCleanNetwork(group, network);
 				assertCleanDiagnostics(group, diagnostics);
-				record.fixture = { id: fixture.id, mode: fixture.mode, bookId: fixture.bookId, bookPayoutCentiX: fixture.book.payoutMultiplier, expectedClass, expectedTotalPlay, expectedFinalWin };
+				record.fixture = {
+					id: fixture.id,
+					mode: fixture.mode,
+					bookId: fixture.bookId,
+					bookPayoutCentiX: fixture.book.payoutMultiplier,
+					expectedClass,
+					expectedTotalPlay,
+					expectedFinalWin,
+				};
 				record.readySurface = readySurface;
 				record.completedSurface = completedSurface;
 				record.completedPresentation = completedPresentation;
@@ -7450,7 +9783,11 @@ async function runNetworkScenarios(browser, origin) {
 		const payload = replayResponseFromFixture(fixture);
 		const amountUnitsRaw = '0.0496';
 		const currency = 'XSC';
-		const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+		const context = await browser.newContext({
+			viewport: { width: 390, height: 844 },
+			isMobile: true,
+			hasTouch: true,
+		});
 		try {
 			const network = await installMockRgs(context, {
 				pageOrigin: origin,
@@ -7474,31 +9811,124 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForEndpoint(network, 'replay', 1);
 			await waitForStableAction(page);
 			const request = network.byEndpoint.replay[0];
-			check(group, 'Social Replay GET path is exact', request.path === `/bet/replay/blacksite_breach/${REPLAY_VERSION}/${fixture.mode}/${event}`, request.path);
-			check(group, 'Social Replay GET remains queryless', Object.keys(request.search).length === 0, serialize(request.search));
-			const expectedTotalPlay = expectedReplayTotalPlay(amountUnitsRaw, MODE_COSTS[fixture.mode], currency);
-			const expectedFinalWin = expectedReplayFinalWin(amountUnitsRaw, fixture.book.payoutMultiplier, currency);
+			check(
+				group,
+				'Social Replay GET path is exact',
+				request.path === `/bet/replay/blacksite_breach/${REPLAY_VERSION}/${fixture.mode}/${event}`,
+				request.path,
+			);
+			check(
+				group,
+				'Social Replay GET remains queryless',
+				Object.keys(request.search).length === 0,
+				serialize(request.search),
+			);
+			const expectedTotalPlay = expectedReplayTotalPlay(
+				amountUnitsRaw,
+				MODE_COSTS[fixture.mode],
+				currency,
+			);
+			const expectedFinalWin = expectedReplayFinalWin(
+				amountUnitsRaw,
+				fixture.book.payoutMultiplier,
+				currency,
+			);
 			const expectedResultMultiplier = expectedCentiMultiplierText(fixture.book.payoutMultiplier);
 			const socialReady = await replayPresentationSnapshot(page);
-			check(group, 'Social Replay ready state keeps FINAL WIN hidden', socialReady.finalWin === '—' && socialReady.runtimeState === 'replay-ready', serialize(socialReady));
-			check(group, 'Social Replay decorates exact query amount × cost with SC units', expectedTotalPlay === '3.968 SC units' && socialReady.totalPlay === expectedTotalPlay, serialize({ expectedTotalPlay, socialReady }));
-			check(group, 'Social Replay ready card shows 80× BLACKOUT cost without leaking result', socialReady.replayCard.includes('80× play factor') && socialReady.replayCard.includes('— result') && !socialReady.replayCard.includes(`${expectedResultMultiplier} result`), socialReady.replayCard);
+			check(
+				group,
+				'Social Replay ready state keeps FINAL WIN hidden',
+				socialReady.finalWin === '—' && socialReady.runtimeState === 'replay-ready',
+				serialize(socialReady),
+			);
+			check(
+				group,
+				'Social Replay decorates exact query amount × cost with SC units',
+				expectedTotalPlay === '3.968 SC units' && socialReady.totalPlay === expectedTotalPlay,
+				serialize({ expectedTotalPlay, socialReady }),
+			);
+			check(
+				group,
+				'all Social Replay ready-state TOTAL PLAY surfaces preserve the exact SC value',
+				exactReplayTotalPlaySurfaces(socialReady, expectedTotalPlay, 1),
+				serialize(socialReady.totalPlaySurfaces),
+			);
+			check(
+				group,
+				'Social Replay ready card shows 80× BLACKOUT cost without leaking result',
+				socialReady.replayCard.includes('80× play factor') &&
+					socialReady.replayCard.includes('— result') &&
+					!socialReady.replayCard.includes(`${expectedResultMultiplier} result`),
+				socialReady.replayCard,
+			);
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForReplayComplete(page);
 			const socialCompleted = await replayPresentationSnapshot(page);
-			check(group, 'Social Replay decorates exact query amount × payout with SC units', expectedFinalWin === '0.705808 SC units' && socialCompleted.finalWin === expectedFinalWin, serialize({ expectedFinalWin, socialCompleted }));
-			check(group, 'Social Replay preserves exact decorated TOTAL PLAY after completion', socialCompleted.totalPlay === expectedTotalPlay, serialize(socialCompleted));
-			check(group, 'completed Social Replay card shows exact cost and result multipliers', socialCompleted.replayCard.includes('80× play factor') && socialCompleted.replayCard.includes(`${expectedResultMultiplier} result`), socialCompleted.replayCard);
-			check(group, 'Social Replay uses Social Base mode label', /STANDARD RUN/i.test(await page.locator(SELECTORS.modeBase).innerText()), await page.locator(SELECTORS.modeBase).innerText());
-			check(group, 'Social Replay uses Social BLACKOUT mode label', /BLACKOUT ENTRY/i.test(await page.locator(SELECTORS.modeBlackout).innerText()), await page.locator(SELECTORS.modeBlackout).innerText());
+			check(
+				group,
+				'Social Replay decorates exact query amount × payout with SC units',
+				expectedFinalWin === '0.705808 SC units' && socialCompleted.finalWin === expectedFinalWin,
+				serialize({ expectedFinalWin, socialCompleted }),
+			);
+			check(
+				group,
+				'Social Replay preserves exact decorated TOTAL PLAY after completion',
+				socialCompleted.totalPlay === expectedTotalPlay,
+				serialize(socialCompleted),
+			);
+			check(
+				group,
+				'all Social Replay completed-state TOTAL PLAY surfaces preserve the exact SC value',
+				exactReplayTotalPlaySurfaces(socialCompleted, expectedTotalPlay, 1),
+				serialize(socialCompleted.totalPlaySurfaces),
+			);
+			check(
+				group,
+				'completed Social Replay card shows exact cost and result multipliers',
+				socialCompleted.replayCard.includes('80× play factor') &&
+					socialCompleted.replayCard.includes(`${expectedResultMultiplier} result`),
+				socialCompleted.replayCard,
+			);
+			check(
+				group,
+				'Social Replay uses Social Base mode label',
+				/STANDARD RUN/i.test(await page.locator(SELECTORS.modeBase).innerText()),
+				await page.locator(SELECTORS.modeBase).innerText(),
+			);
+			check(
+				group,
+				'Social Replay uses Social BLACKOUT mode label',
+				/BLACKOUT ENTRY/i.test(await page.locator(SELECTORS.modeBlackout).innerText()),
+				await page.locator(SELECTORS.modeBlackout).innerText(),
+			);
 			await page.getByRole('button', { name: /INFO \/ RULES/i }).click();
 			await page.getByRole('dialog', { name: /BLACKSITE/i }).waitFor({ state: 'visible' });
 			const surface = await collectPlayerVisibleSurface(page);
 			const restrictedHits = playerVisibleRestrictedHits(surface.combined);
-			check(group, 'Social Replay visible DOM and ARIA surface has zero official restricted hits', restrictedHits.length === 0, serialize({ hits: restrictedHits, attributes: surface.attributes }));
-			check(group, 'Social Replay surface contains no dollar-prefixed social display', !surface.combined.includes('$'), surface.combined);
-			check(group, 'Social Replay sends zero wallet/event writes', walletWriteCount(network) === 0, serialize(network.order));
-			check(group, 'Social Replay fetches exactly once', network.byEndpoint.replay.length === 1, serialize(network.order));
+			check(
+				group,
+				'Social Replay visible DOM and ARIA surface has zero official restricted hits',
+				restrictedHits.length === 0,
+				serialize({ hits: restrictedHits, attributes: surface.attributes }),
+			);
+			check(
+				group,
+				'Social Replay surface contains no dollar-prefixed social display',
+				!surface.combined.includes('$'),
+				surface.combined,
+			);
+			check(
+				group,
+				'Social Replay sends zero wallet/event writes',
+				walletWriteCount(network) === 0,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'Social Replay fetches exactly once',
+				network.byEndpoint.replay.length === 1,
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.surface = surface;
@@ -7523,10 +9953,30 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForEndpoint(network, 'replay', 1);
 			await waitForStableAction(page);
 			const replayRequest = network.byEndpoint.replay[0];
-			check('replay-read-only-play-again', 'Replay uses GET', replayRequest.method === 'GET', serialize(replayRequest));
-			check('replay-read-only-play-again', 'Replay path is exact', replayRequest.path === `/bet/replay/blacksite_breach/${REPLAY_VERSION}/base/1`, replayRequest.path);
-			check('replay-read-only-play-again', 'Replay GET has an exact empty query string', Object.keys(replayRequest.search).length === 0, serialize(replayRequest.search));
-			check('replay-read-only-play-again', 'Replay has no request body', replayRequest.body === null, serialize(replayRequest.body));
+			check(
+				'replay-read-only-play-again',
+				'Replay uses GET',
+				replayRequest.method === 'GET',
+				serialize(replayRequest),
+			);
+			check(
+				'replay-read-only-play-again',
+				'Replay path is exact',
+				replayRequest.path === `/bet/replay/blacksite_breach/${REPLAY_VERSION}/base/1`,
+				replayRequest.path,
+			);
+			check(
+				'replay-read-only-play-again',
+				'Replay GET has an exact empty query string',
+				Object.keys(replayRequest.search).length === 0,
+				serialize(replayRequest.search),
+			);
+			check(
+				'replay-read-only-play-again',
+				'Replay has no request body',
+				replayRequest.body === null,
+				serialize(replayRequest.body),
+			);
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForReplayComplete(page);
 			await page.locator(SELECTORS.primaryAction).click();
@@ -7537,10 +9987,30 @@ async function runNetworkScenarios(browser, origin) {
 				network.byEndpoint.play.length +
 				network.byEndpoint.endRound.length +
 				network.byEndpoint.event.length;
-			check('replay-read-only-play-again', 'Replay fetch occurs exactly once', network.byEndpoint.replay.length === 1, serialize(network.order));
-			check('replay-read-only-play-again', 'Play Again does not refetch Replay', network.byEndpoint.replay.length === 1, serialize(network.order));
-			check('replay-read-only-play-again', 'Replay makes zero wallet/event writes', walletWrites === 0, serialize(network.order));
-			check('replay-read-only-play-again', 'Replay request order contains only replay', serialize(network.order) === serialize(['replay']), serialize(network.order));
+			check(
+				'replay-read-only-play-again',
+				'Replay fetch occurs exactly once',
+				network.byEndpoint.replay.length === 1,
+				serialize(network.order),
+			);
+			check(
+				'replay-read-only-play-again',
+				'Play Again does not refetch Replay',
+				network.byEndpoint.replay.length === 1,
+				serialize(network.order),
+			);
+			check(
+				'replay-read-only-play-again',
+				'Replay makes zero wallet/event writes',
+				walletWrites === 0,
+				serialize(network.order),
+			);
+			check(
+				'replay-read-only-play-again',
+				'Replay request order contains only replay',
+				serialize(network.order) === serialize(['replay']),
+				serialize(network.order),
+			);
 			assertCleanNetwork('replay-read-only-play-again', network);
 			record.screenshot = await saveScreenshot(page, 'replay-play-again');
 			record.network = network;
@@ -7634,37 +10104,44 @@ async function runNetworkScenarios(browser, origin) {
 				};
 				requestAnimationFrame(sample);
 			}, SELECTORS);
-			await page.evaluate(() => new Promise((resolvePromise) => requestAnimationFrame(resolvePromise)));
+			await page.evaluate(
+				() => new Promise((resolvePromise) => requestAnimationFrame(resolvePromise)),
+			);
 			const reducedStartedAt = await page.evaluate(() => performance.now());
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForReplayComplete(page);
-			await page.evaluate(() => new Promise((resolvePromise) => requestAnimationFrame(resolvePromise)));
-			const reducedReplay = await page.evaluate(({ selectors, startedAt }) => {
-				window.__blacksiteReducedReplaySampling = false;
-				const board = document.querySelector(selectors.board);
-				const vaultkeeper = document.querySelector(selectors.vaultkeeper);
-				const image = vaultkeeper?.querySelector('img');
-				const style = image ? getComputedStyle(image) : null;
-				return {
-					elapsedMs: performance.now() - startedAt,
-					frames: window.__blacksiteReducedReplayFrames,
-					runtimeState:
-						document.documentElement.dataset.runtimeState ??
-						document.body.dataset.runtimeState ??
-						null,
-					actionLabel: document.querySelector(selectors.primaryAction)?.textContent?.trim(),
-					motionLabel: document.querySelector(selectors.motionMode)?.textContent?.trim(),
-					motionDisabled: document.querySelector(selectors.motionMode)?.matches(':disabled'),
-					boardPhase: board?.getAttribute('data-motion-phase'),
-					boardProfile: board?.getAttribute('data-motion-profile'),
-					characterState: vaultkeeper?.getAttribute('data-character-state'),
-					characterProfile: vaultkeeper?.getAttribute('data-motion-profile'),
-					animationName: style?.animationName,
-					transitionDuration: style?.transitionDuration,
-					willChange: style?.willChange,
-					characterAnimations: image?.getAnimations().length ?? -1,
-				};
-			}, { selectors: SELECTORS, startedAt: reducedStartedAt });
+			await page.evaluate(
+				() => new Promise((resolvePromise) => requestAnimationFrame(resolvePromise)),
+			);
+			const reducedReplay = await page.evaluate(
+				({ selectors, startedAt }) => {
+					window.__blacksiteReducedReplaySampling = false;
+					const board = document.querySelector(selectors.board);
+					const vaultkeeper = document.querySelector(selectors.vaultkeeper);
+					const image = vaultkeeper?.querySelector('img');
+					const style = image ? getComputedStyle(image) : null;
+					return {
+						elapsedMs: performance.now() - startedAt,
+						frames: window.__blacksiteReducedReplayFrames,
+						runtimeState:
+							document.documentElement.dataset.runtimeState ??
+							document.body.dataset.runtimeState ??
+							null,
+						actionLabel: document.querySelector(selectors.primaryAction)?.textContent?.trim(),
+						motionLabel: document.querySelector(selectors.motionMode)?.textContent?.trim(),
+						motionDisabled: document.querySelector(selectors.motionMode)?.matches(':disabled'),
+						boardPhase: board?.getAttribute('data-motion-phase'),
+						boardProfile: board?.getAttribute('data-motion-profile'),
+						characterState: vaultkeeper?.getAttribute('data-character-state'),
+						characterProfile: vaultkeeper?.getAttribute('data-motion-profile'),
+						animationName: style?.animationName,
+						transitionDuration: style?.transitionDuration,
+						willChange: style?.willChange,
+						characterAnimations: image?.getAnimations().length ?? -1,
+					};
+				},
+				{ selectors: SELECTORS, startedAt: reducedStartedAt },
+			);
 			check(
 				group,
 				'normal Replay Base Small hit remains visible for its authored tier timing',
@@ -7795,8 +10272,7 @@ async function runNetworkScenarios(browser, origin) {
 				group,
 				'every repeated Replay returns to the exact authoritative presentation',
 				completions.length === REPLAY_LIFECYCLE_CYCLES &&
-					completions.every(({ presentation }) =>
-						serialize(presentation) === expectedPresentation),
+					completions.every(({ presentation }) => serialize(presentation) === expectedPresentation),
 				serialize(completions.map(({ cycle, presentation }) => ({ cycle, presentation }))),
 			);
 			check(
@@ -7804,12 +10280,16 @@ async function runNetworkScenarios(browser, origin) {
 				'repeated Replay playback drains every presentation timeout',
 				completions.every(({ timers }) => timers.active === 0) &&
 					completions.at(-1).timers.created > timerBefore.created,
-				serialize({ timerBefore, timers: completions.map(({ cycle, timers }) => ({ cycle, ...timers })) }),
+				serialize({
+					timerBefore,
+					timers: completions.map(({ cycle, timers }) => ({ cycle, ...timers })),
+				}),
 			);
 			check(
 				group,
 				'six cached Replay cycles perform one read and zero wallet writes',
-				network.byEndpoint.replay.length === 1 && walletWrites === 0 &&
+				network.byEndpoint.replay.length === 1 &&
+					walletWrites === 0 &&
 					serialize(network.order) === serialize(['replay']),
 				serialize({ cycles: REPLAY_LIFECYCLE_CYCLES, order: network.order, walletWrites }),
 			);
@@ -7832,7 +10312,11 @@ async function runNetworkScenarios(browser, origin) {
 				replayOnly: true,
 				handlers: { replay: () => invalidReplayResponse() },
 			});
-			const { page, diagnostics } = await openPage(context, origin, replayQuery({ event: 'invalid' }));
+			const { page, diagnostics } = await openPage(
+				context,
+				origin,
+				replayQuery({ event: 'invalid' }),
+			);
 			await waitForEndpoint(network, 'replay', 1);
 			await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 10_000 });
 			const state = await runtimeState(page);
@@ -7842,9 +10326,24 @@ async function runNetworkScenarios(browser, origin) {
 				network.byEndpoint.play.length +
 				network.byEndpoint.endRound.length +
 				network.byEndpoint.event.length;
-			check('invalid-replay-payload-fails-closed', 'invalid Replay exposes a bounded error', errorText.trim().length > 0, errorText);
-			check('invalid-replay-payload-fails-closed', 'invalid Replay runtime is an error state', /error/i.test(state ?? ''), serialize(state));
-			check('invalid-replay-payload-fails-closed', 'invalid Replay makes zero wallet/event writes', walletWrites === 0, serialize(network.order));
+			check(
+				'invalid-replay-payload-fails-closed',
+				'invalid Replay exposes a bounded error',
+				errorText.trim().length > 0,
+				errorText,
+			);
+			check(
+				'invalid-replay-payload-fails-closed',
+				'invalid Replay runtime is an error state',
+				/error/i.test(state ?? ''),
+				serialize(state),
+			);
+			check(
+				'invalid-replay-payload-fails-closed',
+				'invalid Replay makes zero wallet/event writes',
+				walletWrites === 0,
+				serialize(network.order),
+			);
 			assertCleanNetwork('invalid-replay-payload-fails-closed', network);
 			record.screenshot = await saveScreenshot(page, 'invalid-replay-payload');
 			record.network = network;
@@ -7914,10 +10413,7 @@ async function geometryAudit(page) {
 			const label = element?.querySelector('span') ?? null;
 			const bounds = rect(element);
 			const hit = bounds
-				? document.elementFromPoint(
-						bounds.left + bounds.width / 2,
-						bounds.top + bounds.height / 2,
-					)
+				? document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2)
 				: null;
 			return {
 				selector,
@@ -7929,7 +10425,9 @@ async function geometryAudit(page) {
 					Boolean(element && hit) &&
 					(element === hit || element.contains(hit) || hit.contains(element)),
 				labelClipped: Boolean(
-					label && (label.scrollWidth > label.clientWidth + 1 || label.scrollHeight > label.clientHeight + 1),
+					label &&
+						(label.scrollWidth > label.clientWidth + 1 ||
+							label.scrollHeight > label.clientHeight + 1),
 				),
 				textAlign: element ? getComputedStyle(element).textAlign : null,
 			};
@@ -7968,7 +10466,8 @@ async function geometryAudit(page) {
 		return {
 			viewport: { width: innerWidth, height: innerHeight, devicePixelRatio },
 			interaction: {
-				viewportMeta: document.querySelector('meta[name="viewport"]')?.getAttribute('content') ?? null,
+				viewportMeta:
+					document.querySelector('meta[name="viewport"]')?.getAttribute('content') ?? null,
 				htmlTouchAction: getComputedStyle(document.documentElement).touchAction,
 				bodyTouchAction: getComputedStyle(document.body).touchAction,
 			},
@@ -8061,6 +10560,9 @@ async function geometryAudit(page) {
 				imageBounds: rect(vaultkeeperImage),
 				imageComplete: Boolean(vaultkeeperImage?.complete),
 				naturalWidth: vaultkeeperImage?.naturalWidth ?? 0,
+				currentSrc: vaultkeeperImage?.currentSrc ?? '',
+				sourceAttribute: vaultkeeperImage?.getAttribute('src') ?? null,
+				loading: vaultkeeperImage?.loading ?? null,
 				paintState: vaultkeeper?.getAttribute('data-asset-paint-state') ?? null,
 				resourceCount: performance
 					.getEntriesByType('resource')
@@ -8080,9 +10582,14 @@ async function geometryAudit(page) {
 				pointerEvents: environment ? getComputedStyle(environment).pointerEvents : null,
 			},
 			alignment: {
-				baseAmountCentered: getComputedStyle(document.querySelector(selectors.baseAmount)).textAlign === 'center',
-				metersCentered: meterCells.length === 3 && meterCells.every((element) => getComputedStyle(element).textAlign === 'center'),
-				modeLabelsUnclipped: actions.filter(({ selector }) => selector.startsWith('[data-testid="mode-')).every(({ labelClipped }) => !labelClipped),
+				baseAmountCentered:
+					getComputedStyle(document.querySelector(selectors.baseAmount)).textAlign === 'center',
+				metersCentered:
+					meterCells.length === 3 &&
+					meterCells.every((element) => getComputedStyle(element).textAlign === 'center'),
+				modeLabelsUnclipped: actions
+					.filter(({ selector }) => selector.startsWith('[data-testid="mode-'))
+					.every(({ labelClipped }) => !labelClipped),
 			},
 			semantics: {
 				modeGroup: {
@@ -8119,14 +10626,55 @@ async function geometryAudit(page) {
 }
 
 function assertGeometryRecord(group, audit, viewport) {
-	check(group, 'browser viewport meta binds device width', /(?:^|,)\s*width=device-width(?:\s*,|$)/iu.test(audit.interaction.viewportMeta ?? ''), serialize(audit.interaction));
-	check(group, 'browser viewport meta preserves user zoom', !/maximum-scale\s*=/iu.test(audit.interaction.viewportMeta ?? '') && !/user-scalable\s*=\s*(?:no|0)/iu.test(audit.interaction.viewportMeta ?? ''), serialize(audit.interaction));
-	check(group, 'browser computed body touch-action is manipulation', audit.interaction.bodyTouchAction === 'manipulation', serialize(audit.interaction));
-	check(group, 'document has no horizontal scroll', !audit.scroll.hasHorizontal, serialize(audit.scroll));
-	check(group, 'document has no vertical scroll', !audit.scroll.hasVertical, serialize(audit.scroll));
-	check(group, '7x7 board exists and is visible', audit.board.exists && audit.board.visible, serialize(audit.board));
-	check(group, 'board is fully inside viewport', audit.board.insideViewport, serialize(audit.board.bounds));
-	check(group, 'board contains 49 visible cells', audit.board.cellCount === 49 && audit.board.visibleCellCount === 49, serialize(audit.board));
+	check(
+		group,
+		'browser viewport meta binds device width',
+		/(?:^|,)\s*width=device-width(?:\s*,|$)/iu.test(audit.interaction.viewportMeta ?? ''),
+		serialize(audit.interaction),
+	);
+	check(
+		group,
+		'browser viewport meta preserves user zoom',
+		!/maximum-scale\s*=/iu.test(audit.interaction.viewportMeta ?? '') &&
+			!/user-scalable\s*=\s*(?:no|0)/iu.test(audit.interaction.viewportMeta ?? ''),
+		serialize(audit.interaction),
+	);
+	check(
+		group,
+		'browser computed body touch-action is manipulation',
+		audit.interaction.bodyTouchAction === 'manipulation',
+		serialize(audit.interaction),
+	);
+	check(
+		group,
+		'document has no horizontal scroll',
+		!audit.scroll.hasHorizontal,
+		serialize(audit.scroll),
+	);
+	check(
+		group,
+		'document has no vertical scroll',
+		!audit.scroll.hasVertical,
+		serialize(audit.scroll),
+	);
+	check(
+		group,
+		'7x7 board exists and is visible',
+		audit.board.exists && audit.board.visible,
+		serialize(audit.board),
+	);
+	check(
+		group,
+		'board is fully inside viewport',
+		audit.board.insideViewport,
+		serialize(audit.board.bounds),
+	);
+	check(
+		group,
+		'board contains 49 visible cells',
+		audit.board.cellCount === 49 && audit.board.visibleCellCount === 49,
+		serialize(audit.board),
+	);
 	check(
 		group,
 		'board exposes one named 7x7 ARIA grid with explicit row ownership and positions',
@@ -8151,8 +10699,18 @@ function assertGeometryRecord(group, audit, viewport) {
 			),
 		serialize(audit.board.rows),
 	);
-	check(group, 'player HUD and vault connection status are visible', audit.playerHud.visible && audit.playerHud.launchStatusVisible, serialize(audit.playerHud));
-	check(group, 'player HUD exposes no internal schema or greybox diagnostics', audit.playerHud.forbiddenVisibleCopy.length === 0, serialize(audit.playerHud));
+	check(
+		group,
+		'player HUD and vault connection status are visible',
+		audit.playerHud.visible && audit.playerHud.launchStatusVisible,
+		serialize(audit.playerHud),
+	);
+	check(
+		group,
+		'player HUD exposes no internal schema or greybox diagnostics',
+		audit.playerHud.forbiddenVisibleCopy.length === 0,
+		serialize(audit.playerHud),
+	);
 	const expectsVaultkeeper = viewport.width > 820 && viewport.height > 560;
 	check(
 		group,
@@ -8163,7 +10721,7 @@ function assertGeometryRecord(group, audit, viewport) {
 			(expectsVaultkeeper
 				? Boolean(
 						audit.vaultkeeper.imageExists &&
-						audit.vaultkeeper.imageBounds?.width > 0 &&
+							audit.vaultkeeper.imageBounds?.width > 0 &&
 							audit.vaultkeeper.imageBounds?.height > 0 &&
 							audit.vaultkeeper.imageComplete &&
 							audit.vaultkeeper.naturalWidth > 0 &&
@@ -8176,9 +10734,10 @@ function assertGeometryRecord(group, audit, viewport) {
 					audit.vaultkeeper.resourceCount === 0),
 		serialize(audit.vaultkeeper),
 	);
-	const expectedEnvironment = viewport.width <= 820
-		? 'mechanical-vault-portrait-v1.webp'
-		: 'mechanical-vault-desktop-v1.webp';
+	const expectedEnvironment =
+		viewport.width <= 820
+			? 'mechanical-vault-portrait-v1.webp'
+			: 'mechanical-vault-desktop-v1.webp';
 	check(
 		group,
 		`responsive mechanical vault environment selects ${expectedEnvironment}`,
@@ -8192,8 +10751,18 @@ function assertGeometryRecord(group, audit, viewport) {
 			audit.environment.pointerEvents === 'none',
 		serialize(audit.environment),
 	);
-	check(group, 'mode labels are fully visible without ellipsis or clipping', audit.alignment.modeLabelsUnclipped, serialize(audit.alignment));
-	check(group, 'base amount value and all three meters are centered', audit.alignment.baseAmountCentered && audit.alignment.metersCentered, serialize(audit.alignment));
+	check(
+		group,
+		'mode labels are fully visible without ellipsis or clipping',
+		audit.alignment.modeLabelsUnclipped,
+		serialize(audit.alignment),
+	);
+	check(
+		group,
+		'base amount value and all three meters are centered',
+		audit.alignment.baseAmountCentered && audit.alignment.metersCentered,
+		serialize(audit.alignment),
+	);
 	check(
 		group,
 		'route and presentation controls expose named accessibility groups',
@@ -8212,15 +10781,57 @@ function assertGeometryRecord(group, audit, viewport) {
 		),
 		serialize(audit.semantics),
 	);
-	check(group, 'keyboard focus exposes a distinct high-contrast action ring', Boolean(audit.keyboardFocus.testId) && audit.keyboardFocus.outlineWidth >= 3 && audit.keyboardFocus.outlineOffset >= 2 && audit.keyboardFocus.outlineStyle === 'solid' && audit.keyboardFocus.outlineColor === 'rgb(239, 192, 106)', serialize(audit.keyboardFocus));
+	check(
+		group,
+		'keyboard focus exposes a distinct high-contrast action ring',
+		Boolean(audit.keyboardFocus.testId) &&
+			audit.keyboardFocus.outlineWidth >= 3 &&
+			audit.keyboardFocus.outlineOffset >= 2 &&
+			audit.keyboardFocus.outlineStyle === 'solid' &&
+			audit.keyboardFocus.outlineColor === 'rgb(239, 192, 106)',
+		serialize(audit.keyboardFocus),
+	);
 	const boardRatio = audit.board.bounds ? audit.board.bounds.width / audit.board.bounds.height : 0;
-	check(group, 'board aspect remains square', Math.abs(boardRatio - 1) <= 0.002, serialize(boardRatio));
-	check(group, 'board meets viewport readability floor', Boolean(audit.board.bounds && Math.min(audit.board.bounds.width, audit.board.bounds.height) >= viewport.minBoard), serialize({ bounds: audit.board.bounds, minimum: viewport.minBoard }));
+	check(
+		group,
+		'board aspect remains square',
+		Math.abs(boardRatio - 1) <= 0.002,
+		serialize(boardRatio),
+	);
+	check(
+		group,
+		'board meets viewport readability floor',
+		Boolean(
+			audit.board.bounds &&
+				Math.min(audit.board.bounds.width, audit.board.bounds.height) >= viewport.minBoard,
+		),
+		serialize({ bounds: audit.board.bounds, minimum: viewport.minBoard }),
+	);
 	for (const action of audit.actions) {
-		check(group, `${action.selector} exists and is visible`, action.exists && action.visible, serialize(action));
-		check(group, `${action.selector} is inside viewport`, action.insideViewport, serialize(action.bounds));
-		check(group, `${action.selector} is at least 44x44 CSS pixels`, Boolean(action.bounds && action.bounds.width >= 44 && action.bounds.height >= 44), serialize(action.bounds));
-		check(group, `${action.selector} center is physically hittable`, action.centerHit, serialize(action));
+		check(
+			group,
+			`${action.selector} exists and is visible`,
+			action.exists && action.visible,
+			serialize(action),
+		);
+		check(
+			group,
+			`${action.selector} is inside viewport`,
+			action.insideViewport,
+			serialize(action.bounds),
+		);
+		check(
+			group,
+			`${action.selector} is at least 44x44 CSS pixels`,
+			Boolean(action.bounds && action.bounds.width >= 44 && action.bounds.height >= 44),
+			serialize(action.bounds),
+		);
+		check(
+			group,
+			`${action.selector} center is physically hittable`,
+			action.centerHit,
+			serialize(action),
+		);
 	}
 }
 
@@ -8260,141 +10871,144 @@ function assertFeatureModeBadgeGeometry(group, audit, viewport) {
 }
 
 async function runGeometryScenarios(browser, origin) {
-	await runScenario('mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll', async (record) => {
-		const group = 'mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll';
-		const context = await browser.newContext({
-			viewport: { width: 390, height: 844 },
-			isMobile: true,
-			hasTouch: true,
-		});
-		try {
-			const network = await installMockRgs(context, {
-				pageOrigin: origin,
-				handlers: { authenticate: () => authenticateResponse() },
+	await runScenario(
+		'mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll',
+		async (record) => {
+			const group = 'mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll';
+			const context = await browser.newContext({
+				viewport: { width: 390, height: 844 },
+				isMobile: true,
+				hasTouch: true,
 			});
-			const { page, diagnostics } = await openPage(
-				context,
-				origin,
-				liveQuery({ device: 'mobile' }),
-			);
-			await waitForEndpoint(network, 'authenticate', 1);
-			await waitForStableAction(page);
-
-			const visualViewportSnapshot = () =>
-				page.evaluate(() => ({
-					scale: visualViewport?.scale ?? 1,
-					offsetLeft: visualViewport?.offsetLeft ?? 0,
-					offsetTop: visualViewport?.offsetTop ?? 0,
-					pageLeft: visualViewport?.pageLeft ?? scrollX,
-					pageTop: visualViewport?.pageTop ?? scrollY,
-					scrollX,
-					scrollY,
-				}));
-			const beforeDoubleTap = await visualViewportSnapshot();
-			const boardBounds = await page.locator(SELECTORS.board).boundingBox();
-			assert.ok(boardBounds, 'Double-tap QA requires a visible board target.');
-			const tapX = boardBounds.x + boardBounds.width / 2;
-			const tapY = boardBounds.y + boardBounds.height / 2;
-			await page.touchscreen.tap(tapX, tapY);
-			await page.waitForTimeout(80);
-			await page.touchscreen.tap(tapX, tapY);
-			await page.waitForTimeout(350);
-			const afterDoubleTap = await visualViewportSnapshot();
-			check(
-				group,
-				'mobile double-tap keeps visual viewport at 1x without page displacement',
-				Math.abs(beforeDoubleTap.scale - 1) <= 0.001 &&
-					Math.abs(afterDoubleTap.scale - 1) <= 0.001 &&
-					Math.abs(afterDoubleTap.offsetLeft - beforeDoubleTap.offsetLeft) <= 0.5 &&
-					Math.abs(afterDoubleTap.offsetTop - beforeDoubleTap.offsetTop) <= 0.5 &&
-					Math.abs(afterDoubleTap.pageLeft - beforeDoubleTap.pageLeft) <= 0.5 &&
-					Math.abs(afterDoubleTap.pageTop - beforeDoubleTap.pageTop) <= 0.5,
-				serialize({ beforeDoubleTap, afterDoubleTap }),
-			);
-
-			const infoAction = page.locator('[data-testid="info-action"]');
-			const infoBounds = await infoAction.boundingBox();
-			assert.ok(infoBounds, 'Touch-scroll QA requires a visible Game Information action.');
-			await page.touchscreen.tap(
-				infoBounds.x + infoBounds.width / 2,
-				infoBounds.y + infoBounds.height / 2,
-			);
-			const dialog = page.getByRole('dialog', { name: /BLACKSITE/i });
-			await dialog.waitFor({ state: 'visible' });
-			const rulesScroll = dialog.locator('.rules-scroll');
-			const beforeScroll = await rulesScroll.evaluate((element) => ({
-				scrollTop: element.scrollTop,
-				scrollHeight: element.scrollHeight,
-				clientHeight: element.clientHeight,
-				bounds: element.getBoundingClientRect().toJSON(),
-			}));
-			check(
-				group,
-				'mobile Game Information has legitimate vertical overflow to scroll',
-				beforeScroll.scrollHeight > beforeScroll.clientHeight + 1,
-				serialize(beforeScroll),
-			);
-
-			const client = await context.newCDPSession(page);
-			const dragX = beforeScroll.bounds.left + beforeScroll.bounds.width / 2;
-			const dragStartY = beforeScroll.bounds.bottom - 36;
-			const dragEndY = beforeScroll.bounds.top + 72;
-			await client.send('Input.dispatchTouchEvent', {
-				type: 'touchStart',
-				touchPoints: [{ x: dragX, y: dragStartY }],
-			});
-			for (let step = 1; step <= 6; step += 1) {
-				const y = dragStartY + ((dragEndY - dragStartY) * step) / 6;
-				await client.send('Input.dispatchTouchEvent', {
-					type: 'touchMove',
-					touchPoints: [{ x: dragX, y }],
+			try {
+				const network = await installMockRgs(context, {
+					pageOrigin: origin,
+					handlers: { authenticate: () => authenticateResponse() },
 				});
-				await page.waitForTimeout(16);
+				const { page, diagnostics } = await openPage(
+					context,
+					origin,
+					liveQuery({ device: 'mobile' }),
+				);
+				await waitForEndpoint(network, 'authenticate', 1);
+				await waitForStableAction(page);
+
+				const visualViewportSnapshot = () =>
+					page.evaluate(() => ({
+						scale: visualViewport?.scale ?? 1,
+						offsetLeft: visualViewport?.offsetLeft ?? 0,
+						offsetTop: visualViewport?.offsetTop ?? 0,
+						pageLeft: visualViewport?.pageLeft ?? scrollX,
+						pageTop: visualViewport?.pageTop ?? scrollY,
+						scrollX,
+						scrollY,
+					}));
+				const beforeDoubleTap = await visualViewportSnapshot();
+				const boardBounds = await page.locator(SELECTORS.board).boundingBox();
+				assert.ok(boardBounds, 'Double-tap QA requires a visible board target.');
+				const tapX = boardBounds.x + boardBounds.width / 2;
+				const tapY = boardBounds.y + boardBounds.height / 2;
+				await page.touchscreen.tap(tapX, tapY);
+				await page.waitForTimeout(80);
+				await page.touchscreen.tap(tapX, tapY);
+				await page.waitForTimeout(350);
+				const afterDoubleTap = await visualViewportSnapshot();
+				check(
+					group,
+					'mobile double-tap keeps visual viewport at 1x without page displacement',
+					Math.abs(beforeDoubleTap.scale - 1) <= 0.001 &&
+						Math.abs(afterDoubleTap.scale - 1) <= 0.001 &&
+						Math.abs(afterDoubleTap.offsetLeft - beforeDoubleTap.offsetLeft) <= 0.5 &&
+						Math.abs(afterDoubleTap.offsetTop - beforeDoubleTap.offsetTop) <= 0.5 &&
+						Math.abs(afterDoubleTap.pageLeft - beforeDoubleTap.pageLeft) <= 0.5 &&
+						Math.abs(afterDoubleTap.pageTop - beforeDoubleTap.pageTop) <= 0.5,
+					serialize({ beforeDoubleTap, afterDoubleTap }),
+				);
+
+				const infoAction = page.locator('[data-testid="info-action"]');
+				const infoBounds = await infoAction.boundingBox();
+				assert.ok(infoBounds, 'Touch-scroll QA requires a visible Game Information action.');
+				await page.touchscreen.tap(
+					infoBounds.x + infoBounds.width / 2,
+					infoBounds.y + infoBounds.height / 2,
+				);
+				const dialog = page.getByRole('dialog', { name: /BLACKSITE/i });
+				await dialog.waitFor({ state: 'visible' });
+				const rulesScroll = dialog.locator('.rules-scroll');
+				const beforeScroll = await rulesScroll.evaluate((element) => ({
+					scrollTop: element.scrollTop,
+					scrollHeight: element.scrollHeight,
+					clientHeight: element.clientHeight,
+					bounds: element.getBoundingClientRect().toJSON(),
+				}));
+				check(
+					group,
+					'mobile Game Information has legitimate vertical overflow to scroll',
+					beforeScroll.scrollHeight > beforeScroll.clientHeight + 1,
+					serialize(beforeScroll),
+				);
+
+				const client = await context.newCDPSession(page);
+				const dragX = beforeScroll.bounds.left + beforeScroll.bounds.width / 2;
+				const dragStartY = beforeScroll.bounds.bottom - 36;
+				const dragEndY = beforeScroll.bounds.top + 72;
+				await client.send('Input.dispatchTouchEvent', {
+					type: 'touchStart',
+					touchPoints: [{ x: dragX, y: dragStartY }],
+				});
+				for (let step = 1; step <= 6; step += 1) {
+					const y = dragStartY + ((dragEndY - dragStartY) * step) / 6;
+					await client.send('Input.dispatchTouchEvent', {
+						type: 'touchMove',
+						touchPoints: [{ x: dragX, y }],
+					});
+					await page.waitForTimeout(16);
+				}
+				await client.send('Input.dispatchTouchEvent', {
+					type: 'touchEnd',
+					touchPoints: [],
+				});
+				await page.waitForTimeout(250);
+				const afterScroll = await rulesScroll.evaluate((element) => ({
+					scrollTop: element.scrollTop,
+					scrollHeight: element.scrollHeight,
+					clientHeight: element.clientHeight,
+					documentScrollX: scrollX,
+					documentScrollY: scrollY,
+					visualScale: visualViewport?.scale ?? 1,
+				}));
+				check(
+					group,
+					'mobile Rules content moves after a real touch drag while the page and zoom stay fixed',
+					afterScroll.scrollTop > beforeScroll.scrollTop + 1 &&
+						afterScroll.documentScrollX === 0 &&
+						afterScroll.documentScrollY === 0 &&
+						Math.abs(afterScroll.visualScale - 1) <= 0.001,
+					serialize({ beforeScroll, afterScroll }),
+				);
+				check(
+					group,
+					'double-tap and Rules touch-scroll authenticate once and send zero wallet or event writes',
+					network.byEndpoint.authenticate.length === 1 &&
+						network.byEndpoint.play.length === 0 &&
+						network.byEndpoint.endRound.length === 0 &&
+						network.byEndpoint.event.length === 0,
+					serialize(network.order),
+				);
+				assertCleanNetwork(group, network);
+				assertCleanDiagnostics(group, diagnostics);
+				record.beforeDoubleTap = beforeDoubleTap;
+				record.afterDoubleTap = afterDoubleTap;
+				record.beforeScroll = beforeScroll;
+				record.afterScroll = afterScroll;
+				record.screenshot = await saveScreenshot(page, 'mobile-double-tap-rules-touch-scroll');
+				record.network = network;
+				record.diagnostics = diagnostics;
+			} finally {
+				await context.close();
 			}
-			await client.send('Input.dispatchTouchEvent', {
-				type: 'touchEnd',
-				touchPoints: [],
-			});
-			await page.waitForTimeout(250);
-			const afterScroll = await rulesScroll.evaluate((element) => ({
-				scrollTop: element.scrollTop,
-				scrollHeight: element.scrollHeight,
-				clientHeight: element.clientHeight,
-				documentScrollX: scrollX,
-				documentScrollY: scrollY,
-				visualScale: visualViewport?.scale ?? 1,
-			}));
-			check(
-				group,
-				'mobile Rules content moves after a real touch drag while the page and zoom stay fixed',
-				afterScroll.scrollTop > beforeScroll.scrollTop + 1 &&
-					afterScroll.documentScrollX === 0 &&
-					afterScroll.documentScrollY === 0 &&
-					Math.abs(afterScroll.visualScale - 1) <= 0.001,
-				serialize({ beforeScroll, afterScroll }),
-			);
-			check(
-				group,
-				'double-tap and Rules touch-scroll authenticate once and send zero wallet or event writes',
-				network.byEndpoint.authenticate.length === 1 &&
-					network.byEndpoint.play.length === 0 &&
-					network.byEndpoint.endRound.length === 0 &&
-					network.byEndpoint.event.length === 0,
-				serialize(network.order),
-			);
-			assertCleanNetwork(group, network);
-			assertCleanDiagnostics(group, diagnostics);
-			record.beforeDoubleTap = beforeDoubleTap;
-			record.afterDoubleTap = afterDoubleTap;
-			record.beforeScroll = beforeScroll;
-			record.afterScroll = afterScroll;
-			record.screenshot = await saveScreenshot(page, 'mobile-double-tap-rules-touch-scroll');
-			record.network = network;
-			record.diagnostics = diagnostics;
-		} finally {
-			await context.close();
-		}
-	});
+		},
+	);
 
 	for (const viewport of viewports) {
 		await runScenario(`geometry-${viewport.name}`, async (record) => {
@@ -8451,11 +11065,210 @@ async function runGeometryScenarios(browser, origin) {
 		});
 	}
 
+	await runScenario('vaultkeeper-omits-compact-resource-until-visible', async (record) => {
+		const group = 'vaultkeeper-omits-compact-resource-until-visible';
+		const compactViewport = { width: 390, height: 844 };
+		const desktopViewport = { width: 1366, height: 768 };
+		const assetPath = '/assets/blacksite/character/penguin-vaultkeeper-fallback-v1.webp';
+		const context = await browser.newContext({ viewport: compactViewport });
+		const assetRequests = [];
+		context.on('request', (request) => {
+			if (new URL(request.url()).pathname === assetPath) {
+				assetRequests.push({ method: request.method(), url: request.url() });
+			}
+		});
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: { authenticate: () => authenticateResponse() },
+			});
+			const { page, diagnostics } = await openPage(
+				context,
+				origin,
+				liveQuery({ device: 'mobile' }),
+			);
+			const assetSnapshot = () =>
+				page.locator(SELECTORS.vaultkeeper).evaluate((vaultkeeper) => {
+					const image = vaultkeeper.querySelector('img');
+					const visible = (element) => {
+						if (!element) return false;
+						const style = getComputedStyle(element);
+						const bounds = element.getBoundingClientRect();
+						return (
+							style.display !== 'none' &&
+							style.visibility !== 'hidden' &&
+							Number(style.opacity) !== 0 &&
+							bounds.width > 0 &&
+							bounds.height > 0
+						);
+					};
+					return {
+						viewport: { width: innerWidth, height: innerHeight },
+						visible: visible(vaultkeeper),
+						imageVisible: visible(image),
+						imageComplete: Boolean(image?.complete),
+						naturalWidth: image?.naturalWidth ?? 0,
+						currentSrc: image?.currentSrc ?? '',
+						sourceAttribute: image?.getAttribute('src') ?? null,
+						loading: image?.loading ?? null,
+						paintState: vaultkeeper.getAttribute('data-asset-paint-state'),
+					};
+				});
+
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			await waitForAssetPaint(page);
+			await waitForResponsiveEnvironment(page, 'mechanical-vault-portrait-v1.webp');
+			await page.waitForLoadState('networkidle');
+			const compactBefore = await assetSnapshot();
+			check(
+				group,
+				'initial compact layout omits the Vaultkeeper image and performs zero fetches or decodes',
+				assetRequests.length === 0 &&
+					!compactBefore.visible &&
+					!compactBefore.imageVisible &&
+					compactBefore.naturalWidth === 0 &&
+					compactBefore.currentSrc === '' &&
+					compactBefore.sourceAttribute === null &&
+					compactBefore.loading === null &&
+					compactBefore.paintState === 'omitted',
+				serialize({ assetRequests, compactBefore }),
+			);
+
+			await page.setViewportSize(desktopViewport);
+			await waitForResponsiveEnvironment(page, 'mechanical-vault-desktop-v1.webp');
+			await page.waitForFunction((selector) => {
+				const vaultkeeper = document.querySelector(selector);
+				const image = vaultkeeper?.querySelector('img');
+				const bounds = vaultkeeper?.getBoundingClientRect();
+				return (
+					vaultkeeper?.getAttribute('data-asset-paint-state') === 'painted' &&
+					(image?.naturalWidth ?? 0) > 0 &&
+					Boolean(bounds && bounds.width > 0 && bounds.height > 0)
+				);
+			}, SELECTORS.vaultkeeper);
+			await page.waitForLoadState('networkidle');
+			const desktopFirst = await assetSnapshot();
+			check(
+				group,
+				'first visible desktop layout fetches and paints the Vaultkeeper exactly once',
+				assetRequests.length === 1 &&
+					desktopFirst.visible &&
+					desktopFirst.imageVisible &&
+					desktopFirst.imageComplete &&
+					desktopFirst.naturalWidth > 0 &&
+					desktopFirst.currentSrc.endsWith(assetPath) &&
+					desktopFirst.sourceAttribute?.endsWith(assetPath) &&
+					desktopFirst.paintState === 'painted',
+				serialize({ assetRequests, desktopFirst }),
+			);
+
+			await page.evaluate((selector) => {
+				const nativeRequestAnimationFrame = window.requestAnimationFrame.bind(window);
+				const heldCallbacks = [];
+				window.__blacksiteQaCharacterFrameGate = {
+					heldCallbacks,
+					nativeRequestAnimationFrame,
+				};
+				window.requestAnimationFrame = (callback) => {
+					heldCallbacks.push(callback);
+					return heldCallbacks.length;
+				};
+				const image = document.querySelector(`${selector} img`);
+				if (!(image instanceof HTMLImageElement)) throw new Error('Vaultkeeper image is missing.');
+				image.src = 'data:image/webp;base64,AAAA';
+			}, SELECTORS.vaultkeeper);
+			await page.waitForFunction(
+				(selector) =>
+					document.querySelector(selector)?.getAttribute('data-asset-paint-state') === 'failed' &&
+					(window.__blacksiteQaCharacterFrameGate?.heldCallbacks.length ?? 0) >= 1,
+				SELECTORS.vaultkeeper,
+				{ polling: 25 },
+			);
+			await page.setViewportSize(compactViewport);
+			await page.waitForFunction((selector) => {
+				const vaultkeeper = document.querySelector(selector);
+				return (
+					vaultkeeper?.getAttribute('data-asset-paint-state') === 'omitted' &&
+					!vaultkeeper.querySelector('img')
+				);
+			}, SELECTORS.vaultkeeper);
+			await page.evaluate(() => {
+				const gate = window.__blacksiteQaCharacterFrameGate;
+				if (!gate) throw new Error('Character frame gate is missing.');
+				window.requestAnimationFrame = gate.nativeRequestAnimationFrame;
+				for (const callback of gate.heldCallbacks.splice(0)) {
+					gate.nativeRequestAnimationFrame(callback);
+				}
+			});
+			await page.evaluate(
+				() =>
+					new Promise((resolve) =>
+						requestAnimationFrame(() =>
+							requestAnimationFrame(() => requestAnimationFrame(resolve)),
+						),
+					),
+			);
+			await waitForResponsiveEnvironment(page, 'mechanical-vault-portrait-v1.webp');
+			const compactAfter = await assetSnapshot();
+			const compactBarrier = await page.evaluate(() => document.body.dataset.assetPaintState);
+			check(
+				group,
+				'stale character fallback cannot overwrite compact omission after its source element is removed',
+				compactAfter.paintState === 'omitted' &&
+					compactAfter.sourceAttribute === null &&
+					compactAfter.naturalWidth === 0 &&
+					compactBarrier === 'painted',
+				serialize({ compactAfter, compactBarrier }),
+			);
+			await page.setViewportSize(desktopViewport);
+			await waitForResponsiveEnvironment(page, 'mechanical-vault-desktop-v1.webp');
+			await page.waitForFunction((selector) => {
+				const vaultkeeper = document.querySelector(selector);
+				const bounds = vaultkeeper?.getBoundingClientRect();
+				return Boolean(
+					vaultkeeper?.getAttribute('data-asset-paint-state') === 'painted' &&
+						bounds &&
+						bounds.width > 0 &&
+						bounds.height > 0,
+				);
+			}, SELECTORS.vaultkeeper);
+			await page.waitForLoadState('networkidle');
+			const desktopAgain = await assetSnapshot();
+			check(
+				group,
+				'compact/desktop round trip removes and restores the decoded decorative asset',
+				assetRequests.length >= 1 &&
+					!compactAfter.visible &&
+					!compactAfter.imageVisible &&
+					compactAfter.naturalWidth === 0 &&
+					compactAfter.sourceAttribute === null &&
+					compactAfter.paintState === 'omitted' &&
+					desktopAgain.visible &&
+					desktopAgain.imageVisible &&
+					desktopAgain.naturalWidth > 0 &&
+					desktopAgain.paintState === 'painted',
+				serialize({ assetRequests, compactAfter, desktopAgain }),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.assetRequests = assetRequests;
+			record.assetLifecycle = { compactBefore, desktopFirst, compactAfter, desktopAgain };
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('geometry-mobile-orientation-roundtrip', async (record) => {
 		const group = 'geometry-mobile-orientation-roundtrip';
 		const portrait = viewports.find(({ name }) => name === 'phone-390x844');
 		const landscape = viewports.find(({ name }) => name === 'landscape-844x390');
-		assert.ok(portrait && landscape, 'Orientation QA requires canonical portrait and landscape viewports.');
+		assert.ok(
+			portrait && landscape,
+			'Orientation QA requires canonical portrait and landscape viewports.',
+		);
 		const context = await browser.newContext({
 			viewport: { width: portrait.width, height: portrait.height },
 			isMobile: true,
@@ -8477,14 +11290,10 @@ async function runGeometryScenarios(browser, origin) {
 			const captureOrientation = async (viewport, phase, expectedEnvironment) => {
 				await page.setViewportSize({ width: viewport.width, height: viewport.height });
 				await page.waitForFunction(
-					({ width, height, expectedEnvironment }) =>
-						innerWidth === width &&
-						innerHeight === height &&
-						document
-							.querySelector('[data-testid="vault-environment"] img')
-							?.currentSrc.endsWith(expectedEnvironment),
-					{ width: viewport.width, height: viewport.height, expectedEnvironment },
+					({ width, height }) => innerWidth === width && innerHeight === height,
+					{ width: viewport.width, height: viewport.height },
 				);
+				await waitForResponsiveEnvironment(page, expectedEnvironment);
 				const audit = await geometryAudit(page);
 				audit.name = `orientation-${phase}`;
 				audit.surface = 'live-orientation-roundtrip';
@@ -8562,7 +11371,10 @@ async function runGeometryScenarios(browser, origin) {
 		const group = 'vaultkeeper-responsive-resource-gate';
 		const compact = viewports.find(({ name }) => name === 'phone-390x844');
 		const desktop = viewports.find(({ name }) => name === 'desktop-1366x768');
-		assert.ok(compact && desktop, 'Responsive asset QA requires canonical compact and desktop viewports.');
+		assert.ok(
+			compact && desktop,
+			'Responsive asset QA requires canonical compact and desktop viewports.',
+		);
 		const context = await browser.newContext({
 			viewport: { width: compact.width, height: compact.height },
 			isMobile: true,
@@ -8581,10 +11393,12 @@ async function runGeometryScenarios(browser, origin) {
 			await waitForEndpoint(network, 'authenticate', 1);
 			await waitForStableAction(page);
 			await waitForAssetPaint(page);
+			await waitForResponsiveEnvironment(page, 'mechanical-vault-portrait-v1.webp');
 			const compactBefore = await geometryAudit(page);
 			assertGeometryRecord(group, compactBefore, compact);
 
 			await page.setViewportSize({ width: desktop.width, height: desktop.height });
+			await waitForResponsiveEnvironment(page, 'mechanical-vault-desktop-v1.webp');
 			await page.waitForFunction(
 				() =>
 					document
@@ -8595,6 +11409,7 @@ async function runGeometryScenarios(browser, origin) {
 			assertGeometryRecord(group, desktopAudit, desktop);
 
 			await page.setViewportSize({ width: compact.width, height: compact.height });
+			await waitForResponsiveEnvironment(page, 'mechanical-vault-portrait-v1.webp');
 			await page.waitForFunction(
 				() =>
 					document
@@ -8619,7 +11434,7 @@ async function runGeometryScenarios(browser, origin) {
 			check(
 				group,
 				'responsive asset transitions preserve one authenticated session and zero wallet writes',
-				network.byEndpoint.authenticate.length === 1 && walletWriteCount(network) === 0,
+				network.byEndpoint.authenticate.length === 1 && paidWriteCount(network) === 0,
 				serialize(network.order),
 			);
 			assertCleanNetwork(group, network);
@@ -8654,8 +11469,18 @@ async function runGeometryScenarios(browser, origin) {
 				await waitForEndpoint(network, 'replay', 1);
 				await waitForStableAction(page);
 				const replayRequest = network.byEndpoint.replay[0];
-				check(group, 'Popout Replay GET has the exact event path', replayRequest.path === `/bet/replay/blacksite_breach/${REPLAY_VERSION}/base/1`, replayRequest.path);
-				check(group, 'Popout Replay GET has no query parameters', Object.keys(replayRequest.search).length === 0, serialize(replayRequest.search));
+				check(
+					group,
+					'Popout Replay GET has the exact event path',
+					replayRequest.path === `/bet/replay/blacksite_breach/${REPLAY_VERSION}/base/1`,
+					replayRequest.path,
+				);
+				check(
+					group,
+					'Popout Replay GET has no query parameters',
+					Object.keys(replayRequest.search).length === 0,
+					serialize(replayRequest.search),
+				);
 				await page.locator(SELECTORS.primaryAction).click();
 				await waitForReplayComplete(page);
 				const audit = await geometryAudit(page);
@@ -8665,8 +11490,18 @@ async function runGeometryScenarios(browser, origin) {
 				audit.screenshot = await saveScreenshot(page, `geometry-${viewport.name}`);
 				evidence.geometry.push(audit);
 				assertGeometryRecord(group, audit, viewport);
-				check(group, 'Popout Replay remains read-only', walletWriteCount(network) === 0, serialize(network.order));
-				check(group, 'Popout Replay fetches exactly once', network.byEndpoint.replay.length === 1, serialize(network.order));
+				check(
+					group,
+					'Popout Replay remains read-only',
+					walletWriteCount(network) === 0,
+					serialize(network.order),
+				);
+				check(
+					group,
+					'Popout Replay fetches exactly once',
+					network.byEndpoint.replay.length === 1,
+					serialize(network.order),
+				);
 				assertCleanNetwork(group, network);
 				assertCleanDiagnostics(group, diagnostics);
 				record.screenshot = audit.screenshot;
@@ -8697,21 +11532,49 @@ async function main() {
 	let browser = null;
 	let server = null;
 	try {
-		check('infrastructure', 'tested identity is a full git SHA', /^[0-9a-f]{40}$/i.test(gitSha), gitSha || '(empty)');
-		check('infrastructure', 'tested worktree is clean', !evidence.identity.worktreeDirty, gitStatus || '(clean)');
+		check(
+			'infrastructure',
+			'tested identity is a full git SHA',
+			/^[0-9a-f]{40}$/i.test(gitSha),
+			gitSha || '(empty)',
+		);
+		check(
+			'infrastructure',
+			'tested worktree is clean',
+			!evidence.identity.worktreeDirty,
+			gitStatus || '(clean)',
+		);
 		check(
 			'infrastructure',
 			'custom build-root QA is pinned to an expected SHA-256 tree identity',
 			!requestedBuildRoot || /^[0-9a-f]{64}$/u.test(expectedBuildTreeSha256),
-			serialize({ requestedBuildRoot: requestedBuildRoot || null, expectedBuildTreeSha256: expectedBuildTreeSha256 || null }),
+			serialize({
+				requestedBuildRoot: requestedBuildRoot || null,
+				expectedBuildTreeSha256: expectedBuildTreeSha256 || null,
+			}),
 		);
-		check('infrastructure', 'static BLACKSITE build exists', existsSync(buildEntry), relative(repoRoot, buildEntry));
+		check(
+			'infrastructure',
+			'static BLACKSITE build exists',
+			existsSync(buildEntry),
+			relative(repoRoot, buildEntry),
+		);
 		evidence.manifests.build = createFileManifest([buildRoot], buildRoot);
 		evidence.manifests.sources = createFileManifest(sourceIdentityTargets, repoRoot);
 		evidence.identity.buildTreeSha256 = evidence.manifests.build.treeSha256;
 		evidence.identity.sourceTreeSha256 = evidence.manifests.sources.treeSha256;
-		check('infrastructure', 'build tree manifest contains files', evidence.manifests.build.fileCount > 0, serialize(evidence.manifests.build));
-		check('infrastructure', 'build tree has a deterministic SHA-256 identity', /^[0-9a-f]{64}$/.test(evidence.identity.buildTreeSha256), evidence.identity.buildTreeSha256);
+		check(
+			'infrastructure',
+			'build tree manifest contains files',
+			evidence.manifests.build.fileCount > 0,
+			serialize(evidence.manifests.build),
+		);
+		check(
+			'infrastructure',
+			'build tree has a deterministic SHA-256 identity',
+			/^[0-9a-f]{64}$/.test(evidence.identity.buildTreeSha256),
+			evidence.identity.buildTreeSha256,
+		);
 		if (expectedBuildTreeSha256) {
 			check(
 				'infrastructure',
@@ -8724,15 +11587,53 @@ async function main() {
 				}),
 			);
 		}
-		check('infrastructure', 'central source and lockfile manifest contains files', evidence.manifests.sources.fileCount > 0, serialize(evidence.manifests.sources));
-		check('infrastructure', 'central source and lockfile tree has a deterministic SHA-256 identity', /^[0-9a-f]{64}$/.test(evidence.identity.sourceTreeSha256), evidence.identity.sourceTreeSha256);
+		check(
+			'infrastructure',
+			'central source and lockfile manifest contains files',
+			evidence.manifests.sources.fileCount > 0,
+			serialize(evidence.manifests.sources),
+		);
+		check(
+			'infrastructure',
+			'central source and lockfile tree has a deterministic SHA-256 identity',
+			/^[0-9a-f]{64}$/.test(evidence.identity.sourceTreeSha256),
+			evidence.identity.sourceTreeSha256,
+		);
 		evidence.productionBuildScan = scanProductionBuild(evidence.manifests.build);
-		check('infrastructure', 'production build contains no Stake Engine Loader signature', evidence.productionBuildScan.loaderHits.length === 0, serialize(evidence.productionBuildScan.loaderHits));
-		check('infrastructure', 'production build excludes generated fixture catalog and fixture IDs', evidence.productionBuildScan.generatedFixtureHits.length === 0, serialize(evidence.productionBuildScan.generatedFixtureHits));
+		check(
+			'infrastructure',
+			'production build contains no Stake Engine Loader signature',
+			evidence.productionBuildScan.loaderHits.length === 0,
+			serialize(evidence.productionBuildScan.loaderHits),
+		);
+		check(
+			'infrastructure',
+			'production build excludes generated fixture catalog and fixture IDs',
+			evidence.productionBuildScan.generatedFixtureHits.length === 0,
+			serialize(evidence.productionBuildScan.generatedFixtureHits),
+		);
 		const viewportContent = evidence.productionBuildScan.viewportMeta.content ?? '';
-		check('infrastructure', 'production viewport meta binds device width and initial scale', /(?:^|,)\s*width=device-width(?:\s*,|$)/iu.test(viewportContent) && /(?:^|,)\s*initial-scale=1(?:\s*,|$)/iu.test(viewportContent), viewportContent || '(missing)');
-		check('infrastructure', 'production viewport meta preserves user zoom and covers safe areas', !/maximum-scale\s*=/iu.test(viewportContent) && !/user-scalable\s*=\s*(?:no|0)/iu.test(viewportContent) && /(?:^|,)\s*viewport-fit=cover(?:\s*,|$)/iu.test(viewportContent), viewportContent || '(missing)');
-		check('infrastructure', 'production CSS contains touch-action manipulation contract', evidence.productionBuildScan.touchActionManipulationPresent, serialize(evidence.productionBuildScan));
+		check(
+			'infrastructure',
+			'production viewport meta binds device width and initial scale',
+			/(?:^|,)\s*width=device-width(?:\s*,|$)/iu.test(viewportContent) &&
+				/(?:^|,)\s*initial-scale=1(?:\s*,|$)/iu.test(viewportContent),
+			viewportContent || '(missing)',
+		);
+		check(
+			'infrastructure',
+			'production viewport meta preserves user zoom and covers safe areas',
+			!/maximum-scale\s*=/iu.test(viewportContent) &&
+				!/user-scalable\s*=\s*(?:no|0)/iu.test(viewportContent) &&
+				/(?:^|,)\s*viewport-fit=cover(?:\s*,|$)/iu.test(viewportContent),
+			viewportContent || '(missing)',
+		);
+		check(
+			'infrastructure',
+			'production CSS contains touch-action manipulation contract',
+			evidence.productionBuildScan.touchActionManipulationPresent,
+			serialize(evidence.productionBuildScan),
+		);
 		const resolvedPlaywright = resolvePlaywright();
 		evidence.playwright.version = resolvedPlaywright.version;
 		const launched = await launchBrowser(resolvedPlaywright.playwright);
@@ -8752,9 +11653,13 @@ async function main() {
 	}
 
 	for (const item of evidence.checks) {
-		console.log(`${item.status} [${item.group}] ${item.name}${item.detail ? ` - ${item.detail}` : ''}`);
+		console.log(
+			`${item.status} [${item.group}] ${item.name}${item.detail ? ` - ${item.detail}` : ''}`,
+		);
 	}
-	console.log(`BLACKSITE browser evidence: ${relative(repoRoot, evidenceFile).replaceAll('\\', '/')}`);
+	console.log(
+		`BLACKSITE browser evidence: ${relative(repoRoot, evidenceFile).replaceAll('\\', '/')}`,
+	);
 	if (evidence.summary.fail > 0 || evidence.summary.failedScenarios > 0) process.exitCode = 1;
 }
 

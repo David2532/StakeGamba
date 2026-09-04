@@ -1,6 +1,7 @@
 {
-	"schema": "blacksite-stake-51-evidence-map-v1",
+	"schema": "blacksite-stake-51-evidence-map-v2",
 	"source": "docs/blacksite/STAKE_REQUIREMENTS_51.md",
+	"sourceSha256": "8e8f3dcc771cfd8668d9fc5bb6e58066df3ead4ea0b2645dd2622b01705fdd04",
 	"statusDefinitions": {
 		"AUTOMATED_PASS": "Repository-owned automated proof is complete for the exact candidate; no manual or external gate is required for this row.",
 		"AUTOMATED_PASS_MANUAL_OPEN": "Automated proof passes, but the row remains open until the recorded manual review is completed.",
@@ -15,7 +16,8 @@
 			"status": "AUTOMATED_PASS",
 			"browserScenarios": [
 				"live-auth-exact",
-				"expired-session-on-play-reauthenticates-without-automatic-retry"
+				"expired-session-on-play-reauthenticates-without-automatic-retry",
+				"slow-auth-status-visible-hidden-document-intro-bypass"
 			]
 		},
 		{
@@ -43,7 +45,12 @@
 			"id": 4,
 			"requirement": "No Stake Engine Loader",
 			"status": "AUTOMATED_PASS",
-			"browserChecks": ["production build contains no Stake Engine Loader signature"]
+			"browserChecks": [
+				{
+					"group": "infrastructure",
+					"name": "production build contains no Stake Engine Loader signature"
+				}
+			]
 		},
 		{
 			"id": 5,
@@ -77,7 +84,8 @@
 				"authenticate-drives-levels-default-and-modes",
 				"authenticate-empty-levels-exposes-full-step-range",
 				"conflicting-auth-step-aliases-fail-closed",
-				"jurisdiction-disables-space-and-feature-modes-only"
+				"jurisdiction-disables-space-and-feature-modes-only",
+				"jurisdiction-enforces-turbo-slamstop-and-optional-rtp-hud"
 			]
 		},
 		{
@@ -161,7 +169,12 @@
 			"requirement": "Rules state symbol payouts",
 			"status": "AUTOMATED_PASS_MANUAL_OPEN",
 			"browserScenarios": ["social-xsc-rules-paytable-and-terminology"],
-			"repositoryGates": ["pnpm --filter blacksite test"],
+			"repositoryGates": [
+				{
+					"receipt": "packageVerification",
+					"claim": "bookLookupIdAndPayoutMatch"
+				}
+			],
 			"manualOpen": "Compare final rendered symbols and values with shipped config and books."
 		},
 		{
@@ -222,7 +235,17 @@
 			"id": 25,
 			"requirement": "Works on desktop and laptop",
 			"status": "AUTOMATED_PASS_MANUAL_OPEN",
-			"browserScenarios": ["geometry-desktop-1920x1080", "geometry-desktop-1366x768"],
+			"browserScenarios": [
+				"boot-intro-full-fresh-live",
+				"geometry-desktop-1920x1080",
+				"geometry-desktop-1366x768"
+			],
+			"browserChecks": [
+				{
+					"group": "boot-intro-full-fresh-live",
+					"name": "fresh live boot follows the complete ordered cinematic beat contract"
+				}
+			],
 			"manualOpen": "Final-art manual desktop and laptop review."
 		},
 		{
@@ -237,15 +260,44 @@
 			"requirement": "Works on mobile",
 			"status": "AUTOMATED_PASS_MANUAL_OPEN",
 			"browserScenarios": [
+				"boot-intro-skip-mobile",
 				"geometry-phone-360x740",
 				"geometry-phone-390x844",
 				"geometry-tablet-768x1024",
 				"geometry-landscape-844x390",
-				"geometry-mobile-orientation-roundtrip"
+				"geometry-mobile-orientation-roundtrip",
+				"vaultkeeper-omits-compact-resource-until-visible",
+				"vaultkeeper-responsive-resource-gate"
 			],
 			"browserChecks": [
-				"orientation round trip returns to the original portrait composition",
-				"orientation round trip preserves one authenticated session and zero wallet writes"
+				{
+					"group": "boot-intro-skip-mobile",
+					"name": "mobile intro owns focus while its background is inert and its skip target is at least 44px"
+				},
+				{
+					"group": "boot-intro-skip-mobile",
+					"name": "mobile Skip reaches the exact playable state within 250ms and records the seen version"
+				},
+				{
+					"group": "geometry-mobile-orientation-roundtrip",
+					"name": "orientation round trip returns to the original portrait composition"
+				},
+				{
+					"group": "geometry-mobile-orientation-roundtrip",
+					"name": "orientation round trip preserves one authenticated session and zero wallet writes"
+				},
+				{
+					"group": "vaultkeeper-omits-compact-resource-until-visible",
+					"name": "stale character fallback cannot overwrite compact omission after its source element is removed"
+				},
+				{
+					"group": "vaultkeeper-responsive-resource-gate",
+					"name": "compact first paint requests no character; desktop transition requests it once; compact return removes the decoded element without another request"
+				},
+				{
+					"group": "vaultkeeper-responsive-resource-gate",
+					"name": "responsive asset transitions preserve one authenticated session and zero wallet writes"
+				}
 			],
 			"manualOpen": "Final candidate on defined real mobile device floor."
 		},
@@ -253,14 +305,24 @@
 			"id": 28,
 			"requirement": "Double-tap zoom is disabled without blocking accessibility",
 			"status": "AUTOMATED_PASS_MANUAL_OPEN",
-			"browserScenarios": [
-				"mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll"
-			],
+			"browserScenarios": ["mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll"],
 			"browserChecks": [
-				"mobile double-tap keeps visual viewport at 1x without page displacement",
-				"mobile Rules content moves after a real touch drag while the page and zoom stay fixed",
-				"browser computed body touch-action is manipulation",
-				"browser viewport meta preserves user zoom"
+				{
+					"group": "mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll",
+					"name": "mobile double-tap keeps visual viewport at 1x without page displacement"
+				},
+				{
+					"group": "mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll",
+					"name": "mobile Rules content moves after a real touch drag while the page and zoom stay fixed"
+				},
+				{
+					"group": "geometry-phone-390x844",
+					"name": "browser computed body touch-action is manipulation"
+				},
+				{
+					"group": "geometry-phone-390x844",
+					"name": "browser viewport meta preserves user zoom"
+				}
 			],
 			"manualOpen": "Real iOS and Android interaction review."
 		},
@@ -273,9 +335,18 @@
 				"presentation-speed-persists-with-reduced-motion-override"
 			],
 			"browserChecks": [
-				"every visible game control maps to a Game Information guide entry",
-				"interaction guide contains every versioned control contract entry",
-				"interaction guide documents touch, keyboard, Space and Escape behaviour"
+				{
+					"group": "social-xsc-rules-paytable-and-terminology",
+					"name": "every visible game control maps to a Game Information guide entry"
+				},
+				{
+					"group": "social-xsc-rules-paytable-and-terminology",
+					"name": "interaction guide contains every versioned control contract entry"
+				},
+				{
+					"group": "social-xsc-rules-paytable-and-terminology",
+					"name": "interaction guide documents touch, keyboard, Space and Escape behaviour"
+				}
 			],
 			"manualOpen": "Reconcile the guide with every final control."
 		},
@@ -442,14 +513,20 @@
 			"id": 45,
 			"requirement": "Stake bet-level templates are applied",
 			"status": "EXTERNAL_OPEN",
-			"externalOpen": "Stake or ACP template evidence tied to the exact math version."
+			"repositoryGates": [
+				{
+					"receipt": "candidateManifest",
+					"claim": "allMathVerificationGates"
+				}
+			],
+			"externalOpen": "Repository math gates prove template viability only; Stake or ACP application evidence tied to the exact math version remains required."
 		},
 		{
 			"id": 46,
 			"requirement": "Provably Fair and Replay are enabled",
 			"status": "EXTERNAL_OPEN",
 			"browserScenarios": ["replay-read-only-play-again"],
-			"externalOpen": "Stake-side enablement and publication evidence for the exact versions."
+			"externalOpen": "Repository Replay proof is partial; Stake-side Provably Fair enablement and publication evidence for the exact versions remains required."
 		},
 		{
 			"id": 47,

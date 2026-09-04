@@ -71,12 +71,35 @@ test('boot intro config locks the normal and turbo beat contracts', async () => 
 test('boot intro eligibility is presentation-only and fails open for storage errors', async () => {
 	const { introEligibility, readIntroSeen, writeIntroSeen } = await import(configUrl.href);
 	assert.deepEqual(
-		introEligibility({ launchKind: 'live', activeRound: false, reducedMotion: false, seen: false, motionMode: 'normal' }),
+		introEligibility({
+			launchKind: 'live',
+			activeRound: false,
+			reducedMotion: false,
+			seen: false,
+			motionMode: 'normal',
+		}),
 		{ play: true, profile: 'normal', reason: null },
 	);
 	assert.deepEqual(
-		introEligibility({ launchKind: 'live', activeRound: false, reducedMotion: false, seen: false, motionMode: 'turbo' }),
+		introEligibility({
+			launchKind: 'live',
+			activeRound: false,
+			reducedMotion: false,
+			seen: false,
+			motionMode: 'turbo',
+		}),
 		{ play: true, profile: 'turbo', reason: null },
+	);
+	assert.deepEqual(
+		introEligibility({
+			launchKind: 'live',
+			activeRound: false,
+			reducedMotion: false,
+			seen: false,
+			motionMode: 'turbo',
+			disabledTurbo: true,
+		}),
+		{ play: true, profile: 'normal', reason: null },
 	);
 	for (const [input, reason] of [
 		[{ launchKind: 'replay' }, 'replay'],
@@ -84,6 +107,7 @@ test('boot intro eligibility is presentation-only and fails open for storage err
 		[{ launchKind: 'error' }, 'launch-error'],
 		[{ launchKind: 'live', activeRound: true }, 'active-round-restore'],
 		[{ launchKind: 'live', reducedMotion: true }, 'reduced-motion'],
+		[{ launchKind: 'live', documentHidden: true }, 'document-hidden'],
 		[{ launchKind: 'live', seen: true }, 'seen'],
 	]) {
 		assert.equal(introEligibility(input).reason, reason);
@@ -180,13 +204,23 @@ test('player and exact-package QA bind intro blocking, skip and bypass paths', a
 	]);
 	assert.match(page, /introEligibility/u);
 	assert.match(page, /introBlocking/u);
+	assert.match(page, /introModalActive/u);
 	assert.match(page, /active-round-restore/u);
 	assert.match(page, /reduced-motion/u);
+	assert.match(page, /disabledTurbo: state\.config\?\.jurisdiction\?\.disabledTurbo === true/u);
+	assert.match(page, /documentHidden: document\.visibilityState === 'hidden'/u);
 	assert.match(page, /launch\.kind === 'replay'[\s\S]*bypassIntro/u);
 	assert.match(component, /data-testid="boot-intro"/u);
+	assert.match(component, /data-intro-profile=\{state\.profile\}/u);
 	assert.match(component, /data-testid="skip-intro"/u);
 	assert.match(component, />SKIP INTRO</u);
 	assert.match(browserQa, /boot-intro-full-fresh-live/u);
 	assert.match(browserQa, /boot-intro-skip-mobile/u);
+	assert.match(browserQa, /slow-auth-status-visible-hidden-document-intro-bypass/u);
 	assert.match(browserQa, /boot intro never issues a wallet write/u);
+	assert.match(browserQa, /function paidWriteCount\(network\)/u);
+	assert.match(
+		browserQa,
+		/network\.byEndpoint\.authenticate\.length === 1 && paidWriteCount\(network\) === 0/u,
+	);
 });

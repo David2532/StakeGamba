@@ -11,8 +11,8 @@ import {
 } from '../../../scripts/blacksite-frontend-hygiene.mjs';
 
 const runtimePath = 'assets/blacksite/environment/vault.webp';
-const recoveryRuntime =
-	'const Uf="123456789",Uo="sveltekit:snapshot";async function check(){const response=await fetch("/_app/version.json");return (await response.json()).version!==Uf;}';
+const buildGitSha = '1'.repeat(40);
+const recoveryRuntime = `const Uf="${buildGitSha}",Uo="sveltekit:snapshot";async function check(){const response=await fetch("/_app/version.json");return (await response.json()).version!==Uf;}`;
 const inlineRuntime = `${recoveryRuntime}const runtimeAsset="/${runtimePath}";`;
 
 function inlineDocument(
@@ -55,15 +55,15 @@ async function makeFrontend() {
 	const bytes = Buffer.from('original-vault-pixels');
 	await mkdir(join(root, '_app'), { recursive: true });
 	await mkdir(join(root, 'assets', 'blacksite', 'environment'), { recursive: true });
-	await writeFile(
-		join(root, 'index.html'),
-		inlineDocument(),
-	);
+	await writeFile(join(root, 'index.html'), inlineDocument());
 	await writeFile(
 		join(root, '_app', 'blacksite-build-identity.json'),
 		'{"schema":"blacksite-frontend-build-identity-v1"}\n',
 	);
-	await writeFile(join(root, '_app', 'version.json'), '{"version":"123456789"}\n');
+	await writeFile(
+		join(root, '_app', 'version.json'),
+		`${JSON.stringify({ version: buildGitSha })}\n`,
+	);
 	await writeFile(join(root, runtimePath), bytes);
 	return { root, bytes };
 }
@@ -119,10 +119,7 @@ test('inline build pruning refuses files loaded by static markup', async (t) => 
 	const root = await mkdtemp(join(tmpdir(), 'blacksite-prune-ref-'));
 	t.after(() => rm(root, { recursive: true, force: true }));
 	await mkdir(join(root, '_app', 'immutable'), { recursive: true });
-	await writeFile(
-		join(root, 'index.html'),
-		'<script src="./_app/immutable/bundle.js"></script>',
-	);
+	await writeFile(join(root, 'index.html'), '<script src="./_app/immutable/bundle.js"></script>');
 	await writeFile(join(root, '_app', 'immutable', 'bundle.js'), 'export default 1;\n');
 
 	assert.throws(
@@ -160,10 +157,7 @@ test('runtime asset manifest paths must already be canonical POSIX paths', async
 	const manifest = assetManifest(bytes);
 	manifest.assets[0].runtimePath = 'apps/blacksite/static/assets\\vault.webp';
 
-	assert.throws(
-		() => verifyBlacksiteFrontendHygiene(root, manifest),
-		/canonical POSIX path/u,
-	);
+	assert.throws(() => verifyBlacksiteFrontendHygiene(root, manifest), /canonical POSIX path/u);
 	manifest.assets[0].runtimePath = `apps/blacksite/static/${runtimePath}`;
 	manifest.assets[0].path = 'C:/outside.png';
 	assert.throws(
@@ -231,10 +225,7 @@ test('unclosed and bang-terminated HTML comments cannot fake runtime asset refer
 	for (const comment of [`<!-- /${runtimePath}`, `<!-- /${runtimePath} --!>`]) {
 		const { root, bytes } = await makeFrontend();
 		t.after(() => rm(root, { recursive: true, force: true }));
-		await writeFile(
-			join(root, 'index.html'),
-			inlineDocument(recoveryRuntime, '', comment),
-		);
+		await writeFile(join(root, 'index.html'), inlineDocument(recoveryRuntime, '', comment));
 		assert.throws(
 			() => verifyBlacksiteFrontendHygiene(root, assetManifest(bytes)),
 			/(?:Invalid generated inline HTML|no exact executable package literal)/u,
@@ -421,19 +412,20 @@ test('invalid or missing update recovery metadata fails closed', async (t) => {
 
 	assert.throws(
 		() => verifyBlacksiteFrontendHygiene(root, assetManifest(bytes)),
-		/generated numeric version string/u,
+		/exact lowercase Git SHA build version/u,
 	);
 });
 
 test('update recovery metadata must match the inline runtime version', async (t) => {
 	const { root, bytes } = await makeFrontend();
 	t.after(() => rm(root, { recursive: true, force: true }));
-	await writeFile(join(root, '_app', 'version.json'), '{"version":"1"}\n');
+	await writeFile(
+		join(root, '_app', 'version.json'),
+		`${JSON.stringify({ version: '2'.repeat(40) })}\n`,
+	);
 	await writeFile(
 		join(root, 'index.html'),
-		inlineDocument(
-			`const bait='x="1",y="sveltekit:snapshot";a.version!==x';${inlineRuntime}`,
-		),
+		inlineDocument(`const bait='x="1",y="sveltekit:snapshot";a.version!==x';${inlineRuntime}`),
 	);
 
 	assert.throws(
@@ -513,11 +505,7 @@ test('non-runtime HTML and CSS text cannot fake an exact runtime-script asset li
 		t.after(() => rm(root, { recursive: true, force: true }));
 		await writeFile(
 			join(root, 'index.html'),
-			inlineDocument(
-				`${recoveryRuntime}const missing="/${runtimePath}.missing";`,
-				'',
-				bait,
-			),
+			inlineDocument(`${recoveryRuntime}const missing="/${runtimePath}.missing";`, '', bait),
 		);
 		assert.throws(
 			() => verifyBlacksiteFrontendHygiene(root, assetManifest(bytes)),
@@ -580,7 +568,7 @@ test('regular-expression text cannot fake runtime or asset AST literals', async 
 	await writeFile(
 		join(root, 'index.html'),
 		inlineDocument(
-			`if(true)/Uf="123456789",Uo="sveltekit:snapshot";fetch("\\u002f_app\\u002fversion.json");a.version!==Uf/;const runtimeAsset="/${runtimePath}";`,
+			`if(true)/Uf="${buildGitSha}",Uo="sveltekit:snapshot";fetch("\\u002f_app\\u002fversion.json");a.version!==Uf/;const runtimeAsset="/${runtimePath}";`,
 		),
 	);
 	assert.throws(
@@ -591,11 +579,7 @@ test('regular-expression text cannot fake runtime or asset AST literals', async 
 
 test('browser-decoded HTML, CSS and JavaScript data URIs fail closed', async (t) => {
 	for (const document of [
-		inlineDocument(
-			inlineRuntime,
-			'',
-			'<img src="&#100;ata&#58;image/png;base64,AAAA" alt="" />',
-		),
+		inlineDocument(inlineRuntime, '', '<img src="&#100;ata&#58;image/png;base64,AAAA" alt="" />'),
 		inlineDocument(
 			inlineRuntime,
 			'',
@@ -624,9 +608,9 @@ test('browser-decoded HTML, CSS and JavaScript data URIs fail closed', async (t)
 		const { root, bytes } = await makeFrontend();
 		t.after(() => rm(root, { recursive: true, force: true }));
 		await writeFile(join(root, 'index.html'), document);
-	assert.throws(
-		() => verifyBlacksiteFrontendHygiene(root, assetManifest(bytes)),
-		/(?:pinned body shape|Forbidden release content embedded data URI)/u,
+		assert.throws(
+			() => verifyBlacksiteFrontendHygiene(root, assetManifest(bytes)),
+			/(?:pinned body shape|Forbidden release content embedded data URI)/u,
 		);
 	}
 });
@@ -654,7 +638,7 @@ test('optional, computed and template-interpolated debug calls fail closed', asy
 		'console[(1<<1)===2?"log":"warn"]("diagnostic");',
 		'console[(0,"log")]("diagnostic");',
 		'console.log`diagnostic`;',
-		"console[`log`](\"diagnostic\");",
+		'console[`log`]("diagnostic");',
 		'parent.console.log("diagnostic");',
 		'top.console.trace("diagnostic");',
 		'frames.console.debug("diagnostic");',
@@ -691,10 +675,7 @@ test('high-confidence secrets and source-map directives fail closed', async (t) 
 test('ASI debugger statements and encrypted private-key headers fail closed', async (t) => {
 	const { root, bytes } = await makeFrontend();
 	t.after(() => rm(root, { recursive: true, force: true }));
-	await writeFile(
-		join(root, 'index.html'),
-		inlineDocument(`${inlineRuntime}debugger\n`),
-	);
+	await writeFile(join(root, 'index.html'), inlineDocument(`${inlineRuntime}debugger\n`));
 	assert.throws(
 		() => verifyBlacksiteFrontendHygiene(root, assetManifest(bytes)),
 		/Forbidden release content debugger statement/u,

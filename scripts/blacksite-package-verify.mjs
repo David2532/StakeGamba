@@ -51,14 +51,41 @@ function fail(message) {
 	throw new Error(message);
 }
 
-function parseCandidateArgument() {
-	const index = process.argv.indexOf('--candidate');
+function requiredArgument(name) {
+	const index = process.argv.indexOf(name);
 	if (index < 0 || !process.argv[index + 1] || process.argv[index + 1].startsWith('--')) {
-		fail(
-			'Usage: node scripts/blacksite-package-verify.mjs --candidate <directory> [--write-result]',
-		);
+		fail(`Missing required argument ${name}`);
 	}
-	return resolve(repoRoot, process.argv[index + 1]);
+	return process.argv[index + 1];
+}
+
+function validateExpectedBranch(branch) {
+	if (!/^[A-Za-z0-9][A-Za-z0-9._/-]{0,254}$/u.test(branch)) {
+		fail('--expected-branch must be a non-empty canonical Git branch name');
+	}
+	try {
+		if (gitText(['check-ref-format', '--branch', branch]) !== branch) {
+			fail('--expected-branch was normalized by Git');
+		}
+	} catch {
+		fail('--expected-branch must be a non-empty canonical Git branch name');
+	}
+	return branch;
+}
+
+function parseArguments() {
+	const usage =
+		'Usage: node scripts/blacksite-package-verify.mjs --candidate <directory> --expected-branch <branch> [--write-result] [--allow-untracked-artifacts]';
+	try {
+		return {
+			candidateRoot: resolve(repoRoot, requiredArgument('--candidate')),
+			expectedBranch: validateExpectedBranch(requiredArgument('--expected-branch')),
+			allowUntrackedArtifacts: process.argv.includes('--allow-untracked-artifacts'),
+		};
+	} catch (error) {
+		if (error instanceof Error) error.message = `${error.message}\n${usage}`;
+		throw error;
+	}
 }
 
 function readJson(path) {
@@ -198,10 +225,28 @@ function gitHead() {
 	return gitText(['rev-parse', 'HEAD']);
 }
 
-function expectedReadme(gitSha, frontendVersion, mathCandidateVersion) {
+function checkoutBranchEvidence() {
+	const githubHeadRef = process.env.GITHUB_HEAD_REF?.trim();
+	if (githubHeadRef) return githubHeadRef;
+	const githubRef = process.env.GITHUB_REF?.trim();
+	if (githubRef?.startsWith('refs/heads/')) return githubRef.slice('refs/heads/'.length);
+	return gitText(['branch', '--show-current']);
+}
+
+function assertExpectedBranch(expectedBranch) {
+	const checkoutBranch = checkoutBranchEvidence();
+	if (checkoutBranch && checkoutBranch !== expectedBranch) {
+		fail(
+			`Current checkout branch ${checkoutBranch} does not match --expected-branch ${expectedBranch}`,
+		);
+	}
+}
+
+function expectedReadme(gitBranch, gitSha, frontendVersion, mathCandidateVersion) {
 	return [
 		'BLACKSITE // BREACH — ISOLATED UPLOAD-FOLDER CANDIDATE',
 		'',
+		`Git branch: ${gitBranch}`,
 		`Git SHA: ${gitSha}`,
 		`Frontend version: ${frontendVersion}`,
 		`Math candidate: ${mathCandidateVersion}`,
@@ -232,21 +277,37 @@ function validatePackagedFrontendBuildIdentity(frontendRoot, expectedGitSha, exp
 	) {
 		fail('Packaged frontend build identity does not match the current clean checkout');
 	}
+	const recoveryMetadata = readJson(join(frontendRoot, '_app', 'version.json'));
+	if (
+		JSON.stringify(Object.keys(recoveryMetadata)) !== JSON.stringify(['version']) ||
+		recoveryMetadata.version !== expectedGitSha
+	) {
+		fail('Packaged frontend recovery build version does not match the exact Git SHA');
+	}
 }
 
-function gitStatus() {
-	return execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], {
-		cwd: repoRoot,
-		encoding: 'utf8',
-		stdio: ['ignore', 'pipe', 'pipe'],
-	}).trim();
+function gitStatus({ includeUntracked = true } = {}) {
+	return execFileSync(
+		'git',
+		['status', '--porcelain=v1', `--untracked-files=${includeUntracked ? 'all' : 'no'}`],
+		{
+			cwd: repoRoot,
+			encoding: 'utf8',
+			stdio: ['ignore', 'pipe', 'pipe'],
+		},
+	).trim();
 }
 
 async function main() {
-	const candidateRoot = assertPhysicalPackageDirectory(
-		parseCandidateArgument(),
-		'Candidate package root',
-	);
+	const {
+		candidateRoot: candidateArgument,
+		expectedBranch,
+		allowUntrackedArtifacts,
+	} = parseArguments();
+	const currentGitSha = gitHead();
+	const currentGitTreeSha = gitText(['rev-parse', 'HEAD^{tree}']);
+	assertExpectedBranch(expectedBranch);
+	const candidateRoot = assertPhysicalPackageDirectory(candidateArgument, 'Candidate package root');
 	const frontendRoot = assertPhysicalPackageDirectory(
 		join(candidateRoot, 'frontend'),
 		'Candidate frontend root',
@@ -276,9 +337,7 @@ async function main() {
 		'math',
 		...(existsSync(priorVerificationPath) ? ['package-verification.json'] : []),
 	].sort();
-	if (
-		JSON.stringify(candidateTopLevel) !== JSON.stringify(expectedCandidateTopLevel)
-	) {
+	if (JSON.stringify(candidateTopLevel) !== JSON.stringify(expectedCandidateTopLevel)) {
 		fail(`Unexpected candidate root entries: ${candidateTopLevel.join(', ')}`);
 	}
 
@@ -319,20 +378,17 @@ async function main() {
 	) {
 		fail('Candidate generatedAt must be a canonical ISO timestamp');
 	}
-	const currentGitSha = gitHead();
-	const currentGitTreeSha = gitText(['rev-parse', 'HEAD^{tree}']);
-	const currentGitBranch = gitText(['branch', '--show-current']);
 	if (
 		JSON.stringify(manifest.git) !==
-		JSON.stringify({
-			branch: currentGitBranch,
-			sha: currentGitSha,
-			expectedSha: currentGitSha,
-			cleanBefore: true,
-			cleanAfter: true,
-			dirty: false,
-		}) ||
-		gitStatus() !== ''
+			JSON.stringify({
+				branch: expectedBranch,
+				sha: currentGitSha,
+				expectedSha: currentGitSha,
+				cleanBefore: true,
+				cleanAfter: true,
+				dirty: false,
+			}) ||
+		gitStatus({ includeUntracked: !allowUntrackedArtifacts }) !== ''
 	) {
 		fail('Candidate and current checkout must be bound to the same clean worktree');
 	}
@@ -350,7 +406,7 @@ async function main() {
 	}
 	if (
 		JSON.stringify(manifest.uploadRoots) !==
-		JSON.stringify({ frontend: 'frontend/', math: 'math/' }) ||
+			JSON.stringify({ frontend: 'frontend/', math: 'math/' }) ||
 		JSON.stringify(manifest.warnings) !== JSON.stringify(expectedWarnings)
 	) {
 		fail('Candidate upload roots or release-truth warnings changed');
@@ -386,8 +442,8 @@ async function main() {
 	const expectedCommands = {
 		build: 'pnpm --filter blacksite build',
 		mathVerify: 'pnpm blacksite:math:verify -- --no-write',
-		package: `node scripts/blacksite-package-candidate.mjs --output <path> --expected-commit ${currentGitSha} --expected-frontend-tree ${frontendManifest.treeSha256}`,
-		verify: 'node scripts/blacksite-package-verify.mjs --candidate <path> --write-result',
+		package: `node scripts/blacksite-package-candidate.mjs --output <path> --expected-branch ${expectedBranch} --expected-commit ${currentGitSha} --expected-frontend-tree ${frontendManifest.treeSha256}`,
+		verify: `node scripts/blacksite-package-verify.mjs --candidate <path> --expected-branch ${expectedBranch} --write-result`,
 		packageBrowserQa: `BLACKSITE_QA_BUILD_ROOT=<path>/frontend BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256=${frontendManifest.treeSha256} node scripts/blacksite-qa-e2e.mjs`,
 	};
 	if (JSON.stringify(manifest.commands) !== JSON.stringify(expectedCommands)) {
@@ -505,7 +561,12 @@ async function main() {
 	}
 	if (
 		readFileSync(readmePath, 'utf8') !==
-		expectedReadme(currentGitSha, frontendPackageJson.version, canonicalConfig.candidate_version)
+		expectedReadme(
+			expectedBranch,
+			currentGitSha,
+			frontendPackageJson.version,
+			canonicalConfig.candidate_version,
+		)
 	) {
 		fail('Candidate README does not match the canonical payload identity and release boundary');
 	}
@@ -526,6 +587,7 @@ async function main() {
 		result: 'PASS',
 		lifecycle: manifest.lifecycle,
 		verifiedAt: new Date().toISOString(),
+		gitBranch: manifest.git.branch,
 		gitSha: manifest.git.sha,
 		candidateRoot,
 		frontend: frontendManifest,
@@ -549,6 +611,7 @@ async function main() {
 		`${JSON.stringify(
 			{
 				result: verification.result,
+				gitBranch: verification.gitBranch,
 				gitSha: verification.gitSha,
 				frontendTreeSha256: frontendManifest.treeSha256,
 				frontendHygiene,

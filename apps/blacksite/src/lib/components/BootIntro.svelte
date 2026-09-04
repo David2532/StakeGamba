@@ -16,6 +16,7 @@
 	data-testid="boot-intro"
 	data-intro-status={state.status}
 	data-intro-beat={state.beat}
+	data-intro-profile={state.profile}
 	data-dismiss-reason={state.dismissReason}
 	role="dialog"
 	aria-modal="true"
@@ -40,8 +41,8 @@
 		class="skip-intro"
 		data-testid="skip-intro"
 		type="button"
-		on:click={onSkip}
-	>SKIP INTRO</button>
+		on:click={onSkip}>SKIP INTRO</button
+	>
 </section>
 
 <style>
@@ -277,7 +278,9 @@
 	.boot-intro[data-intro-beat='resolve'] .intro-lockup {
 		opacity: 1;
 		transform: scaleX(1);
-		transition: opacity 180ms ease-out, transform 220ms ease-out;
+		transition:
+			opacity 180ms ease-out,
+			transform 220ms ease-out;
 	}
 
 	.boot-intro[data-intro-beat='breach'] .breach-line {
@@ -288,14 +291,18 @@
 	.boot-intro[data-intro-beat='resolve'] .vault-lock {
 		opacity: 1;
 		transform: translate(-50%, -50%) scale(1) rotate(0);
-		transition: opacity 160ms ease-out, transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+		transition:
+			opacity 160ms ease-out,
+			transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
 	}
 
 	.boot-intro[data-intro-beat='breach'] .vaultkeeper-silhouette,
 	.boot-intro[data-intro-beat='resolve'] .vaultkeeper-silhouette {
 		opacity: 1;
 		transform: translateY(0) scale(1);
-		transition: opacity 180ms ease-out 80ms, transform 420ms ease-out 80ms;
+		transition:
+			opacity 180ms ease-out 80ms,
+			transform 420ms ease-out 80ms;
 	}
 
 	.boot-intro[data-intro-beat='resolve'] {
@@ -303,30 +310,60 @@
 	}
 
 	@keyframes wake-field {
-		from { opacity: 0; }
-		to { opacity: 0.2; }
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 0.2;
+		}
 	}
 
 	@keyframes rack-light {
-		from { opacity: 0; }
-		to { opacity: 0.9; }
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 0.9;
+		}
 	}
 
 	@keyframes scanner-pass {
-		0% { top: 12%; opacity: 0; }
-		12%, 82% { opacity: 1; }
-		100% { top: 88%; opacity: 0; }
+		0% {
+			top: 12%;
+			opacity: 0;
+		}
+		12%,
+		82% {
+			opacity: 1;
+		}
+		100% {
+			top: 88%;
+			opacity: 0;
+		}
 	}
 
 	@keyframes breach-impact {
-		0% { opacity: 0; transform: translateX(-50%) scaleX(0.2) skewX(-18deg); }
-		45% { opacity: 1; }
-		100% { opacity: 0.34; transform: translateX(-50%) scaleX(1) skewX(-18deg); }
+		0% {
+			opacity: 0;
+			transform: translateX(-50%) scaleX(0.2) skewX(-18deg);
+		}
+		45% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0.34;
+			transform: translateX(-50%) scaleX(1) skewX(-18deg);
+		}
 	}
 
 	@keyframes resolve-layout {
-		0%, 62% { opacity: 1; }
-		100% { opacity: 0; }
+		0%,
+		62% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+		}
 	}
 
 	@media (max-width: 820px) {
@@ -337,8 +374,12 @@
 			padding: 8px;
 		}
 
-		.rack-left { left: -13%; }
-		.rack-right { right: -13%; }
+		.rack-left {
+			left: -13%;
+		}
+		.rack-right {
+			right: -13%;
+		}
 
 		.vault-lock {
 			top: 47%;

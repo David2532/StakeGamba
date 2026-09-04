@@ -12,17 +12,81 @@ const REEL_STOP_OFFSETS = Object.freeze({
 });
 
 const CUE_TONES = Object.freeze({
-	round_started: Object.freeze({ frequency: 82, target: 138, duration: 0.16, gain: 0.12, priority: 2, recipe: 'vault_motor' }),
-	board_snapshot: Object.freeze({ frequency: 176, target: 118, duration: 0.055, gain: 0.052, priority: 1, recipe: 'reel_stop_cadence' }),
-	win: Object.freeze({ frequency: 330, target: 660, duration: 0.24, gain: 0.1, priority: 2, recipe: 'vaultkeeper_acknowledge' }),
+	round_started: Object.freeze({
+		frequency: 82,
+		target: 138,
+		duration: 0.16,
+		gain: 0.12,
+		priority: 2,
+		recipe: 'vault_motor',
+	}),
+	board_snapshot: Object.freeze({
+		frequency: 176,
+		target: 118,
+		duration: 0.055,
+		gain: 0.052,
+		priority: 1,
+		recipe: 'reel_stop_cadence',
+	}),
+	win: Object.freeze({
+		frequency: 330,
+		target: 660,
+		duration: 0.24,
+		gain: 0.1,
+		priority: 2,
+		recipe: 'vaultkeeper_acknowledge',
+	}),
+	route_snapshot: Object.freeze({
+		frequency: 205,
+		target: 310,
+		duration: 0.11,
+		gain: 0.065,
+		priority: 1,
+		recipe: 'breach_cell_activation',
+	}),
 	access_changed: Object.freeze({ frequency: 260, target: 390, duration: 0.18, gain: 0.08 }),
-	feature_armed: Object.freeze({ frequency: 110, target: 220, duration: 0.42, gain: 0.1, priority: 2, recipe: 'lock_anticipation' }),
-	feature_started: Object.freeze({ frequency: 64, target: 96, duration: 0.72, gain: 0.14, priority: 3, recipe: 'blackout_lock' }),
+	feature_armed: Object.freeze({
+		frequency: 110,
+		target: 220,
+		duration: 0.42,
+		gain: 0.1,
+		priority: 2,
+		recipe: 'lock_anticipation',
+	}),
+	feature_started: Object.freeze({
+		frequency: 64,
+		target: 96,
+		duration: 0.72,
+		gain: 0.14,
+		priority: 3,
+		recipe: 'blackout_lock',
+	}),
 	feature_cycle: Object.freeze({ frequency: 150, target: 225, duration: 0.13, gain: 0.07 }),
-	exfil_reached: Object.freeze({ frequency: 420, target: 840, duration: 0.28, gain: 0.1, priority: 2, recipe: 'exfil_confirm' }),
+	exfil_reached: Object.freeze({
+		frequency: 420,
+		target: 840,
+		duration: 0.28,
+		gain: 0.1,
+		priority: 2,
+		recipe: 'exfil_confirm',
+	}),
 	tumble: Object.freeze({ frequency: 140, target: 76, duration: 0.1, gain: 0.075 }),
-	feature_ended: Object.freeze({ frequency: 180, target: 90, duration: 0.45, gain: 0.11, priority: 2, recipe: 'blackout_release' }),
-	cap_reached: Object.freeze({ frequency: 520, target: 1040, duration: 0.55, gain: 0.12, priority: 3, recipe: 'vaultkeeper_max_win' }),
+	feature_ended: Object.freeze({
+		frequency: 180,
+		target: 90,
+		duration: 0.45,
+		gain: 0.11,
+		priority: 2,
+		recipe: 'blackout_release',
+	}),
+	cap_reached: Object.freeze({
+		frequency: 520,
+		target: 1040,
+		duration: 0.55,
+		gain: 0.12,
+		priority: 3,
+		recipe: 'vaultkeeper_max_win',
+	}),
 	settled: Object.freeze({ frequency: 220, target: 165, duration: 0.16, gain: 0.065 }),
 	ui: Object.freeze({ frequency: 360, target: 300, duration: 0.055, gain: 0.04 }),
 });
@@ -97,6 +161,14 @@ export class AudioDirector {
 		this.visibilityTransition = Promise.resolve(false);
 		/** @type {any} */
 		this.state = createInitialAudioState(storage);
+		this.handleContextStateChange = () => {
+			if (this.destroyed || !this.context) return;
+			if (this.context.state === 'closed') this.stopAudioSources();
+			if (this.context.state === 'running' && this.state.unlocked && this.state.volume > 0) {
+				this.ensureAmbience();
+			}
+			this.emit({ status: this.statusForContext() });
+		};
 		this.handleVisibilityChange = () => {
 			const hidden = Boolean(this.documentRef?.hidden);
 			return (this.visibilityTransition = this.visibilityTransition
@@ -107,19 +179,20 @@ export class AudioDirector {
 				})
 				.catch(() => {
 					if (!this.destroyed) {
-						this.emit({
-							status:
-								this.context?.state === 'running'
-									? this.state.volume === 0
-										? 'muted'
-										: 'running'
-									: 'suspended',
-						});
+						this.emit({ status: this.statusForContext() });
 					}
 					return false;
 				}));
 		};
 		this.documentRef?.addEventListener?.('visibilitychange', this.handleVisibilityChange);
+	}
+
+	statusForContext({ volume = this.state.volume, unlocked = this.state.unlocked } = {}) {
+		if (!this.context) return this.state.status === 'unsupported' ? 'unsupported' : 'locked';
+		if (this.context.state === 'closed') return 'closed';
+		if (this.context.state !== 'running') return 'suspended';
+		if (!unlocked) return 'locked';
+		return volume === 0 ? 'muted' : 'running';
 	}
 
 	emit(patch = {}) {
@@ -142,10 +215,13 @@ export class AudioDirector {
 				return false;
 			}
 			try {
-				this.context = this.audioContextFactory();
-				this.masterGain = this.context.createGain();
-				this.masterGain.gain.setValueAtTime(this.state.volume, this.context.currentTime);
-				this.masterGain.connect(this.context.destination);
+				const context = this.audioContextFactory();
+				const masterGain = context.createGain();
+				masterGain.gain.setValueAtTime(this.state.volume, context.currentTime);
+				masterGain.connect(context.destination);
+				this.context = context;
+				this.masterGain = masterGain;
+				this.context.addEventListener?.('statechange', this.handleContextStateChange);
 			} catch {
 				this.context = null;
 				this.masterGain = null;
@@ -154,18 +230,34 @@ export class AudioDirector {
 			}
 		}
 		try {
-			if (this.context.state === 'suspended') await this.context.resume();
+			if (this.context.state === 'closed') {
+				this.emit({ status: 'closed', unlocked: false });
+				return false;
+			}
+			if (this.context.state !== 'running') await this.context.resume();
+			if (this.context.state !== 'running') {
+				this.emit({ status: this.statusForContext(), unlocked: false });
+				return false;
+			}
 			if (this.state.volume > 0) this.ensureAmbience();
 			this.emit({ status: this.state.volume === 0 ? 'muted' : 'running', unlocked: true });
 			return true;
 		} catch {
-			this.emit({ status: 'suspended', unlocked: false });
+			this.emit({ status: this.statusForContext(), unlocked: false });
 			return false;
 		}
 	}
 
-	ensureAmbience() {
-		if (!this.context || !this.masterGain || this.ambienceOscillator) return;
+	ensureAmbience(volume = this.state.volume) {
+		if (
+			!this.context ||
+			this.context.state !== 'running' ||
+			!this.masterGain ||
+			volume === 0 ||
+			this.ambienceOscillator
+		) {
+			return;
+		}
 		const oscillator = this.context.createOscillator();
 		const gain = this.context.createGain();
 		oscillator.type = 'sine';
@@ -210,11 +302,11 @@ export class AudioDirector {
 			this.masterGain.gain.setValueAtTime(volume, this.context.currentTime);
 		}
 		if (volume === 0) this.stopAudioSources();
-		else if (this.state.unlocked && this.context?.state === 'running') this.ensureAmbience();
+		else if (this.state.unlocked && this.context?.state === 'running') this.ensureAmbience(volume);
 		this.emit({
 			volume,
 			level: levelLabel(volume),
-			status: volume === 0 ? 'muted' : this.state.unlocked ? 'running' : 'locked',
+			status: this.statusForContext({ volume }),
 		});
 		return this.state;
 	}
@@ -227,6 +319,13 @@ export class AudioDirector {
 
 	consume(cue, { timingProfile = 'normal' } = {}) {
 		if (!cue || !Object.hasOwn(CUE_TONES, cue.kind)) return false;
+		if (
+			cue.kind === 'route_snapshot' &&
+			(!Array.isArray(cue.event?.newly_breached_cells) ||
+				cue.event.newly_breached_cells.length === 0)
+		) {
+			return false;
+		}
 		return this.playTone(cue.kind, { timingProfile });
 	}
 
@@ -316,9 +415,14 @@ export class AudioDirector {
 
 	async suspend() {
 		if (this.destroyed || !this.context || this.context.state !== 'running') return false;
-		await this.context.suspend();
-		this.emit({ status: 'suspended' });
-		return true;
+		try {
+			await this.context.suspend();
+			this.emit({ status: this.statusForContext() });
+			return this.context.state === 'suspended';
+		} catch {
+			this.emit({ status: this.statusForContext() });
+			return false;
+		}
 	}
 
 	async resume() {
@@ -327,20 +431,30 @@ export class AudioDirector {
 			!this.state.unlocked ||
 			this.documentRef?.hidden ||
 			!this.context ||
-			this.context.state !== 'suspended'
+			this.context.state === 'closed'
 		) {
 			return false;
 		}
-		await this.context.resume();
-		if (this.state.volume > 0) this.ensureAmbience();
-		this.emit({ status: this.state.volume === 0 ? 'muted' : 'running' });
-		return true;
+		try {
+			if (this.context.state !== 'running') await this.context.resume();
+			if (this.context.state !== 'running') {
+				this.emit({ status: this.statusForContext() });
+				return false;
+			}
+			if (this.state.volume > 0) this.ensureAmbience();
+			this.emit({ status: this.statusForContext() });
+			return true;
+		} catch {
+			this.emit({ status: this.statusForContext() });
+			return false;
+		}
 	}
 
 	destroy() {
 		if (this.destroyed) return;
 		this.destroyed = true;
 		this.documentRef?.removeEventListener?.('visibilitychange', this.handleVisibilityChange);
+		this.context?.removeEventListener?.('statechange', this.handleContextStateChange);
 		this.stopAudioSources();
 		void this.context?.close?.();
 		this.onState = () => {};

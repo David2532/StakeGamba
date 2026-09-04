@@ -4,33 +4,9 @@ on:
   push:
     branches:
       - codex/blacksite-aaa-studio
-    paths:
-      - .github/workflows/blacksite-ci.yml
-      - apps/blacksite/**
-      - math/games/blacksite_breach/**
-      - packages/config-svelte/**
-      - packages/config-ts/**
-      - packages/utils-shared/**
-      - scripts/blacksite-*.mjs
-      - docs/blacksite/RELEASE_EVIDENCE_51.json
-      - package.json
-      - pnpm-lock.yaml
-      - pnpm-workspace.yaml
   pull_request:
     branches:
-      - codex/blacksite-aaa-studio
-    paths:
-      - .github/workflows/blacksite-ci.yml
-      - apps/blacksite/**
-      - math/games/blacksite_breach/**
-      - packages/config-svelte/**
-      - packages/config-ts/**
-      - packages/utils-shared/**
-      - scripts/blacksite-*.mjs
-      - docs/blacksite/RELEASE_EVIDENCE_51.json
-      - package.json
-      - pnpm-lock.yaml
-      - pnpm-workspace.yaml
+      - codex/stake-review-2026-07-29
   workflow_dispatch:
 
 permissions:
@@ -52,10 +28,10 @@ jobs:
       NPM_CONFIG_LOGLEVEL: error
 
     steps:
-      - name: Checkout exact revision
+      - name: Checkout event revision
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
@@ -68,19 +44,51 @@ jobs:
           node-version: 22.16.0
           cache: pnpm
 
-      - name: Record exact test identity
+      - name: Record exact validation identity
         shell: bash
         env:
-          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_REF: ${{ github.ref }}
+          EXPECTED_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          EXPECTED_SHA: ${{ github.sha }}
+          PR_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+          PR_NUMBER: ${{ github.event.number }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           actual_sha="$(git rev-parse HEAD)"
+          test -n "$EXPECTED_BRANCH"
+          git check-ref-format --branch "$EXPECTED_BRANCH" >/dev/null
           test "${#EXPECTED_SHA}" -eq 40
           test "$actual_sha" = "$EXPECTED_SHA"
+          case "$EVENT_NAME" in
+            pull_request)
+              test -n "$PR_NUMBER"
+              test "$EVENT_REF" = "refs/pull/${PR_NUMBER}/merge"
+              test "$PR_BASE_BRANCH" = "codex/stake-review-2026-07-29"
+              test "${#SOURCE_SHA}" -eq 40
+              test "$actual_sha" != "$SOURCE_SHA"
+              validation_identity='pull-request-merge-result'
+              ;;
+            push|workflow_dispatch)
+              test "$EVENT_REF" = "refs/heads/${EXPECTED_BRANCH}"
+              test "$actual_sha" = "$SOURCE_SHA"
+              validation_identity='exact-source-revision'
+              ;;
+            *)
+              printf 'Unsupported event: %s\n' "$EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
           test -z "$(git status --porcelain=v1)"
           mkdir -p "${RUNNER_TEMP}/blacksite-ci"
           {
+            printf 'event_name=%s\n' "$EVENT_NAME"
+            printf 'event_ref=%s\n' "$EVENT_REF"
+            printf 'validation_identity=%s\n' "$validation_identity"
+            printf 'git_branch=%s\n' "$EXPECTED_BRANCH"
             printf 'git_sha=%s\n' "$actual_sha"
+            printf 'source_git_sha=%s\n' "$SOURCE_SHA"
             printf 'node=%s\n' "$(node --version)"
             printf 'pnpm=%s\n' "$(pnpm --version)"
           } > "${RUNNER_TEMP}/blacksite-ci/identity.txt"
@@ -100,16 +108,18 @@ jobs:
       - name: Build BlackSite production frontend
         run: pnpm --filter blacksite build
 
-      - name: Verify BlackSite external scale evidence gate
+      - name: Validate BLACKSITE scale contract and self-test
         run: pnpm blacksite:scale:contract
 
       - name: Verify BlackSite math candidate
         run: pnpm blacksite:math:test
 
       - name: Generate and verify isolated BlackSite package
+        if: ${{ github.event_name != 'pull_request' }}
         shell: bash
         env:
-          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          EXPECTED_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          EXPECTED_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
           candidate_root="${RUNNER_TEMP}/blacksite-candidate-${EXPECTED_SHA}"
@@ -117,50 +127,139 @@ jobs:
           test "${#frontend_tree}" -eq 64
           node scripts/blacksite-package-candidate.mjs \
             --output "$candidate_root" \
+            --expected-branch "$EXPECTED_BRANCH" \
             --expected-commit "$EXPECTED_SHA" \
             --expected-frontend-tree "$frontend_tree"
           node scripts/blacksite-package-verify.mjs \
             --candidate "$candidate_root" \
+            --expected-branch "$EXPECTED_BRANCH" \
             --write-result
-          mkdir -p artifacts/blacksite-ci
-          mkdir -p artifacts/blacksite-package
-          cp "${RUNNER_TEMP}/blacksite-ci/identity.txt" artifacts/blacksite-ci/
-          cp "$candidate_root/candidate-manifest.json" artifacts/blacksite-package/
-          cp "$candidate_root/package-verification.json" artifacts/blacksite-package/
-          cp "$candidate_root/README_UPLOAD_CANDIDATE.txt" artifacts/blacksite-package/
-          printf 'candidate_root=%s\nfrontend_tree_sha256=%s\n' \
-            "$candidate_root" "$frontend_tree" \
-            > artifacts/blacksite-package/identity.txt
           printf 'BLACKSITE_CANDIDATE_ROOT=%s\n' "$candidate_root" >> "$GITHUB_ENV"
           printf 'BLACKSITE_FRONTEND_TREE_SHA256=%s\n' "$frontend_tree" >> "$GITHUB_ENV"
 
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Test exact extracted frontend in Chromium
+      - name: Snapshot pre-existing browser evidence directories
+        shell: bash
         run: |
-          BLACKSITE_QA_BUILD_ROOT="${BLACKSITE_CANDIDATE_ROOT}/frontend" \
-          BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256="${BLACKSITE_FRONTEND_TREE_SHA256}" \
-          node scripts/blacksite-qa-e2e.mjs
+          set -euo pipefail
+          if [[ -d artifacts/blacksite-qa ]]; then
+            find artifacts/blacksite-qa \
+              -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
+              | LC_ALL=C sort
+          fi > "${RUNNER_TEMP}/blacksite-ci/browser-directories-before.txt"
 
-      - name: Resolve exact 51-point candidate evidence
+      - name: Test exact extracted frontend in Chromium
         shell: bash
         env:
-          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" = 'pull_request' ]]; then
+            frontend_tree="$(node scripts/blacksite-package-candidate.mjs --print-frontend-tree-sha256)"
+            test "${#frontend_tree}" -eq 64
+            BLACKSITE_QA_BUILD_ROOT="${GITHUB_WORKSPACE}/apps/blacksite/build" \
+            BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256="$frontend_tree" \
+            node scripts/blacksite-qa-e2e.mjs
+          else
+            BLACKSITE_QA_BUILD_ROOT="${BLACKSITE_CANDIDATE_ROOT}/frontend" \
+            BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256="${BLACKSITE_FRONTEND_TREE_SHA256}" \
+            node scripts/blacksite-qa-e2e.mjs
+          fi
+
+      - name: Resolve current browser evidence directory
+        if: ${{ always() }}
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
           browser_evidence=()
           while IFS= read -r evidence_path; do
+            evidence_directory="$(basename "$(dirname "$evidence_path")")"
+            if grep -Fqx "$evidence_directory" \
+              "${RUNNER_TEMP}/blacksite-ci/browser-directories-before.txt"; then
+              continue
+            fi
             tested_sha="$(node -e 'const fs = require("node:fs"); const value = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); process.stdout.write(value.identity?.testedGitSha ?? "")' "$evidence_path")"
             if [[ "$tested_sha" = "$EXPECTED_SHA" ]]; then
               browser_evidence+=("$evidence_path")
             fi
-          done < <(find artifacts/blacksite-qa -type f -name blacksite-browser-evidence.json -print)
+          done < <(find artifacts/blacksite-qa -mindepth 2 -maxdepth 2 \
+            -type f -name blacksite-browser-evidence.json -print)
           test "${#browser_evidence[@]}" -eq 1
+          browser_evidence_file="$(realpath "${browser_evidence[0]}")"
+          browser_evidence_directory="$(dirname "$browser_evidence_file")"
+          printf 'BLACKSITE_BROWSER_EVIDENCE_FILE=%s\n' "$browser_evidence_file" >> "$GITHUB_ENV"
+          printf 'BLACKSITE_BROWSER_EVIDENCE_DIR=%s\n' "$browser_evidence_directory" >> "$GITHUB_ENV"
+
+      - name: Resolve exact 51-point candidate evidence
+        if: ${{ success() && github.event_name != 'pull_request' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          compliance_output="${RUNNER_TEMP}/blacksite-compliance-${GITHUB_SHA}.json"
           node scripts/blacksite-compliance-evidence.mjs \
             --candidate "${BLACKSITE_CANDIDATE_ROOT}" \
-            --browser-evidence "${browser_evidence[0]}" \
-            --output artifacts/blacksite-compliance/blacksite-51-evidence.json
+            --browser-evidence "${BLACKSITE_BROWSER_EVIDENCE_FILE}" \
+            --output "$compliance_output"
+          printf 'BLACKSITE_COMPLIANCE_EVIDENCE=%s\n' "$compliance_output" >> "$GITHUB_ENV"
+
+      - name: Generate deterministic release evidence bundle
+        if: ${{ success() && github.event_name != 'pull_request' }}
+        shell: bash
+        env:
+          EXPECTED_BRANCH: ${{ github.ref_name }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          blacksite_upload_root="${RUNNER_TEMP}/blacksite-upload-${GITHUB_SHA}"
+          mkdir "$blacksite_upload_root"
+          node scripts/blacksite-release-bundle.mjs \
+            --candidate "${BLACKSITE_CANDIDATE_ROOT}" \
+            --browser-run "${BLACKSITE_BROWSER_EVIDENCE_DIR}" \
+            --compliance-evidence "${BLACKSITE_COMPLIANCE_EVIDENCE}" \
+            --output "${blacksite_upload_root}/release-bundle" \
+            --expected-branch "$EXPECTED_BRANCH" \
+            --expected-commit "$EXPECTED_SHA" \
+            --ci-run-id "$GITHUB_RUN_ID" \
+            --ci-run-attempt "$GITHUB_RUN_ATTEMPT"
+
+      - name: Stage current run artifacts
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          blacksite_upload_root="${RUNNER_TEMP}/blacksite-upload-${GITHUB_SHA}"
+          mkdir -p "${blacksite_upload_root}/artifacts/blacksite-ci"
+          if [[ -f "${RUNNER_TEMP}/blacksite-ci/identity.txt" ]]; then
+            cp "${RUNNER_TEMP}/blacksite-ci/identity.txt" \
+              "${blacksite_upload_root}/artifacts/blacksite-ci/"
+          fi
+          if [[ -n "${BLACKSITE_BROWSER_EVIDENCE_DIR:-}" && \
+            -d "${BLACKSITE_BROWSER_EVIDENCE_DIR}" ]]; then
+            browser_run_directory="$(basename "${BLACKSITE_BROWSER_EVIDENCE_DIR}")"
+            browser_bundle_root="${blacksite_upload_root}/artifacts/blacksite-qa"
+            mkdir -p "$browser_bundle_root"
+            if [[ ! -e "$browser_bundle_root/${browser_run_directory}" ]]; then
+              cp -a "${BLACKSITE_BROWSER_EVIDENCE_DIR}" \
+                "$browser_bundle_root/${browser_run_directory}"
+            fi
+          fi
+          if [[ -n "${BLACKSITE_CANDIDATE_ROOT:-}" && \
+            -d "${BLACKSITE_CANDIDATE_ROOT}" ]]; then
+            candidate_stage="${blacksite_upload_root}/artifacts/blacksite-package/blacksite-candidate-${GITHUB_SHA}"
+            test ! -e "$candidate_stage"
+            mkdir -p "$candidate_stage"
+            cp -a "${BLACKSITE_CANDIDATE_ROOT}/." "$candidate_stage/"
+          fi
+          if [[ -n "${BLACKSITE_COMPLIANCE_EVIDENCE:-}" && \
+            -f "${BLACKSITE_COMPLIANCE_EVIDENCE}" ]]; then
+            mkdir -p "${blacksite_upload_root}/artifacts/blacksite-compliance"
+            cp "${BLACKSITE_COMPLIANCE_EVIDENCE}" \
+              "${blacksite_upload_root}/artifacts/blacksite-compliance/blacksite-51-evidence.json"
+          fi
 
       - name: Upload BlackSite diagnostics
         if: always()
@@ -169,8 +268,4 @@ jobs:
           name: blacksite-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: warn
           retention-days: 30
-          path: |
-            artifacts/blacksite-ci/**
-            artifacts/blacksite-package/**
-            artifacts/blacksite-qa/**
-            artifacts/blacksite-compliance/**
+          path: ${{ runner.temp }}/blacksite-upload-${{ github.sha }}/**

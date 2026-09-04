@@ -1,0 +1,1021 @@
+{
+	"schema": "blacksite-device-qa-evidence-v3",
+	"contractVersion": "blacksite-device-qa-contract-v3",
+	"floorVersion": "blacksite-old-device-floor-proposed-v1",
+	"claim": "STRUCTURAL_RECORD_ONLY_NOT_DEVICE_APPROVAL",
+	"identity": {
+		"gitSha": "1111111111111111111111111111111111111111",
+		"frontendTreeSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+		"mathTreeSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+		"mathCandidateFingerprintSha256": "4444444444444444444444444444444444444444444444444444444444444444"
+	},
+	"record": {
+		"id": "replace-device-run",
+		"startedAt": "2000-01-01T00:00:00Z",
+		"completedAt": "2000-01-01T00:00:01Z"
+	},
+	"operators": [
+		{
+			"id": "replace-operator",
+			"name": "REPLACE operator name",
+			"organization": "REPLACE organization",
+			"role": "Device QA operator"
+		}
+	],
+	"environments": [
+		{
+			"id": "ios-floor-01",
+			"coverageKind": "IOS_OLD_FLOOR",
+			"provenance": { "observation": "NOT_OBSERVED", "verification": "UNVERIFIED" },
+			"executionMode": "NOT_EXECUTED",
+			"floorRelation": "NOT_OBSERVED",
+			"device": {
+				"manufacturer": "Apple",
+				"model": "iPhone X",
+				"modelIdentifier": "REPLACE model identifier",
+				"physical": "NOT_OBSERVED"
+			},
+			"hardware": {
+				"chipset": "Apple A11 Bionic",
+				"cpuArchitecture": "arm64",
+				"gpu": "Apple three-core GPU",
+				"ramMiB": 3072
+			},
+			"os": {
+				"name": "iOS",
+				"version": "16.7.x",
+				"build": "REPLACE exact iOS build"
+			},
+			"browser": {
+				"name": "Mobile Safari",
+				"version": "REPLACE exact Safari version",
+				"engine": "WebKit"
+			},
+			"viewport": {
+				"widthCssPx": 375,
+				"heightCssPx": 812,
+				"devicePixelRatio": 3
+			},
+			"connection": {
+				"kind": "wifi",
+				"label": "REPLACE network conditions"
+			},
+			"notes": "REPLACE device condition, battery health, and setup notes",
+			"assistiveTechnology": {
+				"name": "VoiceOver",
+				"version": "bundled with exact recorded iOS build"
+			}
+		},
+		{
+			"id": "android-floor-01",
+			"coverageKind": "ANDROID_OLD_FLOOR",
+			"provenance": { "observation": "NOT_OBSERVED", "verification": "UNVERIFIED" },
+			"executionMode": "NOT_EXECUTED",
+			"floorRelation": "NOT_OBSERVED",
+			"device": {
+				"manufacturer": "Motorola",
+				"model": "Moto G7 Power",
+				"modelIdentifier": "XT1955 REPLACE exact suffix",
+				"physical": "NOT_OBSERVED"
+			},
+			"hardware": {
+				"chipset": "Qualcomm Snapdragon 632",
+				"cpuArchitecture": "arm64",
+				"gpu": "Adreno 506",
+				"ramMiB": 3072
+			},
+			"os": {
+				"name": "Android",
+				"version": "10",
+				"build": "REPLACE exact Android build"
+			},
+			"browser": {
+				"name": "Google Chrome",
+				"version": "REPLACE exact Chrome version",
+				"engine": "Blink"
+			},
+			"viewport": {
+				"widthCssPx": 360,
+				"heightCssPx": 740,
+				"devicePixelRatio": 2
+			},
+			"connection": {
+				"kind": "wifi",
+				"label": "REPLACE network conditions"
+			},
+			"notes": "REPLACE device condition, battery health, and setup notes",
+			"assistiveTechnology": {
+				"name": "TalkBack",
+				"version": "REPLACE exact TalkBack version"
+			}
+		},
+		{
+			"id": "popout-s-01",
+			"coverageKind": "POPOUT_S",
+			"provenance": { "observation": "NOT_OBSERVED", "verification": "UNVERIFIED" },
+			"executionMode": "NOT_EXECUTED",
+			"floorRelation": "NOT_APPLICABLE",
+			"device": {
+				"manufacturer": "REPLACE desktop manufacturer",
+				"model": "REPLACE desktop model",
+				"modelIdentifier": "REPLACE desktop model identifier",
+				"physical": "NOT_OBSERVED"
+			},
+			"hardware": {
+				"chipset": "REPLACE desktop chipset",
+				"cpuArchitecture": "REPLACE desktop CPU architecture",
+				"gpu": "REPLACE desktop GPU",
+				"ramMiB": 1
+			},
+			"os": {
+				"name": "REPLACE desktop OS",
+				"version": "REPLACE desktop OS version",
+				"build": "REPLACE desktop OS build"
+			},
+			"browser": {
+				"name": "REPLACE browser",
+				"version": "REPLACE browser version",
+				"engine": "REPLACE browser engine"
+			},
+			"viewport": {
+				"widthCssPx": 360,
+				"heightCssPx": 640,
+				"devicePixelRatio": 1
+			},
+			"connection": {
+				"kind": "wired-or-wifi",
+				"label": "REPLACE network conditions"
+			},
+			"notes": "REPLACE real Stake Popout S launch and environment notes",
+			"stakeContainer": {
+				"size": "S",
+				"version": "REPLACE exact observed Stake container version",
+				"source": "NOT_OBSERVED"
+			}
+		},
+		{
+			"id": "popout-l-01",
+			"coverageKind": "POPOUT_L",
+			"provenance": { "observation": "NOT_OBSERVED", "verification": "UNVERIFIED" },
+			"executionMode": "NOT_EXECUTED",
+			"floorRelation": "NOT_APPLICABLE",
+			"device": {
+				"manufacturer": "REPLACE desktop manufacturer",
+				"model": "REPLACE desktop model",
+				"modelIdentifier": "REPLACE desktop model identifier",
+				"physical": "NOT_OBSERVED"
+			},
+			"hardware": {
+				"chipset": "REPLACE desktop chipset",
+				"cpuArchitecture": "REPLACE desktop CPU architecture",
+				"gpu": "REPLACE desktop GPU",
+				"ramMiB": 1
+			},
+			"os": {
+				"name": "REPLACE desktop OS",
+				"version": "REPLACE desktop OS version",
+				"build": "REPLACE desktop OS build"
+			},
+			"browser": {
+				"name": "REPLACE browser",
+				"version": "REPLACE browser version",
+				"engine": "REPLACE browser engine"
+			},
+			"viewport": {
+				"widthCssPx": 1366,
+				"heightCssPx": 768,
+				"devicePixelRatio": 1
+			},
+			"connection": {
+				"kind": "wired-or-wifi",
+				"label": "REPLACE network conditions"
+			},
+			"notes": "REPLACE real Stake Popout L launch and environment notes",
+			"stakeContainer": {
+				"size": "L",
+				"version": "REPLACE exact observed Stake container version",
+				"source": "NOT_OBSERVED"
+			}
+		}
+	],
+	"attachments": [],
+	"results": [
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "load-and-readiness",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "cold candidate launch",
+			"notes": "Replace with observed first-interactive and first-legal-play readiness",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "live-play",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "base live play",
+			"notes": "Replace with observed RGS play and presentation behavior",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "heavy-cascade",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "cascade-heavy fixture",
+			"notes": "Replace with observed pacing, stalls, controls, and readability",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "blackout-mode",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "BLACKOUT deterministic fixture",
+			"notes": "Replace with observed BLACKOUT pacing and readable results",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "feature-entry-and-play",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "feature trigger and play fixture",
+			"notes": "Replace with observed feature entry, play, exit, and controls",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "max-win",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "max-win fixture",
+			"notes": "Replace with observed cinematic pacing, skip, and final amount",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "replay",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "Replay feature and max fixtures",
+			"notes": "Replace with observed load, Play Again, and read-only behavior",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "orientation",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "portrait landscape portrait",
+			"notes": "Replace with observed resize, source swap, and state preservation",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "safe-areas",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "portrait and landscape safe areas",
+			"notes": "Replace with observed protected-edge and control placement",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "touch",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "all visible controls",
+			"notes": "Replace with observed hit targets, latency, and accidental gestures",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "dialog-zoom-and-scroll",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "Game Information and confirmation dialogs",
+			"notes": "Replace with observed dialog scroll and accessibility zoom behavior",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "mute-resume-and-audio",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "base cascade feature and max audio",
+			"notes": "Replace with listening observations for mute, resume, lag, and clipping",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "memory-pressure",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "repeated heavy sequence",
+			"notes": "Replace with observed reloads, warnings, growth, and recovery",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "thermal",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "sustained mixed-mode loop",
+			"notes": "Replace with duration, starting and ending thermal observations",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "battery",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "sustained mixed-mode loop",
+			"notes": "Replace with unplugged duration and starting and ending battery percentage",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "ios-floor-01",
+			"scenarioId": "voiceover",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "VoiceOver core flow",
+			"notes": "Replace with focus order, announcements, dialogs, and operability observations",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "load-and-readiness",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "cold candidate launch",
+			"notes": "Replace with observed first-interactive and first-legal-play readiness",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "live-play",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "base live play",
+			"notes": "Replace with observed RGS play and presentation behavior",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "heavy-cascade",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "cascade-heavy fixture",
+			"notes": "Replace with observed pacing, stalls, controls, and readability",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "blackout-mode",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "BLACKOUT deterministic fixture",
+			"notes": "Replace with observed BLACKOUT pacing and readable results",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "feature-entry-and-play",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "feature trigger and play fixture",
+			"notes": "Replace with observed feature entry, play, exit, and controls",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "max-win",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "max-win fixture",
+			"notes": "Replace with observed cinematic pacing, skip, and final amount",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "replay",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "Replay feature and max fixtures",
+			"notes": "Replace with observed load, Play Again, and read-only behavior",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "orientation",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "portrait landscape portrait",
+			"notes": "Replace with observed resize, source swap, and state preservation",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "safe-areas",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "portrait and landscape safe areas",
+			"notes": "Replace with observed protected-edge and control placement",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "touch",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "all visible controls",
+			"notes": "Replace with observed hit targets, latency, and accidental gestures",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "dialog-zoom-and-scroll",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "Game Information and confirmation dialogs",
+			"notes": "Replace with observed dialog scroll and accessibility zoom behavior",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "mute-resume-and-audio",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "base cascade feature and max audio",
+			"notes": "Replace with listening observations for mute, resume, lag, and clipping",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "memory-pressure",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "repeated heavy sequence",
+			"notes": "Replace with observed reloads, warnings, growth, and recovery",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "thermal",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "sustained mixed-mode loop",
+			"notes": "Replace with duration, starting and ending thermal observations",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "battery",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "sustained mixed-mode loop",
+			"notes": "Replace with unplugged duration and starting and ending battery percentage",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "android-floor-01",
+			"scenarioId": "talkback",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "TalkBack core flow",
+			"notes": "Replace with focus order, announcements, dialogs, and operability observations",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+
+		{
+			"environmentId": "popout-s-01",
+			"scenarioId": "load-and-readiness",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "cold real Stake Popout launch",
+			"notes": "Replace with observed first-interactive and first-legal-play readiness",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-s-01",
+			"scenarioId": "live-play",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "base live play",
+			"notes": "Replace with observed RGS play and presentation behavior",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-s-01",
+			"scenarioId": "heavy-cascade",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "cascade-heavy fixture",
+			"notes": "Replace with observed pacing, stalls, controls, and readability",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-s-01",
+			"scenarioId": "blackout-mode",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "BLACKOUT deterministic fixture",
+			"notes": "Replace with observed BLACKOUT pacing and readable results",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-s-01",
+			"scenarioId": "feature-entry-and-play",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "feature trigger and play fixture",
+			"notes": "Replace with observed feature entry, play, exit, and controls",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-s-01",
+			"scenarioId": "max-win",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "max-win fixture",
+			"notes": "Replace with observed cinematic pacing, skip, and final amount",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-s-01",
+			"scenarioId": "replay",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "Replay feature and max fixtures",
+			"notes": "Replace with observed load, Play Again, and read-only behavior",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-s-01",
+			"scenarioId": "popout-layout",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "real Stake Popout S resize limits",
+			"notes": "Replace with observed board, controls, results, clipping, and scrollbars",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-s-01",
+			"scenarioId": "dialog-zoom-and-scroll",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "Game Information and confirmation dialogs",
+			"notes": "Replace with observed dialog scroll and browser zoom behavior",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-s-01",
+			"scenarioId": "mute-resume-and-audio",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "base cascade feature and max audio",
+			"notes": "Replace with listening observations for mute, resume, lag, and clipping",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-s-01",
+			"scenarioId": "memory-pressure",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "repeated heavy sequence",
+			"notes": "Replace with observed reloads, warnings, growth, and recovery",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+
+		{
+			"environmentId": "popout-l-01",
+			"scenarioId": "load-and-readiness",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "cold real Stake Popout launch",
+			"notes": "Replace with observed first-interactive and first-legal-play readiness",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-l-01",
+			"scenarioId": "live-play",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "base live play",
+			"notes": "Replace with observed RGS play and presentation behavior",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-l-01",
+			"scenarioId": "heavy-cascade",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "cascade-heavy fixture",
+			"notes": "Replace with observed pacing, stalls, controls, and readability",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-l-01",
+			"scenarioId": "blackout-mode",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "BLACKOUT deterministic fixture",
+			"notes": "Replace with observed BLACKOUT pacing and readable results",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-l-01",
+			"scenarioId": "feature-entry-and-play",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "feature trigger and play fixture",
+			"notes": "Replace with observed feature entry, play, exit, and controls",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-l-01",
+			"scenarioId": "max-win",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "max-win fixture",
+			"notes": "Replace with observed cinematic pacing, skip, and final amount",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-l-01",
+			"scenarioId": "replay",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "Replay feature and max fixtures",
+			"notes": "Replace with observed load, Play Again, and read-only behavior",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-l-01",
+			"scenarioId": "popout-layout",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "real Stake Popout L resize limits",
+			"notes": "Replace with observed board, controls, results, clipping, and scrollbars",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-l-01",
+			"scenarioId": "dialog-zoom-and-scroll",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "Game Information and confirmation dialogs",
+			"notes": "Replace with observed dialog scroll and browser zoom behavior",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-l-01",
+			"scenarioId": "mute-resume-and-audio",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "base cascade feature and max audio",
+			"notes": "Replace with listening observations for mute, resume, lag, and clipping",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		},
+		{
+			"environmentId": "popout-l-01",
+			"scenarioId": "memory-pressure",
+			"status": "NOT_RUN",
+			"operatorId": "replace-operator",
+			"observedAt": "NOT_OBSERVED",
+			"fixture": "repeated heavy sequence",
+			"notes": "Replace with observed reloads, warnings, growth, and recovery",
+			"attachmentIds": [],
+			"blocker": {
+				"reason": "Replace with the reason this procedure was not executed",
+				"owner": "Replace owner",
+				"nextAction": "Replace with the concrete next action"
+			}
+		}
+	],
+	"claims": {
+		"deviceApproval": "NOT_CLAIMED",
+		"releaseApproval": "NOT_CLAIMED"
+	}
+}

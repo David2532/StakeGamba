@@ -1,250 +1,272 @@
 {
-  "schema": "blacksite-asset-manifest-v1",
-  "updatedAt": "2026-08-30",
-  "lifecycle": "M3_RUNTIME_ASSET_INTEGRATION",
-  "runtimeIntegration": "penguin-static-fallback-v1+mechanical-vault-environment-v1",
-  "productIdentity": {
-    "status": "locked",
-    "characterId": "penguin_vaultkeeper",
-    "characterBrief": "Original mature stylized anthropomorphic penguin vault technician; restrained, clever and integrated into the physical security facility without becoming a childish mascot",
-    "themeAnchors": ["penguin", "mechanical-lock", "vault-door", "armored-security-facility"],
-    "forbiddenProductionDirections": [
-      "human-operative-side-character",
-      "generic-cyber-soldier",
-      "childish-or-chibi-mascot",
-      "copied-franchise-penguin"
-    ],
-    "runtimeAuthority": "Presentation only; the character and vault motion never determine results, payout or round state"
-  },
-  "generator": {
-    "mode": "OpenAI built-in image_gen",
-    "inputs": "text-only generation; the accepted environment is a targeted edit of this task's original text-only generation",
-    "promptRecord": "apps/blacksite/art/concepts/m3/PROVENANCE.md"
-  },
-  "rightsReview": "pending-human-review",
-  "assets": [
-    {
-      "id": "product.character.penguin_vaultkeeper.fallback.v1",
-      "type": "character-static-fallback",
-      "purpose": "Original mature penguin Vaultkeeper desktop presence and safe fallback while the authoritative Spine 4.2 rig remains pending",
-      "source": "OpenAI built-in image_gen text-only generation, selected after alpha and identity inspection",
-      "originalityProvenance": "Created in this repository task from a project-authored text prompt with no third-party or user-supplied visual reference",
-      "licenseRights": "AI-assisted original project asset; final legal/originality and human Creative/Compliance review pending",
-      "path": "apps/blacksite/art/production/character/penguin-vaultkeeper-fallback-v1.png",
-      "format": "png",
-      "runtimePath": "apps/blacksite/static/assets/blacksite/character/penguin-vaultkeeper-fallback-v1.webp",
-      "runtimeFormat": "webp",
-      "dimensions": {
-        "width": 702,
-        "height": 1080
-      },
-      "sourceDimensions": {
-        "width": 1024,
-        "height": 1536
-      },
-      "sha256": "359732e57619729f2b398fde7e84c79bc155af42bd6b157cabd32e2b209113af",
-      "sourceSha256": "9eda38025f7adc6685215e50def26be7abedeac1406c1984be46c644a107d58d",
-      "alpha": true,
-      "anchorPivot": "center bottom; decorative presentation only",
-      "atlasBundle": "Standalone 78,732-byte WebP fallback; future Spine 4.2 atlas remains required",
-      "statesAnimations": ["idle-static", "asset-missing-safe"],
-      "mobileFallback": "Hidden at <=820px width and low-height landscape so board and controls retain priority",
-      "compression": "1024x1536 RGBA source excluded from runtime; alpha-trimmed 702x1080 WebP quality 88",
-      "owner": "asset_director / creative_director / frontend_engineer",
-      "status": "production-candidate",
-      "runtimeEligible": true,
-      "reviewLimitations": "Human rights/originality review and final feather-edge/light-artifact cleanup remain required before approval"
-    },
-    {
-      "id": "product.environment.mechanical_vault.desktop.v1",
-      "type": "environment-static-layer",
-      "purpose": "Original wide mechanical-vault facility plate behind the unchanged desktop board and controls",
-      "source": "OpenAI built-in image_gen text-only generation selected after composition and text-artifact inspection",
-      "originalityProvenance": "Created in this repository task from a project-authored text prompt with no third-party, user-supplied or retained concept visual reference",
-      "licenseRights": "AI-assisted original project asset; final legal/originality and human Creative/Compliance review pending",
-      "path": "apps/blacksite/art/production/environment/mechanical-vault-desktop-v1.png",
-      "format": "png",
-      "runtimePath": "apps/blacksite/static/assets/blacksite/environment/mechanical-vault-desktop-v1.webp",
-      "runtimeFormat": "webp",
-      "dimensions": {
-        "width": 1672,
-        "height": 941
-      },
-      "sourceDimensions": {
-        "width": 1672,
-        "height": 941
-      },
-      "sha256": "7403b24ab7ecfbf02b12de941e5c07fc6affb7a497ae81242e0537f7d25cfbe7",
-      "sourceSha256": "6a66ab13003b4e92228bdf4cfa7c19dddf7bd46725604ca1846ed8c8d13a680b",
-      "alpha": false,
-      "anchorPivot": "center; cover crop preserves the empty central board aperture",
-      "atlasBundle": "Standalone 77,992-byte opaque WebP desktop plate",
-      "statesAnimations": ["base-vault-static"],
-      "mobileFallback": "Replaced by the independently composed portrait plate at viewport widths up to 820px",
-      "compression": "1672x941 opaque PNG source excluded from runtime; same-size stripped WebP quality 82",
-      "owner": "asset_director / creative_director / frontend_engineer",
-      "status": "production-candidate",
-      "runtimeEligible": true,
-      "reviewLimitations": "Human rights/originality and final Creative/Compliance review remain required; BLACKOUT and separable foreground layers remain pending"
-    },
-    {
-      "id": "product.environment.mechanical_vault.portrait.v1",
-      "type": "environment-static-layer",
-      "purpose": "Original portrait mechanical-vault recomposition behind the unchanged mobile and Popout board and controls",
-      "source": "OpenAI built-in image_gen text-only generation selected after portrait composition and text-artifact inspection",
-      "originalityProvenance": "Created in this repository task from a project-authored text prompt with no third-party, user-supplied or retained concept visual reference",
-      "licenseRights": "AI-assisted original project asset; final legal/originality and human Creative/Compliance review pending",
-      "path": "apps/blacksite/art/production/environment/mechanical-vault-portrait-v1.png",
-      "format": "png",
-      "runtimePath": "apps/blacksite/static/assets/blacksite/environment/mechanical-vault-portrait-v1.webp",
-      "runtimeFormat": "webp",
-      "dimensions": {
-        "width": 941,
-        "height": 1672
-      },
-      "sourceDimensions": {
-        "width": 941,
-        "height": 1672
-      },
-      "sha256": "aa871e4f0dcf7261464e200837a537a3af50dc0cc1ffc510cf5e8a02da9280cc",
-      "sourceSha256": "e7786bbf289a1655cabc9a53199353913bc0a214c0563259c5dce2560f6ba44c",
-      "alpha": false,
-      "anchorPivot": "center; independently authored portrait framing keeps the board and lower controls quiet",
-      "atlasBundle": "Standalone 48,628-byte opaque WebP portrait plate",
-      "statesAnimations": ["base-vault-static"],
-      "mobileFallback": "Primary mobile and small-Popout plate; no automatic desktop crop",
-      "compression": "941x1672 opaque PNG source excluded from runtime; same-size stripped WebP quality 82",
-      "owner": "asset_director / creative_director / frontend_engineer",
-      "status": "production-candidate",
-      "runtimeEligible": true,
-      "reviewLimitations": "Human rights/originality and final Creative/Compliance review remain required; BLACKOUT and separable foreground layers remain pending"
-    },
-    {
-      "id": "concept.environment.server_bunker_board_aperture.v1",
-      "type": "environment-concept",
-      "purpose": "Historical material, lighting and empty board-aperture reference only; its embedded human silhouette and composition are superseded",
-      "source": "OpenAI built-in image_gen generation plus one targeted central-aperture edit",
-      "originalityProvenance": "Created in this repository task from project-authored text prompts; no third-party or user-supplied visual reference was used",
-      "licenseRights": "AI-assisted project concept; legal/originality and final-use rights review pending",
-      "path": "apps/blacksite/art/concepts/m3/environment-server-bunker-board-aperture-concept-v1.png",
-      "format": "png",
-      "runtimePath": null,
-      "dimensions": {
-        "width": 1672,
-        "height": 941
-      },
-      "sha256": "7a71b005b46c542882ed6553132e43a79c67207945651c8cbc4dcaf132dc991d",
-      "alpha": false,
-      "anchorPivot": null,
-      "atlasBundle": null,
-      "statesAnimations": [],
-      "mobileFallback": "Not approved; a separately authored portrait recomposition and Popout crop are required",
-      "compression": "Lossless PNG concept source only; excluded from runtime until production extraction and WebP optimization",
-      "owner": "asset_director / creative_director",
-      "status": "reference-only",
-      "excludedElements": ["human side character", "human-authored composition dependency"]
-    },
-    {
-      "id": "concept.character.operative_spine_anchor.v1",
-      "type": "character-concept",
-      "purpose": "Superseded historical human-operative concept retained only for provenance and negative-direction review",
-      "source": "OpenAI built-in image_gen text-only generation",
-      "originalityProvenance": "Created in this repository task from a project-authored text prompt; no third-party or user-supplied visual reference was used",
-      "licenseRights": "AI-assisted project concept; legal/originality, likeness and final-use rights review pending",
-      "path": "apps/blacksite/art/concepts/m3/operative-spine-anchor-concept-v1.png",
-      "format": "png",
-      "runtimePath": null,
-      "dimensions": {
-        "width": 1024,
-        "height": 1536
-      },
-      "sha256": "3b2cb5013bede3ea786f538f77b66dc716cc4ef4439268d428e4990c361f4869",
-      "alpha": false,
-      "anchorPivot": "Production rig must define root orientation, reference scale, stable bounds and mobile bust crop",
-      "atlasBundle": "Future Spine 4.2 skeleton, atlas and texture pages; none exist yet",
-      "statesAnimations": [
-        "idle_a",
-        "idle_b",
-        "spin_start",
-        "anticipation",
-        "win_small",
-        "win_medium",
-        "win_big",
-        "feature_tease",
-        "feature_trigger",
-        "bonus_idle",
-        "bonus_win",
-        "max_win",
-        "recover"
-      ],
-      "mobileFallback": "The concept includes a waist-up identity inset; a separate production fallback pose/crop is still required",
-      "compression": "Lossless PNG concept source only; not a runtime texture",
-      "owner": "asset_director / animation_director",
-      "status": "superseded",
-      "supersededBy": "product.character.penguin_vaultkeeper.v1",
-      "runtimeEligible": false
-    },
-    {
-      "id": "concept.symbols.material_language.v1",
-      "type": "symbol-family-concept",
-      "purpose": "Shared silhouette, perspective, material and value hierarchy for byte, relay, proxy, cipher, daemon and vault",
-      "source": "OpenAI built-in image_gen text-only generation",
-      "originalityProvenance": "Created in this repository task from project-authored symbol briefs; no third-party or user-supplied visual reference was used",
-      "licenseRights": "AI-assisted project concept; legal/originality and final-use rights review pending",
-      "path": "apps/blacksite/art/concepts/m3/symbols-material-language-concept-v1.png",
-      "format": "png",
-      "runtimePath": null,
-      "dimensions": {
-        "width": 1254,
-        "height": 1254
-      },
-      "sha256": "e63ff125b5fbdc4b361176a3019a5590cca942ef710fbdb82c11fbf6fb148662",
-      "alpha": false,
-      "anchorPivot": "Production symbols require identical square bounds and centered pivots",
-      "atlasBundle": "Future six-symbol Pixi spritesheet; no atlas exists yet",
-      "statesAnimations": ["idle", "win-readable", "dim-readable"],
-      "mobileFallback": "Each production symbol must remain distinguishable at the measured mobile cell size without relying only on hue",
-      "compression": "Lossless PNG concept sheet only; individual alpha sprites, crop and atlas optimization pending",
-      "owner": "asset_director / frontend_engineer",
-      "status": "concept"
-    }
-  ],
-  "requiredProductionGroups": [
-    {
-      "id": "brand-title",
-      "status": "planned"
-    },
-    {
-      "id": "environment-desktop-portrait-popout-blackout",
-      "status": "base-desktop-portrait-integrated-blackout-pending"
-    },
-    {
-      "id": "board-frame-cells-breach-states",
-      "status": "planned"
-    },
-    {
-      "id": "symbols-six-production-sprites",
-      "status": "concept-started"
-    },
-    {
-      "id": "character-penguin-vaultkeeper-spine-4.2-rig-atlas-events-fallback",
-      "status": "static-fallback-integrated-rig-pending"
-    },
-    {
-      "id": "ui-controls-icons-mode-art",
-      "status": "planned"
-    },
-    {
-      "id": "fx-particles-spritesheets",
-      "status": "planned"
-    },
-    {
-      "id": "audio-music-sfx",
-      "status": "planned"
-    },
-    {
-      "id": "stake-game-tile-package",
-      "status": "planned"
-    }
-  ]
+	"schema": "blacksite-asset-manifest-v1",
+	"updatedAt": "2026-08-30",
+	"lifecycle": "M3_RUNTIME_ASSET_INTEGRATION",
+	"runtimeIntegration": "penguin-static-fallback-v1+mechanical-vault-environment-v1",
+	"productIdentity": {
+		"status": "locked",
+		"characterId": "penguin_vaultkeeper",
+		"characterBrief": "Original mature stylized anthropomorphic penguin vault technician; restrained, clever and integrated into the physical security facility without becoming a childish mascot",
+		"themeAnchors": ["penguin", "mechanical-lock", "vault-door", "armored-security-facility"],
+		"forbiddenProductionDirections": [
+			"human-operative-side-character",
+			"generic-cyber-soldier",
+			"childish-or-chibi-mascot",
+			"copied-franchise-penguin"
+		],
+		"runtimeAuthority": "Presentation only; the character and vault motion never determine results, payout or round state"
+	},
+	"spineContract": {
+		"characterId": "penguin_vaultkeeper",
+		"runtimeVersion": "4.2.x",
+		"semanticStates": [
+			"idle_a",
+			"idle_b",
+			"spin_start",
+			"anticipation",
+			"win_small",
+			"win_medium",
+			"win_big",
+			"loss_acknowledge",
+			"feature_tease",
+			"feature_trigger",
+			"bonus_idle",
+			"bonus_win",
+			"max_win",
+			"recover"
+		]
+	},
+	"generator": {
+		"mode": "OpenAI built-in image_gen",
+		"inputs": "text-only generation; the accepted environment is a targeted edit of this task's original text-only generation",
+		"promptRecord": "apps/blacksite/art/concepts/m3/PROVENANCE.md"
+	},
+	"rightsReview": "pending-human-review",
+	"assets": [
+		{
+			"id": "product.character.penguin_vaultkeeper.fallback.v1",
+			"type": "character-static-fallback",
+			"purpose": "Original mature penguin Vaultkeeper desktop presence and safe fallback while the authoritative Spine 4.2 rig remains pending",
+			"source": "OpenAI built-in image_gen text-only generation, selected after alpha and identity inspection",
+			"originalityProvenance": "Created in this repository task from a project-authored text prompt with no third-party or user-supplied visual reference",
+			"licenseRights": "AI-assisted original project asset; final legal/originality and human Creative/Compliance review pending",
+			"path": "apps/blacksite/art/production/character/penguin-vaultkeeper-fallback-v1.png",
+			"format": "png",
+			"runtimePath": "apps/blacksite/static/assets/blacksite/character/penguin-vaultkeeper-fallback-v1.webp",
+			"runtimeFormat": "webp",
+			"dimensions": {
+				"width": 702,
+				"height": 1080
+			},
+			"sourceDimensions": {
+				"width": 1024,
+				"height": 1536
+			},
+			"sha256": "359732e57619729f2b398fde7e84c79bc155af42bd6b157cabd32e2b209113af",
+			"sourceSha256": "9eda38025f7adc6685215e50def26be7abedeac1406c1984be46c644a107d58d",
+			"alpha": true,
+			"anchorPivot": "center bottom; decorative presentation only",
+			"atlasBundle": "Standalone 78,732-byte WebP fallback; future Spine 4.2 atlas remains required",
+			"statesAnimations": ["idle-static", "asset-missing-safe"],
+			"mobileFallback": "Hidden at <=820px width and low-height landscape so board and controls retain priority",
+			"compression": "1024x1536 RGBA source excluded from runtime; alpha-trimmed 702x1080 WebP quality 88",
+			"owner": "asset_director / creative_director / frontend_engineer",
+			"status": "production-candidate",
+			"runtimeEligible": true,
+			"reviewLimitations": "Human rights/originality review and final feather-edge/light-artifact cleanup remain required before approval"
+		},
+		{
+			"id": "product.environment.mechanical_vault.desktop.v1",
+			"type": "environment-static-layer",
+			"purpose": "Original wide mechanical-vault facility plate behind the unchanged desktop board and controls",
+			"source": "OpenAI built-in image_gen text-only generation selected after composition and text-artifact inspection",
+			"originalityProvenance": "Created in this repository task from a project-authored text prompt with no third-party, user-supplied or retained concept visual reference",
+			"licenseRights": "AI-assisted original project asset; final legal/originality and human Creative/Compliance review pending",
+			"path": "apps/blacksite/art/production/environment/mechanical-vault-desktop-v1.png",
+			"format": "png",
+			"runtimePath": "apps/blacksite/static/assets/blacksite/environment/mechanical-vault-desktop-v1.webp",
+			"runtimeFormat": "webp",
+			"dimensions": {
+				"width": 1672,
+				"height": 941
+			},
+			"sourceDimensions": {
+				"width": 1672,
+				"height": 941
+			},
+			"sha256": "7403b24ab7ecfbf02b12de941e5c07fc6affb7a497ae81242e0537f7d25cfbe7",
+			"sourceSha256": "6a66ab13003b4e92228bdf4cfa7c19dddf7bd46725604ca1846ed8c8d13a680b",
+			"alpha": false,
+			"anchorPivot": "center; cover crop preserves the empty central board aperture",
+			"atlasBundle": "Standalone 77,992-byte opaque WebP desktop plate",
+			"statesAnimations": ["base-vault-static"],
+			"mobileFallback": "Replaced by the independently composed portrait plate at viewport widths up to 820px",
+			"compression": "1672x941 opaque PNG source excluded from runtime; same-size stripped WebP quality 82",
+			"owner": "asset_director / creative_director / frontend_engineer",
+			"status": "production-candidate",
+			"runtimeEligible": true,
+			"reviewLimitations": "Human rights/originality and final Creative/Compliance review remain required; BLACKOUT and separable foreground layers remain pending"
+		},
+		{
+			"id": "product.environment.mechanical_vault.portrait.v1",
+			"type": "environment-static-layer",
+			"purpose": "Original portrait mechanical-vault recomposition behind the unchanged mobile and Popout board and controls",
+			"source": "OpenAI built-in image_gen text-only generation selected after portrait composition and text-artifact inspection",
+			"originalityProvenance": "Created in this repository task from a project-authored text prompt with no third-party, user-supplied or retained concept visual reference",
+			"licenseRights": "AI-assisted original project asset; final legal/originality and human Creative/Compliance review pending",
+			"path": "apps/blacksite/art/production/environment/mechanical-vault-portrait-v1.png",
+			"format": "png",
+			"runtimePath": "apps/blacksite/static/assets/blacksite/environment/mechanical-vault-portrait-v1.webp",
+			"runtimeFormat": "webp",
+			"dimensions": {
+				"width": 941,
+				"height": 1672
+			},
+			"sourceDimensions": {
+				"width": 941,
+				"height": 1672
+			},
+			"sha256": "aa871e4f0dcf7261464e200837a537a3af50dc0cc1ffc510cf5e8a02da9280cc",
+			"sourceSha256": "e7786bbf289a1655cabc9a53199353913bc0a214c0563259c5dce2560f6ba44c",
+			"alpha": false,
+			"anchorPivot": "center; independently authored portrait framing keeps the board and lower controls quiet",
+			"atlasBundle": "Standalone 48,628-byte opaque WebP portrait plate",
+			"statesAnimations": ["base-vault-static"],
+			"mobileFallback": "Primary mobile and small-Popout plate; no automatic desktop crop",
+			"compression": "941x1672 opaque PNG source excluded from runtime; same-size stripped WebP quality 82",
+			"owner": "asset_director / creative_director / frontend_engineer",
+			"status": "production-candidate",
+			"runtimeEligible": true,
+			"reviewLimitations": "Human rights/originality and final Creative/Compliance review remain required; BLACKOUT and separable foreground layers remain pending"
+		},
+		{
+			"id": "concept.environment.server_bunker_board_aperture.v1",
+			"type": "environment-concept",
+			"purpose": "Historical material, lighting and empty board-aperture reference only; its embedded human silhouette and composition are superseded",
+			"source": "OpenAI built-in image_gen generation plus one targeted central-aperture edit",
+			"originalityProvenance": "Created in this repository task from project-authored text prompts; no third-party or user-supplied visual reference was used",
+			"licenseRights": "AI-assisted project concept; legal/originality and final-use rights review pending",
+			"path": "apps/blacksite/art/concepts/m3/environment-server-bunker-board-aperture-concept-v1.png",
+			"format": "png",
+			"runtimePath": null,
+			"dimensions": {
+				"width": 1672,
+				"height": 941
+			},
+			"sha256": "7a71b005b46c542882ed6553132e43a79c67207945651c8cbc4dcaf132dc991d",
+			"alpha": false,
+			"anchorPivot": null,
+			"atlasBundle": null,
+			"statesAnimations": [],
+			"mobileFallback": "Not approved; a separately authored portrait recomposition and Popout crop are required",
+			"compression": "Lossless PNG concept source only; excluded from runtime until production extraction and WebP optimization",
+			"owner": "asset_director / creative_director",
+			"status": "reference-only",
+			"runtimeEligible": false,
+			"excludedElements": ["human side character", "human-authored composition dependency"]
+		},
+		{
+			"id": "concept.character.operative_spine_anchor.v1",
+			"type": "character-concept",
+			"purpose": "Superseded historical human-operative concept retained only for provenance and negative-direction review",
+			"source": "OpenAI built-in image_gen text-only generation",
+			"originalityProvenance": "Created in this repository task from a project-authored text prompt; no third-party or user-supplied visual reference was used",
+			"licenseRights": "AI-assisted project concept; legal/originality, likeness and final-use rights review pending",
+			"path": "apps/blacksite/art/concepts/m3/operative-spine-anchor-concept-v1.png",
+			"format": "png",
+			"runtimePath": null,
+			"dimensions": {
+				"width": 1024,
+				"height": 1536
+			},
+			"sha256": "3b2cb5013bede3ea786f538f77b66dc716cc4ef4439268d428e4990c361f4869",
+			"alpha": false,
+			"anchorPivot": "Production rig must define root orientation, reference scale, stable bounds and mobile bust crop",
+			"atlasBundle": "Future Spine 4.2 skeleton, atlas and texture pages; none exist yet",
+			"statesAnimations": [
+				"idle_a",
+				"idle_b",
+				"spin_start",
+				"anticipation",
+				"win_small",
+				"win_medium",
+				"win_big",
+				"feature_tease",
+				"feature_trigger",
+				"bonus_idle",
+				"bonus_win",
+				"max_win",
+				"recover"
+			],
+			"mobileFallback": "The concept includes a waist-up identity inset; a separate production fallback pose/crop is still required",
+			"compression": "Lossless PNG concept source only; not a runtime texture",
+			"owner": "asset_director / animation_director",
+			"status": "superseded",
+			"supersededBy": "product.character.penguin_vaultkeeper.fallback.v1",
+			"runtimeEligible": false
+		},
+		{
+			"id": "concept.symbols.material_language.v1",
+			"type": "symbol-family-concept",
+			"purpose": "Shared silhouette, perspective, material and value hierarchy for byte, relay, proxy, cipher, daemon and vault",
+			"source": "OpenAI built-in image_gen text-only generation",
+			"originalityProvenance": "Created in this repository task from project-authored symbol briefs; no third-party or user-supplied visual reference was used",
+			"licenseRights": "AI-assisted project concept; legal/originality and final-use rights review pending",
+			"path": "apps/blacksite/art/concepts/m3/symbols-material-language-concept-v1.png",
+			"format": "png",
+			"runtimePath": null,
+			"dimensions": {
+				"width": 1254,
+				"height": 1254
+			},
+			"sha256": "e63ff125b5fbdc4b361176a3019a5590cca942ef710fbdb82c11fbf6fb148662",
+			"alpha": false,
+			"anchorPivot": "Production symbols require identical square bounds and centered pivots",
+			"atlasBundle": "Future six-symbol Pixi spritesheet; no atlas exists yet",
+			"statesAnimations": ["idle", "win-readable", "dim-readable"],
+			"mobileFallback": "Each production symbol must remain distinguishable at the measured mobile cell size without relying only on hue",
+			"compression": "Lossless PNG concept sheet only; individual alpha sprites, crop and atlas optimization pending",
+			"owner": "asset_director / frontend_engineer",
+			"status": "concept",
+			"runtimeEligible": false
+		}
+	],
+	"requiredProductionGroups": [
+		{
+			"id": "brand-title",
+			"status": "planned"
+		},
+		{
+			"id": "environment-desktop-portrait-popout-blackout",
+			"status": "base-desktop-portrait-integrated-blackout-pending"
+		},
+		{
+			"id": "board-frame-cells-breach-states",
+			"status": "planned"
+		},
+		{
+			"id": "symbols-six-production-sprites",
+			"status": "concept-started"
+		},
+		{
+			"id": "character-penguin-vaultkeeper-spine-4.2-rig-atlas-events-fallback",
+			"status": "static-fallback-integrated-rig-pending"
+		},
+		{
+			"id": "ui-controls-icons-mode-art",
+			"status": "planned"
+		},
+		{
+			"id": "fx-particles-spritesheets",
+			"status": "planned"
+		},
+		{
+			"id": "audio-music-sfx",
+			"status": "planned"
+		},
+		{
+			"id": "stake-game-tile-package",
+			"status": "planned"
+		}
+	]
 }
