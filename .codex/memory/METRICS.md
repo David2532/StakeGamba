@@ -6,19 +6,19 @@ Total output lines: 4522
 ## BS-20260904-23
 
 ```yaml
-started_at_utc: null
-closed_at_utc: null
+started_at_utc: 2026-09-04T02:30:22Z
+closed_at_utc: 2026-09-04T03:08:47Z
 sprint_day: 6
-status: IN_PROGRESS
-direct_subagents: null
+status: BLOCKED
+direct_subagents: 0
 tool_call_counts: null
 file_read_count: null
 tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
 work_item: BSB-RELEASE-HARDENING-001
 remote_memory_base: 717a8a052ece0d2ae0e1869b3fc7b25f8a3d140c
 last_exact_green: { run: 33818861870, commit: c4eeb96b4a40611e44ff57505377ea4fa7578088, status: SUCCESS }
-candidate_commit: PENDING
-candidate_exact_ci: NOT_RUN
+candidate_commit: e532902882e70426f84be09424cad9b67d480c95
+candidate_exact_ci: { run: 33831555950, status: FAIL_PRODUCTION_REGISTRY_AUDIT }
 local_frozen_install: PASS
 local_focused_security_suites: { pass: 20, fail: 0, status: PASS }
 local_focused_compliance_evidence_tests: { pass: 35, fail: 0, status: PASS }
@@ -33,13 +33,14 @@ performance_evidence_integrity_review: IMPLEMENTED_FOCUSED_PASS_PENDING_FULL_AND
 candidate_resolver_security_binding: IMPLEMENTED_FOCUSED_PASS_PENDING_FULL_AND_EXACT_RETEST
 candidate_resolver_contract_source_binding: IMPLEMENTED_FOCUSED_PASS_PENDING_FULL_AND_EXACT_RETEST
 candidate_resolver_na_absence_binding: IMPLEMENTED_FOCUSED_PASS_PENDING_FULL_AND_EXACT_RETEST
-local_full_candidate_lint: NOT_RUN
+local_full_candidate_lint: PASS
 local_full_candidate_typecheck: { errors: 0, warnings: 0, status: PASS }
-local_full_candidate_app_tests: NOT_RUN
-local_full_candidate_build: NOT_RUN
+local_full_candidate_app_tests: { pass: 310, fail: 0, status: PASS }
+local_full_candidate_build: PASS
 local_blacksite_vite_production_build: PASS
-local_dependency_registry_audit: { status: FAIL_TIMEOUT_NO_REPORT, exit: 124, timeout_seconds: 180, json_bytes: 0 }
-exact_security_evidence: NOT_RUN
+local_dependency_registry_audit: { status: BLOCKED_LOCAL_NETWORK, report: NOT_AVAILABLE }
+exact_dependency_registry_audit: { status: FAIL_FINDINGS, exit: 1, attempt: 1, json_bytes: 197220, high: 44, critical: 0, total: 76 }
+exact_security_evidence: { status: FAIL, pass: 10, fail: 1, checks: 11 }
 exact_browser: NOT_RUN
 exact_package: NOT_RUN
 exact_resolver: NOT_RUN
@@ -47,12 +48,15 @@ field_core_web_vitals: NOT_COLLECTED_NO_AUTHORIZED_DEPLOYMENT
 real_device_review: NOT_RUN
 final_asset_review: NOT_RUN_ASSET_GROUPS_INCOMPLETE
 million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
-git_diff_check: PASS_DOCUMENT_SCOPE
+final_merged_evidence_regression: { pass: 66, fail: 0, status: PASS }
+local_scale_self_test: { pass: 46, fail: 0, status: PASS }
+local_math: { pass: 7, fail: 0, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8 }
+git_diff_check: PASS
 documentation_format_check: PARTIAL_FOUR_DOCS_AND_RUN_LOG_PASS_REMOTE_MEMORY_STYLE_DEVIATIONS_RETAINED
 manual_identical_retries: 0
 ```
 
-Observed categories so far: parallel implementation and focused review of player states, symbols, URL policy, BFCache lifecycle, accessibility, performance, dependency security, exact evidence and release documentation. The focused evidence suites pass 57/57: compliance 35/35, security/URL policy 20/20 and repository evidence 2/2. Focused performance contracts pass 4/4 and lifecycle/state/intro tests pass 19/19. Pending app-level `svelte-check` passes 0 errors/0 warnings and direct Vite production build passes. The browser harness parses, but local Chromium installation timed out and new built-app scenarios remain unrun. The real registry-audit attempt reached its hard 180-second limit with exit 124 and 0 JSON bytes, so it did not pass or establish a vulnerability count. These tests cover canonical 51-row contract digest binding, source-hashed executable absence proofs for N/A rows 23/34 and fail-closed Browser-v2, eight-surface accessibility, nine-run performance, Security-v2 and complete ten-gate Repository-v2 evidence. The candidate has no immutable SHA and no exact CI result yet. Focused local checks are development evidence only; they do not promote package, browser, field, real-device, Creative, rights, provider or release status.
+Observed categories: targeted branch/memory/security reads, pnpm 10/11 endpoint diagnosis, one expected-red/green contract migration, one complete local frozen-install/lint/typecheck/test/build/scale/math cycle, merged release-bundle regression, diff/security review, one non-force Git-data fast-forward and one exact CI/artifact diagnosis. The audit moved from an empty 180-second legacy-endpoint timeout to a complete pnpm 11 bulk-advisory result, exposing 44 high findings rather than hiding them. Exact CI then failed closed before package/browser/axe/performance/resolver work, so no current visual or runtime claim is promoted. One bundle integration omission was found by regression and corrected; one Git connector result-shape mismatch and one rejected cleanup command were retried with changed safe inputs. Subagents were not used. Token and aggregate tool/file telemetry were not exposed and are not estimated.
 ## BS-20260904-22
 
 ```yaml
