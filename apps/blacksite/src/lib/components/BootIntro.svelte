@@ -11,7 +11,7 @@
 	});
 </script>
 
-<section
+<div
 	class="boot-intro"
 	data-testid="boot-intro"
 	data-intro-status={state.status}
@@ -43,7 +43,7 @@
 		type="button"
 		on:click={onSkip}>SKIP INTRO</button
 	>
-</section>
+</div>
 
 <style>
 	.boot-intro {

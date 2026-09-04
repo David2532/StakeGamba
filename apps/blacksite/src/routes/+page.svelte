@@ -1472,7 +1472,7 @@
 		<!-- Backdrop pointer dismissal complements the dialog's global Escape handler. -->
 		<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 		<div class="modal-backdrop" on:click|self={() => void closeConfirmation()}>
-			<section
+			<div
 				class="confirmation-dialog"
 				role="dialog"
 				aria-modal="true"
@@ -1496,7 +1496,7 @@
 					>
 					<button class="confirm-action" type="button" on:click={confirmLivePlay}>CONFIRM</button>
 				</div>
-			</section>
+			</div>
 		</div>
 	{/if}
 
@@ -1504,7 +1504,7 @@
 		<!-- Backdrop pointer dismissal complements the dialog's global Escape handler. -->
 		<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 		<div class="modal-backdrop" on:click|self={() => void closeRules()}>
-			<section
+			<div
 				class="rules-dialog"
 				role="dialog"
 				aria-modal="true"
@@ -1596,7 +1596,7 @@
 						<p>{legalDisclaimer}</p>
 					</section>
 				</div>
-			</section>
+			</div>
 		</div>
 	{/if}
 </main>

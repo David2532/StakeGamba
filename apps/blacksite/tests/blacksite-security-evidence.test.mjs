@@ -27,6 +27,27 @@ const workspaceSource = [
 	'  esbuild: true',
 	'overrides:',
 	'  devalue: "5.8.1"',
+	'  "@isaacs/brace-expansion": "5.0.1"',
+	'  "@sveltejs/kit": "2.57.1"',
+	'  "@xmldom/xmldom": "0.8.15"',
+	'  "brace-expansion@<2": "1.1.18"',
+	'  "brace-expansion@>=4 <5.0.9": "5.0.9"',
+	'  browserslist: "4.28.7"',
+	'  flatted: "3.4.2"',
+	'  glob: "12.0.0"',
+	'  immutable: "5.1.8"',
+	'  js-yaml: "4.3.1"',
+	'  lodash: "4.18.1"',
+	'  "minimatch@<4": "3.1.4"',
+	'  "minimatch@>=10 <10.2.3": "10.2.5"',
+	'  "nanoid@<4": "3.3.18"',
+	'  "picomatch@<3": "2.3.2"',
+	'  postcss: "8.5.18"',
+	'  rollup: "4.59.0"',
+	'  storybook: "9.1.19"',
+	'  svelte: "5.57.0"',
+	'  tmp: "0.2.7"',
+	'  "ws@<9": "8.21.0"',
 	'',
 ].join('\n');
 const cleanAudit = JSON.stringify({
@@ -106,7 +127,7 @@ test('security policy records the cumulative Vite and devalue advisory floors', 
 	assert.equal(BLACKSITE_SECURITY_POLICY.audit.registry, 'https://registry.npmjs.org/');
 	assert.equal(
 		BLACKSITE_SECURITY_POLICY.audit.workspaceSha256,
-		'171d9c0a94e65a85e268cc68d7e53ee5bc744fe25d36af8c70c9c2869285c584',
+		'e346af4998c89c048140e06a80876885085fde0d17979e397ffa58dfe919a9fa',
 	);
 	assert.deepEqual(BLACKSITE_SECURITY_POLICY.audit.allowedOrigins, ['https://registry.npmjs.org']);
 	assert.deepEqual(
