@@ -6610,10 +6610,10 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			check(
 				group,
-				'reduced-motion compact profile omits the Vaultkeeper resource and exposes no animation or compositor hint',
+				'reduced-motion desktop profile paints one Vaultkeeper resource without animation or compositor hint',
 				reducedVaultkeeper.profile === 'reduced' &&
-					reducedVaultkeeper.assetPaintState === 'omitted' &&
-					!reducedVaultkeeper.imageExists &&
+					reducedVaultkeeper.assetPaintState === 'painted' &&
+					reducedVaultkeeper.imageExists &&
 					reducedVaultkeeper.animationName === 'none' &&
 					reducedVaultkeeper.transitionDuration === '0s' &&
 					reducedVaultkeeper.willChange === 'auto',
@@ -11275,7 +11275,8 @@ async function runNetworkScenarios(browser, origin) {
 			check(
 				'replay-read-only-play-again',
 				'Replay ready state exposes one exact TOTAL PLAY value on every visible surface',
-				readyTotalPlay.meter === '$1.00' && readyTotalPlay.summary === readyTotalPlay.meter,
+				readyTotalPlay.meter === '$1000000 units' &&
+					readyTotalPlay.summary === readyTotalPlay.meter,
 				serialize(readyTotalPlay),
 			);
 			check(

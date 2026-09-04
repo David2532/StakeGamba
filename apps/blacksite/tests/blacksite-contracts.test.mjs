@@ -993,7 +993,7 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /maximumBonusWinElapsedMs: 650/u);
 	assert.match(
 		source,
-		/reduced-motion compact profile omits the Vaultkeeper resource and exposes no animation or compositor hint/u,
+		/reduced-motion desktop profile paints one Vaultkeeper resource without animation or compositor hint/u,
 	);
 });
 

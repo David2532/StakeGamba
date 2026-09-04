@@ -113,7 +113,7 @@ test('presentation speed persists while system reduced motion remains authoritat
 	);
 	assert.match(
 		browserSource,
-		/reduced-motion compact profile omits the Vaultkeeper resource and exposes no animation or compositor hint/u,
+		/reduced-motion desktop profile paints one Vaultkeeper resource without animation or compositor hint/u,
 	);
 	assert.match(
 		browserSource,

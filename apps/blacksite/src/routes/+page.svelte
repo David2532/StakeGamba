@@ -730,6 +730,7 @@
 	}
 
 	function selectBaseAmount(event) {
+		if (launch.kind !== 'live' || liveSnapshot.status !== 'ready' || primaryBusy) return;
 		try {
 			liveSession?.selectBaseAmount(Number(event.currentTarget.value));
 			runtimeError = null;
@@ -1115,6 +1116,7 @@
 						id="blacksite-base-amount"
 						data-testid="base-amount"
 						value={baseAmountApi}
+						aria-valuetext={formatExactApi(baseAmountApi, currency)}
 						disabled={launch.kind !== 'live' || liveSnapshot.status !== 'ready' || primaryBusy}
 						on:change={selectBaseAmount}
 					>
@@ -1525,7 +1527,13 @@
 					>
 				</header>
 
-				<div class="rules-scroll">
+				<!-- svelte-ignore a11y_no_noninteractive_tabindex (keyboard access is required for this overflow region) -->
+				<div
+					class="rules-scroll"
+					role="region"
+					tabindex="0"
+					aria-label="Game information details"
+				>
 					<section>
 						<h3>Mode profiles</h3>
 						<div class="table-wrap">
