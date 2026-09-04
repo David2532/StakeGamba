@@ -228,7 +228,7 @@ test('player and exact-package QA bind intro blocking, skip and bypass paths', a
 	assert.match(component, />SKIP INTRO</u);
 	assert.match(browserQa, /boot-intro-full-fresh-live/u);
 	assert.match(browserQa, /boot-intro-skip-mobile/u);
-	assert.match(browserQa, /slow-auth-status-visible-hidden-document-intro-bypass/u);
+	assert.match(browserQa, /slow-auth-status-visible-before-intro/u);
 	assert.match(browserQa, /storage-denied-mobile-remains-playable/u);
 	assert.match(browserQa, /boot intro never issues a wallet write/u);
 	assert.match(browserQa, /function paidWriteCount\(network\)/u);
@@ -236,8 +236,6 @@ test('player and exact-package QA bind intro blocking, skip and bypass paths', a
 		browserQa,
 		/network\.byEndpoint\.authenticate\.length === 1 && paidWriteCount\(network\) === 0/u,
 	);
-	assert.match(
-		browserQa,
-		/await foregroundPage\.close\(\);[\s\S]*?foregroundPage = null;[\s\S]*?await page\.bringToFront\(\);[\s\S]*?document\.visibilityState === 'visible'/u,
-	);
+	assert.match(browserQa, /authentication resolution starts the eligible intro before enabling play/u);
+	assert.doesNotMatch(browserQa, /setFocusEmulationEnabled/u);
 });

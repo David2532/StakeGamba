@@ -1543,25 +1543,17 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
-	await runScenario('slow-auth-status-visible-hidden-document-intro-bypass', async (record) => {
-		const group = 'slow-auth-status-visible-hidden-document-intro-bypass';
+	await runScenario('slow-auth-status-visible-before-intro', async (record) => {
+		const group = 'slow-auth-status-visible-before-intro';
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 		let releaseAuthentication = () => {};
 		const authenticationGate = new Promise((resolve) => {
 			releaseAuthentication = resolve;
 		});
-		let page = null;
-		let lifecycleSession = null;
-		let foregroundPage = null;
 		try {
-			foregroundPage = await context.newPage();
 			await context.addInitScript(
 				({ storageKey }) => {
-					try {
-						localStorage.setItem(storageKey, 'turbo');
-					} catch {
-						// Opaque helper pages have no storage; the live app origin does.
-					}
+					localStorage.setItem(storageKey, 'turbo');
 				},
 				{ storageKey: MOTION_STORAGE_KEY },
 			);
@@ -1575,7 +1567,7 @@ async function runNetworkScenarios(browser, origin) {
 				},
 			});
 			const opened = await openPage(context, origin, liveQuery());
-			page = opened.page;
+			const { page } = opened;
 			const { diagnostics } = opened;
 			await waitForEndpoint(network, 'authenticate', 1);
 			await waitForRuntimeState(page, 'live-authenticating');
@@ -1633,62 +1625,66 @@ async function runNetworkScenarios(browser, origin) {
 				serialize(pending),
 			);
 
-			await page.evaluate(() => {
-				window.__blacksiteQaVisibility = [];
-				document.addEventListener('visibilitychange', () => {
-					window.__blacksiteQaVisibility.push({
-						hidden: document.hidden,
-						state: document.visibilityState,
-					});
-				});
-			});
-			lifecycleSession = await context.newCDPSession(page);
-			await lifecycleSession.send('Emulation.setFocusEmulationEnabled', { enabled: false });
-			await foregroundPage.bringToFront();
-			await page.waitForFunction(
-				() =>
-					document.hidden &&
-					document.visibilityState === 'hidden' &&
-					window.__blacksiteQaVisibility?.some((entry) => entry.hidden && entry.state === 'hidden'),
-				undefined,
-				{ polling: 100, timeout: 5_000 },
-			);
-			const bypassed = page.waitForFunction(
-				({ actionSelector, introSelector }) =>
-					document.body.dataset.introStatus === 'bypassed' &&
-					document.body.dataset.introDismissReason === 'document-hidden' &&
-					document.body.dataset.runtimeState === 'live-ready' &&
-					document.querySelectorAll(introSelector).length === 0 &&
-					!document.querySelector(actionSelector)?.disabled,
-				{ actionSelector: SELECTORS.primaryAction, introSelector: SELECTORS.bootIntro },
-				{ polling: 100, timeout: 10_000 },
-			);
 			releaseAuthentication();
-			await bypassed;
+			await page.locator(SELECTORS.bootIntro).waitFor({ state: 'visible', timeout: 10_000 });
+			const started = await page.evaluate(
+				({ actionSelector, introSelector, seenKey, storageKey }) => ({
+					introCount: document.querySelectorAll(introSelector).length,
+					introStatus: document.body.dataset.introStatus,
+					introProfile: document.querySelector(introSelector)?.getAttribute('data-intro-profile'),
+					runtimeState: document.body.dataset.runtimeState,
+					primaryDisabled: document.querySelector(actionSelector)?.disabled ?? null,
+					seen: localStorage.getItem(seenKey),
+					storedMotion: localStorage.getItem(storageKey),
+				}),
+				{
+					actionSelector: SELECTORS.primaryAction,
+					introSelector: SELECTORS.bootIntro,
+					seenKey: INTRO_SEEN_KEY,
+					storageKey: MOTION_STORAGE_KEY,
+				},
+			);
+			check(
+				group,
+				'authentication resolution starts the eligible intro before enabling play',
+				started.introCount === 1 &&
+					started.introStatus === 'playing' &&
+					started.introProfile === 'turbo' &&
+					started.runtimeState === 'live-intro' &&
+					started.primaryDisabled &&
+					started.seen === null &&
+					started.storedMotion === 'turbo',
+				serialize(started),
+			);
+
+			await page.locator(SELECTORS.skipIntro).click();
+			await waitForStableAction(page);
 			const resolved = await page.evaluate(
-				(seenKey) => ({
+				({ actionSelector, introSelector, seenKey }) => ({
+					introCount: document.querySelectorAll(introSelector).length,
 					introStatus: document.body.dataset.introStatus,
 					dismissReason: document.body.dataset.introDismissReason,
 					seen: localStorage.getItem(seenKey),
 					runtimeState: document.body.dataset.runtimeState,
-					hidden: document.hidden,
-					visibilityState: document.visibilityState,
-					visibilityTransitions: window.__blacksiteQaVisibility,
+					primaryDisabled: document.querySelector(actionSelector)?.disabled ?? null,
+					primaryFocused: document.activeElement === document.querySelector(actionSelector),
 				}),
-				INTRO_SEEN_KEY,
+				{
+					actionSelector: SELECTORS.primaryAction,
+					introSelector: SELECTORS.bootIntro,
+					seenKey: INTRO_SEEN_KEY,
+				},
 			);
 			check(
 				group,
-				'a document hidden before slow authentication resolves bypasses the intro without persisting it',
-				resolved.introStatus === 'bypassed' &&
-					resolved.dismissReason === 'document-hidden' &&
-					resolved.seen === null &&
+				'skipping the post-auth intro reaches one focused playable action without a wallet write',
+				resolved.introCount === 0 &&
+					resolved.introStatus === 'skipped' &&
+					resolved.dismissReason === 'player' &&
+					resolved.seen === '1' &&
 					resolved.runtimeState === 'live-ready' &&
-					resolved.hidden &&
-					resolved.visibilityState === 'hidden' &&
-					resolved.visibilityTransitions.some(
-						(entry) => entry.hidden && entry.state === 'hidden',
-					) &&
+					!resolved.primaryDisabled &&
+					resolved.primaryFocused &&
 					network.byEndpoint.authenticate.length === 1 &&
 					paidWriteCount(network) === 0,
 				serialize({ resolved, order: network.order }),
@@ -1696,25 +1692,12 @@ async function runNetworkScenarios(browser, origin) {
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.pending = pending;
+			record.started = started;
 			record.resolved = resolved;
 			record.network = network;
 			record.diagnostics = diagnostics;
-			await foregroundPage.close();
-			foregroundPage = null;
-			await page.bringToFront();
-			await page.waitForFunction(() => document.visibilityState === 'visible', undefined, {
-				polling: 100,
-				timeout: 5_000,
-			});
-			await lifecycleSession.detach();
-			lifecycleSession = null;
 		} finally {
 			releaseAuthentication();
-			if (lifecycleSession) {
-				await lifecycleSession.send('Page.bringToFront').catch(() => {});
-				await lifecycleSession.detach().catch(() => {});
-			}
-			await foregroundPage?.close().catch(() => {});
 			await context.close();
 		}
 	});

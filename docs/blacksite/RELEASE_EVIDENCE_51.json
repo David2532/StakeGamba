@@ -17,7 +17,7 @@
 			"browserScenarios": [
 				"live-auth-exact",
 				"expired-session-on-play-reauthenticates-without-automatic-retry",
-				"slow-auth-status-visible-hidden-document-intro-bypass"
+				"slow-auth-status-visible-before-intro"
 			]
 		},
 		{
