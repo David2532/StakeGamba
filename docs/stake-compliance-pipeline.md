@@ -2,7 +2,7 @@
 
 > **Historical reference only:** Any run identity in this document is superseded. Current release truth exists only in the validated per-run evidence bundle and release attestation.
 
-Node version: package engine `>=22.16.0`. pnpm version: `10.5.0`. Browser dependency: Playwright Chromium via the repo Playwright install.
+Node version: package engine `>=22.16.0`. pnpm version: `11.25.0`. Browser dependency: Playwright Chromium via the repo Playwright install.
 
 | Level | Stage | Purpose | Trigger | Commands | Outputs | Exit 0 | Non-zero causes | Skipping |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |

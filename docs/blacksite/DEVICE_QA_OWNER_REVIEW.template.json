@@ -1,0 +1,41 @@
+{
+	"schema": "blacksite-device-qa-owner-review-v1",
+	"claim": "SIGNED_OWNER_DECISION_NOT_STAKE_OR_RELEASE_APPROVAL",
+	"evidence": {
+		"schema": "blacksite-device-qa-evidence-v3",
+		"recordId": "replace-device-run",
+		"identity": {
+			"gitSha": "1111111111111111111111111111111111111111",
+			"frontendTreeSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+			"mathTreeSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+			"mathCandidateFingerprintSha256": "4444444444444444444444444444444444444444444444444444444444444444"
+		},
+		"exactSourceBytes": {
+			"bytes": 1,
+			"sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+		}
+	},
+	"reviewer": {
+		"id": "replace-reviewer",
+		"name": "REPLACE authorized reviewer name",
+		"organization": "REPLACE reviewer organization",
+		"role": "Authorized device QA review owner"
+	},
+	"decision": {
+		"status": "CHANGES_REQUIRED",
+		"scope": "DEVICE_QA_MANUAL_REVIEW",
+		"decidedAt": "2000-01-01T00:00:00Z",
+		"notes": "REPLACE reviewed observations, defects, substitutions, provenance, and disposition"
+	},
+	"signature": {
+		"algorithm": "Ed25519",
+		"keyId": "replace-reviewer-key",
+		"publicKeySpkiSha256": "6666666666666666666666666666666666666666666666666666666666666666",
+		"signedAt": "2000-01-01T00:00:00Z",
+		"valueBase64": "REPLACE-detached-signature"
+	},
+	"claims": {
+		"stakeApproval": "NOT_CLAIMED",
+		"releaseApproval": "NOT_CLAIMED"
+	}
+}

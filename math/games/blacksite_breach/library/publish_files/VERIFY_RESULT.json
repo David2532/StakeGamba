@@ -1,0 +1,15 @@
+{
+  "result": "PASS",
+  "lifecycle": "M1_INITIAL_CANDIDATE_NOT_RELEASE",
+  "candidate_version": "0.1.0-m1",
+  "candidate_fingerprint_sha256": "d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8",
+  "books_verified": 300000,
+  "gates_passed": 90,
+  "gates_total": 90,
+  "all_lookup_weights_positive_and_equal_one": true,
+  "all_books_decompressed_and_schema_formula_topology_validated": true,
+  "all_tumbles_physical_gravity_and_top_refill_validated": true,
+  "all_contract_fixture_predicates_passed": true,
+  "canonical_event_schema_sha256": "bb4f3ff88200519682a539909b196f1462069b865a48afd04cb3219e7b9efe29",
+  "all_gates_passed": true
+}

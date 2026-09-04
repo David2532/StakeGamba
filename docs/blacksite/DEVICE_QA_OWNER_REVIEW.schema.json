@@ -1,0 +1,116 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://stakegamba.local/schemas/blacksite-device-qa-owner-review-v1.json",
+	"title": "BLACKSITE device QA owner review decision",
+	"description": "A detached Ed25519-signed owner decision bound to the exact device evidence bytes and candidate. Signature validation proves possession of the caller-trusted key; it does not establish reviewer authority or Stake/release approval.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": ["schema", "claim", "evidence", "reviewer", "decision", "signature", "claims"],
+	"properties": {
+		"schema": { "const": "blacksite-device-qa-owner-review-v1" },
+		"claim": { "const": "SIGNED_OWNER_DECISION_NOT_STAKE_OR_RELEASE_APPROVAL" },
+		"evidence": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["schema", "recordId", "identity", "exactSourceBytes"],
+			"properties": {
+				"schema": { "const": "blacksite-device-qa-evidence-v3" },
+				"recordId": { "$ref": "#/$defs/identifier" },
+				"identity": { "$ref": "#/$defs/identity" },
+				"exactSourceBytes": {
+					"type": "object",
+					"additionalProperties": false,
+					"required": ["bytes", "sha256"],
+					"properties": {
+						"bytes": { "type": "integer", "minimum": 1 },
+						"sha256": { "$ref": "#/$defs/sha256" }
+					}
+				}
+			}
+		},
+		"reviewer": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["id", "name", "organization", "role"],
+			"properties": {
+				"id": { "$ref": "#/$defs/identifier" },
+				"name": { "$ref": "#/$defs/meaningfulString" },
+				"organization": { "$ref": "#/$defs/meaningfulString" },
+				"role": { "$ref": "#/$defs/meaningfulString" }
+			}
+		},
+		"decision": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["status", "scope", "decidedAt", "notes"],
+			"properties": {
+				"status": { "enum": ["ACCEPTED", "REJECTED", "CHANGES_REQUIRED"] },
+				"scope": { "const": "DEVICE_QA_MANUAL_REVIEW" },
+				"decidedAt": { "type": "string", "format": "date-time" },
+				"notes": { "type": "string", "minLength": 12 }
+			}
+		},
+		"signature": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["algorithm", "keyId", "publicKeySpkiSha256", "signedAt", "valueBase64"],
+			"properties": {
+				"algorithm": { "const": "Ed25519" },
+				"keyId": { "$ref": "#/$defs/identifier" },
+				"publicKeySpkiSha256": { "$ref": "#/$defs/sha256" },
+				"signedAt": { "type": "string", "format": "date-time" },
+				"valueBase64": {
+					"type": "string",
+					"minLength": 16,
+					"pattern": "^[A-Za-z0-9+/]+={0,2}$"
+				}
+			}
+		},
+		"claims": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["stakeApproval", "releaseApproval"],
+			"properties": {
+				"stakeApproval": { "const": "NOT_CLAIMED" },
+				"releaseApproval": { "const": "NOT_CLAIMED" }
+			}
+		}
+	},
+	"$defs": {
+		"identifier": {
+			"type": "string",
+			"pattern": "^[a-z0-9][a-z0-9._-]{1,79}$"
+		},
+		"meaningfulString": {
+			"type": "string",
+			"minLength": 2,
+			"pattern": "\\S"
+		},
+		"gitSha": {
+			"type": "string",
+			"pattern": "^[0-9a-f]{40}$",
+			"not": { "const": "0000000000000000000000000000000000000000" }
+		},
+		"sha256": {
+			"type": "string",
+			"pattern": "^[0-9a-f]{64}$",
+			"not": { "const": "0000000000000000000000000000000000000000000000000000000000000000" }
+		},
+		"identity": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"gitSha",
+				"frontendTreeSha256",
+				"mathTreeSha256",
+				"mathCandidateFingerprintSha256"
+			],
+			"properties": {
+				"gitSha": { "$ref": "#/$defs/gitSha" },
+				"frontendTreeSha256": { "$ref": "#/$defs/sha256" },
+				"mathTreeSha256": { "$ref": "#/$defs/sha256" },
+				"mathCandidateFingerprintSha256": { "$ref": "#/$defs/sha256" }
+			}
+		}
+	}
+}

@@ -1,0 +1,6 @@
+[agents]
+max_concurrent_threads_per_session = 8
+
+# Keep the parent agent as accountable integrator. Spawn bounded specialist lanes
+# only after shared contracts (mode/event/state/asset IDs) are stable enough to
+# avoid conflicting parallel writes. See docs/blacksite/AGENT_OPERATING_MODEL.md.

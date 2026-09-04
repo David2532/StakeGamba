@@ -1,0 +1,253 @@
+{
+  "candidate_version": "0.1.0-m1",
+  "lifecycle": "M1_INITIAL_CANDIDATE_NOT_RELEASE",
+  "generated_from": "deterministic source configs and seeds",
+  "environment": {
+    "node": "v25.2.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "rng": {
+    "algorithm": "xorshift32",
+    "mode_seeds": {
+      "base": 2976579765,
+      "deep_access": 3637752501,
+      "blackout": 4276993775
+    }
+  },
+  "git": {
+    "head_at_generation": "64686cc0d445040de2ee18cba6721bfca8a59e2b",
+    "dirty": true,
+    "porcelain_paths": [
+      " M docs/blacksite/INDEX.md",
+      " M docs/blacksite/MASTER_PLAN.md",
+      " M docs/blacksite/MATH_STANDARD.md",
+      " M docs/blacksite/OFFICIAL_DOC_REVIEW_2026-08-07.md",
+      " M docs/blacksite/RGS_REPLAY_CONTRACT.md",
+      " M docs/blacksite/STAKE_ENGINE_SOURCE_INDEX.md",
+      " M docs/blacksite/STAKE_REQUIREMENTS_51.md",
+      " M package.json",
+      "?? apps/blacksite/.eslintrc.cjs",
+      "?? apps/blacksite/README.md",
+      "?? apps/blacksite/package.json",
+      "?? apps/blacksite/src/app.html",
+      "?? apps/blacksite/src/lib/contracts/game-events.d.ts",
+      "?? apps/blacksite/src/lib/contracts/modes.js",
+      "?? apps/blacksite/src/lib/fixtures/base-zero.js",
+      "?? apps/blacksite/src/lib/runtime/game-event-adapter.js",
+      "?? apps/blacksite/src/lib/runtime/launch-mode.js",
+      "?? apps/blacksite/src/lib/runtime/presentation-director.js",
+      "?? apps/blacksite/src/routes/+layout.svelte",
+      "?? apps/blacksite/src/routes/+layout.ts",
+      "?? apps/blacksite/svelte.config.js",
+      "?? apps/blacksite/tsconfig.json",
+      "?? apps/blacksite/vite.config.js",
+      "?? docs/blacksite/M1_COMPLIANCE_REVIEW.md",
+      "?? docs/blacksite/M1_GAME_MATH_CONTRACT.md",
+      "?? math/games/blacksite_breach/config/event_schema.json",
+      "?? math/games/blacksite_breach/config/game_config.json",
+      "?? math/games/blacksite_breach/config/math_verification_profile.json",
+      "?? math/games/blacksite_breach/config/mechanics.json",
+      "?? math/games/blacksite_breach/config/mode_registry.json",
+      "?? math/games/blacksite_breach/config/paytable.json",
+      "?? math/games/blacksite_breach/generate.mjs",
+      "?? math/games/blacksite_breach/library/books_compressed/base_books.jsonl.zst",
+      "?? math/games/blacksite_breach/library/books_compressed/blackout_books.jsonl.zst",
+      "?? math/games/blacksite_breach/library/books_compressed/deep_access_books.jsonl.zst",
+      "?? math/games/blacksite_breach/library/configs/event_schema.json",
+      "?? math/games/blacksite_breach/library/configs/game_config.json",
+      "?? math/games/blacksite_breach/library/configs/math_verification_profile.json",
+      "?? math/games/blacksite_breach/library/configs/mechanics.json",
+      "?? math/games/blacksite_breach/library/configs/mode_registry.json",
+      "?? math/games/blacksite_breach/library/configs/paytable.json",
+      "?? math/games/blacksite_breach/library/lookup_tables/base_lookup.csv",
+      "?? math/games/blacksite_breach/library/lookup_tables/blackout_lookup.csv",
+      "?? math/games/blacksite_breach/library/lookup_tables/deep_access_lookup.csv",
+      "?? math/games/blacksite_breach/library/publish_files/CANDIDATE_MANIFEST.json",
+      "?? math/games/blacksite_breach/library/publish_files/FIXTURE_INDEX.json",
+      "?? math/games/blacksite_breach/library/publish_files/MATH_AUDIT.json",
+      "?? math/games/blacksite_breach/library/publish_files/RISK_AUDIT.json",
+      "?? math/games/blacksite_breach/library/publish_files/VERIFY_RESULT.json",
+      "?? math/games/blacksite_breach/library/publish_files/index.json",
+      "?? math/games/blacksite_breach/src/analytics.mjs",
+      "?? math/games/blacksite_breach/src/config.mjs",
+      "?? math/games/blacksite_breach/src/model.mjs",
+      "?? math/games/blacksite_breach/src/validate-book.mjs",
+      "?? math/games/blacksite_breach/tests/candidate.test.mjs",
+      "?? math/games/blacksite_breach/verify.mjs"
+    ]
+  },
+  "upload_payload_note": "Only index.json plus the referenced lookup CSV and zstd JSONL books form the minimal Stake math payload; configs and audits are evidence.",
+  "upload_payload_files": [
+    {
+      "path": "books_compressed/base_books.jsonl.zst",
+      "bytes": 4522399,
+      "sha256": "c1d8eb9c0b5e5983c6aed95592be06beecb7774aefa607beb67f1b05b5614a83"
+    },
+    {
+      "path": "books_compressed/blackout_books.jsonl.zst",
+      "bytes": 31264597,
+      "sha256": "7d7edbd87a7a2c02014671de6bc97434b28f13293c48884815e008a47cbc16e1"
+    },
+    {
+      "path": "books_compressed/deep_access_books.jsonl.zst",
+      "bytes": 9439775,
+      "sha256": "2fac16a506df9740396b1e04e4cee8f68950004bb117374d6b7ca2ea15af2bc7"
+    },
+    {
+      "path": "lookup_tables/base_lookup.csv",
+      "bytes": 1052793,
+      "sha256": "267596425ea91455878f087dd38229dcf416d7240b766818ca0889e69c14ae5f"
+    },
+    {
+      "path": "lookup_tables/blackout_lookup.csv",
+      "bytes": 1305598,
+      "sha256": "330292e1127f74a23a39dd624ebd44e59fdd73f45aff64ebe2c986f02661bcb2"
+    },
+    {
+      "path": "lookup_tables/deep_access_lookup.csv",
+      "bytes": 1112070,
+      "sha256": "2183795596be146de5114adaaba252bb6d86077d900e3279d5fd6ab55d2ce948"
+    },
+    {
+      "path": "publish_files/index.json",
+      "bytes": 435,
+      "sha256": "ae6f3af1a506f44ce87de905b16f8513ec15a3ca5bd01f324f74e25eacfd0e1d"
+    }
+  ],
+  "files": [
+    {
+      "path": "books_compressed/base_books.jsonl.zst",
+      "bytes": 4522399,
+      "sha256": "c1d8eb9c0b5e5983c6aed95592be06beecb7774aefa607beb67f1b05b5614a83"
+    },
+    {
+      "path": "books_compressed/blackout_books.jsonl.zst",
+      "bytes": 31264597,
+      "sha256": "7d7edbd87a7a2c02014671de6bc97434b28f13293c48884815e008a47cbc16e1"
+    },
+    {
+      "path": "books_compressed/deep_access_books.jsonl.zst",
+      "bytes": 9439775,
+      "sha256": "2fac16a506df9740396b1e04e4cee8f68950004bb117374d6b7ca2ea15af2bc7"
+    },
+    {
+      "path": "configs/event_schema.json",
+      "bytes": 11227,
+      "sha256": "bd5d0a2caa8be8ad98b9724c3539f8e4376bf6160aa3afb05d332af18f111985"
+    },
+    {
+      "path": "configs/game_config.json",
+      "bytes": 867,
+      "sha256": "8ed97ff21eae0057dcd23d0b24c0cb6ddda315499f62e8043b376ae145caa883"
+    },
+    {
+      "path": "configs/math_verification_profile.json",
+      "bytes": 2293,
+      "sha256": "19292ca90752cbe49031e0081be3d69da21ea7822c139ce7c8b761e6e220487f"
+    },
+    {
+      "path": "configs/mechanics.json",
+      "bytes": 3245,
+      "sha256": "3032ec6065ff6544c8a5eb3c2fcc3b367d2b0472d1e3f6d75827a49d2869abd8"
+    },
+    {
+      "path": "configs/mode_registry.json",
+      "bytes": 1908,
+      "sha256": "785303de1e75cc9a12d221385f63fac10036153b9cff0db048d50b9ab73b2cef"
+    },
+    {
+      "path": "configs/paytable.json",
+      "bytes": 692,
+      "sha256": "68ac53a63606472b1bb824ff619b1f154e61ac095e89a35a775562bb1447c938"
+    },
+    {
+      "path": "lookup_tables/base_lookup.csv",
+      "bytes": 1052793,
+      "sha256": "267596425ea91455878f087dd38229dcf416d7240b766818ca0889e69c14ae5f"
+    },
+    {
+      "path": "lookup_tables/blackout_lookup.csv",
+      "bytes": 1305598,
+      "sha256": "330292e1127f74a23a39dd624ebd44e59fdd73f45aff64ebe2c986f02661bcb2"
+    },
+    {
+      "path": "lookup_tables/deep_access_lookup.csv",
+      "bytes": 1112070,
+      "sha256": "2183795596be146de5114adaaba252bb6d86077d900e3279d5fd6ab55d2ce948"
+    },
+    {
+      "path": "publish_files/index.json",
+      "bytes": 435,
+      "sha256": "ae6f3af1a506f44ce87de905b16f8513ec15a3ca5bd01f324f74e25eacfd0e1d"
+    }
+  ],
+  "source_files": [
+    {
+      "path": "math/games/blacksite_breach/config/event_schema.json",
+      "bytes": 11227,
+      "sha256": "bd5d0a2caa8be8ad98b9724c3539f8e4376bf6160aa3afb05d332af18f111985"
+    },
+    {
+      "path": "math/games/blacksite_breach/config/game_config.json",
+      "bytes": 867,
+      "sha256": "8ed97ff21eae0057dcd23d0b24c0cb6ddda315499f62e8043b376ae145caa883"
+    },
+    {
+      "path": "math/games/blacksite_breach/config/math_verification_profile.json",
+      "bytes": 2293,
+      "sha256": "19292ca90752cbe49031e0081be3d69da21ea7822c139ce7c8b761e6e220487f"
+    },
+    {
+      "path": "math/games/blacksite_breach/config/mechanics.json",
+      "bytes": 3245,
+      "sha256": "3032ec6065ff6544c8a5eb3c2fcc3b367d2b0472d1e3f6d75827a49d2869abd8"
+    },
+    {
+      "path": "math/games/blacksite_breach/config/mode_registry.json",
+      "bytes": 1908,
+      "sha256": "785303de1e75cc9a12d221385f63fac10036153b9cff0db048d50b9ab73b2cef"
+    },
+    {
+      "path": "math/games/blacksite_breach/config/paytable.json",
+      "bytes": 692,
+      "sha256": "68ac53a63606472b1bb824ff619b1f154e61ac095e89a35a775562bb1447c938"
+    },
+    {
+      "path": "math/games/blacksite_breach/generate.mjs",
+      "bytes": 3389,
+      "sha256": "9ec8720d0679f69c51adefc07af9aaa8713b9ae0e5d4f312a39c7682fb4f5479"
+    },
+    {
+      "path": "math/games/blacksite_breach/src/analytics.mjs",
+      "bytes": 14546,
+      "sha256": "3fbbc19345632cbe0e5cf1086f9f7f9ee6e2bd98370d3d9cfe07321224ba2c5b"
+    },
+    {
+      "path": "math/games/blacksite_breach/src/config.mjs",
+      "bytes": 2941,
+      "sha256": "637b68fc08ec24d51f820c0c2d6ba00ac86ea68b7dd7878bd0ae060fa469534e"
+    },
+    {
+      "path": "math/games/blacksite_breach/src/model.mjs",
+      "bytes": 37443,
+      "sha256": "408fcc89a6abc793676757f82f719480ef259a8a4c32e9fa89e05f40d78819f3"
+    },
+    {
+      "path": "math/games/blacksite_breach/src/validate-book.mjs",
+      "bytes": 29184,
+      "sha256": "d5ce3dfae0f337890e4a752475d71a78b871327ab418afb5b8c8c22867191a16"
+    },
+    {
+      "path": "math/games/blacksite_breach/tests/candidate.test.mjs",
+      "bytes": 5582,
+      "sha256": "b8dd5c1e3b5c53a18fd32b82cac68889cac370431db00c83d5f6459ab929d780"
+    },
+    {
+      "path": "math/games/blacksite_breach/verify.mjs",
+      "bytes": 29349,
+      "sha256": "4e1e6bc0930cb2f4f1879d1c6fd4b8a67b8ebacfd2b9c2704b9c007f86130d63"
+    }
+  ],
+  "candidate_fingerprint_sha256": "d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8"
+}

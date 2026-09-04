@@ -1,0 +1,747 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://stakegamba.local/schemas/blacksite-device-qa-evidence-v3.json",
+	"title": "BLACKSITE manual device QA evidence record",
+	"description": "A candidate-bound manual observation record. Unexecuted environments are explicitly NOT_OBSERVED/UNVERIFIED; executed physical-device, device-farm, and real-Stake fields remain operator/provider assertions. Conformance is not provenance, device approval, or release approval.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [
+		"schema",
+		"contractVersion",
+		"floorVersion",
+		"claim",
+		"identity",
+		"record",
+		"operators",
+		"environments",
+		"attachments",
+		"results",
+		"claims"
+	],
+	"properties": {
+		"schema": { "const": "blacksite-device-qa-evidence-v3" },
+		"contractVersion": { "const": "blacksite-device-qa-contract-v3" },
+		"floorVersion": { "const": "blacksite-old-device-floor-proposed-v1" },
+		"claim": { "const": "STRUCTURAL_RECORD_ONLY_NOT_DEVICE_APPROVAL" },
+		"identity": { "$ref": "#/$defs/identity" },
+		"record": { "$ref": "#/$defs/record" },
+		"operators": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/operator" }
+		},
+		"environments": {
+			"type": "array",
+			"minItems": 4,
+			"items": { "$ref": "#/$defs/environment" },
+			"allOf": [
+				{
+					"contains": {
+						"type": "object",
+						"properties": { "coverageKind": { "const": "IOS_OLD_FLOOR" } },
+						"required": ["coverageKind"]
+					}
+				},
+				{
+					"contains": {
+						"type": "object",
+						"properties": { "coverageKind": { "const": "ANDROID_OLD_FLOOR" } },
+						"required": ["coverageKind"]
+					}
+				},
+				{
+					"contains": {
+						"type": "object",
+						"properties": { "coverageKind": { "const": "POPOUT_S" } },
+						"required": ["coverageKind"]
+					}
+				},
+				{
+					"contains": {
+						"type": "object",
+						"properties": { "coverageKind": { "const": "POPOUT_L" } },
+						"required": ["coverageKind"]
+					}
+				}
+			]
+		},
+		"attachments": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/attachment" }
+		},
+		"results": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/result" }
+		},
+		"claims": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["deviceApproval", "releaseApproval"],
+			"properties": {
+				"deviceApproval": { "const": "NOT_CLAIMED" },
+				"releaseApproval": { "const": "NOT_CLAIMED" }
+			}
+		}
+	},
+	"$defs": {
+		"identifier": {
+			"type": "string",
+			"pattern": "^[a-z0-9][a-z0-9._-]{1,79}$"
+		},
+		"meaningfulString": {
+			"type": "string",
+			"minLength": 2,
+			"pattern": "\\S"
+		},
+		"gitSha": {
+			"type": "string",
+			"pattern": "^[0-9a-f]{40}$",
+			"not": { "const": "0000000000000000000000000000000000000000" }
+		},
+		"sha256": {
+			"type": "string",
+			"pattern": "^[0-9a-f]{64}$",
+			"not": { "const": "0000000000000000000000000000000000000000000000000000000000000000" }
+		},
+		"identity": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"gitSha",
+				"frontendTreeSha256",
+				"mathTreeSha256",
+				"mathCandidateFingerprintSha256"
+			],
+			"properties": {
+				"gitSha": { "$ref": "#/$defs/gitSha" },
+				"frontendTreeSha256": { "$ref": "#/$defs/sha256" },
+				"mathTreeSha256": { "$ref": "#/$defs/sha256" },
+				"mathCandidateFingerprintSha256": { "$ref": "#/$defs/sha256" }
+			}
+		},
+		"record": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["id", "startedAt", "completedAt"],
+			"properties": {
+				"id": { "$ref": "#/$defs/identifier" },
+				"startedAt": { "type": "string", "format": "date-time" },
+				"completedAt": { "type": "string", "format": "date-time" }
+			}
+		},
+		"operator": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["id", "name", "organization", "role"],
+			"properties": {
+				"id": { "$ref": "#/$defs/identifier" },
+				"name": { "$ref": "#/$defs/meaningfulString" },
+				"organization": { "$ref": "#/$defs/meaningfulString" },
+				"role": { "$ref": "#/$defs/meaningfulString" }
+			}
+		},
+		"device": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["manufacturer", "model", "modelIdentifier", "physical"],
+			"properties": {
+				"manufacturer": { "$ref": "#/$defs/meaningfulString" },
+				"model": { "$ref": "#/$defs/meaningfulString" },
+				"modelIdentifier": { "$ref": "#/$defs/meaningfulString" },
+				"physical": {
+					"enum": ["NOT_OBSERVED", "OPERATOR_ASSERTED_PHYSICAL", "PROVIDER_ASSERTED_PHYSICAL"]
+				}
+			}
+		},
+		"provenance": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["observation", "verification"],
+			"properties": {
+				"observation": { "enum": ["NOT_OBSERVED", "OPERATOR_REPORTED"] },
+				"verification": { "const": "UNVERIFIED" }
+			}
+		},
+		"deviceFarm": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["provider", "sessionId", "deviceType"],
+			"properties": {
+				"provider": { "$ref": "#/$defs/meaningfulString" },
+				"sessionId": { "$ref": "#/$defs/meaningfulString" },
+				"deviceType": { "const": "PROVIDER_ASSERTED_PHYSICAL" }
+			}
+		},
+		"hardware": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["chipset", "cpuArchitecture", "gpu", "ramMiB"],
+			"properties": {
+				"chipset": { "$ref": "#/$defs/meaningfulString" },
+				"cpuArchitecture": { "$ref": "#/$defs/meaningfulString" },
+				"gpu": { "$ref": "#/$defs/meaningfulString" },
+				"ramMiB": { "type": "integer", "minimum": 1 }
+			}
+		},
+		"os": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["name", "version", "build"],
+			"properties": {
+				"name": { "$ref": "#/$defs/meaningfulString" },
+				"version": { "$ref": "#/$defs/meaningfulString" },
+				"build": { "$ref": "#/$defs/meaningfulString" }
+			}
+		},
+		"browser": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["name", "version", "engine"],
+			"properties": {
+				"name": { "$ref": "#/$defs/meaningfulString" },
+				"version": { "$ref": "#/$defs/meaningfulString" },
+				"engine": { "$ref": "#/$defs/meaningfulString" }
+			}
+		},
+		"viewport": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["widthCssPx", "heightCssPx", "devicePixelRatio"],
+			"properties": {
+				"widthCssPx": { "type": "integer", "minimum": 1 },
+				"heightCssPx": { "type": "integer", "minimum": 1 },
+				"devicePixelRatio": { "type": "number", "exclusiveMinimum": 0 }
+			}
+		},
+		"connection": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["kind", "label"],
+			"properties": {
+				"kind": { "$ref": "#/$defs/meaningfulString" },
+				"label": { "$ref": "#/$defs/meaningfulString" }
+			}
+		},
+		"assistiveTechnology": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["name", "version"],
+			"properties": {
+				"name": { "enum": ["VoiceOver", "TalkBack"] },
+				"version": { "$ref": "#/$defs/meaningfulString" }
+			}
+		},
+		"stakeContainer": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["size", "version", "source"],
+			"properties": {
+				"size": { "enum": ["S", "L"] },
+				"version": { "$ref": "#/$defs/meaningfulString" },
+				"source": { "enum": ["NOT_OBSERVED", "OPERATOR_ASSERTED_REAL_STAKE"] }
+			}
+		},
+		"environment": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"id",
+				"coverageKind",
+				"provenance",
+				"executionMode",
+				"floorRelation",
+				"device",
+				"hardware",
+				"os",
+				"browser",
+				"viewport",
+				"connection",
+				"notes"
+			],
+			"properties": {
+				"id": { "$ref": "#/$defs/identifier" },
+				"coverageKind": { "enum": ["IOS_OLD_FLOOR", "ANDROID_OLD_FLOOR", "POPOUT_S", "POPOUT_L"] },
+				"provenance": { "$ref": "#/$defs/provenance" },
+				"executionMode": {
+					"enum": ["NOT_EXECUTED", "PHYSICAL_DEVICE", "DEVICE_FARM", "REAL_STAKE_POPOUT"]
+				},
+				"floorRelation": {
+					"enum": [
+						"AT_PROPOSED_FLOOR",
+						"BELOW_PROPOSED_FLOOR",
+						"ABOVE_PROPOSED_FLOOR",
+						"NOT_OBSERVED",
+						"NOT_APPLICABLE"
+					]
+				},
+				"device": { "$ref": "#/$defs/device" },
+				"hardware": { "$ref": "#/$defs/hardware" },
+				"os": { "$ref": "#/$defs/os" },
+				"browser": { "$ref": "#/$defs/browser" },
+				"viewport": { "$ref": "#/$defs/viewport" },
+				"connection": { "$ref": "#/$defs/connection" },
+				"notes": { "type": "string", "minLength": 8 },
+				"assistiveTechnology": { "$ref": "#/$defs/assistiveTechnology" },
+				"stakeContainer": { "$ref": "#/$defs/stakeContainer" },
+				"deviceFarm": { "$ref": "#/$defs/deviceFarm" }
+			},
+			"allOf": [
+				{
+					"if": {
+						"properties": { "coverageKind": { "const": "IOS_OLD_FLOOR" } },
+						"required": ["coverageKind"]
+					},
+					"then": {
+						"properties": {
+							"executionMode": { "enum": ["NOT_EXECUTED", "PHYSICAL_DEVICE", "DEVICE_FARM"] },
+							"floorRelation": {
+								"enum": [
+									"AT_PROPOSED_FLOOR",
+									"BELOW_PROPOSED_FLOOR",
+									"ABOVE_PROPOSED_FLOOR",
+									"NOT_OBSERVED"
+								]
+							},
+							"assistiveTechnology": { "properties": { "name": { "const": "VoiceOver" } } }
+						},
+						"required": ["assistiveTechnology"],
+						"not": { "required": ["stakeContainer"] }
+					}
+				},
+				{
+					"if": {
+						"properties": { "coverageKind": { "const": "ANDROID_OLD_FLOOR" } },
+						"required": ["coverageKind"]
+					},
+					"then": {
+						"properties": {
+							"executionMode": { "enum": ["NOT_EXECUTED", "PHYSICAL_DEVICE", "DEVICE_FARM"] },
+							"floorRelation": {
+								"enum": [
+									"AT_PROPOSED_FLOOR",
+									"BELOW_PROPOSED_FLOOR",
+									"ABOVE_PROPOSED_FLOOR",
+									"NOT_OBSERVED"
+								]
+							},
+							"assistiveTechnology": { "properties": { "name": { "const": "TalkBack" } } }
+						},
+						"required": ["assistiveTechnology"],
+						"not": { "required": ["stakeContainer"] }
+					}
+				},
+				{
+					"if": {
+						"properties": { "coverageKind": { "enum": ["POPOUT_S", "POPOUT_L"] } },
+						"required": ["coverageKind"]
+					},
+					"then": {
+						"properties": {
+							"executionMode": { "enum": ["NOT_EXECUTED", "REAL_STAKE_POPOUT"] },
+							"floorRelation": { "const": "NOT_APPLICABLE" }
+						},
+						"required": ["stakeContainer"],
+						"not": { "required": ["assistiveTechnology"] }
+					}
+				},
+				{
+					"if": {
+						"properties": { "executionMode": { "const": "DEVICE_FARM" } },
+						"required": ["executionMode"]
+					},
+					"then": {
+						"required": ["deviceFarm"],
+						"properties": {
+							"device": {
+								"properties": { "physical": { "const": "PROVIDER_ASSERTED_PHYSICAL" } }
+							}
+						}
+					},
+					"else": { "not": { "required": ["deviceFarm"] } }
+				},
+				{
+					"if": {
+						"properties": {
+							"coverageKind": { "const": "IOS_OLD_FLOOR" },
+							"floorRelation": { "const": "AT_PROPOSED_FLOOR" }
+						},
+						"required": ["coverageKind", "floorRelation"]
+					},
+					"then": {
+						"properties": {
+							"device": {
+								"properties": {
+									"manufacturer": { "const": "Apple" },
+									"model": { "const": "iPhone X" },
+									"modelIdentifier": { "enum": ["iPhone10,3", "iPhone10,6"] }
+								}
+							},
+							"hardware": {
+								"properties": {
+									"chipset": { "const": "Apple A11 Bionic" },
+									"cpuArchitecture": { "const": "arm64" },
+									"gpu": { "const": "Apple three-core GPU" },
+									"ramMiB": { "const": 3072 }
+								}
+							},
+							"os": {
+								"properties": {
+									"name": { "const": "iOS" },
+									"version": { "pattern": "^16\\.7(?:\\.\\d+)?$" }
+								}
+							},
+							"browser": {
+								"properties": {
+									"name": { "const": "Mobile Safari" },
+									"engine": { "const": "WebKit" }
+								}
+							}
+						}
+					}
+				},
+				{
+					"if": {
+						"properties": {
+							"coverageKind": { "const": "ANDROID_OLD_FLOOR" },
+							"floorRelation": { "const": "AT_PROPOSED_FLOOR" }
+						},
+						"required": ["coverageKind", "floorRelation"]
+					},
+					"then": {
+						"properties": {
+							"device": {
+								"properties": {
+									"manufacturer": { "const": "Motorola" },
+									"model": { "const": "Moto G7 Power" },
+									"modelIdentifier": { "pattern": "^XT1955(?:-\\d+)?$" }
+								}
+							},
+							"hardware": {
+								"properties": {
+									"chipset": { "const": "Qualcomm Snapdragon 632" },
+									"cpuArchitecture": { "const": "arm64" },
+									"gpu": { "const": "Adreno 506" },
+									"ramMiB": { "const": 3072 }
+								}
+							},
+							"os": {
+								"properties": {
+									"name": { "const": "Android" },
+									"version": { "pattern": "^10(?:\\.0)?$" }
+								}
+							},
+							"browser": {
+								"properties": {
+									"name": { "const": "Google Chrome" },
+									"engine": { "const": "Blink" }
+								}
+							}
+						}
+					}
+				}
+			]
+		},
+		"attachment": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"id",
+				"environmentId",
+				"operatorId",
+				"captureScope",
+				"scenarioIds",
+				"path",
+				"kind",
+				"mediaType",
+				"bytes",
+				"sha256",
+				"capturedAt"
+			],
+			"properties": {
+				"id": { "$ref": "#/$defs/identifier" },
+				"environmentId": { "$ref": "#/$defs/identifier" },
+				"operatorId": { "$ref": "#/$defs/identifier" },
+				"captureScope": { "enum": ["SCENARIO", "ENVIRONMENT_SEQUENCE"] },
+				"scenarioIds": {
+					"type": "array",
+					"minItems": 1,
+					"uniqueItems": true,
+					"items": { "$ref": "#/$defs/scenarioId" }
+				},
+				"path": {
+					"type": "string",
+					"minLength": 1,
+					"pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*//).+$"
+				},
+				"kind": {
+					"enum": [
+						"screenshot",
+						"video",
+						"trace",
+						"log",
+						"audio-recording",
+						"device-report",
+						"other"
+					]
+				},
+				"mediaType": {
+					"type": "string",
+					"pattern": "^[A-Za-z0-9][A-Za-z0-9.+-]*/[A-Za-z0-9][A-Za-z0-9.+-]*$"
+				},
+				"bytes": { "type": "integer", "minimum": 1 },
+				"sha256": { "$ref": "#/$defs/sha256" },
+				"capturedAt": { "type": "string", "format": "date-time" }
+			},
+			"allOf": [
+				{
+					"if": {
+						"properties": { "captureScope": { "const": "SCENARIO" } },
+						"required": ["captureScope"]
+					},
+					"then": { "properties": { "scenarioIds": { "minItems": 1, "maxItems": 1 } } },
+					"else": {
+						"properties": {
+							"scenarioIds": { "minItems": 2 },
+							"kind": { "const": "video" }
+						}
+					}
+				},
+				{
+					"if": { "properties": { "kind": { "const": "screenshot" } }, "required": ["kind"] },
+					"then": {
+						"properties": {
+							"mediaType": { "pattern": "^image/(png|jpeg|webp)$" },
+							"bytes": { "minimum": 256 }
+						}
+					}
+				},
+				{
+					"if": { "properties": { "kind": { "const": "video" } }, "required": ["kind"] },
+					"then": {
+						"properties": {
+							"mediaType": { "enum": ["video/mp4", "video/webm"] },
+							"bytes": { "minimum": 1024 }
+						}
+					}
+				},
+				{
+					"if": { "properties": { "kind": { "const": "audio-recording" } }, "required": ["kind"] },
+					"then": {
+						"properties": {
+							"mediaType": {
+								"enum": ["audio/wav", "audio/mpeg", "audio/ogg", "audio/mp4", "audio/webm"]
+							},
+							"bytes": { "minimum": 512 }
+						}
+					}
+				},
+				{
+					"if": { "properties": { "kind": { "const": "log" } }, "required": ["kind"] },
+					"then": {
+						"properties": {
+							"mediaType": { "pattern": "^(text/[A-Za-z0-9.+-]+|application/json)$" },
+							"bytes": { "minimum": 64 }
+						}
+					}
+				},
+				{
+					"if": { "properties": { "kind": { "const": "trace" } }, "required": ["kind"] },
+					"then": {
+						"properties": {
+							"bytes": { "minimum": 64 },
+							"mediaType": {
+								"enum": [
+									"application/json",
+									"application/zip",
+									"application/gzip",
+									"application/x-gzip",
+									"application/octet-stream"
+								]
+							}
+						}
+					}
+				},
+				{
+					"if": { "properties": { "kind": { "const": "device-report" } }, "required": ["kind"] },
+					"then": {
+						"properties": {
+							"bytes": { "minimum": 64 },
+							"mediaType": {
+								"enum": [
+									"application/json",
+									"application/pdf",
+									"application/zip",
+									"text/plain",
+									"text/csv"
+								]
+							}
+						}
+					}
+				},
+				{
+					"if": { "properties": { "kind": { "const": "other" } }, "required": ["kind"] },
+					"then": { "properties": { "bytes": { "minimum": 256 } } }
+				}
+			]
+		},
+		"scenarioId": {
+			"enum": [
+				"load-and-readiness",
+				"live-play",
+				"heavy-cascade",
+				"blackout-mode",
+				"feature-entry-and-play",
+				"max-win",
+				"replay",
+				"orientation",
+				"safe-areas",
+				"touch",
+				"dialog-zoom-and-scroll",
+				"mute-resume-and-audio",
+				"memory-pressure",
+				"thermal",
+				"battery",
+				"voiceover",
+				"talkback",
+				"popout-layout"
+			]
+		},
+		"blocker": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["reason", "owner", "nextAction"],
+			"properties": {
+				"reason": { "type": "string", "minLength": 8 },
+				"owner": { "$ref": "#/$defs/meaningfulString" },
+				"nextAction": { "type": "string", "minLength": 8 }
+			}
+		},
+		"measurement": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["startedAt", "completedAt", "durationSeconds", "method"],
+			"properties": {
+				"startedAt": { "type": "string", "format": "date-time" },
+				"completedAt": { "type": "string", "format": "date-time" },
+				"durationSeconds": { "type": "integer", "minimum": 1 },
+				"method": { "type": "string", "minLength": 4 },
+				"cycles": { "type": "integer", "minimum": 3 },
+				"poweredExternally": { "const": false },
+				"startThermalState": { "$ref": "#/$defs/meaningfulString" },
+				"endThermalState": { "$ref": "#/$defs/meaningfulString" },
+				"startBatteryPercent": { "type": "number", "minimum": 0, "maximum": 100 },
+				"endBatteryPercent": { "type": "number", "minimum": 0, "maximum": 100 },
+				"brightnessPercent": { "type": "number", "minimum": 0, "maximum": 100 },
+				"radios": {
+					"type": "array",
+					"minItems": 1,
+					"items": { "$ref": "#/$defs/meaningfulString" }
+				}
+			}
+		},
+		"result": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"environmentId",
+				"scenarioId",
+				"status",
+				"operatorId",
+				"observedAt",
+				"fixture",
+				"notes",
+				"attachmentIds"
+			],
+			"properties": {
+				"environmentId": { "$ref": "#/$defs/identifier" },
+				"scenarioId": { "$ref": "#/$defs/scenarioId" },
+				"status": { "enum": ["PASS", "FAIL", "NOT_RUN"] },
+				"operatorId": { "$ref": "#/$defs/identifier" },
+				"observedAt": {
+					"oneOf": [{ "type": "string", "format": "date-time" }, { "const": "NOT_OBSERVED" }]
+				},
+				"fixture": { "$ref": "#/$defs/meaningfulString" },
+				"notes": { "type": "string", "minLength": 8 },
+				"attachmentIds": {
+					"type": "array",
+					"uniqueItems": true,
+					"items": { "$ref": "#/$defs/identifier" }
+				},
+				"blocker": { "$ref": "#/$defs/blocker" },
+				"measurement": { "$ref": "#/$defs/measurement" }
+			},
+			"allOf": [
+				{
+					"if": { "properties": { "status": { "const": "NOT_RUN" } }, "required": ["status"] },
+					"then": {
+						"required": ["blocker"],
+						"properties": {
+							"observedAt": { "const": "NOT_OBSERVED" },
+							"attachmentIds": { "maxItems": 0 }
+						},
+						"not": { "required": ["measurement"] }
+					},
+					"else": {
+						"required": ["measurement"],
+						"properties": {
+							"observedAt": { "type": "string", "format": "date-time" },
+							"attachmentIds": { "minItems": 1 }
+						},
+						"not": { "required": ["blocker"] }
+					}
+				},
+				{
+					"if": {
+						"properties": {
+							"scenarioId": { "const": "memory-pressure" },
+							"status": { "enum": ["PASS", "FAIL"] }
+						},
+						"required": ["scenarioId", "status"]
+					},
+					"then": { "properties": { "measurement": { "required": ["cycles"] } } }
+				},
+				{
+					"if": {
+						"properties": {
+							"scenarioId": { "const": "thermal" },
+							"status": { "enum": ["PASS", "FAIL"] }
+						},
+						"required": ["scenarioId", "status"]
+					},
+					"then": {
+						"properties": {
+							"measurement": {
+								"required": ["poweredExternally", "startThermalState", "endThermalState"],
+								"properties": { "durationSeconds": { "minimum": 1200 } }
+							}
+						}
+					}
+				},
+				{
+					"if": {
+						"properties": {
+							"scenarioId": { "const": "battery" },
+							"status": { "enum": ["PASS", "FAIL"] }
+						},
+						"required": ["scenarioId", "status"]
+					},
+					"then": {
+						"properties": {
+							"measurement": {
+								"required": [
+									"poweredExternally",
+									"startBatteryPercent",
+									"endBatteryPercent",
+									"brightnessPercent",
+									"radios"
+								],
+								"properties": { "durationSeconds": { "minimum": 1200 } }
+							}
+						}
+					}
+				}
+			]
+		}
+	}
+}

@@ -1,15 +1,18 @@
 export const CURRENCY_META = Object.freeze({
 	USD: { symbol: '$', decimals: 2, symbolAfter: false },
 	CAD: { symbol: 'CA$', decimals: 2, symbolAfter: false },
+	NZD: { symbol: 'NZ$', decimals: 2, symbolAfter: false },
 	JPY: { symbol: '\u00a5', decimals: 0, symbolAfter: false },
 	EUR: { symbol: '\u20ac', decimals: 2, symbolAfter: false },
 	RUB: { symbol: '\u20bd', decimals: 2, symbolAfter: false },
 	CNY: { symbol: 'CN\u00a5', decimals: 2, symbolAfter: false },
 	PHP: { symbol: '\u20b1', decimals: 2, symbolAfter: false },
 	INR: { symbol: '\u20b9', decimals: 2, symbolAfter: false },
+	PKR: { symbol: '\u20a8', decimals: 2, symbolAfter: false },
 	IDR: { symbol: 'Rp', decimals: 0, symbolAfter: false },
 	KRW: { symbol: '\u20a9', decimals: 0, symbolAfter: false },
 	BRL: { symbol: 'R$', decimals: 2, symbolAfter: false },
+	BOB: { symbol: 'Bs', decimals: 2, symbolAfter: false },
 	MXN: { symbol: 'MX$', decimals: 2, symbolAfter: false },
 	DKK: { symbol: 'KR', decimals: 2, symbolAfter: true },
 	PLN: { symbol: 'z\u0142', decimals: 2, symbolAfter: true },
@@ -19,6 +22,10 @@ export const CURRENCY_META = Object.freeze({
 	ARS: { symbol: 'ARS', decimals: 2, symbolAfter: true },
 	PEN: { symbol: 'S/', decimals: 2, symbolAfter: false },
 	NGN: { symbol: '\u20a6', decimals: 2, symbolAfter: false },
+	GHS: { symbol: 'GH\u20b5', decimals: 2, symbolAfter: false },
+	KES: { symbol: 'KSh', decimals: 2, symbolAfter: false },
+	MAD: { symbol: 'MAD', decimals: 2, symbolAfter: false },
+	EGP: { symbol: '\u062c.\u0645', decimals: 2, symbolAfter: false },
 	SAR: { symbol: 'SAR', decimals: 2, symbolAfter: true },
 	ILS: { symbol: 'ILS', decimals: 2, symbolAfter: true },
 	AED: { symbol: 'AED', decimals: 2, symbolAfter: true },
@@ -33,8 +40,14 @@ export const CURRENCY_META = Object.freeze({
 	OMR: { symbol: 'OMR', decimals: 2, symbolAfter: true },
 	QAR: { symbol: 'QAR', decimals: 2, symbolAfter: true },
 	BHD: { symbol: 'BD', decimals: 2, symbolAfter: false },
+	BAM: { symbol: 'KM', decimals: 2, symbolAfter: false },
+	ISK: { symbol: 'kr', decimals: 0, symbolAfter: false },
+	TZS: { symbol: 'TSh', decimals: 2, symbolAfter: false },
+	UGX: { symbol: 'USh', decimals: 0, symbolAfter: false },
+	XOF: { symbol: 'CFA', decimals: 0, symbolAfter: false },
 	XGC: { symbol: 'GC', decimals: 2, symbolAfter: true },
 	XSC: { symbol: 'SC', decimals: 2, symbolAfter: true },
+	XEC: { symbol: 'SC', decimals: 2, symbolAfter: true },
 });
 
 export const normalizeCurrency = (currency) =>
@@ -67,7 +80,7 @@ export const formatWinCurrencyAmount = (amount, currency) => {
 	const value = Number(amount);
 	const safeValue = Number.isFinite(value) ? value : 0;
 	const minimumDigits = meta?.decimals ?? 2;
-	const maximumDigits = meta?.decimals === 0 ? 0 : Math.max(minimumDigits, 4);
+	const maximumDigits = Math.max(minimumDigits, 4);
 	let formattedAmount = safeValue.toFixed(maximumDigits);
 	const decimalIndex = formattedAmount.indexOf('.');
 
@@ -93,7 +106,7 @@ export const currencyDisplaySymbol = (currency) => {
 
 export const isStakeUsCurrency = (currency) => {
 	const code = normalizeCurrency(currency);
-	return code === 'XGC' || code === 'XSC';
+	return code === 'XGC' || code === 'XSC' || code === 'XEC';
 };
 
 export const insufficientFundsMessage = () => 'Insufficient Balance';

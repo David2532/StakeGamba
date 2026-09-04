@@ -14,7 +14,8 @@
 		"config-ts": "workspace:*",
 		"config-vite": "workspace:*",
 		"config-svelte": "workspace:*",
-		"config-lingui": "workspace:*"
+		"config-lingui": "workspace:*",
+		"vite": "6.4.3"
 	},
 	"dependencies": {
 		"svelte": "5.20.5",

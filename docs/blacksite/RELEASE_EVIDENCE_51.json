@@ -1,0 +1,564 @@
+{
+	"schema": "blacksite-stake-51-evidence-map-v2",
+	"source": "docs/blacksite/STAKE_REQUIREMENTS_51.md",
+	"sourceSha256": "8e8f3dcc771cfd8668d9fc5bb6e58066df3ead4ea0b2645dd2622b01705fdd04",
+	"statusDefinitions": {
+		"AUTOMATED_PASS": "Repository-owned automated proof is complete for the exact candidate; no manual or external gate is required for this row.",
+		"AUTOMATED_PASS_MANUAL_OPEN": "Automated proof passes, but the row remains open until the recorded manual review is completed.",
+		"MANUAL_OPEN": "The requirement needs human or real-device evidence that repository automation cannot self-certify.",
+		"EXTERNAL_OPEN": "The requirement depends on Stake, ACP, Slack, publication, or live evidence outside repository authority.",
+		"NOT_APPLICABLE": "The versioned product contract does not include the conditional feature."
+	},
+	"items": [
+		{
+			"id": 1,
+			"requirement": "Authenticate with RGS on launch",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"live-auth-exact",
+				"expired-session-on-play-reauthenticates-without-automatic-retry",
+				"slow-auth-status-visible-before-intro"
+			]
+		},
+		{
+			"id": 2,
+			"requirement": "Invalid rgs_url fails safely",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"invalid-rgs-url-fails-closed-before-network",
+				"invalid-session-auth-response-fails-closed",
+				"recoverable-auth-http-503-reloads-and-recovers",
+				"recoverable-auth-timeout-reloads-and-recovers",
+				"navigation-teardown-aborts-auth-without-wallet-write"
+			]
+		},
+		{
+			"id": 3,
+			"requirement": "Legal play sends one authoritative RGS request",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"spacebar-one-base-play-and-blocked-space-zero",
+				"expired-session-on-play-reauthenticates-without-automatic-retry"
+			]
+		},
+		{
+			"id": 4,
+			"requirement": "No Stake Engine Loader",
+			"status": "AUTOMATED_PASS",
+			"browserChecks": [
+				{
+					"group": "infrastructure",
+					"name": "production build contains no Stake Engine Loader signature"
+				}
+			]
+		},
+		{
+			"id": 5,
+			"requirement": "Unique title and unrestricted terminology",
+			"status": "MANUAL_OPEN",
+			"manualOpen": "Current title, trademark, search, and legal review."
+		},
+		{
+			"id": 6,
+			"requirement": "No offensive or inappropriate imagery",
+			"status": "MANUAL_OPEN",
+			"manualOpen": "Human review of every final visual and the complete asset manifest."
+		},
+		{
+			"id": 7,
+			"requirement": "Distinct from existing titles and series",
+			"status": "MANUAL_OPEN",
+			"manualOpen": "Competitive originality review of final mechanic presentation, identity, art, branding, and composition."
+		},
+		{
+			"id": 8,
+			"requirement": "Thumbnail meets Stake artwork guidelines",
+			"status": "MANUAL_OPEN",
+			"manualOpen": "Final tile package, dimensions, size budget, provider mark, and Stake-layout preview."
+		},
+		{
+			"id": 9,
+			"requirement": "Use all authenticate bet parameters dynamically",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"authenticate-drives-levels-default-and-modes",
+				"authenticate-empty-levels-exposes-full-step-range",
+				"conflicting-auth-step-aliases-fail-closed",
+				"jurisdiction-disables-space-and-feature-modes-only",
+				"jurisdiction-enforces-turbo-slamstop-and-optional-rtp-hud"
+			]
+		},
+		{
+			"id": 10,
+			"requirement": "Restore active-round amount and mode",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"active-restore-no-duplicate-play",
+				"active-feature-restore-resumes-at-checkpoint-once",
+				"uncertain-live-play-reloads-and-restores-without-retry",
+				"accepted-winning-play-response-loss-restores-and-pays-exactly-once",
+				"accepted-checkpoint-response-loss-restores-without-rewrite",
+				"accepted-winning-checkpoint-response-loss-restores-and-pays-exactly-once",
+				"settlement-http-503-reloads-and-restores-exactly-once",
+				"accepted-settlement-response-loss-reauthenticates-without-retry",
+				"accepted-winning-settlement-response-loss-prevents-double-payout",
+				"settlement-session-expiry-reauthenticates-and-settles-once"
+			]
+		},
+		{
+			"id": 11,
+			"requirement": "Display currencies correctly",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"social-xsc-rules-paytable-and-terminology",
+				"live-jpy-native-balance-and-exact-win",
+				"live-unknown-currency-code-fallback",
+				"session-position-and-timer-follow-authoritative-balance"
+			]
+		},
+		{
+			"id": 12,
+			"requirement": "Display sub-cent payouts exactly",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": ["replay-matrix-fractional-query-amount"]
+		},
+		{
+			"id": 13,
+			"requirement": "Zero-win auto-close sends no redundant end-round",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": ["inactive-zero-play"]
+		},
+		{
+			"id": 14,
+			"requirement": "Insufficient balance sends no illegal play",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"known-insufficient-balance-blocks-play",
+				"rgs-err-ipb-after-auth-race-fails-closed"
+			]
+		},
+		{
+			"id": 15,
+			"requirement": "Main game frame is not scrollable",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"geometry-desktop-1920x1080",
+				"geometry-desktop-1366x768",
+				"geometry-phone-390x844",
+				"geometry-landscape-844x390"
+			]
+		},
+		{
+			"id": 16,
+			"requirement": "Space bar binds to one legal play",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"spacebar-one-base-play-and-blocked-space-zero",
+				"jurisdiction-disables-space-and-feature-modes-only"
+			]
+		},
+		{
+			"id": 17,
+			"requirement": "Rules state exact RTP and Max Win",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": ["social-xsc-rules-paytable-and-terminology"],
+			"manualOpen": "Final human rules and extracted-package copy review."
+		},
+		{
+			"id": 18,
+			"requirement": "Rules state symbol payouts",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": ["social-xsc-rules-paytable-and-terminology"],
+			"repositoryGates": [
+				{
+					"receipt": "packageVerification",
+					"claim": "bookLookupIdAndPayoutMatch"
+				}
+			],
+			"manualOpen": "Compare final rendered symbols and values with shipped config and books."
+		},
+		{
+			"id": 19,
+			"requirement": "Rules explain win combinations",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": ["social-xsc-rules-paytable-and-terminology"],
+			"manualOpen": "Human wording review and final-presentation win inspection."
+		},
+		{
+			"id": 20,
+			"requirement": "Rules describe every mode and cost",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": [
+				"social-xsc-rules-paytable-and-terminology",
+				"high-cost-deep_access-requires-confirmation",
+				"high-cost-blackout-requires-confirmation"
+			],
+			"manualOpen": "Normal and Social final-copy review."
+		},
+		{
+			"id": 21,
+			"requirement": "Rules state feature and retrigger conditions",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": [
+				"blackout-hero-timing-normal-and-turbo",
+				"authoritative-blackout-vault-transition",
+				"live-natural-base-blackout-enters-and-returns",
+				"live-deep-access-feature-confirms-enters-and-returns",
+				"active-feature-skip-persists-and-settles-once",
+				"social-xsc-rules-paytable-and-terminology"
+			],
+			"manualOpen": "Human comparison of final wording with emitted feature sequences."
+		},
+		{
+			"id": 22,
+			"requirement": "Rules include the general disclaimer",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": ["social-xsc-rules-paytable-and-terminology"],
+			"manualOpen": "Confirm official wording immediately before submission."
+		},
+		{
+			"id": 23,
+			"requirement": "Autoplay requires confirmation when offered",
+			"status": "NOT_APPLICABLE",
+			"automatedAbsenceChecks": ["blacksite-autoplay-surface-absent-v1"],
+			"notApplicableReason": "Autoplay is not offered by this versioned candidate and disabledAutoplay is consumed from jurisdiction configuration."
+		},
+		{
+			"id": 24,
+			"requirement": "High-cost modes require exact confirmation",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"high-cost-deep_access-requires-confirmation",
+				"high-cost-blackout-requires-confirmation"
+			]
+		},
+		{
+			"id": 25,
+			"requirement": "Works on desktop and laptop",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": [
+				"boot-intro-full-fresh-live",
+				"geometry-desktop-1920x1080",
+				"geometry-desktop-1366x768"
+			],
+			"browserChecks": [
+				{
+					"group": "boot-intro-full-fresh-live",
+					"name": "fresh live boot follows the complete ordered cinematic beat contract"
+				}
+			],
+			"manualOpen": "Final-art manual desktop and laptop review."
+		},
+		{
+			"id": 26,
+			"requirement": "Works in Popout S and L",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": ["geometry-replay-popout-s-360x640", "geometry-desktop-1366x768"],
+			"manualOpen": "Real Stake Popout S and L container review; current dimensions are documented proxies."
+		},
+		{
+			"id": 27,
+			"requirement": "Works on mobile",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": [
+				"boot-intro-skip-mobile",
+				"geometry-phone-360x740",
+				"geometry-phone-390x844",
+				"geometry-tablet-768x1024",
+				"geometry-landscape-844x390",
+				"geometry-mobile-orientation-roundtrip",
+				"vaultkeeper-omits-compact-resource-until-visible",
+				"vaultkeeper-responsive-resource-gate"
+			],
+			"browserChecks": [
+				{
+					"group": "boot-intro-skip-mobile",
+					"name": "mobile intro owns focus while its background is inert and its skip target is at least 44px"
+				},
+				{
+					"group": "boot-intro-skip-mobile",
+					"name": "mobile Skip reaches the exact playable state within 250ms and records the seen version"
+				},
+				{
+					"group": "geometry-mobile-orientation-roundtrip",
+					"name": "orientation round trip returns to the original portrait composition"
+				},
+				{
+					"group": "geometry-mobile-orientation-roundtrip",
+					"name": "orientation round trip preserves one authenticated session and zero wallet writes"
+				},
+				{
+					"group": "vaultkeeper-omits-compact-resource-until-visible",
+					"name": "stale character fallback cannot overwrite compact omission after its source element is removed"
+				},
+				{
+					"group": "vaultkeeper-responsive-resource-gate",
+					"name": "compact first paint requests no character; desktop transition requests it once; compact return removes the decoded element without another request"
+				},
+				{
+					"group": "vaultkeeper-responsive-resource-gate",
+					"name": "responsive asset transitions preserve one authenticated session and zero wallet writes"
+				}
+			],
+			"manualOpen": "Final candidate on defined real mobile device floor."
+		},
+		{
+			"id": 28,
+			"requirement": "Double-tap zoom is disabled without blocking accessibility",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": ["mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll"],
+			"browserChecks": [
+				{
+					"group": "mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll",
+					"name": "mobile double-tap keeps visual viewport at 1x without page displacement"
+				},
+				{
+					"group": "mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll",
+					"name": "mobile Rules content moves after a real touch drag while the page and zoom stay fixed"
+				},
+				{
+					"group": "geometry-phone-390x844",
+					"name": "browser computed body touch-action is manipulation"
+				},
+				{
+					"group": "geometry-phone-390x844",
+					"name": "browser viewport meta preserves user zoom"
+				}
+			],
+			"manualOpen": "Real iOS and Android interaction review."
+		},
+		{
+			"id": 29,
+			"requirement": "Game Information includes an interaction guide",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": [
+				"social-xsc-rules-paytable-and-terminology",
+				"presentation-speed-persists-with-reduced-motion-override"
+			],
+			"browserChecks": [
+				{
+					"group": "social-xsc-rules-paytable-and-terminology",
+					"name": "every visible game control maps to a Game Information guide entry"
+				},
+				{
+					"group": "social-xsc-rules-paytable-and-terminology",
+					"name": "interaction guide contains every versioned control contract entry"
+				},
+				{
+					"group": "social-xsc-rules-paytable-and-terminology",
+					"name": "interaction guide documents touch, keyboard, Space and Escape behaviour"
+				}
+			],
+			"manualOpen": "Reconcile the guide with every final control."
+		},
+		{
+			"id": 30,
+			"requirement": "All game sound can be disabled",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": ["audio-policy-cues-mute-and-persistence"]
+		},
+		{
+			"id": 31,
+			"requirement": "English is complete",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": [
+				"live-auth-exact",
+				"invalid-language-live-falls-back-to-english",
+				"recoverable-replay-http-503-visible-read-only"
+			],
+			"manualOpen": "Final all-string English audit."
+		},
+		{
+			"id": 32,
+			"requirement": "Invalid language safely falls back",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"invalid-language-live-falls-back-to-english",
+				"social-replay-dom-aria-restricted-scan"
+			]
+		},
+		{
+			"id": 33,
+			"requirement": "Five wins per mode match Game Rules",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": [
+				"replay-matrix-rules-base-01",
+				"replay-matrix-rules-base-02",
+				"replay-matrix-rules-base-03",
+				"replay-matrix-rules-base-04",
+				"replay-matrix-rules-base-05",
+				"replay-matrix-rules-deep_access-01",
+				"replay-matrix-rules-deep_access-02",
+				"replay-matrix-rules-deep_access-03",
+				"replay-matrix-rules-deep_access-04",
+				"replay-matrix-rules-deep_access-05",
+				"replay-matrix-rules-blackout-01",
+				"replay-matrix-rules-blackout-02",
+				"replay-matrix-rules-blackout-03",
+				"replay-matrix-rules-blackout-04",
+				"replay-matrix-rules-blackout-05"
+			],
+			"manualOpen": "Human visual sign-off of the five final-presentation wins for each of Base, Deep Access, and BLACKOUT."
+		},
+		{
+			"id": 34,
+			"requirement": "Mystery probabilities are accurate when Mystery exists",
+			"status": "NOT_APPLICABLE",
+			"automatedAbsenceChecks": ["blacksite-mystery-product-contract-absent-v1"],
+			"notApplicableReason": "No Mystery mode or symbol exists in the frozen product and math contract."
+		},
+		{
+			"id": 35,
+			"requirement": "Social terminology is compliant",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": [
+				"social-xsc-rules-paytable-and-terminology",
+				"social-replay-dom-aria-restricted-scan"
+			],
+			"manualOpen": "Final all-surface human Social vocabulary review."
+		},
+		{
+			"id": 36,
+			"requirement": "SC and GC render without dollar prefix",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"social-xsc-rules-paytable-and-terminology",
+				"social-replay-dom-aria-restricted-scan"
+			]
+		},
+		{
+			"id": 37,
+			"requirement": "Social mode naming follows approved vocabulary",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": [
+				"social-xsc-rules-paytable-and-terminology",
+				"social-replay-dom-aria-restricted-scan"
+			],
+			"manualOpen": "Final guidance review of every Social mode surface."
+		},
+		{
+			"id": 38,
+			"requirement": "Social Replay contains no restricted words",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": [
+				"social-replay-dom-aria-restricted-scan",
+				"social-replay-outcome-loss",
+				"social-replay-outcome-win",
+				"social-replay-outcome-feature",
+				"social-replay-outcome-max-win"
+			],
+			"manualOpen": "Final loss, win, feature, and max-win Replay surface sign-off."
+		},
+		{
+			"id": 39,
+			"requirement": "Social Mode is English-only",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": [
+				"social-xsc-rules-paytable-and-terminology",
+				"social-replay-dom-aria-restricted-scan"
+			],
+			"manualOpen": "Final supported-language matrix review."
+		},
+		{
+			"id": 40,
+			"requirement": "Replay URL loads and plays requested event read-only",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"replay-read-only-play-again",
+				"replay-matrix-base-win",
+				"replay-navigation-teardown-aborts-read-only-load"
+			]
+		},
+		{
+			"id": 41,
+			"requirement": "Replay supports optional currency, language, amount, device, and social parameters",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"replay-matrix-fractional-query-amount",
+				"social-replay-dom-aria-restricted-scan",
+				"geometry-replay-popout-s-360x640"
+			]
+		},
+		{
+			"id": 42,
+			"requirement": "Play Again deterministically repeats Replay",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"replay-read-only-play-again",
+				"replay-repeated-play-again-drains-timers",
+				"replay-matrix-base-zero",
+				"replay-matrix-base-win",
+				"replay-matrix-feature-mode-win",
+				"replay-matrix-max-win",
+				"replay-matrix-fractional-query-amount"
+			]
+		},
+		{
+			"id": 43,
+			"requirement": "Replay displays exact play cost and multiplier",
+			"status": "AUTOMATED_PASS",
+			"browserScenarios": [
+				"replay-matrix-base-win",
+				"replay-matrix-feature-mode-win",
+				"replay-matrix-max-win",
+				"replay-matrix-fractional-query-amount"
+			]
+		},
+		{
+			"id": 44,
+			"requirement": "Replay works in Popout S",
+			"status": "AUTOMATED_PASS_MANUAL_OPEN",
+			"browserScenarios": ["geometry-replay-popout-s-360x640"],
+			"manualOpen": "Real Stake Popout S container review."
+		},
+		{
+			"id": 45,
+			"requirement": "Stake bet-level templates are applied",
+			"status": "EXTERNAL_OPEN",
+			"repositoryGates": [
+				{
+					"receipt": "candidateManifest",
+					"claim": "allMathVerificationGates"
+				}
+			],
+			"externalOpen": "Repository math gates prove template viability only; Stake or ACP application evidence tied to the exact math version remains required."
+		},
+		{
+			"id": 46,
+			"requirement": "Provably Fair and Replay are enabled",
+			"status": "EXTERNAL_OPEN",
+			"browserScenarios": ["replay-read-only-play-again"],
+			"externalOpen": "Repository Replay proof is partial; Stake-side Provably Fair enablement and publication evidence for the exact versions remains required."
+		},
+		{
+			"id": 47,
+			"requirement": "Front and Math requests are approved",
+			"status": "EXTERNAL_OPEN",
+			"externalOpen": "Stake or ACP approvals tied to exact frontend and math hashes."
+		},
+		{
+			"id": 48,
+			"requirement": "Game is posted in the approved Slack channel",
+			"status": "EXTERNAL_OPEN",
+			"externalOpen": "Real stake-engine-game-approved message or link."
+		},
+		{
+			"id": 49,
+			"requirement": "Works on older Android and iOS devices",
+			"status": "MANUAL_OPEN",
+			"manualOpen": "Defined device and OS floor tested on real devices or an approved device farm."
+		},
+		{
+			"id": 50,
+			"requirement": "Approval request is closed after live and Slack notification is updated",
+			"status": "EXTERNAL_OPEN",
+			"externalOpen": "Post-live approval-request and Slack workflow evidence."
+		},
+		{
+			"id": 51,
+			"requirement": "Game is released",
+			"status": "EXTERNAL_OPEN",
+			"externalOpen": "Actual production availability verified through the authorized release process."
+		}
+	]
+}

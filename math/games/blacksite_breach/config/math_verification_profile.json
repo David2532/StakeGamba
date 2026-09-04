@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "source_checked": "2026-08-07",
+  "source_url": "https://stake-engine.com/docs/approval-guidelines/math-verification",
+  "hard_gates": {
+    "canonical_base_name": "base",
+    "canonical_base_cost": 1,
+    "base_must_be_cheapest": true,
+    "base_min_cost_normalized_standard_deviation": 0.6,
+    "rtp_min": 0.9,
+    "rtp_max": 0.967,
+    "maximum_cross_mode_rtp_spread": 0.005,
+    "maximum_win_human_x": 500000,
+    "maximum_mode_cost": 2000,
+    "minimum_nonzero_hit_rate": 0.02,
+    "maximum_compressed_book_bytes": 4200000000,
+    "maximum_events_per_mode": 10000000,
+    "maximum_books_per_mode": 10000000,
+    "minimum_candidate_books_per_mode": 100000,
+    "weights_must_be_positive": true
+  },
+  "three_star_review_bands": {
+    "maximum_exposure_usd": 50000000,
+    "maximum_total_bet_cost_usd": 500000,
+    "maximum_payout_human_x": 100000,
+    "maximum_cost": 2000,
+    "maximum_base_cost_normalized_standard_deviation": 60,
+    "maximum_cvar_worst_0_1_percent_cost_normalized": 700,
+    "maximum_cvar_worst_0_1_percent_raw_human_x": 50000,
+    "maximum_probability_raw_at_or_above_5000x_fraction_scale": 0.05,
+    "maximum_probability_raw_at_or_above_10000x_fraction_scale": 0.01,
+    "maximum_probability_raw_at_or_above_5000x_stricter_percent_scale": 0.0005,
+    "maximum_probability_raw_at_or_above_10000x_stricter_percent_scale": 0.0001,
+    "maximum_etl_rtp_share_above_40x_cost": 0.9,
+    "maximum_etl_rtp_share_above_10000x_cost": 0.8,
+    "maximum_etl_combined_score": 1.5
+  },
+  "tail_probability_interpretations": {
+    "threshold_basis": "raw payout / 100 is compared with 5000x and 10000x; mode cost is not applied",
+    "source_strings": {
+      "probability_at_or_above_5000x": "0.050",
+      "probability_at_or_above_10000x": "0.010"
+    },
+    "ambiguity": "the public table does not make fraction-versus-percent display scale explicit",
+    "decision": "record and pass both fraction scale (.05/.01) and stricter percent scale (.0005/.0001)"
+  },
+  "project_candidate_gates": {
+    "minimum_distinct_positive_raw_payout_values_per_mode": 100
+  },
+  "operator_template_probe": {
+    "base_amount_usd_min": 0.01,
+    "base_amount_usd_max": 1000,
+    "maximum_total_bet_cost_usd": 500000,
+    "maximum_possible_payout_usd": 50000000
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "modes": [
+    {
+      "name": "base",
+      "cost": 1,
+      "events": "base_books.jsonl.zst",
+      "weights": "base_lookup.csv"
+    },
+    {
+      "name": "deep_access",
+      "cost": 4,
+      "events": "deep_access_books.jsonl.zst",
+      "weights": "deep_access_lookup.csv"
+    },
+    {
+      "name": "blackout",
+      "cost": 80,
+      "events": "blackout_books.jsonl.zst",
+      "weights": "blackout_lookup.csv"
+    }
+  ]
+}
