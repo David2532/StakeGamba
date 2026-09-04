@@ -26,6 +26,6 @@ overrides:
   postcss: "8.5.18"
   rollup: "4.59.0"
   storybook: "9.1.19"
-  svelte: "5.57.0"
+  svelte: "5.45.0"
   tmp: "0.2.7"
   "ws@<9": "8.21.0"

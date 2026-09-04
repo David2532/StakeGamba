@@ -45,7 +45,7 @@ const workspaceSource = [
 	'  postcss: "8.5.18"',
 	'  rollup: "4.59.0"',
 	'  storybook: "9.1.19"',
-	'  svelte: "5.57.0"',
+	'  svelte: "5.45.0"',
 	'  tmp: "0.2.7"',
 	'  "ws@<9": "8.21.0"',
 	'',
@@ -127,7 +127,7 @@ test('security policy records the cumulative Vite and devalue advisory floors', 
 	assert.equal(BLACKSITE_SECURITY_POLICY.audit.registry, 'https://registry.npmjs.org/');
 	assert.equal(
 		BLACKSITE_SECURITY_POLICY.audit.workspaceSha256,
-		'e346af4998c89c048140e06a80876885085fde0d17979e397ffa58dfe919a9fa',
+		'49ed9fc95a5202be35874cc13c802ec2f3bc1945f6b08523a4b427ad9c2e1502',
 	);
 	assert.deepEqual(BLACKSITE_SECURITY_POLICY.audit.allowedOrigins, ['https://registry.npmjs.org']);
 	assert.deepEqual(
