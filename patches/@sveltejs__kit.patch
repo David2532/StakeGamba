@@ -1,0 +1,48 @@
+diff --git a/src/runtime/client/client.js b/src/runtime/client/client.js
+index c52354928a50f15235d3854242749704997be653..af156e450d486652f7d7b0775dc2c06938da8d94 100644
+--- a/src/runtime/client/client.js
++++ b/src/runtime/client/client.js
+@@ -563,7 +563,8 @@ async function _preload_data(intent) {
+ 			fork: null
+ 		};
+ 
+-		if (__SVELTEKIT_FORK_PRELOADS__ && svelte.fork) {
++		const fork_api = Reflect.get(svelte, 'fork');
++		if (__SVELTEKIT_FORK_PRELOADS__ && fork_api) {
+ 			const lc = load_cache;
+ 
+ 			lc.fork = lc.promise.then((result) => {
+@@ -571,7 +572,7 @@ async function _preload_data(intent) {
+ 				// resolve, bail rather than creating an orphan fork
+ 				if (lc === load_cache && result.type === 'loaded') {
+ 					try {
+-						return svelte.fork(() => {
++						return fork_api(() => {
+ 							root.$set(result.props);
+ 							update(result.props.page);
+ 						});
+@@ -1851,7 +1852,7 @@ async function navigate({
+ 			}
+ 			update(navigation_result.props.page);
+ 
+-			commit_promise = svelte.settled?.();
++			commit_promise = Reflect.get(svelte, 'settled')?.();
+ 		}
+ 
+ 		has_navigated = true;
+diff --git a/src/runtime/shared.js b/src/runtime/shared.js
+index 5f50788f143cbe4e55c94b040d50ebcaa88a4918..04e2f42cc6e3417493466dc0ed41fa29a349c03b 100644
+--- a/src/runtime/shared.js
++++ b/src/runtime/shared.js
+@@ -314,8 +314,9 @@ export function split_remote_key(key) {
+  * @deprecated TODO remove in SvelteKit 3.0
+  */
+ export function unfriendly_hydratable(key, fn) {
+-	if (!svelte.hydratable) {
++	const hydratable = Reflect.get(svelte, 'hydratable');
++	if (!hydratable) {
+ 		throw new Error('Remote functions require Svelte 5.44.0 or later');
+ 	}
+-	return svelte.hydratable(key, fn);
++	return hydratable(key, fn);
+ }

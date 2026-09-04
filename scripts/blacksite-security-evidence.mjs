@@ -17,7 +17,7 @@ export const BLACKSITE_SECURITY_POLICY = Object.freeze({
 		registry: 'https://registry.npmjs.org/',
 		allowedOrigins: Object.freeze(['https://registry.npmjs.org']),
 		npmrcSha256: '52860f9b45d3e516986ecb81ffbf853f5e3f9bee82666148e37df24691e693de',
-		workspaceSha256: '49ed9fc95a5202be35874cc13c802ec2f3bc1945f6b08523a4b427ad9c2e1502',
+		workspaceSha256: '24eae5e708bb8560b652b54ff920f03f5de86dbfc026d249c0e297cf991955f2',
 	}),
 	versions: Object.freeze({
 		vite: '6.4.3',

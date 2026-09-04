@@ -24,9 +24,12 @@ overrides:
   postcss: 8.5.18
   rollup: 4.59.0
   storybook: 9.1.19
-  svelte: 5.45.0
+  svelte: 5.20.5
   tmp: 0.2.7
   ws@<9: 8.21.0
+
+patchedDependencies:
+  '@sveltejs/kit': da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416
 
 importers:
 
@@ -43,7 +46,7 @@ importers:
         version: 3.5.2
       prettier-plugin-svelte:
         specifier: 3.3.3
-        version: 3.3.3(prettier@3.5.2)(svelte@5.45.0(@typescript-eslint/types@8.69.0))
+        version: 3.3.3(prettier@3.5.2)(svelte@5.20.5)
       turbo:
         specifier: 2.4.4
         version: 2.4.4
@@ -59,10 +62,10 @@ importers:
     dependencies:
       '@sveltejs/kit':
         specifier: 2.57.1
-        version: 2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-shared:
         specifier: workspace:*
         version: link:../../packages/utils-shared
@@ -72,7 +75,7 @@ importers:
     devDependencies:
       '@sveltejs/vite-plugin-svelte':
         specifier: 5.0.3
-        version: 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@types/node':
         specifier: 26.4.1
         version: 26.4.1
@@ -96,7 +99,7 @@ importers:
         version: link:../../packages/eslint-config-custom
       svelte-check:
         specifier: 4.7.6
-        version: 4.7.6(picomatch@4.0.4)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)
+        version: 4.7.6(picomatch@4.0.4)(svelte@5.20.5)(typescript@5.8.3)
 
   apps/cluster:
     dependencies:
@@ -105,7 +108,7 @@ importers:
         version: 5.2.0(@lingui/babel-plugin-lingui-macro@5.2.0(babel-plugin-macros@3.1.0)(supports-color@8.1.1)(typescript@5.8.3))(babel-plugin-macros@3.1.0)
       '@sveltejs/kit':
         specifier: 2.57.1
-        version: 2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@types/lodash':
         specifier: 4.17.16
         version: 4.17.16
@@ -146,8 +149,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/state-shared
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-bet:
         specifier: workspace:*
         version: link:../../packages/utils-bet
@@ -178,10 +181,10 @@ importers:
     devDependencies:
       '@storybook/addon-svelte-csf':
         specifier: 5.0.5
-        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0)))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@sveltejs/vite-plugin-svelte':
         specifier: 5.0.3
-        version: 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       chromatic:
         specifier: 11.26.1
         version: 11.26.1
@@ -214,7 +217,7 @@ importers:
         version: 5.2.0(@lingui/babel-plugin-lingui-macro@5.2.0(babel-plugin-macros@3.1.0)(supports-color@8.1.1)(typescript@5.8.3))(babel-plugin-macros@3.1.0)
       '@sveltejs/kit':
         specifier: 2.57.1
-        version: 2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@types/lodash':
         specifier: 4.17.16
         version: 4.17.16
@@ -255,8 +258,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/state-shared
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-bet:
         specifier: workspace:*
         version: link:../../packages/utils-bet
@@ -287,10 +290,10 @@ importers:
     devDependencies:
       '@storybook/addon-svelte-csf':
         specifier: 5.0.5
-        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0)))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@sveltejs/vite-plugin-svelte':
         specifier: 5.0.3
-        version: 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       chromatic:
         specifier: 11.26.1
         version: 11.26.1
@@ -320,7 +323,7 @@ importers:
     dependencies:
       '@sveltejs/kit':
         specifier: 2.57.1
-        version: 2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@types/lodash':
         specifier: 4.17.16
         version: 4.17.16
@@ -331,8 +334,8 @@ importers:
         specifier: workspace:*
         version: link:../pixi-svelte
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-layout:
         specifier: workspace:*
         version: link:../utils-layout
@@ -342,10 +345,10 @@ importers:
     devDependencies:
       '@storybook/addon-svelte-csf':
         specifier: 5.0.5
-        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0)))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@sveltejs/vite-plugin-svelte':
         specifier: 5.0.3
-        version: 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       chromatic:
         specifier: 11.26.1
         version: 11.26.1
@@ -372,7 +375,7 @@ importers:
     dependencies:
       '@sveltejs/kit':
         specifier: 2.57.1
-        version: 2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@types/lodash':
         specifier: 4.17.16
         version: 4.17.16
@@ -392,8 +395,8 @@ importers:
         specifier: workspace:*
         version: link:../state-shared
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-shared:
         specifier: workspace:*
         version: link:../utils-shared
@@ -403,10 +406,10 @@ importers:
     devDependencies:
       '@storybook/addon-svelte-csf':
         specifier: 5.0.5
-        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0)))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@sveltejs/vite-plugin-svelte':
         specifier: 5.0.3
-        version: 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       chromatic:
         specifier: 11.26.1
         version: 11.26.1
@@ -436,7 +439,7 @@ importers:
     dependencies:
       '@sveltejs/kit':
         specifier: 2.57.1
-        version: 2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       constants-shared:
         specifier: workspace:*
         version: link:../constants-shared
@@ -447,8 +450,8 @@ importers:
         specifier: workspace:*
         version: link:../state-shared
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-event-emitter:
         specifier: workspace:*
         version: link:../utils-event-emitter
@@ -464,10 +467,10 @@ importers:
         version: 5.2.0(@lingui/babel-plugin-lingui-macro@5.2.0(babel-plugin-macros@3.1.0)(supports-color@8.1.1)(typescript@5.8.3))(babel-plugin-macros@3.1.0)
       '@storybook/addon-svelte-csf':
         specifier: 5.0.5
-        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0)))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@sveltejs/vite-plugin-svelte':
         specifier: 5.0.3
-        version: 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       chromatic:
         specifier: 11.26.1
         version: 11.26.1
@@ -506,22 +509,22 @@ importers:
         version: 9.0.15(@types/react@19.1.8)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))
       '@storybook/addon-svelte-csf':
         specifier: 5.0.5
-        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0)))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@storybook/builder-vite':
         specifier: 9.0.15
         version: 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@storybook/svelte':
         specifier: 9.0.15
-        version: 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))
+        version: 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)
       '@storybook/sveltekit':
         specifier: 9.0.15
-        version: 9.0.15(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 9.0.15(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@sveltejs/adapter-static':
         specifier: 3.0.10
-        version: 3.0.10(@sveltejs/kit@2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))
+        version: 3.0.10(@sveltejs/kit@2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))
       '@sveltejs/vite-plugin-svelte':
         specifier: 5.0.3
-        version: 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       components-shared:
         specifier: workspace:*
         version: link:../components-shared
@@ -538,8 +541,8 @@ importers:
         specifier: 9.1.19
         version: 9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-event-emitter:
         specifier: workspace:*
         version: link:../utils-event-emitter
@@ -579,7 +582,7 @@ importers:
         version: 5.2.0(@lingui/babel-plugin-lingui-macro@5.2.0(babel-plugin-macros@3.1.0)(supports-color@8.1.1)(typescript@5.8.3))(babel-plugin-macros@3.1.0)
       '@sveltejs/kit':
         specifier: 2.57.1
-        version: 2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       components-shared:
         specifier: workspace:*
         version: link:../components-shared
@@ -596,8 +599,8 @@ importers:
         specifier: workspace:*
         version: link:../state-shared
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-event-emitter:
         specifier: workspace:*
         version: link:../utils-event-emitter
@@ -616,10 +619,10 @@ importers:
     devDependencies:
       '@storybook/addon-svelte-csf':
         specifier: 5.0.5
-        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0)))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@sveltejs/vite-plugin-svelte':
         specifier: 5.0.3
-        version: 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       chromatic:
         specifier: 11.26.1
         version: 11.26.1
@@ -652,7 +655,7 @@ importers:
         version: 5.2.0(@lingui/babel-plugin-lingui-macro@5.2.0(babel-plugin-macros@3.1.0)(supports-color@8.1.1)(typescript@5.8.3))(babel-plugin-macros@3.1.0)
       '@sveltejs/kit':
         specifier: 2.57.1
-        version: 2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@types/lodash':
         specifier: 4.17.16
         version: 4.17.16
@@ -678,8 +681,8 @@ importers:
         specifier: workspace:*
         version: link:../state-shared
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-event-emitter:
         specifier: workspace:*
         version: link:../utils-event-emitter
@@ -698,10 +701,10 @@ importers:
     devDependencies:
       '@storybook/addon-svelte-csf':
         specifier: 5.0.5
-        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0)))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@sveltejs/vite-plugin-svelte':
         specifier: 5.0.3
-        version: 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       chromatic:
         specifier: 11.26.1
         version: 11.26.1
@@ -740,19 +743,19 @@ importers:
         version: 9.0.15(@types/react@19.1.8)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))
       '@storybook/addon-svelte-csf':
         specifier: 5.0.5
-        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0)))(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5))(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@storybook/builder-vite':
         specifier: 9.0.15
         version: 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@storybook/svelte':
         specifier: 9.0.15
-        version: 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))
+        version: 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)
       '@storybook/sveltekit':
         specifier: 9.0.15
-        version: 9.0.15(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 9.0.15(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@sveltejs/adapter-static':
         specifier: 3.0.10
-        version: 3.0.10(@sveltejs/kit@2.57.1(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))
+        version: 3.0.10(@sveltejs/kit@2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))
       config-ts:
         specifier: workspace:*
         version: link:../config-ts
@@ -773,13 +776,13 @@ importers:
     dependencies:
       '@sveltejs/adapter-static':
         specifier: 3.0.10
-        version: 3.0.10(@sveltejs/kit@2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))
+        version: 3.0.10(@sveltejs/kit@2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))
       '@sveltejs/vite-plugin-svelte':
         specifier: 5.0.3
-        version: 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))
+        version: 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       vite:
         specifier: 6.4.3
         version: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)
@@ -803,10 +806,10 @@ importers:
         version: 5.2.0(supports-color@8.1.1)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@sveltejs/kit':
         specifier: 2.57.1
-        version: 2.57.1(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       vite:
         specifier: 6.4.3
         version: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
@@ -834,10 +837,10 @@ importers:
     dependencies:
       '@sveltejs/kit':
         specifier: 2.57.1
-        version: 2.57.1(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       vite:
         specifier: 6.4.3
         version: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
@@ -877,7 +880,7 @@ importers:
         version: 2.10.12(eslint@9.21.0(jiti@1.21.7)(supports-color@8.1.1))(turbo@2.4.4)
       eslint-plugin-svelte:
         specifier: 2.46.1
-        version: 2.46.1(eslint@9.21.0(jiti@1.21.7)(supports-color@8.1.1))(svelte@5.45.0(@typescript-eslint/types@8.69.0))
+        version: 2.46.1(eslint@9.21.0(jiti@1.21.7)(supports-color@8.1.1))(svelte@5.20.5)
 
   packages/pixi-svelte:
     dependencies:
@@ -900,8 +903,8 @@ importers:
         specifier: 8.8.1
         version: 8.8.1
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       vite:
         specifier: 6.4.3
         version: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
@@ -911,10 +914,10 @@ importers:
     devDependencies:
       '@sveltejs/package':
         specifier: 2.3.10
-        version: 2.3.10(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)
+        version: 2.3.10(svelte@5.20.5)(typescript@5.8.3)
       '@sveltejs/vite-plugin-svelte':
         specifier: 5.0.3
-        version: 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       chromatic:
         specifier: 11.26.1
         version: 11.26.1
@@ -941,7 +944,7 @@ importers:
         version: 3.5.2
       prettier-plugin-svelte:
         specifier: 3.3.3
-        version: 3.3.3(prettier@3.5.2)(svelte@5.45.0(@typescript-eslint/types@8.69.0))
+        version: 3.3.3(prettier@3.5.2)(svelte@5.20.5)
 
   packages/pixi-svelte-storybook:
     dependencies:
@@ -953,22 +956,22 @@ importers:
         version: 9.0.15(@types/react@19.1.8)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))
       '@storybook/addon-svelte-csf':
         specifier: 5.0.5
-        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0)))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@storybook/builder-vite':
         specifier: 9.0.15
         version: 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@storybook/svelte':
         specifier: 9.0.15
-        version: 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))
+        version: 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)
       '@storybook/sveltekit':
         specifier: 9.0.15
-        version: 9.0.15(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 9.0.15(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@sveltejs/adapter-static':
         specifier: 3.0.10
-        version: 3.0.10(@sveltejs/kit@2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))
+        version: 3.0.10(@sveltejs/kit@2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))
       '@sveltejs/vite-plugin-svelte':
         specifier: 5.0.3
-        version: 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       pixi-svelte:
         specifier: workspace:*
         version: link:../pixi-svelte
@@ -979,8 +982,8 @@ importers:
         specifier: 9.1.19
         version: 9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-shared:
         specifier: workspace:*
         version: link:../utils-shared
@@ -1053,10 +1056,10 @@ importers:
         version: 5.2.0(@lingui/babel-plugin-lingui-macro@5.2.0(babel-plugin-macros@3.1.0)(supports-color@8.1.1)(typescript@5.8.3))(babel-plugin-macros@3.1.0)
       '@sveltejs/kit':
         specifier: 2.57.1
-        version: 2.57.1(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-bet:
         specifier: workspace:*
         version: link:../utils-bet
@@ -1142,18 +1145,18 @@ importers:
         specifier: 4.17.16
         version: 4.17.16
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       vite:
         specifier: 6.4.3
         version: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
     devDependencies:
       '@sveltejs/package':
         specifier: 2.3.10
-        version: 2.3.10(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)
+        version: 2.3.10(svelte@5.20.5)(typescript@5.8.3)
       '@sveltejs/vite-plugin-svelte':
         specifier: 5.0.3
-        version: 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       config-svelte:
         specifier: workspace:*
         version: link:../config-svelte
@@ -1186,7 +1189,7 @@ importers:
     dependencies:
       '@sveltejs/kit':
         specifier: 2.57.1
-        version: 2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@types/lodash':
         specifier: 4.17.16
         version: 4.17.16
@@ -1200,8 +1203,8 @@ importers:
         specifier: workspace:*
         version: link:../pixi-svelte
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-shared:
         specifier: workspace:*
         version: link:../utils-shared
@@ -1211,7 +1214,7 @@ importers:
     devDependencies:
       '@sveltejs/vite-plugin-svelte':
         specifier: 5.0.3
-        version: 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+        version: 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       chromatic:
         specifier: 11.26.1
         version: 11.26.1
@@ -1293,8 +1296,8 @@ importers:
         specifier: workspace:*
         version: link:../state-shared
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-shared:
         specifier: workspace:*
         version: link:../utils-shared
@@ -1324,8 +1327,8 @@ importers:
         specifier: workspace:*
         version: link:../state-shared
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-shared:
         specifier: workspace:*
         version: link:../utils-shared
@@ -1355,8 +1358,8 @@ importers:
         specifier: workspace:*
         version: link:../state-shared
       svelte:
-        specifier: 5.45.0
-        version: 5.45.0(@typescript-eslint/types@8.69.0)
+        specifier: 5.20.5
+        version: 5.20.5
       utils-shared:
         specifier: workspace:*
         version: link:../utils-shared
@@ -1850,9 +1853,6 @@ packages:
   '@jridgewell/gen-mapping@0.3.12':
     resolution: {integrity: sha512-OuLGC46TjB5BbN1dH8JULVVZY4WTdkF7tV9Ys6wLL1rubZnCMstOhNHueU5bLCrnRuDhKPDM4g6sw4Bel5Gzqg==}
 
-  '@jridgewell/remapping@2.3.5':
-    resolution: {integrity: sha512-LI9u/+laYG4Ds1TDKSJW2YPrIlcVYOwi2fUC6xB43lueCjgxV4lffOCZCtYFiH6TNOX+tQKXx97T4IKHbhyHEQ==}
-
   '@jridgewell/resolve-uri@3.1.2':
     resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
     engines: {node: '>=6.0.0'}
@@ -2083,7 +2083,7 @@ packages:
       '@storybook/svelte': ^0.0.0-0 || ^8.2.0 || ^9.0.0 || ^9.1.0-0
       '@sveltejs/vite-plugin-svelte': ^4.0.0 || ^5.0.0
       storybook: 9.1.19
-      svelte: 5.45.0
+      svelte: 5.20.5
       vite: ^5.0.0 || ^6.0.0
 
   '@storybook/builder-vite@9.0.15':
@@ -2123,7 +2123,7 @@ packages:
     peerDependencies:
       '@sveltejs/vite-plugin-svelte': ^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0
       storybook: 9.1.19
-      svelte: 5.45.0
+      svelte: 5.20.5
       vite: ^5.0.0 || ^6.0.0 || ^7.0.0
 
   '@storybook/svelte@9.0.15':
@@ -2131,20 +2131,15 @@ packages:
     engines: {node: '>=20.0.0'}
     peerDependencies:
       storybook: 9.1.19
-      svelte: 5.45.0
+      svelte: 5.20.5
 
   '@storybook/sveltekit@9.0.15':
     resolution: {integrity: sha512-U+GRBwszjdeVXXgPXNVj14dI+dsXxaQ0FnPOgWDftbZ9QuITFy6htWUdKp7CBjWOzHX3o0fRPTk928r72t57qQ==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       storybook: 9.1.19
-      svelte: 5.45.0
+      svelte: 5.20.5
       vite: ^5.0.0 || ^6.0.0 || ^7.0.0
-
-  '@sveltejs/acorn-typescript@1.0.13':
-    resolution: {integrity: sha512-wgKggnhZVL9Bfx1OaKKTrYY9BFRk6C8UAkQNUcIv1+llzYrIqy+RZm5HPKzn0NpEBvTVhTqB4kQyllZywsRBRQ==}
-    peerDependencies:
-      acorn: ^8.9.0
 
   '@sveltejs/acorn-typescript@1.0.5':
     resolution: {integrity: sha512-IwQk4yfwLdibDlrXVE04jTZYlLnwsTT2PIOQQGNLWfjavGifnk1JD1LcZjZaBTRcxZu2FfPfNLOE04DSu9lqtQ==}
@@ -2163,7 +2158,7 @@ packages:
     peerDependencies:
       '@opentelemetry/api': ^1.0.0
       '@sveltejs/vite-plugin-svelte': ^3.0.0 || ^4.0.0-next.1 || ^5.0.0 || ^6.0.0-next.0 || ^7.0.0
-      svelte: 5.45.0
+      svelte: 5.20.5
       typescript: ^5.3.3 || ^6.0.0
       vite: ^5.0.3 || ^6.0.0 || ^7.0.0-beta.0 || ^8.0.0
     peerDependenciesMeta:
@@ -2181,28 +2176,28 @@ packages:
     engines: {node: ^16.14 || >=18}
     hasBin: true
     peerDependencies:
-      svelte: 5.45.0
+      svelte: 5.20.5
 
   '@sveltejs/vite-plugin-svelte-inspector@4.0.1':
     resolution: {integrity: sha512-J/Nmb2Q2y7mck2hyCX4ckVHcR5tu2J+MtBEQqpDrrgELZ2uvraQcK/ioCV61AqkdXFgriksOKIceDcQmqnGhVw==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22}
     peerDependencies:
       '@sveltejs/vite-plugin-svelte': ^5.0.0
-      svelte: 5.45.0
+      svelte: 5.20.5
       vite: ^6.0.0
 
   '@sveltejs/vite-plugin-svelte@5.0.3':
     resolution: {integrity: sha512-MCFS6CrQDu1yGwspm4qtli0e63vaPCehf6V7pIMP15AsWgMKrqDGCPFF/0kn4SP0ii4aySu4Pa62+fIRGFMjgw==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22}
     peerDependencies:
-      svelte: 5.45.0
+      svelte: 5.20.5
       vite: ^6.0.0
 
   '@sveltejs/vite-plugin-svelte@5.1.0':
     resolution: {integrity: sha512-wojIS/7GYnJDYIg1higWj2ROA6sSRWvcR1PO/bqEyFr/5UZah26c8Cz4u0NaqjPeVltzsVpt2Tm8d2io0V+4Tw==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22}
     peerDependencies:
-      svelte: 5.45.0
+      svelte: 5.20.5
       vite: ^6.0.0
 
   '@testing-library/dom@10.4.0':
@@ -2375,6 +2370,11 @@ packages:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
     peerDependencies:
       acorn: ^6.0.0 || ^7.0.0 || ^8.0.0
+
+  acorn-typescript@1.4.13:
+    resolution: {integrity: sha512-xsc9Xv0xlVfwp2o7sQ+GCQ1PgbkdcpWdTzrwXxO3xDMTAywVS3oXVOcOHuRjAPkS4P9b+yc/qNF15460v+jp4Q==}
+    peerDependencies:
+      acorn: '>=8.9.0'
 
   acorn@8.15.0:
     resolution: {integrity: sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==}
@@ -2763,7 +2763,7 @@ packages:
     engines: {node: ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: ^7.0.0 || ^8.0.0-0 || ^9.0.0-0
-      svelte: 5.45.0
+      svelte: 5.20.5
     peerDependenciesMeta:
       svelte:
         optional: true
@@ -2830,14 +2830,6 @@ packages:
 
   esrap@1.4.9:
     resolution: {integrity: sha512-3OMlcd0a03UGuZpPeUC1HxR3nA23l+HEyCiZw3b3FumJIN9KphoGzDJKMXI1S72jVS1dsenDyQC0kJlO1U9E1g==}
-
-  esrap@2.3.6:
-    resolution: {integrity: sha512-yc0OC12UjPqLoc+fe+v5GNs4TOjAigUw3sTikfC+xeBPGUw7gDRz3DtYaqEhxyMVJojcSWJw7jT0QWR+CbuE/A==}
-    peerDependencies:
-      '@typescript-eslint/types': ^8.2.0
-    peerDependenciesMeta:
-      '@typescript-eslint/types':
-        optional: true
 
   esrecurse@4.3.0:
     resolution: {integrity: sha512-KmfKL3b6G+RXvP8N1vr3Tq1kL/oCFgn2NYXEtqP8/L3pKapUA4G8cFVaoF3SU323CD4XypR/ffioHmkti6/Tag==}
@@ -3400,7 +3392,7 @@ packages:
     resolution: {integrity: sha512-yViK9zqQ+H2qZD1w/bH7W8i+bVfKrD8GIFjkFe4Thl6kCT9SlAsXVNmt3jCvQOCsnOhcvYgsoVlRV/Eu6x5nNw==}
     peerDependencies:
       prettier: ^3.0.0
-      svelte: 5.45.0
+      svelte: 5.20.5
 
   prettier@3.5.2:
     resolution: {integrity: sha512-lc6npv5PH7hVqozBR7lkBNOGXV9vMwROAPlumdBkX0wTbbzPu/U1hk5yL8p2pt4Xoc+2mkT8t/sow2YrV/M5qg==}
@@ -3837,21 +3829,21 @@ packages:
     resolution: {integrity: sha512-hRHHufbJoArFmDYQKCpCvc0xUuIEfwYksvyLYEQyH+1xb5LD5sM/IthfooCdXZQtOIqXz6xm7NmaqdfwG4kh6w==}
     engines: {node: '>=18'}
     peerDependencies:
-      svelte: 5.45.0
+      svelte: 5.20.5
 
   svelte-check@4.7.6:
     resolution: {integrity: sha512-t2scM//ZuVbSY/T2w6FSBw1v9s2NEmh/g+sy1lqtosW5ylBV5AF4wFb1Ts9Kf3MbfPDUDJDZ9L436YT0SPTdvw==}
     engines: {node: '>= 18.0.0'}
     hasBin: true
     peerDependencies:
-      svelte: 5.45.0
+      svelte: 5.20.5
       typescript: ^5.0.0 || ^6.0.0
 
   svelte-eslint-parser@0.43.0:
     resolution: {integrity: sha512-GpU52uPKKcVnh8tKN5P4UZpJ/fUDndmq7wfsvoVXsyP+aY0anol7Yqo01fyrlaWGMFfm4av5DyrjlaXdLRJvGA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     peerDependencies:
-      svelte: 5.45.0
+      svelte: 5.20.5
     peerDependenciesMeta:
       svelte:
         optional: true
@@ -3859,11 +3851,11 @@ packages:
   svelte2tsx@0.7.40:
     resolution: {integrity: sha512-Fgqe2lzC9DWT/kQTIXqN39O2ot9rUqzUu9dqpbuI6EsaEJ6+RSXVmXnxcNYMlKb2LRPDoIg9TVzXYWwi0zhCmQ==}
     peerDependencies:
-      svelte: 5.45.0
+      svelte: 5.20.5
       typescript: ^4.9.4 || ^5.0.0
 
-  svelte@5.45.0:
-    resolution: {integrity: sha512-SgVsitVTL/mjJbbladOPvavLBOXOBv9JdNY4XrcFdG69zEO0P0Ic/wQqP2huOIYti67oE7KNwbEAZSPsSSQ5Iw==}
+  svelte@5.20.5:
+    resolution: {integrity: sha512-dpu2lTPVsAAgZFKpF7A9741sBCdXGogfxFU4aQeVgun7GVNCSVheTzj0FsT7g9OsLhBaMX4lKLwVIvmzQGytmQ==}
     engines: {node: '>=18'}
 
   sync-child-process@1.0.2:
@@ -4491,11 +4483,6 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.4
       '@jridgewell/trace-mapping': 0.3.29
 
-  '@jridgewell/remapping@2.3.5':
-    dependencies:
-      '@jridgewell/gen-mapping': 0.3.12
-      '@jridgewell/trace-mapping': 0.3.29
-
   '@jridgewell/resolve-uri@3.1.2': {}
 
   '@jridgewell/sourcemap-codec@1.5.4': {}
@@ -4729,35 +4716,35 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
 
-  '@storybook/addon-svelte-csf@5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0)))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
+  '@storybook/addon-svelte-csf@5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5))(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
     dependencies:
       '@storybook/csf': 0.1.13
-      '@storybook/svelte': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))
-      '@sveltejs/vite-plugin-svelte': 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+      '@storybook/svelte': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)
+      '@sveltejs/vite-plugin-svelte': 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       dedent: 1.6.0(babel-plugin-macros@3.1.0)
       es-toolkit: 1.39.6
       esrap: 1.4.9
       magic-string: 0.30.17
       storybook: 9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
-      svelte-ast-print: 0.4.2(svelte@5.45.0(@typescript-eslint/types@8.69.0))
+      svelte: 5.20.5
+      svelte-ast-print: 0.4.2(svelte@5.20.5)
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
       zimmerframe: 1.1.2
     transitivePeerDependencies:
       - babel-plugin-macros
 
-  '@storybook/addon-svelte-csf@5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0)))(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
+  '@storybook/addon-svelte-csf@5.0.5(@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5))(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(babel-plugin-macros@3.1.0)(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
     dependencies:
       '@storybook/csf': 0.1.13
-      '@storybook/svelte': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))
-      '@sveltejs/vite-plugin-svelte': 5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+      '@storybook/svelte': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)
+      '@sveltejs/vite-plugin-svelte': 5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       dedent: 1.6.0(babel-plugin-macros@3.1.0)
       es-toolkit: 1.39.6
       esrap: 1.4.9
       magic-string: 0.30.17
       storybook: 9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
-      svelte-ast-print: 0.4.2(svelte@5.45.0(@typescript-eslint/types@8.69.0))
+      svelte: 5.20.5
+      svelte-ast-print: 0.4.2(svelte@5.20.5)
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
       zimmerframe: 1.1.2
     transitivePeerDependencies:
@@ -4792,84 +4779,80 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
       storybook: 9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
 
-  '@storybook/svelte-vite@9.0.15(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
+  '@storybook/svelte-vite@9.0.15(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
     dependencies:
       '@storybook/builder-vite': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
-      '@storybook/svelte': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))
-      '@sveltejs/vite-plugin-svelte': 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+      '@storybook/svelte': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)
+      '@sveltejs/vite-plugin-svelte': 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       magic-string: 0.30.17
       storybook: 9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
-      svelte2tsx: 0.7.40(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)
+      svelte: 5.20.5
+      svelte2tsx: 0.7.40(svelte@5.20.5)(typescript@5.8.3)
       typescript: 5.8.3
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
 
-  '@storybook/svelte-vite@9.0.15(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
+  '@storybook/svelte-vite@9.0.15(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
     dependencies:
       '@storybook/builder-vite': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
-      '@storybook/svelte': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))
-      '@sveltejs/vite-plugin-svelte': 5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+      '@storybook/svelte': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)
+      '@sveltejs/vite-plugin-svelte': 5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       magic-string: 0.30.17
       storybook: 9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
-      svelte2tsx: 0.7.40(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)
+      svelte: 5.20.5
+      svelte2tsx: 0.7.40(svelte@5.20.5)(typescript@5.8.3)
       typescript: 5.8.3
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
 
-  '@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))':
+  '@storybook/svelte@9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)':
     dependencies:
       storybook: 9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       ts-dedent: 2.2.0
       type-fest: 2.19.0
 
-  '@storybook/sveltekit@9.0.15(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
+  '@storybook/sveltekit@9.0.15(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
     dependencies:
       '@storybook/builder-vite': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
-      '@storybook/svelte': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))
-      '@storybook/svelte-vite': 9.0.15(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+      '@storybook/svelte': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)
+      '@storybook/svelte-vite': 9.0.15(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       storybook: 9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
     transitivePeerDependencies:
       - '@sveltejs/vite-plugin-svelte'
 
-  '@storybook/sveltekit@9.0.15(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
+  '@storybook/sveltekit@9.0.15(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
     dependencies:
       '@storybook/builder-vite': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
-      '@storybook/svelte': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))
-      '@storybook/svelte-vite': 9.0.15(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+      '@storybook/svelte': 9.0.15(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)
+      '@storybook/svelte-vite': 9.0.15(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(storybook@9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       storybook: 9.1.19(@testing-library/dom@10.4.0)(prettier@3.5.2)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
     transitivePeerDependencies:
       - '@sveltejs/vite-plugin-svelte'
-
-  '@sveltejs/acorn-typescript@1.0.13(acorn@8.15.0)':
-    dependencies:
-      acorn: 8.15.0
 
   '@sveltejs/acorn-typescript@1.0.5(acorn@8.15.0)':
     dependencies:
       acorn: 8.15.0
 
-  '@sveltejs/adapter-static@3.0.10(@sveltejs/kit@2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))':
+  '@sveltejs/adapter-static@3.0.10(@sveltejs/kit@2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))':
     dependencies:
-      '@sveltejs/kit': 2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))
+      '@sveltejs/kit': 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))
 
-  '@sveltejs/adapter-static@3.0.10(@sveltejs/kit@2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))':
+  '@sveltejs/adapter-static@3.0.10(@sveltejs/kit@2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))':
     dependencies:
-      '@sveltejs/kit': 2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+      '@sveltejs/kit': 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
 
-  '@sveltejs/adapter-static@3.0.10(@sveltejs/kit@2.57.1(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))':
+  '@sveltejs/adapter-static@3.0.10(@sveltejs/kit@2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))':
     dependencies:
-      '@sveltejs/kit': 2.57.1(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+      '@sveltejs/kit': 2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
 
-  '@sveltejs/kit@2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))':
+  '@sveltejs/kit@2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@sveltejs/acorn-typescript': 1.0.5(acorn@8.15.0)
-      '@sveltejs/vite-plugin-svelte': 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))
+      '@sveltejs/vite-plugin-svelte': 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))
       '@types/cookie': 0.6.0
       acorn: 8.15.0
       cookie: 0.6.0
@@ -4880,16 +4863,16 @@ snapshots:
       mrmime: 2.0.1
       set-cookie-parser: 3.1.2
       sirv: 3.0.1
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)
     optionalDependencies:
       typescript: 5.8.3
 
-  '@sveltejs/kit@2.57.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
+  '@sveltejs/kit@2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@sveltejs/acorn-typescript': 1.0.5(acorn@8.15.0)
-      '@sveltejs/vite-plugin-svelte': 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+      '@sveltejs/vite-plugin-svelte': 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@types/cookie': 0.6.0
       acorn: 8.15.0
       cookie: 0.6.0
@@ -4900,16 +4883,16 @@ snapshots:
       mrmime: 2.0.1
       set-cookie-parser: 3.1.2
       sirv: 3.0.1
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
     optionalDependencies:
       typescript: 5.8.3
 
-  '@sveltejs/kit@2.57.1(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
+  '@sveltejs/kit@2.57.1(patch_hash=da13328ef54609074132a8b5a5d121886e3a7e1f5dd71289056d4ce186dec416)(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(svelte@5.20.5)(typescript@5.8.3)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@sveltejs/acorn-typescript': 1.0.5(acorn@8.15.0)
-      '@sveltejs/vite-plugin-svelte': 5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+      '@sveltejs/vite-plugin-svelte': 5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       '@types/cookie': 0.6.0
       acorn: 8.15.0
       cookie: 0.6.0
@@ -4920,85 +4903,85 @@ snapshots:
       mrmime: 2.0.1
       set-cookie-parser: 3.1.2
       sirv: 3.0.1
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
     optionalDependencies:
       typescript: 5.8.3
 
   '@sveltejs/load-config@0.2.3': {}
 
-  '@sveltejs/package@2.3.10(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)':
+  '@sveltejs/package@2.3.10(svelte@5.20.5)(typescript@5.8.3)':
     dependencies:
       chokidar: 4.0.3
       kleur: 4.1.5
       sade: 1.8.1
       semver: 7.7.2
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
-      svelte2tsx: 0.7.40(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3)
+      svelte: 5.20.5
+      svelte2tsx: 0.7.40(svelte@5.20.5)(typescript@5.8.3)
     transitivePeerDependencies:
       - typescript
 
-  '@sveltejs/vite-plugin-svelte-inspector@4.0.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))':
+  '@sveltejs/vite-plugin-svelte-inspector@4.0.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte': 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))
+      '@sveltejs/vite-plugin-svelte': 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))
       debug: 4.4.3(supports-color@8.1.1)
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)
     transitivePeerDependencies:
       - supports-color
 
-  '@sveltejs/vite-plugin-svelte-inspector@4.0.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
+  '@sveltejs/vite-plugin-svelte-inspector@4.0.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte': 5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+      '@sveltejs/vite-plugin-svelte': 5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       debug: 4.4.3(supports-color@8.1.1)
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
     transitivePeerDependencies:
       - supports-color
 
-  '@sveltejs/vite-plugin-svelte-inspector@4.0.1(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
+  '@sveltejs/vite-plugin-svelte-inspector@4.0.1(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte': 5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+      '@sveltejs/vite-plugin-svelte': 5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       debug: 4.4.3(supports-color@8.1.1)
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
     transitivePeerDependencies:
       - supports-color
 
-  '@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))':
+  '@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte-inspector': 4.0.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))
+      '@sveltejs/vite-plugin-svelte-inspector': 4.0.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)))(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))
       debug: 4.4.1(supports-color@8.1.1)
       deepmerge: 4.3.1
       kleur: 4.1.5
       magic-string: 0.30.17
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1)
       vitefu: 1.0.7(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.85.1))
     transitivePeerDependencies:
       - supports-color
 
-  '@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
+  '@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte-inspector': 4.0.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+      '@sveltejs/vite-plugin-svelte-inspector': 4.0.1(@sveltejs/vite-plugin-svelte@5.0.3(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       debug: 4.4.1(supports-color@8.1.1)
       deepmerge: 4.3.1
       kleur: 4.1.5
       magic-string: 0.30.17
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
       vitefu: 1.0.7(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
     transitivePeerDependencies:
       - supports-color
 
-  '@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
+  '@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte-inspector': 4.0.1(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(supports-color@8.1.1)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
+      '@sveltejs/vite-plugin-svelte-inspector': 4.0.1(@sveltejs/vite-plugin-svelte@5.1.0(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)))(supports-color@8.1.1)(svelte@5.20.5)(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
       debug: 4.4.3(supports-color@8.1.1)
       deepmerge: 4.3.1
       kleur: 4.1.5
       magic-string: 0.30.17
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       vite: 6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2)
       vitefu: 1.0.7(vite@6.4.3(@types/node@26.4.1)(jiti@1.21.7)(sass-embedded@1.89.2))
     transitivePeerDependencies:
@@ -5209,6 +5192,10 @@ snapshots:
   '@xmldom/xmldom@0.8.15': {}
 
   acorn-jsx@5.3.2(acorn@8.15.0):
+    dependencies:
+      acorn: 8.15.0
+
+  acorn-typescript@1.4.13(acorn@8.15.0):
     dependencies:
       acorn: 8.15.0
 
@@ -5568,7 +5555,7 @@ snapshots:
       eslint-plugin-turbo: 2.10.12(eslint@9.21.0(jiti@1.21.7)(supports-color@8.1.1))(turbo@2.4.4)
       turbo: 2.4.4
 
-  eslint-plugin-svelte@2.46.1(eslint@9.21.0(jiti@1.21.7)(supports-color@8.1.1))(svelte@5.45.0(@typescript-eslint/types@8.69.0)):
+  eslint-plugin-svelte@2.46.1(eslint@9.21.0(jiti@1.21.7)(supports-color@8.1.1))(svelte@5.20.5):
     dependencies:
       '@eslint-community/eslint-utils': 4.9.1(eslint@9.21.0(jiti@1.21.7)(supports-color@8.1.1))
       '@jridgewell/sourcemap-codec': 1.5.4
@@ -5581,9 +5568,9 @@ snapshots:
       postcss-safe-parser: 6.0.0(postcss@8.5.18)
       postcss-selector-parser: 6.1.4
       semver: 7.8.2
-      svelte-eslint-parser: 0.43.0(svelte@5.45.0(@typescript-eslint/types@8.69.0))
+      svelte-eslint-parser: 0.43.0(svelte@5.20.5)
     optionalDependencies:
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
     transitivePeerDependencies:
       - ts-node
 
@@ -5678,12 +5665,6 @@ snapshots:
   esrap@1.4.9:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.4
-
-  esrap@2.3.6(@typescript-eslint/types@8.69.0):
-    dependencies:
-      '@jridgewell/sourcemap-codec': 1.5.4
-    optionalDependencies:
-      '@typescript-eslint/types': 8.69.0
 
   esrecurse@4.3.0:
     dependencies:
@@ -6173,10 +6154,10 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-plugin-svelte@3.3.3(prettier@3.5.2)(svelte@5.45.0(@typescript-eslint/types@8.69.0)):
+  prettier-plugin-svelte@3.3.3(prettier@3.5.2)(svelte@5.20.5):
     dependencies:
       prettier: 3.5.2
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
 
   prettier@3.5.2: {}
 
@@ -6570,13 +6551,13 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  svelte-ast-print@0.4.2(svelte@5.45.0(@typescript-eslint/types@8.69.0)):
+  svelte-ast-print@0.4.2(svelte@5.20.5):
     dependencies:
       esrap: 1.2.2
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       zimmerframe: 1.1.2
 
-  svelte-check@4.7.6(picomatch@4.0.4)(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3):
+  svelte-check@4.7.6(picomatch@4.0.4)(svelte@5.20.5)(typescript@5.8.3):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.29
       '@sveltejs/load-config': 0.2.3
@@ -6584,12 +6565,12 @@ snapshots:
       fdir: 6.5.0(picomatch@4.0.4)
       picocolors: 1.1.1
       sade: 1.8.1
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       typescript: 5.8.3
     transitivePeerDependencies:
       - picomatch
 
-  svelte-eslint-parser@0.43.0(svelte@5.45.0(@typescript-eslint/types@8.69.0)):
+  svelte-eslint-parser@0.43.0(svelte@5.20.5):
     dependencies:
       eslint-scope: 7.2.2
       eslint-visitor-keys: 3.4.3
@@ -6597,34 +6578,31 @@ snapshots:
       postcss: 8.5.18
       postcss-scss: 4.0.9(postcss@8.5.18)
     optionalDependencies:
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
 
-  svelte2tsx@0.7.40(svelte@5.45.0(@typescript-eslint/types@8.69.0))(typescript@5.8.3):
+  svelte2tsx@0.7.40(svelte@5.20.5)(typescript@5.8.3):
     dependencies:
       dedent-js: 1.0.1
       pascal-case: 3.1.2
-      svelte: 5.45.0(@typescript-eslint/types@8.69.0)
+      svelte: 5.20.5
       typescript: 5.8.3
 
-  svelte@5.45.0(@typescript-eslint/types@8.69.0):
+  svelte@5.20.5:
     dependencies:
-      '@jridgewell/remapping': 2.3.5
+      '@ampproject/remapping': 2.3.0
       '@jridgewell/sourcemap-codec': 1.5.4
-      '@sveltejs/acorn-typescript': 1.0.13(acorn@8.15.0)
       '@types/estree': 1.0.8
       acorn: 8.15.0
+      acorn-typescript: 1.4.13(acorn@8.15.0)
       aria-query: 5.3.2
       axobject-query: 4.1.0
       clsx: 2.1.1
-      devalue: 5.8.1
       esm-env: 1.2.2
-      esrap: 2.3.6(@typescript-eslint/types@8.69.0)
+      esrap: 1.4.9
       is-reference: 3.0.3
       locate-character: 3.0.0
       magic-string: 0.30.17
       zimmerframe: 1.1.2
-    transitivePeerDependencies:
-      - '@typescript-eslint/types'
 
   sync-child-process@1.0.2:
     dependencies:
