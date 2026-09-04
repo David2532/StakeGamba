@@ -1453,11 +1453,19 @@ export function verifyDeviceOwnerReview(review, options = {}) {
 	identifier(options.trustedReviewer.id, 'trustedReviewer.id');
 	identifier(options.trustedReviewer.keyId, 'trustedReviewer.keyId');
 	meaningfulString(options.trustedReviewer.publicKeyPem, 'trustedReviewer.publicKeyPem', 32);
-	if (options.trustedReviewer.publicKeySourceSha256 !== undefined)
+	if (options.trustedReviewer.publicKeySourceSha256 !== undefined) {
 		digest(
 			options.trustedReviewer.publicKeySourceSha256,
 			'trustedReviewer.publicKeySourceSha256',
 		);
+		const actualPublicKeySourceSha256 = createHash('sha256')
+			.update(Buffer.from(options.trustedReviewer.publicKeyPem, 'utf8'))
+			.digest('hex');
+		requireValue(
+			options.trustedReviewer.publicKeySourceSha256 === actualPublicKeySourceSha256,
+			'trustedReviewer.publicKeySourceSha256 does not match the exact publicKeyPem bytes',
+		);
+	}
 	requireValue(
 		review.reviewer.id === options.trustedReviewer.id,
 		'ownerReview.reviewer.id does not match the independently trusted reviewer',

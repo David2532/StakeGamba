@@ -107,6 +107,47 @@ test('empty query and fragment delimiters cannot corrupt live or Replay endpoint
 	assert.equal(fetchCalls, 0);
 });
 
+test('ambiguous launch authority parameters fail closed before live or Replay bootstrap', () => {
+	const liveAuthority =
+		'sessionID=security-test&currency=XSC&lang=en&device=desktop' +
+		'&rgs_url=https%3A%2F%2Frgs.example';
+	const replayAuthority =
+		'game=blacksite_breach&version=0.1.0-m2&mode=base&event=0' +
+		'&rgs_url=https%3A%2F%2Frgs.example';
+
+	for (const query of [
+		`?replay=false&replay=true&${liveAuthority}&${replayAuthority}`,
+		`?replay=true&replay=false&${liveAuthority}&${replayAuthority}`,
+	]) {
+		const launch = resolveLaunchMode(query);
+		assert.equal(launch.kind, 'error');
+		assert.equal(launch.code, 'REPLAY_QUERY_INVALID');
+		assert.equal(launch.surface, 'replay');
+	}
+
+	for (const query of [
+		`?${liveAuthority}&rgs_url=https%3A%2F%2Fother.example`,
+		`?${liveAuthority}&session_id=other-session`,
+		`?${liveAuthority}&language=de`,
+	]) {
+		const launch = resolveLaunchMode(query);
+		assert.equal(launch.kind, 'error');
+		assert.equal(launch.code, 'LIVE_QUERY_INVALID');
+		assert.equal(launch.surface, 'live');
+	}
+
+	for (const query of [
+		`?replay=true&${replayAuthority}&rgs_url=https%3A%2F%2Fother.example`,
+		`?replay=true&${replayAuthority}&amount=1&bet=2`,
+		`?replay=true&${replayAuthority}&lang=en&language=de`,
+	]) {
+		const launch = resolveLaunchMode(query);
+		assert.equal(launch.kind, 'error');
+		assert.equal(launch.code, 'REPLAY_QUERY_INVALID');
+		assert.equal(launch.surface, 'replay');
+	}
+});
+
 test('exact-QA HTTP opt-in is code-owned and limited to numeric loopback', () => {
 	const exactQaPolicy = { allowHttpLoopbackForExactQa: true };
 	for (const url of ['http://127.0.0.1:3000/rgs/', 'http://[::1]:3000/rgs/']) {

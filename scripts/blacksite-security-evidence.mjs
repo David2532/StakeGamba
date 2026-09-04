@@ -506,7 +506,7 @@ export function buildSecurityEvidence({
 	};
 }
 
-function collectPackageManifestPaths(repoRoot) {
+export function collectPackageManifestPaths(repoRoot) {
 	const paths = [resolve(repoRoot, 'package.json')];
 	function visit(directory) {
 		if (!existsSync(directory)) return;

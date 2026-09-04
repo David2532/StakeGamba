@@ -18,9 +18,18 @@ import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'nod
 import { fileURLToPath } from 'node:url';
 
 import { buildComplianceEvidence } from './blacksite-compliance-evidence.mjs';
+import {
+	BLACKSITE_SECURITY_EVIDENCE_SCHEMA,
+	buildSecurityEvidence,
+	collectPackageManifestPaths,
+} from './blacksite-security-evidence.mjs';
+import {
+	BLACKSITE_REPOSITORY_EVIDENCE_SCHEMA,
+	buildRepositoryGateEvidence,
+} from './blacksite-repository-evidence.mjs';
 
-export const RELEASE_BUNDLE_SCHEMA = 'blacksite-release-evidence-bundle-v1';
-export const RELEASE_BUNDLE_GENERATOR_VERSION = '1.0.0';
+export const RELEASE_BUNDLE_SCHEMA = 'blacksite-release-evidence-bundle-v2';
+export const RELEASE_BUNDLE_GENERATOR_VERSION = '2.0.0';
 
 const scriptPath = fileURLToPath(import.meta.url);
 const scriptDirectory = dirname(scriptPath);
@@ -44,6 +53,11 @@ const candidateManifestName = 'candidate-manifest.json';
 const packageVerificationName = 'package-verification.json';
 const browserEvidenceName = 'blacksite-browser-evidence.json';
 const complianceEvidenceName = 'blacksite-51-evidence.json';
+const repositoryEvidenceBundlePath = 'artifacts/blacksite-ci/repository-gates.json';
+const securityEvidenceBundlePath = 'artifacts/blacksite-security/security-evidence.json';
+const securityAuditBundlePath = 'artifacts/blacksite-security/pnpm-audit.json';
+const securityAuditStderrBundlePath = 'artifacts/blacksite-security/pnpm-audit.stderr.txt';
+const repositoryInputsBundleRoot = 'repository-inputs';
 const evidenceMapName = 'release-evidence-map.json';
 const requirementsChecklistName = 'stake-requirements-51.md';
 const bundleManifestName = 'release-bundle-manifest.json';
@@ -220,6 +234,61 @@ function validateExpectedBranch(branch) {
 	}
 	requireValue(normalized === branch, 'expectedBranch was normalized by Git');
 	return branch;
+}
+
+function validateCiIdentity(identity, expectedBranch, expectedGitSha, ciRunId, ciRunAttempt) {
+	requireValue(
+		identity && typeof identity === 'object' && !Array.isArray(identity),
+		'GitHub Actions identity is required',
+	);
+	const expected = {
+		provider: 'github-actions',
+		authenticity: 'EXTERNAL_RUN_VERIFICATION_REQUIRED',
+		repository: 'David2532/StakeGamba',
+		eventName: identity.eventName,
+		workflow: 'BlackSite CI',
+		workflowRef: `David2532/StakeGamba/.github/workflows/blacksite-ci.yml@refs/heads/${expectedBranch}`,
+		workflowSha: expectedGitSha,
+		job: 'blacksite-quality',
+		ref: `refs/heads/${expectedBranch}`,
+		refName: expectedBranch,
+		refType: 'branch',
+		sha: expectedGitSha,
+		runId: ciRunId,
+		runAttempt: ciRunAttempt,
+	};
+	requireValue(
+		['push', 'workflow_dispatch'].includes(identity.eventName) && sameJson(identity, expected),
+		'Release COMPLETE status requires the exact source-only BlackSite GitHub Actions identity',
+	);
+	return identity;
+}
+
+export function captureGitHubActionsReleaseIdentity(
+	{ expectedBranch, expectedGitSha, ciRunId, ciRunAttempt },
+	environment = process.env,
+) {
+	requireValue(
+		environment.GITHUB_ACTIONS === 'true' && environment.CI === '1',
+		'Release COMPLETE status is available only inside GitHub Actions CI',
+	);
+	const identity = {
+		provider: 'github-actions',
+		authenticity: 'EXTERNAL_RUN_VERIFICATION_REQUIRED',
+		repository: environment.GITHUB_REPOSITORY,
+		eventName: environment.GITHUB_EVENT_NAME,
+		workflow: environment.GITHUB_WORKFLOW,
+		workflowRef: environment.GITHUB_WORKFLOW_REF,
+		workflowSha: environment.GITHUB_WORKFLOW_SHA,
+		job: environment.GITHUB_JOB,
+		ref: environment.GITHUB_REF,
+		refName: environment.GITHUB_REF_NAME,
+		refType: environment.GITHUB_REF_TYPE,
+		sha: environment.GITHUB_SHA,
+		runId: environment.GITHUB_RUN_ID,
+		runAttempt: environment.GITHUB_RUN_ATTEMPT,
+	};
+	return validateCiIdentity(identity, expectedBranch, expectedGitSha, ciRunId, ciRunAttempt);
 }
 
 function gitText(arguments_) {
@@ -559,6 +628,10 @@ function validateBrowserRun(browserRunRoot, candidate, expectedGitSha) {
 	assertRecordedFact(evidenceRecord, evidenceDocument.file, 'Browser run evidence');
 	const browserEvidence = evidenceDocument.value;
 	requireValue(
+		browserEvidence.schema === 'blacksite-browser-evidence-v2',
+		'Browser evidence must use the current blacksite-browser-evidence-v2 schema',
+	);
+	requireValue(
 		Array.isArray(browserEvidence.scenarios) && Array.isArray(browserEvidence.checks),
 		'Browser evidence must contain scenario and check arrays',
 	);
@@ -624,6 +697,10 @@ function validateBrowserRun(browserRunRoot, candidate, expectedGitSha) {
 			resolve(identity.testedBuildRoot) === candidate.frontendRoot,
 		'Browser evidence is not bound to the exact clean packaged frontend/full SHA',
 	);
+	requireValue(
+		sameJson(browserEvidence.manifests?.build, candidate.frontendTree),
+		'Browser build manifest differs from the exact packaged frontend tree',
+	);
 	const byPath = new Map(runTree.files.map((file) => [file.path, file]));
 	const expectedPrefix = `artifacts/blacksite-qa/${runName}/`;
 	const screenshotReferences = collectScreenshotReferences(browserEvidence)
@@ -674,6 +751,228 @@ function validateBrowserRun(browserRunRoot, candidate, expectedGitSha) {
 	};
 }
 
+function repositoryInput(label, path) {
+	const physicalPath = assertPhysicalFile(path, `Repository gate ${label} input`);
+	return {
+		label,
+		physicalPath,
+		path: relative(repoRoot, physicalPath).replaceAll('\\', '/'),
+		source: readFileSync(physicalPath, 'utf8'),
+	};
+}
+
+function validateIsoTimestamp(value, context) {
+	const milliseconds = Date.parse(value ?? '');
+	requireValue(
+		Number.isFinite(milliseconds) && new Date(milliseconds).toISOString() === value,
+		`${context} must be an exact ISO timestamp`,
+	);
+}
+
+function validateSecurityReceipt(
+	securityEvidencePath,
+	auditReportPath,
+	auditStderrPath,
+	expectedGitSha,
+) {
+	const document = readJsonDocument(securityEvidencePath, 'Security evidence');
+	const auditDocument = readJsonDocument(auditReportPath, 'Production security audit report');
+	const physicalAuditStderrPath = assertPhysicalFile(
+		auditStderrPath,
+		'Production security audit stderr',
+	);
+	const auditStderrFile = fileFact(physicalAuditStderrPath);
+	const securityEvidence = document.value;
+	validateIsoTimestamp(securityEvidence.generatedAt, 'Security evidence generatedAt');
+	requireValue(
+		securityEvidence.schema === BLACKSITE_SECURITY_EVIDENCE_SCHEMA &&
+			securityEvidence.status === 'PASS' &&
+			securityEvidence.identity?.testedGitSha === expectedGitSha &&
+			securityEvidence.identity?.expectedGitSha === expectedGitSha,
+		'Security evidence must be a passing current-schema receipt for the exact candidate SHA',
+	);
+	const auditCheck = securityEvidence.checks?.find(
+		(check) => check.id === 'production-registry-audit',
+	);
+	requireValue(
+		auditCheck?.status === 'PASS' &&
+			Number.isSafeInteger(auditCheck.detail?.exitCode) &&
+			auditCheck.detail.reportSha256 === auditDocument.file.sha256,
+		'Security evidence is not bound to the exact passing raw production audit report',
+	);
+	const manifestFiles = collectPackageManifestPaths(repoRoot).map((path) => {
+		const input = repositoryInput('package manifest', path);
+		return input;
+	});
+	const manifestInputs = manifestFiles.map(({ path, source }) => ({ path, source }));
+	const lockfileInput = repositoryInput('lockfile', join(repoRoot, 'pnpm-lock.yaml'));
+	const npmrcInput = repositoryInput('npmrc', join(repoRoot, '.npmrc'));
+	const independentlyResolved = buildSecurityEvidence({
+		expectedGitSha,
+		actualGitSha: expectedGitSha,
+		manifestInputs,
+		lockfileSource: lockfileInput.source,
+		npmrcSource: npmrcInput.source,
+		effectiveAuditRegistry: securityEvidence.inputs?.auditRegistry?.url,
+		auditReportSource: readFileSync(auditDocument.path, 'utf8'),
+		auditExitCode: auditCheck.detail.exitCode,
+		requireAudit: true,
+		generatedAt: securityEvidence.generatedAt,
+	});
+	requireValue(
+		sameJson(securityEvidence, independentlyResolved),
+		'Security evidence differs from independent recomputation over repository and raw audit bytes',
+	);
+	return {
+		document,
+		evidence: securityEvidence,
+		auditDocument,
+		auditStderrPath: physicalAuditStderrPath,
+		auditStderrFile,
+		auditCheck,
+		rawRepositoryInputs: [...manifestFiles, lockfileInput, npmrcInput],
+	};
+}
+
+function validateRepositoryReceipt(
+	repositoryEvidencePath,
+	security,
+	candidate,
+	browser,
+	expectedGitSha,
+) {
+	const document = readJsonDocument(repositoryEvidencePath, 'Repository gate evidence');
+	const repositoryEvidence = document.value;
+	validateIsoTimestamp(repositoryEvidence.generatedAt, 'Repository gate evidence generatedAt');
+	const inputSources = [
+		repositoryInput('workflow', join(repoRoot, '.github', 'workflows', 'blacksite-ci.yml')),
+		repositoryInput('npmrc', join(repoRoot, '.npmrc')),
+		repositoryInput('package-manifest', join(repoRoot, 'package.json')),
+		repositoryInput('lockfile', join(repoRoot, 'pnpm-lock.yaml')),
+		repositoryInput('security-evidence', security.document.path),
+		repositoryInput('candidate-manifest', candidate.manifestDocument.path),
+		repositoryInput('package-verification', candidate.verificationDocument.path),
+		repositoryInput('browser-evidence', browser.evidenceDocument.path),
+	];
+	const independentlyResolved = buildRepositoryGateEvidence({
+		expectedGitSha,
+		actualGitSha: expectedGitSha,
+		inputSources,
+		generatedAt: repositoryEvidence.generatedAt,
+	});
+	requireValue(
+		repositoryEvidence.schema === BLACKSITE_REPOSITORY_EVIDENCE_SCHEMA &&
+			sameJson(repositoryEvidence, independentlyResolved),
+		'Repository gate evidence differs from independent recomputation over its eight raw inputs',
+	);
+	return { document, evidence: repositoryEvidence, inputSources };
+}
+
+export function repositoryInputBundlePath(sourcePath) {
+	const mappedParts = sourcePath.split('/').map((part) => {
+		if (part === '.npmrc') return 'npmrc';
+		if (part === '.github') return 'github';
+		return part.startsWith('.') ? `dot-${part.slice(1)}` : part;
+	});
+	requireValue(
+		mappedParts.length > 0 &&
+			!mappedParts.some(
+				(part) => part.length === 0 || part === '.' || part === '..' || part.startsWith('.'),
+			),
+		`Repository source input cannot be mapped into the bundle: ${sourcePath}`,
+	);
+	const mappedPath = mappedParts.join('/');
+	return `${repositoryInputsBundleRoot}/${mappedPath}`;
+}
+
+function collectRepositorySourceInputs(repository, security) {
+	const repositorySourceLabels = new Set(['workflow', 'npmrc', 'package-manifest', 'lockfile']);
+	const candidates = [
+		...repository.inputSources.filter(({ label }) => repositorySourceLabels.has(label)),
+		...security.rawRepositoryInputs,
+	];
+	const bySourcePath = new Map();
+	const byBundlePath = new Map();
+	for (const input of candidates) {
+		const sourcePath = safeRelativePath(repoRoot, input.physicalPath, 'Repository source input');
+		requireValue(
+			input.path === sourcePath,
+			`Repository source input path is not canonical: ${input.path}`,
+		);
+		const fact = {
+			bytes: Buffer.byteLength(input.source),
+			sha256: sha256Bytes(Buffer.from(input.source, 'utf8')),
+		};
+		assertRecordedFact(fileFact(input.physicalPath), fact, `Repository source input ${sourcePath}`);
+		const bundlePath = repositoryInputBundlePath(sourcePath);
+		const existingSource = bySourcePath.get(sourcePath);
+		if (existingSource) {
+			requireValue(
+				existingSource.bundlePath === bundlePath && sameJson(existingSource.file, fact),
+				`Repository source input has contradictory bindings: ${sourcePath}`,
+			);
+			continue;
+		}
+		requireValue(
+			!byBundlePath.has(bundlePath),
+			`Repository source inputs collide after hidden-path mapping: ${bundlePath}`,
+		);
+		const record = { sourcePath, bundlePath, physicalPath: input.physicalPath, file: fact };
+		bySourcePath.set(sourcePath, record);
+		byBundlePath.set(bundlePath, record);
+	}
+	return [...bySourcePath.values()].sort((left, right) =>
+		left.sourcePath.localeCompare(right.sourcePath, 'en'),
+	);
+}
+
+function repositoryReceiptInputBindings(repository, sourceInputs, browser) {
+	const bundlePathBySource = new Map(
+		sourceInputs.map(({ sourcePath, bundlePath }) => [sourcePath, bundlePath]),
+	);
+	const explicitBundlePaths = new Map([
+		['security-evidence', securityEvidenceBundlePath],
+		['candidate-manifest', candidateManifestName],
+		['package-verification', packageVerificationName],
+		['browser-evidence', `${browser.bundleRoot}/${browserEvidenceName}`],
+	]);
+	return repository.evidence.inputs.map((input) => {
+		const bundlePath = explicitBundlePaths.get(input.label) ?? bundlePathBySource.get(input.path);
+		requireValue(bundlePath, `Repository input has no retained bundle copy: ${input.label}`);
+		return { ...input, bundlePath };
+	});
+}
+
+function securityReceiptInputBindings(security, sourceInputs) {
+	const bundlePathBySource = new Map(
+		sourceInputs.map(({ sourcePath, bundlePath }) => [sourcePath, bundlePath]),
+	);
+	const sourceBinding = (sourcePath) => {
+		const bundlePath = bundlePathBySource.get(sourcePath);
+		requireValue(bundlePath, `Security input has no retained bundle copy: ${sourcePath}`);
+		return { sourcePath, bundlePath };
+	};
+	return {
+		npmrc: {
+			...sourceBinding(security.evidence.inputs.npmrc.path),
+			sha256: security.evidence.inputs.npmrc.sha256,
+		},
+		lockfile: {
+			...sourceBinding(security.evidence.inputs.lockfile.path),
+			sha256: security.evidence.inputs.lockfile.sha256,
+		},
+		manifests: security.evidence.inputs.manifests.map(({ path, sha256 }) => ({
+			...sourceBinding(path),
+			sha256,
+		})),
+		auditReport: {
+			bundlePath: securityAuditBundlePath,
+			sha256: security.auditCheck.detail.reportSha256,
+			exitCode: security.auditCheck.detail.exitCode,
+		},
+	};
+}
+
 function recomputeComplianceSummary(items) {
 	const byStatus = Object.fromEntries(allowedComplianceStatuses.map((status) => [status, 0]));
 	for (const item of items) {
@@ -713,6 +1012,8 @@ function validateCompliance(
 	evidenceMapPath,
 	candidate,
 	browser,
+	repository,
+	security,
 	expectedGitSha,
 ) {
 	const document = readJsonDocument(complianceEvidencePath, 'Compliance evidence');
@@ -788,6 +1089,16 @@ function validateCompliance(
 		browser.evidenceDocument.file,
 		'Compliance browser-evidence input',
 	);
+	assertRecordedFact(
+		compliance.inputs?.repositoryGateEvidence,
+		repository.document.file,
+		'Compliance repository-gate input',
+	);
+	assertRecordedFact(
+		compliance.inputs?.securityEvidence,
+		security.document.file,
+		'Compliance security-evidence input',
+	);
 	requireValue(
 		compliance.inputs?.sourceMap?.schema === sourceMap.schema &&
 			compliance.inputs?.sourceMap?.itemCount === 51 &&
@@ -822,7 +1133,9 @@ function validateCompliance(
 			compliance.candidate?.mathFingerprintSha256 ===
 				candidate.manifest.mathEvidence.candidateFingerprintSha256 &&
 			compliance.candidate?.packageVerification === 'PASS' &&
-			sameJson(compliance.candidate?.browserSummary, browser.summary),
+			sameJson(compliance.candidate?.browserSummary, browser.summary) &&
+			sameJson(compliance.candidate?.repositoryGateSummary, repository.evidence.summary) &&
+			sameJson(compliance.candidate?.securitySummary, security.evidence.summary),
 		'Compliance candidate identity is inconsistent',
 	);
 	requireValue(
@@ -830,6 +1143,12 @@ function validateCompliance(
 			compliance.claims?.automatedReferencesResolved === 'PASS' &&
 			compliance.claims?.repositoryReferencesResolved === 'PASS' &&
 			compliance.claims?.inputByteIdentityRecorded === 'PASS' &&
+			compliance.claims?.notApplicableAbsenceEvidence === 'PASS' &&
+			compliance.claims?.performanceLabBudgets === 'PASS' &&
+			compliance.claims?.performanceFieldData === 'NOT_CLAIMED' &&
+			compliance.claims?.automatedAccessibility === 'PASS' &&
+			compliance.claims?.dependencySecurity === 'PASS' &&
+			compliance.claims?.repositoryGateLedger === 'PASS' &&
 			compliance.claims?.manualEvidence === 'NOT_CLAIMED' &&
 			compliance.claims?.externalApproval === 'NOT_CLAIMED' &&
 			compliance.claims?.releaseReadiness === 'NOT_CLAIMED',
@@ -845,6 +1164,8 @@ function validateCompliance(
 		candidateRoot: candidate.root,
 		browserEvidencePath: browser.evidenceDocument.path,
 		evidenceMapPath: evidenceMapDocument.path,
+		repositoryEvidencePath: repository.document.path,
+		securityEvidencePath: security.document.path,
 	});
 	independentlyResolved.generatedAt = compliance.generatedAt;
 	requireValue(
@@ -957,7 +1278,7 @@ function bundleFile(path, bundlePath, details = {}) {
 	return { bundlePath, ...fileFact(path), ...details };
 }
 
-function assertInputsUnchanged(candidate, browser, compliance) {
+function assertInputsUnchanged(candidate, browser, compliance, repository, security) {
 	requireValue(
 		sameJson(createReleaseTreeManifest(candidate.root), candidate.candidateTree),
 		'Candidate bytes changed while generating the release bundle',
@@ -980,6 +1301,36 @@ function assertInputsUnchanged(candidate, browser, compliance) {
 		fileFact(compliance.requirementsChecklistPath),
 		compliance.requirementsChecklistFile,
 		'51-point requirements checklist changed during bundle generation',
+	);
+	for (const input of [...repository.inputSources, ...security.rawRepositoryInputs]) {
+		assertRecordedFact(
+			fileFact(input.physicalPath),
+			{
+				bytes: Buffer.byteLength(input.source),
+				sha256: sha256Bytes(Buffer.from(input.source, 'utf8')),
+			},
+			`Repository source input ${input.path} changed during bundle generation`,
+		);
+	}
+	assertRecordedFact(
+		fileFact(repository.document.path),
+		repository.document.file,
+		'Repository gate evidence changed during bundle generation',
+	);
+	assertRecordedFact(
+		fileFact(security.document.path),
+		security.document.file,
+		'Security evidence changed during bundle generation',
+	);
+	assertRecordedFact(
+		fileFact(security.auditDocument.path),
+		security.auditDocument.file,
+		'Production security audit report changed during bundle generation',
+	);
+	assertRecordedFact(
+		fileFact(security.auditStderrPath),
+		security.auditStderrFile,
+		'Production security audit diagnostics changed during bundle generation',
 	);
 }
 
@@ -1006,6 +1357,10 @@ function assembleReleaseEvidenceBundle(
 		candidateRoot,
 		browserRunRoot,
 		complianceEvidencePath,
+		repositoryEvidencePath,
+		securityEvidencePath,
+		auditReportPath,
+		auditStderrPath,
 		outputPath,
 		expectedBranch,
 		expectedGitSha,
@@ -1013,6 +1368,7 @@ function assembleReleaseEvidenceBundle(
 		ciRunAttempt,
 		evidenceMapPath = defaultEvidenceMapPath,
 		repositoryIdentity,
+		ciIdentity,
 	},
 	assertRepositoryIdentity = null,
 	verifyCanonicalCandidate = null,
@@ -1034,6 +1390,7 @@ function assembleReleaseEvidenceBundle(
 		positiveDecimalPattern.test(ciRunAttempt ?? ''),
 		'ciRunAttempt must be a positive decimal string',
 	);
+	validateCiIdentity(ciIdentity, expectedBranch, expectedGitSha, ciRunId, ciRunAttempt);
 	validateReleaseRepositoryIdentity(repositoryIdentity, expectedGitSha);
 	assertRepositoryIdentity?.(repositoryIdentity, expectedGitSha);
 	const candidate = validateCandidate(candidateRoot, expectedBranch, expectedGitSha);
@@ -1042,23 +1399,76 @@ function assembleReleaseEvidenceBundle(
 	const browser = validateBrowserRun(browserRunRoot, candidate, expectedGitSha);
 	assertNonOverlapping(candidate.root, browser.root, 'Candidate and browser roots');
 	const physicalCompliancePath = assertPhysicalFile(complianceEvidencePath, 'Compliance evidence');
+	const physicalRepositoryEvidencePath = assertPhysicalFile(
+		repositoryEvidencePath,
+		'Repository gate evidence',
+	);
+	const physicalSecurityEvidencePath = assertPhysicalFile(
+		securityEvidencePath,
+		'Security evidence',
+	);
+	const physicalAuditReportPath = assertPhysicalFile(
+		auditReportPath,
+		'Production security audit report',
+	);
+	const physicalAuditStderrPath = assertPhysicalFile(
+		auditStderrPath,
+		'Production security audit stderr',
+	);
 	const physicalEvidenceMapPath = assertPhysicalFile(evidenceMapPath, '51-point source map');
-	requireValue(
-		!pathIsWithin(candidate.root, physicalCompliancePath) &&
-			!pathIsWithin(browser.root, physicalCompliancePath),
-		'Compliance evidence must be outside candidate and browser input trees',
+	const standaloneEvidencePaths = [
+		physicalCompliancePath,
+		physicalRepositoryEvidencePath,
+		physicalSecurityEvidencePath,
+		physicalAuditReportPath,
+		physicalAuditStderrPath,
+	];
+	for (const evidencePath of standaloneEvidencePaths) {
+		requireValue(
+			!pathIsWithin(candidate.root, evidencePath) && !pathIsWithin(browser.root, evidencePath),
+			'Evidence receipts and audit inputs must be outside candidate and browser input trees',
+		);
+	}
+	for (let index = 0; index < standaloneEvidencePaths.length; index += 1) {
+		for (let other = index + 1; other < standaloneEvidencePaths.length; other += 1) {
+			assertNonOverlapping(
+				standaloneEvidencePaths[index],
+				standaloneEvidencePaths[other],
+				'Evidence input files',
+			);
+		}
+	}
+	const security = validateSecurityReceipt(
+		physicalSecurityEvidencePath,
+		physicalAuditReportPath,
+		physicalAuditStderrPath,
+		expectedGitSha,
+	);
+	const repository = validateRepositoryReceipt(
+		physicalRepositoryEvidencePath,
+		security,
+		candidate,
+		browser,
+		expectedGitSha,
 	);
 	const compliance = validateCompliance(
 		physicalCompliancePath,
 		physicalEvidenceMapPath,
 		candidate,
 		browser,
+		repository,
+		security,
 		expectedGitSha,
 	);
+	const repositorySourceInputs = collectRepositorySourceInputs(repository, security);
 	const outputRoot = validateOutputPath(outputPath, [
 		candidate.root,
 		browser.root,
 		physicalCompliancePath,
+		physicalRepositoryEvidencePath,
+		physicalSecurityEvidencePath,
+		physicalAuditReportPath,
+		physicalAuditStderrPath,
 		physicalEvidenceMapPath,
 		compliance.requirementsChecklistPath,
 	]);
@@ -1099,13 +1509,43 @@ function assembleReleaseEvidenceBundle(
 			join(outputRoot, complianceEvidenceName),
 			compliance.document.file,
 		);
+		copyFileExclusive(
+			repository.document.path,
+			join(outputRoot, ...repositoryEvidenceBundlePath.split('/')),
+			repository.document.file,
+		);
+		copyFileExclusive(
+			security.document.path,
+			join(outputRoot, ...securityEvidenceBundlePath.split('/')),
+			security.document.file,
+		);
+		copyFileExclusive(
+			security.auditDocument.path,
+			join(outputRoot, ...securityAuditBundlePath.split('/')),
+			security.auditDocument.file,
+		);
+		copyFileExclusive(
+			security.auditStderrPath,
+			join(outputRoot, ...securityAuditStderrBundlePath.split('/')),
+			security.auditStderrFile,
+		);
+		for (const input of repositorySourceInputs) {
+			copyFileExclusive(
+				input.physicalPath,
+				join(outputRoot, ...input.bundlePath.split('/')),
+				input.file,
+			);
+		}
+		const repositorySourceTree = createReleaseTreeManifest(
+			join(outputRoot, repositoryInputsBundleRoot),
+		);
 		copyTreeExclusive(
 			browser.root,
 			join(outputRoot, ...browser.bundleRoot.split('/')),
 			browser.runTree,
 		);
 
-		assertInputsUnchanged(candidate, browser, compliance);
+		assertInputsUnchanged(candidate, browser, compliance, repository, security);
 		assertRepositoryIdentity?.(repositoryIdentity, expectedGitSha);
 		const frontendArchive = bundleFile(frontendArchivePath, 'frontend.tar', {
 			mediaType: 'application/x-tar',
@@ -1122,7 +1562,7 @@ function assembleReleaseEvidenceBundle(
 			identity: {
 				expectedBranch,
 				expectedGitSha,
-				ci: { runId: ciRunId, runAttempt: ciRunAttempt },
+				ci: ciIdentity,
 				gameId: candidate.manifest.game?.id ?? null,
 				frontendTreeSha256: candidate.frontendTree.treeSha256,
 				mathTreeSha256: candidate.mathTree.treeSha256,
@@ -1173,7 +1613,7 @@ function assembleReleaseEvidenceBundle(
 				browserEvidence: {
 					bundlePath: `${browser.bundleRoot}/${browserEvidenceName}`,
 					...browser.evidenceDocument.file,
-					format: 'blacksite-qa-e2e-browser-evidence',
+					schema: browser.evidence.schema,
 					identity: {
 						testedGitSha: browser.evidence.identity.testedGitSha,
 						buildTreeSha256: browser.evidence.identity.buildTreeSha256,
@@ -1181,6 +1621,32 @@ function assembleReleaseEvidenceBundle(
 						sourceTreeSha256: browser.evidence.identity.sourceTreeSha256,
 					},
 					summary: browser.summary,
+					performanceSummary: compliance.compliance.candidate.performanceSummary,
+					accessibilitySummary: compliance.compliance.candidate.accessibilitySummary,
+				},
+				repositoryGateEvidence: {
+					bundlePath: repositoryEvidenceBundlePath,
+					...repository.document.file,
+					schema: repository.evidence.schema,
+					identity: repository.evidence.identity,
+					summary: repository.evidence.summary,
+					rawInputs: repositoryReceiptInputBindings(repository, repositorySourceInputs, browser),
+				},
+				securityEvidence: {
+					bundlePath: securityEvidenceBundlePath,
+					...security.document.file,
+					schema: security.evidence.schema,
+					status: security.evidence.status,
+					identity: security.evidence.identity,
+					summary: security.evidence.summary,
+					auditReportSha256: security.auditCheck.detail.reportSha256,
+					rawInputs: securityReceiptInputBindings(security, repositorySourceInputs),
+				},
+				productionAuditReport: {
+					bundlePath: securityAuditBundlePath,
+					...security.auditDocument.file,
+					exitCode: security.auditCheck.detail.exitCode,
+					vulnerabilities: security.auditCheck.detail.vulnerabilities,
 				},
 				complianceEvidence: {
 					bundlePath: complianceEvidenceName,
@@ -1192,6 +1658,22 @@ function assembleReleaseEvidenceBundle(
 						mathTreeSha256: compliance.compliance.candidate.mathTreeSha256,
 						mathFingerprintSha256: compliance.compliance.candidate.mathFingerprintSha256,
 					},
+				},
+				repositorySourceInputs: {
+					bundleRoot: repositoryInputsBundleRoot,
+					tree: repositorySourceTree,
+					files: repositorySourceInputs.map(({ sourcePath, bundlePath, file }) => ({
+						sourcePath,
+						bundlePath,
+						...file,
+					})),
+				},
+			},
+			diagnostics: {
+				productionAuditStderr: {
+					bundlePath: securityAuditStderrBundlePath,
+					...security.auditStderrFile,
+					passSemantics: 'NONE',
 				},
 			},
 			transport: {
@@ -1235,11 +1717,29 @@ function assembleReleaseEvidenceBundle(
 						category: 'FINAL_AUDIO_MASTERS_LISTENING_CLIPPING_AND_DEVICE_QA',
 						status: 'MANUAL_AND_EXTERNAL_OWNER_EVIDENCE_OPEN',
 					},
+					{
+						id: 'BSB-DEVICE-001',
+						category:
+							'PHYSICAL_DEVICE_REAL_POPOUT_ASSISTIVE_TECHNOLOGY_NATIVE_VISIBILITY_AND_OWNER_REVIEW',
+						status: 'MANUAL_AND_EXTERNAL_OWNER_EVIDENCE_OPEN',
+						evidenceRequired: {
+							deviceQaResultCount: 54,
+							realPopoutExecution: true,
+							assistiveTechnologyReview: true,
+							nativeControlsConsoleAndChromeVisibilityReview: true,
+							namedOwnerReview: true,
+						},
+					},
 				],
 			},
 			claims: {
 				candidatePackageVerification: 'PASS',
 				browserEvidence: 'PASS',
+				repositoryGateEvidence: 'PASS',
+				dependencySecurityEvidence: 'PASS',
+				productionAuditReceipt: 'PASS',
+				auditStderrDiagnostics: 'NO_PASS_SEMANTICS',
+				githubActionsRunAuthenticity: 'NOT_CLAIMED',
 				complianceEvidence: 'STRUCTURALLY_VALID',
 				transportArchiveIntegrity: 'PASS',
 				candidateMutation: 'NONE',
@@ -1264,6 +1764,7 @@ function assembleReleaseEvidenceBundle(
 			packageVerificationName,
 			evidenceMapName,
 			requirementsChecklistName,
+			repositoryInputsBundleRoot,
 			bundleManifestName,
 		].sort();
 		const outputEntries = readdirSync(outputRoot).sort();
@@ -1271,7 +1772,7 @@ function assembleReleaseEvidenceBundle(
 			sameJson(outputEntries, expectedOutputEntries),
 			`Release bundle contains unexpected top-level entries: ${outputEntries.join(', ')}`,
 		);
-		assertInputsUnchanged(candidate, browser, compliance);
+		assertInputsUnchanged(candidate, browser, compliance, repository, security);
 		assertRepositoryIdentity?.(repositoryIdentity, expectedGitSha);
 		return { outputRoot, manifestPath, manifest, manifestFile: fileFact(manifestPath) };
 	} catch (error) {
@@ -1292,6 +1793,7 @@ export function createReleaseEvidenceBundle(arguments_) {
 			...arguments_,
 			evidenceMapPath: defaultEvidenceMapPath,
 			repositoryIdentity: captureReleaseRepositoryIdentity(arguments_.expectedGitSha),
+			ciIdentity: captureGitHubActionsReleaseIdentity(arguments_),
 		},
 		assertReleaseRepositoryIdentityUnchanged,
 		verifyCandidateWithCanonicalVerifier,
@@ -1313,6 +1815,10 @@ function parseArguments(arguments_) {
 		'--candidate',
 		'--browser-run',
 		'--compliance-evidence',
+		'--repository-evidence',
+		'--security-evidence',
+		'--audit-report',
+		'--audit-stderr',
 		'--output',
 		'--expected-branch',
 		'--expected-commit',
@@ -1320,8 +1826,8 @@ function parseArguments(arguments_) {
 		'--ci-run-attempt',
 	]);
 	requireValue(
-		arguments_.length === 16,
-		'Release bundle CLI requires exactly eight option/value pairs',
+		arguments_.length === 24,
+		'Release bundle CLI requires exactly twelve option/value pairs',
 	);
 	for (let index = 0; index < arguments_.length; index += 2) {
 		requireValue(
@@ -1336,6 +1842,16 @@ function parseArguments(arguments_) {
 			process.cwd(),
 			requiredArgument(arguments_, '--compliance-evidence'),
 		),
+		repositoryEvidencePath: resolve(
+			process.cwd(),
+			requiredArgument(arguments_, '--repository-evidence'),
+		),
+		securityEvidencePath: resolve(
+			process.cwd(),
+			requiredArgument(arguments_, '--security-evidence'),
+		),
+		auditReportPath: resolve(process.cwd(), requiredArgument(arguments_, '--audit-report')),
+		auditStderrPath: resolve(process.cwd(), requiredArgument(arguments_, '--audit-stderr')),
 		outputPath: resolve(process.cwd(), requiredArgument(arguments_, '--output')),
 		expectedBranch: requiredArgument(arguments_, '--expected-branch'),
 		expectedGitSha: requiredArgument(arguments_, '--expected-commit'),

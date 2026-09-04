@@ -1031,8 +1031,8 @@
 
 	<header
 		class="masthead"
-		inert={modalOpen || introModalActive}
-		aria-hidden={modalOpen || introModalActive ? 'true' : undefined}
+		inert={modalOpen || introBlocking}
+		aria-hidden={modalOpen || introBlocking ? 'true' : undefined}
 	>
 		<div class="identity">
 			<span class="eyebrow" data-testid="facility-kicker">ARMORED ACCESS FACILITY</span>

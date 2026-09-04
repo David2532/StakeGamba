@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash, generateKeyPairSync, sign as signValue } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import test from 'node:test';
@@ -421,7 +421,7 @@ function signedOwnerReview(value, status = 'ACCEPTED') {
 	return { evidenceSourceBytes, publicKeyPem, review };
 }
 
-function verifyOwnerReview(value, signedReview) {
+function verifyOwnerReview(value, signedReview, trustedReviewerOverrides = {}) {
 	return verifyDeviceOwnerReview(signedReview.review, {
 		expectedIdentity: identity,
 		attachmentsRoot: value.root,
@@ -432,6 +432,7 @@ function verifyOwnerReview(value, signedReview) {
 			id: 'qa-release-owner',
 			keyId: 'qa-release-key-2026',
 			publicKeyPem: signedReview.publicKeyPem,
+			...trustedReviewerOverrides,
 		},
 	});
 }
@@ -802,7 +803,10 @@ test('standalone manual-device validator emits structural status rather than PAS
 test('separate owner review verifies an exact evidence binding and Ed25519 signature only', () => {
 	withFixture((value) => {
 		const signedReview = signedOwnerReview(value);
-		const report = verifyOwnerReview(value, signedReview);
+		const publicKeySourceSha256 = createHash('sha256')
+			.update(signedReview.publicKeyPem)
+			.digest('hex');
+		const report = verifyOwnerReview(value, signedReview, { publicKeySourceSha256 });
 		assert.equal(report.schema, DEVICE_OWNER_REVIEW_VALIDATION_SCHEMA);
 		assert.equal(report.status, 'SIGNED_OWNER_DECISION_VERIFIED');
 		assert.equal(
@@ -811,9 +815,23 @@ test('separate owner review verifies an exact evidence binding and Ed25519 signa
 		);
 		assert.equal(report.decision.status, 'ACCEPTED');
 		assert.equal(report.reviewer.authority, 'CALLER_SUPPLIED_TRUST_NOT_MACHINE_ATTESTED');
+		assert.equal(report.reviewer.publicKeySourceSha256, publicKeySourceSha256);
 		assert.equal(report.deviceApproval, 'NOT_CLAIMED');
 		assert.equal(report.stakeApproval, 'NOT_CLAIMED');
 		assert.equal(report.releaseApproval, 'NOT_CLAIMED');
+	});
+});
+
+test('module owner review rejects a false reviewer public-key source digest', () => {
+	withFixture((value) => {
+		const signedReview = signedOwnerReview(value);
+		assert.throws(
+			() =>
+				verifyOwnerReview(value, signedReview, {
+					publicKeySourceSha256: 'f'.repeat(64),
+				}),
+			/trustedReviewer\.publicKeySourceSha256 does not match the exact publicKeyPem bytes/u,
+		);
 	});
 });
 
@@ -871,7 +889,7 @@ test('standalone owner-review flow uses independently supplied evidence bytes an
 	});
 });
 
-test('standalone owner review rejects bundle-supplied or digest-substituted reviewer keys', () => {
+test('standalone owner review rejects bundle-supplied, symlinked, or digest-substituted reviewer keys', () => {
 	withFixture((value) => {
 		const signedReview = signedOwnerReview(value);
 		const evidencePath = join(value.root, 'device-evidence.json');
@@ -916,6 +934,18 @@ test('standalone owner review rejects bundle-supplied or digest-substituted revi
 		try {
 			const externalKeyPath = join(externalRoot, 'reviewer-public-key.pem');
 			writeFileSync(externalKeyPath, signedReview.publicKeyPem);
+			const symlinkKeyPath = join(externalRoot, 'reviewer-public-key-link.pem');
+			symlinkSync(externalKeyPath, symlinkKeyPath);
+			const symlinked = spawnSync(
+				process.execPath,
+				commonArguments.map((argument) =>
+					argument === publicKeyPath ? symlinkKeyPath : argument,
+				),
+				{ encoding: 'utf8', env: { ...process.env } },
+			);
+			assert.notEqual(symlinked.status, 0);
+			assert.match(symlinked.stderr, /regular file, not a symlink/u);
+
 			const substituted = spawnSync(
 				process.execPath,
 				commonArguments.map((argument) =>

@@ -309,18 +309,24 @@ BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256=<frontend-tree-sha256> \
 node scripts/blacksite-qa-e2e.mjs
 ```
 
-Resolve compliance first, then generate the post-QA bundle from the candidate commit with no tracked or index changes (untracked QA outputs are allowed). Both output parents must already be physical, non-symlink directories; both output targets must be new. The bundle command is Linux/GNU-tar only so owner/group, mode, ordering and timestamp metadata are deterministic without modifying the candidate:
+Resolve compliance first, then generate the post-QA bundle from the candidate commit with no tracked or index changes (untracked QA outputs are allowed). Repository-v2, Security-v2, the raw production audit JSON and its stderr diagnostics are mandatory explicit inputs. Both output parents must already be physical, non-symlink directories; both output targets must be new. The bundle command is Linux/GNU-tar only so owner/group, mode, ordering and timestamp metadata are deterministic without modifying the candidate. The following is the source-branch GitHub Actions sequence; the bundle CLI requires exact source-branch repository/workflow/job/ref/SHA/run environment metadata and rejects pull-request or tag metadata. Environment values are not cryptographic attestation: authenticating that the bundle came from the named GitHub run requires external verification of the uploaded artifact and run:
 
 ```sh
 mkdir -p <compliance-output-parent> <bundle-output-parent>
 node scripts/blacksite-compliance-evidence.mjs \
   --candidate <new-candidate-directory> \
   --browser-evidence <browser-run-directory>/blacksite-browser-evidence.json \
+  --repository-evidence artifacts/blacksite-ci/repository-gates.json \
+  --security-evidence artifacts/blacksite-security/security-evidence.json \
   --output <compliance-output-parent>/blacksite-51-evidence.json
 node scripts/blacksite-release-bundle.mjs \
   --candidate <new-candidate-directory> \
   --browser-run <browser-run-directory> \
   --compliance-evidence <compliance-output-parent>/blacksite-51-evidence.json \
+  --repository-evidence artifacts/blacksite-ci/repository-gates.json \
+  --security-evidence artifacts/blacksite-security/security-evidence.json \
+  --audit-report artifacts/blacksite-security/pnpm-audit.json \
+  --audit-stderr artifacts/blacksite-security/pnpm-audit.stderr.txt \
   --output <bundle-output-parent>/<new-bundle-directory> \
   --expected-branch <branch> \
   --expected-commit <full-git-sha> \
@@ -328,9 +334,9 @@ node scripts/blacksite-release-bundle.mjs \
   --ci-run-attempt <ci-run-attempt>
 ```
 
-The bundle contains `frontend.tar`, `math.tar`, the candidate/package/checklist/source-map/compliance receipts and the complete browser run under its original `artifacts/blacksite-qa/<run>/` relative path. The production bundle path reruns the canonical 300,000-book package verifier while permitting only untracked QA artifacts; tracked or index changes still fail closed. `release-bundle-manifest.json` binds every input and archive digest. Repeating the command with identical inputs and CI identity into a different new output directory must produce byte-identical archives and manifest. In CI this finalized directory lives at `release-bundle/`; identity, candidate and diagnostic copies are staged only as siblings and never mutate the finalized bundle.
+The v2 bundle contains `frontend.tar`, `math.tar`, the candidate/package/checklist/source-map/compliance receipts, the complete Browser-v2 run under its original `artifacts/blacksite-qa/<run>/` path, Repository-v2, Security-v2, the exact raw audit JSON, and audit stderr marked with no PASS semantics. It independently rebuilds Security-v2 from the current package manifests, lockfile, `.npmrc`, audit bytes and recorded exit code; rebuilds Repository-v2 from its exact eight inputs; and rebuilds Compliance-v3 with explicit repository/security paths. Those canonical repository source inputs are copied under `repository-inputs/`, with source-path-to-bundle-path facts; leading-dot paths are mapped to visible names (`.npmrc` → `npmrc`, `.github/` → `github/`) so upload-artifact's hidden-file default cannot silently remove them. It also requires the Browser-v2 build manifest to equal the packaged frontend tree byte for byte. The production path reruns the canonical 300,000-book package verifier while permitting only untracked QA artifacts; tracked or index changes still fail closed. `release-bundle-manifest.json` binds every copied input and archive digest. Repeating the command with identical inputs and CI identity into a different new output directory must produce byte-identical archives and manifest. In CI this finalized directory lives at `release-bundle/`; identity and candidate copies are staged only as siblings and never mutate the finalized bundle.
 
-The resolver CLI reports `STRUCTURALLY_VALID` for exact repository-reference resolution, and the bundle CLI reports `EVIDENCE_BUNDLE_COMPLETE` for repository candidate/evidence integrity. Neither status is a release decision. Manual evidence, production-equivalent capacity, external lifecycle work, upload authorization and release readiness remain separately `NOT_CLAIMED` or open.
+The resolver CLI reports `STRUCTURALLY_VALID` for exact repository-reference resolution, and the source-branch bundle CLI reports `EVIDENCE_BUNDLE_COMPLETE` for repository candidate/evidence integrity. Neither status is a release decision or an authenticated GitHub provenance claim; `githubActionsRunAuthenticity` remains `NOT_CLAIMED`. Manual evidence, production-equivalent capacity, external lifecycle work, upload authorization and release readiness remain separately `NOT_CLAIMED` or open. Physical-device coverage of all 54 Device-QA results, real Popout execution, assistive-technology review, native controls/console/chrome visibility, and named owner review remain an explicit manual/external project blocker; headless Chromium and proxy viewport evidence cannot close it.
 
 The production frontend uses the exact full Git SHA as its SvelteKit build/recovery version; clean repeated builds of one commit must therefore produce the same byte-for-byte frontend tree. The packager requires a clean worktree, a caller-pinned non-empty branch, a caller-pinned full commit SHA and a caller-pinned frontend tree SHA. Detached CI checkouts retain the caller-pinned source branch in the manifest and verify it against GitHub's branch context. The packager verifies all seven canonical math inputs against the retained M1 `CANDIDATE_MANIFEST.json`, refuses to overwrite an existing target and writes `uploadAuthorized: false`. Producing these folders is package evidence only; BLACKSITE remains non-submission-ready while final asset rights/Creative approval, the penguin Spine rig, authored character/reel polish, the final audio mix, manual device/visual review or external Stake gates are open.
 

@@ -7,21 +7,6 @@ on:
   pull_request:
     branches:
       - codex/stake-review-2026-07-29
-    paths:
-      - .github/workflows/blacksite-ci.yml
-      - .npmrc
-      - '**/.eslintrc.cjs'
-      - apps/**/package.json
-      - apps/blacksite/**
-      - docs/blacksite/RELEASE_EVIDENCE_51.json
-      - docs/blacksite/STAKE_REQUIREMENTS_51.md
-      - math/games/blacksite_breach/**
-      - packages/**
-      - scripts/**
-      - package.json
-      - pnpm-lock.yaml
-      - pnpm-workspace.yaml
-      - turbo.json
   workflow_dispatch:
 
 permissions:
@@ -42,6 +27,7 @@ jobs:
       NODE_OPTIONS: '--max-old-space-size=6144'
       NPM_CONFIG_LOGLEVEL: error
       BLACKSITE_AUDIT_REGISTRY: https://registry.npmjs.org/
+      BLACKSITE_UPLOAD_ROOT: blacksite-upload-${{ github.sha }}
 
     steps:
       - name: Checkout event revision
@@ -98,8 +84,7 @@ jobs:
           esac
           test -z "$(git status --porcelain=v1)"
           mkdir -p "${RUNNER_TEMP}/blacksite-ci"
-          upload_root="${RUNNER_TEMP}/blacksite-upload-${EXPECTED_SHA}"
-          printf 'BLACKSITE_UPLOAD_ROOT=%s\n' "$upload_root" >> "$GITHUB_ENV"
+          test "$BLACKSITE_UPLOAD_ROOT" = "blacksite-upload-${EXPECTED_SHA}"
           {
             printf 'event_name=%s\n' "$EVENT_NAME"
             printf 'event_ref=%s\n' "$EVENT_REF"
@@ -123,17 +108,40 @@ jobs:
           mkdir -p artifacts/blacksite-security
           configured_audit_registry="$(pnpm config get registry)"
           test "$configured_audit_registry" = "$BLACKSITE_AUDIT_REGISTRY"
-          set +e
-          timeout --signal=TERM 180s \
-            pnpm audit --prod --audit-level high --json \
-            --registry "$configured_audit_registry" \
-            > artifacts/blacksite-security/pnpm-audit.json \
-            2> artifacts/blacksite-security/pnpm-audit.stderr.txt
-          audit_exit_code=$?
-          set -e
+          audit_report=artifacts/blacksite-security/pnpm-audit.json
+          audit_stderr=artifacts/blacksite-security/pnpm-audit.stderr.txt
+          audit_exit_code=124
+          : > "$audit_stderr"
+          for audit_attempt in 1 2 3; do
+            : > "$audit_report"
+            printf 'attempt=%s\n' "$audit_attempt" >> "$audit_stderr"
+            set +e
+            timeout --signal=TERM --kill-after=30s 300s \
+              pnpm audit --prod --audit-level high --json \
+              --registry "$configured_audit_registry" \
+              > "$audit_report" \
+              2>> "$audit_stderr"
+            audit_exit_code=$?
+            set -e
+            printf 'attempt=%s exit_code=%s\n' \
+              "$audit_attempt" "$audit_exit_code" >> "$audit_stderr"
+            if [[ "$audit_exit_code" =~ ^[01]$ ]] && \
+              node -e '
+                const fs = require("node:fs");
+                const report = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+                if (!report || typeof report !== "object" || Array.isArray(report) || report.error) {
+                  process.exit(1);
+                }
+              ' "$audit_report" >> "$audit_stderr" 2>&1; then
+              break
+            fi
+            if [[ "$audit_attempt" -lt 3 ]]; then
+              sleep "$((audit_attempt * 10))"
+            fi
+          done
           node scripts/blacksite-security-evidence.mjs \
             --expected-commit "$EXPECTED_SHA" \
-            --audit-report artifacts/blacksite-security/pnpm-audit.json \
+            --audit-report "$audit_report" \
             --audit-exit-code "$audit_exit_code" \
             --audit-registry "$configured_audit_registry" \
             --require-audit \
@@ -259,6 +267,10 @@ jobs:
             --candidate "${BLACKSITE_CANDIDATE_ROOT}" \
             --browser-run "${BLACKSITE_BROWSER_EVIDENCE_DIR}" \
             --compliance-evidence "${BLACKSITE_COMPLIANCE_EVIDENCE}" \
+            --repository-evidence artifacts/blacksite-ci/repository-gates.json \
+            --security-evidence artifacts/blacksite-security/security-evidence.json \
+            --audit-report artifacts/blacksite-security/pnpm-audit.json \
+            --audit-stderr artifacts/blacksite-security/pnpm-audit.stderr.txt \
             --output "${BLACKSITE_UPLOAD_ROOT}/release-bundle" \
             --expected-branch "$EXPECTED_BRANCH" \
             --expected-commit "$EXPECTED_SHA" \

@@ -342,8 +342,15 @@ test('CI retains raw audit and normalized exact-SHA security evidence and requir
 		new URL('../../../.github/workflows/blacksite-ci.yml', import.meta.url),
 		'utf8',
 	);
-	assert.match(workflow, /timeout --signal=TERM 180s/u);
+	assert.match(workflow, /for audit_attempt in 1 2 3; do/u);
+	assert.match(workflow, /: > "\$audit_report"/u);
+	assert.match(workflow, /timeout --signal=TERM --kill-after=30s 300s/u);
 	assert.match(workflow, /pnpm audit --prod --audit-level high --json/u);
+	assert.match(workflow, /printf 'attempt=%s exit_code=%s\\n'/u);
+	assert.match(workflow, /\[\[ "\$audit_exit_code" =~ \^\[01\]\$ \]\]/u);
+	assert.match(workflow, /JSON\.parse\(fs\.readFileSync\(process\.argv\[1\], "utf8"\)\)/u);
+	assert.match(workflow, /Array\.isArray\(report\) \|\| report\.error/u);
+	assert.match(workflow, /if \[\[ "\$audit_attempt" -lt 3 \]\]; then/u);
 	assert.match(workflow, /BLACKSITE_AUDIT_REGISTRY: https:\/\/registry\.npmjs\.org\//u);
 	assert.match(workflow, /configured_audit_registry="\$\(pnpm config get registry\)"/u);
 	assert.match(workflow, /--registry "\$configured_audit_registry"/u);
@@ -351,6 +358,10 @@ test('CI retains raw audit and normalized exact-SHA security evidence and requir
 	assert.match(workflow, /--expected-commit "\$EXPECTED_SHA"/u);
 	assert.match(workflow, /--audit-exit-code "\$audit_exit_code"/u);
 	assert.match(workflow, /--require-audit/u);
+	assert.match(
+		workflow,
+		/for audit_attempt in 1 2 3; do[\s\S]*?\n\s+done\n\s+node scripts\/blacksite-security-evidence\.mjs/u,
+	);
 	assert.match(workflow, /artifacts\/blacksite-security\/pnpm-audit\.json/u);
 	assert.match(workflow, /artifacts\/blacksite-security\/security-evidence\.json/u);
 	const stagingStart = workflow.indexOf('      - name: Stage only current-run artifacts');
@@ -379,19 +390,17 @@ test('CI retains raw audit and normalized exact-SHA security evidence and requir
 		stagingStep,
 		/cp "\$source" "\$\{BLACKSITE_UPLOAD_ROOT\}\/artifacts\/blacksite-security\/"/u,
 	);
-	assert.match(workflow, /upload_root="\$\{RUNNER_TEMP\}\/blacksite-upload-\$\{EXPECTED_SHA\}"/u);
-	assert.match(workflow, /printf 'BLACKSITE_UPLOAD_ROOT=%s\\n' "\$upload_root" >> "\$GITHUB_ENV"/u);
-	assert.doesNotMatch(workflow, /BLACKSITE_UPLOAD_ROOT: \$\{\{ runner\.temp \}\}/u);
+	assert.match(workflow, /BLACKSITE_UPLOAD_ROOT: blacksite-upload-\$\{\{ github\.sha \}\}/u);
+	assert.match(
+		workflow,
+		/test "\$BLACKSITE_UPLOAD_ROOT" = "blacksite-upload-\$\{EXPECTED_SHA\}"/u,
+	);
+	assert.doesNotMatch(workflow, /BLACKSITE_UPLOAD_ROOT=%s/u);
 	assert.match(workflow, /path: \$\{\{ env\.BLACKSITE_UPLOAD_ROOT \}\}\/\*\*/u);
 	assert.doesNotMatch(workflow, /^\s+artifacts\/blacksite-qa\/\*\*$/mu);
-	for (const trigger of [
-		'- .npmrc',
-		"- '**/.eslintrc.cjs'",
-		'- docs/blacksite/STAKE_REQUIREMENTS_51.md',
-		'- packages/**',
-		'- scripts/**',
-		'- turbo.json',
-	]) {
-		assert.ok(workflow.includes(trigger), `missing CI path trigger: ${trigger}`);
-	}
+	const pullRequestTrigger = workflow.slice(
+		workflow.indexOf('  pull_request:'),
+		workflow.indexOf('  workflow_dispatch:'),
+	);
+	assert.doesNotMatch(pullRequestTrigger, /^\s+paths:/mu);
 });

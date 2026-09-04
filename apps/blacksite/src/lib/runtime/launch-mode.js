@@ -2,6 +2,27 @@ import { GAME_ID, isCanonicalMode } from '../contracts/modes.js';
 import { isSafeReplayPathSegment } from '../replay/path-segment.js';
 import { normalizeTrustedRgsBaseUrl } from '../rgs/url-policy.js';
 
+const REPLAY_AUTHORITY_QUERY_GROUPS = Object.freeze([
+	Object.freeze(['game']),
+	Object.freeze(['version']),
+	Object.freeze(['mode']),
+	Object.freeze(['event']),
+	Object.freeze(['rgs_url']),
+	Object.freeze(['currency']),
+	Object.freeze(['amount', 'bet', 'stake']),
+	Object.freeze(['lang', 'language']),
+	Object.freeze(['device', 'deviceType']),
+	Object.freeze(['social', 'socialCasino', 'social_casino', 'stakeUS']),
+]);
+const LIVE_AUTHORITY_QUERY_GROUPS = Object.freeze([
+	Object.freeze(['rgs_url']),
+	Object.freeze(['sessionID', 'sessionId', 'session_id', 'sid']),
+	Object.freeze(['currency']),
+	Object.freeze(['lang', 'language']),
+	Object.freeze(['device', 'deviceType']),
+	Object.freeze(['social', 'socialCasino', 'social_casino', 'stakeUS']),
+]);
+
 function launchError(code, message, surface, social = false) {
 	return Object.freeze({ kind: 'error', code, message, surface, social });
 }
@@ -25,6 +46,14 @@ function firstQuery(params, names) {
 		if (value !== null) return value;
 	}
 	return null;
+}
+
+function repeatedAuthorityGroup(params, groups) {
+	return (
+		groups.find(
+			(names) => names.reduce((count, name) => count + params.getAll(name).length, 0) > 1,
+		) ?? null
+	);
 }
 
 function isBoundedText(value, maxLength = 240) {
@@ -75,12 +104,30 @@ export function resolveLaunchMode(
 ) {
 	const params = search instanceof URLSearchParams ? search : new URLSearchParams(search);
 	const social = parseSocial(params);
+	const replayValues = params.getAll('replay');
+	if (replayValues.length > 1) {
+		const replaySurface = replayValues.includes('true');
+		return launchError(
+			replaySurface ? 'REPLAY_QUERY_INVALID' : 'LIVE_QUERY_INVALID',
+			'Launch parameters contain an ambiguous repeated replay marker.',
+			replaySurface ? 'replay' : 'live',
+			social,
+		);
+	}
 	const rgsUrlPolicy = {
 		allowHttpLoopbackForDevelopment: dev,
 		allowHttpLoopbackForExactQa,
 	};
 
-	if (params.get('replay') === 'true') {
+	if (replayValues[0] === 'true') {
+		if (repeatedAuthorityGroup(params, REPLAY_AUTHORITY_QUERY_GROUPS)) {
+			return launchError(
+				'REPLAY_QUERY_INVALID',
+				'Replay parameters contain repeated or conflicting authority values.',
+				'replay',
+				social,
+			);
+		}
 		const game = requiredQuery(params, 'game');
 		const version = requiredQuery(params, 'version');
 		const mode = requiredQuery(params, 'mode');
@@ -137,6 +184,14 @@ export function resolveLaunchMode(
 
 	const fixtureId = requiredQuery(params, 'dev_fixture');
 	if (fixtureId) {
+		if (params.getAll('dev_fixture').length > 1) {
+			return launchError(
+				'DEV_FIXTURE_QUERY_INVALID',
+				'Development fixture parameters are ambiguous.',
+				'fixture',
+				social,
+			);
+		}
 		if (!dev) {
 			return launchError(
 				'DEV_FIXTURE_FORBIDDEN',
@@ -146,6 +201,15 @@ export function resolveLaunchMode(
 			);
 		}
 		return Object.freeze({ kind: 'fixture', fixtureId });
+	}
+
+	if (repeatedAuthorityGroup(params, LIVE_AUTHORITY_QUERY_GROUPS)) {
+		return launchError(
+			'LIVE_QUERY_INVALID',
+			'Live launch parameters contain repeated or conflicting authority values.',
+			'live',
+			social,
+		);
 	}
 
 	const rgs = parseRgsUrl(params.get('rgs_url'), rgsUrlPolicy);

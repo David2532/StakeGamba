@@ -1820,19 +1820,19 @@ async function runNetworkScenarios(browser, origin) {
 					actionSelector: SELECTORS.primaryAction,
 					introSelector: SELECTORS.bootIntro,
 					motionSelector: SELECTORS.motionMode,
-					statusSelector: SELECTORS.launchStatus,
+					statusSelector: SELECTORS.authPending,
 					storageKey: MOTION_STORAGE_KEY,
 				},
 			);
 			check(
 				group,
-				'slow authentication keeps CONNECTING exposed to assistive technology before the intro exists',
+				'slow authentication exposes one dedicated status while covered controls remain isolated',
 				pending.introCount === 0 &&
-					!pending.mastheadInert &&
-					pending.mastheadAriaHidden === null &&
+					pending.mastheadInert &&
+					pending.mastheadAriaHidden === 'true' &&
 					pending.studioInert &&
 					pending.studioAriaHidden === 'true' &&
-					pending.statusText === 'CONNECTING' &&
+					/AUTHENTICATING/u.test(pending.statusText ?? '') &&
 					pending.statusRole === 'status' &&
 					pending.statusLive === 'polite' &&
 					pending.statusAtomic === 'true' &&

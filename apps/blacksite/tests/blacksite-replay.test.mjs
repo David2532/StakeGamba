@@ -98,7 +98,7 @@ test('money domains preserve Replay amount opacity and reject cross-domain ambig
 	assert.equal(replayQueryUnitsTimesInteger(null, 80), null);
 });
 
-test('Replay client exposes one read-only method and emits the exact encoded GET', async () => {
+test('Replay client exposes one read-only method and emits the exact safe GET', async () => {
 	const calls = [];
 	const client = createReplayClient({
 		fetchImpl: async (url, options) => {
@@ -113,8 +113,8 @@ test('Replay client exposes one read-only method and emits the exact encoded GET
 
 	await client.fetchRound(
 		launch({
-			version: '0.1/ candidate',
-			event: 'event/0 ?#',
+			version: '0.1.0-m2',
+			event: 'event-0_qa~1',
 			rgsUrl: 'https://rgs.example/root/',
 			language: 'sweeps en',
 		}),
@@ -122,7 +122,7 @@ test('Replay client exposes one read-only method and emits the exact encoded GET
 	assert.equal(calls.length, 1);
 	assert.equal(
 		calls[0].url,
-		'https://rgs.example/root/bet/replay/blacksite_breach/0.1%2F%20candidate/base/event%2F0%20%3F%23',
+		'https://rgs.example/root/bet/replay/blacksite_breach/0.1.0-m2/base/event-0_qa~1',
 	);
 	assert.equal(calls[0].options.method, 'GET');
 	assert.deepEqual(calls[0].options.headers, { Accept: 'application/json' });
@@ -132,7 +132,7 @@ test('Replay client exposes one read-only method and emits the exact encoded GET
 	assert(calls[0].options.signal instanceof AbortSignal);
 });
 
-test('Replay client rejects URL dot segments before fetch and preserves safe dotted identity', async () => {
+test('Replay client rejects unsafe path segments before fetch and preserves safe dotted identity', async () => {
 	const urls = [];
 	const client = createReplayClient({
 		fetchImpl: async (url) => {
@@ -142,9 +142,22 @@ test('Replay client rejects URL dot segments before fetch and preserves safe dot
 	});
 
 	for (const field of ['version', 'event']) {
-		for (const dotSegment of ['.', '..', '%2E', '%2e%2E', '%252E%252E']) {
+		for (const unsafeSegment of [
+			'.',
+			'..',
+			'%2E',
+			'%2e%2E',
+			'%252E%252E',
+			'../admin',
+			'..%2fadmin',
+			'event/child',
+			'event%2fchild',
+			'event\\child',
+			'event?query',
+			'event#fragment',
+		]) {
 			await assert.rejects(
-				client.fetchRound(launch({ [field]: dotSegment })),
+				client.fetchRound(launch({ [field]: unsafeSegment })),
 				(error) => error instanceof ReplayClientError && error.code === 'REPLAY_REQUEST_INVALID',
 			);
 		}

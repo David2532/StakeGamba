@@ -11,6 +11,10 @@ const packageScriptUrl = new URL(
 	import.meta.url,
 );
 const verifyScriptUrl = new URL('../../../scripts/blacksite-package-verify.mjs', import.meta.url);
+const releaseBundleScriptUrl = new URL(
+	'../../../scripts/blacksite-release-bundle.mjs',
+	import.meta.url,
+);
 const workflowUrl = new URL('../../../.github/workflows/blacksite-ci.yml', import.meta.url);
 const buildScriptUrl = new URL('../scripts/build-production.mjs', import.meta.url);
 const svelteConfigUrl = new URL('../svelte.config.js', import.meta.url);
@@ -50,6 +54,7 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 		svelteConfig,
 		packageJson,
 		rootPackageJson,
+		releaseBundleScript,
 	] = await Promise.all([
 		readFile(packageScriptUrl, 'utf8'),
 		readFile(verifyScriptUrl, 'utf8'),
@@ -58,6 +63,7 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 		readFile(svelteConfigUrl, 'utf8'),
 		readFile(packageJsonUrl, 'utf8').then(JSON.parse),
 		readFile(rootPackageJsonUrl, 'utf8').then(JSON.parse),
+		readFile(releaseBundleScriptUrl, 'utf8'),
 	]);
 
 	assert.match(packageScript, /--print-frontend-tree-sha256/u);
@@ -96,6 +102,18 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 		'node scripts/blacksite-scale-evidence.mjs --self-test',
 	);
 	assert.equal(rootPackageJson.pnpm.overrides.devalue, '5.8.1');
+	assert.match(releaseBundleScript, /blacksite-release-evidence-bundle-v2/u);
+	assert.match(releaseBundleScript, /captureGitHubActionsReleaseIdentity/u);
+	assert.match(releaseBundleScript, /\['push', 'workflow_dispatch'\]/u);
+	assert.match(releaseBundleScript, /GITHUB_REPOSITORY/u);
+	assert.match(releaseBundleScript, /GITHUB_WORKFLOW/u);
+	assert.match(releaseBundleScript, /GITHUB_WORKFLOW_REF/u);
+	assert.match(releaseBundleScript, /GITHUB_WORKFLOW_SHA/u);
+	assert.match(releaseBundleScript, /GITHUB_JOB/u);
+	assert.match(releaseBundleScript, /GITHUB_REF_NAME/u);
+	assert.match(releaseBundleScript, /GITHUB_REF_TYPE/u);
+	assert.match(releaseBundleScript, /buildSecurityEvidence/u);
+	assert.match(releaseBundleScript, /buildRepositoryGateEvidence/u);
 	assert.doesNotMatch(
 		packageScript,
 		/final production assets, animation and audio are not present/u,
@@ -164,10 +182,11 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 	);
 	assert.match(workflow, /push:\n\s+branches:\n\s+- codex\/blacksite-aaa-studio/u);
 	assert.match(workflow, /pull_request:\n\s+branches:\n\s+- codex\/stake-review-2026-07-29/u);
-	assert.match(
-		workflow,
-		/paths:[\s\S]*\.npmrc[\s\S]*apps\/blacksite\/\*\*[\s\S]*packages\/\*\*[\s\S]*turbo\.json/u,
+	const pullRequestTrigger = workflow.slice(
+		workflow.indexOf('  pull_request:'),
+		workflow.indexOf('  workflow_dispatch:'),
 	);
+	assert.doesNotMatch(pullRequestTrigger, /^\s+paths:/mu);
 	assert.match(workflow, /ref: \$\{\{ github\.sha \}\}/u);
 	assert.match(identityStep.body, /pull-request-merge-result/u);
 	assert.match(identityStep.body, /exact-source-revision/u);
@@ -233,12 +252,31 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 		/if: \$\{\{ success\(\) && github\.event_name != 'pull_request' \}\}/u,
 	);
 	assert.match(releaseBundleStep.body, /blacksite-release-bundle\.mjs/u);
+	assert.match(
+		releaseBundleStep.body,
+		/--repository-evidence artifacts\/blacksite-ci\/repository-gates\.json/u,
+	);
+	assert.match(
+		releaseBundleStep.body,
+		/--security-evidence artifacts\/blacksite-security\/security-evidence\.json/u,
+	);
+	assert.match(
+		releaseBundleStep.body,
+		/--audit-report artifacts\/blacksite-security\/pnpm-audit\.json/u,
+	);
+	assert.match(
+		releaseBundleStep.body,
+		/--audit-stderr artifacts\/blacksite-security\/pnpm-audit\.stderr\.txt/u,
+	);
 	assert.match(releaseBundleStep.body, /--ci-run-id "\$GITHUB_RUN_ID"/u);
 	assert.match(releaseBundleStep.body, /--output "\$\{BLACKSITE_UPLOAD_ROOT\}\/release-bundle"/u);
 	assert.match(stageStep.body, /blacksite-package\/blacksite-candidate-\$\{GITHUB_SHA\}/u);
-	assert.match(workflow, /upload_root="\$\{RUNNER_TEMP\}\/blacksite-upload-\$\{EXPECTED_SHA\}"/u);
-	assert.match(workflow, /printf 'BLACKSITE_UPLOAD_ROOT=%s\\n' "\$upload_root" >> "\$GITHUB_ENV"/u);
-	assert.doesNotMatch(workflow, /BLACKSITE_UPLOAD_ROOT: \$\{\{ runner\.temp \}\}/u);
+	assert.match(workflow, /BLACKSITE_UPLOAD_ROOT: blacksite-upload-\$\{\{ github\.sha \}\}/u);
+	assert.match(
+		identityStep.body,
+		/test "\$BLACKSITE_UPLOAD_ROOT" = "blacksite-upload-\$\{EXPECTED_SHA\}"/u,
+	);
+	assert.doesNotMatch(identityStep.body, /BLACKSITE_UPLOAD_ROOT=%s|GITHUB_ENV/u);
 	assert.match(uploadStep.body, /path: \$\{\{ env\.BLACKSITE_UPLOAD_ROOT \}\}\/\*\*/u);
 	assert.doesNotMatch(workflow, /path:\s+artifacts\//u);
 	assert.doesNotMatch(stageStep.body, /cp\s+-R\s+artifacts\//u);

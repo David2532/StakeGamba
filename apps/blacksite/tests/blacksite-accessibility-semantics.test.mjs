@@ -52,8 +52,16 @@ test('live authentication remains perceivable until the intro actually opens', a
 	);
 	assert.match(page, /data-testid="auth-pending-status"[\s\S]*?role="status"/u);
 	assert.match(
+		page,
+		/class="masthead"[\s\S]*?inert=\{modalOpen \|\| introBlocking\}[\s\S]*?aria-hidden=\{modalOpen \|\| introBlocking \? 'true' : undefined\}/u,
+	);
+	assert.match(
 		browserQa,
 		/stalled authentication presents a dedicated live status while controls stay isolated/u,
+	);
+	assert.match(
+		browserQa,
+		/slow authentication exposes one dedicated status while covered controls remain isolated/u,
 	);
 	assert.match(
 		browserQa,
