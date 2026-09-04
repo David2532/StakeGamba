@@ -223,4 +223,8 @@ test('player and exact-package QA bind intro blocking, skip and bypass paths', a
 		browserQa,
 		/network\.byEndpoint\.authenticate\.length === 1 && paidWriteCount\(network\) === 0/u,
 	);
+	assert.match(
+		browserQa,
+		/await foregroundPage\.close\(\);[\s\S]*?foregroundPage = null;[\s\S]*?await page\.bringToFront\(\);[\s\S]*?document\.visibilityState === 'visible'/u,
+	);
 });

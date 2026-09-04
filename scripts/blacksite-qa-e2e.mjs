@@ -1699,7 +1699,9 @@ async function runNetworkScenarios(browser, origin) {
 			record.resolved = resolved;
 			record.network = network;
 			record.diagnostics = diagnostics;
-			await lifecycleSession.send('Page.bringToFront');
+			await foregroundPage.close();
+			foregroundPage = null;
+			await page.bringToFront();
 			await page.waitForFunction(() => document.visibilityState === 'visible', undefined, {
 				polling: 100,
 				timeout: 5_000,
@@ -6019,7 +6021,7 @@ async function runNetworkScenarios(browser, origin) {
 			assertCleanDiagnostics(group, diagnostics);
 			const normalScreenshot = await saveScreenshot(page, group);
 			await page.locator(`${SELECTORS.vaultkeeper} img`).evaluate((image) => {
-				image.dispatchEvent(new Event('error'));
+				image.src = 'data:image/png;base64,AAAA';
 			});
 			await page.waitForFunction(
 				(selector) =>

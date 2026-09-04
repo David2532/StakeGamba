@@ -222,5 +222,7 @@ test('browser evidence identity includes shipped static assets', async () => {
 		source,
 		/missing Vaultkeeper image switches to the deterministic mechanical silhouette/u,
 	);
+	assert.match(source, /image\.src = 'data:image\/png;base64,AAAA'/u);
+	assert.doesNotMatch(source, /image\.dispatchEvent\(new Event\('error'\)\)/u);
 	assert.match(source, /responsive mechanical vault environment selects/u);
 });
