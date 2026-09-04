@@ -1719,6 +1719,67 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('storage-denied-mobile-remains-playable', async (record) => {
+		const group = 'storage-denied-mobile-remains-playable';
+		const context = await browser.newContext({
+			viewport: { width: 390, height: 844 },
+			isMobile: true,
+			hasTouch: true,
+			reducedMotion: 'reduce',
+		});
+		try {
+			await context.addInitScript(() => {
+				Object.defineProperty(window, 'localStorage', {
+					configurable: true,
+					get() {
+						throw new DOMException('Storage access denied', 'SecurityError');
+					},
+				});
+			});
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: { authenticate: () => authenticateResponse() },
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery({ device: 'mobile' }));
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			const state = await page.evaluate((introSelector) => ({
+				runtimeState: document.body.dataset.runtimeState,
+				introCount: document.querySelectorAll(introSelector).length,
+				introStatus: document.body.dataset.introStatus,
+				dismissReason: document.body.dataset.introDismissReason,
+				motionProfile: document.body.dataset.motionProfile,
+				audioLevel: document.body.dataset.audioLevel,
+			}), SELECTORS.bootIntro);
+			check(
+				group,
+				'denied browser storage falls back to defaults and reaches one playable action',
+				state.runtimeState === 'live-ready' &&
+					state.introCount === 0 &&
+					state.introStatus === 'bypassed' &&
+					state.dismissReason === 'reduced-motion' &&
+					state.motionProfile === 'reduced' &&
+					state.audioLevel === 'FULL' &&
+					!(await page.locator(SELECTORS.primaryAction).isDisabled()),
+				serialize(state),
+			);
+			check(
+				group,
+				'storage denial authenticates once and issues zero wallet writes',
+				network.byEndpoint.authenticate.length === 1 && paidWriteCount(network) === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.screenshot = await saveScreenshot(page, 'storage-denied-mobile-ready');
+			record.storageFallback = state;
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('invalid-rgs-url-fails-closed-before-network', async (record) => {
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 		try {

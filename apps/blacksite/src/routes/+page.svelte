@@ -34,6 +34,7 @@
 	import { resolveLaunchMode } from '../lib/runtime/launch-mode.js';
 	import {
 		createInitialIntroState,
+		getBrowserStorage,
 		introEligibility,
 		readIntroSeen,
 		writeIntroSeen,
@@ -111,6 +112,7 @@
 	let primaryActionElement = null;
 	let returnFocusElement = null;
 	let motionMode = 'normal';
+	let browserStorage = null;
 	let reducedMotion = false;
 	let characterAssetFailed = false;
 	let characterAssetState = 'omitted';
@@ -600,7 +602,10 @@
 	function toggleMotionMode() {
 		if (introBlocking || reducedMotion || turboDisabled) return;
 		audioDirector?.playUi();
-		motionMode = writeMotionMode(window.localStorage, motionMode === 'normal' ? 'turbo' : 'normal');
+		motionMode = writeMotionMode(
+			browserStorage,
+			motionMode === 'normal' ? 'turbo' : 'normal',
+		);
 	}
 
 	function skipPresentation() {
@@ -831,7 +836,8 @@
 		const destroyIntro = () => {
 			void introController?.destroy();
 		};
-		motionMode = readMotionMode(window.localStorage);
+		browserStorage = getBrowserStorage(window);
+		motionMode = readMotionMode(browserStorage);
 		const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 		const stopWatchingCharacterAsset = watchCharacterAssetVisibility(
 			window,
@@ -848,7 +854,7 @@
 		const adapter = new GameEventAdapter();
 		audioDirector = new AudioDirector({
 			audioContextFactory: window.AudioContext ? () => new window.AudioContext() : null,
-			storage: window.localStorage,
+			storage: browserStorage,
 			documentRef: document,
 			onState: (nextState) => {
 				audioState = nextState;
@@ -930,7 +936,7 @@
 					launchKind: launch.kind,
 					activeRound: false,
 					reducedMotion,
-					seen: readIntroSeen(window.localStorage),
+					seen: readIntroSeen(browserStorage),
 					motionMode,
 					disabledTurbo: state.config?.jurisdiction?.disabledTurbo === true,
 					documentHidden: document.visibilityState === 'hidden',
@@ -946,7 +952,7 @@
 				const terminal = await introController.playBoot(eligibility.profile);
 				if (disposed || terminal.status === 'destroyed') return;
 				if (terminal.status === 'completed' || terminal.status === 'skipped') {
-					writeIntroSeen(window.localStorage);
+					writeIntroSeen(browserStorage);
 				}
 				runtimeState = 'live-ready';
 				await tick();

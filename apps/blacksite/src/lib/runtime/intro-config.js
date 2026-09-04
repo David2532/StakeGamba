@@ -62,6 +62,14 @@ export function writeIntroSeen(storage) {
 	}
 }
 
+export function getBrowserStorage(browserWindow) {
+	try {
+		return browserWindow?.localStorage ?? null;
+	} catch {
+		return null;
+	}
+}
+
 export function introEligibility({
 	launchKind = 'booting',
 	activeRound = false,

@@ -69,7 +69,9 @@ test('boot intro config locks the normal and turbo beat contracts', async () => 
 });
 
 test('boot intro eligibility is presentation-only and fails open for storage errors', async () => {
-	const { introEligibility, readIntroSeen, writeIntroSeen } = await import(configUrl.href);
+	const { getBrowserStorage, introEligibility, readIntroSeen, writeIntroSeen } = await import(
+		configUrl.href
+	);
 	assert.deepEqual(
 		introEligibility({
 			launchKind: 'live',
@@ -123,6 +125,14 @@ test('boot intro eligibility is presentation-only and fails open for storage err
 	};
 	assert.equal(readIntroSeen(throwingStorage), false);
 	assert.equal(writeIntroSeen(throwingStorage), false);
+	const deniedWindow = {};
+	Object.defineProperty(deniedWindow, 'localStorage', {
+		get() {
+			throw new Error('storage getter denied');
+		},
+	});
+	assert.equal(getBrowserStorage(deniedWindow), null);
+	assert.equal(getBrowserStorage({ localStorage: throwingStorage }), throwingStorage);
 });
 
 test('IntroController completes exact normal beats once and clears every timer', async () => {
@@ -203,6 +213,8 @@ test('player and exact-package QA bind intro blocking, skip and bypass paths', a
 		readFile(browserQaUrl, 'utf8'),
 	]);
 	assert.match(page, /introEligibility/u);
+	assert.match(page, /getBrowserStorage\(window\)/u);
+	assert.doesNotMatch(page, /window\.localStorage/u);
 	assert.match(page, /introBlocking/u);
 	assert.match(page, /introModalActive/u);
 	assert.match(page, /active-round-restore/u);
@@ -217,6 +229,7 @@ test('player and exact-package QA bind intro blocking, skip and bypass paths', a
 	assert.match(browserQa, /boot-intro-full-fresh-live/u);
 	assert.match(browserQa, /boot-intro-skip-mobile/u);
 	assert.match(browserQa, /slow-auth-status-visible-hidden-document-intro-bypass/u);
+	assert.match(browserQa, /storage-denied-mobile-remains-playable/u);
 	assert.match(browserQa, /boot intro never issues a wallet write/u);
 	assert.match(browserQa, /function paidWriteCount\(network\)/u);
 	assert.match(

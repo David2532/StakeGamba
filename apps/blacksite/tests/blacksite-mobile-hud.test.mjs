@@ -97,7 +97,8 @@ test('browser QA exercises double-tap suppression without blocking touch scrolli
 test('presentation speed persists while system reduced motion remains authoritative', async () => {
 	const pageSource = await readFile(pageUrl, 'utf8');
 	const browserSource = await readFile(browserQaUrl, 'utf8');
-	assert.match(pageSource, /motionMode = readMotionMode\(window\.localStorage\)/u);
+	assert.match(pageSource, /browserStorage = getBrowserStorage\(window\)/u);
+	assert.match(pageSource, /motionMode = readMotionMode\(browserStorage\)/u);
 	assert.match(pageSource, /motionMode = writeMotionMode\(/u);
 	assert.match(browserSource, /presentation-speed-persists-with-reduced-motion-override/u);
 	assert.match(
