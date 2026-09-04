@@ -820,45 +820,118 @@ test('separate owner review verifies an exact evidence binding and Ed25519 signa
 test('standalone owner-review flow uses independently supplied evidence bytes and reviewer key', () => {
 	withFixture((value) => {
 		const signedReview = signedOwnerReview(value);
+		const trustRoot = mkdtempSync(join(tmpdir(), 'blacksite-device-review-trust-'));
+		const evidencePath = join(value.root, 'device-evidence.json');
+		const reviewPath = join(value.root, 'device-owner-review.json');
+		const publicKeyPath = join(trustRoot, 'reviewer-public-key.pem');
+		writeFileSync(evidencePath, signedReview.evidenceSourceBytes);
+		writeFileSync(reviewPath, `${JSON.stringify(signedReview.review, null, 2)}\n`);
+		writeFileSync(publicKeyPath, signedReview.publicKeyPem);
+		const keyDigest = createHash('sha256').update(signedReview.publicKeyPem).digest('hex');
+		try {
+			const result = spawnSync(
+				process.execPath,
+				[
+					validatorPath,
+					'--owner-review',
+					reviewPath,
+					'--evidence',
+					evidencePath,
+					'--attachments-root',
+					value.root,
+					'--reviewer-public-key',
+					publicKeyPath,
+					'--expected-reviewer-public-key-sha256',
+					keyDigest,
+					'--expected-reviewer-id',
+					'qa-release-owner',
+					'--expected-reviewer-key-id',
+					'qa-release-key-2026',
+					'--expected-git-sha',
+					identity.gitSha,
+					'--expected-frontend-tree',
+					identity.frontendTreeSha256,
+					'--expected-math-tree',
+					identity.mathTreeSha256,
+					'--expected-math-fingerprint',
+					identity.mathCandidateFingerprintSha256,
+				],
+				{ encoding: 'utf8', env: { ...process.env } },
+			);
+			assert.equal(result.status, 0, result.stderr);
+			const report = JSON.parse(result.stdout);
+			assert.equal(report.status, 'SIGNED_OWNER_DECISION_VERIFIED');
+			assert.equal(report.reviewJson.binding, 'EXACT_SOURCE_BYTES');
+			assert.equal(report.evidenceJson.binding, 'EXACT_SOURCE_BYTES');
+			assert.equal(report.reviewer.publicKeySourceSha256, keyDigest);
+			assert.equal(report.releaseApproval, 'NOT_CLAIMED');
+		} finally {
+			rmSync(trustRoot, { recursive: true, force: true });
+		}
+	});
+});
+
+test('standalone owner review rejects bundle-supplied or digest-substituted reviewer keys', () => {
+	withFixture((value) => {
+		const signedReview = signedOwnerReview(value);
 		const evidencePath = join(value.root, 'device-evidence.json');
 		const reviewPath = join(value.root, 'device-owner-review.json');
 		const publicKeyPath = join(value.root, 'reviewer-public-key.pem');
 		writeFileSync(evidencePath, signedReview.evidenceSourceBytes);
 		writeFileSync(reviewPath, `${JSON.stringify(signedReview.review, null, 2)}\n`);
 		writeFileSync(publicKeyPath, signedReview.publicKeyPem);
-		const result = spawnSync(
-			process.execPath,
-			[
-				validatorPath,
-				'--owner-review',
-				reviewPath,
-				'--evidence',
-				evidencePath,
-				'--attachments-root',
-				value.root,
-				'--reviewer-public-key',
-				publicKeyPath,
-				'--expected-reviewer-id',
-				'qa-release-owner',
-				'--expected-reviewer-key-id',
-				'qa-release-key-2026',
-				'--expected-git-sha',
-				identity.gitSha,
-				'--expected-frontend-tree',
-				identity.frontendTreeSha256,
-				'--expected-math-tree',
-				identity.mathTreeSha256,
-				'--expected-math-fingerprint',
-				identity.mathCandidateFingerprintSha256,
-			],
-			{ encoding: 'utf8', env: { ...process.env } },
-		);
-		assert.equal(result.status, 0, result.stderr);
-		const report = JSON.parse(result.stdout);
-		assert.equal(report.status, 'SIGNED_OWNER_DECISION_VERIFIED');
-		assert.equal(report.reviewJson.binding, 'EXACT_SOURCE_BYTES');
-		assert.equal(report.evidenceJson.binding, 'EXACT_SOURCE_BYTES');
-		assert.equal(report.releaseApproval, 'NOT_CLAIMED');
+		const commonArguments = [
+			validatorPath,
+			'--owner-review',
+			reviewPath,
+			'--evidence',
+			evidencePath,
+			'--attachments-root',
+			value.root,
+			'--reviewer-public-key',
+			publicKeyPath,
+			'--expected-reviewer-public-key-sha256',
+			createHash('sha256').update(signedReview.publicKeyPem).digest('hex'),
+			'--expected-reviewer-id',
+			'qa-release-owner',
+			'--expected-reviewer-key-id',
+			'qa-release-key-2026',
+			'--expected-git-sha',
+			identity.gitSha,
+			'--expected-frontend-tree',
+			identity.frontendTreeSha256,
+			'--expected-math-tree',
+			identity.mathTreeSha256,
+			'--expected-math-fingerprint',
+			identity.mathCandidateFingerprintSha256,
+		];
+		const bundled = spawnSync(process.execPath, commonArguments, {
+			encoding: 'utf8',
+			env: { ...process.env },
+		});
+		assert.notEqual(bundled.status, 0);
+		assert.match(bundled.stderr, /outside the evidence and attachment roots/u);
+
+		const externalRoot = mkdtempSync(join(tmpdir(), 'blacksite-device-review-trust-'));
+		try {
+			const externalKeyPath = join(externalRoot, 'reviewer-public-key.pem');
+			writeFileSync(externalKeyPath, signedReview.publicKeyPem);
+			const substituted = spawnSync(
+				process.execPath,
+				commonArguments.map((argument) =>
+					argument === publicKeyPath
+						? externalKeyPath
+						: argument === createHash('sha256').update(signedReview.publicKeyPem).digest('hex')
+							? 'f'.repeat(64)
+							: argument,
+				),
+				{ encoding: 'utf8', env: { ...process.env } },
+			);
+			assert.notEqual(substituted.status, 0);
+			assert.match(substituted.stderr, /digest does not match/u);
+		} finally {
+			rmSync(externalRoot, { recursive: true, force: true });
+		}
 	});
 });
 

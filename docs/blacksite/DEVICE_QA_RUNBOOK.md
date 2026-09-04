@@ -208,6 +208,7 @@ node scripts/blacksite-device-evidence.mjs \
   --evidence /absolute/path/to/device-evidence.json \
   --attachments-root /absolute/path/to/device-attachments \
   --reviewer-public-key /absolute/path/to/reviewer-ed25519-public.pem \
+  --expected-reviewer-public-key-sha256 <sha256-of-exact-public-key-file> \
   --expected-reviewer-id <trusted-reviewer-id> \
   --expected-reviewer-key-id <trusted-key-id> \
   --expected-git-sha <full-git-sha> \
@@ -216,7 +217,7 @@ node scripts/blacksite-device-evidence.mjs \
   --expected-math-fingerprint <math-candidate-fingerprint-sha256>
 ```
 
-The owner-review verifier first revalidates the exact device record and attachments. `ACCEPTED` is rejected if any result is `FAIL`/`NOT_RUN` or mobile coverage is incomplete/above the proposed floor. A valid signature reports `SIGNED_OWNER_DECISION_VERIFIED`, but its trust anchor is explicitly caller-supplied: the machine does not establish organizational authority and never emits device, Stake or release approval.
+The owner-review verifier first revalidates the exact device record and attachments. The reviewer public key must be a real non-symlink file outside the evidence, review and attachment roots, and release control must supply its exact SHA-256 independently. A bundled, substituted or digest-mismatched key fails closed before signature verification. `ACCEPTED` is rejected if any result is `FAIL`/`NOT_RUN` or mobile coverage is incomplete/above the proposed floor. A valid signature reports `SIGNED_OWNER_DECISION_VERIFIED`, but its trust anchor is explicitly caller-supplied: the machine does not establish organizational authority and never emits device, Stake or release approval.
 
 ## 10. Handoff contents
 

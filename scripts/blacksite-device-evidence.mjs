@@ -1074,6 +1074,37 @@ function pathIsWithin(parent, child) {
 	return path === '' || (path !== '..' && !path.startsWith(`..${sep}`) && !isAbsolute(path));
 }
 
+function readTrustedReviewerPublicKey({
+	publicKeyPath,
+	expectedSha256,
+	evidencePath,
+	ownerReviewPath,
+	attachmentsRoot,
+}) {
+	digest(expectedSha256, 'expected reviewer public-key SHA-256');
+	requireValue(existsSync(publicKeyPath), `Reviewer public key does not exist: ${publicKeyPath}`);
+	const stats = lstatSync(publicKeyPath);
+	requireValue(
+		stats.isFile() && !stats.isSymbolicLink(),
+		'Reviewer public key must be a regular file, not a symlink',
+	);
+	const realPublicKeyPath = realpathSync(publicKeyPath);
+	const untrustedRoots = [attachmentsRoot, dirname(evidencePath), dirname(ownerReviewPath)].map(
+		(path) => realpathSync(path),
+	);
+	requireValue(
+		untrustedRoots.every((root) => !pathIsWithin(root, realPublicKeyPath)),
+		'Reviewer public key must resolve outside the evidence and attachment roots',
+	);
+	const bytes = readFileSync(realPublicKeyPath);
+	const sha256 = createHash('sha256').update(bytes).digest('hex');
+	requireValue(
+		sha256 === expectedSha256,
+		'Reviewer public-key digest does not match the independently supplied SHA-256',
+	);
+	return { publicKeyPem: bytes.toString('utf8'), publicKeySourceSha256: sha256 };
+}
+
 function bytesMatchMediaType(bytes, mediaType) {
 	if (mediaType === 'image/png')
 		return bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
@@ -1413,10 +1444,20 @@ export function verifyDeviceOwnerReview(review, options = {}) {
 	meaningfulString(review.reviewer.name, 'ownerReview.reviewer.name');
 	meaningfulString(review.reviewer.organization, 'ownerReview.reviewer.organization');
 	meaningfulString(review.reviewer.role, 'ownerReview.reviewer.role');
-	exactKeys(options.trustedReviewer, ['id', 'keyId', 'publicKeyPem'], [], 'trustedReviewer');
+	exactKeys(
+		options.trustedReviewer,
+		['id', 'keyId', 'publicKeyPem'],
+		['publicKeySourceSha256'],
+		'trustedReviewer',
+	);
 	identifier(options.trustedReviewer.id, 'trustedReviewer.id');
 	identifier(options.trustedReviewer.keyId, 'trustedReviewer.keyId');
 	meaningfulString(options.trustedReviewer.publicKeyPem, 'trustedReviewer.publicKeyPem', 32);
+	if (options.trustedReviewer.publicKeySourceSha256 !== undefined)
+		digest(
+			options.trustedReviewer.publicKeySourceSha256,
+			'trustedReviewer.publicKeySourceSha256',
+		);
 	requireValue(
 		review.reviewer.id === options.trustedReviewer.id,
 		'ownerReview.reviewer.id does not match the independently trusted reviewer',
@@ -1526,6 +1567,8 @@ export function verifyDeviceOwnerReview(review, options = {}) {
 			id: review.reviewer.id,
 			keyId: review.signature.keyId,
 			publicKeySpkiSha256,
+			publicKeySourceSha256:
+				options.trustedReviewer.publicKeySourceSha256 ?? 'NOT_PROVIDED_MODULE_CALL',
 			authority: 'CALLER_SUPPLIED_TRUST_NOT_MACHINE_ATTESTED',
 		},
 		decision: {
@@ -1563,6 +1606,7 @@ function parseArguments() {
 		'  --evidence <record.json>',
 		'  --attachments-root <directory>',
 		'  --reviewer-public-key <ed25519-public-key.pem>',
+		'  --expected-reviewer-public-key-sha256 <64-hex>',
 		'  --expected-reviewer-id <identifier>',
 		'  --expected-reviewer-key-id <identifier>',
 		'  --expected-git-sha <40-hex>',
@@ -1590,6 +1634,9 @@ function parseArguments() {
 				id: requiredArgument('--expected-reviewer-id'),
 				keyId: requiredArgument('--expected-reviewer-key-id'),
 				publicKeyPath: resolve(repoRoot, requiredArgument('--reviewer-public-key')),
+				expectedPublicKeySha256: requiredArgument(
+					'--expected-reviewer-public-key-sha256',
+				),
 			},
 		};
 	} catch (error) {
@@ -1616,10 +1663,13 @@ function main() {
 		let result;
 		if (argumentsValue.mode === 'owner-review') {
 			const reviewSource = readEvidenceFile(argumentsValue.ownerReviewPath);
-			requireValue(
-				existsSync(argumentsValue.trustedReviewer.publicKeyPath),
-				`Reviewer public key does not exist: ${argumentsValue.trustedReviewer.publicKeyPath}`,
-			);
+			const trustedPublicKey = readTrustedReviewerPublicKey({
+				publicKeyPath: argumentsValue.trustedReviewer.publicKeyPath,
+				expectedSha256: argumentsValue.trustedReviewer.expectedPublicKeySha256,
+				evidencePath: argumentsValue.evidencePath,
+				ownerReviewPath: argumentsValue.ownerReviewPath,
+				attachmentsRoot: argumentsValue.attachmentsRoot,
+			});
 			result = verifyDeviceOwnerReview(reviewSource.evidence, {
 				...argumentsValue,
 				evidenceSourceBytes: source.bytes,
@@ -1627,7 +1677,7 @@ function main() {
 				trustedReviewer: {
 					id: argumentsValue.trustedReviewer.id,
 					keyId: argumentsValue.trustedReviewer.keyId,
-					publicKeyPem: readFileSync(argumentsValue.trustedReviewer.publicKeyPath, 'utf8'),
+					...trustedPublicKey,
 				},
 			});
 		} else {
