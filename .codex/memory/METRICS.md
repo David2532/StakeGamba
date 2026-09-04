@@ -3,6 +3,50 @@ Total output lines: 4522
 
 # Rolling automation metrics
 
+## BS-20260904-22
+
+```yaml
+started_at_utc: 2026-09-04T00:05:34Z
+closed_at_utc: 2026-09-04T01:31:18Z
+sprint_day: 6
+status: SUCCESS
+direct_subagents: 4
+nested_subagents: 2
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-RELEASE-EVIDENCE-BOUNDARIES-001
+base_remote_commit: 717a8a052ece0d2ae0e1869b3fc7b25f8a3d140c
+implementation_commit: 021a1d648c741f3bdb44211abe8ed6377b0df088
+local_lint: PASS
+local_typecheck: { errors: 0, warnings: 0, status: PASS }
+local_app_tests: { pass: 254, fail: 0, exit: 0 }
+local_build: PASS
+local_scale_self_test: { pass: 46, fail: 0, status: PASS, exit: 0 }
+exact_source_ci: { run: 33824173649, commit: 021a1d648c741f3bdb44211abe8ed6377b0df088, status: SUCCESS }
+exact_pr_merge_ci: { run: 33824176688, merge_commit: ea0ecae7a553b97d8c64a160f41b6f8d45ef3434, source_commit: 021a1d648c741f3bdb44211abe8ed6377b0df088, status: SUCCESS }
+exact_math: { tests: 7, candidate_gates: 90, books: 300000, tree: 6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da, files: 7, bytes: 48697667, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_browser: { scenarios: 97, passed: 97, checks: 3123, passed_checks: 3123, failed_checks: 0, unexpected_requests: 0, forbidden_requests: 0, expected_negative_console_errors: 6, page_errors: 0, unclassified_failed_requests: 0 }
+exact_package: { frontend_tree: 1ccaedb30c4a3c49a6211814653169682735acb1e36f430a1aa764de092602a1, files: 6, bytes: 458151, status: PASS }
+compliance_evidence: { schema: blacksite-stake-51-candidate-evidence-v3, status: STRUCTURALLY_VALID, total: 51, automated_proof_complete: 38, repository_evidence_resolved: 40, manual_open: 23, external_lifecycle_open: 6, external_with_repository_evidence: [45, 46], release_readiness: NOT_CLAIMED }
+release_bundle: { schema: blacksite-release-evidence-bundle-v1, cli_status: EVIDENCE_BUNDLE_COMPLETE, scope: REPOSITORY_CANDIDATE_AND_EVIDENCE_INTEGRITY, lifecycle: EVIDENCE_BUNDLE_GENERATED_MANUAL_AND_EXTERNAL_GATES_OPEN, manual_evidence: NOT_CLAIMED, external_approval: NOT_CLAIMED, upload_authorization: NOT_CLAIMED, release_readiness: NOT_CLAIMED }
+storage_denied_browser: { scenario: storage-denied-mobile-remains-playable, surface: localStorage_getter, environment: CHROMIUM_MOBILE_EMULATION, authenticate: 1, paid_writes: 0, enabled_action: true, paid_play_executed: false, physical_device_claim: NOT_CLAIMED }
+slow_auth_browser: { scenario: slow-auth-status-visible-before-intro, accessible_connecting: PASS, post_auth_intro_before_play: PASS, focused_ready_after_skip: PASS, paid_writes: 0 }
+native_visibility: { automated_scope: UNIT_DECISION_AND_PRODUCTION_WIRING_ONLY, headless_focus_emulation: REMOVED_NOT_EVIDENCE, physical_mobile_background_foreground: NOT_RUN, real_popout_background_foreground: NOT_RUN }
+device_evidence: { contract: blacksite-device-qa-contract-v3, evidence_schema: blacksite-device-qa-evidence-v3, owner_review_schema: blacksite-device-qa-owner-review-v1, required_results: 54, executed_results: 0, owner_review: NOT_OBTAINED, device_approval: NOT_CLAIMED }
+artifact: { id: 9919765967, bytes: 212423922, files: 302, screenshots: 137, sha256: ed356847fa4b72ad55e4add7a0dd3d381a70cc29d357a48110b067d417abbc2e }
+manual_visual_review: PASS_BOOT_DESKTOP_MOBILE_1920X1080_1366X768_390X844_844X390_STORAGE_DENIED_ASSET_FALLBACK
+production_equivalent_scale_evidence: NOT_RUN_OWNER_INPUTS_REQUIRED
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+git_diff_check: PASS
+final_diff_review: PASS_EXACT_IDENTITY_AND_OPEN_GATE_BOUNDARIES
+manual_identical_retries: 0
+```
+
+The storage-denied browser case proves only safe default launch through an enabled action in mobile emulation; it executes no paid play. Headless focus emulation was intentionally removed as native-visibility evidence, so physical-mobile and real-Popout background/foreground observations remain `NOT_RUN`.
+
+Observed categories: exact PR/current-state review; release/compliance/scale/device/runtime source and contract audit; four direct specialist subagents plus two nested CI monitors; local lint/typecheck/test/build/scale and exact package verification; connected Git-data non-force commits; exact source and PR-merge CI; artifact digest/readback, bundle/compliance inspection and eight-image visual review. A local readback of the Linux/Node-22 CI package correctly failed closed under a different local toolchain and was not retried as equivalent evidence. Standard HTTPS push credentials were unavailable; connected Git data preserved fast-forward semantics. Tokens and exact aggregate tool/file counts were not exposed.
+
 ## BS-20260904-21
 
 ```yaml

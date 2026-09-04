@@ -1,5 +1,24 @@
 # Material run log
 
+## BS-20260904-22 — SUCCESS
+
+- Sprint day: 6
+- Base remote commit: `717a8a052ece0d2ae0e1869b3fc7b25f8a3d140c`
+- Verified implementation commit: `021a1d648c741f3bdb44211abe8ed6377b0df088`
+- Work item: `BSB-RELEASE-EVIDENCE-BOUNDARIES-001` (DONE); parent scale, evidence, asset, motion and audio work remains open.
+- Selection reason: the repository could close candidate/evidence integrity gaps and define exact owner handoffs without fabricating production-equivalent, native-device, manual or external observations.
+- Before/after evidence: deterministic release-bundle v1 now binds exact candidate/browser/compliance/checklist/source bytes; compliance v3 locks every lifecycle/input byte and distinguishes 38 automated-proof rows from 40 repository-evidence-resolved rows; scale v7 binds normalized signed source attachments and approved measurement details; device v3/owner-review v1 defines the 54-result physical-device/real-Popout handoff. All structural statuses retain limited scopes and open gates.
+- Runtime/browser evidence: exact-SHA recovery/build identity, jurisdiction Turbo/Slamstop/RTP/Space guards, Replay exact totals, complete audio cue/external-context handling, compact Vaultkeeper race protection and actual invalid-image fallback are regression-bound. Exact-source CI `33824173649` and PR merge-result CI `33824176688` each record 97/97 Chromium scenarios / 3,123/3,123 checks.
+- Storage/visibility boundary: a throwing `localStorage` getter is captured once as a nullable dependency for intro, motion and audio. Mobile-emulated Chromium reaches an enabled action with safe defaults after one authenticate and zero paid writes; it does not execute a paid play. `slow-auth-status-visible-before-intro` proves accessible pending state, post-auth intro ordering and focused readiness. The former CDP hidden-document scenario was removed: hidden-document decision/wiring is unit/source-proven only and native delayed-auth background/foreground remains `NOT_RUN` for physical mobile and real Popout.
+- Changed files: 41 across CI, BlackSite runtime/tests/asset manifest/build config, release/compliance/scale/device scripts and documentation, and package scripts. Binary art, math/RNG, wallet/provider schemas, dependencies and lockfile are unchanged.
+- Gates: local lint, production `svelte-check` 0 errors/0 warnings, 254/254 tests, production build, scale self-test 46/46 and `git diff --check` PASS. Both implementation CIs pass frozen install, production build, 7/7 math tests over 300,000 books and Chromium; exact-source CI additionally passes exact package/readback, compliance v3 and release-bundle v1. Browser evidence records zero unexpected/forbidden requests, page errors or unclassified failed requests; six console errors are expected 401/503 negative-path fixtures.
+- Release/package evidence: exact frontend tree `1ccaedb30c4a3c49a6211814653169682735acb1e36f430a1aa764de092602a1`, 6 files / 458,151 bytes; math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes. Artifact `9919765967` (212,423,922 bytes, `sha256:ed356847fa4b72ad55e4add7a0dd3d381a70cc29d357a48110b067d417abbc2e`) contains diagnostics and sibling `release-bundle/`; the bundle CLI reports `EVIDENCE_BUNDLE_COMPLETE`, lifecycle is `EVIDENCE_BUNDLE_GENERATED_MANUAL_AND_EXTERNAL_GATES_OPEN`, and manual/external/upload/release claims are `NOT_CLAIMED`.
+- Visual review: eight exact-source captures were inspected: desktop/mobile intro, 1920x1080, 1366x768, 390x844, 844x390, storage-denied mobile and invalid-asset fallback. No apparent crop, scrollbar, overlap or broken-image regression was found. Screenshots do not prove native visibility, physical-device, real-Popout, public-link or Creative approval.
+- Tool/token metrics: see `METRICS.md`; direct subagents 4, with two nested CI monitors; tokens `null` / `not_exposed`. Repository skills enforced deterministic packaging, honest scale/device boundaries and visual inspection. Standard HTTPS push credentials were unavailable, so connected Git data performed non-force updates. Two browser issues were diagnosed from exact CI; one unreliable headless native-visibility claim was removed rather than weakened or relabeled.
+- Persistence: implementation is present at remote/current implementation HEAD; this memory closeout is persisted separately without force.
+- Residual risk: no real production-equivalent CDN/RGS/provider run/native exports/owner acceptance; no physical device, real Popout or native background/foreground evidence; no final-audio/accessibility review; no final Spine/BLACKOUT/foreground/rights/Creative approval. All 23 manual gates and 6 external lifecycle gates remain open; million-user capacity, physical execution, approval, upload authorization and release readiness are `NOT_CLAIMED`.
+- Next candidate: execute the owner-provisioned scale/device handoffs or complete approved asset/manual review; do not substitute fixtures, mobile emulation, screenshots or structural validation for owner evidence.
+
 ## BS-20260904-21 — SUCCESS
 
 - Sprint day: 6
@@ -318,23 +337,5 @@
 - Persistence: implementation was fast-forwarded through connected Git data with `force: false`; exact run `33701131998`, artifact `9873890152` and digest `sha256:0b57706eabd0102f7601fe4cb476d68e86041d26ddd796c72febb2ee9d3d1e58` succeeded. Memory closeout is fast-forwarded separately without force.
 - Residual risk: there is still no owner-approved production-equivalent CDN/RGS/provider load/soak run, so capacity for 1,000,000 users is NOT_CLAIMED. Approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/clipping/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals remain open.
 - Next candidate: obtain and validate the real production-equivalent scale run for `BSB-SCALE-001`; if external infrastructure remains unavailable, advance only another repository-solvable high release gate without substituting mocks for acceptance.
-
-## BS-20260903-02 — SUCCESS
-
-- Sprint day: 5
-- Base remote commit: `cadf2ce497bf2062ef984eda782e767e5d01ceae`
-- Verified implementation commit: `1d22d4b8de7d023df4a3693b4b18ecf0844928c1`
-- Work item: `BSB-SCALE-EVIDENCE-GATE-001` (DONE); parent `BSB-SCALE-001` remains OPEN.
-- Selection reason: after closing the badge blocker, the highest release-critical repository-solvable gap was the absence of an executable acceptance boundary for the requested million-user infrastructure claim.
-- Before/after evidence: previously the backlog listed requirements but no machine-checkable evidence format existed. The new SHA-bound verifier and operator contract require owner-approved workload/SLO values and reject mock targets, missed concurrency/RPS, latency/cache/saturation breaches, duplicate paid-play/settlement or wallet mismatches, incomplete CDN/RGS/provider failure drills, missing correlated telemetry/acknowledged alerts, failed rollback and invalid artifact digests. Fourteen synthetic cases prove fail-closed behavior; they do not prove infrastructure capacity.
-- Changed files: scale verifier, 9-test contract suite, scale-readiness runbook, root script entry, exact CI step and five sprint-memory files. Product runtime/layout, math/RNG, wallet/provider schema, assets, dependencies and lockfile are unchanged.
-- Gates: local expected-red and local gates BLOCKED because the selected runner became unavailable. Exact current-commit CI `33696034709`: frozen install PASS; lint PASS; typecheck 0 errors/0 warnings PASS; 187/187 app tests PASS; scale self-test 14/14 PASS; production build PASS; math 7/7 over 300,000 books with fingerprint `d03fab…78d8`; package generation/readback PASS; Chromium 84/84 scenarios / 2358 checks PASS; current-SHA 51-point resolver PASS. Unexpected/forbidden requests, page errors and failed requests are zero; six console messages are expected negative-path fixtures.
-- Visual/browser review: exact current package executed target viewports 1920x1080, 1366x768, 390x844 and 844x390 plus compact coverage with zero geometry failures. Artifact `9872216210` is SHA-bound. Manual image inspection for this head and local `git diff --check` are NOT_RUN/BLOCKED by the unavailable runner; no product visual source changed and prior inspected visuals were not relabeled as current manual evidence.
-- Package evidence: frontend tree `eb477b0564988ad8a6986bcba4ce3e7f0e5bb9bd34db9f7d0999f24553fa2820`, 6 files / 439,752 bytes; math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes.
-- Review: GitHub compare shows exactly five intended implementation files (+537/-0); complete authored contents were reviewed for scope, secrets, debug residue and capacity overclaim. No credential, endpoint or user data was added.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; subagents 0. No unchanged failed tool invocation was repeated.
-- Persistence: implementation was fast-forwarded with `force: false`; exact run and artifact succeeded. Memory closeout is fast-forwarded separately without force.
-- Residual risk: no real production-equivalent CDN/RGS/provider load/soak run exists, so capacity for 1,000,000 users is NOT_CLAIMED. Approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals remain open.
-- Next candidate: coordinate and ingest a real owner-approved scale run for `BSB-SCALE-001`; if external infrastructure is unavailable, close another repository-side release gate without substituting mocks for acceptance.
 
 Newest entries first; retain at most 20.
