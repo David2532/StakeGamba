@@ -1,5 +1,20 @@
 # Material run log
 
+## BS-20260904-21 — SUCCESS
+
+- Sprint day: 6
+- Base remote commit: `717a8a052ece0d2ae0e1869b3fc7b25f8a3d140c`; integrated source commit: `021a1d648c741f3bdb44211abe8ed6377b0df088`; verified implementation commit: `0a191ddd37b0787bd89ad93d9464232346b9487b`.
+- Work item: `BSB-BROWSER-STORAGE-RESILIENCE-001` (DONE); broader real-device and infrastructure items remain open.
+- Selection reason: direct acquisition of `window.localStorage` could throw in privacy-restricted browsers before existing method guards, preventing mobile launch, audio setup and intro handling.
+- Before/after evidence: expected-red focused tests passed 4/6 and failed 2/6. A shared fail-safe storage adapter now returns `null` on getter denial; motion, audio and intro persistence consume it and safely fall back to defaults. Final focused tests pass 6/6; integrated focused suites pass 14/14.
+- Changed files: intro runtime adapter, route integration, intro/mobile contracts, Chromium QA and five sprint-memory files. Math/RNG, wallet/provider schema, product assets, dependencies and lockfile are unchanged.
+- Gates: frozen install, lint, production `svelte-check` 0 errors/0 warnings, 254/254 app tests, production build, scale self-test 46/46 and math 7/7 over 300,000 books PASS locally. Exact CI `33824176688` passes install through math and Chromium 97/97 scenarios / 3123 checks. The storage-denied 390x844 scenario reaches `live-ready` with Reduced Motion/default audio, one authentication, zero paid writes and no console/network failures. Package/resolver steps were skipped by this PR workflow path; prior exact package evidence is not relabelled.
+- Visual review: artifact `9919710838` matched `sha256:e4363831101142e062f64bbcd23dee8a6758dcb49a6f0ebfd19671130e117e9c`; 1920x1080, 390x844, 844x390 and storage-denied 390x844 were inspected without overlap, crop, scrollbar or broken images. Physical iPhone/Safari remains external.
+- Tool/token metrics: see `METRICS.md`; subagents 0; tokens `null` / `not_exposed`. One lost long-command result caused one identical math retry; the generated manifest change was restored exactly. Standard HTTPS push lacked credentials; connected Git data persisted non-force. A stale API base was rejected before safe integration of concurrent branch work.
+- Persistence: implementation was fast-forwarded through connected Git data with `force: false`; the exact source-head CI and artifact succeeded. This memory closeout is fast-forwarded separately without force.
+- Residual risk: capacity for 1,000,000 users remains NOT_CLAIMED without production-equivalent CDN/RGS/provider evidence. Approved Spine/BLACKOUT/foreground art, final audio QA, real-device pacing/memory/battery, rights/Creative/Stake review, 23 manual gates and 6 external approvals remain open.
+- Next candidate: obtain owner-approved production-equivalent `BSB-SCALE-001` evidence and validate six independently signed reports; otherwise close the next repository-solvable high gate without fabricating external acceptance.
+
 ## BS-20260904-20 — SUCCESS
 
 - Sprint day: 6
@@ -321,22 +336,5 @@
 - Persistence: implementation was fast-forwarded with `force: false`; exact run and artifact succeeded. Memory closeout is fast-forwarded separately without force.
 - Residual risk: no real production-equivalent CDN/RGS/provider load/soak run exists, so capacity for 1,000,000 users is NOT_CLAIMED. Approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals remain open.
 - Next candidate: coordinate and ingest a real owner-approved scale run for `BSB-SCALE-001`; if external infrastructure is unavailable, close another repository-side release gate without substituting mocks for acceptance.
-
-## BS-20260903-01 — SUCCESS
-
-- Sprint day: 5
-- Base remote commit: `122f251fd1b8d95ec95cd84b50df19d48e33829a`
-- Verified implementation commit: `97893340a75cc70a1cd8b855909b539d4c2e9dd8`
-- Work item: `BSB-FEATURE-MODE-BADGE-OVERLAP-001` (DONE)
-- Selection reason: the recorded active Deep Access chip/header geometry gap was the highest repository-solvable release blocker and had no current-package collision measurement.
-- Before/after evidence: the focused contract began 0/1 because the heading lacked stable geometry ownership. The stage heading now uses a bounded two-column grid; the chip is width-bounded, overflow-safe and exactly separated from copy. Exact Chromium measures 12px gap, stage containment and zero facility-kicker/heading-copy collision at 1920x1080 and 1366x768. Compact 390x844 and 844x390 deliberately hide the redundant chip while the selected route and right-side active-mode state remain visible.
-- Changed files: route layout/CSS, responsive contract regression, exact Chromium geometry/captures and five sprint-memory files. Math, RNG, wallet/provider schema, product assets, lockfile and dependencies are unchanged.
-- Gates: expected-red 0/1; focused-after 1/1 PASS; frozen install, lint, typecheck (0 errors / 0 warnings), 178/178 app tests, production build, 7/7 math over 300,000 books, isolated package generation/readback, 84/84 Chromium scenarios / 2358 checks and current-SHA 51-point resolver PASS. Unexpected/forbidden requests, page errors and failed requests are zero; six console errors are expected 401/503 negative-path fixtures. `git diff --check`, secret/debug/scope and full own-diff review PASS.
-- Visual review: active Deep Access at 1920x1080, 1366x768, 390x844 and 844x390 from artifact `9870942598` was inspected. Board, centered values, controls, penguin and vault are complete; no overlap, crop, scroll or broken image was observed.
-- Package evidence: frontend tree `7fbd99604f434e3fb8013396ac849b101dbd7d52febd063e1df140f22cc9041e`, 6 files / 439,752 bytes; math tree `6bd0c4c7f39f9597ac7944e97446c1d09b9fe69087f21ceffe1077aa86bc01da`, 7 files / 48,697,667 bytes; package verification PASS.
-- Tool/token metrics: see `METRICS.md`; tokens `null` / `not_exposed`; subagents 0. The repository AAA visual-QA standard required exact build identity, collision measurement and current screenshots. Standard push credentials were unavailable once; a Git-data executable-mode mismatch was detected and corrected before ref synchronization; a stale build identity was rebuilt; local Chromium download timed out and was not repeatedly retried.
-- Persistence: implementation was fast-forwarded without force through connected Git data. Exact run `33692233510`, artifact `9870942598` and digest `sha256:359392899d0cfd9549ee8d96403e4db929ab3aa18025b4abec27cd3d10ab40fb` succeeded; memory closeout is fast-forwarded separately without force.
-- Residual risk: production-equivalent million-user CDN/RGS/provider load and resilience proof; approved Spine rig/clips, BLACKOUT/foreground layers, final audio/listening/clipping/device QA, real-device pacing/memory/battery, rights/Creative cleanup, 23 manual gates and 6 external approvals.
-- Next candidate: `BSB-SCALE-001`, beginning with a repository-bound workload/observability contract that can be executed against coordinated production-equivalent infrastructure without pretending client tests prove capacity.
 
 Newest entries first; retain at most 20.
