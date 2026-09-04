@@ -68,6 +68,31 @@ const forbiddenRuntimeCodeExtensions = new Set([
 	'.xht',
 	'.xhtml',
 ]);
+const compiledInlineSvgSpriteEmbedding = 'compiled-inline-svg-sprite';
+const compiledInlineSvgSpriteType = 'symbol-family-inline-vector-sprite';
+const compiledInlineSvgSpriteFormat = 'svelte-inline-svg-symbol-sprite';
+const safeInlineSvgElements = new Set([
+	'circle',
+	'defs',
+	'ellipse',
+	'g',
+	'line',
+	'path',
+	'polygon',
+	'polyline',
+	'rect',
+	'svg',
+	'symbol',
+]);
+const inlineSvgGeometryElements = new Set([
+	'circle',
+	'ellipse',
+	'line',
+	'path',
+	'polygon',
+	'polyline',
+	'rect',
+]);
 
 function fail(message) {
 	throw new Error(message);
@@ -651,6 +676,119 @@ function containsLocallyConstantDataUri(program) {
 	return found;
 }
 
+function compiledInlineSvgSpriteContract(source, asset, context) {
+	let ast;
+	try {
+		ast = parseSvelteDocument(source, { modern: true });
+	} catch (error) {
+		fail(`${asset.id}: invalid ${context} inline SVG sprite: ${error.message}`);
+	}
+	if (ast.instance || ast.module) {
+		fail(`${asset.id}: ${context} inline SVG sprite cannot contain executable component scripts`);
+	}
+
+	const normalizeClass = (value) =>
+		value
+			.split(/\s+/u)
+			.filter((token) => token.length > 0 && !/^svelte-[0-9a-z]+$/u.test(token))
+			.sort((left, right) => left.localeCompare(right, 'en'))
+			.join(' ');
+	const canonicalElement = (node) => {
+		if (node?.type !== 'RegularElement' || !safeInlineSvgElements.has(node.name)) {
+			fail(`${asset.id}: ${context} inline SVG sprite contains an unsupported element`);
+		}
+		const attributes = [];
+		const names = new Set();
+		for (const attribute of node.attributes ?? []) {
+			if (attribute.type !== 'Attribute' || names.has(attribute.name)) {
+				fail(`${asset.id}: ${context} inline SVG sprite attributes must be unique and static`);
+			}
+			let value = staticAttributeValue(attribute);
+			if (value === null) {
+				fail(`${asset.id}: ${context} inline SVG sprite attributes must be unique and static`);
+			}
+			if (attribute.name === 'class') value = normalizeClass(value);
+			names.add(attribute.name);
+			attributes.push([attribute.name, value]);
+		}
+		attributes.sort(([left], [right]) => left.localeCompare(right, 'en'));
+		const children = [];
+		for (const child of node.fragment?.nodes ?? []) {
+			if (child.type === 'Text' && child.data.trim() === '') continue;
+			if (child.type !== 'RegularElement') {
+				fail(`${asset.id}: ${context} inline SVG sprite must contain static vector elements only`);
+			}
+			children.push(canonicalElement(child));
+		}
+		return { name: node.name, attributes, children };
+	};
+	const roots = (ast.fragment?.nodes ?? []).filter(
+		(node) => node.type !== 'Text' || node.data.trim() !== '',
+	);
+	if (roots.length !== 1 || roots[0].type !== 'RegularElement' || roots[0].name !== 'svg') {
+		fail(`${asset.id}: ${context} inline SVG sprite must contain exactly one SVG root`);
+	}
+	const tree = canonicalElement(roots[0]);
+	const attributes = new Map(tree.attributes);
+	if (
+		attributes.get('data-testid') !== 'blacksite-symbol-sprite' ||
+		attributes.get('aria-hidden') !== 'true' ||
+		attributes.get('focusable') !== 'false'
+	) {
+		fail(`${asset.id}: ${context} inline SVG sprite root accessibility marker is invalid`);
+	}
+	if (
+		!asset.dimensions ||
+		asset.dimensions.unit !== 'viewBox' ||
+		!Number.isSafeInteger(asset.dimensions.width) ||
+		asset.dimensions.width <= 0 ||
+		!Number.isSafeInteger(asset.dimensions.height) ||
+		asset.dimensions.height <= 0
+	) {
+		fail(`${asset.id}: inline SVG sprite requires positive integer viewBox dimensions`);
+	}
+	const expectedViewBox = `0 0 ${asset.dimensions.width} ${asset.dimensions.height}`;
+	if (attributes.get('viewBox') !== expectedViewBox) {
+		fail(`${asset.id}: ${context} inline SVG sprite root viewBox does not match the manifest`);
+	}
+	if (tree.children.length !== 1 || tree.children[0].name !== 'defs') {
+		fail(`${asset.id}: ${context} inline SVG sprite must contain one definitions block`);
+	}
+	const symbols = tree.children[0].children;
+	if (symbols.length === 0 || symbols.some((symbol) => symbol.name !== 'symbol')) {
+		fail(`${asset.id}: ${context} inline SVG sprite definitions must contain symbols only`);
+	}
+	const symbolIds = [];
+	const seenSymbolIds = new Set();
+	for (const symbol of symbols) {
+		const symbolAttributes = new Map(symbol.attributes);
+		const symbolId = symbolAttributes.get('id');
+		if (
+			typeof symbolId !== 'string' ||
+			!/^blacksite-symbol-[a-z][a-z0-9-]{0,63}$/u.test(symbolId) ||
+			seenSymbolIds.has(symbolId)
+		) {
+			fail(`${asset.id}: ${context} inline SVG sprite symbol IDs must be unique and static`);
+		}
+		if (symbolAttributes.get('viewBox') !== expectedViewBox) {
+			fail(`${asset.id}: ${context} inline SVG sprite symbol viewBox does not match the manifest`);
+		}
+		let geometryCount = 0;
+		walkSyntax(symbol, (node) => {
+			if (inlineSvgGeometryElements.has(node.name)) geometryCount += 1;
+		});
+		if (geometryCount === 0) {
+			fail(`${asset.id}: ${context} inline SVG sprite symbols require vector geometry`);
+		}
+		seenSymbolIds.add(symbolId);
+		symbolIds.push(symbolId);
+	}
+	return {
+		fingerprintSha256: createHash('sha256').update(JSON.stringify(tree)).digest('hex'),
+		symbolIds,
+	};
+}
+
 function runtimeAssetRecords(assetManifest, sourceRoot) {
 	if (
 		assetManifest?.schema !== 'blacksite-asset-manifest-v1' ||
@@ -658,35 +796,14 @@ function runtimeAssetRecords(assetManifest, sourceRoot) {
 	) {
 		fail('Invalid BLACKSITE asset manifest');
 	}
-	const records = [];
+	const externalRecords = [];
+	const compiledInlineRecords = [];
 	const ids = new Set();
 	const paths = new Set();
 	for (const asset of assetManifest.assets) {
 		if (asset?.runtimeEligible !== true) continue;
 		if (typeof asset.id !== 'string' || asset.id.length === 0 || ids.has(asset.id)) {
 			fail('Runtime asset IDs must be unique non-empty strings');
-		}
-		if (
-			typeof asset.runtimePath !== 'string' ||
-			!asset.runtimePath.startsWith(staticPrefix) ||
-			asset.runtimePath.includes('\\')
-		) {
-			fail(`${asset.id}: runtimePath must be a canonical POSIX path inside ${staticPrefix}`);
-		}
-		const path = asset.runtimePath.slice(staticPrefix.length).replaceAll('\\', '/');
-		if (
-			path.length === 0 ||
-			path.startsWith('/') ||
-			/[%?#]/u.test(path) ||
-			/[\u0000-\u0020\u007f]/u.test(path) ||
-			posix.normalize(path) !== path ||
-			path.split('/').includes('..') ||
-			paths.has(path)
-		) {
-			fail(`${asset.id}: runtime asset path must be unique and normalized`);
-		}
-		if (forbiddenRuntimeCodeExtensions.has(posix.extname(path).toLowerCase())) {
-			fail(`${asset.id}: generated inline package cannot manifest external runtime code`);
 		}
 		if (typeof asset.sha256 !== 'string' || !/^[0-9a-f]{64}$/u.test(asset.sha256)) {
 			fail(`${asset.id}: runtime asset requires a lowercase SHA-256 digest`);
@@ -713,6 +830,7 @@ function runtimeAssetRecords(assetManifest, sourceRoot) {
 		) {
 			fail(`${asset.id}: source path must be a canonical repo-relative POSIX path`);
 		}
+		let realSourcePath = null;
 		if (sourceRoot) {
 			const sourcePath = resolve(sourceRoot, ...asset.path.split('/'));
 			const relativeSourcePath = relative(sourceRoot, sourcePath);
@@ -726,7 +844,7 @@ function runtimeAssetRecords(assetManifest, sourceRoot) {
 			if (!existsSync(sourcePath) || !statSync(sourcePath).isFile()) {
 				fail(`${asset.id}: documented source asset is missing: ${asset.path}`);
 			}
-			const realSourcePath = realpathSync(sourcePath);
+			realSourcePath = realpathSync(sourcePath);
 			const realRelativeSourcePath = relative(realpathSync(sourceRoot), realSourcePath);
 			if (
 				realRelativeSourcePath === '..' ||
@@ -739,18 +857,85 @@ function runtimeAssetRecords(assetManifest, sourceRoot) {
 				fail(`${asset.id}: source asset hash mismatch for ${asset.path}`);
 			}
 		}
+		if (asset.runtimeEmbedding !== undefined) {
+			if (asset.runtimeEmbedding !== compiledInlineSvgSpriteEmbedding) {
+				fail(`${asset.id}: unsupported runtimeEmbedding ${String(asset.runtimeEmbedding)}`);
+			}
+			if (
+				asset.runtimePath !== null ||
+				asset.type !== compiledInlineSvgSpriteType ||
+				asset.format !== compiledInlineSvgSpriteFormat
+			) {
+				fail(`${asset.id}: compiled inline SVG sprite manifest shape is invalid`);
+			}
+			if (!sourceRoot || !realSourcePath) {
+				fail(`${asset.id}: compiled inline SVG sprite verification requires a source root`);
+			}
+			if (asset.sha256 !== asset.sourceSha256) {
+				fail(`${asset.id}: compiled inline SVG sprite digests must identify the same source bytes`);
+			}
+			if (
+				typeof asset.runtimeReference !== 'string' ||
+				asset.runtimeReference.trim().length === 0
+			) {
+				fail(`${asset.id}: compiled inline SVG sprite requires a documented runtimeReference`);
+			}
+			const sourceContract = compiledInlineSvgSpriteContract(
+				readFileSync(realSourcePath, 'utf8'),
+				asset,
+				'source',
+			);
+			compiledInlineRecords.push({
+				id: asset.id,
+				runtimeEmbedding: asset.runtimeEmbedding,
+				sourcePath: asset.path,
+				sha256: asset.sha256,
+				sourceSha256: asset.sourceSha256,
+				status: asset.status,
+				symbolIds: sourceContract.symbolIds,
+				svgFingerprintSha256: sourceContract.fingerprintSha256,
+			});
+		} else {
+			if (
+				typeof asset.runtimePath !== 'string' ||
+				!asset.runtimePath.startsWith(staticPrefix) ||
+				asset.runtimePath.includes('\\')
+			) {
+				fail(`${asset.id}: runtimePath must be a canonical POSIX path inside ${staticPrefix}`);
+			}
+			const path = asset.runtimePath.slice(staticPrefix.length).replaceAll('\\', '/');
+			if (
+				path.length === 0 ||
+				path.startsWith('/') ||
+				/[%?#]/u.test(path) ||
+				/[\u0000-\u0020\u007f]/u.test(path) ||
+				posix.normalize(path) !== path ||
+				path.split('/').includes('..') ||
+				paths.has(path)
+			) {
+				fail(`${asset.id}: runtime asset path must be unique and normalized`);
+			}
+			if (forbiddenRuntimeCodeExtensions.has(posix.extname(path).toLowerCase())) {
+				fail(`${asset.id}: generated inline package cannot manifest external runtime code`);
+			}
+			paths.add(path);
+			externalRecords.push({
+				id: asset.id,
+				path,
+				sourcePath: asset.path,
+				sha256: asset.sha256,
+				sourceSha256: asset.sourceSha256,
+				status: asset.status,
+			});
+		}
 		ids.add(asset.id);
-		paths.add(path);
-		records.push({
-			id: asset.id,
-			path,
-			sourcePath: asset.path,
-			sha256: asset.sha256,
-			sourceSha256: asset.sourceSha256,
-			status: asset.status,
-		});
 	}
-	return records.sort((left, right) => left.path.localeCompare(right.path, 'en'));
+	return {
+		compiledInline: compiledInlineRecords.sort((left, right) =>
+			left.id.localeCompare(right.id, 'en'),
+		),
+		external: externalRecords.sort((left, right) => left.path.localeCompare(right.path, 'en')),
+	};
 }
 
 function scanForbiddenContent(root, files, inlineDocument) {
@@ -926,7 +1111,10 @@ export function verifyBlacksiteFrontendHygiene(frontendRoot, assetManifest, sour
 		.map((path) => normalizedRelativePath(root, path))
 		.sort((left, right) => left.localeCompare(right, 'en'));
 	const canonicalSourceRoot = sourceRoot === null ? null : resolve(sourceRoot);
-	const assets = runtimeAssetRecords(assetManifest, canonicalSourceRoot);
+	const { compiledInline: compiledInlineAssets, external: assets } = runtimeAssetRecords(
+		assetManifest,
+		canonicalSourceRoot,
+	);
 	const expectedPaths = [
 		buildIdentityPath,
 		recoveryMetadataPath,
@@ -957,15 +1145,26 @@ export function verifyBlacksiteFrontendHygiene(frontendRoot, assetManifest, sour
 		}
 		asset.bytes = fact.bytes;
 	}
+	for (const asset of compiledInlineAssets) {
+		for (const symbolId of asset.symbolIds) {
+			if (!runtimeAssetLiterals.has(symbolId)) {
+				fail(
+					`${asset.id}: compiled inline SVG sprite has no exact executable symbol literal: ${symbolId}`,
+				);
+			}
+		}
+	}
 	scanForbiddenContent(root, files, inlineDocument);
 	return {
 		result: 'PASS',
 		contract: 'blacksite-inline-frontend-hygiene-v3',
 		fileCount: actualPaths.length,
 		totalBytes: files.reduce((total, file) => total + statSync(file).size, 0),
-		runtimeAssetCount: assets.length,
+		runtimeAssetCount: assets.length + compiledInlineAssets.length,
 		runtimeAssetPaths: assets.map((asset) => asset.path),
-		runtimeAssets: assets,
+		runtimeAssets: [...assets, ...compiledInlineAssets],
+		compiledInlineAssetCount: compiledInlineAssets.length,
+		compiledInlineAssets,
 		recoveryMetadata: {
 			path: recoveryMetadataPath,
 			version: recoveryVersion,

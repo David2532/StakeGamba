@@ -113,7 +113,7 @@ test('production ledger requires a complete penguin Spine delivery', async () =>
 	});
 	assert.equal(
 		manifest.runtimeIntegration,
-		'penguin-static-fallback-v1+mechanical-vault-environment-v1',
+		'penguin-static-fallback-v1+mechanical-vault-environment-v1+inline-symbol-sprite-v1',
 	);
 	assert.match(characterGroup.status, /rig-pending/u);
 });

@@ -22,10 +22,7 @@ import {
 	FIXTURES as GENERATED_FIXTURES,
 	FIXTURE_IDS as GENERATED_FIXTURE_IDS,
 } from '../src/lib/fixtures/catalog.generated.js';
-import {
-	ContractViolation,
-	GameEventAdapter,
-} from '../src/lib/runtime/game-event-adapter.js';
+import { ContractViolation, GameEventAdapter } from '../src/lib/runtime/game-event-adapter.js';
 import { resolveLaunchMode } from '../src/lib/runtime/launch-mode.js';
 import {
 	BASE_WIN_TIER_THRESHOLDS,
@@ -45,10 +42,7 @@ function cloneFixtureBook() {
 
 async function readPublishedBaseBookOne() {
 	const source = createReadStream(
-		join(
-			repoRoot,
-			'math/games/blacksite_breach/library/books_compressed/base_books.jsonl.zst',
-		),
+		join(repoRoot, 'math/games/blacksite_breach/library/books_compressed/base_books.jsonl.zst'),
 	).pipe(createZstdDecompress());
 	const lines = createInterface({ input: source, crlfDelay: Infinity });
 	for await (const line of lines) {
@@ -92,10 +86,7 @@ test('canonical modes and final M1 identities are frozen in the app boundary', (
 	);
 	const verification = JSON.parse(
 		readFileSync(
-			join(
-				repoRoot,
-				'math/games/blacksite_breach/library/publish_files/VERIFY_RESULT.json',
-			),
+			join(repoRoot, 'math/games/blacksite_breach/library/publish_files/VERIFY_RESULT.json'),
 			'utf8',
 		),
 	);
@@ -114,10 +105,7 @@ test('base_zero is byte-content-equivalent to final published base book 1', asyn
 test('development catalog exposes all 48 M1-backed deterministic fixtures', () => {
 	const fixtureIndex = JSON.parse(
 		readFileSync(
-			join(
-				repoRoot,
-				'math/games/blacksite_breach/library/publish_files/FIXTURE_INDEX.json',
-			),
+			join(repoRoot, 'math/games/blacksite_breach/library/publish_files/FIXTURE_INDEX.json'),
 			'utf8',
 		),
 	);
@@ -155,10 +143,7 @@ test('player rules are mechanically identical to the frozen math registry', () =
 		RULES_CONTRACT.featureMultipliers,
 		mechanics.access.feature_linked_multiplier_by_reached_port_count,
 	);
-	assert.equal(
-		RULES_CONTRACT.maximumFeatureCycles,
-		mechanics.feature.maximum_cycles,
-	);
+	assert.equal(RULES_CONTRACT.maximumFeatureCycles, mechanics.feature.maximum_cycles);
 	for (const mode of MODES) {
 		const mathMode = modeRegistry.modes.find(({ name }) => name === mode.id);
 		assert(mathMode, `missing frozen math mode ${mode.id}`);
@@ -194,11 +179,25 @@ test('Game Information maps every versioned control and input method', () => {
 		],
 	);
 	assert.equal(new Set(CONTROL_GUIDE.map(({ key }) => key)).size, CONTROL_GUIDE.length);
-	assert.deepEqual(RULES_CONTRACT.controls, CONTROL_GUIDE.map(({ description }) => description));
-	const guideText = CONTROL_GUIDE.map(({ label, description }) => `${label}: ${description}`).join(' ');
+	assert.deepEqual(
+		RULES_CONTRACT.controls,
+		CONTROL_GUIDE.map(({ description }) => description),
+	);
+	const guideText = CONTROL_GUIDE.map(({ label, description }) => `${label}: ${description}`).join(
+		' ',
+	);
 	for (const requiredTerm of [
-		'pointer', 'touch', 'keyboard', 'Space', 'Escape', 'SOUND', 'TURBO', 'SKIP',
-		'CONFIRM', 'CANCEL', 'INFO / RULES',
+		'pointer',
+		'touch',
+		'keyboard',
+		'Space',
+		'Escape',
+		'SOUND',
+		'TURBO',
+		'SKIP',
+		'CONFIRM',
+		'CANCEL',
+		'INFO / RULES',
 	]) {
 		assert.match(guideText, new RegExp(requiredTerm, 'iu'));
 	}
@@ -210,6 +209,7 @@ test('launch parser fails paid live play closed and never promotes fixtures in p
 		code: 'RGS_URL_MISSING',
 		message: 'Live launch requires rgs_url. No local game was started.',
 		surface: 'live',
+		social: false,
 	});
 	assert.equal(resolveLaunchMode('?rgs_url=not-a-url').code, 'RGS_URL_INVALID');
 	assert.deepEqual(resolveLaunchMode('?dev_fixture=base_zero', { dev: true }), {
@@ -224,18 +224,21 @@ test('launch parser fails paid live play closed and never promotes fixtures in p
 		resolveLaunchMode('?rgs_url=https%3A%2F%2Frgs.example%2F').code,
 		'LIVE_QUERY_INVALID',
 	);
-	assert.deepEqual(resolveLaunchMode(
-		'?sessionID=live-session&rgs_url=https%3A%2F%2Frgs.example%2F' +
-			'&currency=xsc&lang=en&device=mobile&social=true',
-	), {
-		kind: 'live',
-		rgsUrl: 'https://rgs.example',
-		sessionId: 'live-session',
-		language: 'en',
-		currency: 'XSC',
-		device: 'mobile',
-		social: true,
-	});
+	assert.deepEqual(
+		resolveLaunchMode(
+			'?sessionID=live-session&rgs_url=https%3A%2F%2Frgs.example%2F' +
+				'&currency=xsc&lang=en&device=mobile&social=true',
+		),
+		{
+			kind: 'live',
+			rgsUrl: 'https://rgs.example',
+			sessionId: 'live-session',
+			language: 'en',
+			currency: 'XSC',
+			device: 'mobile',
+			social: true,
+		},
+	);
 	assert.equal(
 		resolveLaunchMode(
 			'?sessionID=s&rgs_url=https%3A%2F%2Frgs.example%2Fbase%3Fx%3D1' +
@@ -272,6 +275,44 @@ test('Replay identity and optional values are parsed separately without inventin
 		).code,
 		'REPLAY_QUERY_INVALID',
 	);
+});
+
+test('launch errors preserve Social Mode and decoded Replay URL dot segments fail closed', () => {
+	for (const query of [
+		'?social=true',
+		'?sessionID=live&rgs_url=invalid&currency=XSC&lang=en&device=desktop&social=true',
+		'?dev_fixture=base_zero&social=true',
+	]) {
+		const launch = resolveLaunchMode(query, { dev: false });
+		assert.equal(launch.kind, 'error');
+		assert.equal(launch.social, true);
+	}
+
+	const replayPrefix =
+		'?replay=true&game=blacksite_breach&mode=base&rgs_url=https%3A%2F%2Frgs.example' +
+		'&currency=XSC&amount=1&lang=en&device=desktop&social=true';
+	for (const [field, encodedDotSegment] of [
+		['version', '%2E'],
+		['version', '%2e%2E'],
+		['version', '%252E%252E'],
+		['event', '%2E'],
+		['event', '%2e%2E'],
+		['event', '%252E%252E'],
+	]) {
+		const identity =
+			field === 'version'
+				? `&version=${encodedDotSegment}&event=round..1`
+				: `&version=0.1.0-m2&event=${encodedDotSegment}`;
+		const launch = resolveLaunchMode(`${replayPrefix}${identity}`);
+		assert.equal(launch.code, 'REPLAY_QUERY_INVALID');
+		assert.equal(launch.surface, 'replay');
+		assert.equal(launch.social, true);
+	}
+
+	const safeDottedIdentity = resolveLaunchMode(`${replayPrefix}&version=0.1.0-m2&event=round..1`);
+	assert.equal(safeDottedIdentity.kind, 'replay');
+	assert.equal(safeDottedIdentity.version, '0.1.0-m2');
+	assert.equal(safeDottedIdentity.event, 'round..1');
 });
 
 test('closed-schema adapter accepts the published zero book without deriving payout', () => {
@@ -374,11 +415,15 @@ test('cluster_win rejects every locally checkable frozen payout invariant', () =
 		assert(replacement, 'fixture needs a non-component replacement cell');
 		cluster.positions[0] = replacement;
 	}, /exact board flood-fill component/);
-	rejectMutation((win) => {
-		assert.equal(win.clusters[0].symbol, 'proxy');
-		assert.equal(win.clusters[0].cluster_band, 'cluster_24_31');
-		win.clusters[0].symbol = 'cipher';
-	}, /exact board flood-fill component/, 'base_win_02');
+	rejectMutation(
+		(win) => {
+			assert.equal(win.clusters[0].symbol, 'proxy');
+			assert.equal(win.clusters[0].cluster_band, 'cluster_24_31');
+			win.clusters[0].symbol = 'cipher';
+		},
+		/exact board flood-fill component/,
+		'base_win_02',
+	);
 
 	const overlappingBook = cloneWinningBook('base_simultaneous_two_clusters');
 	const overlappingWin = overlappingBook.events.find(
@@ -408,9 +453,9 @@ test('cluster_win rejects every locally checkable frozen payout invariant', () =
 
 	const accessBook = cloneWinningBook('base_medium');
 	const accessWin = accessBook.events.find(
-		(event) => event.type === 'cluster_win' && event.clusters.some(
-			(cluster) => cluster.linked && cluster.access_multiplier > 1,
-		),
+		(event) =>
+			event.type === 'cluster_win' &&
+			event.clusters.some((cluster) => cluster.linked && cluster.access_multiplier > 1),
 	);
 	assert(accessWin, 'fixture needs a multiplied route-linked cluster');
 	const precedingRoute = accessBook.events
@@ -429,10 +474,7 @@ test('cluster_win rejects every locally checkable frozen payout invariant', () =
 	assert(cascadeWins.length >= 2);
 	cascadeWins[1].cumulative_before_raw += 1;
 	cascadeWins[1].cumulative_after_raw += 1;
-	assert.throws(
-		() => new GameEventAdapter().adaptBook(cascadeBook),
-		/breaks round continuity/,
-	);
+	assert.throws(() => new GameEventAdapter().adaptBook(cascadeBook), /breaks round continuity/);
 
 	const breachBook = cloneWinningBook();
 	const breachWin = firstWin(breachBook);
@@ -460,10 +502,7 @@ test('cluster_win rejects every locally checkable frozen payout invariant', () =
 	);
 	assert(clippedCluster, 'max-win fixture must contain a clipped cluster award');
 	clippedCluster.applied_award_raw = clippedCluster.calculated_award_raw;
-	assert.throws(
-		() => new GameEventAdapter().adaptBook(cappedBook),
-		/remaining cap/,
-	);
+	assert.throws(() => new GameEventAdapter().adaptBook(cappedBook), /remaining cap/);
 });
 
 test('closed-schema adapter rejects truncated and out-of-order round lifecycles', () => {
@@ -501,10 +540,7 @@ test('closed-schema adapter rejects truncated and out-of-order round lifecycles'
 
 	const startToEnd = structuredClone(BASE_ZERO_FIXTURE.book);
 	startToEnd.events = reindex([startToEnd.events[0], startToEnd.events.at(-1)]);
-	assert.throws(
-		() => adapter.adaptBook(startToEnd),
-		/event sequence expected board_set/,
-	);
+	assert.throws(() => adapter.adaptBook(startToEnd), /event sequence expected board_set/);
 
 	const wrongBreachPhase = structuredClone(baseWinFixture.book);
 	wrongBreachPhase.events.find(({ type }) => type === 'breach_state').phase = 'feature';
@@ -531,27 +567,18 @@ test('closed-schema adapter rejects truncated and out-of-order round lifecycles'
 	forgedRoute.sealed_cells[sealedCoreIndex] = displacedLive;
 	forgedRoute.breached_cells[breachedIndex] = { column: 3, row: 3 };
 	forgedRoute.newly_breached_cells[newlyIndex] = { column: 3, row: 3 };
-	assert.throws(
-		() => adapter.adaptBook(forgedCoreRoute),
-		/authoritative post-win route/,
-	);
+	assert.throws(() => adapter.adaptBook(forgedCoreRoute), /authoritative post-win route/);
 
 	const forgedTumble = structuredClone(baseWinFixture.book);
 	const firstTumble = forgedTumble.events.find(({ type }) => type === 'tumble');
 	assert(firstTumble?.entering_symbols.length > 0, 'base win fixture needs a populated tumble');
 	firstTumble.entering_symbols[0].symbol =
 		firstTumble.entering_symbols[0].symbol === 'vault' ? 'daemon' : 'vault';
-	assert.throws(
-		() => adapter.adaptBook(forgedTumble),
-		/tumble entrant symbol mismatch/,
-	);
+	assert.throws(() => adapter.adaptBook(forgedTumble), /tumble entrant symbol mismatch/);
 
 	const forgedCap = structuredClone(baseMaxFixture.book);
 	forgedCap.events.find(({ type }) => type === 'cap_reached').gross_award_raw += 1;
-	assert.throws(
-		() => adapter.adaptBook(forgedCap),
-		/cap_reached is not reconciled/,
-	);
+	assert.throws(() => adapter.adaptBook(forgedCap), /cap_reached is not reconciled/);
 
 	const falseCap = structuredClone(BASE_ZERO_FIXTURE.book);
 	falseCap.events.at(-1).capped = true;
@@ -611,7 +638,10 @@ test('closed-schema adapter rejects truncated and out-of-order round lifecycles'
 		({ type }) => type === 'feature_cycle',
 	);
 	const featureEnd = prematureFeatureEnd.events.find(({ type }) => type === 'feature_end');
-	assert(firstFeatureCycleIndex > featureStartIndex && featureEnd, 'blackout fixture needs cycle and end');
+	assert(
+		firstFeatureCycleIndex > featureStartIndex && featureEnd,
+		'blackout fixture needs cycle and end',
+	);
 	prematureFeatureEnd.events = reindex([
 		...prematureFeatureEnd.events.slice(0, firstFeatureCycleIndex),
 		featureEnd,
@@ -653,7 +683,10 @@ test('restore planning primes completed authority and resumes at exactly the nex
 	const director = new PresentationDirector((state) => states.push(state));
 	for (const cue of plan.primeCues) director.consume(cue);
 	assert.equal(director.state.board, plan.primeCues.at(-1).event.board);
-	assert.equal(states.some((state) => state.status === 'presenting'), true);
+	assert.equal(
+		states.some((state) => state.status === 'presenting'),
+		true,
+	);
 	assert.throws(() => planPresentationRestore(cues, cues.length + 1), /next presentation event/);
 	assert.throws(
 		() => planPresentationRestore([{ ...cues[0], eventIndex: 1 }], 0),
@@ -675,10 +708,7 @@ test('PresentationDirector preserves authoritative cluster positions and award a
 	assert.equal(director.state.stepWinRaw, winCue.event.step_payout_raw);
 	for (const cluster of director.state.activeClusters) {
 		assert(cluster.positions.length >= 5);
-		assert.equal(
-			cluster.calculated_award_raw,
-			cluster.base_payout_raw * cluster.access_multiplier,
-		);
+		assert.equal(cluster.calculated_award_raw, cluster.base_payout_raw * cluster.access_multiplier);
 		assert(cluster.applied_award_raw <= cluster.calculated_award_raw);
 	}
 	const tumbleCue = cues.find(({ kind }) => kind === 'tumble');
@@ -775,7 +805,10 @@ test('PresentationDirector preserves the authored turbo spin-start reaction', as
 	assert.equal(await director.play([roundStartedCue], { timingProfile: 'turbo' }), true);
 	const elapsedMs = performance.now() - startedAt;
 	assert(elapsedMs >= 95, `turbo spin-start was cut after ${elapsedMs.toFixed(1)}ms`);
-	assert(elapsedMs <= 300, `turbo spin-start exceeded its bounded window at ${elapsedMs.toFixed(1)}ms`);
+	assert(
+		elapsedMs <= 300,
+		`turbo spin-start exceeded its bounded window at ${elapsedMs.toFixed(1)}ms`,
+	);
 	assert.equal(states.at(0), 'spin_start');
 	assert.equal(states.at(-1), 'idle_a');
 	assert(states.slice(0, -1).every((state) => state === 'spin_start'));
@@ -784,17 +817,36 @@ test('PresentationDirector preserves the authored turbo spin-start reaction', as
 
 test('PresentationDirector maps authoritative base wins to bounded Small, Medium and Big reactions', async () => {
 	const cases = [
-		{ fixtureId: 'base_small', stepPayoutRaw: 25, state: 'win_small', minimumMs: 115, maximumMs: 320 },
-		{ fixtureId: 'base_cascade_3', stepPayoutRaw: 100, state: 'win_medium', minimumMs: 230, maximumMs: 480 },
-		{ fixtureId: 'base_win_02', stepPayoutRaw: 207, state: 'win_big', minimumMs: 380, maximumMs: 700 },
+		{
+			fixtureId: 'base_small',
+			stepPayoutRaw: 25,
+			state: 'win_small',
+			minimumMs: 115,
+			maximumMs: 320,
+		},
+		{
+			fixtureId: 'base_cascade_3',
+			stepPayoutRaw: 100,
+			state: 'win_medium',
+			minimumMs: 230,
+			maximumMs: 480,
+		},
+		{
+			fixtureId: 'base_win_02',
+			stepPayoutRaw: 207,
+			state: 'win_big',
+			minimumMs: 380,
+			maximumMs: 700,
+		},
 	];
 	for (const { fixtureId, stepPayoutRaw, state, minimumMs, maximumMs } of cases) {
 		const fixture = GENERATED_FIXTURES.find(({ id }) => id === fixtureId);
 		assert(fixture, `missing ${fixtureId} fixture`);
 		const cue = new GameEventAdapter()
 			.adaptBook(fixture.book, { expectedMode: 'base' })
-			.find((candidate) =>
-				candidate.kind === 'win' && candidate.event.step_payout_raw === stepPayoutRaw,
+			.find(
+				(candidate) =>
+					candidate.kind === 'win' && candidate.event.step_payout_raw === stepPayoutRaw,
 			);
 		assert(cue, `missing ${stepPayoutRaw} centi-x win in ${fixtureId}`);
 		const director = new PresentationDirector();
@@ -828,7 +880,10 @@ test('PresentationDirector uses a bounded loss acknowledgement only for authorit
 	assert(!states.includes('recover'));
 	assert.equal(states.at(-1), 'idle_a');
 	assert(elapsedMs >= 330, `zero-result presentation was cut after ${elapsedMs.toFixed(1)}ms`);
-	assert(elapsedMs <= 900, `zero-result presentation exceeded its bounded window at ${elapsedMs.toFixed(1)}ms`);
+	assert(
+		elapsedMs <= 900,
+		`zero-result presentation exceeded its bounded window at ${elapsedMs.toFixed(1)}ms`,
+	);
 	assert.equal(director.state.finalWinRaw, 0);
 	assert.equal(director.timers.size, 0);
 });
@@ -859,34 +914,70 @@ test('PresentationDirector keeps the authoritative max-win hero state visible un
 test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () => {
 	const source = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
 	assert.match(source, /normal cascade has no sustained frame-pacing stalls/u);
-	assert.match(source, /normal cascade hit, remove, drop and settle clips complete their authored windows/u);
-	assert.match(source, /turbo cascade hit, remove, drop and settle clips complete their authored windows/u);
+	assert.match(
+		source,
+		/normal cascade hit, remove, drop and settle clips complete their authored windows/u,
+	);
+	assert.match(
+		source,
+		/turbo cascade hit, remove, drop and settle clips complete their authored windows/u,
+	);
 	assert.match(source, /cascadePhaseWindows/u);
-	assert.match(source, /normal Vaultkeeper Medium Win reaction remains visible for its complete authored window/u);
-	assert.match(source, /turbo Vaultkeeper Medium Win reaction remains visible for its complete authored window/u);
+	assert.match(
+		source,
+		/normal Vaultkeeper Medium Win reaction remains visible for its complete authored window/u,
+	);
+	assert.match(
+		source,
+		/turbo Vaultkeeper Medium Win reaction remains visible for its complete authored window/u,
+	);
 	assert.match(source, /base-win-tier-reactions-turbo/u);
 	assert.match(source, /Small and Big Win reactions retain their authored turbo windows/u);
 	assert.match(source, /normal win_big remains visible through its bounded authored window/u);
 	assert.match(source, /characterStateWindows/u);
-	assert.match(source, /normal zero-win Vaultkeeper loss acknowledgement completes its authored window/u);
-	assert.match(source, /turbo zero-win Vaultkeeper loss acknowledgement completes its authored window/u);
+	assert.match(
+		source,
+		/normal zero-win Vaultkeeper loss acknowledgement completes its authored window/u,
+	);
+	assert.match(
+		source,
+		/turbo zero-win Vaultkeeper loss acknowledgement completes its authored window/u,
+	);
 	assert.match(source, /normal BLACKOUT transition has no sustained frame-pacing stalls/u);
 	assert.match(source, /normalReelStopCadence/u);
 	assert.match(source, /max-win-hero-timing-normal-and-turbo/u);
-	assert.match(source, /normal max-win hero clip remains visible for its complete authored window/u);
+	assert.match(
+		source,
+		/normal max-win hero clip remains visible for its complete authored window/u,
+	);
 	assert.match(source, /turbo max-win hero clip remains visible for its complete authored window/u);
 	assert.match(source, /normal recovery clip remains visible for its complete authored window/u);
 	assert.match(source, /turbo recovery clip remains visible for its complete authored window/u);
-	assert.match(source, /normal spin-start reaction remains visible for its complete authored window/u);
-	assert.match(source, /turbo spin-start reaction remains visible for its complete authored window/u);
+	assert.match(
+		source,
+		/normal spin-start reaction remains visible for its complete authored window/u,
+	);
+	assert.match(
+		source,
+		/turbo spin-start reaction remains visible for its complete authored window/u,
+	);
 	assert.match(source, /feature-tease-timing-normal-and-turbo/u);
 	assert.match(source, /normal feature tease remains visible for its complete authored window/u);
 	assert.match(source, /turbo feature tease remains visible for its complete authored window/u);
 	assert.match(source, /board-reveal-timing-normal-and-turbo/u);
-	assert.match(source, /normal board reveal retains every staggered cell through its authored window/u);
-	assert.match(source, /turbo board reveal retains every staggered cell through its authored window/u);
+	assert.match(
+		source,
+		/normal board reveal retains every staggered cell through its authored window/u,
+	);
+	assert.match(
+		source,
+		/turbo board reveal retains every staggered cell through its authored window/u,
+	);
 	assert.match(source, /replay-hit-timing-normal-turbo-and-reduced/u);
-	assert.match(source, /normal Replay Base Small hit remains visible for its authored tier timing/u);
+	assert.match(
+		source,
+		/normal Replay Base Small hit remains visible for its authored tier timing/u,
+	);
 	assert.match(source, /normalHit\.durationMs >= 400 && normalHit\.durationMs <= 600/u);
 	assert.match(source, /turbo Replay Base Small hit remains visible for its authored tier timing/u);
 	assert.match(source, /turboHit\.durationMs >= 120 && turboHit\.durationMs <= 260/u);
@@ -902,7 +993,7 @@ test('exact-browser QA measures normal cascade and BLACKOUT frame pacing', () =>
 	assert.match(source, /maximumBonusWinElapsedMs: 650/u);
 	assert.match(
 		source,
-		/reduced-motion profile disables Vaultkeeper animation, transitions and compositor hints/u,
+		/reduced-motion compact profile omits the Vaultkeeper resource and exposes no animation or compositor hint/u,
 	);
 });
 
@@ -941,9 +1032,18 @@ test('Vaultkeeper compositor hints are bounded to active reactions', () => {
 		source,
 		/\.vaultkeeper-presence\[data-character-state='bonus_win'\] img \{\s*animation: vaultkeeper-bonus-win 280ms/u,
 	);
-	assert.match(source, /\[data-character-state='win_small'\] img \{\s*animation: vaultkeeper-win-small 420ms/u);
-	assert.match(source, /\[data-character-state='win_medium'\] img \{\s*animation: vaultkeeper-win-medium 800ms/u);
-	assert.match(source, /\[data-character-state='win_big'\] img \{\s*animation: vaultkeeper-win-big 1400ms/u);
+	assert.match(
+		source,
+		/\[data-character-state='win_small'\] img \{\s*animation: vaultkeeper-win-small 420ms/u,
+	);
+	assert.match(
+		source,
+		/\[data-character-state='win_medium'\] img \{\s*animation: vaultkeeper-win-medium 800ms/u,
+	);
+	assert.match(
+		source,
+		/\[data-character-state='win_big'\] img \{\s*animation: vaultkeeper-win-big 1400ms/u,
+	);
 	assert.match(
 		source,
 		/\[data-motion-profile='turbo'\]\[data-character-state='loss_acknowledge'\] img[\s\S]*?animation-duration: 130ms;/u,
@@ -952,9 +1052,18 @@ test('Vaultkeeper compositor hints are bounded to active reactions', () => {
 		source,
 		/\[data-motion-profile='turbo'\]\[data-character-state='bonus_win'\] img[\s\S]*?animation-duration: 110ms;/u,
 	);
-	assert.match(source, /\[data-motion-profile='turbo'\]\[data-character-state='win_small'\] img \{\s*animation-duration: 140ms;/u);
-	assert.match(source, /\[data-motion-profile='turbo'\]\[data-character-state='win_medium'\] img \{\s*animation-duration: 260ms;/u);
-	assert.match(source, /\[data-motion-profile='turbo'\]\[data-character-state='win_big'\] img \{\s*animation-duration: 420ms;/u);
+	assert.match(
+		source,
+		/\[data-motion-profile='turbo'\]\[data-character-state='win_small'\] img \{\s*animation-duration: 140ms;/u,
+	);
+	assert.match(
+		source,
+		/\[data-motion-profile='turbo'\]\[data-character-state='win_medium'\] img \{\s*animation-duration: 260ms;/u,
+	);
+	assert.match(
+		source,
+		/\[data-motion-profile='turbo'\]\[data-character-state='win_big'\] img \{\s*animation-duration: 420ms;/u,
+	);
 });
 
 test('Turbo Vaultkeeper hero and BLACKOUT reactions finish within the semantic cue window', () => {
@@ -968,39 +1077,39 @@ test('Turbo Vaultkeeper hero and BLACKOUT reactions finish within the semantic c
 test('exact-browser QA deduplicates competing paid-play input paths', () => {
 	const source = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
 	assert.match(source, /concurrent-click-spacebar-deduplicates-paid-play/u);
-	assert.match(source, /button-button-Space burst emits exactly one paid play while RGS is pending/u);
+	assert.match(
+		source,
+		/button-button-Space burst emits exactly one paid play while RGS is pending/u,
+	);
 	assert.match(source, /base amount is locked while the authoritative play request is pending/u);
 });
 
 test('held Space cannot initiate another paid round after the first round completes', () => {
-	const pageSource = readFileSync(
-		join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'),
-		'utf8',
-	);
-	const browserSource = readFileSync(
-		join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'),
-		'utf8',
-	);
+	const pageSource = readFileSync(join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'), 'utf8');
+	const browserSource = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
 
-	assert.match(pageSource, /event\.preventDefault\(\);\s*if \(event\.repeat\) return;\s*void activatePrimary\(\);/u);
+	assert.match(
+		pageSource,
+		/event\.preventDefault\(\);\s*if \(event\.repeat\) return;\s*void activatePrimary\(\);/u,
+	);
 	assert.match(browserSource, /held Space emits one initial and one repeat keydown/u);
-	assert.match(browserSource, /held Space cannot spend a second base bet after returning to ready/u);
+	assert.match(
+		browserSource,
+		/held Space cannot spend a second base bet after returning to ready/u,
+	);
 });
 
 test('held Enter on the focused primary action cannot repeat a paid round', () => {
-	const pageSource = readFileSync(
-		join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'),
-		'utf8',
-	);
-	const browserSource = readFileSync(
-		join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'),
-		'utf8',
-	);
+	const pageSource = readFileSync(join(repoRoot, 'apps/blacksite/src/routes/+page.svelte'), 'utf8');
+	const browserSource = readFileSync(join(repoRoot, 'scripts/blacksite-qa-e2e.mjs'), 'utf8');
 
 	assert.match(pageSource, /function suppressPrimaryKeyRepeat\(event\)/u);
 	assert.match(pageSource, /on:keydown=\{suppressPrimaryKeyRepeat\}/u);
 	assert.match(browserSource, /held Enter emits one initial and one prevented repeat keydown/u);
-	assert.match(browserSource, /held Enter cannot spend a second base bet after returning to ready/u);
+	assert.match(
+		browserSource,
+		/held Enter cannot spend a second base bet after returning to ready/u,
+	);
 });
 
 test('PresentationDirector binds BLACKOUT transitions to authoritative feature cues', async () => {
@@ -1053,11 +1162,16 @@ test('PresentationDirector drives the static Vaultkeeper fallback from authorita
 	const seen = new Set();
 	for (const cue of cues) {
 		director.consume(cue);
-		const expected = cue.kind === 'win'
-			? cue.event.phase === 'feature' ? 'bonus_win' : selectBaseWinReaction(cue.event.step_payout_raw)
-			: cue.kind === 'board_snapshot'
-				? cue.event.phase === 'feature' ? 'bonus_idle' : 'monitoring'
-			: expectedStates.get(cue.kind);
+		const expected =
+			cue.kind === 'win'
+				? cue.event.phase === 'feature'
+					? 'bonus_win'
+					: selectBaseWinReaction(cue.event.step_payout_raw)
+				: cue.kind === 'board_snapshot'
+					? cue.event.phase === 'feature'
+						? 'bonus_idle'
+						: 'monitoring'
+					: expectedStates.get(cue.kind);
 		if (!expected) continue;
 		seen.add(cue.kind === 'win' ? `${cue.kind}:${cue.event.phase}` : cue.kind);
 		assert.equal(director.state.character.state, expected);

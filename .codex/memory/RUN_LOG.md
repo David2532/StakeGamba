@@ -1,5 +1,19 @@
 # Material run log
 
+## BS-20260904-23 — IN_PROGRESS
+
+- Sprint day: 6
+- Remote memory base: `717a8a052ece0d2ae0e1869b3fc7b25f8a3d140c`
+- Candidate implementation commit: **PENDING**; no exact-CI result is claimed for the current candidate.
+- Last exact-green implementation: `c4eeb96b4a40611e44ff57505377ea4fa7578088`, run `33818861870`; this remains historical evidence for the pending changes.
+- Work item: `BSB-RELEASE-HARDENING-001` (IN_PROGRESS).
+- Scope: integrate original six-symbol artwork, explicit player-state/control policy, strict shared live/Replay URL validation, BFCache-safe authoritative teardown/restore, eight-surface whole-document axe checks, predeclared repeated lab budgets, exact repository/security evidence and patched dependency/lockfile policy into one reviewable candidate.
+- Development evidence: `CI=true corepack pnpm install --frozen-lockfile --reporter=silent` passed after lockfile integration. Focused evidence suites pass 57/57: compliance 35/35, security/URL policy 20/20 and repository evidence 2/2. They validate Browser v2, eight axe surfaces, nine performance runs, Security v2, the complete ten-gate Repository-v2 ledger, the canonical checklist digest, SHA-256 of every raw input and source-hashed N/A absence proofs. Focused performance contracts pass 4/4 and lifecycle/state/intro tests pass 19/19. Pending app-level `svelte-check` passes with 0 errors/0 warnings and direct Vite production build passes. The browser harness parses, but local Chromium installation timed out and its new BFCache/audio/insufficient-funds scenarios remain unrun. These dirty-worktree checks do not prove an exact package or candidate SHA.
+- Exact evidence state: full candidate lint, app tests, root build, math/package readback, Chromium/axe/performance measurements, 51-row resolver and exact CI are not yet recorded for one immutable candidate. Performance evidence now has fail-closed resolver, finite-value and primary-action binding; compliance evidence has canonical contract, raw-input and N/A-proof binding; security evidence binds the reviewed registry and `.npmrc` digest. A real local registry-audit attempt reached the hard 180-second limit with exit 124 and 0 JSON bytes, so it failed and supplies no advisory count. Production/staging field Core Web Vitals are not collected and must not be inferred from the lab harness.
+- Documentation state: acceptance, research, performance and release-evidence records are being reconciled against the last exact-green implementation and the pending candidate; `CURRENT_STATE.md` is intentionally deferred until candidate CI identity exists.
+- Residual risk: title/brand art, board art, supporting UI art, gameplay FX, approved Spine 4.2 rig/clips, final BLACKOUT/foreground layers, final audio and game-tile deliverables remain incomplete or unapproved. Manual accessibility/Creative/rights/real-device/Popout review, authorized preview, provider evidence, 23 manual gates and 6 external approvals remain open. Capacity for 1,000,000 users remains `NOT_CLAIMED`.
+- Next action: complete the full local candidate gates, commit one coherent candidate, run uncancelled exact-SHA CI and reconcile release evidence only from the generated package/browser/security/accessibility/performance artifacts.
+
 ## BS-20260904-22 — SUCCESS
 
 - Sprint day: 6

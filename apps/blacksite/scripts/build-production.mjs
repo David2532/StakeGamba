@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,6 +10,16 @@ const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const appRoot = resolve(scriptDirectory, '..');
 const repoRoot = resolve(appRoot, '..', '..');
 const buildRoot = join(appRoot, 'build');
+const requireFromApp = createRequire(join(appRoot, 'package.json'));
+
+function resolveViteCli() {
+	const packagePath = requireFromApp.resolve('vite/package.json');
+	const packageManifest = JSON.parse(readFileSync(packagePath, 'utf8'));
+	if (typeof packageManifest.bin?.vite !== 'string' || packageManifest.bin.vite.length === 0) {
+		throw new Error('The installed Vite package does not expose its CLI entry point');
+	}
+	return resolve(dirname(packagePath), packageManifest.bin.vite);
+}
 
 function gitText(args) {
 	return execFileSync('git', args, {
@@ -24,8 +35,7 @@ const gitStatus = gitText(['status', '--porcelain=v1', '--untracked-files=all'])
 
 rmSync(buildRoot, { recursive: true, force: true });
 
-const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-execFileSync(pnpmCommand, ['exec', 'vite', 'build'], {
+execFileSync(process.execPath, [resolveViteCli(), 'build'], {
 	cwd: appRoot,
 	env: { ...process.env, BLACKSITE_BUILD_GIT_SHA: gitSha },
 	stdio: 'inherit',

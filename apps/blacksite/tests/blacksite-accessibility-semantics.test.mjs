@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const pageUrl = new URL('../src/routes/+page.svelte', import.meta.url);
 const browserQaUrl = new URL('../../../scripts/blacksite-qa-e2e.mjs', import.meta.url);
+const packageUrl = new URL('../package.json', import.meta.url);
 
 test('route and presentation controls expose named groups with atomic runtime status', async () => {
 	const source = await readFile(pageUrl, 'utf8');
@@ -22,6 +23,43 @@ test('route and presentation controls expose named groups with atomic runtime st
 		source,
 		/data-testid="board-status"[\s\S]*?role="status"[\s\S]*?aria-live="polite"[\s\S]*?aria-atomic="true"/u,
 	);
+});
+
+test('policy-locked audio reports the same off state visually and programmatically', async () => {
+	const [page, browserQa] = await Promise.all([
+		readFile(pageUrl, 'utf8'),
+		readFile(browserQaUrl, 'utf8'),
+	]);
+
+	assert.match(page, /audioOff = !audioState\.unlocked \|\| audioState\.volume === 0/u);
+	assert.match(page, /aria-pressed=\{audioOff\}/u);
+	assert.match(browserQa, /policy-locked audio exposes one consistent off toggle state/u);
+});
+
+test('live authentication remains perceivable until the intro actually opens', async () => {
+	const [page, browserQa] = await Promise.all([
+		readFile(pageUrl, 'utf8'),
+		readFile(browserQaUrl, 'utf8'),
+	]);
+
+	assert.match(
+		page,
+		/introModalActive = launch\.kind === 'live' && introState\.status === 'playing'/u,
+	);
+	assert.match(
+		page,
+		/introBlocking = launch\.kind === 'live' && \(introGatePending \|\| introModalActive\)/u,
+	);
+	assert.match(page, /data-testid="auth-pending-status"[\s\S]*?role="status"/u);
+	assert.match(
+		browserQa,
+		/stalled authentication presents a dedicated live status while controls stay isolated/u,
+	);
+	assert.match(
+		browserQa,
+		/delayed authentication isolates controls and cannot leave Rules open behind the intro/u,
+	);
+	assert.match(browserQa, /'live-authenticating'/u);
 });
 
 test('high-cost confirmation binds factor and exact amount to its accessible description', async () => {
@@ -68,9 +106,44 @@ test('exact-package browser QA verifies semantic groups, status regions and conf
 
 	assert.match(source, /route and presentation controls expose named accessibility groups/u);
 	assert.match(source, /connection and board states expose atomic polite status announcements/u);
-	assert.match(source, /confirmation accessible description binds the mode factor and exact complete amount/u);
+	assert.match(
+		source,
+		/confirmation accessible description binds the mode factor and exact complete amount/u,
+	);
 	assert.match(source, /every visible game control maps to a Game Information guide entry/u);
 	assert.match(source, /interaction guide documents touch, keyboard, Space and Escape behaviour/u);
-	assert.match(source, /board exposes one named 7x7 ARIA grid with explicit row ownership and positions/u);
+	assert.match(
+		source,
+		/board exposes one named 7x7 ARIA grid with explicit row ownership and positions/u,
+	);
 	assert.match(source, /session position is polite while the ticking timer remains non-live/u);
+});
+
+test('exact-package browser QA runs pinned whole-document WCAG 2.2 A and AA audits', async () => {
+	const [source, packageJson] = await Promise.all([
+		readFile(browserQaUrl, 'utf8'),
+		readFile(packageUrl, 'utf8').then(JSON.parse),
+	]);
+
+	assert.equal(packageJson.devDependencies['axe-core'], '4.13.0');
+	assert.match(
+		source,
+		/const WCAG_AA_TAGS = Object\.freeze\(\[[\s\S]*?'wcag2a'[\s\S]*?'wcag2aa'[\s\S]*?'wcag21a'[\s\S]*?'wcag21aa'[\s\S]*?'wcag22aa'[\s\S]*?\]\);/u,
+	);
+	assert.match(source, /globalThis\.axe\.run\(document,/u);
+	assert.match(source, /runOnly: \{ type: 'tag', values: tags \}/u);
+	assert.match(source, /resultTypes: \['violations', 'incomplete'\]/u);
+	assert.match(source, /whole-document axe WCAG 2\.2 A\/AA audit has zero violations/u);
+	for (const surface of [
+		'boot-intro-modal-mobile',
+		'live-ready-desktop',
+		'live-result-desktop',
+		'rules-modal-desktop',
+		'high-cost-confirmation-modal-desktop',
+		'replay-ready-popout-s',
+		'replay-completed-popout-s',
+	]) {
+		assert.match(source, new RegExp(`['\"]${surface}['\"]`, 'u'));
+	}
+	assert.match(source, /Every axe-core incomplete result requires human review\./u);
 });

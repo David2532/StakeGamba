@@ -3,10 +3,7 @@ import test from 'node:test';
 import { getMode } from '../src/lib/contracts/modes.js';
 import { getFixture } from '../src/lib/fixtures/catalog.generated.js';
 import { GameEventAdapter } from '../src/lib/runtime/game-event-adapter.js';
-import {
-	ReplayClientError,
-	createReplayClient,
-} from '../src/lib/replay/client.js';
+import { ReplayClientError, createReplayClient } from '../src/lib/replay/client.js';
 import { ReplayController } from '../src/lib/replay/controller.js';
 import {
 	MAX_PACKAGE_PAYOUT_CENTI_X,
@@ -135,6 +132,37 @@ test('Replay client exposes one read-only method and emits the exact encoded GET
 	assert(calls[0].options.signal instanceof AbortSignal);
 });
 
+test('Replay client rejects URL dot segments before fetch and preserves safe dotted identity', async () => {
+	const urls = [];
+	const client = createReplayClient({
+		fetchImpl: async (url) => {
+			urls.push(url);
+			return httpResponse(replayPayload());
+		},
+	});
+
+	for (const field of ['version', 'event']) {
+		for (const dotSegment of ['.', '..', '%2E', '%2e%2E', '%252E%252E']) {
+			await assert.rejects(
+				client.fetchRound(launch({ [field]: dotSegment })),
+				(error) => error instanceof ReplayClientError && error.code === 'REPLAY_REQUEST_INVALID',
+			);
+		}
+	}
+	assert.deepEqual(urls, []);
+
+	await client.fetchRound(
+		launch({
+			version: '0.1.0-m2',
+			event: 'round..1',
+			rgsUrl: 'https://rgs.example/root/',
+		}),
+	);
+	assert.deepEqual(urls, [
+		'https://rgs.example/root/bet/replay/blacksite_breach/0.1.0-m2/base/round..1',
+	]);
+});
+
 test('Replay client classifies HTTP, RGS, JSON, network and timeout failures', async (t) => {
 	const cases = [
 		{
@@ -260,10 +288,7 @@ test('Replay normalizer accepts only the direct official response and canonical 
 	);
 	assert.throws(
 		() =>
-			normalizer().normalize(
-				{ ...replayPayload(), status: { statusCode: 'SUCCESS' } },
-				launch(),
-			),
+			normalizer().normalize({ ...replayPayload(), status: { statusCode: 'SUCCESS' } }, launch()),
 		(error) => error.code === 'REPLAY_ENVELOPE_INVALID',
 	);
 	assert.throws(
@@ -294,11 +319,7 @@ test('Replay normalizer rejects cost, payout, state and event-mode contradiction
 			replayPayload('base', { payoutMultiplier: 0.001 }),
 			'REPLAY_RESPONSE_MULTIPLIER_INVALID',
 		],
-		[
-			'malformed state',
-			replayPayload('base', { state: { events: {} } }),
-			'REPLAY_STATE_INVALID',
-		],
+		['malformed state', replayPayload('base', { state: { events: {} } }), 'REPLAY_STATE_INVALID'],
 	];
 	for (const [name, payload, code] of cases) {
 		assert.throws(
@@ -506,12 +527,13 @@ test('ReplayController fails closed when presentation total disagrees with packa
 
 test('ReplayController validates and forwards an explicit visible playback delay', async () => {
 	assert.throws(
-		() => new ReplayController({
-			client: { fetchRound: async () => replayPayload() },
-			normalizer: normalizer(),
-			director: new FakeDirector(),
-			stepDelayMs: -1,
-		}),
+		() =>
+			new ReplayController({
+				client: { fetchRound: async () => replayPayload() },
+				normalizer: normalizer(),
+				director: new FakeDirector(),
+				stepDelayMs: -1,
+			}),
 		/non-negative safe integer/,
 	);
 	const director = new FakeDirector();

@@ -220,6 +220,7 @@
 			"id": 23,
 			"requirement": "Autoplay requires confirmation when offered",
 			"status": "NOT_APPLICABLE",
+			"automatedAbsenceChecks": ["blacksite-autoplay-surface-absent-v1"],
 			"notApplicableReason": "Autoplay is not offered by this versioned candidate and disabledAutoplay is consumed from jurisdiction configuration."
 		},
 		{
@@ -403,6 +404,7 @@
 			"id": 34,
 			"requirement": "Mystery probabilities are accurate when Mystery exists",
 			"status": "NOT_APPLICABLE",
+			"automatedAbsenceChecks": ["blacksite-mystery-product-contract-absent-v1"],
 			"notApplicableReason": "No Mystery mode or symbol exists in the frozen product and math contract."
 		},
 		{

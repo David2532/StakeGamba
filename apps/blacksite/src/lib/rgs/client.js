@@ -1,8 +1,6 @@
 import { isCanonicalMode } from '../contracts/modes.js';
-import {
-	InsufficientBalanceError,
-	RgsContractError,
-} from './contracts.js';
+import { InsufficientBalanceError, RgsContractError } from './contracts.js';
+import { normalizeTrustedRgsBaseUrl } from './url-policy.js';
 
 function clientError(code, message, details = null, cause) {
 	return new RgsContractError(code, message, { details, cause });
@@ -23,20 +21,15 @@ function requireCurrency(value) {
 	return currency;
 }
 
-function normalizeBaseUrl(value) {
-	let url;
-	try {
-		url = new URL(value);
-	} catch (cause) {
-		throw clientError('RGS_BASE_URL_INVALID', 'RGS base URL is invalid.', null, cause);
+function normalizeBaseUrl(value, options) {
+	const url = normalizeTrustedRgsBaseUrl(value, options);
+	if (!url) {
+		throw clientError(
+			'RGS_BASE_URL_INVALID',
+			'RGS base URL must use HTTPS and cannot contain credentials, query or fragment data.',
+		);
 	}
-	if (!['https:', 'http:'].includes(url.protocol) || !url.hostname || url.username || url.password) {
-		throw clientError('RGS_BASE_URL_INVALID', 'RGS base URL must be an HTTP(S) URL without credentials.');
-	}
-	if (url.search || url.hash) {
-		throw clientError('RGS_BASE_URL_INVALID', 'RGS base URL cannot contain query or fragment data.');
-	}
-	return url.toString().replace(/\/+$/, '');
+	return url;
 }
 
 function rgsStatusCode(data) {
@@ -44,14 +37,14 @@ function rgsStatusCode(data) {
 }
 
 function rgsMessage(data, fallback) {
-	return data?.error?.message
-		?? data?.status?.statusMessage
-		?? data?.statusMessage
-		?? fallback;
+	return data?.error?.message ?? data?.status?.statusMessage ?? data?.statusMessage ?? fallback;
 }
 
 export function createLiveRgsClient(options = {}) {
-	const baseUrl = normalizeBaseUrl(options.baseUrl);
+	const baseUrl = normalizeBaseUrl(options.baseUrl, {
+		allowHttpLoopbackForDevelopment: options.allowHttpLoopbackForDevelopment,
+		allowHttpLoopbackForExactQa: options.allowHttpLoopbackForExactQa,
+	});
 	const fetchImpl = options.fetchImpl ?? options.fetch ?? globalThis.fetch;
 	const timeoutMs = options.timeoutMs ?? 10_000;
 	if (typeof fetchImpl !== 'function') {
@@ -83,9 +76,10 @@ export function createLiveRgsClient(options = {}) {
 			clearTimeout(timer);
 			activeControllers.delete(controller);
 		};
-		const abortedError = (cause) => timedOut
-			? clientError('RGS_TIMEOUT', `RGS ${path} timed out.`, { path, timeoutMs }, cause)
-			: clientError('RGS_ABORTED', `RGS ${path} was cancelled.`, { path }, cause);
+		const abortedError = (cause) =>
+			timedOut
+				? clientError('RGS_TIMEOUT', `RGS ${path} timed out.`, { path, timeoutMs }, cause)
+				: clientError('RGS_ABORTED', `RGS ${path} was cancelled.`, { path }, cause);
 		let response;
 		try {
 			response = await fetchImpl(endpoint(path), {
@@ -104,7 +98,12 @@ export function createLiveRgsClient(options = {}) {
 			if (controller.signal.aborted || cause?.name === 'AbortError') {
 				throw abortedError(cause);
 			}
-			throw clientError('RGS_NETWORK_ERROR', `RGS ${path} failed before a response was received.`, { path }, cause);
+			throw clientError(
+				'RGS_NETWORK_ERROR',
+				`RGS ${path} failed before a response was received.`,
+				{ path },
+				cause,
+			);
 		}
 
 		let text;
@@ -115,20 +114,30 @@ export function createLiveRgsClient(options = {}) {
 			if (controller.signal.aborted || cause?.name === 'AbortError') {
 				throw abortedError(cause);
 			}
-			throw clientError('RGS_RESPONSE_READ_ERROR', `RGS ${path} response could not be read.`, {
-				path,
-				status: response.status,
-			}, cause);
+			throw clientError(
+				'RGS_RESPONSE_READ_ERROR',
+				`RGS ${path} response could not be read.`,
+				{
+					path,
+					status: response.status,
+				},
+				cause,
+			);
 		}
 		release();
 		let data;
 		try {
 			data = text ? JSON.parse(text) : null;
 		} catch (cause) {
-			throw clientError('RGS_INVALID_JSON', `RGS ${path} returned invalid JSON.`, {
-				path,
-				status: response.status,
-			}, cause);
+			throw clientError(
+				'RGS_INVALID_JSON',
+				`RGS ${path} returned invalid JSON.`,
+				{
+					path,
+					status: response.status,
+				},
+				cause,
+			);
 		}
 		if (data === null || typeof data !== 'object' || Array.isArray(data)) {
 			throw clientError('RGS_INVALID_JSON', `RGS ${path} returned a non-object JSON payload.`, {
@@ -142,12 +151,16 @@ export function createLiveRgsClient(options = {}) {
 			throw new InsufficientBalanceError({ source: 'rgs' });
 		}
 		if (!response.ok) {
-			throw clientError('RGS_HTTP_ERROR', rgsMessage(data, `RGS ${path} returned HTTP ${response.status}.`), {
-				path,
-				status: response.status,
-				statusCode,
-				data,
-			});
+			throw clientError(
+				'RGS_HTTP_ERROR',
+				rgsMessage(data, `RGS ${path} returned HTTP ${response.status}.`),
+				{
+					path,
+					status: response.status,
+					statusCode,
+					data,
+				},
+			);
 		}
 		if (data.error || (statusCode !== null && statusCode !== 'SUCCESS')) {
 			throw clientError('RGS_API_ERROR', rgsMessage(data, `RGS ${path} returned an API error.`), {

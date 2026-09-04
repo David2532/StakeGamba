@@ -14,6 +14,8 @@ const runtimePath = 'assets/blacksite/environment/vault.webp';
 const buildGitSha = '1'.repeat(40);
 const recoveryRuntime = `const Uf="${buildGitSha}",Uo="sveltekit:snapshot";async function check(){const response=await fetch("/_app/version.json");return (await response.json()).version!==Uf;}`;
 const inlineRuntime = `${recoveryRuntime}const runtimeAsset="/${runtimePath}";`;
+const inlineSymbolId = 'blacksite-symbol-test';
+const inlineSymbolSource = `<svg class="symbol-sprite" viewBox="0 0 64 64" aria-hidden="true" focusable="false" data-testid="blacksite-symbol-sprite"><defs><symbol id="${inlineSymbolId}" viewBox="0 0 64 64"><path d="M8 8h48v48H8z" /></symbol></defs></svg>`;
 
 function inlineDocument(
 	program = inlineRuntime,
@@ -50,6 +52,28 @@ function assetManifest(bytes) {
 	};
 }
 
+function compiledInlineAsset() {
+	const digest = sha256(inlineSymbolSource);
+	return {
+		id: 'product.symbols.inline-test.v1',
+		type: 'symbol-family-inline-vector-sprite',
+		format: 'svelte-inline-svg-symbol-sprite',
+		path: 'apps/blacksite/src/lib/components/TestSymbolSprite.svelte',
+		runtimeEligible: true,
+		runtimePath: null,
+		runtimeEmbedding: 'compiled-inline-svg-sprite',
+		runtimeReference: 'apps/blacksite/src/routes/+page.svelte test fixture',
+		dimensions: { width: 64, height: 64, unit: 'viewBox' },
+		sha256: digest,
+		sourceSha256: digest,
+		source: 'project-authored fixture',
+		originalityProvenance: 'test fixture generated inside this test',
+		licenseRights: 'test-only fixture; no production rights claim',
+		reviewLimitations: 'fixture only',
+		status: 'production-candidate',
+	};
+}
+
 async function makeFrontend() {
 	const root = await mkdtemp(join(tmpdir(), 'blacksite-hygiene-'));
 	const bytes = Buffer.from('original-vault-pixels');
@@ -80,6 +104,45 @@ test('exact inline frontend contains only identity and provenance-bound runtime 
 	assert.equal(result.claims.generatedRecoveryMetadataAstPatternMatch, 'PASS');
 	assert.equal(result.claims.recoveryRuntimeExecution, 'NOT_CLAIMED_BY_HYGIENE_GATE');
 	assert.equal(result.claims.sourceAssetDigestBinding, 'NOT_CHECKED');
+});
+
+test('compiled inline SVG assets bind source geometry and executable symbol literals', async (t) => {
+	const { root, bytes } = await makeFrontend();
+	const sourceRoot = await mkdtemp(join(tmpdir(), 'blacksite-inline-source-'));
+	const spritePath = join(
+		sourceRoot,
+		'apps',
+		'blacksite',
+		'src',
+		'lib',
+		'components',
+		'TestSymbolSprite.svelte',
+	);
+	t.after(() => rm(root, { recursive: true, force: true }));
+	t.after(() => rm(sourceRoot, { recursive: true, force: true }));
+	await mkdir(join(sourceRoot, 'art'), { recursive: true });
+	await mkdir(join(spritePath, '..'), { recursive: true });
+	await writeFile(join(sourceRoot, 'art', 'source-vault.png'), 'source-vault-pixels');
+	await writeFile(spritePath, inlineSymbolSource);
+	await writeFile(
+		join(root, 'index.html'),
+		inlineDocument(`${inlineRuntime}const compiledSymbol="${inlineSymbolId}";`),
+	);
+
+	const manifest = assetManifest(bytes);
+	manifest.assets.push(compiledInlineAsset());
+	const result = verifyBlacksiteFrontendHygiene(root, manifest, sourceRoot);
+	assert.equal(result.runtimeAssetCount, 2);
+	assert.deepEqual(result.runtimeAssetPaths, [runtimePath]);
+	assert.equal(result.compiledInlineAssetCount, 1);
+	assert.deepEqual(result.compiledInlineAssets[0].symbolIds, [inlineSymbolId]);
+	assert.equal(result.claims.sourceAssetDigestBinding, 'PASS');
+
+	await writeFile(join(root, 'index.html'), inlineDocument(inlineRuntime));
+	assert.throws(
+		() => verifyBlacksiteFrontendHygiene(root, manifest, sourceRoot),
+		/no exact executable symbol literal/u,
+	);
 });
 
 test('frontend package root must be a physical isolated directory', async (t) => {

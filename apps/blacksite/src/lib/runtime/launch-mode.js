@@ -1,29 +1,17 @@
 import { GAME_ID, isCanonicalMode } from '../contracts/modes.js';
+import { isSafeReplayPathSegment } from '../replay/path-segment.js';
+import { normalizeTrustedRgsBaseUrl } from '../rgs/url-policy.js';
 
-function launchError(code, message, surface) {
-	return Object.freeze({ kind: 'error', code, message, surface });
+function launchError(code, message, surface, social = false) {
+	return Object.freeze({ kind: 'error', code, message, surface, social });
 }
 
-function parseRgsUrl(rawValue) {
+function parseRgsUrl(rawValue, options) {
 	if (typeof rawValue !== 'string' || rawValue.trim() === '') {
 		return { ok: false, code: 'RGS_URL_MISSING' };
 	}
-	try {
-		const url = new URL(rawValue);
-		if (
-			!['https:', 'http:'].includes(url.protocol) ||
-			!url.hostname ||
-			url.username ||
-			url.password ||
-			url.search ||
-			url.hash
-		) {
-			return { ok: false, code: 'RGS_URL_INVALID' };
-		}
-			return { ok: true, url: url.toString().replace(/\/+$/, '') };
-	} catch {
-		return { ok: false, code: 'RGS_URL_INVALID' };
-	}
+	const url = normalizeTrustedRgsBaseUrl(rawValue, options);
+	return url ? { ok: true, url } : { ok: false, code: 'RGS_URL_INVALID' };
 }
 
 function requiredQuery(params, name) {
@@ -81,19 +69,25 @@ function parseSocial(params) {
 	);
 }
 
-export function resolveLaunchMode(search, { dev = false } = {}) {
+export function resolveLaunchMode(
+	search,
+	{ dev = false, allowHttpLoopbackForExactQa = false } = {},
+) {
 	const params = search instanceof URLSearchParams ? search : new URLSearchParams(search);
+	const social = parseSocial(params);
+	const rgsUrlPolicy = {
+		allowHttpLoopbackForDevelopment: dev,
+		allowHttpLoopbackForExactQa,
+	};
 
 	if (params.get('replay') === 'true') {
 		const game = requiredQuery(params, 'game');
 		const version = requiredQuery(params, 'version');
 		const mode = requiredQuery(params, 'mode');
 		const event = requiredQuery(params, 'event');
-		const rgs = parseRgsUrl(params.get('rgs_url'));
+		const rgs = parseRgsUrl(params.get('rgs_url'), rgsUrlPolicy);
 		const currency = parseCurrency(requiredQuery(params, 'currency'));
-		const amountUnitsRaw = parseReplayAmount(
-			firstQuery(params, ['amount', 'bet', 'stake']),
-		);
+		const amountUnitsRaw = parseReplayAmount(firstQuery(params, ['amount', 'bet', 'stake']));
 		const language = parseLanguage(firstQuery(params, ['lang', 'language']));
 		const device = parseDevice(firstQuery(params, ['device', 'deviceType']));
 
@@ -102,6 +96,8 @@ export function resolveLaunchMode(search, { dev = false } = {}) {
 			!isBoundedText(version) ||
 			!isBoundedText(mode) ||
 			!isBoundedText(event) ||
+			!isSafeReplayPathSegment(version) ||
+			!isSafeReplayPathSegment(event) ||
 			!rgs.ok ||
 			currency === null ||
 			amountUnitsRaw === null ||
@@ -112,6 +108,7 @@ export function resolveLaunchMode(search, { dev = false } = {}) {
 				'REPLAY_QUERY_INVALID',
 				'Replay requires game, version, canonical mode, event and a valid rgs_url.',
 				'replay',
+				social,
 			);
 		}
 		if (game !== GAME_ID || !isCanonicalMode(mode)) {
@@ -119,6 +116,7 @@ export function resolveLaunchMode(search, { dev = false } = {}) {
 				'REPLAY_IDENTITY_INVALID',
 				'The requested Replay identity is not a BLACKSITE candidate event.',
 				'replay',
+				social,
 			);
 		}
 
@@ -133,7 +131,7 @@ export function resolveLaunchMode(search, { dev = false } = {}) {
 			amountUnitsRaw,
 			language,
 			device,
-			social: parseSocial(params),
+			social,
 		});
 	}
 
@@ -144,12 +142,13 @@ export function resolveLaunchMode(search, { dev = false } = {}) {
 				'DEV_FIXTURE_FORBIDDEN',
 				'Development fixtures are disabled in production builds.',
 				'fixture',
+				social,
 			);
 		}
 		return Object.freeze({ kind: 'fixture', fixtureId });
 	}
 
-	const rgs = parseRgsUrl(params.get('rgs_url'));
+	const rgs = parseRgsUrl(params.get('rgs_url'), rgsUrlPolicy);
 	if (!rgs.ok) {
 		return launchError(
 			rgs.code,
@@ -157,6 +156,7 @@ export function resolveLaunchMode(search, { dev = false } = {}) {
 				? 'Live launch requires rgs_url. No local game was started.'
 				: 'Live launch rejected the invalid rgs_url. No local game was started.',
 			'live',
+			social,
 		);
 	}
 	const sessionId = firstQuery(params, ['sessionID', 'sessionId', 'session_id', 'sid']);
@@ -168,6 +168,7 @@ export function resolveLaunchMode(search, { dev = false } = {}) {
 			'LIVE_QUERY_INVALID',
 			'Live launch requires valid sessionID, lang and device parameters.',
 			'live',
+			social,
 		);
 	}
 
@@ -178,6 +179,6 @@ export function resolveLaunchMode(search, { dev = false } = {}) {
 		language,
 		currency,
 		device,
-		social: parseSocial(params),
+		social,
 	});
 }

@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
+import { arch, cpus, platform, release } from 'node:os';
 import { dirname, extname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -33,6 +34,14 @@ import {
 	installMockRgs,
 	mockHttpResponse,
 } from '../apps/blacksite/tests/browser/mock-rgs.mjs';
+import { BLACKSITE_PERFORMANCE_BUDGET } from './blacksite-performance-budget.mjs';
+import {
+	armPerformancePrimaryInteraction,
+	capturePerformanceLabRun,
+	createPerformanceEvidence,
+	installPerformanceLabObservers,
+	summarizePerformanceState,
+} from './blacksite-performance-lab.mjs';
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDirectory, '..');
@@ -55,11 +64,14 @@ const DEFAULT_BALANCE = 1_000 * API_UNIT;
 const REPLAY_VERSION = '0.1.0-m2';
 const REPLAY_LIFECYCLE_CYCLES = 6;
 const MODE_COSTS = Object.freeze({ base: 1, deep_access: 4, blackout: 80 });
+const WCAG_AA_TAGS = Object.freeze(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']);
+let axeSource = null;
 
 const SELECTORS = Object.freeze({
 	playerHud: '[data-testid="player-hud"]',
 	launchStatus: '[data-testid="launch-status"]',
 	launchError: '[data-testid="launch-error"]',
+	authPending: '[data-testid="auth-pending-status"]',
 	bootIntro: '[data-testid="boot-intro"]',
 	skipIntro: '[data-testid="skip-intro"]',
 	board: '[data-testid="board"]',
@@ -76,6 +88,7 @@ const SELECTORS = Object.freeze({
 	walletBalance: '[data-testid="wallet-balance"]',
 	totalPlay: '[data-testid="total-play"]',
 	totalPlaySurfaces: '[data-total-play-surface]',
+	summaryTotalPlay: '[data-testid="summary-total-play"]',
 	finalWin: '[data-testid="final-win"]',
 	boardStatus: '[data-testid="board-status"]',
 	facilityKicker: '[data-testid="facility-kicker"]',
@@ -168,6 +181,8 @@ const sourceIdentityTargets = Object.freeze([
 	join(repoRoot, 'packages', 'config-svelte', 'package.json'),
 	join(repoRoot, 'package.json'),
 	join(repoRoot, 'pnpm-lock.yaml'),
+	join(repoRoot, 'scripts', 'blacksite-performance-budget.mjs'),
+	join(repoRoot, 'scripts', 'blacksite-performance-lab.mjs'),
 	join(repoRoot, 'scripts', 'blacksite-qa-e2e.mjs'),
 	join(repoRoot, 'scripts', 'blacksite-package-candidate.mjs'),
 	join(repoRoot, 'scripts', 'blacksite-package-verify.mjs'),
@@ -183,6 +198,7 @@ const gitStatus = spawnSync('git', ['status', '--porcelain'], {
 }).stdout.trim();
 
 const evidence = {
+	schema: 'blacksite-browser-evidence-v2',
 	identity: {
 		startedAt,
 		completedAt: null,
@@ -199,6 +215,20 @@ const evidence = {
 		browser: null,
 		executable: null,
 	},
+	accessibility: {
+		schema: 'blacksite-accessibility-evidence-v1',
+		standard: 'WCAG 2.2 Level A and AA automated rules',
+		engine: { name: 'axe-core', version: null },
+		tags: WCAG_AA_TAGS,
+		audits: [],
+		manualReviewRequired: [
+			'Every axe-core incomplete result requires human review.',
+			'Screen-reader announcement order and comprehension require manual assistive-technology testing.',
+			'Voice-control naming, browser zoom/reflow, and real-device switch/touch use require manual testing.',
+		],
+		summary: null,
+	},
+	performance: createPerformanceEvidence(),
 	selectors: SELECTORS,
 	viewports: [...viewports, ...replayViewports],
 	viewportAssumptions: replayViewports.map(({ name, assumption }) => ({ name, assumption })),
@@ -548,7 +578,7 @@ function exactReplayProductUnits(amountUnitsRaw, multiplier, multiplierScale = 0
 function decorateExpectedReplayUnits(units, currency) {
 	if (currency === 'USD') return `$${units} units`;
 	if (currency === 'EUR') return `€${units} units`;
-	if (currency === 'XSC') return `${units} SC units`;
+	if (currency === 'XSC' || currency === 'XEC') return `${units} SC units`;
 	if (currency === 'XGC') return `${units} GC units`;
 	return `${units} ${currency} units`;
 }
@@ -668,6 +698,25 @@ function resolvePlaywright() {
 		}
 	}
 	throw new Error(`Playwright could not be loaded. ${attempts.join(' | ')}`);
+}
+
+function resolveAxeCore() {
+	const attempts = [];
+	const candidates = [join(repoRoot, 'apps', 'blacksite'), repoRoot, scriptDirectory];
+	for (const base of candidates) {
+		try {
+			const requireFrom = createRequire(join(base, 'blacksite-a11y-loader.cjs'));
+			const packageJson = requireFrom('axe-core/package.json');
+			const sourcePath = requireFrom.resolve('axe-core/axe.min.js');
+			return {
+				source: readFileSync(sourcePath, 'utf8'),
+				version: packageJson.version,
+			};
+		} catch (error) {
+			attempts.push(`${base}: ${error instanceof Error ? error.message : String(error)}`);
+		}
+	}
+	throw new Error(`axe-core could not be loaded. ${attempts.join(' | ')}`);
 }
 
 async function launchBrowser(playwright) {
@@ -797,6 +846,31 @@ async function openPage(context, origin, query) {
 	await page.goto(`${origin}/${query}`, { waitUntil: 'domcontentloaded', timeout: 15_000 });
 	await page.locator(SELECTORS.launchStatus).waitFor({ state: 'visible', timeout: 10_000 });
 	return { page, diagnostics };
+}
+
+async function dispatchPersistedPageRestore(page) {
+	const before = await page.evaluate(() => ({
+		href: window.location.href,
+		timeOrigin: performance.timeOrigin,
+	}));
+	const navigation = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15_000 });
+	await page.evaluate(() => {
+		const transitionEvent = (type) => {
+			const event = new Event(type);
+			Object.defineProperty(event, 'persisted', { value: true });
+			return event;
+		};
+		window.dispatchEvent(transitionEvent('pagehide'));
+		window.setTimeout(() => window.dispatchEvent(transitionEvent('pageshow')), 0);
+	});
+	await navigation;
+	await page.locator(SELECTORS.launchStatus).waitFor({ state: 'visible', timeout: 10_000 });
+	const after = await page.evaluate(() => ({
+		href: window.location.href,
+		timeOrigin: performance.timeOrigin,
+		navigationType: performance.getEntriesByType('navigation').at(-1)?.type ?? null,
+	}));
+	return { before, after };
 }
 
 async function saveScreenshot(page, name) {
@@ -1184,6 +1258,69 @@ async function totalPlaySurfaceSnapshot(page) {
 	);
 }
 
+function compactAxeResult(result) {
+	return {
+		id: result.id,
+		impact: result.impact,
+		tags: result.tags,
+		help: result.help,
+		helpUrl: result.helpUrl,
+		nodes: result.nodes.map((node) => ({
+			impact: node.impact,
+			target: node.target,
+			html: node.html,
+			failureSummary: node.failureSummary ?? null,
+		})),
+	};
+}
+
+async function auditWholeDocumentWcag(page, group, surface) {
+	if (!axeSource) throw new Error('axe-core source was not initialized before accessibility QA.');
+	await page.addScriptTag({ content: axeSource });
+	const result = await page.evaluate(async (tags) => {
+		if (!globalThis.axe?.run)
+			throw new Error('axe-core was not injected into the tested document.');
+		return globalThis.axe.run(document, {
+			runOnly: { type: 'tag', values: tags },
+			resultTypes: ['violations', 'incomplete'],
+		});
+	}, WCAG_AA_TAGS);
+	const audit = {
+		surface,
+		url: result.url,
+		timestamp: result.timestamp,
+		testEngine: result.testEngine,
+		testEnvironment: result.testEnvironment,
+		passes: result.passes.map((passed) => ({
+			id: passed.id,
+			tags: passed.tags,
+			nodeCountAtLeast: passed.nodes.length,
+		})),
+		violations: result.violations.map(compactAxeResult),
+		incomplete: result.incomplete.map(compactAxeResult),
+		inapplicableRuleCount: result.inapplicable.length,
+	};
+	evidence.accessibility.audits.push(audit);
+	check(
+		group,
+		`${surface} whole-document axe WCAG 2.2 A/AA audit executed rules`,
+		audit.passes.length + audit.violations.length + audit.incomplete.length > 0,
+		serialize({
+			passes: audit.passes.length,
+			violations: audit.violations.length,
+			incomplete: audit.incomplete.length,
+			inapplicable: audit.inapplicableRuleCount,
+		}),
+	);
+	check(
+		group,
+		`${surface} whole-document axe WCAG 2.2 A/AA audit has zero violations`,
+		audit.violations.length === 0,
+		serialize(audit.violations),
+	);
+	return audit;
+}
+
 async function replayPresentationSnapshot(page) {
 	return {
 		runtimeState: await runtimeState(page),
@@ -1291,15 +1428,48 @@ async function runNetworkScenarios(browser, origin) {
 	await runScenario('boot-intro-full-fresh-live', async (record) => {
 		const group = 'boot-intro-full-fresh-live';
 		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+		let releaseAuthentication = () => {};
 		try {
 			await installIntroTimeline(context);
+			const authenticationGate = new Promise((resolvePromise) => {
+				releaseAuthentication = resolvePromise;
+			});
 			const network = await installMockRgs(context, {
 				pageOrigin: origin,
-				handlers: { authenticate: () => authenticateResponse() },
+				handlers: {
+					authenticate: async () => {
+						await authenticationGate;
+						return authenticateResponse();
+					},
+				},
 			});
 			const { page, diagnostics } = await openPage(context, origin, liveQuery());
 			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForRuntimeState(page, 'live-authenticating');
+			const rulesBlocked = await page
+				.getByRole('button', { name: /INFO \/ RULES/i })
+				.click({ trial: true, timeout: 500 })
+				.then(
+					() => false,
+					() => true,
+				);
+			check(
+				group,
+				'delayed authentication isolates controls and cannot leave Rules open behind the intro',
+				rulesBlocked &&
+					(await page.locator(SELECTORS.authPending).count()) === 1 &&
+					(await page.getByRole('dialog').count()) === 0,
+				serialize({ rulesBlocked, runtimeState: await runtimeState(page) }),
+			);
+			releaseAuthentication();
 			await page.locator(SELECTORS.bootIntro).waitFor({ state: 'visible', timeout: 10_000 });
+			check(
+				group,
+				'intro replaces the authentication status as the only modal surface',
+				(await page.locator(SELECTORS.authPending).count()) === 0 &&
+					(await page.getByRole('dialog').count()) === 1,
+				String(await page.getByRole('dialog').count()),
+			);
 			await page.waitForFunction(() => document.body.dataset.introBeat === 'breach', undefined, {
 				timeout: 4_250,
 			});
@@ -1364,12 +1534,22 @@ async function runNetworkScenarios(browser, origin) {
 				network.byEndpoint.authenticate.length === 1 && paidWriteCount(network) === 0,
 				serialize(network.order),
 			);
+			check(
+				group,
+				'boot intro authenticates once and never issues a paid, checkpoint, or settlement write',
+				network.byEndpoint.authenticate.length === 1 &&
+					network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.event.length === 0 &&
+					network.byEndpoint.endRound.length === 0,
+				serialize(network.order),
+			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.intro = { beats, durationMs, seen, timeline };
 			record.network = network;
 			record.diagnostics = diagnostics;
 		} finally {
+			releaseAuthentication();
 			await context.close();
 		}
 	});
@@ -1416,6 +1596,14 @@ async function runNetworkScenarios(browser, origin) {
 					actionSelector: SELECTORS.primaryAction,
 				},
 			);
+			await page.keyboard.press('Tab');
+			blocking.forwardTabTrapped = await skip.evaluate(
+				(element) => document.activeElement === element,
+			);
+			await page.keyboard.press('Shift+Tab');
+			blocking.reverseTabTrapped = await skip.evaluate(
+				(element) => document.activeElement === element,
+			);
 			check(
 				group,
 				'mobile intro owns focus while its background is inert and its skip target is at least 44px',
@@ -1426,6 +1614,20 @@ async function runNetworkScenarios(browser, origin) {
 					blocking.skipWidth >= 44 &&
 					blocking.skipHeight >= 44 &&
 					blocking.skipFocused,
+				serialize(blocking),
+			);
+			check(
+				group,
+				'mobile intro traps focus while its background is inert and its skip target is at least 44px',
+				blocking.modal === 'true' &&
+					blocking.mastheadInert &&
+					blocking.studioInert &&
+					blocking.primaryDisabled &&
+					blocking.skipWidth >= 44 &&
+					blocking.skipHeight >= 44 &&
+					blocking.skipFocused &&
+					blocking.forwardTabTrapped &&
+					blocking.reverseTabTrapped,
 				serialize(blocking),
 			);
 			await page.waitForFunction(() => document.body.dataset.introBeat === 'breach', undefined, {
@@ -1472,6 +1674,15 @@ async function runNetworkScenarios(browser, origin) {
 				group,
 				'boot intro never issues a wallet write after skip or seen-version bypass',
 				network.byEndpoint.authenticate.length === 2 && paidWriteCount(network) === 0,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'boot intro skip and seen-version bypass issue no paid, checkpoint, or settlement write',
+				network.byEndpoint.authenticate.length === 2 &&
+					network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.event.length === 0 &&
+					network.byEndpoint.endRound.length === 0,
 				serialize(network.order),
 			);
 			assertCleanNetwork(group, network);
@@ -1530,6 +1741,15 @@ async function runNetworkScenarios(browser, origin) {
 				group,
 				'reduced-motion intro bypass authenticates once and issues zero wallet writes',
 				network.byEndpoint.authenticate.length === 1 && paidWriteCount(network) === 0,
+				serialize(network.order),
+			);
+			check(
+				group,
+				'reduced-motion intro bypass authenticates once and issues no paid, checkpoint, or settlement write',
+				network.byEndpoint.authenticate.length === 1 &&
+					network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.event.length === 0 &&
+					network.byEndpoint.endRound.length === 0,
 				serialize(network.order),
 			);
 			assertCleanNetwork(group, network);
@@ -1801,6 +2021,94 @@ async function runNetworkScenarios(browser, origin) {
 		} finally {
 			await context.close();
 		}
+	});
+
+	await runScenario('social-malformed-launches-remain-policy-safe', async (record) => {
+		const group = 'social-malformed-launches-remain-policy-safe';
+		const cases = [
+			{
+				id: 'live-invalid-rgs-url',
+				query: liveQuery({
+					rgs_url: 'not-a-valid-rgs-url',
+					currency: 'XSC',
+					social: 'true',
+				}),
+				replayOnly: false,
+			},
+			{
+				id: 'replay-decoded-dot-segment',
+				query: replayQuery({
+					version: '__DOT_SEGMENT__',
+					currency: 'XSC',
+					social: 'true',
+				}).replace('__DOT_SEGMENT__', '%2E%2E'),
+				replayOnly: true,
+			},
+		];
+		const audits = [];
+
+		for (const launchCase of cases) {
+			const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+			try {
+				const network = await installMockRgs(context, {
+					pageOrigin: origin,
+					replayOnly: launchCase.replayOnly,
+				});
+				const { page, diagnostics } = await openPage(context, origin, launchCase.query);
+				await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 10_000 });
+				await waitForRuntimeState(page, 'error');
+				const errorText = await page.locator(SELECTORS.launchError).innerText();
+				check(
+					group,
+					`${launchCase.id} uses the Social-safe launch error`,
+					errorText.includes('AUTHORITATIVE_ERROR') &&
+						errorText.includes('The authoritative game flow could not continue.'),
+					errorText,
+				);
+
+				await page.getByRole('button', { name: /INFO \/ RULES/i }).click();
+				const dialog = page.getByRole('dialog', { name: /BLACKSITE/i });
+				await dialog.waitFor({ state: 'visible' });
+				const rulesText = await dialog.innerText();
+				check(
+					group,
+					`${launchCase.id} keeps Social Mode active in Game Information`,
+					rulesText.includes('STANDARD RUN') &&
+						rulesText.includes('BLACKOUT ENTRY') &&
+						rulesText.includes(getRulesDisclaimer(true)),
+					rulesText,
+				);
+
+				const surface = await collectPlayerVisibleSurface(page);
+				const restrictedHits = playerVisibleRestrictedHits(surface.combined);
+				check(
+					group,
+					`${launchCase.id} complete visible DOM and visible ARIA surface has zero official Social restricted hits`,
+					restrictedHits.length === 0,
+					serialize({ hits: restrictedHits, attributes: surface.attributes }),
+				);
+				check(
+					group,
+					`${launchCase.id} fails before every RGS request`,
+					rgsRequestCount(network) === 0 && network.preflights.length === 0,
+					serialize(network.order),
+				);
+				assertCleanNetwork(group, network);
+				assertCleanDiagnostics(group, diagnostics);
+				audits.push({
+					id: launchCase.id,
+					errorText,
+					surface,
+					screenshot: await saveScreenshot(page, `social-malformed-${launchCase.id}`),
+					network,
+					diagnostics,
+				});
+			} finally {
+				await context.close();
+			}
+		}
+
+		record.audits = audits;
 	});
 
 	await runScenario('invalid-session-auth-response-fails-closed', async (record) => {
@@ -2268,6 +2576,36 @@ async function runNetworkScenarios(browser, origin) {
 				handlers: { authenticate: () => authenticateResponse() },
 			});
 			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForRuntimeState(page, 'live-authenticating');
+			const pendingState = await page.evaluate((authPendingSelector) => {
+				const status = document.querySelector(authPendingSelector);
+				const masthead = document.querySelector('.masthead');
+				const studio = document.querySelector('.studio');
+				return {
+					text: status?.textContent?.trim(),
+					role: status?.getAttribute('role'),
+					live: status?.getAttribute('aria-live'),
+					mastheadHidden: masthead?.getAttribute('aria-hidden') ?? null,
+					mastheadInert: masthead?.hasAttribute('inert') ?? null,
+					studioHidden: studio?.getAttribute('aria-hidden') ?? null,
+					studioInert: studio?.hasAttribute('inert') ?? null,
+					introCount: document.querySelectorAll('[data-testid="boot-intro"]').length,
+				};
+			}, SELECTORS.authPending);
+			check(
+				group,
+				'stalled authentication presents a dedicated live status while controls stay isolated',
+				/AUTHENTICATING/i.test(pendingState.text ?? '') &&
+					pendingState.role === 'status' &&
+					pendingState.live === 'polite' &&
+					pendingState.mastheadHidden === 'true' &&
+					pendingState.mastheadInert === true &&
+					pendingState.studioHidden === 'true' &&
+					pendingState.studioInert === true &&
+					pendingState.introCount === 0,
+				serialize(pendingState),
+			);
+			const pendingAccessibility = await auditWholeDocumentWcag(page, group, 'live-authenticating');
 			await page.locator(SELECTORS.launchError).waitFor({ state: 'visible', timeout: 15_000 });
 			const errorState = await runtimeState(page);
 			const errorText = await page.locator(SELECTORS.launchError).innerText();
@@ -2361,6 +2699,8 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
+			record.pendingState = pendingState;
+			record.accessibility = [pendingAccessibility];
 			record.network = network;
 			record.diagnostics = diagnostics;
 		} finally {
@@ -2591,6 +2931,320 @@ async function runNetworkScenarios(browser, origin) {
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.screenshot = await saveScreenshot(page, group);
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('persisted-pageshow-live-ready-reauthenticates', async (record) => {
+		const group = 'persisted-pageshow-live-ready-reauthenticates';
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			await context.addInitScript((seenKey) => localStorage.setItem(seenKey, '1'), INTRO_SEEN_KEY);
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: () => playResponse({ active: false }),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+
+			const transition = await dispatchPersistedPageRestore(page);
+			await waitForEndpoint(network, 'authenticate', 2);
+			await waitForStableAction(page);
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 1);
+			await waitForStableAction(page);
+			const restored = await page.evaluate(
+				({ actionSelector, errorSelector }) => {
+					const action = document.querySelector(actionSelector);
+					return {
+						runtimeState: document.body.dataset.runtimeState ?? null,
+						actionDisabled: action?.disabled ?? null,
+						actionText: action?.textContent?.trim() ?? null,
+						errorCount: document.querySelectorAll(errorSelector).length,
+						mastheadInert: document.querySelector('.masthead')?.hasAttribute('inert') ?? null,
+						studioInert: document.querySelector('.studio')?.hasAttribute('inert') ?? null,
+					};
+				},
+				{ actionSelector: SELECTORS.primaryAction, errorSelector: SELECTORS.launchError },
+			);
+			check(
+				group,
+				'persisted live-ready transition performs a real document reload',
+				transition.after.navigationType === 'reload' &&
+					transition.after.href === transition.before.href &&
+					transition.after.timeOrigin !== transition.before.timeOrigin,
+				serialize(transition),
+			);
+			check(
+				group,
+				'persisted live-ready transition reauthenticates into one operable non-inert action',
+				restored.runtimeState === 'live-ready' &&
+					restored.actionDisabled === false &&
+					restored.actionText === 'INITIATE BREACH' &&
+					restored.errorCount === 0 &&
+					restored.mastheadInert === false &&
+					restored.studioInert === false,
+				serialize(restored),
+			);
+			check(
+				group,
+				'persisted live-ready restore authenticates twice and accepts one deliberate paid action',
+				network.byEndpoint.authenticate.length === 2 &&
+					network.byEndpoint.play.length === 1 &&
+					network.byEndpoint.event.length === 0 &&
+					network.byEndpoint.endRound.length === 0 &&
+					serialize(network.order) === serialize(['authenticate', 'authenticate', 'play']),
+				serialize(network.order),
+			);
+			assertExactRequest(group, network.byEndpoint.play[0], {
+				method: 'POST',
+				path: '/wallet/play',
+				body: {
+					sessionID: SESSION_ID,
+					currency: 'USD',
+					amount: DEFAULT_BASE_AMOUNT,
+					mode: 'base',
+				},
+			});
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.transition = transition;
+			record.restored = restored;
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('persisted-pageshow-active-round-restores', async (record) => {
+		const group = 'persisted-pageshow-active-round-restores';
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		const debitedBalance = DEFAULT_BALANCE - DEFAULT_BASE_AMOUNT;
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () =>
+						authenticateResponse({
+							balance: debitedBalance,
+							round: authoritativeZeroRound({
+								active: true,
+								id: 'blacksite-qa-persisted-active-restore',
+								event: encodePresentationCursor(2),
+							}),
+						}),
+					event: (request) => ({ event: request.body.event }),
+					endRound: () => endRoundResponse({ balance: debitedBalance }),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForRuntimeState(page, 'live-restoring');
+
+			const transition = await dispatchPersistedPageRestore(page);
+			await waitForEndpoint(network, 'authenticate', 2);
+			await waitForEndpoint(network, 'endRound', 1);
+			await waitForRuntimeState(page, 'live-ready');
+			const restored = {
+				runtimeState: await runtimeState(page),
+				balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
+				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
+				actionDisabled: await page.locator(SELECTORS.primaryAction).isDisabled(),
+				errorCount: await page.locator(SELECTORS.launchError).count(),
+			};
+			check(
+				group,
+				'persisted active-round transition performs a real document reload',
+				transition.after.navigationType === 'reload' &&
+					transition.after.href === transition.before.href &&
+					transition.after.timeOrigin !== transition.before.timeOrigin,
+				serialize(transition),
+			);
+			check(
+				group,
+				'persisted active round reauthenticates and restores the authoritative result',
+				restored.runtimeState === 'live-ready' &&
+					restored.balance === '$999.00' &&
+					restored.finalWin === '$0.00' &&
+					restored.actionDisabled === false &&
+					restored.errorCount === 0,
+				serialize(restored),
+			);
+			check(
+				group,
+				'persisted active-round restore never replays a paid action and settles once',
+				network.byEndpoint.authenticate.length === 2 &&
+					network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.event.length === 0 &&
+					network.byEndpoint.endRound.length === 1 &&
+					serialize(network.order) === serialize(['authenticate', 'authenticate', 'endRound']),
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.transition = transition;
+			record.restored = restored;
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('persisted-pageshow-replay-refetches-read-only', async (record) => {
+		const group = 'persisted-pageshow-replay-refetches-read-only';
+		const context = await browser.newContext({
+			viewport: { width: 1280, height: 720 },
+			reducedMotion: 'reduce',
+		});
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				replayOnly: true,
+				handlers: { replay: () => replayResponse() },
+			});
+			const { page, diagnostics } = await openPage(context, origin, replayQuery());
+			await waitForEndpoint(network, 'replay', 1);
+			await waitForStableAction(page);
+
+			const transition = await dispatchPersistedPageRestore(page);
+			await waitForEndpoint(network, 'replay', 2);
+			await waitForStableAction(page);
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForReplayComplete(page);
+			const restored = {
+				runtimeState: await runtimeState(page),
+				actionText: (await page.locator(SELECTORS.primaryAction).innerText()).trim(),
+				actionDisabled: await page.locator(SELECTORS.primaryAction).isDisabled(),
+				errorCount: await page.locator(SELECTORS.launchError).count(),
+			};
+			check(
+				group,
+				'persisted Replay transition performs a real document reload',
+				transition.after.navigationType === 'reload' &&
+					transition.after.href === transition.before.href &&
+					transition.after.timeOrigin !== transition.before.timeOrigin,
+				serialize(transition),
+			);
+			check(
+				group,
+				'persisted Replay refetches and remains operable through completion',
+				restored.runtimeState === 'replay-completed' &&
+					restored.actionText === 'PLAY AGAIN' &&
+					restored.actionDisabled === false &&
+					restored.errorCount === 0,
+				serialize(restored),
+			);
+			check(
+				group,
+				'persisted Replay performs exactly two reads and zero wallet or event writes',
+				network.byEndpoint.replay.length === 2 && walletWriteCount(network) === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.transition = transition;
+			record.restored = restored;
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('persisted-pageshow-fresh-intro-restarts-safely', async (record) => {
+		const group = 'persisted-pageshow-fresh-intro-restarts-safely';
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: { authenticate: () => authenticateResponse() },
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await page.locator(SELECTORS.skipIntro).waitFor({ state: 'visible', timeout: 10_000 });
+			const seenBefore = await page.evaluate((key) => localStorage.getItem(key), INTRO_SEEN_KEY);
+
+			const transition = await dispatchPersistedPageRestore(page);
+			await waitForEndpoint(network, 'authenticate', 2);
+			await page.locator(SELECTORS.skipIntro).waitFor({ state: 'visible', timeout: 10_000 });
+			const restarted = await page.evaluate(
+				({ seenKey, introSelector }) => ({
+					seen: localStorage.getItem(seenKey),
+					introCount: document.querySelectorAll(introSelector).length,
+					introStatus: document.body.dataset.introStatus ?? null,
+					mastheadInert: document.querySelector('.masthead')?.hasAttribute('inert') ?? null,
+					studioInert: document.querySelector('.studio')?.hasAttribute('inert') ?? null,
+				}),
+				{ seenKey: INTRO_SEEN_KEY, introSelector: SELECTORS.bootIntro },
+			);
+			await page.locator(SELECTORS.skipIntro).click();
+			await waitForRuntimeState(page, 'live-ready');
+			await page.waitForFunction(
+				(actionSelector) => document.activeElement === document.querySelector(actionSelector),
+				SELECTORS.primaryAction,
+			);
+			const completed = await page.evaluate(
+				({ actionSelector, errorSelector, seenKey }) => {
+					const action = document.querySelector(actionSelector);
+					return {
+						actionDisabled: action?.disabled ?? null,
+						actionFocused: document.activeElement === action,
+						errorCount: document.querySelectorAll(errorSelector).length,
+						seen: localStorage.getItem(seenKey),
+						mastheadInert: document.querySelector('.masthead')?.hasAttribute('inert') ?? null,
+						studioInert: document.querySelector('.studio')?.hasAttribute('inert') ?? null,
+					};
+				},
+				{
+					actionSelector: SELECTORS.primaryAction,
+					errorSelector: SELECTORS.launchError,
+					seenKey: INTRO_SEEN_KEY,
+				},
+			);
+			check(
+				group,
+				'persisted intro transition performs a real document reload without falsely marking it seen',
+				seenBefore === null &&
+					transition.after.navigationType === 'reload' &&
+					transition.after.timeOrigin !== transition.before.timeOrigin &&
+					restarted.seen === null &&
+					restarted.introCount === 1 &&
+					restarted.introStatus === 'playing' &&
+					restarted.mastheadInert === true &&
+					restarted.studioInert === true,
+				serialize({ seenBefore, transition, restarted }),
+			);
+			check(
+				group,
+				'restarted intro dismisses to a focused operable surface without an inert leak',
+				completed.actionDisabled === false &&
+					completed.actionFocused === true &&
+					completed.errorCount === 0 &&
+					completed.seen === '1' &&
+					completed.mastheadInert === false &&
+					completed.studioInert === false,
+				serialize(completed),
+			);
+			check(
+				group,
+				'persisted intro restart authenticates twice and performs zero wallet writes',
+				network.byEndpoint.authenticate.length === 2 && walletWriteCount(network) === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.transition = transition;
+			record.restarted = restarted;
+			record.completed = completed;
 			record.network = network;
 			record.diagnostics = diagnostics;
 		} finally {
@@ -4822,6 +5476,154 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('social-currency-matrix-live-and-replay', async (record) => {
+		const group = 'social-currency-matrix-live-and-replay';
+		const fixture = getGeneratedFixture('blackout_small');
+		const payload = replayResponseFromFixture(fixture);
+		const amountUnitsRaw = '0.0496';
+		const socialCurrencies = [
+			{ currency: 'XSC', suffix: 'SC' },
+			{ currency: 'XGC', suffix: 'GC' },
+			{ currency: 'XEC', suffix: 'SC' },
+		];
+		const audits = [];
+
+		for (const { currency, suffix } of socialCurrencies) {
+			const context = await browser.newContext({
+				viewport: { width: 390, height: 844 },
+				isMobile: true,
+				hasTouch: true,
+			});
+			try {
+				const network = await installMockRgs(context, {
+					pageOrigin: origin,
+					handlers: {
+						authenticate: () =>
+							authenticateResponse({
+								balance: 1_234_567,
+								currency,
+								jurisdictionOverrides: { socialCasino: true },
+							}),
+						replay: () => payload,
+					},
+				});
+				const { page, diagnostics } = await openPage(
+					context,
+					origin,
+					liveQuery({ currency, social: 'true', lang: 'de', device: 'mobile' }),
+				);
+				await waitForEndpoint(network, 'authenticate', 1);
+				await waitForStableAction(page);
+				await waitForAssetPaint(page);
+				assertExactRequest(group, network.byEndpoint.authenticate[0], {
+					method: 'POST',
+					path: '/wallet/authenticate',
+					body: { sessionID: SESSION_ID, language: 'en' },
+				});
+				const livePresentation = {
+					balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
+					totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
+					baseAmountAria: await page.locator(SELECTORS.baseAmount).getAttribute('aria-valuetext'),
+				};
+				const liveSurface = await collectPlayerVisibleSurface(page);
+				check(
+					group,
+					`${currency} live surface uses the exact social suffix without a dollar prefix`,
+					livePresentation.balance === `1.23 ${suffix}` &&
+						livePresentation.totalPlay === `1.00 ${suffix}` &&
+						livePresentation.baseAmountAria === `1.00 ${suffix}` &&
+						!liveSurface.combined.includes('$'),
+					serialize({ currency, suffix, livePresentation, liveSurface }),
+				);
+
+				const writesBeforeReplay = walletWriteCount(network);
+				const event = String(fixture.bookId);
+				await page.goto(
+					`${origin}/${replayQuery({
+						mode: fixture.mode,
+						event,
+						amount: amountUnitsRaw,
+						currency,
+						lang: 'de',
+						social: 'true',
+						device: 'mobile',
+					})}`,
+					{ waitUntil: 'domcontentloaded', timeout: 15_000 },
+				);
+				await page.locator(SELECTORS.launchStatus).waitFor({ state: 'visible', timeout: 10_000 });
+				await waitForEndpoint(network, 'replay', 1);
+				await waitForStableAction(page);
+				const expectedTotalPlay = expectedReplayTotalPlay(
+					amountUnitsRaw,
+					MODE_COSTS[fixture.mode],
+					currency,
+				);
+				const expectedFinalWin = expectedReplayFinalWin(
+					amountUnitsRaw,
+					fixture.book.payoutMultiplier,
+					currency,
+				);
+				const readyPresentation = await replayPresentationSnapshot(page);
+				check(
+					group,
+					`${currency} Replay ready surface uses the exact social suffix without a dollar prefix`,
+					readyPresentation.totalPlay === expectedTotalPlay &&
+						readyPresentation.totalPlay.endsWith(` ${suffix} units`) &&
+						!readyPresentation.totalPlay.includes('$'),
+					serialize({ currency, suffix, readyPresentation, expectedTotalPlay }),
+				);
+				await page.locator(SELECTORS.primaryAction).click();
+				await waitForReplayComplete(page);
+				const completedPresentation = await replayPresentationSnapshot(page);
+				const replaySurface = await collectPlayerVisibleSurface(page);
+				check(
+					group,
+					`${currency} Replay surface uses the exact social suffix without a dollar prefix`,
+					completedPresentation.totalPlay === expectedTotalPlay &&
+						completedPresentation.finalWin === expectedFinalWin &&
+						completedPresentation.finalWin.endsWith(` ${suffix} units`) &&
+						!replaySurface.combined.includes('$'),
+					serialize({
+						currency,
+						suffix,
+						completedPresentation,
+						expectedTotalPlay,
+						expectedFinalWin,
+						replaySurface,
+					}),
+				);
+				check(
+					group,
+					`${currency} Replay navigation adds one read and zero wallet or event writes`,
+					writesBeforeReplay === 0 &&
+						walletWriteCount(network) === writesBeforeReplay &&
+						network.byEndpoint.replay.length === 1 &&
+						serialize(network.order) === serialize(['authenticate', 'replay']),
+					serialize(network.order),
+				);
+				assertCleanNetwork(group, network);
+				assertCleanDiagnostics(group, diagnostics);
+				audits.push({
+					currency,
+					suffix,
+					livePresentation,
+					readyPresentation,
+					completedPresentation,
+					network,
+					diagnostics,
+					screenshot: await saveScreenshot(page, `${group}-${currency.toLowerCase()}`),
+				});
+			} finally {
+				await context.close();
+			}
+		}
+
+		record.currencies = audits.map(({ currency, suffix }) => ({ currency, suffix }));
+		record.screenshot = audits.map(({ screenshot }) => screenshot);
+		record.network = audits.map(({ currency, network }) => ({ currency, ...network }));
+		record.diagnostics = audits.map(({ currency, diagnostics }) => ({ currency, ...diagnostics }));
+	});
+
 	await runScenario('live-jpy-native-balance-and-exact-win', async (record) => {
 		const group = 'live-jpy-native-balance-and-exact-win';
 		const currency = 'JPY';
@@ -4913,6 +5715,135 @@ async function runNetworkScenarios(browser, origin) {
 			assertCleanNetwork(group, network);
 			assertCleanDiagnostics(group, diagnostics);
 			record.currencyUi = { ready, completed, fixture: fixture.id };
+			record.screenshot = await saveScreenshot(page, group);
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('live-usd-four-decimal-sub-cent-win', async (record) => {
+		const group = 'live-usd-four-decimal-sub-cent-win';
+		const currency = 'USD';
+		const tinyBaseAmount = 10_000;
+		const openingBalance = 2_000_000;
+		const fixture = getGeneratedFixture('base_small');
+		const expectedPayoutApi = (tinyBaseAmount * fixture.book.payoutMultiplier) / 100;
+		const expectedBalanceApi = openingBalance - tinyBaseAmount + expectedPayoutApi;
+		const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () =>
+						authenticateResponse({
+							balance: openingBalance,
+							currency,
+							betConfig: {
+								minBet: tinyBaseAmount,
+								maxBet: tinyBaseAmount,
+								stepBet: tinyBaseAmount,
+								defaultBetLevel: tinyBaseAmount,
+								betLevels: [tinyBaseAmount],
+							},
+						}),
+					play: (request) => {
+						const round = authoritativeFixtureRound({
+							fixture,
+							active: false,
+							amount: request.body.amount,
+							currency,
+							id: 'blacksite-qa-usd-four-decimal-win',
+						});
+						return {
+							status: successStatus(),
+							balance: { amount: expectedBalanceApi, currency },
+							round,
+						};
+					},
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery({ currency }));
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			const ready = {
+				balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
+				totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
+				baseAmount: await page.locator(SELECTORS.baseAmount).inputValue(),
+				baseAmountAria: await page.locator(SELECTORS.baseAmount).getAttribute('aria-valuetext'),
+			};
+			check(
+				group,
+				'authenticate-provided tiny level is visibly selectable without rounding',
+				ready.balance === '$2.00' &&
+					ready.totalPlay === '$0.01' &&
+					ready.baseAmount === String(tinyBaseAmount) &&
+					ready.baseAmountAria === '$0.01',
+				serialize(ready),
+			);
+
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 1);
+			await waitForRuntimeState(page, 'live-ready');
+			const completed = {
+				balance: (await page.locator(SELECTORS.walletBalance).innerText()).trim(),
+				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
+				totalPlay: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
+			};
+			const finalWinGeometry = await page.locator(SELECTORS.finalWin).evaluate((element) => {
+				const bounds = element.getBoundingClientRect();
+				return {
+					visible: bounds.width > 0 && bounds.height > 0,
+					clipped:
+						element.scrollWidth > element.clientWidth + 1 ||
+						element.scrollHeight > element.clientHeight + 1,
+				};
+			});
+			check(
+				group,
+				'live WIN preserves the exact four-decimal sub-cent payout',
+				fixture.book.payoutMultiplier === 38 &&
+					expectedPayoutApi === 3_800 &&
+					completed.finalWin === '$0.0038' &&
+					finalWinGeometry.visible &&
+					!finalWinGeometry.clipped,
+				serialize({ fixture: fixture.id, expectedPayoutApi, completed, finalWinGeometry }),
+			);
+			check(
+				group,
+				'balance precision remains separate from exact WIN precision',
+				expectedBalanceApi === 1_993_800 &&
+					completed.balance === '$1.99' &&
+					completed.totalPlay === '$0.01',
+				serialize({ expectedBalanceApi, completed }),
+			);
+			assertExactRequest(group, network.byEndpoint.play[0], {
+				method: 'POST',
+				path: '/wallet/play',
+				body: {
+					sessionID: SESSION_ID,
+					currency,
+					amount: tinyBaseAmount,
+					mode: 'base',
+				},
+			});
+			check(
+				group,
+				'sub-cent live proof sends one paid play and no redundant settlement write',
+				network.byEndpoint.play.length === 1 && network.byEndpoint.endRound.length === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.currencyUi = {
+				ready,
+				completed,
+				finalWinGeometry,
+				fixture: fixture.id,
+				expectedPayoutApi,
+				expectedBalanceApi,
+			};
 			record.screenshot = await saveScreenshot(page, group);
 			record.network = network;
 			record.diagnostics = diagnostics;
@@ -5049,6 +5980,191 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('delayed-audio-resume-never-delays-or-mutates-play-intent', async (record) => {
+		const group = 'delayed-audio-resume-never-delays-or-mutates-play-intent';
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			await context.addInitScript(
+				({ seenKey }) => {
+					localStorage.setItem(seenKey, '1');
+					const pendingResume = [];
+					const audit = { resumeCalls: 0, pending: 0, released: false };
+					window.__blacksiteDelayedAudio = audit;
+					window.__releaseBlacksiteAudioResume = () => {
+						audit.released = true;
+						for (const resume of pendingResume.splice(0)) resume();
+					};
+
+					class FakeAudioParam {
+						constructor(value = 1) {
+							this.value = value;
+						}
+						setValueAtTime(value) {
+							this.value = value;
+							return this;
+						}
+						exponentialRampToValueAtTime(value) {
+							this.value = value;
+							return this;
+						}
+						cancelScheduledValues() {
+							return this;
+						}
+					}
+
+					class FakeAudioNode {
+						connect(target) {
+							return target;
+						}
+						disconnect() {}
+					}
+
+					class FakeGainNode extends FakeAudioNode {
+						constructor() {
+							super();
+							this.gain = new FakeAudioParam();
+						}
+					}
+
+					class FakeOscillatorNode extends FakeAudioNode {
+						constructor() {
+							super();
+							this.frequency = new FakeAudioParam();
+							this.onended = null;
+							this.type = 'sine';
+						}
+						start() {}
+						stop() {
+							queueMicrotask(() => this.onended?.());
+						}
+					}
+
+					class DelayedAudioContext {
+						constructor() {
+							this.currentTime = 0;
+							this.destination = new FakeAudioNode();
+							this.state = 'suspended';
+						}
+						createGain() {
+							return new FakeGainNode();
+						}
+						createOscillator() {
+							return new FakeOscillatorNode();
+						}
+						resume() {
+							audit.resumeCalls += 1;
+							audit.pending += 1;
+							return new Promise((resolve) => {
+								pendingResume.push(() => {
+									this.state = 'running';
+									audit.pending -= 1;
+									resolve();
+								});
+							});
+						}
+						suspend() {
+							this.state = 'suspended';
+							return Promise.resolve();
+						}
+						close() {
+							this.state = 'closed';
+							return Promise.resolve();
+						}
+					}
+
+					Object.defineProperty(window, 'AudioContext', {
+						configurable: true,
+						value: DelayedAudioContext,
+					});
+				},
+				{ seenKey: INTRO_SEEN_KEY },
+			);
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: () => playResponse({ active: false }),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+
+			await page.evaluate(
+				({ actionSelector, amountSelector, modeSelector }) => {
+					document.querySelector(actionSelector)?.click();
+					document.querySelector(modeSelector)?.click();
+					const amount = document.querySelector(amountSelector);
+					if (amount) {
+						amount.value = '5000000';
+						amount.dispatchEvent(new Event('change', { bubbles: true }));
+					}
+				},
+				{
+					actionSelector: SELECTORS.primaryAction,
+					amountSelector: SELECTORS.baseAmount,
+					modeSelector: SELECTORS.modeDeepAccess,
+				},
+			);
+			await waitForEndpoint(network, 'play', 1, 2_000);
+			const pending = await page.evaluate(() => ({ ...window.__blacksiteDelayedAudio }));
+			check(
+				group,
+				'paid request starts while the gesture-owned AudioContext resume remains unresolved',
+				pending.resumeCalls === 1 && pending.pending === 1 && pending.released === false,
+				serialize(pending),
+			);
+			assertExactRequest(group, network.byEndpoint.play[0], {
+				method: 'POST',
+				path: '/wallet/play',
+				body: {
+					sessionID: SESSION_ID,
+					currency: 'USD',
+					amount: DEFAULT_BASE_AMOUNT,
+					mode: 'base',
+				},
+			});
+
+			await page.evaluate(() => window.__releaseBlacksiteAudioResume());
+			await waitForStableAction(page);
+			const completed = await page.evaluate(
+				({ amountSelector, baseSelector, deepSelector, actionSelector }) => ({
+					amount: document.querySelector(amountSelector)?.value ?? null,
+					basePressed: document.querySelector(baseSelector)?.getAttribute('aria-pressed'),
+					deepPressed: document.querySelector(deepSelector)?.getAttribute('aria-pressed'),
+					actionDisabled: document.querySelector(actionSelector)?.disabled ?? null,
+					audio: { ...window.__blacksiteDelayedAudio },
+				}),
+				{
+					amountSelector: SELECTORS.baseAmount,
+					baseSelector: SELECTORS.modeBase,
+					deepSelector: SELECTORS.modeDeepAccess,
+					actionSelector: SELECTORS.primaryAction,
+				},
+			);
+			check(
+				group,
+				'delayed audio cannot mutate the captured amount or mode and leaves Play operable',
+				completed.amount === String(DEFAULT_BASE_AMOUNT) &&
+					completed.basePressed === 'true' &&
+					completed.deepPressed === 'false' &&
+					completed.actionDisabled === false &&
+					completed.audio.pending === 0 &&
+					completed.audio.released === true &&
+					network.byEndpoint.play.length === 1,
+				serialize(completed),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.pendingAudio = pending;
+			record.completed = completed;
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
 	await runScenario('audio-policy-cues-mute-and-persistence', async (record) => {
 		const group = 'audio-policy-cues-mute-and-persistence';
 		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
@@ -5138,6 +6254,9 @@ async function runNetworkScenarios(browser, origin) {
 			const locked = await sound.evaluate((element) => ({
 				status: element.getAttribute('data-audio-status'),
 				level: element.getAttribute('data-audio-level'),
+				pressed: element.getAttribute('aria-pressed'),
+				label: element.getAttribute('aria-label'),
+				text: element.textContent?.trim(),
 				cues: Number(element.getAttribute('data-audio-cues')),
 				ambience: Number(element.getAttribute('data-ambience-instances')),
 			}));
@@ -5145,6 +6264,14 @@ async function runNetworkScenarios(browser, origin) {
 				group,
 				'audio creates no graph or cue before a user gesture',
 				locked.status === 'locked' && locked.cues === 0 && locked.ambience === 0,
+				serialize(locked),
+			);
+			check(
+				group,
+				'policy-locked audio exposes one consistent off toggle state',
+				locked.pressed === 'true' &&
+					locked.label === 'Game audio off until enabled' &&
+					locked.text === 'SOUND OFF',
 				serialize(locked),
 			);
 
@@ -5450,12 +6577,14 @@ async function runNetworkScenarios(browser, origin) {
 				const previousState = element.getAttribute('data-character-state');
 				element.setAttribute('data-character-state', 'feature_trigger');
 				const image = element.querySelector('img');
-				const style = getComputedStyle(image);
+				const style = image ? getComputedStyle(image) : null;
 				const snapshot = {
 					profile: element.getAttribute('data-motion-profile'),
-					animationName: style.animationName,
-					transitionDuration: style.transitionDuration,
-					willChange: style.willChange,
+					assetPaintState: element.getAttribute('data-asset-paint-state'),
+					imageExists: Boolean(image),
+					animationName: style?.animationName ?? 'none',
+					transitionDuration: style?.transitionDuration ?? '0s',
+					willChange: style?.willChange ?? 'auto',
 				};
 				element.setAttribute('data-character-state', previousState ?? 'idle_a');
 				return snapshot;
@@ -5474,6 +6603,17 @@ async function runNetworkScenarios(browser, origin) {
 				group,
 				'reduced-motion profile disables Vaultkeeper animation, transitions and compositor hints',
 				reducedVaultkeeper.profile === 'reduced' &&
+					reducedVaultkeeper.animationName === 'none' &&
+					reducedVaultkeeper.transitionDuration === '0s' &&
+					reducedVaultkeeper.willChange === 'auto',
+				serialize(reducedVaultkeeper),
+			);
+			check(
+				group,
+				'reduced-motion compact profile omits the Vaultkeeper resource and exposes no animation or compositor hint',
+				reducedVaultkeeper.profile === 'reduced' &&
+					reducedVaultkeeper.assetPaintState === 'omitted' &&
+					!reducedVaultkeeper.imageExists &&
 					reducedVaultkeeper.animationName === 'none' &&
 					reducedVaultkeeper.transitionDuration === '0s' &&
 					reducedVaultkeeper.willChange === 'auto',
@@ -5612,6 +6752,7 @@ async function runNetworkScenarios(browser, origin) {
 				finalWin: (await page.locator(SELECTORS.finalWin).innerText()).trim(),
 				board: await boardSymbols(page),
 				actionDisabled: await page.locator(SELECTORS.primaryAction).isDisabled(),
+				skipDisabled: await page.locator(SELECTORS.skipPresentation).isDisabled(),
 			};
 			check(
 				group,
@@ -5621,6 +6762,25 @@ async function runNetworkScenarios(browser, origin) {
 					held.board.every((symbol) => symbol === '') &&
 					held.actionDisabled,
 				serialize(held),
+			);
+			check(
+				group,
+				'minimum-duration hold does not expose a dead presentation Skip action',
+				held.skipDisabled,
+				serialize(held),
+			);
+
+			await waitForRuntimeState(page, 'live-presenting');
+			const presenting = {
+				elapsedMs: Date.now() - startedAtMs,
+				runtimeState: await runtimeState(page),
+				skipDisabled: await page.locator(SELECTORS.skipPresentation).isDisabled(),
+			};
+			check(
+				group,
+				'Skip becomes available only after the minimum-duration hold enters cancellable presentation',
+				presenting.runtimeState === 'live-presenting' && !presenting.skipDisabled,
+				serialize(presenting),
 			);
 
 			await waitForStableAction(page);
@@ -5660,6 +6820,7 @@ async function runNetworkScenarios(browser, origin) {
 				readyBeforePlay,
 				immediate,
 				held,
+				presenting,
 				completed,
 			};
 			record.screenshot = await saveScreenshot(page, group);
@@ -9213,6 +10374,114 @@ async function runNetworkScenarios(browser, origin) {
 		}
 	});
 
+	await runScenario('fresh-intro-insufficient-focus-skip-and-natural', async (record) => {
+		const group = 'fresh-intro-insufficient-focus-skip-and-natural';
+		const cases = [];
+		for (const completionMode of ['skip', 'natural']) {
+			const caseGroup = `${group}:${completionMode}`;
+			const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+			try {
+				if (completionMode === 'natural') {
+					await context.addInitScript(({ motionKey }) => localStorage.setItem(motionKey, 'turbo'), {
+						motionKey: MOTION_STORAGE_KEY,
+					});
+				}
+				const network = await installMockRgs(context, {
+					pageOrigin: origin,
+					handlers: { authenticate: () => authenticateResponse({ balance: 50_000 }) },
+				});
+				const { page, diagnostics } = await openPage(
+					context,
+					origin,
+					liveQuery({ device: 'mobile' }),
+				);
+				await waitForEndpoint(network, 'authenticate', 1);
+				await page.locator(SELECTORS.skipIntro).waitFor({ state: 'visible', timeout: 10_000 });
+				if (completionMode === 'skip') await page.locator(SELECTORS.skipIntro).click();
+				await page.waitForFunction(
+					({ expectedStatus, amountSelector }) =>
+						document.body.dataset.introStatus === expectedStatus &&
+						document.body.dataset.runtimeState === 'live-ready' &&
+						document.activeElement === document.querySelector(amountSelector),
+					{
+						expectedStatus: completionMode === 'skip' ? 'skipped' : 'completed',
+						amountSelector: SELECTORS.baseAmount,
+					},
+					{ timeout: completionMode === 'skip' ? 3_000 : 5_000 },
+				);
+				const state = await page.evaluate(
+					({ actionSelector, amountSelector, errorSelector, seenKey }) => {
+						const action = document.querySelector(actionSelector);
+						const amount = document.querySelector(amountSelector);
+						const masthead = document.querySelector('.masthead');
+						const studio = document.querySelector('.studio');
+						return {
+							runtimeState: document.body.dataset.runtimeState ?? null,
+							introStatus: document.body.dataset.introStatus ?? null,
+							actionDisabled: action?.disabled ?? null,
+							actionText: action?.textContent?.trim() ?? null,
+							amountDisabled: amount?.disabled ?? null,
+							amountFocused: document.activeElement === amount,
+							mastheadInert: masthead?.hasAttribute('inert') ?? null,
+							studioInert: studio?.hasAttribute('inert') ?? null,
+							mastheadAriaHidden: masthead?.getAttribute('aria-hidden') ?? null,
+							studioAriaHidden: studio?.getAttribute('aria-hidden') ?? null,
+							seen: localStorage.getItem(seenKey),
+							errorCount: document.querySelectorAll(errorSelector).length,
+						};
+					},
+					{
+						actionSelector: SELECTORS.primaryAction,
+						amountSelector: SELECTORS.baseAmount,
+						errorSelector: SELECTORS.launchError,
+						seenKey: INTRO_SEEN_KEY,
+					},
+				);
+				check(
+					caseGroup,
+					`fresh insufficient-balance intro ${completionMode} focuses the operable amount fallback`,
+					state.runtimeState === 'live-ready' &&
+						state.introStatus === (completionMode === 'skip' ? 'skipped' : 'completed') &&
+						state.actionDisabled === true &&
+						state.actionText === 'INSUFFICIENT BALANCE' &&
+						state.amountDisabled === false &&
+						state.amountFocused === true &&
+						state.errorCount === 0,
+					serialize(state),
+				);
+				check(
+					caseGroup,
+					`fresh insufficient-balance intro ${completionMode} releases every inert background`,
+					state.mastheadInert === false &&
+						state.studioInert === false &&
+						state.mastheadAriaHidden === null &&
+						state.studioAriaHidden === null &&
+						state.seen === '1',
+					serialize(state),
+				);
+				check(
+					caseGroup,
+					`fresh insufficient-balance intro ${completionMode} performs no wallet write`,
+					network.byEndpoint.authenticate.length === 1 && walletWriteCount(network) === 0,
+					serialize(network.order),
+				);
+				assertCleanNetwork(caseGroup, network);
+				assertCleanDiagnostics(caseGroup, diagnostics);
+				cases.push({
+					completionMode,
+					state,
+					screenshot: await saveScreenshot(page, `${group}-${completionMode}`),
+					network,
+					diagnostics,
+				});
+			} finally {
+				await context.close();
+			}
+		}
+		record.cases = cases;
+		record.screenshot = cases.at(-1)?.screenshot ?? null;
+	});
+
 	const ruleWinCases = ['base', 'deep_access', 'blackout'].flatMap((modeId) =>
 		Array.from({ length: 5 }, (_, index) => {
 			const ordinal = String(index + 1).padStart(2, '0');
@@ -9999,6 +11268,16 @@ async function runNetworkScenarios(browser, origin) {
 			await waitForEndpoint(network, 'replay', 1);
 			await waitForStableAction(page);
 			const replayRequest = network.byEndpoint.replay[0];
+			const readyTotalPlay = {
+				meter: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
+				summary: (await page.locator(SELECTORS.summaryTotalPlay).innerText()).trim(),
+			};
+			check(
+				'replay-read-only-play-again',
+				'Replay ready state exposes one exact TOTAL PLAY value on every visible surface',
+				readyTotalPlay.meter === '$1.00' && readyTotalPlay.summary === readyTotalPlay.meter,
+				serialize(readyTotalPlay),
+			);
 			check(
 				'replay-read-only-play-again',
 				'Replay uses GET',
@@ -10025,6 +11304,17 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForReplayComplete(page);
+			const completedTotalPlay = {
+				meter: (await page.locator(SELECTORS.totalPlay).innerText()).trim(),
+				summary: (await page.locator(SELECTORS.summaryTotalPlay).innerText()).trim(),
+			};
+			check(
+				'replay-read-only-play-again',
+				'Replay completed state keeps every TOTAL PLAY value exact and consistent',
+				completedTotalPlay.meter === '$1.00' &&
+					completedTotalPlay.summary === completedTotalPlay.meter,
+				serialize(completedTotalPlay),
+			);
 			await page.locator(SELECTORS.primaryAction).click();
 			await waitForReplayComplete(page);
 			await page.waitForTimeout(200);
@@ -10392,6 +11682,349 @@ async function runNetworkScenarios(browser, origin) {
 			);
 			assertCleanNetwork('invalid-replay-payload-fails-closed', network);
 			record.screenshot = await saveScreenshot(page, 'invalid-replay-payload');
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+}
+
+async function runPerformanceLabScenarios(browser, origin) {
+	const comparison = BLACKSITE_PERFORMANCE_BUDGET.comparisonProfile;
+	const logicalCpus = cpus();
+	evidence.performance.environment = {
+		runnerClass:
+			process.env.RUNNER_ENVIRONMENT ??
+			(process.env.GITHUB_ACTIONS === 'true' ? 'github-actions-unspecified' : 'local-unspecified'),
+		ci: process.env.CI === '1' || process.env.CI === 'true',
+		node: process.version,
+		os: { platform: platform(), release: release(), arch: arch() },
+		cpu: { model: logicalCpus[0]?.model ?? null, logicalCores: logicalCpus.length },
+		playwright: evidence.playwright.version,
+		chromium: evidence.playwright.browser,
+		executable: evidence.playwright.executable,
+		headless: true,
+		viewport: comparison.viewport,
+		cache: comparison.cache,
+		network: comparison.network,
+		motion: comparison.motion,
+		sequence: comparison.sequence,
+		testedGitSha: evidence.identity.testedGitSha,
+		buildTreeSha256: evidence.identity.buildTreeSha256,
+	};
+
+	for (const stateId of Object.keys(BLACKSITE_PERFORMANCE_BUDGET.states)) {
+		await runScenario(`performance-lab-${stateId}-three-cold-runs`, async (record) => {
+			const group = `performance-lab-${stateId}-three-cold-runs`;
+			const stateRuns = [];
+			const networkRuns = [];
+			const diagnosticRuns = [];
+
+			for (let run = 1; run <= BLACKSITE_PERFORMANCE_BUDGET.minimumRunsPerState; run += 1) {
+				const context = await browser.newContext({
+					viewport: {
+						width: comparison.viewport.width,
+						height: comparison.viewport.height,
+					},
+					deviceScaleFactor: comparison.viewport.deviceScaleFactor,
+					reducedMotion: 'no-preference',
+				});
+				try {
+					await installPerformanceLabObservers(context);
+					if (stateId === 'live-first-play') {
+						await context.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
+							key: INTRO_SEEN_KEY,
+							value: '1',
+						});
+					}
+					const replay = stateId === 'replay-complete';
+					const network = await installMockRgs(context, {
+						pageOrigin: origin,
+						replayOnly: replay,
+						handlers: replay
+							? { replay: () => replayResponse() }
+							: {
+									authenticate: () => authenticateResponse(),
+									play: () => playResponse(),
+								},
+					});
+					const { page, diagnostics } = await openPage(
+						context,
+						origin,
+						replay ? replayQuery() : liveQuery(),
+					);
+
+					let readyMs;
+					let completeMs;
+					if (stateId === 'intro-full') {
+						await waitForEndpoint(network, 'authenticate', 1);
+						await page.locator(SELECTORS.bootIntro).waitFor({ state: 'visible' });
+						await page.waitForFunction(
+							() =>
+								document.body.dataset.introStatus === 'completed' &&
+								document.body.dataset.runtimeState === 'live-ready',
+							undefined,
+							{ timeout: 5_000 },
+						);
+						await waitForAssetPaint(page);
+						readyMs = await page.evaluate(() => performance.now());
+						await armPerformancePrimaryInteraction(page, SELECTORS.primaryAction);
+						await page.locator(SELECTORS.primaryAction).click();
+						await waitForEndpoint(network, 'play', 1);
+						await waitForStableAction(page);
+						completeMs = await page.evaluate(() => performance.now());
+					} else if (stateId === 'live-first-play') {
+						await waitForEndpoint(network, 'authenticate', 1);
+						await waitForStableAction(page);
+						await waitForAssetPaint(page);
+						readyMs = await page.evaluate(() => performance.now());
+						await armPerformancePrimaryInteraction(page, SELECTORS.primaryAction);
+						await page.locator(SELECTORS.primaryAction).click();
+						await waitForEndpoint(network, 'play', 1);
+						await waitForStableAction(page);
+						completeMs = await page.evaluate(() => performance.now());
+					} else {
+						await waitForEndpoint(network, 'replay', 1);
+						await waitForStableAction(page);
+						await waitForAssetPaint(page);
+						readyMs = await page.evaluate(() => performance.now());
+						await armPerformancePrimaryInteraction(page, SELECTORS.primaryAction);
+						await page.locator(SELECTORS.primaryAction).click();
+						await waitForReplayComplete(page);
+						completeMs = await page.evaluate(() => performance.now());
+					}
+
+					const measurement = await capturePerformanceLabRun(page, {
+						stateId,
+						run,
+						readyMs,
+						completeMs,
+					});
+					stateRuns.push(measurement);
+					evidence.performance.runs.push(measurement);
+					const networkSummary = {
+						run,
+						order: network.order,
+						authenticate: network.byEndpoint.authenticate.length,
+						play: network.byEndpoint.play.length,
+						replay: network.byEndpoint.replay.length,
+						event: network.byEndpoint.event.length,
+						endRound: network.byEndpoint.endRound.length,
+					};
+					networkRuns.push(networkSummary);
+					diagnosticRuns.push({ run, ...diagnostics });
+					check(
+						group,
+						`run ${run} uses the exact expected RGS lifecycle`,
+						replay
+							? networkSummary.replay === 1 && walletWriteCount(network) === 0
+							: networkSummary.authenticate === 1 &&
+									networkSummary.play === 1 &&
+									networkSummary.event === 0 &&
+									networkSummary.endRound === 0,
+						serialize(networkSummary),
+					);
+					assertCleanNetwork(group, network);
+					assertCleanDiagnostics(group, diagnostics);
+				} finally {
+					await context.close();
+				}
+			}
+
+			const summary = summarizePerformanceState(stateId, stateRuns);
+			evidence.performance.summaries.push(summary);
+			check(
+				group,
+				'exactly three comparable isolated runs were captured',
+				stateRuns.length === BLACKSITE_PERFORMANCE_BUDGET.minimumRunsPerState,
+				serialize({
+					expected: BLACKSITE_PERFORMANCE_BUDGET.minimumRunsPerState,
+					actual: stateRuns.length,
+				}),
+			);
+			for (const [metric, result] of Object.entries(summary.metrics)) {
+				check(
+					group,
+					`${metric} stays within its predeclared ceiling in every run`,
+					result.max <= result.ceiling,
+					serialize(result),
+				);
+			}
+			record.performance = { stateId, runs: stateRuns, summary };
+			record.network = networkRuns;
+			record.diagnostics = diagnosticRuns;
+		});
+	}
+
+	evidence.performance.summary = {
+		states: evidence.performance.summaries.length,
+		pass: evidence.performance.summaries.filter(({ status }) => status === 'PASS').length,
+		fail: evidence.performance.summaries.filter(({ status }) => status === 'FAIL').length,
+		runs: evidence.performance.runs.length,
+	};
+}
+
+async function runAccessibilityScenarios(browser, origin) {
+	await runScenario('accessibility-wcag-intro-modal-mobile', async (record) => {
+		const group = 'accessibility-wcag-intro-modal-mobile';
+		const context = await browser.newContext({
+			viewport: { width: 390, height: 844 },
+			isMobile: true,
+			hasTouch: true,
+		});
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: { authenticate: () => authenticateResponse() },
+			});
+			const { page, diagnostics } = await openPage(
+				context,
+				origin,
+				liveQuery({ device: 'mobile' }),
+			);
+			await waitForEndpoint(network, 'authenticate', 1);
+			await page.locator(SELECTORS.bootIntro).waitFor({ state: 'visible', timeout: 10_000 });
+			const audit = await auditWholeDocumentWcag(page, group, 'boot-intro-modal-mobile');
+			await page.locator(SELECTORS.skipIntro).click();
+			await waitForStableAction(page);
+			check(
+				group,
+				'intro accessibility audit leaves one authenticated ready session without paid writes',
+				network.byEndpoint.authenticate.length === 1 &&
+					network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.event.length === 0 &&
+					network.byEndpoint.endRound.length === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.accessibility = [audit];
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('accessibility-wcag-live-ready-and-result', async (record) => {
+		const group = 'accessibility-wcag-live-ready-and-result';
+		const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: {
+					authenticate: () => authenticateResponse(),
+					play: () => playResponse(),
+				},
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+			const readyAudit = await auditWholeDocumentWcag(page, group, 'live-ready-desktop');
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForEndpoint(network, 'play', 1);
+			await waitForStableAction(page);
+			const resultAudit = await auditWholeDocumentWcag(page, group, 'live-result-desktop');
+			check(
+				group,
+				'live accessibility states retain one authoritative paid play',
+				network.byEndpoint.authenticate.length === 1 && network.byEndpoint.play.length === 1,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.accessibility = [readyAudit, resultAudit];
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('accessibility-wcag-rules-and-confirmation-modals', async (record) => {
+		const group = 'accessibility-wcag-rules-and-confirmation-modals';
+		const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				handlers: { authenticate: () => authenticateResponse() },
+			});
+			const { page, diagnostics } = await openPage(context, origin, liveQuery());
+			await waitForEndpoint(network, 'authenticate', 1);
+			await waitForStableAction(page);
+
+			const infoAction = page.getByRole('button', { name: /INFO \/ RULES/i });
+			await infoAction.click();
+			let dialog = page.getByRole('dialog', { name: /BLACKSITE/i });
+			await dialog.waitFor({ state: 'visible' });
+			const rulesAudit = await auditWholeDocumentWcag(page, group, 'rules-modal-desktop');
+			await page.keyboard.press('Escape');
+			await dialog.waitFor({ state: 'detached' });
+
+			await page.locator(SELECTORS.modeDeepAccess).click();
+			await page.locator(SELECTORS.primaryAction).click();
+			dialog = page.getByRole('dialog', { name: /Confirm complete play amount/i });
+			await dialog.waitFor({ state: 'visible' });
+			const confirmationAudit = await auditWholeDocumentWcag(
+				page,
+				group,
+				'high-cost-confirmation-modal-desktop',
+			);
+			await dialog.getByRole('button', { name: /^CANCEL$/i }).click();
+			await dialog.waitFor({ state: 'detached' });
+			check(
+				group,
+				'modal accessibility audits perform one authentication and zero paid writes',
+				network.byEndpoint.authenticate.length === 1 &&
+					network.byEndpoint.play.length === 0 &&
+					network.byEndpoint.event.length === 0 &&
+					network.byEndpoint.endRound.length === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.accessibility = [rulesAudit, confirmationAudit];
+			record.network = network;
+			record.diagnostics = diagnostics;
+		} finally {
+			await context.close();
+		}
+	});
+
+	await runScenario('accessibility-wcag-replay-ready-and-completed', async (record) => {
+		const group = 'accessibility-wcag-replay-ready-and-completed';
+		const context = await browser.newContext({
+			viewport: { width: 360, height: 640 },
+			isMobile: true,
+			hasTouch: true,
+		});
+		try {
+			const network = await installMockRgs(context, {
+				pageOrigin: origin,
+				replayOnly: true,
+				handlers: { replay: () => replayResponse() },
+			});
+			const { page, diagnostics } = await openPage(
+				context,
+				origin,
+				replayQuery({ device: 'mobile' }),
+			);
+			await waitForEndpoint(network, 'replay', 1);
+			await waitForStableAction(page);
+			const readyAudit = await auditWholeDocumentWcag(page, group, 'replay-ready-popout-s');
+			await page.locator(SELECTORS.primaryAction).click();
+			await waitForReplayComplete(page);
+			const completedAudit = await auditWholeDocumentWcag(page, group, 'replay-completed-popout-s');
+			check(
+				group,
+				'Replay accessibility audits remain one read and zero wallet or event writes',
+				network.byEndpoint.replay.length === 1 && walletWriteCount(network) === 0,
+				serialize(network.order),
+			);
+			assertCleanNetwork(group, network);
+			assertCleanDiagnostics(group, diagnostics);
+			record.accessibility = [readyAudit, completedAudit];
 			record.network = network;
 			record.diagnostics = diagnostics;
 		} finally {
@@ -11563,6 +13196,18 @@ async function runGeometryScenarios(browser, origin) {
 function writeEvidence() {
 	mkdirSync(artifactRoot, { recursive: true });
 	evidence.identity.completedAt = new Date().toISOString();
+	evidence.accessibility.summary = {
+		audits: evidence.accessibility.audits.length,
+		passes: evidence.accessibility.audits.reduce((total, audit) => total + audit.passes.length, 0),
+		violations: evidence.accessibility.audits.reduce(
+			(total, audit) => total + audit.violations.length,
+			0,
+		),
+		incomplete: evidence.accessibility.audits.reduce(
+			(total, audit) => total + audit.incomplete.length,
+			0,
+		),
+	};
 	evidence.summary = {
 		pass: evidence.checks.filter((item) => item.status === 'PASS').length,
 		fail: evidence.checks.filter((item) => item.status === 'FAIL').length,
@@ -11680,6 +13325,15 @@ async function main() {
 			evidence.productionBuildScan.touchActionManipulationPresent,
 			serialize(evidence.productionBuildScan),
 		);
+		const resolvedAxeCore = resolveAxeCore();
+		axeSource = resolvedAxeCore.source;
+		evidence.accessibility.engine.version = resolvedAxeCore.version;
+		check(
+			'infrastructure',
+			'axe-core accessibility engine is pinned to the reviewed stable version',
+			resolvedAxeCore.version === '4.13.0',
+			resolvedAxeCore.version,
+		);
 		const resolvedPlaywright = resolvePlaywright();
 		evidence.playwright.version = resolvedPlaywright.version;
 		const launched = await launchBrowser(resolvedPlaywright.playwright);
@@ -11688,7 +13342,9 @@ async function main() {
 		evidence.playwright.executable = launched.executablePath;
 		const staticServer = await startStaticServer();
 		server = staticServer.server;
+		await runPerformanceLabScenarios(browser, staticServer.origin);
 		await runNetworkScenarios(browser, staticServer.origin);
+		await runAccessibilityScenarios(browser, staticServer.origin);
 		await runGeometryScenarios(browser, staticServer.origin);
 	} catch (error) {
 		recordFailure('infrastructure', error);

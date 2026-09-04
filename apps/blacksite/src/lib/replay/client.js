@@ -1,3 +1,6 @@
+import { normalizeTrustedRgsBaseUrl } from '../rgs/url-policy.js';
+import { isSafeReplayPathSegment } from './path-segment.js';
+
 const DEFAULT_TIMEOUT_MS = 10_000;
 
 export class ReplayClientError extends Error {
@@ -15,36 +18,25 @@ function clientError(code, message, details) {
 }
 
 function requiredIdentity(value, label) {
-	if (typeof value !== 'string' || value.trim() === '') {
-		throw clientError('REPLAY_REQUEST_INVALID', `Replay ${label} is required.`);
+	if (!isSafeReplayPathSegment(value)) {
+		throw clientError('REPLAY_REQUEST_INVALID', `Replay ${label} is invalid.`);
 	}
 	return value;
 }
 
-function replayBaseUrl(rawValue) {
+function replayBaseUrl(rawValue, options) {
 	if (typeof rawValue !== 'string' || rawValue.trim() === '') {
 		throw clientError('REPLAY_REQUEST_INVALID', 'Replay rgsUrl is required.');
 	}
-	let url;
-	try {
-		url = new URL(rawValue);
-	} catch (cause) {
-		throw clientError('REPLAY_REQUEST_INVALID', 'Replay rgsUrl is invalid.', { cause });
-	}
-	if (
-		!['https:', 'http:'].includes(url.protocol) ||
-		url.username ||
-		url.password ||
-		url.search ||
-		url.hash
-	) {
+	const url = normalizeTrustedRgsBaseUrl(rawValue, options);
+	if (!url) {
 		throw clientError('REPLAY_REQUEST_INVALID', 'Replay rgsUrl is invalid.');
 	}
-	return url.toString().replace(/\/+$/, '');
+	return url;
 }
 
-function replayUrl(launch) {
-	const base = replayBaseUrl(launch?.rgsUrl);
+function replayUrl(launch, options) {
+	const base = replayBaseUrl(launch?.rgsUrl, options);
 	const identity = ['game', 'version', 'mode', 'event'].map((field) =>
 		requiredIdentity(launch?.[field], field),
 	);
@@ -73,6 +65,8 @@ function rgsFailure(data) {
 export function createReplayClient({
 	fetchImpl = globalThis.fetch,
 	timeoutMs = DEFAULT_TIMEOUT_MS,
+	allowHttpLoopbackForDevelopment = false,
+	allowHttpLoopbackForExactQa = false,
 } = {}) {
 	if (typeof fetchImpl !== 'function') {
 		throw new TypeError('createReplayClient requires fetch.');
@@ -81,9 +75,13 @@ export function createReplayClient({
 		throw new TypeError('Replay timeoutMs must be a positive integer.');
 	}
 	const activeRequests = new Set();
+	const rgsUrlPolicy = {
+		allowHttpLoopbackForDevelopment,
+		allowHttpLoopbackForExactQa,
+	};
 
 	const fetchRound = async (launch) => {
-		const url = replayUrl(launch);
+		const url = replayUrl(launch, rgsUrlPolicy);
 		const controller = new AbortController();
 		const request = { controller, timedOut: false, lifecycleAborted: false };
 		activeRequests.add(request);

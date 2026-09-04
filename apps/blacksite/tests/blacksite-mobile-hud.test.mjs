@@ -7,13 +7,22 @@ const browserQaUrl = new URL('../../../scripts/blacksite-qa-e2e.mjs', import.met
 
 test('mobile mode labels wrap and remain optically centered', async () => {
 	const source = await readFile(pageUrl, 'utf8');
-	assert.match(source, /\.mode-list button \{[\s\S]*?flex-direction: column;[\s\S]*?align-items: center;[\s\S]*?text-align: center;/u);
-	assert.match(source, /\.mode-list button span \{[\s\S]*?justify-content: center;[\s\S]*?white-space: normal;/u);
+	assert.match(
+		source,
+		/\.mode-list button \{[\s\S]*?flex-direction: column;[\s\S]*?align-items: center;[\s\S]*?text-align: center;/u,
+	);
+	assert.match(
+		source,
+		/\.mode-list button span \{[\s\S]*?justify-content: center;[\s\S]*?white-space: normal;/u,
+	);
 });
 
 test('base amount, meters and keyboard focus use explicit centered high-contrast styling', async () => {
 	const source = await readFile(pageUrl, 'utf8');
-	assert.match(source, /\.amount-control select \{[\s\S]*?text-align: center;[\s\S]*?text-align-last: center;/u);
+	assert.match(
+		source,
+		/\.amount-control select \{[\s\S]*?text-align: center;[\s\S]*?text-align-last: center;/u,
+	);
 	assert.match(source, /\.meter-row > div \{[\s\S]*?text-align: center;/u);
 	assert.equal((source.match(/outline: 3px solid #efc06a;/gu) ?? []).length >= 4, true);
 	assert.match(source, /data-testid="info-action"/u);
@@ -43,7 +52,10 @@ test('active feature mode badge owns a collision-free responsive heading contrac
 		pageSource,
 		/\.phase-chip \{[\s\S]*?min-width: 0;[\s\S]*?max-width: min\(42%, 180px\);[\s\S]*?overflow: hidden;[\s\S]*?text-overflow: ellipsis;[\s\S]*?white-space: nowrap;/u,
 	);
-	assert.match(browserSource, /active feature badge does not collide with heading or facility kicker/u);
+	assert.match(
+		browserSource,
+		/active feature badge does not collide with heading or facility kicker/u,
+	);
 	assert.match(browserSource, /active feature badge remains inside its stage heading/u);
 	assert.match(browserSource, /geometry-\$\{viewport\.name\}-deep-access/u);
 });
@@ -74,16 +86,10 @@ test('browser QA proves a live portrait-landscape-portrait reflow without wallet
 
 test('browser QA exercises double-tap suppression without blocking touch scrolling', async () => {
 	const source = await readFile(browserQaUrl, 'utf8');
-	assert.match(
-		source,
-		/mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll/u,
-	);
+	assert.match(source, /mobile-double-tap-does-not-zoom-and-rules-still-touch-scroll/u);
 	assert.match(source, /await page\.touchscreen\.tap\(tapX, tapY\)/u);
 	assert.match(source, /Input\.dispatchTouchEvent/u);
-	assert.match(
-		source,
-		/mobile double-tap keeps visual viewport at 1x without page displacement/u,
-	);
+	assert.match(source, /mobile double-tap keeps visual viewport at 1x without page displacement/u);
 	assert.match(
 		source,
 		/mobile Rules content moves after a real touch drag while the page and zoom stay fixed/u,
@@ -107,7 +113,7 @@ test('presentation speed persists while system reduced motion remains authoritat
 	);
 	assert.match(
 		browserSource,
-		/reduced-motion profile disables Vaultkeeper animation, transitions and compositor hints/u,
+		/reduced-motion compact profile omits the Vaultkeeper resource and exposes no animation or compositor hint/u,
 	);
 	assert.match(
 		browserSource,

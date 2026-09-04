@@ -88,11 +88,12 @@ function roundPayload({
 	stateShape = 'object',
 } = {}) {
 	const events = roundEvents(mode, payoutMultiplierRaw);
-	const resolvedPayout = payout === undefined
-		&& Number.isSafeInteger(amount)
-		&& Number.isSafeInteger(payoutMultiplierRaw)
-		? Number((BigInt(amount) * BigInt(payoutMultiplierRaw) + 50n) / 100n)
-		: (payout ?? 0);
+	const resolvedPayout =
+		payout === undefined &&
+		Number.isSafeInteger(amount) &&
+		Number.isSafeInteger(payoutMultiplierRaw)
+			? Number((BigInt(amount) * BigInt(payoutMultiplierRaw) + 50n) / 100n)
+			: (payout ?? 0);
 	return {
 		roundID: id,
 		active,
@@ -150,9 +151,7 @@ function fakeClient({ authenticate, play, saveEvent, endRound, abortPending } = 
 		},
 		async play(args) {
 			calls.play.push(clone(args));
-			return typeof play === 'function'
-				? play(args)
-				: clone(play ?? playPayload());
+			return typeof play === 'function' ? play(args) : clone(play ?? playPayload());
 		},
 		async saveEvent(args) {
 			calls.saveEvent.push(clone(args));
@@ -162,9 +161,7 @@ function fakeClient({ authenticate, play, saveEvent, endRound, abortPending } = 
 		},
 		async endRound(args) {
 			calls.endRound.push(clone(args));
-			return typeof endRound === 'function'
-				? endRound(args)
-				: clone(endRound ?? endPayload());
+			return typeof endRound === 'function' ? endRound(args) : clone(endRound ?? endPayload());
 		},
 	};
 }
@@ -229,11 +226,39 @@ test('authenticate accepts only unambiguous step aliases and the exact BLACKSITE
 
 	const conflicts = [
 		[canonicalConfig({ minStep: 200_000 }), 'STEP_BET_CONFLICT'],
-		[canonicalConfig({ betModes: { ...canonicalConfig().betModes, bonus: { costMultiplier: 2 } } }), 'BET_MODE_SET_MISMATCH'],
-		[canonicalConfig({ betModes: { ...canonicalConfig().betModes, blackout: { costMultiplier: 79 } } }), 'BET_MODE_COST_MISMATCH'],
-		[canonicalConfig({ betModes: { ...canonicalConfig().betModes, deep_access: { costMultiplier: 4, feature: false } } }), 'BET_MODE_FEATURE_MISMATCH'],
-		[canonicalConfig({ jurisdiction: { ...canonicalConfig().jurisdiction, disabledSpacebar: 'false' } }), 'JURISDICTION_FIELD_INVALID'],
-		[canonicalConfig({ jurisdiction: { ...canonicalConfig().jurisdiction, minimumRoundDuration: -1 } }), 'JURISDICTION_FIELD_INVALID'],
+		[
+			canonicalConfig({
+				betModes: { ...canonicalConfig().betModes, bonus: { costMultiplier: 2 } },
+			}),
+			'BET_MODE_SET_MISMATCH',
+		],
+		[
+			canonicalConfig({
+				betModes: { ...canonicalConfig().betModes, blackout: { costMultiplier: 79 } },
+			}),
+			'BET_MODE_COST_MISMATCH',
+		],
+		[
+			canonicalConfig({
+				betModes: {
+					...canonicalConfig().betModes,
+					deep_access: { costMultiplier: 4, feature: false },
+				},
+			}),
+			'BET_MODE_FEATURE_MISMATCH',
+		],
+		[
+			canonicalConfig({
+				jurisdiction: { ...canonicalConfig().jurisdiction, disabledSpacebar: 'false' },
+			}),
+			'JURISDICTION_FIELD_INVALID',
+		],
+		[
+			canonicalConfig({
+				jurisdiction: { ...canonicalConfig().jurisdiction, minimumRoundDuration: -1 },
+			}),
+			'JURISDICTION_FIELD_INVALID',
+		],
 	];
 	for (const [config, code] of conflicts) {
 		assert.throws(
@@ -245,19 +270,23 @@ test('authenticate accepts only unambiguous step aliases and the exact BLACKSITE
 	const missingJurisdictionField = canonicalConfig();
 	delete missingJurisdictionField.jurisdiction.disabledTurbo;
 	assert.throws(
-		() => normalizeAuthenticateResponse(authPayload({ config: missingJurisdictionField }), { adapter }),
-		(error) => error.code === 'JURISDICTION_KEY_SET_MISMATCH'
-			&& error.details.missing.includes('disabledTurbo')
-			&& error.details.unknown.length === 0,
+		() =>
+			normalizeAuthenticateResponse(authPayload({ config: missingJurisdictionField }), { adapter }),
+		(error) =>
+			error.code === 'JURISDICTION_KEY_SET_MISMATCH' &&
+			error.details.missing.includes('disabledTurbo') &&
+			error.details.unknown.length === 0,
 	);
 	const unknownJurisdictionField = canonicalConfig({
 		jurisdiction: { ...canonicalConfig().jurisdiction, disabledRealityCheck: false },
 	});
 	assert.throws(
-		() => normalizeAuthenticateResponse(authPayload({ config: unknownJurisdictionField }), { adapter }),
-		(error) => error.code === 'JURISDICTION_KEY_SET_MISMATCH'
-			&& error.details.missing.length === 0
-			&& error.details.unknown.includes('disabledRealityCheck'),
+		() =>
+			normalizeAuthenticateResponse(authPayload({ config: unknownJurisdictionField }), { adapter }),
+		(error) =>
+			error.code === 'JURISDICTION_KEY_SET_MISMATCH' &&
+			error.details.missing.length === 0 &&
+			error.details.unknown.includes('disabledRealityCheck'),
 	);
 });
 
@@ -279,7 +308,10 @@ test('round normalization accepts both official state shapes and reconciles mult
 	}
 
 	assert.throws(
-		() => normalizeRound(roundPayload({ payoutMultiplierRaw: 112, payoutMultiplier: 112 }), { adapter }),
+		() =>
+			normalizeRound(roundPayload({ payoutMultiplierRaw: 112, payoutMultiplier: 112 }), {
+				adapter,
+			}),
 		(error) => error.code === 'ROUND_PAYOUT_MULTIPLIER_MISMATCH',
 		'raw centi-x integers must never be reinterpreted as multiplier-x',
 	);
@@ -291,7 +323,10 @@ test('round normalization accepts both official state shapes and reconciles mult
 	assert.equal(normalizeRound(roundPayload({ event: 'cursor-1' }), { adapter }).eventCursor, 0);
 	assert.equal(normalizeRound(roundPayload({ event: 3 }), { adapter }).eventCursor, 0);
 	assert.throws(
-		() => normalizeRound(roundPayload({ payoutMultiplierRaw: 112, payoutMultiplier: 1.123 }), { adapter }),
+		() =>
+			normalizeRound(roundPayload({ payoutMultiplierRaw: 112, payoutMultiplier: 1.123 }), {
+				adapter,
+			}),
 		(error) => error.code === 'PAYOUT_MULTIPLIER_PRECISION',
 	);
 	for (const missing of [undefined, null]) {
@@ -311,16 +346,23 @@ test('round normalization accepts both official state shapes and reconciles mult
 		() => normalizeRound(roundPayload({ amount: 1.25 }), { adapter }),
 		(error) => error.code === 'MONEY_INTEGER_INVALID',
 	);
-	for (const [payout, relation] of [[2_499_999, 'too-small'], [2_500_001, 'too-large']]) {
+	for (const [payout, relation] of [
+		[2_499_999, 'too-small'],
+		[2_500_001, 'too-large'],
+	]) {
 		assert.throws(
-			() => normalizeRound(roundPayload({
-				amount: 1_000_000,
-				payoutMultiplierRaw: 250,
-				payoutMultiplier: 2.5,
-				payout,
-			}), { adapter }),
-			(error) => error.code === 'ROUND_PAYOUT_AMOUNT_MISMATCH'
-				&& error.details.relation === relation,
+			() =>
+				normalizeRound(
+					roundPayload({
+						amount: 1_000_000,
+						payoutMultiplierRaw: 250,
+						payoutMultiplier: 2.5,
+						payout,
+					}),
+					{ adapter },
+				),
+			(error) =>
+				error.code === 'ROUND_PAYOUT_AMOUNT_MISMATCH' && error.details.relation === relation,
 		);
 	}
 	for (const { terminalRaw, expectedPayoutApi, remainder } of [
@@ -328,47 +370,64 @@ test('round normalization accepts both official state shapes and reconciles mult
 		{ terminalRaw: 50, expectedPayoutApi: 50_001, remainder: 50 },
 		{ terminalRaw: 75, expectedPayoutApi: 75_001, remainder: 75 },
 	]) {
-		const normalized = normalizeRound(roundPayload({
-			amount: 100_001,
-			payoutMultiplierRaw: terminalRaw,
-			payoutMultiplier: terminalRaw / 100,
-			payout: expectedPayoutApi,
-		}), { adapter });
+		const normalized = normalizeRound(
+			roundPayload({
+				amount: 100_001,
+				payoutMultiplierRaw: terminalRaw,
+				payoutMultiplier: terminalRaw / 100,
+				payout: expectedPayoutApi,
+			}),
+			{ adapter },
+		);
 		assert.equal(normalized.payoutApi, expectedPayoutApi, `remainder ${remainder} rounds half-up`);
-		for (const [payoutDelta, relation] of [[-1, 'too-small'], [1, 'too-large']]) {
+		for (const [payoutDelta, relation] of [
+			[-1, 'too-small'],
+			[1, 'too-large'],
+		]) {
 			assert.throws(
-				() => normalizeRound(roundPayload({
-					amount: 100_001,
-					payoutMultiplierRaw: terminalRaw,
-					payoutMultiplier: terminalRaw / 100,
-					payout: expectedPayoutApi + payoutDelta,
-				}), { adapter }),
-				(error) => error.code === 'ROUND_PAYOUT_AMOUNT_MISMATCH'
-					&& error.details.expectedPayoutApi === String(expectedPayoutApi)
-					&& error.details.relation === relation,
+				() =>
+					normalizeRound(
+						roundPayload({
+							amount: 100_001,
+							payoutMultiplierRaw: terminalRaw,
+							payoutMultiplier: terminalRaw / 100,
+							payout: expectedPayoutApi + payoutDelta,
+						}),
+						{ adapter },
+					),
+				(error) =>
+					error.code === 'ROUND_PAYOUT_AMOUNT_MISMATCH' &&
+					error.details.expectedPayoutApi === String(expectedPayoutApi) &&
+					error.details.relation === relation,
 				`remainder ${remainder} rejects an adjacent ${relation} payout`,
 			);
 		}
 	}
 	const baseSmall = getFixture('base_small');
-	const normalizedBaseSmall = normalizeRound({
-		roundID: 'real-base-small-rounded-payout',
-		active: false,
-		mode: 'base',
-		amount: 100_001,
-		payout: 38_000,
-		payoutMultiplier: 0.38,
-		event: null,
-		state: clone(baseSmall.book.events),
-	}, { adapter: new GameEventAdapter(), expectedMode: 'base' });
+	const normalizedBaseSmall = normalizeRound(
+		{
+			roundID: 'real-base-small-rounded-payout',
+			active: false,
+			mode: 'base',
+			amount: 100_001,
+			payout: 38_000,
+			payoutMultiplier: 0.38,
+			event: null,
+			state: clone(baseSmall.book.events),
+		},
+		{ adapter: new GameEventAdapter(), expectedMode: 'base' },
+	);
 	assert.equal(baseSmall.book.payoutMultiplier, 38);
 	assert.equal(normalizedBaseSmall.payoutApi, 38_000);
-	const maxSafeNormalized = normalizeRound(roundPayload({
-		amount: Number.MAX_SAFE_INTEGER,
-		payoutMultiplierRaw: 100,
-		payoutMultiplier: 1,
-		payout: Number.MAX_SAFE_INTEGER,
-	}), { adapter });
+	const maxSafeNormalized = normalizeRound(
+		roundPayload({
+			amount: Number.MAX_SAFE_INTEGER,
+			payoutMultiplierRaw: 100,
+			payoutMultiplier: 1,
+			payout: Number.MAX_SAFE_INTEGER,
+		}),
+		{ adapter },
+	);
 	assert.equal(maxSafeNormalized.payoutApi, Number.MAX_SAFE_INTEGER);
 	for (const missing of [undefined, null]) {
 		const withoutPayout = roundPayload();
@@ -383,15 +442,18 @@ test('round normalization accepts both official state shapes and reconciles mult
 
 test('round normalization composes with the real closed-schema GameEventAdapter', () => {
 	const events = clone(BASE_ZERO_FIXTURE.book.events);
-	const normalized = normalizeRound({
-		roundID: 'published-base-zero',
-		active: false,
-		mode: 'base',
-		amount: 100_000,
-		payout: 0,
-		payoutMultiplier: 0,
-		state: { events },
-	}, { adapter: new GameEventAdapter(), expectedMode: 'base' });
+	const normalized = normalizeRound(
+		{
+			roundID: 'published-base-zero',
+			active: false,
+			mode: 'base',
+			amount: 100_000,
+			payout: 0,
+			payoutMultiplier: 0,
+			state: { events },
+		},
+		{ adapter: new GameEventAdapter(), expectedMode: 'base' },
+	);
 	assert.equal(normalized.payoutMultiplierRaw, BASE_ZERO_FIXTURE.book.payoutMultiplier);
 	assert.equal(normalized.cues[0].kind, 'round_started');
 	assert.equal(normalized.cues.at(-1).kind, 'settled');
@@ -426,33 +488,37 @@ test('play and end-round normalization preserve RGS authority and reject contrad
 		{ event: null, echoed: false },
 	);
 	assert.throws(
-		() => normalizeEventResponse({ event: 'wrong' }, { expectedEvent: encodePresentationCursor(2) }),
+		() =>
+			normalizeEventResponse({ event: 'wrong' }, { expectedEvent: encodePresentationCursor(2) }),
 		(error) => error.code === 'EVENT_RESPONSE_MISMATCH',
 	);
 
 	assert.throws(
-		() => normalizePlayResponse(playPayload(), {
-			adapter,
-			expectedMode: 'base',
-			expectedAmountApi: 2_000_000,
-			expectedCurrency: 'XSC',
-		}),
+		() =>
+			normalizePlayResponse(playPayload(), {
+				adapter,
+				expectedMode: 'base',
+				expectedAmountApi: 2_000_000,
+				expectedCurrency: 'XSC',
+			}),
 		(error) => error.code === 'PLAY_AMOUNT_MISMATCH',
 	);
 	assert.throws(
-		() => normalizePlayResponse(playPayload({ currency: 'USD' }), {
-			adapter,
-			expectedMode: 'base',
-			expectedAmountApi: 1_000_000,
-			expectedCurrency: 'XSC',
-		}),
+		() =>
+			normalizePlayResponse(playPayload({ currency: 'USD' }), {
+				adapter,
+				expectedMode: 'base',
+				expectedAmountApi: 1_000_000,
+				expectedCurrency: 'XSC',
+			}),
 		(error) => error.code === 'PLAY_CURRENCY_MISMATCH',
 	);
 	assert.throws(
-		() => normalizeEndRoundResponse({
-			balance: { amount: 1, currency: 'XSC' },
-			round: { active: true },
-		}),
+		() =>
+			normalizeEndRoundResponse({
+				balance: { amount: 1, currency: 'XSC' },
+				round: { active: true },
+			}),
 		(error) => error.code === 'END_ROUND_STILL_ACTIVE',
 	);
 	assert.throws(
@@ -461,10 +527,11 @@ test('play and end-round normalization preserve RGS authority and reject contrad
 	);
 	for (const active of ['true', 1, null]) {
 		assert.throws(
-			() => normalizeEndRoundResponse({
-				balance: { amount: 1, currency: 'XSC' },
-				round: { active },
-			}),
+			() =>
+				normalizeEndRoundResponse({
+					balance: { amount: 1, currency: 'XSC' },
+					round: { active },
+				}),
 			(error) => error.code === 'END_ROUND_ACTIVE_INVALID',
 		);
 	}
@@ -494,11 +561,17 @@ test('live RGS client POSTs exact endpoint bodies to a full base URL', async (t)
 		});
 	});
 	await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-	t.after(() => new Promise((resolve, reject) => {
-		server.close((error) => (error ? reject(error) : resolve()));
-	}));
+	t.after(
+		() =>
+			new Promise((resolve, reject) => {
+				server.close((error) => (error ? reject(error) : resolve()));
+			}),
+	);
 	const { port } = server.address();
-	const client = createLiveRgsClient({ baseUrl: `http://127.0.0.1:${port}/rgs/` });
+	const client = createLiveRgsClient({
+		baseUrl: `http://127.0.0.1:${port}/rgs/`,
+		allowHttpLoopbackForExactQa: true,
+	});
 
 	await client.authenticate({ sessionID: 'session-1', language: 'de' });
 	await client.play({
@@ -510,12 +583,15 @@ test('live RGS client POSTs exact endpoint bodies to a full base URL', async (t)
 	await client.saveEvent({ sessionID: 'session-1', event: encodePresentationCursor(2) });
 	await client.endRound({ sessionID: 'session-1' });
 
-	assert.deepEqual(requests.map(({ method, url }) => ({ method, url })), [
-		{ method: 'POST', url: '/rgs/wallet/authenticate' },
-		{ method: 'POST', url: '/rgs/wallet/play' },
-		{ method: 'POST', url: '/rgs/bet/event' },
-		{ method: 'POST', url: '/rgs/wallet/end-round' },
-	]);
+	assert.deepEqual(
+		requests.map(({ method, url }) => ({ method, url })),
+		[
+			{ method: 'POST', url: '/rgs/wallet/authenticate' },
+			{ method: 'POST', url: '/rgs/wallet/play' },
+			{ method: 'POST', url: '/rgs/bet/event' },
+			{ method: 'POST', url: '/rgs/wallet/end-round' },
+		],
+	);
 	assert.deepEqual(requests[0].body, { sessionID: 'session-1', language: 'de' });
 	assert.deepEqual(requests[1].body, {
 		sessionID: 'session-1',
@@ -589,10 +665,11 @@ test('live RGS client classifies HTTP, API, JSON, network, funds and timeout fai
 	await t.test('authoritative insufficient balance', async () => {
 		const client = createLiveRgsClient({
 			baseUrl: 'https://rgs.example',
-			fetchImpl: async () => response(
-				{ status: { statusCode: 'ERR_IPB', statusMessage: 'insufficient' } },
-				{ ok: false, status: 400 },
-			),
+			fetchImpl: async () =>
+				response(
+					{ status: { statusCode: 'ERR_IPB', statusMessage: 'insufficient' } },
+					{ ok: false, status: 400 },
+				),
 		});
 		await assert.rejects(
 			client.play({ sessionID: 's', currency: 'XSC', amountApi: 1, mode: 'base' }),
@@ -607,11 +684,16 @@ test('live RGS client classifies HTTP, API, JSON, network, funds and timeout fai
 			fetchImpl: async (_url, { signal }) => ({
 				ok: true,
 				status: 200,
-				text: async () => new Promise((_resolve, reject) => {
-					signal.addEventListener('abort', () => {
-						reject(Object.assign(new Error('aborted'), { name: 'AbortError' }));
-					}, { once: true });
-				}),
+				text: async () =>
+					new Promise((_resolve, reject) => {
+						signal.addEventListener(
+							'abort',
+							() => {
+								reject(Object.assign(new Error('aborted'), { name: 'AbortError' }));
+							},
+							{ once: true },
+						);
+					}),
 			}),
 		});
 		await assert.rejects(
@@ -631,10 +713,14 @@ test('live RGS client aborts every pending transport without poisoning later req
 			const requestId = ++requestCount;
 			if (requestId === 3) return response(authPayload());
 			return new Promise((_resolve, reject) => {
-				signal.addEventListener('abort', () => {
-					abortedRequests.push(requestId);
-					reject(Object.assign(new Error('aborted'), { name: 'AbortError' }));
-				}, { once: true });
+				signal.addEventListener(
+					'abort',
+					() => {
+						abortedRequests.push(requestId);
+						reject(Object.assign(new Error('aborted'), { name: 'AbortError' }));
+					},
+					{ once: true },
+				);
 			});
 		},
 	});
@@ -658,9 +744,10 @@ test('live RGS client aborts every pending transport without poisoning later req
 test('LiveSessionController deduplicates authentication and trusts only RGS balances', async () => {
 	let releaseAuthenticate;
 	const client = fakeClient({
-		authenticate: () => new Promise((resolve) => {
-			releaseAuthenticate = () => resolve(authPayload({ amount: 50_000_000 }));
-		}),
+		authenticate: () =>
+			new Promise((resolve) => {
+				releaseAuthenticate = () => resolve(authPayload({ amount: 50_000_000 }));
+			}),
 	});
 	const states = [];
 	const controller = new LiveSessionController({
@@ -730,12 +817,14 @@ test('LiveSessionController sends the base amount, never the mode-adjusted debit
 	});
 	await controller.bootstrap();
 	const presenting = await controller.play('deep_access');
-	assert.deepEqual(client.calls.play, [{
-		sessionID: 'session-1',
-		currency: 'XSC',
-		amountApi: 1_000_000,
-		mode: 'deep_access',
-	}]);
+	assert.deepEqual(client.calls.play, [
+		{
+			sessionID: 'session-1',
+			currency: 'XSC',
+			amountApi: 1_000_000,
+			mode: 'deep_access',
+		},
+	]);
 	assert.equal(presenting.balance.amountApi, 46_000_000);
 	assert.equal(presenting.presentationPending, true);
 	const ready = await controller.completePresentation();
@@ -824,9 +913,10 @@ test('LiveSessionController blocks known insufficient funds without a paid fallb
 	await controller.bootstrap();
 	await assert.rejects(
 		controller.play('deep_access'),
-		(error) => error instanceof InsufficientBalanceError
-			&& error.requiredAmountApi === 4_000_000
-			&& error.availableAmountApi === 3_999_999,
+		(error) =>
+			error instanceof InsufficientBalanceError &&
+			error.requiredAmountApi === 4_000_000 &&
+			error.availableAmountApi === 3_999_999,
 	);
 	assert.equal(client.calls.play.length, 0);
 	assert.equal(controller.snapshot().status, 'ready');
@@ -836,9 +926,10 @@ test('LiveSessionController blocks known insufficient funds without a paid fallb
 test('LiveSessionController handles an RGS insufficient-balance race without fallback', async () => {
 	const error = new InsufficientBalanceError({ source: 'rgs' });
 	const client = fakeClient({
-		authenticate: () => client.calls.authenticate.length === 1
-			? authPayload()
-			: authPayload({ round: roundPayload({ active: true }) }),
+		authenticate: () =>
+			client.calls.authenticate.length === 1
+				? authPayload()
+				: authPayload({ round: roundPayload({ active: true }) }),
 		play: () => Promise.reject(error),
 	});
 	const controller = new LiveSessionController({
@@ -890,9 +981,10 @@ test('LiveSessionController restores and settles every active canonical mode exa
 					amount: 7_000_000,
 					round: roundPayload({ active: true, mode, amount: 100_000 }),
 				}),
-				endRound: () => new Promise((resolve) => {
-					releaseEnd = () => resolve(endPayload({ amount: 8_000_000 }));
-				}),
+				endRound: () =>
+					new Promise((resolve) => {
+						releaseEnd = () => resolve(endPayload({ amount: 8_000_000 }));
+					}),
 			});
 			const controller = new LiveSessionController({
 				client,
@@ -941,10 +1033,12 @@ test('LiveSessionController persists monotonic next-event checkpoints for active
 		echoed: true,
 		nextEventIndex: 1,
 	});
-	assert.deepEqual(client.calls.saveEvent, [{
-		sessionID: 'session-checkpoint',
-		event: encodePresentationCursor(1),
-	}]);
+	assert.deepEqual(client.calls.saveEvent, [
+		{
+			sessionID: 'session-checkpoint',
+			event: encodePresentationCursor(1),
+		},
+	]);
 	await controller.savePresentationCursor(1);
 	assert.equal(client.calls.saveEvent.length, 1, 'duplicate checkpoint is acknowledged locally');
 	await assert.rejects(
@@ -1012,9 +1106,10 @@ test('LiveSessionController never retries a failed active-round settlement', asy
 test('LiveSessionController deduplicates play and fails closed on authoritative errors', async () => {
 	let releasePlay;
 	const delayedClient = fakeClient({
-		play: () => new Promise((resolve) => {
-			releasePlay = () => resolve(playPayload());
-		}),
+		play: () =>
+			new Promise((resolve) => {
+				releasePlay = () => resolve(playPayload());
+			}),
 	});
 	const delayed = new LiveSessionController({
 		client: delayedClient,
@@ -1025,16 +1120,10 @@ test('LiveSessionController deduplicates play and fails closed on authoritative 
 	const first = delayed.play('base');
 	const second = delayed.play('base');
 	assert.equal(first, second);
-	await assert.rejects(
-		delayed.play('blackout'),
-		(error) => error.code === 'SESSION_BUSY',
-	);
+	await assert.rejects(delayed.play('blackout'), (error) => error.code === 'SESSION_BUSY');
 	await Promise.resolve();
 	assert.equal(delayedClient.calls.play.length, 1);
-	await assert.rejects(
-		delayed.completePresentation(),
-		(error) => error.code === 'SESSION_BUSY',
-	);
+	await assert.rejects(delayed.completePresentation(), (error) => error.code === 'SESSION_BUSY');
 	releasePlay();
 	await first;
 
@@ -1059,9 +1148,10 @@ test('LiveSessionController ignores late authentication after destroy', async ()
 	let releaseAuthenticate;
 	let abortCount = 0;
 	const client = fakeClient({
-		authenticate: () => new Promise((resolve) => {
-			releaseAuthenticate = () => resolve(authPayload());
-		}),
+		authenticate: () =>
+			new Promise((resolve) => {
+				releaseAuthenticate = () => resolve(authPayload());
+			}),
 		abortPending: () => {
 			abortCount += 1;
 		},

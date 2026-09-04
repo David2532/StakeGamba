@@ -1,7 +1,10 @@
 <script>
 	import { onMount, tick } from 'svelte';
 	import BootIntro from '../lib/components/BootIntro.svelte';
+	import SymbolMark from '../lib/components/SymbolMark.svelte';
+	import SymbolSprite from '../lib/components/SymbolSprite.svelte';
 	import { BLACKSITE_ASSETS } from '../lib/assets/blacksite-assets.js';
+	import { SYMBOL_ART } from '../lib/assets/symbol-art.js';
 	import { waitForDecodedImagePaint } from '../lib/assets/image-paint.js';
 	import { watchCharacterAssetVisibility } from '../lib/assets/responsive-asset-gate.js';
 	import { MODES, getMode, getModeLabel } from '../lib/contracts/modes.js';
@@ -41,6 +44,14 @@
 	} from '../lib/runtime/intro-config.js';
 	import { IntroController } from '../lib/runtime/intro-controller.js';
 	import { readMotionMode, writeMotionMode } from '../lib/runtime/motion-preference.js';
+	import { createAuthoritativePageLifecycle } from '../lib/runtime/page-lifecycle.js';
+	import {
+		hasExplicitRecovery,
+		presentationCanSkip,
+		primaryActionDisabled,
+		primaryActionLabel,
+		resolvePresentationTimingProfile,
+	} from '../lib/runtime/player-ui-state.js';
 	import {
 		PresentationDirector,
 		createInitialPresentationState,
@@ -52,14 +63,7 @@
 		row: Math.floor(index / 7),
 	}));
 	const boardRows = Array.from({ length: 7 }, (_, row) => boardCells.slice(row * 7, row * 7 + 7));
-	const symbolPresentation = Object.freeze({
-		byte: Object.freeze({ label: 'BYTE', mark: '01' }),
-		relay: Object.freeze({ label: 'RELAY', mark: '↯' }),
-		proxy: Object.freeze({ label: 'PROXY', mark: '◆' }),
-		cipher: Object.freeze({ label: 'CIPHER', mark: '⌁' }),
-		daemon: Object.freeze({ label: 'DAEMON', mark: '△' }),
-		vault: Object.freeze({ label: 'VAULT', mark: '⬡' }),
-	});
+	const symbolPresentation = SYMBOL_ART;
 	const presentationCheckpointKinds = new Set([
 		'board_snapshot',
 		'route_snapshot',
@@ -78,6 +82,7 @@
 	let activeCues = [];
 	let director = null;
 	let audioDirector = null;
+	/** @type {{ status: string, unlocked: boolean, volume: number, level: string, cueCount: number, activeVoices: number, ambienceInstances: number, lastRecipe: string | null, reelStopPulses: number, priorityCues: number, duckCount: number }} */
 	let audioState = createInitialAudioState();
 	let liveSession = null;
 	let replayController = null;
@@ -201,6 +206,7 @@
 		replayStatus: replaySnapshot.status,
 		fixtureCompleted: runtimeState === 'fixture-completed',
 		insufficient: insufficientKnown,
+		modeBlocked: selectedModeBlocked,
 	});
 	$: actionDisabled = primaryActionDisabled({
 		launchKind: launch.kind,
@@ -214,6 +220,15 @@
 		modeBlocked: selectedModeBlocked,
 	});
 	$: presentationBusy = primaryBusy || replaySnapshot.status === 'playing';
+	$: presentationSkippable = presentationCanSkip({
+		launchKind: launch.kind,
+		runtimeState,
+		replayStatus: replaySnapshot.status,
+		slamstopDisabled,
+	});
+	$: recoveryAvailable = hasExplicitRecovery({ launchKind: launch.kind, runtimeError });
+	$: audioUnavailable = audioState.status === 'unsupported';
+	$: audioOff = !audioState.unlocked || audioState.volume === 0;
 	$: visibleRuntimeMessage =
 		social && runtimeError
 			? 'The authoritative game flow could not continue.'
@@ -237,7 +252,11 @@
 		),
 	);
 	$: activeMotionKeys = new Set((presentation.motion?.cells ?? []).map((cell) => cellKey(cell)));
-	$: presentationTimingProfile = reducedMotion ? 'reduced' : turboDisabled ? 'normal' : motionMode;
+	$: presentationTimingProfile = resolvePresentationTimingProfile({
+		reducedMotion,
+		motionMode,
+		turboDisabled,
+	});
 	$: if (director) director.setTimingProfile(presentationTimingProfile);
 	$: if (typeof document !== 'undefined') {
 		document.body.dataset.introStatus = introState.status;
@@ -508,6 +527,7 @@
 		try {
 			director.reset();
 			if (pendingRoundOrigin === 'play') await waitForMinimumRoundDuration();
+			runtimeState = pendingRoundOrigin === 'play' ? 'live-presenting' : 'live-restoring';
 			const plan =
 				pendingRoundOrigin === 'restore'
 					? planPresentationRestore(round.cues, round.eventCursor ?? 0)
@@ -602,14 +622,12 @@
 	function toggleMotionMode() {
 		if (introBlocking || reducedMotion || turboDisabled) return;
 		audioDirector?.playUi();
-		motionMode = writeMotionMode(
-			browserStorage,
-			motionMode === 'normal' ? 'turbo' : 'normal',
-		);
+		motionMode = writeMotionMode(browserStorage, motionMode === 'normal' ? 'turbo' : 'normal');
 	}
 
 	function skipPresentation() {
 		if (slamstopDisabled) return;
+		if (!presentationSkippable) return;
 		audioDirector?.playUi();
 		director?.skip();
 	}
@@ -720,9 +738,20 @@
 		}
 	}
 
-	async function activatePrimary() {
+	function primeAudioFromPrimaryGesture() {
+		if (!audioDirector) return;
+		if (audioState.unlocked) {
+			audioDirector.playUi();
+			return;
+		}
+		void audioDirector.unlock().then((unlocked) => {
+			if (unlocked) audioDirector?.playUi();
+		});
+	}
+
+	function activatePrimary() {
 		if (actionDisabled) return;
-		await audioDirector?.unlock();
+		primeAudioFromPrimaryGesture();
 		if (launch.kind === 'fixture') return playFixture();
 		if (launch.kind === 'replay') {
 			if (replaySnapshot.status === 'completed') return replayController.playAgain();
@@ -735,55 +764,17 @@
 		if (launch.kind === 'live' && liveSnapshot.status === 'ready') requestLivePlay();
 	}
 
-	function primaryActionLabel({
-		launchKind,
-		liveStatus,
-		replayStatus,
-		fixtureCompleted,
-		insufficient,
-	}) {
-		if (launchKind === 'fixture') {
-			return fixtureCompleted ? 'REPLAY DEV FIXTURE' : 'PLAY DEV FIXTURE';
-		}
-		if (launchKind === 'replay') {
-			if (replayStatus === 'loading') return 'LOADING REPLAY';
-			if (replayStatus === 'ready') return 'PLAY REPLAY';
-			if (replayStatus === 'playing') return 'REPLAYING';
-			if (replayStatus === 'completed') return 'PLAY AGAIN';
-			return 'REPLAY UNAVAILABLE';
-		}
-		if (launchKind === 'live') {
-			if (liveStatus === 'presenting') return 'CONTINUE ROUND';
-			if (liveStatus === 'ready' && insufficient) return 'INSUFFICIENT BALANCE';
-			if (liveStatus === 'ready') return 'INITIATE BREACH';
-			if (liveStatus === 'authenticating') return 'AUTHENTICATING';
-			if (liveStatus === 'settling') return 'SETTLING';
-		}
-		return 'UNAVAILABLE';
-	}
-
-	function primaryActionDisabled({
-		launchKind,
-		liveStatus,
-		replayStatus,
-		busy,
-		confirming,
-		showingRules,
-		fixtureReady,
-		insufficient,
-		modeBlocked,
-	}) {
-		if (busy || confirming || showingRules) return true;
-		if (launchKind === 'fixture') return !fixtureReady;
-		if (launchKind === 'replay') return !['ready', 'completed'].includes(replayStatus);
-		if (launchKind === 'live') {
-			return (
-				insufficient ||
-				(modeBlocked && liveStatus === 'ready') ||
-				!['ready', 'presenting'].includes(liveStatus)
-			);
-		}
-		return true;
+	function focusFirstAvailablePlayerControl() {
+		const candidates = [
+			primaryActionElement,
+			document.querySelector('[data-testid="base-amount"]'),
+			document.querySelector('[data-testid="mode-base"]'),
+			document.querySelector('[data-testid="info-action"]'),
+		];
+		const target = candidates.find(
+			(element) => element instanceof HTMLElement && !element.matches(':disabled'),
+		);
+		target?.focus({ preventScroll: true });
 	}
 
 	function suppressPrimaryKeyRepeat(event) {
@@ -797,10 +788,14 @@
 	}
 
 	function keydown(event) {
-		if (introState.status === 'playing' && event.key === 'Escape') {
-			event.preventDefault();
-			void skipIntro('player');
-			return;
+		if (introState.status === 'playing') {
+			const introDialog = document.querySelector('[data-testid="boot-intro"]');
+			if (introDialog && trapDialogFocus(event, introDialog)) return;
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				void skipIntro('player');
+				return;
+			}
 		}
 		const openDialog = confirmationOpen ? confirmationDialog : rulesOpen ? rulesDialog : null;
 		if (openDialog && trapDialogFocus(event, openDialog)) return;
@@ -836,6 +831,15 @@
 		const destroyIntro = () => {
 			void introController?.destroy();
 		};
+		const destroyAuthoritativeRuntime = () => {
+			destroyLiveSession();
+			destroyReplaySession();
+			destroyIntro();
+		};
+		const pageLifecycle = createAuthoritativePageLifecycle({
+			teardown: destroyAuthoritativeRuntime,
+			reload: () => window.location.reload(),
+		});
 		browserStorage = getBrowserStorage(window);
 		motionMode = readMotionMode(browserStorage);
 		const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -876,9 +880,8 @@
 		);
 		launch = resolveLaunchMode(window.location.search, { dev: __BLACKSITE_DEV_FIXTURES__ });
 		window.addEventListener('keydown', keydown);
-		window.addEventListener('pagehide', destroyLiveSession);
-		window.addEventListener('pagehide', destroyReplaySession);
-		window.addEventListener('pagehide', destroyIntro);
+		window.addEventListener('pagehide', pageLifecycle.handlePageHide);
+		window.addEventListener('pageshow', pageLifecycle.handlePageShow);
 		const handleVisibilityChange = () => {
 			if (document.visibilityState === 'hidden' && introState.status === 'playing') {
 				void bypassIntro('document-hidden');
@@ -905,7 +908,9 @@
 				void bypassIntro('replay');
 				selectedModeId = launch.mode;
 				replayController = new ReplayController({
-					client: createReplayClient(),
+					client: createReplayClient({
+						allowHttpLoopbackForDevelopment: __BLACKSITE_DEV_FIXTURES__,
+					}),
 					normalizer: createReplayNormalizer({ gameEventAdapter: adapter }),
 					director,
 					onState: handleReplayState,
@@ -914,7 +919,10 @@
 				return;
 			}
 			liveSession = new LiveSessionController({
-				client: createLiveRgsClient({ baseUrl: launch.rgsUrl }),
+				client: createLiveRgsClient({
+					baseUrl: launch.rgsUrl,
+					allowHttpLoopbackForDevelopment: __BLACKSITE_DEV_FIXTURES__,
+				}),
 				adapter,
 				sessionID: launch.sessionId,
 				language: launch.language,
@@ -922,6 +930,8 @@
 			});
 			try {
 				const state = await liveSession.bootstrap();
+				if (disposed) return;
+				await tick();
 				if (disposed) return;
 				if (state.round?.active) {
 					void bypassIntro('active-round-restore');
@@ -948,15 +958,15 @@
 				}
 
 				runtimeState = 'live-intro';
-				introGatePending = false;
 				const terminal = await introController.playBoot(eligibility.profile);
 				if (disposed || terminal.status === 'destroyed') return;
+				introGatePending = false;
 				if (terminal.status === 'completed' || terminal.status === 'skipped') {
 					writeIntroSeen(browserStorage);
 				}
 				runtimeState = 'live-ready';
 				await tick();
-				primaryActionElement?.focus({ preventScroll: true });
+				focusFirstAvailablePlayerControl();
 			} catch (error) {
 				if (!disposed) {
 					void bypassIntro('authentication-error');
@@ -971,13 +981,10 @@
 			stopWatchingCharacterAsset();
 			reducedMotionQuery.removeEventListener('change', syncReducedMotion);
 			window.removeEventListener('keydown', keydown);
-			window.removeEventListener('pagehide', destroyLiveSession);
-			window.removeEventListener('pagehide', destroyReplaySession);
-			window.removeEventListener('pagehide', destroyIntro);
+			window.removeEventListener('pagehide', pageLifecycle.handlePageHide);
+			window.removeEventListener('pageshow', pageLifecycle.handlePageShow);
 			document.removeEventListener('visibilitychange', handleVisibilityChange);
-			destroyLiveSession();
-			destroyReplaySession();
-			destroyIntro();
+			pageLifecycle.dispose();
 			if (sessionTimerHandle !== null) window.clearInterval(sessionTimerHandle);
 			if (minimumRoundWait) {
 				window.clearTimeout(minimumRoundWait.timer);
@@ -1008,6 +1015,19 @@
 	{#if introState.status === 'playing'}
 		<BootIntro state={introState} onSkip={() => void skipIntro('player')} />
 	{/if}
+	{#if launch.kind === 'live' && introGatePending && runtimeState === 'live-authenticating'}
+		<div
+			class="auth-pending"
+			data-testid="auth-pending-status"
+			role="status"
+			aria-live="polite"
+			aria-atomic="true"
+		>
+			<span>SECURE UPLINK</span>
+			<strong>AUTHENTICATING</strong>
+			<small>Verifying the authoritative session before controls are enabled.</small>
+		</div>
+	{/if}
 
 	<header
 		class="masthead"
@@ -1034,8 +1054,11 @@
 				class="sound-action"
 				data-testid="sound-action"
 				type="button"
-				aria-label={`Game audio ${audioState.unlocked ? audioState.level.toLowerCase() : 'off until enabled'}`}
-				aria-pressed={audioState.volume === 0}
+				aria-label={audioUnavailable
+					? 'Game audio unavailable on this device'
+					: `Game audio ${audioState.unlocked ? audioState.level.toLowerCase() : 'off until enabled'}`}
+				aria-pressed={audioOff}
+				disabled={audioUnavailable}
 				data-audio-status={audioState.status}
 				data-audio-level={audioState.level}
 				data-audio-cues={audioState.cueCount}
@@ -1047,7 +1070,7 @@
 				data-audio-ducks={audioState.duckCount}
 				on:click={() => void toggleAudio()}
 			>
-				SOUND {audioState.unlocked ? audioState.level : 'OFF'}
+				SOUND {audioUnavailable ? 'UNAVAILABLE' : audioState.unlocked ? audioState.level : 'OFF'}
 			</button>
 		</div>
 	</header>
@@ -1172,6 +1195,7 @@
 			data-motion-profile={presentationTimingProfile}
 			aria-label="BLACKSITE seven by seven vault grid"
 		>
+			<SymbolSprite />
 			<picture
 				class="vault-environment"
 				data-testid="vault-environment"
@@ -1246,9 +1270,7 @@
 									aria-label={`Column ${cell.column + 1}, row ${cell.row + 1}, ${symbol ? symbolPresentation[symbol].label : 'concealed'}${activeClusterKeys.has(cellKey(cell)) ? ', active cluster' : ''}`}
 								>
 									{#if symbol}
-										<span class="symbol-mark" aria-hidden="true"
-											>{symbolPresentation[symbol].mark}</span
-										>
+										<SymbolMark {symbol} />
 										<strong>{symbolPresentation[symbol].label}</strong>
 									{:else}
 										<span class="concealed-cell" aria-hidden="true"></span>
@@ -1312,7 +1334,7 @@
 				<div class="launch-card error" data-testid="launch-error" role="alert">
 					<strong>{social ? 'AUTHORITATIVE_ERROR' : (runtimeError?.code ?? launch.code)}</strong>
 					<span>{visibleRuntimeMessage ?? launch.message}</span>
-					{#if runtimeError && (launch.kind === 'live' || launch.kind === 'replay')}
+					{#if recoveryAvailable}
 						<button type="button" data-testid="recovery-action" on:click={recoverRuntime}
 							>RELOAD / RESTORE</button
 						>
@@ -1382,7 +1404,9 @@
 			<div class="play-summary">
 				<div><span>ACTIVE MODE</span><strong>{getModeLabel(selectedMode.id, social)}</strong></div>
 				<div data-total-play-surface>
-					<span>TOTAL PLAY</span><strong>{visibleTotalAmountText}</strong>
+					<span>TOTAL PLAY</span><strong data-testid="summary-total-play"
+						>{visibleTotalAmountText}</strong
+					>
 				</div>
 				<p>Select an access level and breach the vault when you are ready.</p>
 			</div>
@@ -1393,6 +1417,11 @@
 						class="motion-action"
 						data-testid="motion-mode"
 						type="button"
+						aria-label={reducedMotion
+							? 'Reduced motion is active'
+							: turboDisabled
+								? 'Turbo presentation is unavailable under current game rules'
+								: 'Presentation speed'}
 						aria-pressed={presentationTimingProfile === 'turbo'}
 						disabled={introBlocking || reducedMotion || turboDisabled || presentationBusy}
 						on:click={toggleMotionMode}
@@ -1409,7 +1438,10 @@
 						class="motion-action"
 						data-testid="skip-presentation"
 						type="button"
-						disabled={slamstopDisabled || !presentationBusy}
+						aria-label={slamstopDisabled
+							? 'Presentation skip is unavailable under current game rules'
+							: 'Skip presentation'}
+						disabled={!presentationSkippable}
 						on:click={skipPresentation}>SKIP</button
 					>
 				</div>
@@ -1607,6 +1639,34 @@
 		background-size: 32px 32px;
 	}
 
+	.auth-pending {
+		position: fixed;
+		z-index: 40;
+		inset: 0;
+		display: grid;
+		place-content: center;
+		gap: 8px;
+		padding: 24px;
+		background: rgba(4, 10, 13, 0.92);
+		color: #dce8ea;
+		text-align: center;
+	}
+
+	.auth-pending span,
+	.auth-pending small {
+		color: #86a9ae;
+		font-size: 11px;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+	}
+
+	.auth-pending strong {
+		color: #efc06a;
+		font-family: Arial, Helvetica, sans-serif;
+		font-size: clamp(24px, 4vw, 44px);
+		letter-spacing: -0.035em;
+	}
+
 	.masthead {
 		display: flex;
 		align-items: end;
@@ -1687,6 +1747,11 @@
 	.sound-action[aria-pressed='true'] {
 		border-color: #9a5552;
 		color: #e69a95;
+	}
+
+	.sound-action:disabled {
+		cursor: not-allowed;
+		opacity: 0.72;
 	}
 
 	.sound-action:focus-visible {
@@ -2671,17 +2736,6 @@
 		letter-spacing: 0.08em;
 	}
 
-	.symbol-mark {
-		position: relative;
-		z-index: 1;
-		color: var(--symbol-color, #a8c2c7);
-		font-family: Arial, Helvetica, sans-serif;
-		font-size: clamp(14px, 2.15vw, 34px);
-		font-weight: 800;
-		line-height: 0.8;
-		text-shadow: 0 0 14px color-mix(in srgb, var(--symbol-color, #a8c2c7) 35%, transparent);
-	}
-
 	.concealed-cell {
 		position: relative;
 		z-index: 1;
@@ -3349,10 +3403,6 @@
 
 		.cell strong {
 			display: none;
-		}
-
-		.symbol-mark {
-			font-size: clamp(13px, 4.2vw, 24px);
 		}
 
 		.launch-card {

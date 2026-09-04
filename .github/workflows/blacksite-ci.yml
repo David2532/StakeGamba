@@ -7,6 +7,21 @@ on:
   pull_request:
     branches:
       - codex/stake-review-2026-07-29
+    paths:
+      - .github/workflows/blacksite-ci.yml
+      - .npmrc
+      - '**/.eslintrc.cjs'
+      - apps/**/package.json
+      - apps/blacksite/**
+      - docs/blacksite/RELEASE_EVIDENCE_51.json
+      - docs/blacksite/STAKE_REQUIREMENTS_51.md
+      - math/games/blacksite_breach/**
+      - packages/**
+      - scripts/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - turbo.json
   workflow_dispatch:
 
 permissions:
@@ -26,6 +41,8 @@ jobs:
       NODE_NO_WARNINGS: '1'
       NODE_OPTIONS: '--max-old-space-size=6144'
       NPM_CONFIG_LOGLEVEL: error
+      BLACKSITE_AUDIT_REGISTRY: https://registry.npmjs.org/
+      BLACKSITE_UPLOAD_ROOT: ${{ runner.temp }}/blacksite-upload-${{ github.sha }}
 
     steps:
       - name: Checkout event revision
@@ -96,8 +113,33 @@ jobs:
       - name: Install frozen dependencies
         run: pnpm install --frozen-lockfile --reporter=silent
 
-      - name: Lint BlackSite
-        run: pnpm --filter blacksite lint
+      - name: Verify dependency and vulnerability policy
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/blacksite-security
+          configured_audit_registry="$(pnpm config get registry)"
+          test "$configured_audit_registry" = "$BLACKSITE_AUDIT_REGISTRY"
+          set +e
+          timeout --signal=TERM 180s \
+            pnpm audit --prod --audit-level high --json \
+            --registry "$configured_audit_registry" \
+            > artifacts/blacksite-security/pnpm-audit.json \
+            2> artifacts/blacksite-security/pnpm-audit.stderr.txt
+          audit_exit_code=$?
+          set -e
+          node scripts/blacksite-security-evidence.mjs \
+            --expected-commit "$EXPECTED_SHA" \
+            --audit-report artifacts/blacksite-security/pnpm-audit.json \
+            --audit-exit-code "$audit_exit_code" \
+            --audit-registry "$configured_audit_registry" \
+            --require-audit \
+            --output artifacts/blacksite-security/security-evidence.json
+
+      - name: Lint affected workspace
+        run: pnpm lint
 
       - name: Typecheck BlackSite
         run: pnpm --filter blacksite check
@@ -105,8 +147,8 @@ jobs:
       - name: Test BlackSite contracts
         run: pnpm --filter blacksite test
 
-      - name: Build BlackSite production frontend
-        run: pnpm --filter blacksite build
+      - name: Build affected workspace
+        run: pnpm build
 
       - name: Validate BLACKSITE scale contract and self-test
         run: pnpm blacksite:scale:contract
@@ -115,7 +157,6 @@ jobs:
         run: pnpm blacksite:math:test
 
       - name: Generate and verify isolated BlackSite package
-        if: ${{ github.event_name != 'pull_request' }}
         shell: bash
         env:
           EXPECTED_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
@@ -152,24 +193,13 @@ jobs:
 
       - name: Test exact extracted frontend in Chromium
         shell: bash
-        env:
-          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
-          if [[ "$EVENT_NAME" = 'pull_request' ]]; then
-            frontend_tree="$(node scripts/blacksite-package-candidate.mjs --print-frontend-tree-sha256)"
-            test "${#frontend_tree}" -eq 64
-            BLACKSITE_QA_BUILD_ROOT="${GITHUB_WORKSPACE}/apps/blacksite/build" \
-            BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256="$frontend_tree" \
-            node scripts/blacksite-qa-e2e.mjs
-          else
-            BLACKSITE_QA_BUILD_ROOT="${BLACKSITE_CANDIDATE_ROOT}/frontend" \
-            BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256="${BLACKSITE_FRONTEND_TREE_SHA256}" \
-            node scripts/blacksite-qa-e2e.mjs
-          fi
+          BLACKSITE_QA_BUILD_ROOT="${BLACKSITE_CANDIDATE_ROOT}/frontend" \
+          BLACKSITE_QA_EXPECTED_BUILD_TREE_SHA256="${BLACKSITE_FRONTEND_TREE_SHA256}" \
+          node scripts/blacksite-qa-e2e.mjs
 
-      - name: Resolve current browser evidence directory
-        if: ${{ always() }}
+      - name: Record complete exact repository gate ledger
         shell: bash
         env:
           EXPECTED_SHA: ${{ github.sha }}
@@ -191,11 +221,17 @@ jobs:
           test "${#browser_evidence[@]}" -eq 1
           browser_evidence_file="$(realpath "${browser_evidence[0]}")"
           browser_evidence_directory="$(dirname "$browser_evidence_file")"
+          node scripts/blacksite-repository-evidence.mjs \
+            --expected-commit "$EXPECTED_SHA" \
+            --security-evidence artifacts/blacksite-security/security-evidence.json \
+            --candidate-manifest "${BLACKSITE_CANDIDATE_ROOT}/candidate-manifest.json" \
+            --package-verification "${BLACKSITE_CANDIDATE_ROOT}/package-verification.json" \
+            --browser-evidence "$browser_evidence_file" \
+            --output artifacts/blacksite-ci/repository-gates.json
           printf 'BLACKSITE_BROWSER_EVIDENCE_FILE=%s\n' "$browser_evidence_file" >> "$GITHUB_ENV"
           printf 'BLACKSITE_BROWSER_EVIDENCE_DIR=%s\n' "$browser_evidence_directory" >> "$GITHUB_ENV"
 
       - name: Resolve exact 51-point candidate evidence
-        if: ${{ success() && github.event_name != 'pull_request' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -203,6 +239,8 @@ jobs:
           node scripts/blacksite-compliance-evidence.mjs \
             --candidate "${BLACKSITE_CANDIDATE_ROOT}" \
             --browser-evidence "${BLACKSITE_BROWSER_EVIDENCE_FILE}" \
+            --repository-evidence artifacts/blacksite-ci/repository-gates.json \
+            --security-evidence artifacts/blacksite-security/security-evidence.json \
             --output "$compliance_output"
           printf 'BLACKSITE_COMPLIANCE_EVIDENCE=%s\n' "$compliance_output" >> "$GITHUB_ENV"
 
@@ -214,51 +252,63 @@ jobs:
           EXPECTED_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          blacksite_upload_root="${RUNNER_TEMP}/blacksite-upload-${GITHUB_SHA}"
-          mkdir "$blacksite_upload_root"
+          test ! -e "$BLACKSITE_UPLOAD_ROOT"
+          mkdir "$BLACKSITE_UPLOAD_ROOT"
           node scripts/blacksite-release-bundle.mjs \
             --candidate "${BLACKSITE_CANDIDATE_ROOT}" \
             --browser-run "${BLACKSITE_BROWSER_EVIDENCE_DIR}" \
             --compliance-evidence "${BLACKSITE_COMPLIANCE_EVIDENCE}" \
-            --output "${blacksite_upload_root}/release-bundle" \
+            --output "${BLACKSITE_UPLOAD_ROOT}/release-bundle" \
             --expected-branch "$EXPECTED_BRANCH" \
             --expected-commit "$EXPECTED_SHA" \
             --ci-run-id "$GITHUB_RUN_ID" \
             --ci-run-attempt "$GITHUB_RUN_ATTEMPT"
 
-      - name: Stage current run artifacts
+      - name: Stage only current-run artifacts
         if: ${{ always() }}
         shell: bash
         run: |
           set -euo pipefail
-          blacksite_upload_root="${RUNNER_TEMP}/blacksite-upload-${GITHUB_SHA}"
-          mkdir -p "${blacksite_upload_root}/artifacts/blacksite-ci"
-          if [[ -f "${RUNNER_TEMP}/blacksite-ci/identity.txt" ]]; then
-            cp "${RUNNER_TEMP}/blacksite-ci/identity.txt" \
-              "${blacksite_upload_root}/artifacts/blacksite-ci/"
+          mkdir -p "${BLACKSITE_UPLOAD_ROOT}/artifacts/blacksite-ci"
+          for source in \
+            "${RUNNER_TEMP}/blacksite-ci/identity.txt" \
+            artifacts/blacksite-ci/repository-gates.json; do
+            if [[ -f "$source" ]]; then
+              cp "$source" "${BLACKSITE_UPLOAD_ROOT}/artifacts/blacksite-ci/"
+            fi
+          done
+          if [[ -d artifacts/blacksite-security ]]; then
+            mkdir -p "${BLACKSITE_UPLOAD_ROOT}/artifacts/blacksite-security"
+            for source in \
+              artifacts/blacksite-security/pnpm-audit.json \
+              artifacts/blacksite-security/pnpm-audit.stderr.txt \
+              artifacts/blacksite-security/security-evidence.json; do
+              if [[ -f "$source" ]]; then
+                cp "$source" "${BLACKSITE_UPLOAD_ROOT}/artifacts/blacksite-security/"
+              fi
+            done
           fi
           if [[ -n "${BLACKSITE_BROWSER_EVIDENCE_DIR:-}" && \
             -d "${BLACKSITE_BROWSER_EVIDENCE_DIR}" ]]; then
             browser_run_directory="$(basename "${BLACKSITE_BROWSER_EVIDENCE_DIR}")"
-            browser_bundle_root="${blacksite_upload_root}/artifacts/blacksite-qa"
+            browser_bundle_root="${BLACKSITE_UPLOAD_ROOT}/artifacts/blacksite-qa"
             mkdir -p "$browser_bundle_root"
-            if [[ ! -e "$browser_bundle_root/${browser_run_directory}" ]]; then
-              cp -a "${BLACKSITE_BROWSER_EVIDENCE_DIR}" \
-                "$browser_bundle_root/${browser_run_directory}"
-            fi
+            test ! -e "$browser_bundle_root/${browser_run_directory}"
+            cp -a "${BLACKSITE_BROWSER_EVIDENCE_DIR}" \
+              "$browser_bundle_root/${browser_run_directory}"
           fi
           if [[ -n "${BLACKSITE_CANDIDATE_ROOT:-}" && \
             -d "${BLACKSITE_CANDIDATE_ROOT}" ]]; then
-            candidate_stage="${blacksite_upload_root}/artifacts/blacksite-package/blacksite-candidate-${GITHUB_SHA}"
+            candidate_stage="${BLACKSITE_UPLOAD_ROOT}/artifacts/blacksite-package/blacksite-candidate-${GITHUB_SHA}"
             test ! -e "$candidate_stage"
             mkdir -p "$candidate_stage"
             cp -a "${BLACKSITE_CANDIDATE_ROOT}/." "$candidate_stage/"
           fi
           if [[ -n "${BLACKSITE_COMPLIANCE_EVIDENCE:-}" && \
             -f "${BLACKSITE_COMPLIANCE_EVIDENCE}" ]]; then
-            mkdir -p "${blacksite_upload_root}/artifacts/blacksite-compliance"
+            mkdir -p "${BLACKSITE_UPLOAD_ROOT}/artifacts/blacksite-compliance"
             cp "${BLACKSITE_COMPLIANCE_EVIDENCE}" \
-              "${blacksite_upload_root}/artifacts/blacksite-compliance/blacksite-51-evidence.json"
+              "${BLACKSITE_UPLOAD_ROOT}/artifacts/blacksite-compliance/blacksite-51-evidence.json"
           fi
 
       - name: Upload BlackSite diagnostics
@@ -268,4 +318,4 @@ jobs:
           name: blacksite-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: warn
           retention-days: 30
-          path: ${{ runner.temp }}/blacksite-upload-${{ github.sha }}/**
+          path: ${{ env.BLACKSITE_UPLOAD_ROOT }}/**

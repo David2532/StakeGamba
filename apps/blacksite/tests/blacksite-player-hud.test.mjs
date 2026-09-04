@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const pageUrl = new URL('../src/routes/+page.svelte', import.meta.url);
+const symbolArtUrl = new URL('../src/lib/assets/symbol-art.js', import.meta.url);
 const browserQaUrl = new URL('../../../scripts/blacksite-qa-e2e.mjs', import.meta.url);
 
 async function readSource(url) {
@@ -36,15 +37,17 @@ test('production HUD omits internal greybox and candidate diagnostics', async ()
 
 test('board uses semantic full-name symbols without coordinate or three-letter debug labels', async () => {
 	const source = await readSource(pageUrl);
+	const { SYMBOL_ART } = await import(symbolArtUrl.href);
 
 	for (const label of ['BYTE', 'RELAY', 'PROXY', 'CIPHER', 'DAEMON', 'VAULT']) {
-		assert.match(source, new RegExp(`label: '${label}'`, 'u'));
+		assert.ok(Object.values(SYMBOL_ART).some((symbol) => symbol.label === label));
 	}
 	for (const code of ['BYT', 'RLY', 'PRX', 'CPH', 'DMN', 'VLT']) {
 		assert.equal(source.includes(`'${code}'`), false, `debug symbol code ${code} remains`);
 	}
 	assert.equal(source.includes('<small>{cell.column}{cell.row}</small>'), false);
 	assert.match(source, /data-symbol=\{symbol \?\? ''\}/u);
+	assert.match(source, /<SymbolMark \{symbol\} \/>/u);
 });
 
 test('browser QA reads semantic symbol state and rejects internal player copy', async () => {
@@ -82,7 +85,14 @@ test('authenticate jurisdiction flags guard optional presentation controls and t
 		pageSource,
 		/disabled=\{introBlocking \|\| reducedMotion \|\| turboDisabled \|\| presentationBusy\}/u,
 	);
-	assert.match(pageSource, /disabled=\{slamstopDisabled \|\| !presentationBusy\}/u);
+	assert.match(
+		pageSource,
+		/presentationSkippable = presentationCanSkip\(\{[\s\S]*?slamstopDisabled,[\s\S]*?\}\);/u,
+	);
+	assert.match(
+		pageSource,
+		/data-testid="skip-presentation"[\s\S]*?disabled=\{!presentationSkippable\}/u,
+	);
 	assert.match(
 		pageSource,
 		/showHudRtp =[\s\S]*?launch\.kind === 'fixture'[\s\S]*?launch\.kind === 'replay'[\s\S]*?launch\.kind === 'live'[\s\S]*?liveSnapshot\.config !== null[\s\S]*?displayRTP/u,
@@ -115,7 +125,7 @@ test('Replay uses one exact total-play value for every HUD surface', async () =>
 	);
 	assert.equal((pageSource.match(/data-total-play-surface/gu) ?? []).length, 2);
 	assert.equal(
-		(pageSource.match(/<strong[^>]*>\{visibleTotalAmountText\}<\/strong>/gu) ?? []).length,
+		(pageSource.match(/<strong[^>]*>\s*\{visibleTotalAmountText\}\s*<\/strong/gu) ?? []).length,
 		2,
 	);
 	assert.match(browserSource, /function exactReplayTotalPlaySurfaces/u);

@@ -226,6 +226,10 @@ test('player and exact-package QA bind intro blocking, skip and bypass paths', a
 	assert.match(component, /data-intro-profile=\{state\.profile\}/u);
 	assert.match(component, /data-testid="skip-intro"/u);
 	assert.match(component, />SKIP INTRO</u);
+	assert.match(
+		page,
+		/introState\.status === 'playing'[\s\S]*trapDialogFocus\(event, introDialog\)/u,
+	);
 	assert.match(browserQa, /boot-intro-full-fresh-live/u);
 	assert.match(browserQa, /boot-intro-skip-mobile/u);
 	assert.match(browserQa, /slow-auth-status-visible-before-intro/u);
@@ -236,6 +240,23 @@ test('player and exact-package QA bind intro blocking, skip and bypass paths', a
 		browserQa,
 		/network\.byEndpoint\.authenticate\.length === 1 && paidWriteCount\(network\) === 0/u,
 	);
-	assert.match(browserQa, /authentication resolution starts the eligible intro before enabling play/u);
+	assert.match(
+		browserQa,
+		/authentication resolution starts the eligible intro before enabling play/u,
+	);
 	assert.doesNotMatch(browserQa, /setFocusEmulationEnabled/u);
+	assert.match(browserQa, /fresh-intro-insufficient-focus-skip-and-natural/u);
+	assert.match(browserQa, /mobile intro traps focus while its background is inert/u);
+	assert.match(
+		browserQa,
+		/fresh insufficient-balance intro \$\{completionMode\} focuses the operable amount fallback/u,
+	);
+	assert.match(
+		browserQa,
+		/fresh insufficient-balance intro \$\{completionMode\} releases every inert background/u,
+	);
+	assert.match(
+		browserQa,
+		/boot intro authenticates once and never issues a paid, checkpoint, or settlement write/u,
+	);
 });
