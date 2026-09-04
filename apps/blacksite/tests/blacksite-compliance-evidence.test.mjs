@@ -121,6 +121,8 @@ function fixture() {
 		browserEvidencePath,
 		browserEvidence,
 		evidenceMapPath,
+		repositoryEvidencePath: null,
+		securityEvidencePath: null,
 	};
 }
 
