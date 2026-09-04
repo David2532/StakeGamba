@@ -1,5 +1,42 @@
 # Rolling automation metrics
 
+## BS-20260904-20
+
+```yaml
+started_at_utc: 2026-09-03T23:31:17Z
+closed_at_utc: 2026-09-04T00:02:36Z
+sprint_day: 6
+status: SUCCESS
+direct_subagents: 0
+tool_call_counts: null
+file_read_count: null
+tokens: { input: null, cached_input: null, output: null, total: null, source: not_exposed }
+work_item: BSB-IPHONE-DEMO-CI-001
+expected_red_exact_ci: { run: 33814835895, scenarios_pass: 87, scenarios_fail: 6, checks_pass: 2871, checks_fail: 6, exit: 1 }
+local_frozen_install: PASS
+local_lint: PASS
+local_typecheck: { errors: 0, warnings: 0, status: PASS }
+local_app_tests: { pass: 204, fail: 0, exit: 0 }
+local_build: PASS
+local_scale_self_test: { pass: 35, fail: 0, status: PASS, exit: 0 }
+local_full_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_ci: { run: 33818861870, commit: c4eeb96b4a40611e44ff57505377ea4fa7578088, status: SUCCESS }
+exact_math: { gates: 7, books: 300000, fingerprint: d03fab2727e046eb6a151e579c4852cbb0536415b37028dcb3d2de9c99f278d8, status: PASS }
+exact_browser: { scenarios: 93, passed: 93, checks: 3035, passed_checks: 3035, failed_checks: 0, unexpected_requests: 0, forbidden_requests: 0, page_errors: 0, unclassified_failed_requests: 0 }
+exact_package: { frontend_tree: eb9d20f6487e3f97c2aada04153ed28baa19092a72777ea2af5f35889822348d, files: 6, bytes: 455088, status: PASS }
+exact_resolver: { total: 51, automated_proof_complete: 38, manual_open: 23, external_open: 6, status: PASS }
+artifact: { id: 9917922010, bytes: 59055544, sha256: 80da8ad355d1318a654c0402231ae055ddd5e784407f2895df284ae4980cefd7 }
+manual_visual_review: PASS_BOOT_1920X1080_1366X768_390X844_844X390
+compact_vaultkeeper: { portrait_resource_count: 0, landscape_resource_count: 0, desktop_resource_count: 1, claim: REQUEST_AND_DECODE_AVOIDANCE_ONLY }
+public_demo_reachability: NOT_REVERIFIED_TOOL_ENVIRONMENT_BLOCKED
+million_user_capacity_claim: NOT_CLAIMED_REAL_PRODUCTION_EQUIVALENT_EVIDENCE_ABSENT
+git_diff_check: PASS
+final_diff_review: PASS_QA_AND_MEMORY_ONLY
+manual_identical_retries: 0
+```
+
+Observed categories: targeted policy/source/memory reads; failed exact-run diagnosis and artifact inspection; one QA-only correction; local full gates; connected Git-data fast-forward; exact CI/job/artifact retrieval; five-image manual review; targeted memory patching. One public demo URL probe was blocked by the tool safety filter and was not treated as product failure. Standard HTTPS push authentication failed once and connected Git data provided non-force persistence. A stale package identity was correctly rejected before rebuild; command-wrapper timing lost two session handles, so long math/package verification was resumed with explicit session-aware invocations. No subagents; tokens were not exposed. Stake compliance, mobile performance and AAA visual-QA rules kept exact package evidence, compact request avoidance, visual review, real-device approval and infrastructure capacity as separate claims.
+
 ## BS-20260904-19
 
 ```yaml
