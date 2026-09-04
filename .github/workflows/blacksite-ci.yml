@@ -42,7 +42,6 @@ jobs:
       NODE_OPTIONS: '--max-old-space-size=6144'
       NPM_CONFIG_LOGLEVEL: error
       BLACKSITE_AUDIT_REGISTRY: https://registry.npmjs.org/
-      BLACKSITE_UPLOAD_ROOT: ${{ runner.temp }}/blacksite-upload-${{ github.sha }}
 
     steps:
       - name: Checkout event revision
@@ -99,6 +98,8 @@ jobs:
           esac
           test -z "$(git status --porcelain=v1)"
           mkdir -p "${RUNNER_TEMP}/blacksite-ci"
+          upload_root="${RUNNER_TEMP}/blacksite-upload-${EXPECTED_SHA}"
+          printf 'BLACKSITE_UPLOAD_ROOT=%s\n' "$upload_root" >> "$GITHUB_ENV"
           {
             printf 'event_name=%s\n' "$EVENT_NAME"
             printf 'event_ref=%s\n' "$EVENT_REF"

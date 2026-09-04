@@ -355,7 +355,10 @@ test('CI retains raw audit and normalized exact-SHA security evidence and requir
 	assert.match(workflow, /artifacts\/blacksite-security\/security-evidence\.json/u);
 	const stagingStart = workflow.indexOf('      - name: Stage only current-run artifacts');
 	const uploadStart = workflow.indexOf('      - name: Upload BlackSite diagnostics');
-	assert.ok(stagingStart >= 0 && uploadStart > stagingStart, 'missing bounded artifact staging step');
+	assert.ok(
+		stagingStart >= 0 && uploadStart > stagingStart,
+		'missing bounded artifact staging step',
+	);
 	const stagingStep = workflow.slice(stagingStart, uploadStart);
 	assert.match(stagingStep, /if \[\[ -d artifacts\/blacksite-security \]\]; then/u);
 	assert.match(
@@ -376,7 +379,9 @@ test('CI retains raw audit and normalized exact-SHA security evidence and requir
 		stagingStep,
 		/cp "\$source" "\$\{BLACKSITE_UPLOAD_ROOT\}\/artifacts\/blacksite-security\/"/u,
 	);
-	assert.match(workflow, /BLACKSITE_UPLOAD_ROOT: \$\{\{ runner\.temp \}\}\/blacksite-upload/u);
+	assert.match(workflow, /upload_root="\$\{RUNNER_TEMP\}\/blacksite-upload-\$\{EXPECTED_SHA\}"/u);
+	assert.match(workflow, /printf 'BLACKSITE_UPLOAD_ROOT=%s\\n' "\$upload_root" >> "\$GITHUB_ENV"/u);
+	assert.doesNotMatch(workflow, /BLACKSITE_UPLOAD_ROOT: \$\{\{ runner\.temp \}\}/u);
 	assert.match(workflow, /path: \$\{\{ env\.BLACKSITE_UPLOAD_ROOT \}\}\/\*\*/u);
 	assert.doesNotMatch(workflow, /^\s+artifacts\/blacksite-qa\/\*\*$/mu);
 	for (const trigger of [

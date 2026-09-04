@@ -236,10 +236,9 @@ test('CI packages, verifies and browser-tests the exact extracted BlackSite fron
 	assert.match(releaseBundleStep.body, /--ci-run-id "\$GITHUB_RUN_ID"/u);
 	assert.match(releaseBundleStep.body, /--output "\$\{BLACKSITE_UPLOAD_ROOT\}\/release-bundle"/u);
 	assert.match(stageStep.body, /blacksite-package\/blacksite-candidate-\$\{GITHUB_SHA\}/u);
-	assert.match(
-		workflow,
-		/BLACKSITE_UPLOAD_ROOT: \$\{\{ runner\.temp \}\}\/blacksite-upload-\$\{\{ github\.sha \}\}/u,
-	);
+	assert.match(workflow, /upload_root="\$\{RUNNER_TEMP\}\/blacksite-upload-\$\{EXPECTED_SHA\}"/u);
+	assert.match(workflow, /printf 'BLACKSITE_UPLOAD_ROOT=%s\\n' "\$upload_root" >> "\$GITHUB_ENV"/u);
+	assert.doesNotMatch(workflow, /BLACKSITE_UPLOAD_ROOT: \$\{\{ runner\.temp \}\}/u);
 	assert.match(uploadStep.body, /path: \$\{\{ env\.BLACKSITE_UPLOAD_ROOT \}\}\/\*\*/u);
 	assert.doesNotMatch(workflow, /path:\s+artifacts\//u);
 	assert.doesNotMatch(stageStep.body, /cp\s+-R\s+artifacts\//u);
